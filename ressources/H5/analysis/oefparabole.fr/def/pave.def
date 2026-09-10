@@ -1,0 +1,210 @@
+!set title=Le pavé aux grandes faces
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+val6=$[3*$(tmp0)]
+val7=$[rint(12*$val6)]
+val8=$[rint(16)]
+val9=$[rint(28)]
+val10=$[rint(8)]
+val11=$[rint(3*$val6)]
+val12=$[rint(4*$val11)]
+val13=!rawmath 2*x^2+4*h*x
+val14=$val11-2*x
+val15=!rawmath -6*x^2+$val12*x
+val16=$[rint(6*$val6^2)]
+val17=!rawmath -(x-$val6)^2+$val16
+val18=xrange -4,26	yrange -5,40	linewidth 2		rect 0,0,16,28,black	segment 16,0,24,8,black	segment 0,28,8,36,black	segment 16,28,24,36,black	segment 8,36,24,36,black	segment 24,8,24,36,black	dsegment 0,0,8,8,black	dsegment 8,8,24,8,black	dsegment 8,8,8,36,black		arrow2 -1,0,-1,28,8,black	arrow2 0,-1,16,-1,8,black	arrow2 17,0,25,8,8,black		text black,-3,15,medium,h	text black,8,-2,medium,x	text black,21,4,medium,x	
+val19=xrange -4,26	yrange -4,26	linewidth 2		rect 0,0,16,16,black	segment 16,0,24,8,black	segment 0,16,8,24,black	segment 16,16,24,24,black	segment 8,24,24,24,black	segment 24,8,24,24,black	dsegment 0,0,8,8,black	dsegment 8,8,24,8,black	dsegment 8,8,8,24,black		arrow2 -1,0,-1,16,8,black	arrow2 0,-1,16,-1,8,black	arrow2 17,0,25,8,8,black		text black,-3,9,medium,h	text black,8,-2,medium,x	text black,21,4,medium,x	
+oefsteps=reply1,reply2	reply3,reply4	reply5,reply6 
+nextstep=!nosubst reply1,reply2	reply3,reply4	reply5,reply6 
+!readproc oef/steps.proc
+replytype1=function
+replyname1=Aire totale
+replygood1=!rawmath $val13
+replytype2=function
+replyname2=Longueur totale
+replygood2=?analyze 20
+replytype3=function
+replyname3=\(h=)
+replygood3=!rawmath $val14
+replytype4=function
+replyname4=\(f(x))
+replygood4=!rawmath $val15
+replytype5=numeric
+replyname5=\(x)
+replygood5=$[$val6]
+replytype6=numeric
+replyname6=\(h)
+replygood6=$[$val6]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	  
+!read oef/draw.phtml 210,300 \
+$val18 
+$()	 </div><div class="medium_size text_col">	<ul class="wims_nopuce">	<li>La longueur totale des arêtes d'un parallélépipède rectangle à base carrée (pavé droit) est $val7.</li>	<li>On note 
+!insmath x
+$() la longueur du côté de la base carrée et 
+!insmath h
+$() la hauteur de ce parallélépipède.</li>	<li>On cherche les dimensions 
+!insmath x
+$() et 
+!insmath h
+$() pour lesquelles l'aire totale des 6 faces est maximale.</li>	</ul>	</div>	</div>	
+!if $m_step=1 
+$()	<h2>Étape 1</h2>	<ul class="wims_nopuce">	<li><label for="reply1">Exprime l'aire totale des faces en fonction de 
+!insmath x
+$() et 
+!insmath h
+$().</label>	 
+!read oef/embed.phtml reply 1,15 
+$().</li>	<li><label for="reply2">Exprime la longueur totale des arêtes en fonction de 
+!insmath x
+$() et 
+!insmath h
+$().</label>	 
+!read oef/embed.phtml reply 2,15 
+$()</li>	</ul>	  
+!endif
+$()	
+!if $m_step=2 
+$()	<h2>Étape 2</h2>	<ul>	<li><b> L'aire totale des faces en fonction de 
+!insmath x
+$() et 
+!insmath h
+$() est bien 
+!insmath A=$val13
+$().</li>	<li>Et la longueur totale des arêtes est 
+!insmath $val20=$val7
+$()</b></li>	</ul>	<ul class="wims_nopuce">	<li>Exprime 
+!insmath h
+$() en fonction de 
+!insmath x
+$() pour que la longueur totale des arêtes soit $val7.</li>	<li><label for="reply3">
+!insmath h
+$() =</label>  
+!read oef/embed.phtml reply 3,10 
+$().</li>	<li>Substituer l'expression trouvée pour 
+!insmath h
+$() dans 
+!insmath A
+$() pour obtenir une expression qui dépend seulement de 
+!insmath x
+$().</li>	<li><label for="reply4">
+!insmath A
+$() =</label>  
+!read oef/embed.phtml reply 4,15 
+$().</li>	</ul>	<p>On note cette expression 
+!insmath f(x)
+$().</p>	  
+!endif
+$()	
+!if $m_step=3 
+$()	  <h2>Étape 3</h2>	  <ul>	  <li><b> La longueur totale des arêtes est 
+!insmath $val20=$val7
+$() donc 
+!insmath h=$val14
+$().</li>	  <li>Et l'aire hors enclos est 
+!insmath f(x)=$val15
+$()</b></li>	  </ul>	  <ul class="wims_nopuce">	  <li>Déterminer 
+!insmath x
+$() pour que 
+!insmath $val15
+$() soit maximale.</li>	  <li>Réponse : <label for="reply5">
+!insmath x
+$() =</label>  
+!read oef/embed.phtml reply 5,5 
+$().</li>	  <li>  Puis en déduire la valeur de 
+!insmath h
+$().</li>	  <li><label for="reply6">
+!insmath h
+$() =</label>  
+!read oef/embed.phtml reply 6,5 
+$().  </li>	  </ul>	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p> 
+!read oef/draw.phtml 300,300 \
+$val19 
+$()</p>	<ul class="wims_nopuce">	<li>L'aire totale des faces est 
+!insmath A=$val13
+$() et la longueur totale des arêtes est 
+!insmath $val20=$val7
+$() avec 
+!insmath h=$val14
+$().</li>	<li>Donc 
+!insmath A=f(x)=$val15
+$()</li>	<li>Elle est maximale pour 
+!insmath x=$val6
+$() et 
+!insmath h=$val6
+$().</li>	</ul>	 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,13,14,15,18,19,20
+embedcnt=6

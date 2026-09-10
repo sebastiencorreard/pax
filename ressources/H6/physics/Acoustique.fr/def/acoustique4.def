@@ -1,0 +1,157 @@
+!set title=Acoustique musicale 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6*100)]
+val8=
+!for val9 =1 to 25 
+val8=$val8	segment $val9*100,-3,$val9*100,3,black
+!next
+val8=$val8	arrow 0,0,0,100,10,black	arrow 0,0,2600,0,10,black	text black,450,-2,small,500	text black,950,-2,small,1000	text black,1450,-2,small,1500	text black,1950,-2,small,2000	text black, 2500,-3,small, f(Hz)
+val10=
+!for val11 =1 to 15 
+val10=$val10	segment $val11*10,-1,$val11*10,1,black
+!next
+val10=arrow 0,0,0,9,10,black	arrow -1,0,49,0,10,black	$val10	text black,9,-2,small,10	text black,19,-2,small,20	text black,29,-2,small,30	text black,39,-2,small,40	text black, 45,-3,small, t(ms)
+val12=segment $val7,0,$val7,50,green
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val12	$val8	 
+tmp0=$ins_url
+val13=$(tmp0)
+!readproc oef/draw.phtml 400,200 \
+xrange -1, 50	yrange -10, 10	plotstep 5000	plot red,8*(sin(2*$val7*3.14*x/1000))	$val10	 
+tmp0=$ins_url
+val14=$(tmp0)
+val15=0.25,0.5,0.75,1.25
+tmp0=!shuffle $val15
+
+val16=$(tmp0)
+tmp0=!randint 2, 5
+
+val17=$[rint($(tmp0))]
+val18=$val7
+val19=segment $val7,0,$val7,50,green
+!for val20 =2 to $val17 
+val18=$val18,$val7*$val20
+val19=$val19	segment $val7*$val20,0,$val7*$val20,50*$(val16[$val20]),green
+!next
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val19	$val8	 
+tmp0=$ins_url
+val21=$(tmp0)
+!readproc oef/draw.phtml 400,200 \
+xrange -1, 50	yrange -10, 10	plotstep 5000	plot red,4*(sin(2*$val7*3.14*x/1000)+sin(2*2*$val7*3.14*x/1000))	$val10		 
+tmp0=$ins_url
+val22=$(tmp0)
+val15=0.25,0.5,0.75,1.25
+tmp0=!shuffle $val15
+
+val16=$(tmp0)
+tmp0=!randint 2, 5
+
+val23=$[rint($(tmp0))]
+val18=$val7*2
+val24=segment $val18,0,$val18,50,green
+!for val25 =2 to $val23 
+val18=$val18,$val7*$val25
+val24=$val24	segment $val7*2*$val25,0,$val7*2*$val25,50*$(val16[$val25]),green
+!next
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val24	$val8	 
+tmp0=$ins_url
+val26=$(tmp0)
+!readproc oef/draw.phtml 400,200 \
+xrange -1, 50	yrange -10, 10	plotstep 5000	plot red,4*(sin(2*$val7*2*3.14*x/1000)+sin(2*2*$val7*2*3.14*x/1000))	$val10		 
+tmp0=$ins_url
+val27=$(tmp0)
+val28=segment $val7*2,0,$val7*2,50,green
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val28	$val8	 
+tmp0=$ins_url
+val29=$(tmp0)
+!readproc oef/draw.phtml 400,200 \
+xrange -1, 50	yrange -10, 10	plotstep 5000	plot red,8*(sin(2*$val7*2*3.14*x/1000))	$val10	 
+tmp0=$ins_url
+val30=$(tmp0)
+val31=<img src = "$val13">,<img src = "$val21">,<img src = "$val26">,<img src = "$val29">
+val32=<img src = "$val14">,<img src = "$val22">,<img src = "$val27">,<img src = "$val30">
+replytype1=correspond
+replyoption1=split 
+replyname1=Réponse
+replygood1=$val31;$val32 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On réalise l'acquisition de différents signaux musicaux dont on trace le spectre.</br>	Associer chaque spectre à son signal.</br>	 
+!read oef/embed.phtml reply1, 200 x 400 x 400 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=
+embedcnt=1

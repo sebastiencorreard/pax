@@ -1,0 +1,337 @@
+!set title=Points alignés II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss=<style> .special1 {font-size:x-large;background-color:lightblue;} .special2 {font-size:x-large;background-color:MistyRose;} .nonspecial {} </style> 
+
+ansorder=r
+varcnt=52
+prevarcnt=51
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2!=1 
+val6= wims_question
+!else
+val6=wimscenter special1
+!endif
+
+!ifval $val2!=1 
+val7= wims_question
+!else
+val7=wimscenter special2
+!endif
+val8=L'alignement des points \(A\), \(B\), \(C\) équivaut	  à la colinéarité des vecteurs
+val9=et
+val10=alignés,non alignés
+val11=Composantes de 
+val12=Calculons les composantes des vecteurs
+val13=Les composantes des vecteurs sont proportionnelles,	  donc les points sont alignés.,	  Les composantes des vecteurs ne sont pas proportionnelles,	 donc les points ne sont pas alignés.
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val14[1;])
+val16=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val15]+[$val16])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+val18=$[rint(1)]
+
+!ifval $val18=1
+tmp=!trim  $val16 
+val19=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $(val14[2;])
+val19=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint 2, 5
+
+tmp1=!randitem -1,1
+
+val20=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in print([$val19]*$val20)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val17]+[$val19])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val23=$[rint($(tmp0))]
+!if $(val16[1])=0 and $(val16[2])=0 and $val23=3 
+val23=$[rint(2)]
+!endif
+!if $(val16[1])=0 and $(val16[3])=0 and $val23=2 
+val23=$[rint(1)]
+!endif
+!if $(val16[3])=0 and $(val16[2])=0 and $val23=1 
+val23=$[rint(3)]
+!endif
+!if $val22=1 
+val24=$[rint($(val15[$val23]))]
+tmp0=!replace internal item number $val23 by t in $val15
+
+tmp=!trim $(tmp0)
+val15=!translate internal $	\
+$ to ;; in $tmp
+!else
+!if $val22=2 
+val24=$[rint($(val17[$val23]))]
+tmp0=!replace internal item number $val23 by t in $val17
+
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+!else
+val24=$[rint($(val21[$val23]))]
+tmp0=!replace internal item number $val23 by t in $val21
+
+tmp=!trim $(tmp0)
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!endif
+tmp=!translate ";': to $     $ in $(val17[1])-$(val15[1])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=$(tmp0)
+tmp=!translate ";': to $     $ in $(val17[2])-$(val15[2])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+tmp=!translate ";': to $     $ in $(val17[3])-$(val15[3])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=$(tmp0)
+tmp=!translate ";': to $     $ in $(val21[1])-$(val15[1])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val28=$(tmp0)
+tmp=!translate ";': to $     $ in $(val21[2])-$(val15[2])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val29=$(tmp0)
+tmp=!translate ";': to $     $ in $(val21[3])-$(val15[3])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+!if $val23=1 
+tmp=!translate ";': to $     $ in ($val25)*($val29)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+tmp=!translate ";': to $     $ in ($val26)*($val28)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val32=$(tmp0)
+tmp=!translate ";': to $     $ in ($val25)*($val30)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=$(tmp0)
+tmp=!translate ";': to $     $ in ($val27)*($val28)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val34=$(tmp0)
+!endif
+!if $val23=2 
+tmp=!translate ";': to $     $ in ($val25)*($val29)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+tmp=!translate ";': to $     $ in ($val26)*($val28)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val32=$(tmp0)
+tmp=!translate ";': to $     $ in ($val26)*($val30)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=$(tmp0)
+tmp=!translate ";': to $     $ in ($val27)*($val29)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val34=$(tmp0)
+!endif
+!if $val23=3 
+tmp=!translate ";': to $     $ in ($val25)*($val30)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+tmp=!translate ";': to $     $ in ($val27)*($val28)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val32=$(tmp0)
+tmp=!translate ";': to $     $ in ($val26)*($val30)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=$(tmp0)
+tmp=!translate ";': to $     $ in ($val27)*($val29)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val34=$(tmp0)
+!endif
+
+!ifval $val18=1
+val35= $(val10[1])
+!else
+val35=$(val10[2])
+!endif
+val16=$(val17[1])- ($(val15[1])),$(val17[2])-($(val15[2])),$(val17[3])-($(val15[3]))
+val19=$(val21[1])- ($(val15[1])),$(val21[2])-($(val15[2])),$(val21[3])-($(val15[3]))
+val36=On veut donc :	\($val31 = $val32) et \($val33=$val34), soit \(t=$val24).
+
+!ifval confparm1=1 
+val37= 
+!else
+val37=x-large
+!endif
+replytype1=numeric
+replyname1=
+replygood1=$[$val24]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="$val6">	Les points 
+!insmath A
+$(),
+!insmath B
+$() et 
+!insmath C
+$()	 dont les coordonnées dans un repère donné sont respectivement	<div class="wimscenter">	 
+!insmath A($(val15[1]);$(val15[2]);$(val15[3]))
+$(), 
+!insmath B($(val17[1]);$(val17[2]);$(val17[3]))
+$(), 
+!insmath C($(val21[1]);$(val21[2]);$(val21[3]))
+$()	</div>	</div><div class="$val7">	Déterminer le réel 
+!insmath t
+$() tel que les points soient alignés.	<div>	 Votre réponse : <label for="reply1">Valeur de 
+!insmath t
+$()</label>  
+!read oef/embed.phtml reply1,$val37 
+$().	</div>	</div>				
+$()
+!exit
+
+:hint
+$()$val8	
+!insmath \overrightarrow{A B}
+$() $val9		
+!insmath \overrightarrow{A C}
+$().					
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	$val12 
+!insmath \overrightarrow{A B}
+$() $val9		
+!insmath \overrightarrow{A C}
+$()					:		<ul><li>	$val11 
+!insmath \overrightarrow{A B}
+$(): 
+!insmath \left(\begin{array}{c}$(val17[1])- ($(val15[1])) \\ $(val17[2])-($(val15[2])) \\ $(val17[3])-($(val15[3]))\end{array}\right)
+$() = 
+!insmath \left(\begin{array}{c} $val25 \\ $val26 \\ $val27 \end{array}\right)
+$()<br>	</li><li>	$val11 
+!insmath \overrightarrow{A C}
+$(): 
+!insmath \left(\begin{array}{c}$(val21[1])- ($(val15[1])) \\ $(val21[2])-($(val15[2])) \\ $(val21[3])-($(val15[3]))\end{array}\right)
+$() = 
+!insmath \left(\begin{array}{c} $val28 \\ $val29 \\ $val30 \end{array}\right)
+$()<br>	</li></ul>						$val36	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12,15,17,21,25,26,27,28,29,30,36,37
+embedcnt=1

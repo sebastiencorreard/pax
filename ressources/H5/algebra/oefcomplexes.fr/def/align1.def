@@ -1,0 +1,196 @@
+!set title=Points alignés
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=cyrille.douriez@ac-amiens.fr
+keywords=complex_number
+computeanswer=no
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+
+!ifval ($val11=1)
+val13=$[rint($val10*($val7-$val6)+$val6 )]
+!else
+val13=$[rint( (2-$val12)*($val10*($val7-$val6)+$val6))]
+!endif
+
+!ifval ($val11=1)
+val14=$[rint( $val10*($val9-$val8)+$val8 )]
+!else
+val14=$[rint( ($val12+1)*($val10*($val9-$val8)+$val8))]
+!endif
+t_=!rawmath $val6+$val8*i
+t_=!exec pari print($t_)
+val15=!mathsubst I=i in $t_
+t_=!rawmath $val13+$val14*i
+t_=!exec pari print($t_)
+val16=!mathsubst I=i in $t_
+t_=!rawmath $val7+$val9*i  
+t_=!exec pari print($t_)
+val17=!mathsubst I=i in $t_
+t_=!rawmath ($val13-$val6)+($val14-$val8)*i
+t_=!exec pari print($t_)
+val18=!mathsubst I=i in $t_
+t_=!rawmath ($val7-$val6)+($val9-$val8)*i
+t_=!exec pari print($t_)
+val19=!mathsubst I=i in $t_
+replytype1=menu
+replyname1=A, B et C alignés?
+replygood1=$val11;oui,non,je ne sais pas
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On donne 
+!insmath A
+$() d'affixe 
+!insmath $val15
+$(), 
+!insmath B
+$() d'affixe 
+!insmath $val16
+$() et 
+!insmath C
+$() d'affixe 
+!insmath $val17
+$().	<div class="wims_question"><label for="reply1">	Les points 
+!insmath A
+$(), 
+!insmath B
+$() et 
+!insmath C
+$() sont-ils alignés ?</label>  
+!read oef/embed.phtml r1 
+$()</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Etudions si les vecteurs 
+!insmath \overrightarrow{AB}
+$()  et  
+!insmath \overrightarrow{AC}
+$() sont colinéaires :<br/> 	
+!insmath \overrightarrow{AB}
+$() a pour affixe 
+!insmath z_B-z_A=$val16-($val15)=$val18
+$().<br/> 
+!insmath \overrightarrow{AC}
+$() a pour affixe 
+!insmath z_C-z_A=$val17-($val15)=$val19
+$(). <br/>
+!if $val11=1 
+$()On a  
+!insmath \overrightarrow{AB}
+$()=$val10 
+!insmath \overrightarrow{AC}
+$() donc 
+!insmath \overrightarrow{AB}
+$() et 
+!insmath \overrightarrow{AC}
+$() sont colinéaires et 
+!insmath A
+$(), 
+!insmath B
+$() et 
+!insmath C
+$() sont alignés. 
+!else
+$()	 On n'a pas de coefficient 
+!insmath k
+$() tel que  
+!insmath \overrightarrow{AB}=k \overrightarrow{AC}
+$() donc 
+!insmath \overrightarrow{AB}
+$() et  
+!insmath \overrightarrow{AC}
+$() ne sont pas colinéaires et 
+!insmath A
+$(), 
+!insmath B
+$() et 
+!insmath C
+$() ne sont pas alignés. 
+!endif
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,15,16,17,18,19
+embedcnt=1

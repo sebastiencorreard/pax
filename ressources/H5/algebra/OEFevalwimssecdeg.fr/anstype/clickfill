@@ -1,0 +1,205 @@
+option:align=" " noorder transparent
+
+!! ClickFill generic anstype (also used by Dragfill)
+
+!!!!!!
+!! After changes made, please test these exercices:
+
+!! for dragfill:
+!! *    http://127.0.0.1/wims/wims.cgi?module=H1/geometry/OEFtriang5.fr&exo=demo1&cmd=new
+!!!!!!
+!! for clickfill H5/algebra/OEFevalwimssecdeg.fr (espace)
+good=!singlespace $(replygood$i)
+good=!trim $good
+good=!rows2lines $good
+good=!line 1 of $good
+good=!translate | to $\
+$ in $good
+good=!nonempty lines $good
+replyGood$i=!line 1 of $good
+
+!distribute items $(oef_answer_option$i) into sizeh,sizev,sizei,sizej
+!set rightcolor=#87ceeb
+!set align_option=!getopt align in $(replyoption$i)
+!set align_option=!tolower $align_option
+!bound align_option within left,right,center default center
+
+# padding of each label in px
+!set label_padding=1
+# border width of each label in px
+!set label_border_width=1
+# margin of each label in px
+!set label_margin=1
+
+!set sizegood=!itemcnt $(replyGood$i)
+
+# sizej represent the number of objects per line
+# $sizeh+... represent an object width + its padding+margin+border in px
+!if $sizei=$sizej
+  !! case of 1 line.
+  !set sizerep=!itemcnt $(reply$i)
+  !set container_width_g = $[($sizeh+2*$label_padding+2*$label_border_width+2*$label_margin) * $sizegood]
+  !set container_width_r = $[($sizeh+2*$label_padding+2*$label_border_width+2*$label_margin) * $sizerep]
+!else
+  !set container_width_g = $[($sizeh+2*$label_padding+2*$label_border_width+2*$label_margin) * $sizej]
+  !set container_width_r = $container_width_g
+!endif
+
+!set container_width_g = class="fill_container" style="width:$(container_width_g)px"
+!set container_width_r = class="fill_container" style="width:$(container_width_r)px"
+
+!set label_width=$[$(sizeh) + 2*$label_padding + 2*$label_border_width]
+!set label_height=$[$(sizev) + 2*$label_padding + 2*$label_border_width]
+
+!if $(sizeh)<30 or $(sizev)<30
+  !set label_overflow = overflow:hidden;
+!else
+  !reset label_overflow
+!endif
+
+!reset rGood$i
+!for a=1 to $sizegood
+  rGood$i=$(rGood$i)<div class="drag_label oef_indgood" style="$(label_overflow)justify-content:$align_option;width:$(label_width)px;height:$(label_height)px;">\
+    <div class="drag_content 3" style="text-align:$align_option">$(replyGood$i[$a])</div>\
+  </div>
+!next
+replyGood$i=<div $container_width_g>$(rGood$i)</div>
+
+dd=$(reply$i)
+
+!if r$i notitemof $thisstep
+  !goto nocheck
+!endif
+
+!if $i notitemof $fill_checked
+  fill_checked=!append item $i to $fill_checked
+  dd2=
+  !for d_ in $dd
+    !if $d_ isitemof $fill_check
+      dd2=!append item $d_ to $dd2
+      !if $(replytype$i)=dragfill
+        pos=!positionof item $d_ in $fill_check
+        pos=!item 1 of $pos
+        !if $pos!=$empty
+          fill_check=!replace item number $pos by $ in $fill_check
+        !endif
+      !endif
+    !else
+      !set default_$i=!replace internal &nbsp by &nbsp; in $(default_$i)
+      dd2=!append item $(default_$i) to $dd2
+    !endif
+  !next d_
+  dd=$dd2
+  !if $(replytype$i)=dragfill
+    fill_check=!nonempty items $fill_check
+  !endif
+!endif
+
+:nocheck
+reply$i=$dd
+m_reply$i=$dd
+
+!set style=.drag_label{\
+  padding:$(label_padding)px;\
+  border-width:$(label_border_width)px;\
+  background-color:$rightcolor;\
+}
+
+!if $style notin $oef_anstype_css
+  !set oef_anstype_css=!append line $style to $oef_anstype_css
+!endif
+
+!!reply_$i=!items2words $dd
+!set dd_cnt=!itemcnt $dd
+!set reply_$i=<div $container_width_r>
+!if $wims_read_parm=nocompare
+  !for a=1 to $dd_cnt
+    reply_$i=$(reply_$i)<div\
+      class="drag_label" style="$(label_overflow)justify-content:$align_option;width:$(label_width)px;height:$(label_height)px;">\
+      <div class="drag_content" style="text-align:$align_option">$(dd[$a])</div>\
+      </div>
+  !next
+  reply_$i=$(reply_$i)</div>
+  !exit
+!endif
+
+!if $good=$empty
+  default=!getopt default in $(replyoption$i)
+  good=$default
+  good=!replace internal &nbsp $ by &nbsp; in $good
+!endif
+!if $good=
+  Test=bad $i
+  !exit
+!endif
+
+diag=
+diaratio=-1
+t_=!linecnt $good
+good=!replace internal , $ by , in $good
+dd=!replace internal , $ by , in $dd
+dd=!replace internal &nbsp $ by &nbsp; in $dd
+ddo=!sort items $dd
+!for n=1 to $t_
+  g=!line $n of $good
+  g=!trim $g
+  !if $dd issametext $g
+    diag=yes
+  !endif
+  !if noorder iswordof $(replyoption$i)
+    go=!sort items $g
+    !if $ddo issametext $go
+      diag=yes
+    !else
+      !! more precisely, but will used only if there is only one good answer)
+      !if $t_=1
+        !reset gr
+        !for j=1 to $dd_cnt
+          !if $(dd[$j]) isitemof $g
+            !set gr=!append item oef_indgood to $gr
+          !else
+            !set gr=!append item oef_indbad to $gr
+          !endif
+        !next j
+      !endif
+    !endif
+  !endif
+  !if $diag notwordof yes and (split iswordof $(replyoption$i) or partialscore iswordof $(replyoption$i))
+    !! nombre de reponses
+    poscnt1=!itemcnt $ddo
+    lint=!listintersect $ddo and $go
+    !! nombre de bonnes reponses
+    poscnt2=!itemcnt $lint
+    !! nombre demande de bonnes reponses
+    poscnt3=!itemcnt $go
+    !if eqweight iswordof $(replyoption$i)
+      diaratio_=$[2*$poscnt2 - $poscnt1]
+    !else
+      diaratio_=$[3*$poscnt2 - 2*$poscnt1]
+    !endif
+    !if $diaratio_ > 0
+      diaratio=$[max($diaratio,$[$diaratio_/max($poscnt3,1)])]
+    !endif
+  !endif split
+!next n
+
+!for a=1 to $dd_cnt
+  reply_$i=$(reply_$i)<div\
+    class="drag_label $(gr[$a])" style="$(label_overflow)justify-content:$align_option;width:$(label_width)px;height:$(label_height)px;">\
+      <div class="drag_content" style="text-align:$align_option">$(dd[$a])</div>\
+    </div>
+!next
+reply_$i=$(reply_$i)</div>
+
+!if $diag=yes
+  diareply$i=good
+  !advance freegot
+!else
+  !if $diaratio > 0 and (split iswordof $(replyoption$i) or partialscore iswordof $(replyoption$i))
+    diareply$i=good
+    partialgood$i=yes
+    freegot=$[$freegot+ max(0,$diaratio)]
+  !else
+    diareply$i=bad
+  !endif
+!endif

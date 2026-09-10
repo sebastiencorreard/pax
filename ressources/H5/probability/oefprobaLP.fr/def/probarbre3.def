@@ -1,0 +1,227 @@
+!set title=Arbre et probabilités 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+tmp0=!randint 2, 8
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val6-1)]
+val9=$[rint($val7-1)]
+val10=$[rint(($val6 + $val7))]
+val11=$[rint($val10-1)]
+t_=!rawmath ($val6*$val8)/($val10*$val11)
+val12=!exec pari print($t_)
+t_=!rawmath ($val6*$val7)/($val10*$val11)
+val13=!exec pari print($t_)
+t_=!rawmath ($val7*$val6)/($val10*$val11)
+val14=!exec pari print($t_)
+t_=!rawmath ($val7*$val9)/($val10*$val11)
+val15=!exec pari print($t_)
+val16=arbre1.GIF
+val17=$[rint(10)]
+val18=$[rint(3)]
+val19=70,20
+val20=black
+val21=clickfill
+t_=!replace internal \( by ( in $val6/$val10
+tmp0=!exec pari $t_
+
+t_=!replace internal \( by ( in $val7/$val10
+tmp1=!exec pari $t_
+
+t_=!replace internal \( by ( in $val8/$val11
+tmp2=!exec pari $t_
+
+t_=!replace internal \( by ( in $val7/$val11
+tmp3=!exec pari $t_
+
+t_=!replace internal \( by ( in $val6/$val11
+tmp4=!exec pari $t_
+
+t_=!replace internal \( by ( in $val9/$val11
+tmp5=!exec pari $t_
+
+tmp=!trim 502,217	$(tmp0),39,51,65,77	$(tmp1),39,162,65,139	$(tmp2),253,18,283,42	$(tmp3),253,91,283,78	$(tmp4),253,121,283,139	$(tmp5),253,192,283,179	$val12,500,29,457,29	$val13,500,88,457,88	$val14,500,132,457,132	$val15,500,188,457,188
+val22=!translate internal $	\
+$ to ;; in $tmp
+val23=$(val22[1;])
+val24=$(val22[2..-1;])
+tmp=!translate internal $	$ to ; in $val24
+
+tmp0=!rowcnt $tmp
+val25=$[rint($(tmp0))]
+tmp=!trim $val24
+val24=!translate internal $	\
+$ to ;; in $tmp
+val17=$[rint(min($val17,$val25))]
+val26=$(val19[1])
+val27=$(val19[2])
+val28=
+tmp0=!shuffle $val25
+
+val29=$(tmp0)
+val30=$[rint(max(0,min($val18,$val25-$val17)))]
+val31=$(val29[1..$val17])
+val32=copy 0,0,-1,-1,-1,-1,$val16
+!for val33  =1 to $val17 
+val32=$val32	arrow $(val24[$(val31[$val33]);2]),$(val24[$(val31[$val33]);3]),$(val24[$(val31[$val33]);4]),$(val24[$(val31[$val33]);5]),20,$val20
+val34=$(val24[$(val31[$val33]);2,3])
+
+!ifval $(val24[$(val31[$val33]);2]) < $(val24[$(val31[$val33]);4]) 
+t_=!replace internal \( by ( in [$val34] - [$val26,$val27/2]
+tmp0=!exec pari $t_
+
+val34= $(tmp0)
+!else
+t_=!replace internal \( by ( in [$val34] - [0,$val27/2]
+tmp1=!exec pari $t_
+
+val34=	     $(tmp1)
+!endif
+val28=$val28	r $val33,$(val34[1]) x $(val34[2])
+!next
+!readproc oef/draw.phtml $val23 \
+$val32 
+tmp0=$ins_url
+val35=$(tmp0)
+
+!ifval $val30 >0
+val36= $(val24[$(val29[$val17+1..$val17+$val30]);1])
+!else
+val36=
+!endif
+tmp0=!makelist r x for x=1 to $val17+1
+
+val37=$(tmp0)
+tmp0=!randint 1, 4
+
+val38=$[rint($(tmp0))]
+val39=tirer 2 boules noires de suite, tirer une boule rouge puis une boule noire, tirer deux boules rouges de suite, tirer une boule rouge et une boule noire dans n'importe quel ordre
+t_=!replace internal \( by ( in $val13 + $val14
+tmp0=!exec pari $t_
+
+val40=$val15, $val13, $val12, $(tmp0) 
+oefsteps=$val37 
+nextstep=!nosubst $val37 
+!readproc oef/steps.proc
+replytype1=$val21
+
+replyname1=
+replygood1=$(val24[$(val31[1]);1])
+replytype2=$val21
+
+replyname2=
+replygood2=$(val24[$(val31[2]);1])
+replytype3=$val21
+
+replyname3=
+replygood3=$(val24[$(val31[3]);1])
+replytype4=$val21
+
+replyname4=
+replygood4=$(val24[$(val31[4]);1])
+replytype5=$val21
+
+replyname5=
+replygood5=$(val24[$(val31[5]);1])
+replytype6=$val21
+
+replyname6=
+replygood6=$(val24[$(val31[6]);1])
+replytype7=$val21
+
+replyname7=
+replygood7=$(val24[$(val31[7]);1])
+replytype8=$val21
+
+replyname8=
+replygood8=$(val24[$(val31[8]);1])
+replytype9=$val21
+
+replyname9=
+replygood9=$(val24[$(val31[9]);1])
+replytype10=$val21
+
+replyname10=
+replygood10=$(val24[$(val31[10]);1])
+replytype11=formal
+replyname11=
+replygood11=$(val40[$val38])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$m_instruction	<span class="wims_emph">Problématique : Quelle est la probabilité de $(val39[$val38]) ? </span>	<div class="larger">Une urne est composées de $val6 boules rouges et de $val7 boules noires.<br>	On tire une première boule, on ne la repose pas dans l'urne, on tire une seconde boule. <br>	Placer les probabilités aux bons endroits. </div>	<div class="wims_instruction">Toutes les probabilités seront données sous forme de fraction.</div>	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val35,$(val23[1]) x $(val23[2]),$val26 x $val27	$val28 
+$()	</div>	<span class="bold">Conclusion : </span>la probabilité de $(val39[$val38]) est  
+!read oef/embed.phtml reply11,5 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,23,26,27,28,35,38,39
+embedcnt=2

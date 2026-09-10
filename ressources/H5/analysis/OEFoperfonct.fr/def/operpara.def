@@ -1,0 +1,174 @@
+!set title=Opérations sur paraboles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+
+ansorder=r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+val7=xrange -2,2	yrange -2.5,2.5	gridfill 0,0,5,5,$val6	linewidth 3	vline 1,0,$val6	vline 2,0,$val6	vline -1,0,$val6	vline -2,0,$val6	hline 0,1,$val6	hline 0,2,$val6	hline 0,-1,$val6	hline 0,-2,$val6	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	
+tmp0=!randitem -1/2,-1,1,1/2
+
+val8=$(tmp0)
+tmp0=!randitem -1,-1/2,1/2,1
+
+val9=$(tmp0)
+tmp0=!randitem -1,-1/2,-2,1/2,2,1
+
+val10=$(tmp0)
+tmp0=!randitem -1,-1/2,1/2,3/4
+
+val11=$(tmp0)
+val12=
+val13=
+val14=\($val10*(x-$val8)^2+$val9)
+val15=\($val10*(x+$val11-$val8)^2+$val9)
+val16=\(f(x+$val11))
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+val15=\($val10*(x-$val11-$val8)^2+$val9)
+val16=\(f(x-$val11))
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+val15=\($val10*(x-$val8)^2+$val9+$val11)
+val16=\(f(x)+$val11)
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+val15=\($val11*($val10*(x-$val8)^2+$val9))
+val16=\($val11*f(x))
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+tmp0=!shuffle red,blue,orange,green
+
+val17=$(tmp0)
+val18=160
+val19=
+!for val20 =1 to 4 
+!readproc oef/draw.phtml $val18,$val18 \
+    $val7	    plot $(val17[$val20]),$(val12[$val20])	     
+tmp0=$ins_url
+val21=<img src=	    "$(tmp0)"	    width="$val18"	    height="$val18"	    alt=""	   >	    
+tmp0=!append item $val21 to $val19
+
+val19=$(tmp0)
+!next
+!readproc oef/draw.phtml $val18,$val18 \
+    $val7	    plot black,$val14	     
+tmp0=$ins_url
+val22=<img src=	    "$(tmp0)"	    width="$val18"	    height="$val18"	    alt=""	   >	    
+val23=$val18 x$val18 x$val18
+replytype1=correspond
+replyname1=Correspondance graphe/fonction
+replygood1=$val19;$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 <p>	      Dans le plan muni d'un repère orthonormé 
+!insmath \left(O,\overrightarrow{i},\overrightarrow{j}\right)
+$(), on a tracé le graphe	      de la fonction 
+!insmath f 
+$() définie sur 
+!insmath \,\RR 
+$() par 
+!insmath f(x)
+$()= $val14 :</p>	<div class="wimscenter"> $val22 </div>	<p> Associez à chacune des fonctions ci-contre, son graphe.	</p>	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val23 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()On obtient, à partir de la courbe représentative de la fonction 
+!insmath f
+$(), celle des fonctions:	<p> 
+!insmath g(x)=f(x+a)
+$(): par translation de vecteur 
+!insmath -a\vec(i)
+$()</p>	<ul><li>si a > 0, on décale horizontalement vers la gauche</li>	<li> si a < 0, on décale horizontalement vers la droite </li>	</ul>	<p> 
+!insmath h(x)=f(x)+a
+$(): par translation de vecteur 
+!insmath a\vec(j)
+$()</p>	<ul><li>si a > 0, on décale verticalement vers le haut	</li><li>si a < 0, on décale verticalement vers le bas	</li></ul>	<p> 
+!insmath k(x)=a*f(x)
+$(): par dilatation verticale de coefficient a:</p>	<ul>	<li>si 0 < a < 1, rétrécissement vertical: moins grande amplitude du signal	</li><li>si a > 1, agrandissement vertical: plus grande amplitude du signal	</li><li>si a < 0, attention:	 on trace 
+!insmath k_1(x)=-a*f(x)
+$() puis on symétrise par rapport à (O x)	</li></ul>	<p> 
+!insmath k(x)=f(a*x)
+$(): par dilatation horizontale de coefficient a</p>	<ul><li>si 0 < a < 1, rétrécissement horizontal: plus petite période du signal	</li><li>si a > 1, agrandissement horizontal: plus grande période du signal	</li><li>si a < 0, attention:	 on trace 
+!insmath k_1(x)=-a*f(x)
+$() puis on symétrise par rapport à (O x)	</li></ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,22,23
+embedcnt=1

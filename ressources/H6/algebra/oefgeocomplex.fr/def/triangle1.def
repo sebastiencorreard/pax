@@ -1,0 +1,177 @@
+!set title=Triangle isocèle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=chantal.causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 9
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+
+!ifval $val8=$val6 and $val9=$val7
+val9=$[rint( $val9+1)]
+!endif
+val10=$[rint($val8-$val6)]
+val11=$[rint($val9-$val7)]
+tmp0=!randint 1, 35
+
+val12=$[rint(5*$(tmp0))]
+val13=$[$val12*pi/180]
+val14=$[$val6+(cos($val13))*($val10)+(sin($val13))*($val11)]
+val15=$[$val6+(cos($val13))*($val10)-(sin($val13))*($val11)]
+val16=$[$val7+(cos($val13))*($val11)-(sin($val13))* ($val10)]
+val17=$[$val7+(cos($val13))*($val11)+(sin($val13))*($val10)]
+t_=!rawmath $val6 + ($val7)*i
+t_=!exec pari print($t_)
+val18=!mathsubst I=i in $t_
+t_=!rawmath $val8 + ($val9)*i
+t_=!exec pari print($t_)
+val19=!mathsubst I=i in $t_
+t_=!rawmath $val15 + ($val17)*i
+t_=!exec pari print($t_)
+val20=!mathsubst I=i in $t_
+t_=!rawmath $val14+($val16)*i
+t_=!exec pari print($t_)
+val21=!mathsubst I=i in $t_
+replytype1=default
+replyname1=\(Re(z))
+replygood1=?analyze 22
+replytype2=default
+replyname2=\(Im(z))
+replygood2=?analyze 23
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Si 
+!insmath A
+$() et 
+!insmath B
+$() sont des points du plan d'affixe 
+!insmath $val18
+$() et 
+!insmath $val19
+$(),	trouver l'affixe d'un point 
+!insmath M
+$() tel que le triangle 
+!insmath A B M
+$() soit isocèle en	
+!insmath A
+$() et d'angle 
+!insmath \widehat{B A M}
+$() égal à $val12 degrés.	
+$()
+!exit
+
+:hint
+$()
+!insmath M
+$() est l'image de 
+!insmath B
+$() par une rotation. Laquelle ?
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath M
+$() est l'image de 
+!insmath B
+$() par la rotation de centre 
+!insmath A
+$() et d'angle + $val12 °	ou par la rotation de centre 
+!insmath A
+$() et d'angle - $val12 °.	 L'affixe de 
+!insmath M
+$() se trouve donc par la formule	<p class="wimscenter">
+!insmath  z - ($val18)
+$() = 
+!insmath (\cos($val12 &deg;)	+ i\sin($val12 &deg;))
+$()$m_times 
+!insmath (($val19) - ($val18))
+$().	</p>	ou bien	<p class="wimscenter">
+!insmath  z - ($val18)
+$() = 
+!insmath (\cos(-$val12 &deg;)	+ i\sin(-$val12 &deg;))
+$()$m_times 
+!insmath (($val19) - ($val18))
+$().	</p>	Ce qui donne 
+!insmath z = $val20
+$() ou 
+!insmath z = $val21
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val22=$val14 and $val23=$val16) or ($val23=$val17 and $val22=$val15)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(z = $val22 + $val23 *i)
+
+!exit
+
+:stat
+vsavelist=12,14,15,16,17,18,19,20,21,22,23
+embedcnt=0

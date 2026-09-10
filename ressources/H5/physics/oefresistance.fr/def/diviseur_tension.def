@@ -1,0 +1,144 @@
+!set title=Diviseur de tension
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Romain, Minne
+email=romain.minne@wanadoo.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+tmp0=!randint 1, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val7+$val8)]
+tmp0=!randint 20, 100
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 20, 100
+
+val11=$[rint($(tmp0))]
+tmp0=!random 1, 10
+
+val12=$[$(tmp0)]
+val13=$[round($val12*100)/100]
+val14=$[$val13*$val11/($val10+$val11)]
+val15=$[round($val14*10)/10]
+!readproc slib/circuits/draw 3/div1,20,black,res2 R1,res2 R2, 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=\(Us=Ug*(R$val9)/(R$val7+R$val9)),\(Ug=Us*(R$val7)/(R$val9+R$val7)),\(Us=Ug*(R$val7)/(R$val7+R$val9)),\(Ug=Us*(R$val7)/(R$val8+R$val9))
+val18=$val17 
+tmp0=!itemcnt $val18
+
+val19=$(tmp0) 
+tmp0=!shuffle $val19
+
+val20=$(tmp0) 
+tmp=!trim $(val18[$val20]) 
+val18=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!positionof item 1 in $val20
+
+val21=$(tmp0) 
+val22=1
+oefsteps=r1	r2 
+nextstep=!nosubst r1	r2 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=la bonne réponse est
+replygood1=$val21;$val18
+replytype2=units
+replyname2=Us
+replygood2=$val15 V
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Un élève réalise le montage suivant :	 
+!read oef/draw.phtml 200,200 \
+	new 300,220	xrange -4,8	yrange 0,11	transparent white	linewidth 7	points black,2,1,2,6	linewidth 1	polyline black,-1,10,2,10,2,9	polyline black,2,7,2,5,2,6,4,6	segment 5.5,1,-1,1,black	segment 2,1,2,3,black	trange 0,1	affine 0,-(1),1,0,2,8	parallel -1,0,-0.75,0,1.75,0,2,black	rectangle -0.75,-0.5,0.75,0.6,black	affine 0,-1,1,0,2,8	killaffine	text black,2.25,9.5,large," R$val7 = $val10 ohms"	affine 0,-(1),1,0,2,4	parallel -1,0,-0.75,0,1.75,0,2,black	rectangle -0.75,-0.5,0.75,0.6,black	affine 0,-1,1,0,2,4	killaffine	text black,2.5,3,large," R$val9 = $val11 ohms"	killaffine	text black,-3.5,5.5,large,"Ug = $val13 V"	text black,5.5,4.5,large,"Us"	arrow 0,1,0,10,8, black	arrow 5,1,5,6,8, black 
+$()	<br>	
+!if $m_step=1 
+$()	Choisir l'expression littérale du diviseur de tension liant Us	aux autres grandeurs&nbsp;:	<br>	 
+!read oef/embed.phtml  reply 1  
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()	Calculer la valeur de la tension de sortie:	 
+!read oef/embed.phtml  reply 2  
+$()	 
+!endif
+$()	
+!if $val6=0 
+$()	<h3>soluce mode</h3>	La réponse est $(val18[$val21])	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,13,18,21
+embedcnt=2

@@ -1,0 +1,178 @@
+!set title=Variable aléatoire, loi de probabilité 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Donner les valeurs exactes.
+val7=premier,deuxième,troisième,quatrième,cinquième
+tmp0=!randitem 4,5
+
+val8=$[rint($(tmp0))]
+
+!ifval $val8=4
+val9=1,2,3,4
+!else
+val9=1,2,3,4,5
+!endif
+
+!ifval $val8=4
+val10=G,FG,FFG,FFFG,FFFF
+!else
+val10=G,FG,FFG,FFFG,FFFFG,FFFFF
+!endif
+val11=$[rint(0)]
+!for val12 =1 to $val8 
+val11=$[rint($val11+$val12)]
+!next
+t_=!rawmath $val11/$val8
+val11=!exec pari print($t_)
+
+!ifval $val8=4
+val13=1/2,1/4,1/8,1/8
+!else
+val13=1/2,1/4,1/8,1/16,1/16
+!endif
+val14=$[rint(0)]
+!for val12 =1 to $val8 
+t_=!rawmath $val14+$val12*$(val13[$val12])
+val14=!exec pari print($t_)
+!next
+val15=1,2,3,4,5
+val16=r1,r2,r3,r4,r5,r6
+
+!ifval $val8=5
+val16=$val16,r7
+!endif
+oefsteps=$val16 
+nextstep=!nosubst $val16 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=\(E(X)\) sur \(Omega_1\)
+replygood1=$val11
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=\(E(X)\) sur \(Omega_2\)
+replygood2=$val14
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=\(P(X=1)\)
+replygood3=$(val13[1])
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=\(P(X=2)\)
+replygood4=$(val13[2])
+replytype5=numexp
+replyoption5=noreduction 
+replyname5=\(P(X=3)\)
+replygood5=$(val13[3])
+replytype6=numexp
+replyoption6=noreduction 
+replyname6=\(P(X=4)\)
+replygood6=$(val13[4])
+replytype7=numexp
+replyoption7=noreduction 
+replyname7=\(P(X=5)\)
+replygood7=$(val13[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Dans un pays imaginaire, une loi décide que chaque famille s'arrête	 de procréer dès qu'elle a eu un garçon (G) et qu'elle continue sinon,	 en s'arrêtant de toute façon au $(val7[$val8]) enfant.</p><p>	 On note 
+!insmath X
+$() le nombre d'enfants par famille, on code par G et F	la naissance d'un garçon et d'une fille.</p>	On suppose que la loi de 
+!insmath X
+$() est équirépartie sur l'ensemble des issues 
+!insmath \Omega_1=\{$val9 \}
+$().	<div class="wims_question">	 Calculer 
+!insmath E(X)
+$().	<div class="wimscenter"><label for="reply1"> 
+!insmath E(X)=
+$()</label>  
+!read oef/embed.phtml reply1,4 
+$()</div>	</div>	On suppose maintenant qu'il y a à chaque naissance autant de chance	 d'avoir un garçon qu'une fille.	<div class="wims_question">	 En considérant l'ensemble 
+!insmath \Omega_2=\{$val10\}
+$() des issues	 possibles, déterminer la loi de probabilité de 
+!insmath X
+$() et son espérance mathématique.	<table class="wimsborder wimscenter">	<tr><th> 
+!insmath x
+$() </th>	 
+!for m_j=3 to $val8+2 
+$()	<td>$(val15[$m_j-2])</td>	 
+!next
+$()	</tr><tr><th>
+!insmath P(X=x)
+$()</th>	 
+!for m_j=3 to $val8+2 
+$()	<td> 
+!read oef/embed.phtml reply\j,4 
+$()</td>	 
+!next
+$()	</tr></table>	<div class="wimscenter"> <label for="reply1">
+!insmath E(X)=
+$()</label>  
+!read oef/embed.phtml reply2,3 
+$()</div>	<div class="wims_instruction">$val6</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,15
+embedcnt=3

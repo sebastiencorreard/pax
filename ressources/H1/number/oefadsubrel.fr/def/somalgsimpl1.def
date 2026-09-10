@@ -1,0 +1,174 @@
+!set title=Calcul d'une somme algébrique (guidé) #
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem +,-
+
+val6=$(tmp0)
+tmp0=!shuffle 20
+
+val7=$(tmp0)
+!if $val6=+ 
+val8=$[rint($(val7[1]))]
+val9=$(val7[1])
+val10=$[rint(0)]
+val11=$(val7[1])
+!endif
+!if $val6=- 
+val10=$[rint(-$(val7[1]))]
+val9=-$(val7[1])
+val8=$[rint(0)]
+val12=$(val7[1])
+!endif
+tmp0=!randitem +,-
+
+tmp1=!randitem +,-
+
+val13=+,-,$(tmp0),$(tmp1)
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+!for val14 =1 to 4 
+val9=$val9,$(val13[$val14])$(val7[$val14+1])
+!if $(val13[$val14])=+ 
+val8=$[rint($val8+$(val7[$val14+1]))]
+val11=$val11,$(val7[$val14+1])
+!endif
+!if $(val13[$val14])=- 
+val10=$[rint($val10-$(val7[$val14+1]))]
+val12=$val12,$(val7[$val14+1])
+!endif
+!next
+val15=$[$(val9[1])+$(val9[2])+$(val9[3])+$(val9[4])+$(val9[5])]
+tmp0=!nonempty item $val11
+
+val11=$(tmp0)
+tmp0=!nonempty item $val12
+
+val12=$(tmp0)
+tmp0=!replace internal , by + in $val11
+
+val11=$(tmp0)
+tmp0=!replace internal , by - in $val12
+
+val12=$(tmp0)
+val16=r1,r2	r3
+dynsteps=yes
+oefsteps=$val16 
+nextstep=!nosubst $val16 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=Somme des nombres positifs
+replygood1=$val8
+replytype2=numexp
+replyname2=Somme des nombres négatifs
+replygood2=$val10
+replytype3=numexp
+replyname3=
+replygood3=$val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  Pour calculer une somme algébrique en écriture simplifiée, on peut effectuer la somme des nombres positifs et la somme des nombres négatifs puis on conclut.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On veut calculer l'expression&nbsp;:	<p>
+!insmath A= $(val9[1]) $(val13[1]) $(val7[2]) $(val13[2]) $(val7[3]) $(val13[3]) $(val7[4]) $(val13[$m_4]) $(val7[5])
+$()</p>	
+!if $m_step=1 
+$()On commence par faire la somme des nombres positifs et la somme des nombres négatifs.	<p>
+!insmath A=$val11 \minus $val12
+$()</p>	<ul><li><label for="reply1">La somme des nombres positifs est </label> 
+!read oef/embed.phtml r1,4 
+$().</li>	<li><label for="reply2">La somme des nombres négatifs est </label> 
+!read oef/embed.phtml r2,4 
+$().</li></ul> 
+!endif
+$()	
+!if $m_step=2 
+$()
+!insmath A= $val8 $val10
+$()	<p>On conclut&nbsp;:</p>	<label for="reply3">
+!insmath A=
+$()</label> 
+!read oef/embed.phtml r3,5 
+$(). 
+!endif
+$()
+$()
+!exit
+
+:hint
+$() Pour calculer une somme algébrique en écriture simplifiée, on peut effectuer la somme des nombres positifs et la somme des nombres négatifs puis on conclut.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath A= $(val9[1]) $(val13[1]) $(val7[2]) $(val13[2]) $(val7[3]) $(val13[3]) $(val7[4]) $(val13[$m_4]) $(val7[5])
+$()	<p>On regroupe les nombres positifs et les nombres négatifs.</p>	
+!insmath A=$val11 \minus $val12
+$()	<p>
+!insmath A=$val8 $val10
+$()</p>	
+!insmath A=$val15
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,15
+embedcnt=3

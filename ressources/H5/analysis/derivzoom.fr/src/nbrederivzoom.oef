@@ -1,0 +1,54 @@
+\title{Nombre dérivé avec un zoom.}
+
+\language{fr}
+\range{-5..5}
+\author{Paul, Byache}
+\email{paul@byache.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\integer{a=(-1)*randint(1..2)}
+\integer{b=(-1)*randint(1..3)}
+\real{x=(-1)^randint(1..2)*randint(1..9)/10+randint(0..1)}
+\real{xh=\x+0.005}
+
+\text{f=(x)^3+(\a)*(x)^2+(\b)*(x)+1}
+\real{fx=wims(evalsubst x=\x in \f)}
+\real{fxh=wims(evalsubst x=\xh in \f)}
+\text{f=simplify(\f)}
+\integer{m=(\fxh-\fx)/(\xh-\x)*10}
+\real{m=\m/10}
+\real{p=\fx-(\m)*(\x)}
+
+\text{good=simplify(\m*x+(\p))}
+\text{good=y=\good}
+
+\text{A=slib(geo2D/jsxgraph jsxbox,
+300 x 300,
+var brd = JXG.JSXGraph.initBoard('jsxbox', {boundingbox:[\x-5,\fx+5,\x+5,\fx-5], axis:true, grid:true});
+p1 = brd.create('functiongraph',[function(x){ return x*x*x+(\a)*x*x+(\b)*x+1;}, -10,10] );
+p2 = brd.create('point', [\x,\fx],{face:'x',size:2,fixed:true,infoboxDigits:5});
+p3 = brd.create('point', [\xh,\fxh],{face:'x',size:2,fixed:true,infoboxDigits:5});)}
+
+\text{var=\m<0 ?descend : monte}
+\text{sign=\m<0 ?négatif: positif}
+
+\statement{
+<div class="float_right">\A</div>
+Voici la courbe d'une fonction \(f).
+<br>Le point A d'abscisse \x est dessiné en rouge.
+Vous pouvez zoomer sur la courbe (bouton <span class="tt">+</span> en bas de l'image) et
+voir qu'elle porte deux points A et B très proches l'un de l'autre.
+<br>Les coordonnées de ces deux points sont visibles si on clique sur eux.
+<p>Quel est le nombre dérivé de la fonction en \(x=\x)?</p>
+<div class="wimscenter">Le nombre dérivé est \embed{r1}.</div>
+<div class="wims_instruction">Donner une valeur arrondie au dixième.</div>
+}
+\answer{}{\m}{type=numeric}{option=absolute}
+
+\feedback{\reply1*\m<0}{Ici, la courbe "\var" au voisinage du point A : le nombre dérivé
+devait donc forcément être \sign ! }
+\solution{Comme après avoir zoomé fortement la courbe est "presque" une droite,
+on peut utiliser (de façon approchée) la formule pour le coefficient directeur des droites :
+\(m=(y_B-y_A)/(x_B-x_A))}

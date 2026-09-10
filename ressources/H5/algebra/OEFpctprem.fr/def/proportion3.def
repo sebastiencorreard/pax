@@ -1,0 +1,112 @@
+!set title=Proportion 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=un tiers,1/3,	deux tiers,2/3,	un quart,1/4,	trois quarts,3/4,	un cinquième,1/5,	deux cinquièmes,2/5,	trois cinquièmes,3/5,	quatre cinquièmes,4/5,	un sixième,1/6,	cinq sixièmes,5/6,	deux septièmes,2/7,	cinq septièmes,5/7,	un neuvième,1/9
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+val8=$(val7[1])
+val9=$(val7[2])
+tmp0=!replace internal / by , in $val9
+
+val10=$(tmp0)
+
+!ifval $(val10[1])=1
+val11=$(val10[1]) livre sur $(val10[2])
+!else
+val11=$(val10[1]) livres sur $(val10[2])
+!endif
+t_=!rawmath 1-$(val10[1])/$(val10[2])
+val12=!exec pari print($t_)
+tmp0=!randint 5, 10
+
+val13=$[rint($(tmp0)*$(val10[2]))]
+val14=$[rint($val13*(1-$val9))]
+val15=$[rint($val13-$val14)]
+replytype1=numeric
+replyname1=filles
+replygood1=$[$val15]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>		  Dans un groupe, la proportion de filles est de $val8 et il y a $val14 garçons.	</p>	  Combien y a-t-il de filles ?	  <div>	  <label for="reply1">Réponse :</label>  
+!read oef/embed.phtml reply1 
+$().	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La proportion de garçons est de 
+!insmath 1 - \frac{$(val10[1])}{$(val10[2])}=$val12
+$()<br>	  Comme il y a $val14 garçons, le total vaut 
+!insmath \frac{$val14}{$val12}=$val13
+$()<br>	  Il y a donc 
+!insmath $val13 - $val14=$val15
+$() filles
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,12,13,14,15
+embedcnt=1

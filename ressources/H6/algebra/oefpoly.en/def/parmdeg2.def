@@ -1,0 +1,150 @@
+!set title=Parametrized deg 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=c,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 1, 10
+
+tmp1=!randitem -2,2
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem -2,2
+
+val8=$[rint($(tmp0)*$(tmp1)+1)]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -2,2
+
+val9=$[rint($(tmp0)*$(tmp1))]
+val10=$[rint(-($val7))]
+
+!ifval $val7>0
+val11=+$val7
+!else
+val11=$val7
+!endif
+
+!ifval $val8>0
+val12=+$val8
+!else
+val12=$val8
+!endif
+
+!ifval $val9>0
+val13=+$val9
+!else
+val13=$val9
+!endif
+val14=$[$val8-$val7-$val9]
+tmp0=!randitem 1,2,3
+
+val15=$[rint($(tmp0))]
+
+!ifval $val14>0
+tmp0=!item $val15 of m&gt;c,m&lt;c,m=c
+
+val16=$(tmp0)
+!endif
+
+!ifval $val14<0
+tmp0=!item $val15 of m&lt;c,m&gt;c,m=c
+
+val16=$(tmp0)
+!endif
+val17=$[-0.25*(($val8)^2-4*($val7)*($val9))/($val14)]
+val18=two simple real roots,	 two conjugated complex roots,	 one double root
+val19=For which real values of the parameter,the polynomial,has
+val20=The condition
+val21=Where
+tmp0=!item $val15 of $val18
+
+val22=$(tmp0)
+replyname1=$val21 \(c\)
+replygood1=$val17
+choicename1=$val20
+choicegood1=$val16
+choicebad1=m&gt;c,m&lt;c,m=c
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val19[1]) 
+!insmath m
+$() $(val19[2])	<div class="wimscenter">	
+!insmath (m$val11)X^2 + (2m$val12)X + m$val13
+$()	</div>	$(val19[3]) $val22&nbsp;? (
+!insmath m \ne $val10
+$())
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,19,22
+embedcnt=0

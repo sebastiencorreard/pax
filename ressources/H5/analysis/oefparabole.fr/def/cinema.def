@@ -1,0 +1,285 @@
+!set title=Le cinéma
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 20,25,40,50
+
+val6=$[rint($(tmp0))]
+val7=$[0.01*$val6]
+tmp0=!randint 2, 8
+
+val8=$[rint(400*$(tmp0))]
+val8=$[rint(1600)]
+val9=$[rint($val8*$val7)]
+tmp0=!randint 8, 12
+
+val10=$[rint($(tmp0))]
+val11=$[rint(100*$val10)]
+tmp0=!randint 1, 5
+
+val12=$[rint(50*$(tmp0))]
+val13=$[0.01*$val12]
+val14=$[rint(0.5*($val8+$val11+$val12))]
+val15=$[0.01*$val14]
+val16=$[rint(sqrt(($val14)^2-$val12*$val8-$val12*$val11))]
+tmp0=!randint 2, 5
+
+val17=$[rint($val16-20*$(tmp0))]
+val18=$[rint(($val14)^2-$val12*$val8-$val12*$val11-($val17)^2)]
+val19=$[$val18*$val7]
+val20=$[0.01*$val19]
+val21=$[$val13*$val6]
+val22=$[$val9+$val6*$val10]
+val23=$[$val13*$val9+$val13*$val6*$val10+$val20]
+val24=$[$val9+$val6*$val10]
+val25=$[$val9+$val6*$val10+$val13*$val6]
+val26=$[rint($val7*($val17)^2)]
+val27=$[0.01*$val26]
+val28=!rawmath $val9-$val6*(x-$val10)
+val29=!rawmath -$val6*x+$val22
+val30=!rawmath $val13*n+$val20
+val31=!rawmath -$val21*x+$val23
+val32=!rawmath -$val6*x^2+$val24*x
+val33=!rawmath -$val6*x^2+$val25*x-$val23
+val34=!rawmath -$val6*(x-$val15)^2+$val27
+val35=$[0.01*($val14-$val17)]
+val36=$[0.01*($val14+$val17)]
+oefsteps=reply1	reply2,reply3	reply4,reply5	reply6,reply7	reply8,reply9 
+nextstep=!nosubst reply1	reply2,reply3	reply4,reply5	reply6,reply7	reply8,reply9 
+!readproc oef/steps.proc
+replytype1=function
+replyname1=\(n)
+replygood1=!rawmath $val29
+replytype2=function
+replyname2=\(F(n))
+replygood2=!rawmath $val30
+replytype3=function
+replyname3=\(F=)
+replygood3=!rawmath $val31
+replytype4=function
+replyname4=\(R(x))
+replygood4=!rawmath $val32
+replytype5=function
+replyname5=\(f(x))
+replygood5=!rawmath $val33
+replytype6=numeric
+replyname6=\(x_S)
+replygood6=$[$val15]
+replytype7=numeric
+replyname7=\(B_S)
+replygood7=$[$val27]
+replytype8=numeric
+replyname8=\(x_1)
+replygood8=$[$val35]
+replytype9=numeric
+replyname9=\(x_2)
+replygood9=$[$val36]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<ul class="wims_nopuce">	<li>Lorsque le prix d'une place est de $val10 €, le gérant du cinéma constate qu'il y a $val9 spectateurs.</li>	<li>Et il a remarqué que l'assistance diminuait de $val6 spectateurs chaque fois qu'il augmentait le prix de la place de 1 €.</li>	<li>Par ailleurs, pour chaque séance, il doit payer $val13 € par spectateur au distributeur des films et il a $val20 € de frais fixes.</li>	<li>On cherche le prix 
+!insmath x
+$() pour lequel le bénéfice sera maximale.</li>	</ul></div>	
+!if $m_step=1 
+$()	<h2>Étape 1</h2>	<div>	<label for="reply1">Détermine le nombre de spectateurs 
+!insmath n
+$() en fonction du prix de la place 
+!insmath x
+$().</label>	 
+!read oef/embed.phtml reply 1,20 
+$().</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<h2>Étape 2</h2>	<ul>	<li><b> Le nombre de spectateurs en fonction du prix 
+!insmath x
+$() est bien 
+!insmath n=$val28=$val29
+$().</b></li></ul>	<ul class="wims_nopuce">	<li>Détermine les frais de chaque séance en fonction du nombre de spectateurs 
+!insmath n
+$().</li>	<li><label for="reply2">
+!insmath F=
+$()</label> 
+!read oef/embed.phtml reply 2,15 
+$().</li>	<li>Substituer l'expression trouvée pour 
+!insmath n
+$() dans 
+!insmath F
+$() pour obtenir une expression qui dépend seulement de 
+!insmath x
+$().</li>	<li><label for="reply3">
+!insmath F
+$() =</label>  
+!read oef/embed.phtml reply 3,20 
+$().</li>	<li>On note cette expression 
+!insmath f(x)
+$().</li><ul>	 
+!endif
+$()	
+!if $m_step=3 
+$()	<h2>Étape 3</h2>	<ul>	<li><b> Le nombre de spectateurs en fonction du prix 
+!insmath x
+$()est bien 
+!insmath n=$val29
+$().</li>	<li>Et les frais pour une séance sont 
+!insmath F=$val30=$val31
+$()</b></li>	</ul>	<p>	La recette est le montant de la vente des billets 
+!insmath R=n*x
+$().</p>	<ul class="wims_nopuce">	<li>Exprime la recette en fonction seulement de 
+!insmath x
+$().</li>	<li>
+!insmath R=
+$()  
+!read oef/embed.phtml reply 4,15 
+$().</li>	</ul>	<p>Le bénéfice est 
+!insmath B=R-F
+$().</p>	<ul class="wims_nopuce">	<li>Exprime le bénéfice en fonction seulement de 
+!insmath x
+$().</li>	<li>
+!insmath B=
+$()  
+!read oef/embed.phtml reply 5,20 
+$().</li>	</ul	<p>On note cette expression 
+!insmath f(x)
+$().</p>	 
+!endif
+$()	
+!if $m_step=4 
+$()	<h2>Étape 4</h2>	<ul>	<li><b> Le nombre de spectateurs en fonction du prix 
+!insmath x
+$()est bien 
+!insmath n=$val29
+$().</li>	<li>Et le bénéfice pour une séance est 
+!insmath B=R-F=f(x)=$val33
+$()</b></li>	</ul>	<ul class="wims_nopuce">	<li>Déterminer 
+!insmath x
+$() pour que 
+!insmath B
+$() soit maximal.</li>	<li>Réponse : 
+!insmath x_S
+$() =  
+!read oef/embed.phtml reply 6,5 
+$().</li>	<li>Puis en déduire la valeur du bénéfice maximal 
+!insmath B_S
+$().</li>	<li>
+!insmath B_S
+$() =  
+!read oef/embed.phtml reply 7,5 
+$() (arrondir à 0.01 € près).</li>	 
+!endif
+$()	
+!if $m_step=5 
+$()	<h2>Étape 5</h2>	<ul>	<li><b> Le nombre de spectateurs en fonction du prix 
+!insmath x
+$()est bien 
+!insmath n=$val29
+$().</li>	<li>Et le bénéfice pour une séance est 
+!insmath B=R-F=f(x)=$val33
+$()</li>	<li>Il est maximal pour 
+!insmath x_S=$val15
+$() et vaut alors $val27</b></li>	</ul>	<ul class="wims_nopuce">	<li>Déterminer les deux nombres réels 
+!insmath x
+$() pour lesquels 
+!insmath B
+$() est nul.</li>	<li>Le plus petit nombre est : 
+!insmath x_1
+$() =  
+!read oef/embed.phtml reply 8,5 
+$() et le plus grand est 
+!insmath x_2
+$() =  
+!read oef/embed.phtml reply 9,5 
+$().</li>	</ul>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ul class="wims_nopuce">	<li>Le nombre de spectateurs en fonction du prix est 
+!insmath n=$val28=$val29
+$().</li>	<li>Les frais pour une séance avec
+!insmath n
+$() spectateurs s'élèvent à 
+!insmath F=$val30
+$().</li>	<li>Et en substituant 
+!insmath $val29
+$() à 
+!insmath n
+$(), on obtient 
+!insmath F=$val31
+$().</li>	<li>La recette est 
+!insmath R=n*x=$val32
+$().</li>	<li>Le bénéfice est 
+!insmath B=R-F=$val33
+$().</li>	<li>Celui-ci est maximal pour 
+!insmath x_S=$val15
+$() et vaut alors $val27.</li>	<li>La forme canonique de B est alors 
+!insmath $val34
+$().</li>	<li>Le bénéfice s'annule pour 
+!insmath x1=$val35
+$() et 
+!insmath x2=$val36
+$().</li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,13,15,20,27,28,29,30,31,32,33,34,35,36
+embedcnt=9

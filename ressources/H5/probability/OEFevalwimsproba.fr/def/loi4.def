@@ -1,0 +1,146 @@
+!set title=Loi de probabilité 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Donner les valeurs exactes en utilisant des fractions.
+tmp0=!randint 5, 25
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 25, 65
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 35, 45
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val7+$val8+$val9)]
+tmp0=!randint 5, 300-$val10
+
+val11=$[rint($(tmp0))]
+val10=$[rint($val10+$val11)]
+tmp0=!randint 2, 340-$val10
+
+val12=$[rint($(tmp0))]
+val10=$[rint($val10+$val12)]
+val13=$[rint(360-$val10)]
+tmp0=!shuffle $val7,$val8,$val9,$val11,$val12,$val13
+
+val14=$(tmp0)
+val15=$(val14[1]),$(val14[1])+$(val14[2]),$(val14[1])+$(val14[2])+$(val14[3]),$(val14[1])+$(val14[2])+$(val14[3])+$(val14[4]),$(val14[1])+$(val14[2])+$(val14[3])+$(val14[4])+$(val14[5])
+tmp0=!shuffle red,green,blue,orange,yellow,gray,pink
+
+val16=$(tmp0)
+val17=xrange -5,5	 yrange -5,5	 circle 0,0,200,black	 segment 0,0,5,0,black	 segment 0,0,5*cos($(val14[1])*pi/180),5*sin($(val14[1])*pi/180),black	 fill 2*cos($(val14[1])*pi/360),2*sin($(val14[1])*pi/360),$(val16[1])	 segment 0,0,5*cos(($(val15[2]))*pi/180),5*sin(($(val15[2]))*pi/180),black	 fill 3*cos(($(val14[1])+$(val14[2])/2)*pi/180),3*sin(($(val14[1])+$(val14[2])/2)*pi/180),$(val16[2])	 segment 0,0,5*cos(($(val15[3]))*pi/180),5*sin(($(val15[3]))*pi/180),black	 fill 3*cos(($(val15[2])+$(val14[3])/2)*pi/180),3*sin(($(val15[2])+$(val14[3])/2)*pi/180),$(val16[3])	 segment 0,0,5*cos(($(val15[4]))*pi/180),5*sin(($(val15[4]))*pi/180),black	 fill 3*cos(($(val15[3])+$(val14[4])/2)*pi/180),3*sin(($(val15[3])+$(val14[4])/2)*pi/180),$(val16[4])	 segment 0,0,5*cos(($(val15[5]))*pi/180),5*sin(($(val15[5]))*pi/180),black	 fill 3*cos(($(val15[4])+$(val14[5])/2)*pi/180),3*sin(($(val15[4])+$(val14[5])/2)*pi/180),$(val16[5])	 fill 3*cos(($(val15[5])+$(val14[6])/2)*pi/180),3*sin(($(val15[5])+$(val14[6])/2)*pi/180),$(val16[6])	 text black,3*cos(($(val14[1])/2)*pi/180),3*sin(($(val14[1])/2)*pi/180),medium,A	 text black,3*cos(($(val14[1])+$(val14[2])/2)*pi/180),3*sin(($(val14[1])+$(val14[2])/2)*pi/180),medium,B	 text black,3*cos(($(val15[2])+$(val14[3])/2)*pi/180),3*sin(($(val15[2])+$(val14[3])/2)*pi/180),medium,C	 text black,3*cos(($(val15[3])+$(val14[4])/2)*pi/180),3*sin(($(val15[3])+$(val14[4])/2)*pi/180),medium,D	 text black,3*cos(($(val15[4])+$(val14[5])/2)*pi/180),3*sin(($(val15[4])+$(val14[5])/2)*pi/180),medium,E	 text black,3*cos(($(val15[5])+$(val14[6])/2)*pi/180),3*sin(($(val15[5])+$(val14[6])/2)*pi/180),medium,F	
+val18=$(val14[1])/360,$(val14[2])/360,$(val14[3])/360,$(val14[4])/360,$(val14[5])/360,$(val14[6])/360
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=p(A)
+replygood1=$(val18[1])
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=p(B)
+replygood2=$(val18[2])
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=p(C)
+replygood3=$(val18[3])
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=p(D)
+replygood4=$(val18[4])
+replytype5=numexp
+replyoption5=noreduction 
+replyname5=p(E)
+replygood5=$(val18[5])
+replytype6=numexp
+replyoption6=noreduction 
+replyname6=p(F)
+replygood6=$(val18[6])
+replytype7=numeric
+replyname7=Total
+replygood7=$[1]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"> 
+!read oef/draw.phtml 200,200 \
+$val17 
+$()</div>	Une roue de loterie est formée de six secteurs A,B,C,D,E,F associés	 aux mesures d'angles suivantes en degrés :	<table class="wimscenter wimsborder">	<tr><th>Secteur</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td></tr>	<tr><th>Angle en degré</th><td>$(val14[1])</td><td>$(val14[2])</td><td>$(val14[3])</td><td>$(val14[4])</td><td>$(val14[5])</td><td>$(val14[6])</td></tr>	</table>	<p>	Lorsque la roue achève sa rotation, un secteur se trouve face	au repère avec une probabilité proportionnelle à l'angle associé.</p>	<div class="wims_question clearall">	  Déterminer la loi de probabilité obtenue.	<table class="wimscenter wimsborder">	<tr><th>Secteur</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td><th>Total</th></tr>	<tr><th>Probabilité</th><td> 
+!read oef/embed.phtml reply1,3 
+$()</td><td> 
+!read oef/embed.phtml reply2,3 
+$()</td><td> 
+!read oef/embed.phtml reply3,3 
+$()	</td><td> 
+!read oef/embed.phtml reply4,3 
+$()</td><td> 
+!read oef/embed.phtml reply5,3 
+$()</td><td> 
+!read oef/embed.phtml reply6,3 
+$()</td><th> 
+!read oef/embed.phtml reply7,3 
+$()</th></tr>	</table></div>	<div class="wims_instruction">$val6</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,17
+embedcnt=7

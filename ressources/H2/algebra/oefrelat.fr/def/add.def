@@ -1,0 +1,181 @@
+!set title=Additions de nombres relatifs.
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul@byache.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=23
+prevarcnt=21
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=2
+!endif
+!if $val3= 
+val3=1
+!endif
+!if $val4= 
+val4=1
+!endif
+!if $val5= 
+val5=2
+!endif
+!if $val4=1 
+val6=text red, 1,0.2, medium,0
+!for val7 =1 to 10 
+val8=$[rint($val7*10^($val3-1))]
+val6=$val6	text blue, 1,$val7+0.2, medium,$val8
+!next
+!for val7 =-10 to -1 
+val8=$[rint($val7*10^($val3-1))]
+val6=$val6	text green, 1,$val7+0.2, medium,$val8
+!next
+!endif
+tmp0=!randint -10^$val3, 10^$val3
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -10^$val3, 10^$val3
+
+val10=$[rint($(tmp0))]
+!if $val2=1 
+
+!ifval $val9>0 
+val11= +$val9 
+!else
+val11= $val9
+!endif
+
+!ifval $val10>0 
+val12= +$val10 
+!else
+val12= $val10
+!endif
+!endif
+val13=$[rint($val9+$val10)]
+val14=Pas d'indication !
+!readproc oef/draw.phtml 140,400 \
+xrange -4,10	yrange -10.5,10.5	arrow 0,-10.5,0,10.5,10,black	arrow -3,$val9/10^($val3-1),0,$val9/10^($val3-1),10,red	parallel -0.3,-10,0.3,-10,0,1, 21, black	$val6	arc 3.6,($val9+\rep)/(2*10^($val3-1)),5,abs(\rep-$val9)/10^($val3-1),270,90,red	arc 3.6,(\rep^2+1)/(\rep^2+1)*($val9+$val13)/(2*10^($val3-1)),5,abs($val10)/10^($val3-1),270,90,green	arrow 3.4,\rep/10^($val3-1),2.4,\rep/10^($val3-1),10,red	arrow 3.4,(\rep^2+1)/(\rep^2+1)*$val13/10^($val3-1),2.4,$val13/10^($val3-1),10,green 
+tmp0=$ins_url
+val15=$(tmp0)
+!if $val4=1 
+
+!ifval $val10<0 
+val16= descendre 
+!else
+val16= monter
+!endif
+val17=$[rint(abs($val10))]
+val14=Pense à un ascenseur : tu es au niveau $val9 et tu dois $val16 de $val17 niveaux... A quel niveau arriveras-tu &#63;
+!endif
+replytype1=numeric
+replyname1=
+replygood1=?analyze 18
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val14
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val4=1 
+$()	<img src=$val15 style="float:right;width:140px;">	 
+!endif
+$()	<div class="wimscenter">	<p>Donne le résultat du calcul suivant :</p>	<div>	
+!if $val2=1 
+$()($val11)+($val12) 
+!endif
+$()	
+!if $val2=2 
+$()
+!insmath $val9 + $val10
+$()  
+!endif
+$()	=  
+!read oef/embed.phtml reply 1,1 
+$()</div>	
+!if $val4=1 
+$()<div class="wims_instruction">L'axe gradué affiché à droite peut être une aide !</div> 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()$val14
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!readproc oef/draw.phtml 140,400 \
+xrange -4,10	yrange -10.5,10.5	arrow 0,-10.5,0,10.5,10,black	arrow -3,$val9/10^($val3-1),0,$val9/10^($val3-1),10,red	parallel -0.3,-10,0.3,-10,0,1, 21, black	$val6	arc 3.6,($val9+$val18)/(2*10^($val3-1)),5,abs($val18-$val9)/10^($val3-1),270,90,red	arc 3.6,($val18^2+1)/($val18^2+1)*($val9+$val13)/(2*10^($val3-1)),5,abs($val10)/10^($val3-1),270,90,green	arrow 3.4,$val18/10^($val3-1),2.4,$val18/10^($val3-1),10,red	arrow 3.4,($val18^2+1)/($val18^2+1)*$val13/10^($val3-1),2.4,$val13/10^($val3-1),10,green 
+tmp0=$ins_url
+val15=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val18!=$val13 and $val4=1
+ <div class='oef_feedbacks'>	La bonne réponse était $val13 (<font color="#009900">en vert sur le schéma ci-dessus !</font>).	<br>Votre réponse était $val18 (<font color="#FF0000">en rouge sur le schéma ci-dessus !</font>)
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val18=$val13
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La réponse est-elle bonne ?
+
+!exit
+
+:stat
+vsavelist=2,3,4,6,9,10,11,12,13,14,15,18
+embedcnt=1

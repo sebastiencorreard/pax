@@ -1,0 +1,166 @@
+!set title=Les glaces
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 4, $val6
+
+val7=$[rint($(tmp0))]
+val8=$[2^(1/3)]
+val9=$[rint(100*$val8*$val6)]
+val9=$[0.01*$val9]
+val10=$[rint(100*$val8*$val7)]
+val10=$[0.01*$val10]
+t_=!rawmath $val7^2*$val6/12
+val11=!exec pari print($t_)
+val12=$[3^(1/3)]
+val13=$[rint(100*$val12*$val6)]
+val13=$[0.01*$val13]
+val14=$[rint(100*$val12*$val7)]
+val14=$[0.01*$val14]
+replytype1=numeric
+replyoption1=absolute 
+replyname1=Hauteur pour doubler
+replygood1=$[$val9]
+replytype2=numeric
+replyoption2=absolute 
+replyname2=Diamètre pour doubler
+replygood2=$[$val10]
+replytype3=numeric
+replyoption3=absolute 
+replyname3=Hauteur pour tripler
+replygood3=$[$val13]
+replytype4=numeric
+replyoption4=absolute 
+replyname4=Diamètre pour tripler
+replygood4=$[$val14]
+replytype5=menu
+replyname5=Question
+replygood5=1;oui,non
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	<img src="$val1/glace_0.jpg" alt="Glace en forme de cône la pointe en bas">	</div><div class="medium_size text_col">	Le Glacier des Alpes fabrique des glaces en forme de cône.<br>	La glace simple tient dans un cône dont la hauteur est $val6 cm et le diamètre	de l'ouverture est $val7 cm.	<ol style="list-style-type: upper-alpha"><li>	  En conservant les mêmes proportions, quels doivent être la hauteur et le diamètre de l'ouverture	 pour obtenir un volume double de glace ?	 <ul><li>	<label for="reply1">Hauteur :  
+!read oef/embed.phtml reply1,10 
+$() cm (valeur approchée à 0,01 cm)</label>	</li><li>	<label for="reply2">Diamètre :  
+!read oef/embed.phtml reply2,10 
+$() cm (valeur approchée à 0,01 cm)</label>	</li></ul></li>	<li>Et pour la maxi glace dont le volume est le triple de la glace simple ?	<ul><li>	<label for="reply3">Hauteur :  
+!read oef/embed.phtml reply3,10 
+$() cm (valeur approchée à 0,01 cm)</label>	</li><li>	<label for="reply4">Diamètre :  
+!read oef/embed.phtml reply4,10 
+$() cm (valeur approchée à 0,01 cm)</label>	</li></ul></li></ol>	</div></div>	<div class="wims_columns">	 <div class="medium_size img_col">	  <img src="$val1/glace_1.jpg" alt="Glace en forme de cône avec une demi-boule dessus">	</div><div class="medium_size text_col">	Les réponses sont-elles les mêmes si le cône est surmonté d'une demi-boule	dont la base est le disque de l'ouverture ?	<ul><li> 
+!read oef/embed.phtml reply5 
+$()</li></ul>	</div></div>	
+$()
+!exit
+
+:hint
+$()Le volume d'un cône de hauteur 
+!insmath h
+$() et de rayon 
+!insmath r
+$() est 
+!insmath V =\frac{1}{3} \pi r^2 h
+$().<br>	Conserver les mêmes proportions revient à multiplier chaque longueur par le même nombre 
+!insmath k
+$().<br>	On peut calculer le volume initial et le volume final pour écrire une équation qui permet de calculer 
+!insmath k
+$().	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p>Comme on conserve les mêmes proportions, chaque longueur est multipliée par le même nombre 
+!insmath k
+$().</p>	Le volume initial est 
+!insmath V=\frac{1}{3} \times \pi \times (\frac{$val7}{2})^2 \times $val6=\frac{$val7^2 \times $val6}{12} \times \pi = $val11 \times \pi
+$()	<p>Si on double le volume en multipliant chaque longueur par 
+!insmath k
+$(), alors :<br>	 
+!insmath 2 V= \frac{1}{3} \times \pi \times (\frac{$val7 k}{2})^2 \times ($val6 k) = \frac{$val7^2	  \times $val6 k^3}{12} \pi = k^3 \times $val11 \times \pi = k^3 V
+$().<br>	Donc 
+!insmath k^3=2
+$() et 
+!insmath k=\root{3}{2}
+$().<br>	Ainsi la nouvelle hauteur est 
+!insmath h = $val6 \root{3}{2} \approx $val9
+$()<br>	et le nouveau diamètre est 
+!insmath d = $val7 \root{3}{2} \approx $val10
+$().</p>	<p>Si on triple le volume en multipliant chaque longueur par 
+!insmath k
+$(), alors :<br>	 
+!insmath 3V= k^3 V
+$().<br>	Donc 
+!insmath k^3=3
+$() et 
+!insmath k=\root{3}{3}
+$().<br>	Ainsi la nouvelle hauteur est 
+!insmath h = $val6 \times \root{3}{3} \approx $val13
+$() cm<br>	et le nouveau diamètre est 
+!insmath d = $val7 \times \root{3}{3} \approx $val14
+$() cm.</p>	<p>	On retrouve la propriété :	</p><p>	<strong>Lorsque les longueurs sont multipliées par 
+!insmath k
+$(), les volumes sont multipliés par 
+!insmath k^3
+$().</strong></p>	</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,9,10,11,13,14
+embedcnt=5

@@ -1,0 +1,205 @@
+!set title=Indépendance (vaccin)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 8, 12
+
+val6=$[rint(($(tmp0)*100))]
+tmp0=!randint 50, 80
+
+val7=$[rint(($(tmp0)/100*$val6))]
+tmp0=!randint 3, 10
+
+val8=$[rint(($(tmp0)/100*$val6))]
+val9=$[rint((($val7*$val8)/$val6/2))]
+val10=$[rint($val8-$val9)]
+val11=$[rint($val7-$val9)]
+val12=$[rint($val6-$val8)]
+val13=$[rint($val6-$val7)]
+val14=$[rint($val13-$val10)]
+val15=$[$val7/$val6]
+val16=$[$val8/$val6]
+val17=$[$val9/$val6]
+val18=$[$val15*$val16]
+replytype1=menu
+replyoption1=shuffle 
+replyname1=1
+replygood1=1 ;vacciné, grippé, vacciné ou grippé, vacciné et grippé
+replytype2=menu
+replyoption2=shuffle 
+replyname2=2
+replygood2=4 ; vacciné, grippé, vacciné ou grippé, vacciné et grippé
+replytype3=numeric
+replyoption3=comma 
+replyname3=3
+replygood3=$[$val15]
+replytype4=numeric
+replyoption4=comma 
+replyname4=4
+replygood4=$[$val16]
+replytype5=numeric
+replyoption5=comma 
+replyname5=5
+replygood5=$[$val17]
+replytype6=numeric
+replyoption6=comma 
+replyname6=6
+replygood6=$[$val18]
+replytype7=menu
+replyoption7=shuffle 
+replyname7=7
+replygood7=1 ;>,<,=
+replytype8=radio
+replyoption8=shuffle 
+replyname8=8
+replygood8=1 ; dépendants, indépendants, indifférents,transparents
+replytype9=radio
+replyoption9=shuffle 
+replyname9=9
+replygood9=1 ; efficace,inefficace,indéterminée
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	En probabilité, deux évènements sont indépendants si la réalisation de l'un ne modifie pas la probabilité de l'autre.<br>	Déterminer si deux évènements sont indépendants n'est pas toujours facile. <br>	Lorsque deux évènements sont indépendants, la relation <span class = "wims_emph"> 
+!insmath p(A \cap B)= p(A)\times p(B) 
+$()</span> est vraie .<span class = "smaller">	<br>(On ne l'utilise que lorsqu'on est certain que les évènements sont indépendants).</span>	<p class="wimscenter">  
+!read oef/img.phtml $val1/vaccin.jpg  
+$() ........  
+!read oef/img.phtml $val1/grippe.jpg  
+$() </p>	<div class="wims_emph">	Parmi les $val6 employés d'une entreprise, $val7 ont accepté de se faire vacciner gratuitement contre la grippe.<br>	 Durant l'hiver, $val8 employés ont été victimes de la grippe. </div>	<div class="wimscenter"> Le tableau ci-dessous résume les différents cas</div>		<table class="wimsborder wimscenter">	    <tr>	<td ></td>	<th>
+!insmath \ {vaccin}
+$()</th>	<th>
+!insmath \overline{vaccin}
+$()</th>	<th>Total</th>	    </tr>		    <tr>	<th>
+!insmath \ {grippe}
+$()</th>	<td >$val9</td>	<td >$val10</td>	<td >$val8</td>	    </tr>	    <tr>	<th>
+!insmath \overline{grippe}
+$()</th>	<td >$val11</td>	<td >$val14</td>	<td >$val12</td>	    </tr>	    <tr>	<th>Total</th>	<td >$val7</td>	<td >$val13</td>	<td >$val6</td>	    </tr>	</table>	 On considère les événements suivants :	 <ol><li>Evènement 
+!insmath A
+$() : « Un individu s'est fait vacciner ». </li>	 <li>Evènement 
+!insmath B
+$() : « Un individu a eu la grippe »</li>	 </ol>	<span class="wims_emph">Un employé est choisi au hasard.</span>	<ol>	 <li> Que représente 
+!insmath p(A)
+$()?	 <div class="wimscenter"> 
+!insmath p(A)
+$() représente la probabilité qu'un sujet soit	           
+!read oef/embed.phtml reply1 
+$()</div>	</li> <li>  Que représente 
+!insmath p(A \cap B)
+$()?	  <div class="wimscenter"> 
+!insmath p(A \cap B)
+$() représente la probabilité qu'un sujet soit   
+!read oef/embed.phtml reply2 
+$()</div>	</li>  <li>  Calculer les probabilités 
+!insmath p(A)
+$() ; 
+!insmath p(B)
+$() et 
+!insmath p(A \cap B)
+$()	  <div class="wimscenter">  
+!insmath p(A) = 
+$() 
+!read oef/embed.phtml reply3,5 
+$()  ; &nbsp; 
+!insmath P(B) =
+$()  
+!read oef/embed.phtml reply4,5 
+$() et &nbsp; 
+!insmath p(A \cap B)= 
+$() 
+!read oef/embed.phtml reply5,5 
+$()</div>	</li>  <li>  Calculer 
+!insmath p(A)\times p(B)
+$()	    <div class="wimscenter">  
+!insmath p(A)\times p(B) = 
+$()  
+!read oef/embed.phtml reply6,5 
+$()</div>	</li>  <li>  Comparer 
+!insmath p(A)\times p(B)
+$() et  
+!insmath p(A \cap B) 
+$()	          <div class="wimscenter">     
+!insmath p(A)\times p(B)
+$()  
+!read oef/embed.phtml reply7 
+$() 
+!insmath p(A \cap B) 
+$() </div>	</li>  <li>Les évènements 
+!insmath A
+$() et 
+!insmath B
+$() sont	  <div class="wimscenter">  
+!read oef/embed.phtml reply8 
+$()</div>	</li><li>La campagne de vaccinations me semble	      <div class="wimscenter"> 
+!read oef/embed.phtml reply9 
+$() </div>	</li> </ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,9,10,11,12,13,14
+embedcnt=9

@@ -1,0 +1,313 @@
+!set title=Deux urnes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r,r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 2,2,3,3
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+
+!ifval ($val6=2)
+tmp=!nonempty items 3,3,3,4
+
+tmp0=!randitem $tmp
+val7=$[rint( $(tmp0))]
+!else
+tmp=!nonempty items 2,2,3,3
+
+tmp1=!randitem $tmp
+val7=$[rint($(tmp1))]
+!endif
+val8=$[rint(0)]
+val9=blanche,noire,jaune,verte,rouge,bleue,grise
+tmp0=!shuffle $val9
+
+tmp1=$(tmp0)
+
+val9=$(tmp1)
+val10=$(val9[1..$val6])
+
+!ifval ($val6*$val7<10)
+val11=$[rint( 2)]
+!else
+val11=$[rint(3)]
+!endif
+val12=$(val10[1..$val11]),$(val9[($val6+1)..7])
+val12=$(val12[1..$val7])
+tmp=!trim 1	0.25	0.2,0.25	0.2,0.15,0.15	0.15,0.1,0.1,0.1
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1	0.7	0.45,0.4	0.35,0.3,0.25	0.25,0.2,0.2,0.2
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items 10,20,25,40,50
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+tmp0=!randint ($(val13[$val6;1])*$val15), ($(val14[$val6;1])*$val15)
+
+val16=$[rint($(tmp0))]
+val17=$val16
+
+!ifval ($val16=1)
+val18= $val16 boule $(val10[1])
+!else
+val18=$val16 boules $(val10[1])s
+!endif
+!for val19 =2 to ($val6-1) 
+tmp0=!randint ($(val13[$val6;$val19])*$val15), ($(val14[$val6;$val19])*$val15)
+
+val20=$[rint($(tmp0))]
+val16=$[rint($val16+$val20)]
+val17=$val17,$val20
+
+!ifval ($val20=1)
+val18= $val18, $val20 boule $(val10[$val19])
+!else
+val18=$val18, $val20 boules $(val10[$val19])s
+!endif
+!next
+val20=$[rint($val15-$val16)]
+val17=$val17,$val20
+
+!ifval ($val20=1)
+val18= $val18 et $val20 boule $(val10[$val6])
+!else
+val18=$val18 et $val20 boules $(val10[$val6])s
+!endif
+tmp=!nonempty items 10,20,25,40,50
+
+tmp0=!randitem $tmp
+val21=$[rint($(tmp0))]
+tmp0=!randint ($(val13[$val7;1])*$val21), ($(val14[$val7;1])*$val21)
+
+val22=$[rint($(tmp0))]
+val23=$val22
+
+!ifval ($val22=1)
+val24= $val22 boule $(val12[1])
+!else
+val24=$val22 boules $(val12[1])s
+!endif
+!for val19 =2 to ($val7-1) 
+tmp0=!randint ($(val13[$val7;$val19])*$val21), ($(val14[$val7;$val19])*$val21)
+
+val25=$[rint($(tmp0))]
+val22=$[rint($val22+$val25)]
+val23=$val23,$val25
+
+!ifval ($val25=1)
+val24= $val24, $val25 boule $(val12[$val19])
+!else
+val24=$val24, $val25 boules $(val12[$val19])s
+!endif
+!next
+val25=$[rint($val21-$val22)]
+val23=$val23,$val25
+
+!ifval ($val25=1)
+val24= $val24 et $val25 boule $(val12[$val7])
+!else
+val24=$val24 et $val25 boules $(val12[$val7])s
+!endif
+!if $val8=1 
+val12=$val10
+val7=$[rint($val6)]
+val23=$val17
+val24=$val18
+!endif
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val26=$[rint($(tmp0))]
+val27=$[rint(3-$val26)]
+t_=!rawmath ($(val17[$val26])/$val15)*($(val23[$val26])/$val21)
+val28=!exec pari print($t_)
+
+!ifval ($val6*$val7<13)
+t_=!rawmath  ($(val17[1])/$val15)*($(val23[1])/$val21)+($(val17[2])/$val15)*($(val23[2])/$val21)
+val29=!exec pari print($t_)
+!else
+t_=!rawmath ($(val17[1])/$val15)*($(val23[1])/$val21)+($(val17[2])/$val15)*($(val23[2])/$val21)+($(val17[3])/$val15)*($(val23[3])/$val21)
+val29=!exec pari print($t_)
+!endif
+t_=!rawmath 1-$val29
+val30=!exec pari print($t_)
+t_=!rawmath $(val17[$val27])/$val15+(($val15-$(val17[$val27]))/$val15)*($(val23[$val27])/$val21)
+val31=!exec pari print($t_)
+replytype1=formal
+replyname1=
+replygood1=$val28
+replytype2=formal
+replyname2=
+replygood2=$val29
+replytype3=formal
+replyname3=
+replygood3=$val30
+replytype4=formal
+replyname4=
+replygood4=$val31
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Il est recommandé de dessiner un arbre pondéré représentant la situation.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()L'urne 1 contient $val18 indiscernables au toucher.<br>	L'urne 2 contient $val24 indiscernables au toucher. <br>	On tire successivement une boule dans l'urne 1 puis une boule dans l'urne 2 et on relève les couleurs obtenues.	<div class="wims_question">Calculer les probabilités suivantes.</div>	<ol><li>La probabilité d'avoir 2 boules $(val10[$val26])s est  
+!read oef/embed.phtml reply1,6 
+$()</li>	<li>La probabilité d'avoir 2 boules de la même couleur est  
+!read oef/embed.phtml reply2,6 
+$()</li>	<li>La probabilité d'avoir 2 boules de couleurs différentes est  
+!read oef/embed.phtml reply3,6 
+$()</li>	<li>La probabilité d'avoir au moins une boule $(val10[$val27]) est  
+!read oef/embed.phtml reply4,6 
+$()</li></ol>		
+$()
+!exit
+
+:hint
+$()Il est recommandé de dessiner un arbre pondéré représentant la situation.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Il y a $val15 boules dans l'urne 1 et $val21 boules dans l'urne 2. Dans la suite, on note une issue (noire,blanche) pour désigner un tirage où la première boule tirée est noire et la seconde boule tirée est blanche.	<ol><li>La probabilité d'avoir 2 boules $(val10[$val26])s est 
+!insmath \frac{$(val17[$val26])}{$val15} \times \frac{$(val23[$val26])}{$val21}=$val28
+$().</li>	<li>L'événement "avoir 2 boules de la même couleur" est formé des issues ($(val10[1]),$(val12[1])) de probabilité	
+!insmath \frac{$(val17[1])}{$val15} \times \frac{$(val23[1])}{$val21}
+$()
+!if $val6*$val7<13 
+$() et 
+!else
+$() , 
+!endif
+$() ($(val10[2]),$(val12[2])) de probabilité	
+!insmath \frac{$(val17[2])}{$val15} \times \frac{$(val23[2])}{$val21}
+$()
+!if $val6*$val7>=13 
+$()et ($(val10[3]),$(val12[3])) de probabilité	
+!insmath \frac{$(val17[3])}{$val15} \times \frac{$(val23[3])}{$val21}
+$()  
+!endif
+$() donc sa probabilité est 
+!insmath \frac{$(val17[1])}{$val15} \times \frac{$(val23[1])}{$val21}+\frac{$(val17[2])}{$val15} \times \frac{$(val23[2])}{$val21}
+$()	
+!if $val6*$val7>=13 
+$()
+!insmath +\frac{$(val17[3])}{$val15} \times \frac{$(val23[3])}{$val21}
+$() 
+!endif
+$()
+!insmath =$val29
+$().</li>	<li>L'événement "avoir 2 boules de couleurs différentes" est l'événement contraire de l'événement "avoir 2 boules de la même couleur"	donc sa probabilité est 
+!insmath 1-$val29=$val30
+$().</li>	<li>L'événement "avoir au moins une boule $(val10[$val27])" est formé des issues 	($(val10[$val27]),$(val12[1])) de probabilité 
+!insmath \frac{$(val17[$val27])}{$val15} \times \frac{$(val23[1])}{$val21}
+$(), 	($(val10[$val27]),$(val12[2])) de probabilité 
+!insmath \frac{$(val17[$val27])}{$val15} \times \frac{$(val23[2])}{$val21}
+$()	
+!if $val7>=3 
+$(), ($(val10[$val27]),$(val12[3])) de probabilité 
+!insmath \frac{$(val17[$val27])}{$val15} \times \frac{$(val23[3])}{$val21}
+$() 
+!endif
+$()	
+!if $val7>=4 
+$(), ($(val10[$val27]),$(val12[4])) de probabilité 
+!insmath \frac{$(val17[$val27])}{$val15} \times \frac{$(val23[4])}{$val21}
+$() 
+!endif
+$()	
+!if $val6=2 
+$()et 
+!else
+$() ,  
+!endif
+$()($(val10[$val26]),$(val12[$val27])) de probabilité 
+!insmath \frac{$(val17[$val26])}{$val15} \times \frac{$(val23[$val27])}{$val21}
+$()	
+!if $val6=3 
+$()et ($(val10[3]),$(val12[$val27])) de probabilité 
+!insmath \frac{$(val17[3])}{$val15} \times \frac{$(val23[$val27])}{$val21}
+$() 
+!endif
+$()	donc sa probabilité est 	
+!insmath \frac{$(val17[$val27])}{$val15} \times \frac{$(val23[1])}{$val21}+\frac{$(val17[$val27])}{$val15} \times \frac{$(val23[2])}{$val21}
+$()	
+!if $val7>=3 
+$()
+!insmath +\frac{$(val17[$val27])}{$val15} \times \frac{$(val23[3])}{$val21}
+$() 
+!endif
+$()	
+!if $val7>=4 
+$()
+!insmath +\frac{$(val17[$val27])}{$val15} \times \frac{$(val23[4])}{$val21}
+$() 
+!endif
+$()	
+!insmath +\frac{$(val17[$val26])}{$val15} \times \frac{$(val23[$val27])}{$val21}
+$()	
+!if $val6=3 
+$()
+!insmath +\frac{$(val17[3])}{$val15} \times \frac{$(val23[$val27])}{$val21}
+$() 
+!endif
+$()
+!insmath =$val31
+$().		</li></ol>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,12,15,17,18,21,23,24,26,27,28,29,30,31
+embedcnt=4

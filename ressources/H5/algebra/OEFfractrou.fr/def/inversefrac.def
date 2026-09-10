@@ -1,0 +1,243 @@
+!set title=Inverse de fraction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=38
+prevarcnt=31
+postvarcnt=6
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!listintersect $val2 and 1,2
+
+val2=$(tmp0)
+
+!ifval $val2=
+val2=2
+!else
+val2=$val2
+!endif
+tmp=!nonempty items $val2
+
+tmp0=!randitem $tmp
+val2=$[rint($(tmp0))]
+val6=$[rint($val2)]
+val7=
+tmp0=!shuffle 2,3,4,5,6,7,8,9
+
+val8=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+val13=1/((x $val12 $(val8[4]))/(x$val11 $(val8[2])))
+val7=\frac{1}{\frac{x $val12 $(val8[4])}{x$val11 $(val8[2])}}
+!if $val2=1 
+val14=r1
+!else
+val14=r2
+!endif
+tmp0=!charcnt $val7
+
+val15=$[rint($(tmp0))]
+
+!ifval $val15=0
+tmp0=!texmath $val13
+
+val7=$(tmp0)
+!else
+val7=$val7
+!endif
+tmp=!translate ";': to $     $ in $val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val13=$(tmp0)
+t_=!replace internal \( by ( in DENOM($val13);
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in NUM($val13);
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+tmp=!nonempty items x,y,z,a,b,c
+
+tmp0=!randitem $tmp
+val18=$(tmp0)
+val19=$val18,e^$val18,cos($val18),sin($val18),sqrt($val18),ln($val18)
+val20=$val18,e^$val18,\cos($val18),\sin($val18),\sqrt{$val18},\ln($val18)
+tmp0=!listintersect $val3 and 1,2,3,4,5,6
+
+val3=$(tmp0)
+
+!ifval $val3=
+val3=1
+!else
+val3=$val3
+!endif
+tmp=!nonempty items $val3
+
+tmp0=!randitem $tmp
+val3=$[rint($(tmp0))]
+val21=$(val19[$val3])
+tmp0=!replace internal x by $(val20[$val3]) in $val7
+
+val7=$(tmp0)
+tmp0=!replace internal x by $val21 in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal x by $val21 in $val17
+
+val17=$(tmp0)
+tmp0=!texmath $val16
+
+val22=$(tmp0)
+tmp0=!texmath $val17
+
+val23=$(tmp0)
+oefsteps=$val14 
+nextstep=!nosubst $val14 
+!readproc oef/steps.proc
+replyname1=Numérateur
+replygood1=?analyze 24
+replyname2=Dénominateur
+replygood2=?analyze 25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Compléter (sans utiliser le symbole divisé) :<br/>	 
+!if $val2=1 
+$()	    
+!read oef/special.phtml mathmlinput [$val7 = \frac{\quad reply1 \quad }{$val22}],10,noanswer	 reply 1	  
+$()	  
+!else
+$() 	  
+!read oef/special.phtml mathmlinput [$val7 = \frac{$val23}{\quad reply2 \quad}],10,noanswer	 reply 2	  
+$()	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $val6=1 
+tmp=!translate ";': to $     $ in $val24-($val17)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+
+!ifval / isin $val24
+val27=$[rint(1)]
+!else
+val27=$[rint(0)]
+!endif
+val28=$val23
+!else
+tmp=!translate ";': to $     $ in $val25-($val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+
+!ifval / isin $val25
+val27=$[rint(1)]
+!else
+val27=$[rint(0)]
+!endif
+val28=$val22
+!endif
+
+!exit
+
+:feedback
+!ifval $val27=1
+ <div class='oef_feedbacks'>Vous avez utilisé le symbole divisé !
+$()</div>
+!endif
+!ifval $val26!=0
+ <div class='oef_feedbacks'>La bonne réponse est 
+!insmath $val28
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val26=0 and $val27=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonne réponse
+
+!exit
+
+:stat
+vsavelist=2,6,7,16,17,22,23,24,25
+embedcnt=2

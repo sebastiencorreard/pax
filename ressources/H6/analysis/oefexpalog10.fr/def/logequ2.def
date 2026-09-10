@@ -1,0 +1,117 @@
+!set title=Equation avec un logarithme décimal 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -2, 9
+
+val6=$[rint($(tmp0))]
+t_=!rawmath 10^($val6)
+val7=!exec pari print($t_)
+tmp0=!randint 1, 8
+
+tmp=!nonempty items 1,1,-1
+
+tmp1=!randitem $tmp
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val9=$[rint($(tmp0)*$(tmp1))]
+val10=$[rint($val6*$val8+$val9)]
+t_=!replace internal \( by ( in $val8*log(x)+$val9
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp0=!texmath $val11
+
+val11=$(tmp0)
+val12=$val11=$val10
+val13=$[rint($val10-$val9)]
+val14=\($val11=$val10\) &hArr; \($val8 log(x)=$val13\) &hArr; \(log(x)=$val6\) &hArr; \(x=10^{$val6}\).
+replytype1=formal
+replyname1=La solution est
+replygood1=$val7
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val14
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question">Résoudre dans 
+!insmath \mathbb{R}
+$() l'équation :	
+!insmath  $val12 
+$()</div>	La solution est  
+!read oef/embed.phtml reply1,8 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val14
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,14
+embedcnt=1

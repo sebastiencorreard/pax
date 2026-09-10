@@ -1,0 +1,341 @@
+\title{Grafische methode}
+\language{nl}
+\range{-5..5}
+\author{Véronique Royer}
+\email{royer.veronique@wanadoo.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+
+
+\integer{xsize=random(8,10,12)}
+\integer{ysize=random(8,10,12)}
+\integer{casf=random(1..6)}
+\integer{sign=random(-1,1)}
+\real{k=random(1..0.5*\ysize)}
+
+\integer{signa=random(-1,1)}
+\integer{a=(\casf!=4)?\signa*random(2..\xsize-3):random(-6..-3)}
+\integer{b=(\casf!=4)?random(0,1)*(-\signa)*random(2..\xsize-1):random(-1..2)}
+\integer{c=(\casf==4)?random(4..6)}
+\integer{p=(\casf>4)?random(-0.5*\ysize..0.5*\ysize)}
+
+
+/** definition des fonctions ; tirage aléatoire (casf) **/
+
+\function{f=(\casf==1)?\sign*\k*(x-\a)}
+\function{f=(\casf==2)?(\sign/\k)*(x-\a)*(x-\b)}
+\function{f=(\casf==3)?(\sign/\k)*((x-\a)^2+random(1..4))}
+\function{f=(\casf==4)?(\sign/\k^3)*(x-\a)*(x-\b)*(x-\c)}
+\function{f=(\casf==5)?\sign*(\k/(x-\a)+\p)}
+\function{f=(\casf==6)?\sign*(\k/((x-\a)^2+0.5)+\p)}
+
+/** nombre et valeurs de racines **/
+/** sol=\xsize+1 signifie aucune racine dans l'ensemble D **/
+/** casf= 4  : au moins deux racines distinctes  a et c **/
+
+\text{sol=none}
+\text{sol=(\casf==1)?\a }
+\text{sol=(\casf==2 and \a==\b)?\a}
+\text{sol=(\casf==2 and \a<\b)?\a,\b}
+\text{sol=(\casf==2 and \b<\a)?\b,\a}
+\text{sol=(\casf==4 and \a==\b)? \a,\c}
+\text{sol=(\casf==4 and \a!=\b and \c!=\b)? \a,\b,\c}
+\text{sol=(\casf==4 and \a!=\b and \c==\b)? \a,\b}
+\rational{rac5=(\casf==5 and \p!=0)? simplify(\a-(\k/\p))}
+\text{sol=(\casf==5 and \p!=0 and \rac5 <= \xsize and \rac5 >= -\xsize)? \rac5}
+\rational{rad=\p!=0?simplify((-\k/\p)-0.5)}
+\text{sol=(\casf==6 and \p!=0 and \rad>=0 )? simplify(\a-sqrt(\rad)),simplify(\a+sqrt(\rad)) }
+
+\text{n=(none isitemof \sol)?0:items(\sol)}
+
+
+/** preparation du graphique **/
+
+\real{fxmin = min(max(evaluate(\f,x=-\xsize),-20),20)}
+\real{fxmax = max(min(evaluate(\f,x=\xsize), 20),-20)}
+\real{fxmil = (\n>1 and \casf!=6) ?max(min(evaluate(\f,x=0.5*(\sol[1]+\sol[2])),20),-20)}
+\real{fxmil = (\casf==6) ?max(min(evaluate(\f,x=\a),20),-20)}
+\real{fxmil = (\casf==5) ?max(min(evaluate(\f,x=\a-0.5),20),-20)}
+
+\real{fxmil2 =(\n==3)?max(min(evaluate(\f,x=0.5*(\sol[2]+\sol[3])),20),-20)}
+\real{fxmil2 = (\casf==5) ?max(min(evaluate(\f,x=\a+0.5),20),-20)}
+
+\integer{yfloor=((\n==1 and \casf!=5) or (\n==0 and \casf!=6))?pari(floor(listsort(List([0,\fxmin,\fxmax]))[1]))}
+
+/** casf = 5  (n = 1) ; tenir compte des valeurs en \a-E et \a+E **/
+/** casf = 6 tenir compte de la valeur au milieu des racines **/
+
+\integer{yfloor=(\n==2 or \casf==6)?pari(floor(listsort(List([\fxmil,\fxmin,\fxmax]))[1]))}  
+\integer{yfloor=(\n==3 or \casf==5)?pari(floor(listsort(List([\fxmil,\fxmil2,\fxmin,\fxmax]))[1]))} 
+
+\integer{yceiling=((\n==1 and \casf!=5) or (\n==0 and \casf!=6))?pari(floor(listsort(List([0,\fxmin,\fxmax]))[3])+1)}
+
+\integer{yceiling=(\n==2 or \casf==6)?pari(floor(listsort(List([\fxmil,\fxmin,\fxmax]))[3])+1)}  
+\integer{yceiling=(\n==3 or \casf==5)?pari(floor(listsort(List([\fxmil,\fxmil2,\fxmin,\fxmax]))[4])+1)} 
+
+\integer{ymin=(\yfloor>0)?-1:\yfloor-1}
+\integer{ymax=(\yceiling<0)?1:\yceiling+1}
+
+
+\text{ticks=text black , -1, -20, small , -20
+text black , -1, -15, small , -15
+text black , -1,-10,small , -10
+text black , -1,-5,small , -5
+text black , -1, 5,small , 5
+text black , -1, 10, small , 10
+text black , -1, 15, small , 15
+text black , -1, 20, small , 20
+text black, -10, -0.2, small , -10
+text black, -5, -0.2, small , -5
+text black, 5, -0.2,small , 5
+text black, 10, -0.2,small , 10
+linewidth 3
+point   -10 ,0, black
+point   -5 ,0, black
+point   5 , 0, black
+point   10 , 0, black
+point  0, -20 , black
+point  0, -15 , black
+point  0, -10 , black
+point  0, -5 , black
+point  0, 5 , black
+point  0, 10 , black
+point  0, 15 , black
+point  0, 20 , black
+}
+
+/** Etape 2 : racines ordonnées par construction **/
+/** calculer les val. arrondies au dixième pour casf 5 et 6 **/
+
+\real{x1=(\n!=0 and \casf<5)?\sol[1]}
+\real{x1=(\n!=0 and \casf>4)?pari(0.1*floor(10*\sol[1]))}
+\real{x2=(\n>1 and \casf<5)?\sol[2]}
+\real{x2=(\n>1 and \casf>4)?pari(0.1*floor(10*listsort(List([\sol]))[2]))}
+\real{x3=(\n==3)?\c}
+
+/** reponses ; repi indique les numéros des bons choix **/
+
+
+
+\text{choix2=+,-}
+\text{choix3=(\n!=0 or \casf==5 )?+,-}
+\text{choix4=(\n>1 or \casf==5 )?+,-}
+\text{choix5=(\n>2)?+,-}
+
+\text{rep2 = (\fxmin>0)?1:2}
+\text{rep3 = ((\n==1 or (\casf==5 and \n==0)) and \fxmax>0)?1}
+\text{rep3 = ((\n==1 or (\casf==5 and \n==0)) and \fxmax<0)?2}
+\text{rep3 = (\casf==5 and \n==1 and \x1<\a and \fxmil>0)?1}
+\text{rep3 = (\casf==5 and \n==1 and \x1<\a and \fxmil<0)?2}
+\text{rep3 = (\casf==5 and \n==1 and \x1>\a and \fxmil2>0)?1}
+\text{rep3 = (\casf==5 and \n==1 and \x1>\a and \fxmil2<0)?2}
+\text{rep3 = (\n>1 and \fxmil>0)?1}
+\text{rep3 = (\n>1 and \fxmil<0)?2}
+\text{rep4 = (\casf==5 and \n==1 and \fxmax>0)?1}
+\text{rep4 = (\casf==5 and \n==1 and \fxmax<0)?2}
+\text{rep4 = (\n==2 and \fxmax>0)?1}
+\text{rep4 = (\n==2 and \fxmax<0)?2}
+\text{rep4 = (\n==3 and \fxmil2>0)?1}
+\text{rep4 = (\n==3 and \fxmil2<0)?2}
+\text{rep5 = (\n==3 and \fxmax>0)?1}
+\text{rep5 = (\n==3 and \fxmax<0)?2}
+
+/** Nombre variable  de champs réponses   **/
+
+\text{listreply = \casf==5?reply2,reply3:reply2}
+\text{listreply = (\casf==5 and \n==1) ?\listreply,reply4}
+\text{listreply = (\casf!=5 and \n!=0)?\listreply,reply3}
+\text{listreply = (\n>1 )?\listreply,reply4}
+\text{listreply = (\n>2 )?\listreply,reply5}
+
+\steps{reply1
+\listreply }
+
+
+\statement{<table width="100%">
+<tr><td width="60%">
+<p>
+De grafiek van \(f) is gedefinieerd op het domein \calD = \if{\casf!=5}{[-\xsize ,\xsize]}{&#91;-\xsize ,\a&#91; \cup &#93; \a,\xsize &#93;}<br>en weergegeven in het vlak (O ; I, J) .
+</p>
+Beantwoord de volgende vragen over de grafiek van \(f).
+<p>
+<ol>
+
+\if{\step==1}{<li><b>Hoeveel oplossingen heeft de vergelijking \(f(x) = 0) in \calD ? \embed{reply1, 5}</b></li>}
+
+
+\if{\step==2 and \casf!=5 and \n==0}{
+<li>
+De vergelijking \(f(x) = 0) heeft geen oplossingen in het domein \calD.  <br/><br/>
+</li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b> :   </li>
+<p>
+<table border="1" >
+<tr>
+<td width="5%" > \(x)</td><td  align="left" width="40%" >-\xsize</td><td align="right" width="40%" >\xsize</td>
+</tr>
+<tr>
+<td width="5%" >\(f(x))</td><td  colspan=2 align="center">  \embed{reply2} </td>
+</tr>
+</table>
+</p>
+}
+
+
+\if{\step==2 and \casf==5 and \n==0 }{<li>
+De vergelijking \(f(x) = 0) heeft geen oplossing in het domein \calD. <br/>
+De functie \(f) is niet gedefinieerd in \a. <br/><br/></li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b>  :   </li>
+<p>
+<table border="1" >
+<tr>
+<td width="5%" >  \(x)</td><td  width="40%" align="left">-\xsize</td><td  align="center">\a</td><td width="40%" align="right">\xsize</td>
+</tr>
+<tr>
+<td width="5%" > \(f(x))</td><td width="40%" align="center">  \embed{reply2} </td><td  align="center">||</td><td width="40%" align="center"> \embed{reply3}</td>
+</tr>
+</table>
+</p>
+}
+
+\if{\step==2 and \casf!=5 and \n==1 }{<li>
+De vergelijking \(f(x) = 0) heeft &eacute;&eacute;n oplossing \(x)<sub>1</sub> op het domein \calD. <br/>
+De waarde van \(x)<sub>1</sub> op twee decimalen afgerond is \x1. <br/><br/></li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b>  :   </li>
+<p>
+<table border=1 border="solid">
+<tr>
+<td width="5%" >  \(x)</td><td  width="40%" align="left">-\xsize</td><td  align="center">\x1</td><td width="40%" align="right">\xsize</td>
+</tr>
+<tr>
+<td width="5%" > \(f(x))</td><td width="40%" align="center">  \embed{reply2} </td><td  align="center">0</td><td width="40%" align="center"> \embed{reply3}</td>
+</tr>
+</table>
+</p>
+}
+
+\if{\step==2 and \casf==5 and \n==1 and \x1 < \a }{<li>
+De vergelijking \(f(x) = 0) heeft &eacute;&eacute;n oplossing \(x)<sub>1</sub> op het domein \calD.<br>
+De functie \(f) is niet gedefinieerd in \a. <br/>
+De waarde van \(x)<sub>1</sub> afgerond op 0.1 nauwkeurig  : \x1. 
+<br/><br/>
+</li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b>  :   </li>
+<p>
+<table border="1">
+<tr>
+<td width="5%" > \(x)</td><td  width="25%" align="left">-\xsize </td>
+<td width="5%"  align="center"> \x1</td><td width="25%" > &nbsp; </td> <td align="center" width="5%"> \a</td><td width="25%" align="right">\xsize</td>
+</tr>
+<tr>
+<td width="5%" >\(f(x))</td><td width="25%" align="center"> \embed{reply2} </td><td  width="5%" align="center">0</td><td width="25%" align="center">  \embed{reply3} </td><td  align="center" width="5%">||</td>
+<td width="25%" align="center"> \embed{reply4} </td> 
+</tr>
+</table>
+</p>
+}
+\if{\step==2 and \casf==5 and \n==1 and \a < \x1 }{<li>
+De vergelijking \(f(x) = 0) heeft &eacute;&eacute;n oplossing  \(x)<sub>1</sub> op het domein \calD. 
+De functie \(f) is niet gedfinieerd in \a. <br/>
+De waarde van \(x)<sub>1</sub> afgerond op 0.1 nauwkeurig is  : \x1. 
+<br/><br/>
+</li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b>  :   </li>
+<p>
+<table border="1"> 
+<tr>
+<td width="5%"> \(x)</td><td  width="20%" align="left">-\xsize </td>
+<td  align="center" width="5%"> \a</td><td width="20%" > &nbsp; </td> <td align="center" width="5%">\x1</td><td width="20%" align="right">\xsize</td>
+</tr>
+<tr>
+<td width="5%">\(f(x))</td><td width="20%" align="center"> \embed{reply2} </td><td  align="center" width="5%">||</td><td width="20%" align="center">  \embed{reply3}</td><td  align="center" width="5%">0</td>
+<td width="20%" align="center"> \embed{reply4} </td> 
+</tr>
+</table>
+</p>
+}
+
+
+\if{\step==2 and \n==2}{
+<li>
+De vergelijking \(f(x) = 0) heeft twee oplossingen \(x)<sub>1</sub> en  \(x)<sub>2</sub> op het domein \calD. <br/>
+De afgeronde waarden van \(x)<sub>1</sub> en  \(x)<sub>2</sub> zijn respectievelijk : \x1 en \x2. <br/><br/>
+</li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b>  :   </li>
+<p>
+<table border="1" >
+<tr>
+<td width="5%"> \(x)</td><td  width="25%" align="left">-\xsize </td>
+<td  align="center" width="5%"> \x1</td><td width="25%" > &nbsp; </td> <td align="center" width="5%"> \x2</td><td width="25%" align="right">\xsize</td>
+</tr>
+<tr>
+<td width="5%">\(f(x))</td><td width="25%" align="center"> \embed{reply2} </td><td  align="center" width="5%">0</td><td width="25%" align="center">  \embed{reply3} </td><td  align="center" width="5%"> 0</td>
+<td width="25%" align="center"> \embed{reply4} </td> 
+</tr>
+</table>
+</p>
+}
+
+\if{\step==2 and \n==3}{<li>
+De vergelijking \(f(x) = 0) heeft op het domein \calD drie oplossingen \(x)<sub>1</sub>,  \(x)<sub>2</sub> en  \(x)<sub>3</sub> . <br/>
+De op 0.1 nauwkeurig afgeronde waarden van \(x)<sub>1</sub>,   \(x)<sub>2</sub> en  \(x)<sub>3</sub> zijn respectievelijk :  \x1, \x2 en \x3. </li>
+<li><b>Maak het tekenverloop van \(f) in de tabel af </b>  :   </li>
+
+<p>
+<table border="1">
+<tr>
+<td > \(x)</td>
+<td  align="left" width="20%" >-\xsize </td>
+<td align="center">\x1</td>
+<td width="20%" > &nbsp; </td> 
+<td align="center">\x2</td>
+<td width="20%" > &nbsp; </td> 
+<td  align="center">\x3</td>
+<td width="20%" align="right"> \xsize</td> </tr>
+<tr>
+<td >\(f(x))</td>
+<td width="20%" align="left">  \embed{reply2} </td>
+<td align="center"> 0 </td>
+<td width="20%" align="center"> \embed{reply3} </td> 
+<td align="center">0</td>
+<td width="20%" align="center"> \embed{reply4} </td>
+<td align="center">0</td>
+<td width="20%" align="center"> \embed{reply5} </td>
+</tr>
+</table>
+</p>
+}
+</ol>
+</td>
+<td width="40%"> 
+<center>
+\draw{350,350}{
+xrange -\xsize,\xsize
+yrange \ymin,\ymax
+parallel -\xsize,\ymin,-\xsize,\ymax,1,0, 2*\xsize+1, grey 
+parallel -\xsize,\ymin,\xsize,\ymin,0,1, (-\ymin)+\ymax+1, grey 
+hline 0,0,black
+vline 0,0,black
+arrow 0,0,1,0,8, black
+arrow 0,0,0,1,8, black
+text black , -0.5,-0.2,small , O
+text black , 1,-0.3,small , I
+text black , -0.5,1,small , J
+\ticks
+linewidth 1.5
+plot blue, \f
+}
+</center>
+</td>
+</tr></table>
+}
+
+\hint{De waarde van \(f(x)) is strikt positief (resp. strikt negatief) voor alle re&euml;ele  waarden van \(x) op het interval \(I) 
+wanneer de curve van \(f) zich uitsluitend boven of onder de I-as bevindt.<br/>.}
+
+\answer{Aantal nulpunten}{\n}{type=numeric}
+\answer{}{\rep2 ; \choix2}{type=menu}
+\answer{}{\rep3 ; \choix3}{type=menu}
+\answer{}{\rep4 ; \choix4}{type=menu}
+\answer{}{\rep5 ; \choix5}{type=menu}

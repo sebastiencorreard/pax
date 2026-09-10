@@ -1,0 +1,146 @@
+!set title=Utiliser un graphique 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Après un contrôle de mathématiques, le professeur dresse un tableau	  des notes obtenues par les élèves de sa classe.
+val7=En utilisant le graphique, répondre à la question suivante&nbsp;
+val8=Quel est le nombre d'élèves dans la classe&nbsp;
+val9=Notes,Nbre
+tmp0=!shuffle 0,4,7
+
+val10=$(tmp0)
+!for val11 =1 to 3 
+tmp0=!randint 2, 6
+
+val10=$val10,$(tmp0)
+!next
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp0=!shuffle 6
+
+val12=$(tmp0)
+val13=$[rint(4*($(val12[1])-1))]
+val14=$[rint(4*($(val12[2])-1))]
+val15=frect 1,0,2,$(val10[1]),red
+val16=frect 3,0,4,$(val10[2]),red
+val17=frect 5,0,6,$(val10[3]),red
+val18=frect 7,0,8,$(val10[4]),red
+val19=frect 9,0,10,$(val10[5]),red
+val20=frect 11,0,12,$(val10[6]),red
+val21=$[rint($(val10[1]))]
+!for val22 =2 to 6 
+val21=$[rint($val21+$(val10[$val22]))]
+!next
+val23=
+!for val11 =0 to 20 step 4 
+val23=$val23	  text black,$val11/2+1.4,-0.2,small,$val11
+!next
+!for val11 =1 to 10 
+val23=$val23	  text black,-0.7,$val11+0.2,small,$val11
+!next
+val24=fill 0,0,220,220,255
+!readproc oef/draw.phtml 506,308 \
+  xrange -1,22	  yrange -1,8	  $val24	  parallel 1,0,1,8,1,0,20,grey	  parallel 0,0.5,21,0.5,0,0.5,16,grey	  linewidth 2	  arrow -1,0,21,0,10,black	  arrow 0,-1,0,8,10,black	  text black,18.6,0.8,medium,$(val9[1])	  text black,0.5,7.9,medium,$(val9[2])	  $val23	$val15	$val16	$val17	$val18	$val19	$val20	  
+tmp0=$ins_url
+val25=$(tmp0)
+val26=$[rint(0)]
+!if $(val10[1])<2 
+val27=\($(val10[1])\) élève a 0
+!else
+val27=\($(val10[1])\) élèves ont 0
+!endif
+!for val11 =2 to 5 
+val26=$[rint($val26+4)]
+!if $(val10[$val11])<2 
+val27=$val27, \($(val10[$val11])\) élève a $val26
+!else
+val27=$val27, \($(val10[$val11])\) élèves ont $val26
+!endif
+!next
+!if $(val10[6])<2 
+val27=$val27, \($(val10[6])\) élève a 20.
+!else
+val27=$val27, \($(val10[6])\) élèves ont 20.
+!endif
+val28=$val27	<p>\($(val10[1])+$(val10[2])+$(val10[3])+$(val10[4])+$(val10[5])+$(val10[6])=$val21\)</p>	Il y a \($val21\) élèves dans la classe.
+replytype1=numeric
+replyname1=
+replygood1=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val28
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col">	   <img src="$val25" alt="">	 </div>	 <div class="medium_size text_col">	  $val6	  <p>$val7 :</p>	  <div class="spacer">	  <label for="reply1">$val8 ? </label> 
+!read oef/embed.phtml r1,5 
+$()</div>	  </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val28
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,25,28
+embedcnt=1

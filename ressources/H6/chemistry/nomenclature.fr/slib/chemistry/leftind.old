@@ -1,0 +1,89 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Yves, Noël
+slib_comment=
+!!exemple à changer ensuite mais sert de test.
+slib_example=12,6,C,2
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_masse,slib_atom,slib_elem,slib_exp,slib_ind,slib_size
+
+
+!set expsize=scriptsize
+!default slib_size=0
+!if $slib_size>4
+ !set slib_size=4
+!endif
+!if $slib_size>0
+ !if $slib_size<2
+  !set size=large
+  !set expsize=scriptsize
+ !else
+  !if $slib_size<3
+  !set size=Large
+  !set expsize=scriptsize
+  !else
+   !if $slib_size<4
+    !set size=huge
+    !set expsize=large
+   !else
+    !set size=Huge
+    !set expsize=Large
+   !endif
+  !endif
+ !endif
+!endif
+
+!set masse=!charcnt $slib_masse
+!set atom=!charcnt $slib_atom
+!set ind=!charcnt $slib_ind
+!set exp=!charcnt $slib_exp
+ !set undersc=_{
+
+!if $slib_size >0
+ !set slib_out={\$size\vphantom{I}}
+!else
+ !set slib_out=\,
+!endif
+!if $atom>0
+ !set slib_out=$slib_out$undersc
+ !if $masse!=$atom and $masse>0
+  !set diffma=!eval $masse-$atom
+  !if $diffma=1
+   !set slib_out=$slib_out\phantom{1}
+  !else
+   !set slib_out=$slib_out\phantom{11}
+  !endif
+ !endif
+ !set slib_out=$slib_out$\$expsize{$slib_atom}}
+!endif
+!if $masse>0
+ !if $slib_size>2
+  !set slib_out=$slib_out^{\$expsize{$slib_masse}}
+ !else
+  !set slib_out=$slib_out^{$slib_masse}
+ !endif
+!endif
+
+!if $slib_size >0
+ !set slib_out=$slib_out{\$size{\mathrm{$slib_elem}}}
+!else
+ !set slib_out=$slib_out\mathrm{$slib_elem}
+!endif
+!if $ind>0
+ !if $slib_size>2
+  !set slib_out=$slib_out$undersc\$expsize{$slib_ind}}
+ !else
+  !set slib_out=$slib_out$undersc$slib_ind}
+ !endif
+!endif
+!if $exp>0
+ !if $slib_size>2
+  !set slib_out=$slib_out^{\$expsize{$slib_exp}}
+ !else
+  !set slib_out=$slib_out^{$slib_exp}
+ !endif
+!endif

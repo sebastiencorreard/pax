@@ -1,0 +1,113 @@
+target=lnsuitegeo
+\text{name_menu1=converge vers 0, diverge vers +infini, diverge vers -infini}
+\text{name_menu2=inférieurs ou égaux,supérieurs ou égaux}
+\text{name_sens=décroissante,croissante}
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\integer{q1=random(101..350)}
+\integer{q2=random(2..99)}
+\real{q=random(\q1,\q2)/100}
+\integer{sa=random(1,-1)}
+\integer{a=random(1..50)*\sa}
+\integer{ka=random(1,10,100)}
+\integer{a=\a*\ka}
+!!! sens de variation : decroissant (0) / croissant (1)
+\if{\q<1}{\integer{ssvar=(\sa=1)?0:1}}
+\if{\q>1}{\integer{ssvar=(\sa=1)?1:0}}
+\text{tq=(/ isin \q)?(\q):\times\q}
+
+!!! suite divergeant vers +/-inf
+
+\integer{q0=pari(floor(\q))}
+\integer{k=(\q>1)?random(10..50)*\ka*\q0^random(5..12)}
+\integer{k=(\q>1 && \ssvar=0)?\a-\k}
+\integer{lim=(\q>1 && \ssvar=0)?3}
+\integer{k=(\q>1 && \ssvar=1)?\a+\k}
+\integer{lim=(\q>1 && \ssvar=1)?2}
+
+!!! suite convergeant vers 0
+\rational{k=(\q<1)?1/random(10,100,1000,1000,10^4)}
+\rational{k=(\q<1)?random(10^-(1),10^(-2),10^(-3),10^(-4),10^(-5))}
+\rational{k=(\q<1 && \sa=-1)?-\k}
+\integer{lim=(\q<1)?1}
+
+!!!! inequation aq^n ineq k
+
+!!!\text{symb=\ssvar=0?<,>}
+\text{symb=random(<,>)}
+\text{pos=position(\symb,<,>)}
+!!! chgment sens inégalité si a et ln(q) de signes différents
+\text{chge=\a*log(\q)}
+\text{symb1=(\a>0)?\symb}
+\text{symb1=(\a<0 && \pos=1)?item(2,<,>)}
+\text{symb1=(\a<0 && \pos=2)?item(1,<,>)}
+\text{symb2=(\chge>0)?\symb}
+\text{symb2=(\chge<0 && \pos=1)?item(2,<,>)}
+\text{symb2=(\chge<0 && \pos=2)?item(1,<,>)}
+\text{symb3=(\symb2 issametext <)?\le:\ge}
+
+!!! pretty printing
+\text{suite=(\a=1)?\tq^{n} :\a \tq^{n}}
+\text{ineq=\suite \symb \k }
+\integer{opt=(\symb2 issametext <)?1:2}
+\text{sens=(\ssvar=0)?\name_sens[1]:\name_sens[2]}
+\rational{num=\k/\a}
+\real{sol=log(\k/\a)/log(\q)}
+\integer{sol=(\opt=1)?pari( floor(\sol)):pari( ceil(\sol))}
+
+\statement{
+<div class="wims_question">
+<p>On considère la suite géométrique (\(u_n)\) de premier terme \(u_0 = \a\) et
+de raison \( q = \q\). </p><p>
+On cherche pour quelles valeurs de l'entier \(n\)
+on a \( u_n \symb \k\).<br>
+Il s'agit donc de résoudre dans \NN l'inéquation (I) : \(\ineq\)
+</p><p>
+Résolvez (I) sur papier libre, puis complétez les affirmations suivantes.</p>
+</div>
+<ol><li>
+La suite géométrique \((u_n)\) est \embed{choice1,8} et \embed{reply1}.
+</li><li>
+L'inéquation (I) équivaut à \(n \) \embed{choice2} ln(\embed{reply2,8}) / ln(q) .
+</li><li>
+Les solutions de l'inéquation (I) sont tous les entiers naturels
+ \embed{reply3} à <label for="reply4">l'entier \(n_0\) =</label> \embed{reply4,5}.
+</li></ol>
+}
+\choice{Sens de variation}{\sens}{\name_sens[2],\name_sens[1]}
+\answer{Limite}{\lim;\name_menu1}{type=menu}
+\choice{Inegalité}{\symb2}{<,>}
+\answer{}{\num}{type=numexp}
+\answer{Ensemble des solutions}{\opt;\name_menu2}{type=menu}
+\answer{Valeur de n0}{\sol}
+
+\feedback{0=0}{
+<b>Voici une résolution détaillée de l'inéquation (I) </b>
+<p>On divise l'inégalité par \a
+\if{\sa=-1}{(en inversant le sens de l'inégalité car on divise par un nombre négatif)} :
+</p>
+<div class="wimscenter">
+(I) \( \Longleftrightarrow \q^n \symb1 \num\).
+</div>
+La fonction logarithme conserve les inégalités :
+<div class="wimscenter">
+(I) \( \Longleftrightarrow \ln(\q^n) \symb1 \ln(\num) \Longleftrightarrow n\ln(\q) \symb1 \ln(\num) \)
+</div>
+On a \q \if{\q>1}{>}{<} 1, donc
+ln(\q) est \if{\q>1}{positif}{négatif}. En divisant l'inégalité par ln(\q)
+on \if{\q>1}{conserve}{inverse} le sens de l'inégalité :
+<div class="wimscenter">
+(I) \(\Longleftrightarrow n \symb2 \frac{ln(\num)}{ \ln(\q)}\).
+</div>
+Comme \(n\) est un entier naturel :
+<div class="wimscenter">
+\( (I) \Longleftrightarrow n \symb3 \sol \).
+</div>
+}

@@ -1,0 +1,99 @@
+\title{Les piles électrochimiques(1)}
+\auhor{B.Markey}
+\email{benoit.markey@ac-lille.fr}
+
+\text{lescript=
+<script type="text/javascript">
+function getInput(n){
+  f=window.document.forms[0];
+  for(i=0; i<f.elements.length; i=i+1){
+    if (f.elements[i].name=="reply"+n) { 
+      return f.elements[i];
+    }
+  }
+  return null;
+}
+function appendToInput(n,msg){
+  var i=getInput(n);
+  i.value=i.value+msg+' ';
+  i.focus();
+}
+</script>
+}
+
+\integer{nreac=wims(recordcnt couples_piles.dat)}
+\integer{i=randint(1..\nreac-1)}
+\integer{j=randint(\i+1..\nreac)}
+
+\text{reac1=wims (record \i of couples_piles.dat)}
+\text{reac2=wims (record \j of couples_piles.dat)}
+
+
+\text{plus1=draw(20,20
+frect 0,0,20,20,232,232,232
+text black,8,3,medium,+
+circle 10,10,18,black)}
+\text{plus=<img src="\plus1">}
+
+\text{moins1=draw(20,20
+frect 0,0,20,20,232,232,232
+text black,8,3,medium,-
+circle 10,10,18,black)}
+\text{moins=<img src="\moins1">}
+
+\text{eq_plus=slib(chemistry/chemeq_components \reac1[;1], htmlbuttons 1,shuffle,[extra,redox_extra,\reac2[;4],\reac2[;5] ])}
+\text{eq_moins1=slib(chemistry/chemeq_rev \reac2[;1])}
+\text{eq_moins=slib(chemistry/chemeq_components \eq_moins1, htmlbuttons 2,shuffle,[extra,redox_extra,\reac1[;4],\reac1[;5] ])}
+
+
+///////////////////////////////////////////////////
+// comptage des électrons, calcul des coefficients.
+// la fonction gcd() permet de connaître le PGCD.
+///////////////////////////////////////////////////
+\integer{oxyel=slib(chemistry/chemeq_el \reac1[;1])}
+\integer{redel=slib(chemistry/chemeq_el \reac2[;1])}
+\integer{gcd=gcd(\oxyel,\redel)}
+\integer{oxycoeff=\redel/\gcd}
+\integer{redcoeff=\oxyel/\gcd}
+
+///////////////////////////////////////////////////
+// application des coefficients.
+///////////////////////////////////////////////////
+\text{oxymulr=slib(chemistry/chemeq_add \oxycoeff,\reac1[;1])}
+\text{oxymultex=slib(chemistry/chemeq_tex \oxymulr)}
+
+\text{redmulr=slib(chemistry/chemeq_add -\redcoeff,\reac2[;1])}
+\text{redmultex=slib(chemistry/chemeq_tex \redmulr)}
+
+////////////////////////////////////////////////////
+// fabrication de l'équation-bilan.
+////////////////////////////////////////////////////
+\text{eqbilan=slib(chemistry/chemeq_add \oxycoeff,\reac1[;1],-\redcoeff,\reac2[;1])}
+
+\text{eq_bilan=slib(chemistry/chemeq_components \eqbilan, htmlbuttons 3,shuffle,[extra,redox_extra])}
+
+
+\statement{
+\lescript
+
+On considère la pile électrochimique suivante:
+\moins \(\reac2[;5]/\reac2[;4]//\reac1[;4]/\reac1[;5]) \plus <br>
+<ol>
+<li>Ecrire la réaction se produisant au pôle \plus: (<i>Les coefficients stoechiométriques doivent
+être ajoutés avec votre clavier le cas échéant</i>)<br>
+\embed{reply1}<br>
+\eq_plus
+<li>Ecrire la réaction se produisant au pôle \moins: (<i>Les coefficients stoechiométriques doivent
+être ajoutés avec votre clavier le cas échéant</i>)<br>
+\embed{reply2}<br>
+\eq_moins
+<li>En déduire l'équation de la réaction globale de la pile: (<i>Les coefficients stoechiométriques doivent
+être ajoutés avec votre clavier le cas échéant</i>)<br>
+\embed{reply3}<br>
+\eq_bilan
+</ol>
+
+}
+\reply{}{\reac1[;1]}{type=chemeq}  
+\reply{}{\eq_moins1}{type=chemeq}  
+\reply{}{\eqbilan}{type=chemeq}

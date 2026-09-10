@@ -1,0 +1,267 @@
+!set title=Décharge d'un condensateur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Georges Khaznadar & B.Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=10
+
+ansorder=r,r,r,r,r,r
+varcnt=65
+prevarcnt=64
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=!rawmath exp(-temps/tau)
+tmp0=!random -3, -2
+
+val7=$[$(tmp0)]
+val8=$[round(100000*10^$val7)/100000]
+tmp0=!randitem 10000,33000,47000,56000,100000
+
+val9=$[$(tmp0)]
+val10=$[$val8/$val9]
+tmp0=!randint 1, 6
+
+val11=$[$(tmp0)]
+val12=$[9*$val11/10]
+val13=$[8*$val11/10]
+val14=$[7*$val11/10]
+val15=$[6*$val11/10]
+val16=$[5*$val11/10]
+val17=$[4*$val11/10]
+val18=$[3*$val11/10]
+val19=$[2*$val11/10]
+val20=$[$val11/10]
+val21=$[0.5*$val10*$val11*$val11]
+val22=$[3.1415927]
+val23=$[rint(300)]
+val24=$[rint($val23/4)]
+val25=$[rint($val24/2)]
+val26=$[8*$val22/10]
+val27=$[1*$val22/10]
+val28=51,51,51
+val29=hline 0, $val23/10 ,$val28	hline 0, 2*$val23/10 ,$val28	hline 0, 3*$val23/10 ,$val28	hline 0, 4*$val23/10 ,$val28	hline 0, 5*$val23/10 ,$val28	hline 0, 6*$val23/10 ,$val28	hline 0, 7*$val23/10 ,$val28	hline 0, 8*$val23/10 ,$val28	hline 0, 9*$val23/10 ,$val28	arrow 0,$val23,0,0,10, white	text white,0,$val23/10,small,$val12	text white,0,2*$val23/10,small,$val13	text white,0,3*$val23/10,small,$val14	text white,0,4*$val23/10,small,$val15	text white,0,5*$val23/10,small,$val16	text white,0,6*$val23/10,small,$val17	text white,0,7*$val23/10,small,$val18	text white,0,8*$val23/10,small,$val19	text white,0,9*$val23/10,small,$val20	text white,0,0.97*$val23,small,0	arrow 0,$val23,$val23,$val23,10, white	vline $val23/10, 0 ,$val28	vline 2*$val23/10, 0 ,$val28	vline 3*$val23/10, 0 ,$val28	vline 4*$val23/10, 0 ,$val28	vline 5*$val23/10, 0 ,$val28	vline 6*$val23/10, 0 ,$val28	vline 7*$val23/10, 0 ,$val28	vline 8*$val23/10, 0 ,$val28	vline 9*$val23/10, 0 ,$val28	
+val30=0.1,0.05,0.02,0.01,0.005,0.002,0.001,0.0005
+val31=100 ms/c, 50 ms/c, 20 ms/c, 10 ms/c, 5 ms/c, 2 ms/c, 1 ms/c, 500 us/c
+!for val32 =1 to 8 
+val33=$[$val23/10/$(val30[$val32])]
+tmp0=!replace tau by $val8 in $val6
+
+val34=!rawmath $val23*(1-($(tmp0)))
+tmp0=!replace internal temps by x/$val33 in $val34
+
+val34=!rawmath $(tmp0)
+val35=!rawmath $val23*(x/$val33/$val8)
+!readproc oef/draw.phtml $val23, $val23 \
+    fill $val23/2,$val23/2,grey	    $val29	    plot green, $val34	    plot darkslategrey, $val35	    
+tmp0=$ins_url
+val36=$(tmp0)	  
+val37=$[$val26+($val27-$val26)/8*($val32-1)]
+val38=$[1.8]
+val39=$[8]
+!for val40 =1 to 8 
+val41=$[$val26+($val27-$val26)/8*($val40-1)]
+val42=$[cos($val41)]
+val43=$[sin($val41)]
+val44=$[$val24/2+($val24/$val38/2+4)*$val42]
+val45=$[$val24/2-($val24/$val38/2+4)*$val43]
+val46=$[$val24/2+($val24/$val38/2+9)*$val42]
+val47=$[$val24/2-($val24/$val38/2+9)*$val43]
+!if j=1 
+val48=segment $val44,$val45,$val46,$val47,grey
+!else
+val48=$val48	                      segment $val44,$val45,$val46,$val47,black
+!endif
+!next
+val42=$[cos($val37)]
+val43=$[sin($val37)]
+val49=$[$val24/2+($val24/$val38/2-4)*$val42]
+val50=$[$val24/2-($val24/$val38/2-4)*$val43]
+val51=$[$val24/2-($val24/$val38/2-4)*$val42]
+val52=$[$val24/2+($val24/$val38/2-4)*$val43]
+val44=$[$val24/2+($val24/$val38/2+$val39)*$val42]
+val45=$[$val24/2-($val24/$val38/2+$val39)*$val43]
+val46=$[$val24/2+($val24/$val38/2)*$val42+$val39/2*$val43]
+val47=$[$val24/2-($val24/$val38/2)*$val43+$val39/2*$val42]
+val53=$[$val24/2+($val24/$val38/2)*$val42-$val39/2*$val43]
+val54=$[$val24/2-($val24/$val38/2)*$val43-$val39/2*$val42]
+!readproc oef/draw.phtml $val24, $val24 \
+    fcircle $val24/2, $val24/2, $val24/$val38+3, black	    fpoly black,$val44,$val45,$val46,$val47,$val53,$val54	    fcircle $val24/2, $val24/2, $val24/$val38, slategrey	    segment $val49, $val50, $val51, $val52, white	    fcircle $val49, $val50, 5, red	    $val48	    text black, 10, $val24-15, medium, $(val31[$val32])	    text blue, 10,0,medium, -	    text blue, $val24-15,0,medium, +	    
+tmp0=$ins_url
+val55=$(tmp0)	  
+!if $val32=1 
+val56=$val36
+val57=$val55
+!else
+val56=$val56 , $val36
+val57=$val57, $val55
+!endif
+!next
+val58=RC1.png,RC2.png,RC3.png,RC4.png
+tmp0=!shuffle $val58
+
+val59=$(tmp0)
+oefsteps=reply1, reply2, reply3	reply4, reply5,reply6 
+nextstep=!nosubst reply1, reply2, reply3	reply4, reply5,reply6 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=
+replygood1=Aucun branchement
+replytype2=dragfill
+replyname2=
+replygood2=Voie Ya de l'oscilloscope
+replytype3=dragfill
+replyname3=
+replygood3=Masse
+replytype4=units
+replyname4=-
+replygood4=$val8 s
+replytype5=units
+replyname5=-
+replygood5=$val10 F
+replytype6=units
+replyname6=-
+replygood6=$val21 J
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()(étape 1/2)<p>Placer correctement les connexions de l&#8217;oscilloscope afin d&#8217;observer la tension Uc aux bornes du condensateur. Le condensateur est étudié en convention récepteur. Les 3 étiquettes doivent être placées.<p> <font size="5" face="times" color="green"> ATTENTION:pour accéder à la deuxième étape, vous DEVEZ réussir cette premiére étape</font><p>			
+!if $(val59[1]) issametext RC1.png 
+$()	    <table> 	<tr><td>  
+!read oef/embed.phtml reply 1,150x50 
+$()</td><td>&nbsp; </td>	 <tr> 	  <td rowspan="3"> <img src=$val1/RC1.png>	 </td> 	<td>  
+!read oef/embed.phtml reply 2,150x50 
+$()	</td>  </tr>	<tr><td>&nbsp; </td> </tr>	<tr><td>  
+!read oef/embed.phtml reply 3,150x50 
+$()</td> </tr>  	</table> 
+!endif
+$()		
+!if $(val59[1]) issametext RC2.png 
+$()	    <table> 		 <tr> 	  <td rowspan="3"> <img src=$val1/RC2.png>	 </td> 	<td>  
+!read oef/embed.phtml reply 1,150x50 
+$()	</td>  </tr>	<tr><td> 
+!read oef/embed.phtml reply 2,150x50 
+$() </td> </tr>	<tr><td>  
+!read oef/embed.phtml reply 3,150x50 
+$()</td> </tr>  	</table> 
+!endif
+$()		
+!if $(val59[1]) issametext RC3.png 
+$()	    <table> 		 <tr> 	  <td rowspan="3"> <img src=$val1/RC3.png>	 </td> 	<td>  
+!read oef/embed.phtml reply 3,150x50 
+$()	</td>  </tr>	<tr><td> 
+!read oef/embed.phtml reply 2,150x50 
+$() </td> </tr>	<tr><td>  
+!read oef/embed.phtml reply 1,150x50 
+$()</td> </tr>  	</table> 
+!endif
+$()		
+!if $(val59[1]) issametext RC4.png 
+$()	    <table> 	<tr><td>  
+!read oef/embed.phtml reply 3,150x50 
+$()</td><td>&nbsp; </td>	 <tr> 	  <td rowspan="3"> <img src=$val1/RC4.png>	 </td> 	<td>  
+!read oef/embed.phtml reply 2,150x50 
+$()	</td>  </tr>	<tr><td>&nbsp; </td> </tr>	<tr><td>  
+!read oef/embed.phtml reply 1,150x50 
+$()</td> </tr>  	</table>	 
+!endif
+$()			  
+!endif
+$()	
+!if $m_step=2 
+$()	<script language="javascript">	  var ecran = new Array(8);	  var bouton = new Array(8);	  var choix = 0;	  var basetemps = new Array(8);	 
+!for m_k=1 to 8 
+$()	 /* this is a bug from wims 3.32 (12 October 2003) : var j is not usable !!! */	 ecran[$m_k-1] = '$(val56[$m_k])';	 
+!next
+$()	 
+!for m_l=1 to 8 
+$()	 bouton[$m_l-1] = '$(val57[$m_l])';	 
+!next
+$()	 
+!for m_m=1 to 8 
+$()	 basetemps[$m_m-1] = '$(val31[$m_m])';	 
+!next
+$()		  function inc_choix(){	    if (choix < 7){	      choix = choix + 1;	    }	  }		  function dec_choix(){	    if (choix > 0){	      choix = choix - 1;	    }	  }	  function redraw(){	      document.images['ecran'].src=ecran[choix];	      document.images['bouton'].src=bouton[choix];	  }	</script>	<map name="map1">	  <area shape="rect" coords="0,0,$val25,$val24" 	    alt=  "tourne à gauche"	    title="tourne à gauche" 	    self.status="tourne à gauche"	    href="javascript:dec_choix();redraw();">	  <area shape="rect" coords="$val25,0,$val24,$val24" 	    alt=  "tourne à droite"	    title="tourne à droite" 	    self.status="tourne à droite"	    href="javascript:inc_choix();redraw();">	</map>	(étape 2/2)<p>	Un condensateur de capacité C est déchargé au travers d'une résistance R 	( $val9 
+!insmath Omega
+$()). 	Voici l'oscillogramme enregistrant la tension du condensateur précédent. <p>Les puissances de 10 seront tapées selon le modéle: pour entrer 1.8*10<sup>-7</sup>, taper 1.8e-7. Les unités doivent être précisées<p><br>	<table><tr>	<td><img src="$(val56[1])" name="ecran"></td>	<td align="center">	<font size="-1"><i>L'axe des tensions est gradué en V<p>Réglez la base de temps 	<br>de l'oscillogramme	<br> avec les boutons + et -</i></font><br>	<br><img src='$(val57[1])' name='bouton' border='0' usemap='#map1'>	<br><b>Base de temps</b>	</td>	</tr></table>	<table><tr>	<td align='right'>&Eacute;valuez le temps de relaxation 
+!insmath tau
+$() : </td>	<td> 
+!read oef/embed.phtml reply 4 
+$() </td>	</tr><tr>	<td align='right'>Puis calculez la valeur de la capacité C : </td>	<td> 
+!read oef/embed.phtml reply 5 
+$() </td></tr><tr>	<td align='right'>En déduire la valeur de l'énergie libérée par ce condensateur : </td>	<td> 
+!read oef/embed.phtml reply 6 
+$() </td></tr>	</tr></table>	 
+!endif
+$()
+$()
+!exit
+
+:hint
+$() 	<p>Le temps de relaxation se calcule selon : 
+!insmath tau
+$() = R 
+!insmath times
+$() C<p>	L'écart entre la tension instantanée du condensateur et sa limite est	divisé par 2 au bout d'une durée 0,69 
+!insmath times
+$() 
+!insmath tau
+$().<p>	La tangente à la courbe à l'instant t=0 coupe l'asymptote à l'abscisse	t = 
+!insmath tau
+$().<p>	Quelquefois, le temps de montée de la tension est si court qu'on ne voit	rien sur l'oscillogramme, tant que la base de temps n'est pas bien	réglée.	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,24,25,31,56,57,59
+embedcnt=15

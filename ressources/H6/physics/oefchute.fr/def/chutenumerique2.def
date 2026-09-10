@@ -1,0 +1,156 @@
+!set title=Chute libre verticale 2 bis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey; Marie-Claude, David
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+val6=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val6,2 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!randint 0, 10
+
+val8=$[rint($(tmp0))]
+val9=$[rint(1)]
+val10=$[$val9*$val8]
+val11=$[abs($val10)]
+!readproc slib/text/sigunits $val10 ,2 
+tmp0=$slib_out
+val11=$(tmp0)
+!readproc slib/text/sigunits $val11 m/s,2 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!texmath -gt+$val9*v0
+
+val13=$(tmp0)
+tmp0=!texmath -g/2*t^2+$val9*v_0*t+z0
+
+val14=$(tmp0)
+val15=$[$val10/9.8]
+!readproc slib/text/sigunits $val15 s,2,s 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=$[$val10^2/(2*9.8)+$val6]
+!readproc slib/text/sigunits $val17 m,2,m 
+tmp0=$slib_out
+val18=$(tmp0)
+val19=$[rint(-40*($val6+$val9*1.5)+480)]
+!readproc oef/draw.phtml 150,500 \
+frect 0,0,150,500,skyblue	arrow 75,500,75,5,10,black	text black,85,10,medium,z	frect 0,500,150,480,brown	text black,70,485,medium,SOL	line 72,480,78,480,black	line 72,440,78,440,black	line 72,400,78,400,black	line 72,360,78,360,black	line 72,320,78,320,black	line 72,280,78,280,black	line 72,240,78,240,black	line 72,200,78,200,black	line 72,160,78,160,black	line 72,120,78,120,black	line 72,80,78,80,black	line 72,40,78,40,black	text black,82,475,small,0	text black,82,435,small,1	text black,82,395,small,2	text black,82,355,small,3	text black,82,315,small,4	text black,82,275,small,5	text black,82,235,small,6	text black,82,195,small,7	text black,82,155,small,8	text black,82,115,small,9	text black,82,75,small,10	text black,82,35,small,11	arrow 75,480,75,440,10,blue	text blue,85,460,medium,i	arrow 77,455,97,455,7,blue	fcircle 75,-40*$val6+480,10,red	text red,90,-40*$val6+480-5,medium,A	arrow 70,-40*$val6+480,70,$val19,10,green	text green,40,(-40*$val6+480+$val19)/2,medium,v	text green,48,(-40*$val6+480+$val19)/2+5,small,0	arrow 32,(-40*$val6+480+$val19)/2-5,52,(-40*$val6+480+$val19)/2-5,7,green 
+tmp0=$ins_url
+val20=$(tmp0)
+val21=<img src="$val20" alt="vitesse vers le haut"/>
+replytype1=units
+replyname1=\(t_{max}\)
+replygood1=$val16
+replytype2=units
+replyname2=\(z_{max}\)
+replygood2=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right">$val21</div>	<div><p>Un mobile de masse 
+!insmath m
+$() est lancé en  
+!insmath A
+$() verticalement vers le haut (voir schéma) avec la vitesse initiale 
+!insmath v_0 = $val11
+$() 
+!insmath \textrm{m}\cdot\textrm{s}^{-1}
+$() 	et à l'altitude repérée par l'abscisse 
+!insmath z_0=$val7
+$() 
+!insmath \textrm{m}
+$(). Il subit ensuite une chute libre.<br/>On donne : 
+!insmath g=9.8 \, \textrm{m}\cdot\textrm{s}^{-2}
+$().</p>	<ol>	<li>Au bout de combien de temps le mobile atteindra-t-il sa hauteur maximale ? <br/>	 
+!insmath t_{max}
+$()= 
+!read oef/embed.phtml reply1,10 
+$()</li>	<li>Calculer sa hauteur maximale :	<br/>
+!insmath z_max
+$() =	 
+!read oef/embed.phtml reply2,10 
+$()</li></ol></div>	<div class="wims_instruction">	 Donner les résultats en tenant compte des chiffres significatifs (indiquer les 
+!insmath 0
+$() significatifs) et des unités.</div>
+$()
+!exit
+
+:hint
+$()L'équation différentielle du mouvement est 
+!insmath \quad\frac{d\vec{v}}{dt}(t) = -g \vec{i}
+$(). On en déduit les expressions de la vitesse et de l'altitude :	 <br/>	
+!insmath v(t)=$val13
+$() et 
+!insmath z(t)=$val14
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>La notation 2e-2 signifie 
+!insmath 2.10^{-2}
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,13,14,21
+embedcnt=2

@@ -1,0 +1,154 @@
+!set title=Union et intersection d'événements 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 80
+
+val6=$[$(tmp0)/100]
+val7=$[1-$val6]
+tmp0=!randint 20, 80
+
+val8=$[$(tmp0)/100]
+
+!ifval $val6>$val8
+tmp0=!randint 0, $val8*100
+
+val9=$[$(tmp0)/100]
+!else
+tmp1=!randint 0, $val6*100
+
+val9=$[$(tmp1)/100]
+!endif
+val10=$[$val6+$val8-$val9]
+!if $val10>1 
+val10=$[1]
+val9=$[$val6+$val8-$val10]
+
+!ifval abs($val9)<0.001
+val9=$[0]
+!endif
+!endif
+val11=\(P(\bar{A}\cup \bar{B})),1-$val9	\(P(\bar{A} \cap \bar{B})),1-$val10	\(P(A \cap \bar{B})),$val6-$val9	\(P(A \cup \bar{B})),1-$val8+$val9	\(P(\bar{A} \cap B)),$val8-$val9	\(P(\bar{A} \cup B)),1-$val6+$val9	\(P(\bar{A})),1-$val6	\(P(\bar{B})),1-$val8	
+val12=\(P(A)=$val6\) , \(P(B)=$val8\) et \(P(A \cup B)=$val10\)
+val13=
+val14=\(P(A \cap B)\)
+val15=$val9
+val16=3
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)/2
+
+val17=$(tmp1)
+!for val18 =1 to $val16 
+tmp0=!randitem 1,0
+
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 2*$val18+$(tmp0) of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp1)
+val20=$[$(val19[2])]
+tmp0=!append item $(val19[1]) to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+!next
+replytype1=numexp
+replyname1=$(val14[1])
+replygood1=$(val15[1])
+replytype2=numexp
+replyname2=$(val14[2])
+replygood2=$(val15[2])
+replytype3=numexp
+replyname3=$(val14[3])
+replygood3=$(val15[3])
+replytype4=numexp
+replyname4=$(val14[4])
+replygood4=$(val15[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Soit 
+!insmath {\Omega}
+$() un univers et deux événements $val13 
+!insmath A
+$() et 
+!insmath B
+$() tels que	</p>	<div class="wimscenter">$val12.</div>	<div class="wims_question">	Calculer :	<ul>	<li><label for="reply1">$(val14[1])</label>= 
+!read oef/embed.phtml reply1,3 
+$()</li>	<li><label for="reply2">$(val14[2])</label>= 
+!read oef/embed.phtml reply2,3 
+$()</li>	<li><label for="reply3">$(val14[3])</label>= 
+!read oef/embed.phtml reply3,3 
+$()</li>	<li><label for="reply4">$(val14[4])</label>= 
+!read oef/embed.phtml reply4,3 
+$()</li>	</ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14
+embedcnt=4

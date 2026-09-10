@@ -1,0 +1,116 @@
+!set title=Datation au Carbone 14
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val7=$[rint(40*$(tmp0))]
+val8=$[rint(0.5*$val7)]
+val9=$[rint(0.5*$val8)]
+val10=$[rint(0.5*$val9)]
+val11=$[rint(5730*3)]
+val12=!rawmath $val7*0.5^n
+val13=$[rint($val7*2^$val6)]
+val14=$[rint(5730*$val6)]
+replytype1=numeric
+replyname1=Masse dans 3 périodes
+replygood1=$[$val10]
+replytype2=numeric
+replyname2=Date
+replygood2=$[$val11]
+replytype3=function
+replyname3=Formule
+replygood3=!rawmath $val12,n
+replytype4=numeric
+replyname4=Date d'origine
+replygood4=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  La suite des masses est géométrique de raison 0,5. 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Un poteau en bois contient $val7 g de Carbone 14.<br>	  La moitié du Carbone 14 présent dans le poteau se désintègre au bout de chaque période de 5730 ans.	  Donc le poteau contiendra $val8 g de Carbone 14 au bout d'une période puis $val9 g au bout de 2 périodes	  et ainsi de suite.		  <ul style="list-style-type: upper-alpha;">	  <li>	  <label for="reply1">Combien ce poteau contiendra-t-il de Carbone 14 dans 3 périodes ?</label>	   
+!read oef/embed.phtml reply1,10 
+$() g (valeur exacte)<br />	  <label for="reply2">Et dans combien d'années cela se produira-t-il ?</label>  
+!read oef/embed.phtml reply2,10 
+$() ans (valeur exacte).	  </li><li>	    <label for="reply3">Donne une formule pour calculer la quantité de Carbone 14 au bout de 
+!insmath n
+$() périodes.	    </label> 
+!read oef/embed.phtml reply3,7 
+$() g.	  </li><li>	  On considère qu'il y avait initialement $val13 g de Carbone 14 dans le poteau	  lorsque le bois a été coupé de l'arbre.<br>	  Combien d'années se sont écoulées depuis ?  
+!read oef/embed.phtml reply4,7 
+$() ans.	  </li></ul>	
+$()
+!exit
+
+:hint
+$() La suite des masses est géométrique de raison 0,5. 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <table class="wimscenter wimsborder">	  <tr><th scope="col">Rang</th><th scope="col">Masse en g</th></tr>	  <tr><td> 
+!insmath - $val6
+$()</td><td>$val13</td></tr>	  <tr><td> ...</td><td>...</td></tr>	  <tr><td>0</td><td>$val7</td></tr>	  <tr><td>1</td><td>$val8</td></tr>	  <tr><td>2</td><td>$val9</td></tr>	  <tr><td>3</td><td>$val10</td></tr>	  <tr><td>...</td><td>...</td></tr>	  <tr><td>
+!insmath n
+$()</td><td>$val12</td></tr>	  </table>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,12,13
+embedcnt=4

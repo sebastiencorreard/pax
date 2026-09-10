@@ -1,0 +1,119 @@
+!set title=Projection orthogonale 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 7
+
+val6=$[rint(2*$(tmp0))]
+tmp0=!randint 1, 3
+
+val7=$[rint($val6-2*$(tmp0))]
+!readproc oef/canvasdraw.phtml 320,216 \
+xrange -1,9	yrange -1,7	linewidth 2	segment 0,0,8,0,black	segment 0,0,0,6,black	segment 8,0,8,6,black	segment 0,6,8,6,black	segment 0,0,8,6,black	segment 0,6,8,0,black	segment -0.2,3,0.2,3,black	segment 7.8,3,8.2,3,black	segment 4,5.8,4,6.2,black	segment 4,-0.2,4,0.2,black	text black,-0.4,-0.4,large,D	text black,8,-0.4,large,C	text black,-0.4,6,large,A	text black,8,6,large,B	text black,3.8,-0.7,large,K	text black,-0.6,2.8,large,L	text black,4,6.3,large,I	text black,8.3,2.8,large,J	text black,3.7,3.2,large,O	 
+tmp0=$canvasdraw_out
+val8=$(tmp0)
+val9=<p>\(ABCD) est un rectangle, \({I}) est le milieu de \([AB]\), \({J}\) est le milieu de \([BC]\), \(K\) est le milieu de \([CD]\), \(L\) est le milieu de \([AD]\) et \(O\) est le milieu	de \([AC]\). </p>$val8
+val10=A,B,I,O,K	B,C,J,O,L	A,D,L,O,J	C,D,K,O,I	B,A,I,O,K	I,A,B,J,C	L,A,D,K,C	L,D,A,I,B	J,B,C,K,D	
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+replytype1=case
+replyname1=
+replygood1=?analyze 12
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val9	Compléter avec une lettre qui convient (la lettre 
+!insmath $(val11[3])
+$() n'est pas acceptée) : 
+!insmath \overrightarrow{$(val11[1])$(val11[2])}.\overrightarrow{$(val11[1])$(val11[3])}
+$()= 
+!read oef/special.phtml mathmlinput [\overrightarrow{$(val11[1])$(val11[2])}.\overrightarrow{{$(val11[1]) \reply1}}],1	reply1,2	 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $(val11[3])
+$() est le projeté orthogonal de 
+!insmath $(val11[4])
+$() et 
+!insmath $(val11[5])
+$() sur la droite 
+!insmath ($(val11[1])$(val11[2]))
+$() donc 
+!insmath \overrightarrow{$(val11[1])$(val11[2])}.\overrightarrow{$(val11[1])$(val11[3])}=\overrightarrow{$(val11[1])$(val11[2])}.\overrightarrow{$(val11[1])$(val11[4])}=\overrightarrow{$(val11[1])$(val11[2])}.\overrightarrow{$(val11[1])$(val11[5])}
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val12 isitemof $(val11[4,5])
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Lettre acceptée ?
+
+!exit
+
+:stat
+vsavelist=9,11,12
+embedcnt=1

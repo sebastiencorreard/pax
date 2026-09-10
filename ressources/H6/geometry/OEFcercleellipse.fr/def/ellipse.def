@@ -1,0 +1,269 @@
+!set title=Ellipses et équations.
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul@byache.web4me.fr
+computeanswer=yes
+precision=30
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=64
+prevarcnt=63
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle $val3
+
+val6=$(tmp0),$val3
+val7=$[rint($(val6[1]))]
+tmp0=!shuffle $val4
+
+val8=$(tmp0),$val4
+
+!ifval $(val8[1])==$val7 
+val9=$[rint( $(val8[2]) )]
+!else
+val9=$[rint( $(val8[1]))]
+!endif
+
+!ifval $val7==$val9 
+val7=$[rint( $(val6[2]))]
+!else
+val7=$[rint( $val7)]
+!endif
+!if $val7 isin 235 
+val10=<br><br>Remarque : Les axes (ou les demi-axes) sont donnés dans ces exercices dans le même ordre que les coordonnées habituellement : <br>C'est à dire que le premier axe (ou demi-axe) est celui qui est parallèle à l'axe des abscisses du repère.<br>Le deuxième axe (ou demi-axe) est celui qui est parallèle à l'axe des ordonnées du repère.<br><br>Remarque : comme son nom l'indique, un "axe" est une longueur double d'un "demi-axe" !
+!endif
+!if (4 isin $val7$val9) 
+val10=<br><br>Remarque : Les quatre sommets d'une ellipse sont les points d'intersection entre l'ellipse et ses deux axes de symétrie.<br>Deux des sommets sont les points de l'ellipse les plus proches de son centre.<br>Les deux autres sont les points les plus éloignés du centre.
+!endif
+!if $val7>5 or $val9>5 
+val11=$[rint(30)]
+tmp0=!shuffle -3,-2,-1,0,1,2,3
+
+val12=$(tmp0)
+val13=$[rint($(val12[1]))]
+val14=$[rint($(val12[2]))]
+tmp0=!shuffle 0.5,1,1.5,2
+
+val12=$(tmp0)
+val15=$[$(val12[1])]
+val16=$[$(val12[2])]
+!else
+tmp0=!makelist v for v=-10 to 10
+
+tmp1=!shuffle $(tmp0)
+
+val12=$(tmp1)
+val13=$[rint($(val12[1]))]
+val14=$[rint($(val12[2]))]
+tmp0=!makelist v/4 for v=1 to 8
+
+tmp1=!shuffle $(tmp0)
+
+val12=$(tmp1)
+val15=$[$(val12[1])]
+val16=$[$(val12[2])]
+!endif
+tmp=!translate ";': to $     $ in x-$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val17=$(tmp1)
+tmp=!translate ";': to $     $ in y-$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val18=$(tmp1)
+val19=$[$val15^2]
+val20=$[$val16^2]
+val21=\frac{($val17)^2}{$val19}+\frac{($val18)^2}{$val20}=1
+val22=($val17)^2/$val19+($val18)^2/$val20=1
+val23=$[2*$val15]
+val24=$[2*$val16]
+val25=$[-$val15+$val13]
+val26=$[$val14]
+val27=$[$val13]
+val28=$[$val16+$val14]
+val29=$[$val15+$val13]
+val30=$[$val14]
+val31=$[$val13]
+val32=$[-$val16+$val14]
+tmp=!translate ";': to $     $ in $val15*cos(t)+$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val33=$(tmp1)
+tmp0=!replace internal .0 by in $val33
+
+val33=$(tmp0)
+tmp0=!replace internal * by in $val33
+
+val33=$(tmp0)
+tmp=!translate ";': to $     $ in $val16*sin(t)+$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val34=$(tmp1)
+tmp0=!replace internal .0 by in $val34
+
+val34=$(tmp0)
+tmp0=!replace internal * by in $val34
+
+val34=$(tmp0)
+val35=\left\{ \begin{array}{rl}   x(t)&=$val33 \\   y(t)&=$val34 \end{array} \right.} 
+val36=$[rint($val13-4)]
+val37=$[rint($val13+4)]
+val38=$[rint($val14-4)]
+val39=$[rint($val14+4)]
+!readproc slib/draw/repere 200,200,1,$val36,$val37,$val38,$val39,,,,, 
+tmp0=$slib_out
+val40=$(tmp0)
+!readproc slib/draw/convpixel $val13,$val14,200,200,$val36,$val37,$val38,$val39,1,pixels 
+tmp0=$slib_out
+val41=$(tmp0)
+!readproc slib/draw/convpixel [0,1,0,-1,0],[0,0,1,0,-1],200,200,$val36,$val37,$val38,$val39,1,pixels 
+tmp0=$slib_out
+val42=$(tmp0)
+val40=$val40	ellipse $val41,$val23*25,$val24*25,red	text black,$(val42[1])+3,$(val42[2]),medium,0	text black,$(val42[3])+3,$(val42[4]),medium,1	text black,$(val42[5])+3,$(val42[6]),medium,1	text black,$(val42[7])+3,$(val42[8]),medium,-1	text black,$(val42[9])+3,$(val42[10]),medium,-1
+!readproc slib/draw/convpixel [$val25,$val27,$val29,$val31],[$val26,$val28,$val30,$val32],200,200,$val36,$val37,$val38,$val39,1,pixels 
+tmp0=$slib_out
+val43=$(tmp0)
+!readproc oef/draw.phtml 200,200 \
+$val40	text blue,$(val43[1])+3,$(val43[2]),medium,A	text blue,$(val43[3])+3,$(val43[4]),medium,B	text blue,$(val43[5])+3,$(val43[6]),medium,C	text blue,$(val43[7])+3,$(val43[8]),medium,D	linewidth 3	points blue,$val43 
+tmp0=$ins_url
+val44=$(tmp0)
+!readproc slib/draw/convpixel [$val13,$val27,$val29],[$val14,$val28,$val30],200,200,$val36,$val37,$val38,$val39,1,pixels 
+tmp0=$slib_out
+val43=$(tmp0)
+!readproc oef/draw.phtml 200,200 \
+$val40	text blue,$(val43[1])+3,$(val43[2]),medium,C	text blue,$(val43[3])+3,$(val43[4]),medium,A	text blue,$(val43[5])+3,$(val43[6]),medium,B	linewidth 3	points blue,$val43 
+tmp0=$ins_url
+val45=$(tmp0)
+val46=On considère une ellipse
+val47=dont l'équation cartésienne est \($val21),de centre \(\omega($val13;$val14)) et de demi-axes \(\alpha=$val15) et \(\beta=$val16),de centre \(\omega($val13;$val14)) et d'axes \(2\alpha=$val23) et \(2\beta=$val24),de sommets \(A($val25;$val26) B($val27;$val28) C($val29;$val30) et D($val31;$val32)),de représentation paramétrique \($val35),donnée par le dessin suivant : <center><img src=$val44><br>(Les points sont à coordonnées entières ou demi-entières)</center>,donnée par le dessin suivant : <center><img src=$val45><br>(Les points sont à coordonnées entières ou demi-entières)</center>
+val47=$(val47[$val7])
+val48=Donnez son équation cartésienne.,Donnez son centre et ses demi-axes.,Donnez son centre et ses axes.,Donnez les coordonnées de ses 4 sommets (dans l'ordre que vous voulez).,Donnez ses équations paramétriques.,Donnez son dessin en déplaçant les 4 sommets.,Donnez son dessin en déplaçant le centre et les deux points.
+val48=<p>$(val48[$val9])
+val49=r1,r2 r3 r4 r5,r2 r3 r6 r7,r8 r9,r10 r11
+val49=$(val49[$val9])
+tmp0=!words2items $val49
+
+val49=$(tmp0)
+oefsteps=$val49 
+nextstep=!nosubst $val49 
+!readproc oef/steps.proc
+replytype1=equation
+replyname1=Equation
+replygood1=!rawmath $val22
+replytype2=numeric
+replyoption2=absolute 
+replyname2=Abscisse du centre
+replygood2=$[$val13]
+replytype3=numeric
+replyoption3=absolute 
+replyname3=Ordonnée du centre
+replygood3=$[$val14]
+replytype4=numeric
+replyoption4=absolute 
+replyname4=Premier demi-axe
+replygood4=$[$val15]
+replytype5=numeric
+replyoption5=absolute 
+replyname5=Deuxième demi-axe
+replygood5=$[$val16]
+replytype6=numeric
+replyoption6=absolute 
+replyname6=Premier axe
+replygood6=$[$val23]
+replytype7=numeric
+replyoption7=absolute 
+replyname7=Deuxième axe
+replygood7=$[$val24]
+replytype8=set
+replyoption8=repeat 
+replyname8=4 abscisses (séparées par des virgules)
+replygood8=$val25,$val27,$val29,$val31
+replytype9=set
+replyoption9=repeat 
+replyname9=4 ordonnées (séparées par des virgules)
+replygood9=$val26,$val28,$val30,$val32
+replytype10=function
+replyoption10=absolute 
+replyname10=x(t)
+replygood10=!rawmath $val33
+replytype11=function
+replyoption11=absolute 
+replyname11=y(t)
+replygood11=!rawmath $val34
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val10
+
+
+!goto stat
+
+!exit
+
+:question
+$() $val46 $m_eno2 $val47 $val48 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val10
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,46,47,48
+embedcnt=0

@@ -1,0 +1,145 @@
+target=suml sumg
+#include "lang_titles.inc"
+#include "author.inc"
+\precision{1000}
+\description{Exercice comportant trois questions}
+
+#if defined TARGET_sumg
+\observation{somme géométrique}
+\rational{q=randint(1..9)/10+random(-2,0,1)}
+\integer{n0=randint(1..3)}
+\integer{k=randint(1..2)}
+\integer{n1=\n0+\k}
+\text{s=\sum_{i=\n0}^{n}(\q)^i}
+\text{s2=\sum_{k=0}^{n-\n0}(\q)^{k+\n0}}
+\integer{k0=0}
+
+\function{rep2=n-\n0}
+\function{rep3=(\q)^(k+\n0)}
+\rational{rep4=(\q)^(\n0)/(1-(\q))}
+\rational{rep5=(\q)/(\q-1)}
+\rational{rep1=\rep4+\rep5*(\q)^\n1}
+\steps{reply1
+reply2,reply3
+reply4,reply5
+}
+#endif
+#if defined TARGET_suml
+\observation{somme dont le terme général est une fonction affine}
+\rational{q=randint(1..9)/10+random(-2,0,1)}
+\rational{r=randint(1..9)/10+random(-2,0,1)}
+\function{terme= \q * i + \r}
+\text{texterme=texmath(\terme)} /*terme general somme initiale*/
+\integer{n0=randint(2..4)}
+\integer{k=randint(1..3)}
+\integer{n1=\n0+\k}
+\integer{n01=\n0-1}
+\text{s=\sum_{i=\n0}^{n}\left(\texterme\right)}
+\rational{chgtc=(\q)*(\n01)+(\r)}
+/*terme general apres chgt de variable*/
+\if{\chgtc=0}{
+  \function{terme2=\q*k}
+  \text{texterme2=texmath(\terme2)}
+  }
+  {\function{terme2=\q*k+\chgtc}
+   \text{texterme2=\left(texmath(\terme2)\right)}
+  }
+\text{s2=\sum_{k=1}^{n-\n01}\texterme2}
+\integer{k0=1}
+
+\function{rep2=simplify(n-\n01)}
+\function{rep3=\terme2}
+\rational{rep4=(\q)/2}
+\rational{rep5=(\q)/2+(\r)}
+\rational{rep6=((\q)/2*\n0+(\r))*(1-\n0)}
+\rational{rep1=\rep4*(\n1)^2+\rep5*(\n1)+\rep6}
+\steps{reply1
+reply2,reply3
+reply4,reply5,reply6
+}
+#endif
+\text{enonce=On considère la suite \((S_n)_n\) définie par }
+\text{pourtout=pour tout entier}
+\text{quest1=Calculer}
+\matrix{quest2= Donner une autre écriture de
+en fonction de}
+\matrix{quest3=Cette somme s'écrit sous la forme
+Donner les valeurs des coefficients }
+\text{name_and=et}
+\text{name_err=Réponse incorrecte}
+\text{name_good=Bonne réponse}
+\text{consig=Donner les valeurs exactes des coefficients en utilisant des fractions si nécessaire.}
+\text{name_sol=Indication &#58; la transformation faite à la question 2 permet d'utiliser la formule classique suivante&#32;}
+\text{name_real=nombre réel}
+\text{name_indice=Plus grande valeur de l'indice de sommation}
+\text{name_terme=Terme générale de la somme}
+
+\text{listcoef=\(a\)}
+#if defined TARGET_sumg
+\text{expsom = a + b\times(\q)^n}
+\text{listcoef=\listcoef \name_and \(b\)&#32;}
+#else
+\text{expsom = a n^2 + b n + c}
+\text{listcoef=\listcoef, \(b\) \name_and \(c\)&#32;}
+#endif
+\statement{
+\enonce \(\displaystyle{S_n=\s}\) \pourtout \(n\geq \n0\).
+<ol><li> \quest1 \(S_{\n1}\).
+\if{\step=1}{
+<div class="wimscenter">
+<label for="reply1">\(S_{\n1}\)</label> = \embed{r1,5}
+</div>
+}
+\if{\step>1}{<div>\if{\sc_reply1<1}{<span class="oef_indbad">\name_err,</span> }
+  {<span class="oef_indgood">\name_good,</span>} \(S_{\n1}=\rep1\).</div>}
+</li>
+\if{\step>1}{
+<li> \quest2[1;] \(S_n\) \quest2[2;] \(n\).
+\if{\step=2}{
+<div class="center">
+\special{mathmlinput [\displaystyle{S_n=\sum_{k=\k0}^{reply2}reply3}],8,noanswer
+reply2,3
+reply3,8}
+</div>
+}
+\if{\step>2}{<div>\if{\sc_reply2<1 or \sc_reply3<1}{<span class="oef_indbad">\name_err,</span> }
+{<span class="oef_indgood">\name_good,</span>}\(\displaystyle{S_n=\s2}\).</div>}
+</li>
+\if{\step=3}{
+<li> \quest3[1;] \(S_n = \expsom\) \pourtout \(n\geq \n0\). \quest3[2;] \listcoef:
+<div class="wimscenter">
+#if defined TARGET_sumg
+<label for="reply4">\(a = \)</label>\embed{reply4,5} \name_and
+  <label for="reply5">\(b = \)</label>\embed{reply5,5}.
+</div>
+<div class="wims_instruction">\consig </div>
+#else
+<label for="reply4">\(a = \)</label>\embed{reply4,5},
+<label for="reply5">\(b = \)</label>\embed{reply5,5} \name_and
+<label for="reply6">\(c = \)</label>\embed{reply6,5}.
+</div>
+#endif
+</li>}
+}
+</ol>
+#if defined TARGET_suml
+<div class="wims_instruction">\consig </div>
+#endif
+}
+
+\answer{1. \(S_{\n1}\)}{\rep1}{type=numeric}{weight=4}{option=nonstop}
+\answer{2. \name_indice}{\rep2}{type=formal}{option=nonstop}{weight=3}
+\answer{2. \name_terme}{\rep3}{type=formal}{option=nonstop}{weight=3}
+\answer{a}{\rep4}{type=numexp}{weight=5}
+\answer{b}{\rep5}{type=numexp}{weight=5}
+#if defined TARGET_suml
+\answer{c}{\rep6}{type=numexp}{weight=5}
+#endif
+
+#if defined TARGET_sumg
+\solution{\name_sol:
+<div class="wimscenter">\pourtout \(n\geq 0\) \name_and \name_real  \(r\neq 1\), \(\displaystyle{\sum_{\ell=0}^{n}r^\ell = \frac{1-r^{n+1}}{1-r}}\).</div>}
+#else
+\solution{\name_sol:
+<div class="wimscenter">\pourtout \(n\geq 1\), \(\displaystyle{\sum_{\ell=1}^{n}\ell = \frac{n(n+1)}{2}}\).</div>}
+#endif

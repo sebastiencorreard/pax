@@ -1,0 +1,187 @@
+!set title=Question 300 T Equation graphique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz,equations,graphing
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-techno-1_0.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+tmp=!nonempty items 1,2,3,4
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+val9=2,7,5,5
+tmp0=!randint 25, 35
+
+val10=$[$(tmp0)/10]
+tmp0=!randint 2, 16
+
+val11=$[$(tmp0)/10]
+val12=$val10,12,2.8,$val11
+tmp0=!randint 9, 22
+
+val13=$[-1*$(tmp0)/10]
+val14=3,0,$val13,-0.9
+val15=1,1,1.3,1.3
+val9=$[$(val9[$val8])]
+val12=$[$(val12[$val8])]
+val14=$[$(val14[$val8])]
+val15=$[$(val15[$val8])]
+val16=\( f(x)=0\)
+val17=L’équation $val16 n’admet aucune solution.,L’équation $val16 admet exactement une solution.,L’équation $val16 admet exactement deux solutions et ces solutions sont de même signe.,L’équation $val16 admet exactement deux solutions et ces solutions sont de signes contraires.
+val18=$val9*sin($val15*x-$val12)+$val14
+tmp=!nonempty items 1,1,-1
+
+tmp0=!randitem $tmp
+val18=$(tmp0)*($val18)
+val19=-3
+val20=2
+val21=text black,2.5,-0.5,big,x	  parallel -3,-0.5,-3,0.5,1,0,6,black	  text black,-3,-0.5,big,-3	  text black,-2,-0.5,big,-2	  text black,-1,-0.5,big,-1	  text black,1,-0.5,big,1	  text black,2,-0.5,big,2	  text black,0.3,9.8,big,y	  parallel -0.1,-10,0.1,-10,0,2,10,black	  text black,0.3,-1.5,big,-2	  text black,0.3,-3.5,big,-4	  text black,0.3,-5.5,big,-6	  text black,0.3,-7.5,big,-8	  text black,0.3,2.5,big,2	  text black,0.3,4.5,big,4	  text black,0.3,6.5,big,6	  text black,0.3,8.5,big,8
+val22=range -4,3,-10,10	linewidth 1	  parallel -4,-11,-4,11,1,0,10,grey	  parallel -4,-10,3,-10,0,2,12,grey	arrow -4,0,3,0,10,black	arrow 0,-11,0,10,10,black	$val21	linewidth 2	  trange -3,2	  plot red,$val18	
+!readproc oef/draw.phtml 200,200 \
+$val22	 
+tmp0=$ins_url
+val23=$(tmp0)
+val24=<img src="$val23" alt="représentation graphique">
+tmp=!replace internal .. by , in $val18,x=-3..2 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val25=$(tmp0)
+val26=
+!if $val8=2 
+val26=linewidth 2	  crosshair $val25,0,green
+!endif
+!if $val8>2 
+val26=linewidth 2	  crosshair $(val25[1]),0,green	  crosshair $(val25[2]),0,green
+!endif
+!readproc oef/draw.phtml 200,200 \
+  $val22	  $val26 
+tmp0=$ins_url
+val27=$(tmp0)
+val27=<img src="$val27" alt="solution">
+val28=On donne ci-contre la courbe représentative \( \mathcal{C} \) d’une fonction \(f\) définie sur l’intervalle <span class="nowrap">\(\left[$val19 \,;\, $val20 \right]\).</span> <br>On s’intéresse à l’équation $val16. <div class="wimscenter">$val24</div>Une seule de ces propositions est exacte&nbsp;&#58; 
+val29=$(val17[$val8])
+!if $val8==1 
+val30=$(val17[2]),$(val17[3]),$(val17[4])
+!endif
+!if $val8==2 
+val30=$(val17[1]),$(val17[3]),$(val17[4])
+!endif
+!if $val8==3 
+val30=$(val17[1]),$(val17[2]),$(val17[4])
+!endif
+!if $val8==4 
+val30=$(val17[1]),$(val17[2]),$(val17[3])
+!endif
+val31=il n'y en a pas,il y en a qu'un seul,il y en a deux,il y en a deux
+val32=
+
+!ifval $val8>1
+val32=<i>(Croix verte ci-dessous)</i>
+!else
+val32=$val32
+!endif
+
+!ifval $val8>2
+val32=<i>(Croix vertes ci-dessous)</i>
+!else
+val32=$val32
+!endif
+!if $val8=3 
+val33=<br>Ces deux points ont des abscisses de même signe.	  <br>Les solutions sont de même signe.
+!endif
+!if $val8=4 
+val33=<br>Ces deux points ont des abscisses de signes contraires.	  <br>Les solutions sont de signes contraires.
+!endif
+val34=La bonne réponse est <b>$val29</b> <br>Il suffit de regarder le nombre de points d'intersection de la courbe avec l'axe des abscisses. <br>Ici $(val31[$val8]) $val32. $val33 <div class="wimscenter">$val27</div>
+val35=$val29,$val30
+tmp0=!shuffle 4
+
+val36=$(tmp0)
+tmp0=!positionof item 1 in $val36
+
+val37=$[rint($(tmp0))]
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val37;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val28	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val35[$(val36[1])]) </td><td>$(val35[$(val36[2])]) </td><td>$(val35[$(val36[3])]) </td><td>$(val35[$(val36[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val34!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val34	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,28,34,35,36
+embedcnt=1

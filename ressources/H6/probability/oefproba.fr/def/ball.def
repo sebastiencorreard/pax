@@ -1,0 +1,262 @@
+!set title=Tirages de boules
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chouhaïd, Souissi; Mounir,Mensi
+email=chsouissi@yahoo.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r
+varcnt=58
+prevarcnt=57
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=La probabilité
+val7=pair,impair
+val8=rouge,verte, bleue,jaune
+val9=rouges,vertes, bleues,jaunes
+val10=Un sac contient
+val11=Les,Les,les,les
+val12=boule,boules
+val13=ait,aient
+val14=un
+val15=numéro
+val16=et
+val17=On tire au hasard,du sac.
+val18=est
+val19=une
+val20=&nbsp;
+val21=La probabilité de ne tirer que des boules,
+val22=La probabilité d'obtenir
+val23=sont numérotées de 1 à
+val24=La probabilité que parmi les,boules tirées
+val25=Bonne réponse !
+val26=Votre réponse
+val27=La probabilité de ne tirer que des boules,
+val28=La probabilité d'obtenir
+val29=Comme il y a,dont le numéro est,la probabilité de tirer exactement
+val30=1
+tmp0=!randitem 1,2
+
+val31=$[rint($(tmp0))]
+
+!ifval k=1
+val32= 1
+!else
+val32=2
+!endif
+
+!ifval k=2
+val33= 3
+!else
+val33=4
+!endif
+tmp0=!randint 4, 8
+
+val34=$[rint($(tmp0))]
+tmp0=!randint 4, 8
+
+val35=$[rint($(tmp0))]
+val36=$[rint($val34+$val35)]
+tmp0=!randint 2, 4
+
+val37=$[rint($(tmp0))]
+tmp0=!randint 1, ($val37-1)
+
+val38=$[rint($(tmp0))]
+val39=$[rint($val37-$val38)]
+tmp=!nonempty items $val32,$val33
+
+tmp0=!randitem $tmp
+val40=$(tmp0)
+
+!ifval $val40 issametext $val32
+val41=$[rint($val34)]
+!else
+val41=$[rint($val35)]
+!endif
+val42=$[binomial($val41,$val37)/binomial($val36,$val37)]
+val43=$[binomial($val34,$val38)*binomial($val35,$val39)/binomial($val36,$val37)]
+val44=$[rint(floor((1+$val34)/2))]
+val45=$[rint(floor((1+$val35)/2))]
+val46=$[rint($val44+$val45)]
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val47=$(tmp0)
+
+!ifval $val47 issametext $(val7[1])
+val46=$[rint($val36-$val46)]
+!else
+val46=$[rint($val46)]
+!endif
+val48=$[rint($val36-$val46)]
+val49=$[binomial($val46,$val38)*binomial($val48,$val39)/binomial($val36,$val37)]
+!if $val38>1 
+val50=$val38
+val51=$(val12[2])
+
+!ifval $val30=1
+val52=$(val12[2]) $(val9[$val32])
+!else
+val52=$(val9[$val32]) $(val12[2])
+!endif
+val53=$(val12[2]) $(val13[2])
+!else
+val50=$val19
+val51=$(val12[1])
+
+!ifval $val30=1
+val52=$(val12[1]) $(val8[$val32])
+!else
+val52=$(val8[$val32]) $(val12[1])
+!endif
+val53=$(val12[1]) $(val13[1])
+!endif
+!if $val39>1 
+val54=$val39
+
+!ifval $val30=1
+val55=$(val12[2]) $(val9[$val33])
+!else
+val55=$(val9[$val33]) $(val12[2])
+!endif
+!else
+val54=$val19
+
+!ifval $val30=1
+val55=$(val12[1]) $(val8[$val33])
+!else
+val55=$(val8[$val33]) $(val12[1])
+!endif
+!endif
+oefsteps=reply1	reply2	reply3 
+nextstep=!nosubst reply1	reply2	reply3 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=1. $val26
+replygood1=$[$val42]
+replytype2=numeric
+replyname2=2. $val26
+replygood2=$[$val43]
+replytype3=numeric
+replyname3=3. $val26
+replygood3=$[$val49]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val10 $val34	    
+!if $val30=1 
+$()$(val12[2]) $(val9[$val32]) 
+!else
+$() $(val9[$val32]) $(val12[2]) 
+!endif
+$()	    $val16 $val35	    
+!if $val30=1 
+$()$(val12[2]) $(val9[$val33]). 
+!else
+$() $(val9[$val33]) $(val12[2]). 
+!endif
+$()	    $(val17[1]) $val37 $(val12[2]) $(val17[2])	<ul><li>	    $(val21[1]) $(val9[$val40]) $(val21[2]) $val18$val20:	
+!if $m_step=1 
+$() 
+!read oef/embed.phtml reply1,12 
+$(). 
+!endif
+$()	
+!if $m_step>1 
+$()<span class="oef_indgood">$val42</span>.	<span class="wims_emph">$val25</span>	</li><li>$val22 $val50 $val52 $val16 $val54	 $val55 $val18$val20:  
+!endif
+$()	
+!if $m_step=2 
+$() 
+!read oef/embed.phtml reply2,12 
+$() 
+!endif
+$()	
+!if $m_step>=3 
+$()<span class="oef_indgood">$val43</span>.	<span class="wims_emph">$val25 </span>	</li><li><div>	$(val11[2]) $val52 $val23 $val34 $val16 $(val11[4])	$(val9[$val33]) $val23 $val35.	</div>	$(val24[1]) $val37 $(val24[2]) $val50 $val53	    
+!if $val30=1 
+$()$val14 $val15 $val47 
+!else
+$() $val14 $val47 $val15 
+!endif
+$()	    $val18$val20:  
+!read oef/embed.phtml reply3,12 
+$() 
+!endif
+$()	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	1. $(val27[1]) $(val9[$val40]) $(val27[2]) $val18	
+!insmath \frac{C_{$val41}^{$val37}}{C_{$val36}^{$val37}}=$val42
+$().	
+!if $m_step>=2 
+$()	<p>	2. $val28 $val50 $val52 $val16 $val54 $val55	  $val18 
+!insmath \frac{C_{$val34}^{$val38}C_{$val35}^{$val39}}{C_{$val36}^{$val37}}=$val43
+$().	</p> 
+!endif
+$()	
+!if $m_step>=3 
+$()<p>	3. $(val29[1]) $val46 $(val12[2]) $(val29[2]) $val47, $(val29[3])	$val50 $val51 $(val29[2]) $val47 $val18	
+!insmath \frac{C_{$val46}^{$val38}C_{$val48}^{$val39}}{C_{$val36}^{$val37}}=$val49
+$().  
+!endif
+$()	</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,12,14,15,16,17,18,20,21,22,23,24,25,27,28,29,30,32,33,34,35,36,37,38,39,40,41,42,43,46,47,48,49,50,51,52,53,54,55
+embedcnt=3

@@ -1,0 +1,159 @@
+!set title=Multiplication : dans quelle base ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_it=Moltiplicazione: in quale base?
+
+ansorder=r
+varcnt=21
+prevarcnt=19
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 3
+
+val6=$(tmp0)
+tmp0=!randint 4, 9
+
+val7=$(tmp0)
+tmp0=!randint $val7-1 repeat $val6
+
+val8=$(tmp0)
+tmp0=!randint $val7-1 repeat $val6
+
+val9=$(tmp0)
+tmp0=!replace internal , by in $val8
+
+val10=$(tmp0)
+
+!ifval $val6=2 
+tmp0=!replace internal , by in $val9
+
+val11= $(tmp0) 
+!else
+val11=$(val9[2])$(val9[3])
+!endif
+tmp0=!exec float_calc	obase=$val7; ibase=$val7;$val10*$val11
+
+val12=$(tmp0)
+tmp0=!exec float_calc	obase=10; ibase=$val7;$val12
+
+val13=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=En quelle base la multiplication suivante est-elle valable ?
+val16=Il y a une autre solution \(b = $val7\) .
+val17=En base, on a,La réponse est
+val18=En base \(b\), tous les chiffres des nombres doivent	  être strictement inférieurs à \(b\). Ce n'est pas le cas ici avec
+val19=Base
+!if $val14=it 
+val15=In quale base la moltiplicazione seguente ha senso?
+val16=C'è un'altra soluzione \(b = $val7\) .
+val17=In base, si ha,La risposta è
+val18=In base \(b\), tutte le cifre devono essere	  strettamente inferiori a \(b\). Questo non succederebbe qui se fosse
+val19=Base
+!endif
+replyname1=$val19
+replygood1=?analyze 20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val15	<div class="wimscenter">
+!insmath $val10 * $val11 = $val12
+$() .</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!exec float_calc	obase=$val20; ibase=$val20;$val10*$val11
+
+val21=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val21 = $val12 and $val20 != $val7
+ <div class='oef_feedbacks'>	<div class="reponse">$val16</div>
+$()</div>
+!endif
+!ifval $val21 !=$val12 and	$val20 > $(val8[1]) and $val20 > $(val8[2]) and $val20 > $(val9[2])	and $val20 > $(val8[3]) and ($val20 > $(val9[1]) or $val6 = 3)	
+ <div class='oef_feedbacks'> <div class="reponse">	  $(val17[1]) $val20, $(val17[2]) 
+!insmath $val10 * $val11 = $val21
+$().	  $(val17[3]) 
+!insmath b = $val7
+$().	</div>	
+$()</div>
+!endif
+!ifval $val20 <= $(val8[1]) or $val20 <= $(val8[2]) or $val20 <= $(val9[2])	or $val20 <= $(val8[3]) or ($val20 <= $(val9[1]) and $val6 = 2)
+ <div class='oef_feedbacks'>	<div class="reponse">	$val18 
+!insmath b = $val20
+$().	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val21 = $val12
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,15,16,17,18,20
+embedcnt=0

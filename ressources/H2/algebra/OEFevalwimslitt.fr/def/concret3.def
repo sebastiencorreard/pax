@@ -1,0 +1,102 @@
+!set title=Établir une formule 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items A,B,C,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp=!nonempty items x,y,a,b,u,v
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in 10*$val8*$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+val10=mètre,mètres
+
+!ifval $val8=1
+val10=$(val10[1])
+!else
+val10=$(val10[2])
+!endif
+val11=Un maçon construit des murs en utilisant des briques de hauteur	  20 centimètres et de longueur 50 centimètres.
+val12=Quelle est la formule \($val6\) qui permet de déterminer le nombre	  de briques qu'il doit acheter pour construire un mur de \($val8\) $val10 de haut	  et de \($val7\) mètres de long&nbsp;
+replytype1=algexp
+replyname1=\($val6\)
+replygood1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst \begin{statement} $val11 $val12? \end{statement}
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val11	<p>	$val12?	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()$m_begin{statement} $val11 $val12? $m_end{statement}
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12
+embedcnt=0

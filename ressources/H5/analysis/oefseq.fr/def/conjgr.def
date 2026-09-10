@@ -1,0 +1,333 @@
+!set title=Nature de la suite ? (graphique)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=sequence,geometric_sequence,arithmetic_sequence
+oefobservation=En fonction de la configuration de l'exercice sur le module, le vocaublaire utilisé est : <ul><li>Que celui des suites arithmétiques</li> <li>Que celui des suites géométriques</li> <li>Aléatoirement l'un ou l'autre</li> </ul> 
+
+ansorder=r,r,r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem A,G,AG
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+!if $val3 == A 
+val6=être arithmétique,ne pas être arithmétique, je n'en sais rien
+!endif
+!if $val3 == G 
+val6=ne pas être géométrique,être géométrique, je n'en sais rien
+!endif
+!if $val3 == AG 
+val6=être arithmétique, être géométrique, je n'en sais rien
+!endif
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp=!nonempty items P,R
+
+tmp1=!randitem $tmp
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+!if $val2 issametext R 
+tmp0=!randitem -1,1
+
+val8=$[rint($(tmp0))]
+!else
+val8=$[rint(1)]
+!endif
+!if $val7=1 
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+
+!ifval ($val9>0)
+tmp0=!randint -8, 2
+
+val10=$[rint( $(tmp0))]
+!else
+tmp1=!randint -2, 8
+
+val10=$[rint($(tmp1))]
+!endif
+val11=$val10
+!for val12 =1 to 4 
+val13=$[rint($val10+$val12*$val9)]
+val11=$val11,$val13
+!next
+!else
+tmp=!nonempty items 0.5,1.5,2,3
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)
+val9=!exec pari print($t_)
+
+!ifval ($val9>=2)
+tmp=!nonempty items 1,2,3
+
+tmp0=!randitem $tmp
+val10=$[rint( $(tmp0)*$val8)]
+!endif
+
+!ifval ($val9=0.5)
+tmp=!nonempty items 32,16,8
+
+tmp0=!randitem $tmp
+val10=$[rint( $(tmp0)*$val8)]
+!endif
+
+!ifval ($val9=1.5)
+tmp=!nonempty items 2,4,8
+
+tmp0=!randitem $tmp
+val10=$[rint( $(tmp0)*$val8)]
+!endif
+val11=$val10
+!for val12 =1 to 4 
+val13=$[$val10*($val9)^$val12]
+
+!ifval abs($val13)>40
+val11=$val11
+!else
+val11=$val11,$val13
+!endif
+!next
+!endif
+tmp=!nonempty items 0,0,1,2
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+t_=!rawmath $(val11[$val14+1])
+val15=!exec pari print($t_)
+t_=!replace internal \( by ( in max($val11)
+tmp0=!exec maxima $t_
+
+val16=$[rint(min(round($(tmp0))+10,90))]
+
+!ifval ($val16<1)
+val16=$[rint( 10)]
+!else
+val16=$[rint($val16)]
+!endif
+t_=!replace internal \( by ( in min($val11)
+tmp0=!exec maxima $t_
+
+val17=$[rint(max(round($(tmp0))-10,-90))]
+
+!ifval ($val17>-1)
+val17=$[rint( -10)]
+!else
+val17=$[rint($val17)]
+!endif
+val18=$[rint($val16-$val17)]
+val19=$[rint(240)]
+val20=$[rint(floor($val18*$val19/6))]
+
+!ifval ($val18>10)
+val20=$[rint( floor($val20/(floor($val18/10)+1)))]
+!else
+val20=$[rint($val20)]
+!endif
+val21=fcircle 0,$(val11[1]),10,blue	fcircle 1,$(val11[2]),10,blue	fcircle 2,$(val11[3]),10,blue
+
+!ifval abs($(val11[4]))<40
+val22=fcircle 3,$(val11[4]),10,blue
+!endif
+
+!ifval abs($(val11[5]))<40
+val23=fcircle 4,$(val11[5]),10,blue
+!endif
+!readproc oef/draw.phtml $val19,$val20 \
+xrange -1,5	yrange $val17,$val16	parallel -1,$val17,5,$val17,0,1,$val18,grey	parallel -1,$val17,-1,$val16,1,0,6,grey	comment ajout MB	parallel -0.1,-35,0.2,-35,0,10,10,black		hline 0,0,black	vline 0,0,black	segment 1,-0.3,1,0.3, black	segment -0.3,1,0.3,1, black	text black , -0.2,-0.2,small , 0	text black , 1,-0.3,small , 1	text black , -0.5,2,small , 1	segment -0.3,10,0.3,10, black	text black , -0.5,10.2,small , 10	segment -0.3,20,0.3,20, black	text black , -0.5,20.2,small , 20	segment -0.3,30,0.3,30, black	text black , -0.5,30.2,small , 30	segment -0.3,40,0.3,40, black	text black , -0.5,40.2,small , 40	segment -0.3,-10,0.3,-10, black	text black , -0.5,-9.8,small , -10	segment -0.3,-20,0.3,-20, black	text black , -0.5,-19.8,small , -20	segment -0.3,-30,0.3,-30, black	text black , -0.5,-29.8,small , -30	$val21	$val22	$val23	 
+tmp0=$ins_url
+val24=$(tmp0)
+val25=$[rint(abs($val9))]
+!if $val3 == A 
+!if $val7=1 
+val26=reply 1,reply 2	reply 3
+!endif
+!if $val7=2 
+val26=reply 1, reply 2 
+!endif
+!endif
+!if $val3 == G 
+!if $val7=1 
+val26=reply 1, reply 2
+!endif
+!if $val7=2 
+val26=reply 1, reply 2	reply 3
+!endif
+!endif
+!if $val3 == AG 
+val26=reply 1, reply 2	reply 3
+!endif
+
+!ifval $val7=1
+val27=arithmétique
+!else
+val27=géométrique
+!endif
+oefsteps=$val26 
+nextstep=!nosubst $val26 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$val15]
+replytype2=menu
+replyname2=
+replygood2=$val7;$val6
+replytype3=numeric
+replyname3=
+replygood3=$[$val9]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Ci-dessous sont représentés les premiers termes d'une suite 
+!insmath u
+$().	<div class="wimscenter">	<img src="$val24" alt="nuage de points" >	</div>	
+!if $m_step=1 
+$()	<div class="wims_question"><p>Lire la valeur de 
+!insmath u_$val14
+$().</p>	<label for="reply1">
+!insmath u_$val14=
+$()</label> 
+!read oef/embed.phtml r1,4 
+$().	</div>	<div class="wims_question"><p>Conjecturer la <label for="reply2">nature</label> de cette suite.</p>	La suite 
+!insmath u
+$() semble  
+!read oef/embed.phtml r2 
+$() .</div> 
+!else
+$() 	<div class="wims_question">Cette suite $val27 a pour <label for="reply3">raison</label>  
+!read oef/embed.phtml r3,3 
+$().</div>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<b>Pour 
+!insmath u_$val14
+$() :</b>	<br>
+!insmath u_$val14
+$() est l'ordonnée du point d'abscisse 
+!insmath $val14
+$() donc 
+!insmath u_$val14=$val15
+$().	<br><b>Pour la nature :</b>	<br>Les points 
+!if $val7=1 
+$()semblent 
+!else
+$() ne semblent pas 
+!endif
+$() alignés.	
+!if $val3==A  or $val3==AG 
+$()	<br>Or on sait que les points sont alignés lorsque la suite est arithmétique.	<br>Elle 
+!if $val7=1 
+$()semble donc 
+!else
+$() ne semble donc pas 
+!endif
+$() être arithmétique. 
+!endif
+$()	
+!if $val3==G 
+$()<br>Or on sait que les points ne sont pas alignés lorsque la suite est géométrique. 
+!endif
+$()	
+!if $val3==G or $val3==AG 
+$()	
+!if $val7=2 
+$()<br>Elle semble donc être géométrique (seul choix qu'il reste) 
+!endif
+$() 
+!endif
+$()	
+!if ($val3==A and $val7=1) or ($val3==G and $val7=2) or $val3==AG 
+$()	<br> <b>Pour la raison :</b> par lecture graphique les premiers termes sont $(val11[1]) ; $(val11[2]) ; $(val11[3])	<br>On passe d'un terme au suivant en 
+!if $val7=1 
+$()
+!if $val9>0 
+$()additionnant 
+!else
+$() soustrayant 
+!endif
+$()	$val25 donc la suite semble <b>arithmétique de raison $val9</b>. 
+!else
+$() multipliant par $val9 donc la suite semble <b>géométrique de raison $val9</b>. 
+!endif
+$() 
+!endif
+$()	 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,7,9,11,14,15,24,25,27
+embedcnt=3

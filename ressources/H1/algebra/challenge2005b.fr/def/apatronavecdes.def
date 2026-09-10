@@ -1,0 +1,179 @@
+!set title=Un patron avec des coordonnées
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -5, -1
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val6+$val8*(-1)^$val12)]
+val14=$[rint($val7+$val9*(-1)^$val12)]
+val15=$[rint($val6+$val10*(-1)^$val12)]
+val16=$[rint($val7+$val11*(-1)^$val12)]
+t_=!rawmath ($val13+$val15)/2
+val17=!exec pari print($t_)
+t_=!rawmath ($val14+$val16)/2
+val18=!exec pari print($t_)
+t_=!rawmath $val6+2*($val17-$val6)/3
+val19=!exec pari print($t_)
+t_=!rawmath $val7+2*($val18-$val7)/3
+val20=!exec pari print($t_)
+
+!ifval \d=0
+val21=Oui
+!else
+val21=Non
+!endif
+
+!ifval \d=0
+val22=Non
+!else
+val22=Oui
+!endif
+replytype1=rational
+
+replyname1=Abscisse du point \(G)
+replygood1=$val19
+replytype2=rational
+
+replyname2=Ordonnée du point \(G)
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Dans un repère donné, on considère les  points	
+!insmath A
+$()
+!insmath \left(\begin{array}{c} $val6 \\ $val7 \end{array}\right)
+$(),	 
+!insmath B
+$()
+!insmath \left(\begin{array}{c} $val13 \\ $val14 \end{array}\right)
+$()	 et 
+!insmath C
+$()
+!insmath \left(\begin{array}{c} $val15 \\ $val16 \end{array}\right)
+$().	 Déterminer les coordonnées du milieu 
+!insmath I
+$() du segment 
+!insmath [BC]
+$(), en déduire les coordonnées du centre de gravité 
+!insmath G
+$() du triangle 
+!insmath ABC
+$().
+$()
+!exit
+
+:hint
+$()On peut commencer par déterminer les coordonnées du milieu d'un des segments du triangle 
+!insmath ABC
+$(), puis utiliser la relation vectorielle :	<div class="wimscenter"> 
+!insmath \overrightarrow{AG}=\frac{2}{3} \overrightarrow{AI}
+$()</div>	 
+!insmath I
+$() désignant le milieu de 
+!insmath [BC]
+$() et 
+!insmath G
+$() le centre de gravité du triangle 
+!insmath ABC
+$().
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On peut utiliser la propriété:  
+!insmath G
+$() centre de gravité de A
+!insmath BC 
+$()
+!insmath \Leftrightarrow
+$() 
+!insmath \overrightarrow{AG}
+$()=
+!insmath \frac{2}{3} \overrightarrow{AI}
+$(), où 
+!insmath I
+$() désigne le milieu de 
+!insmath [BC]
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,13,14,15,16
+embedcnt=0

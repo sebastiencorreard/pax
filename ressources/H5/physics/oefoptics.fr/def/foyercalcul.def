@@ -1,0 +1,263 @@
+!set title=Centre optique et foyer (calcul)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r
+varcnt=57
+prevarcnt=56
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+
+!ifval $val6 issametext fr 
+val7= violet,orange,bleu marine, bleu ciel
+!endif
+
+!ifval $val2=1 
+val8=$[rint( -1)]
+!else
+val8=$[rint( 1)]
+!endif
+
+!ifval $val2= or $val2 = 3 
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val8=$[rint( $(tmp0))]
+!endif
+tmp0=!randint 3, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!randint floor(abs($val9/2)), 2*floor(abs($val9))
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem 10*$val10/3, 2*$val10/3*10
+
+val11=$[$(tmp0)/10]
+tmp0=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$val10)]
+tmp0=!randitem 1,-1
+
+val11=$[$(tmp0)*$val11]
+val9=$[rint($val9*($val8))]
+
+!ifval $val10!=$val9
+t_=!rawmath  1/(1/($val10)-1/($val9))
+val12=!exec pari print($t_)
+!else
+t_=!rawmath 100
+val12=!exec pari print($t_)
+!endif
+t_=!rawmath $val11*($val12)/($val10)
+val13=!exec pari print($t_)
+val14=!rawmath ($val11)/($val10)*t
+val15=!rawmath ($val13)/(-$val9)*(t-($val9))
+val16=!rawmath ($val11)/($val9)*(t+($val9))
+
+!ifval $val10!=$val9
+t_=!rawmath  $val12*1.2
+val17=!exec pari print($t_)
+!else
+t_=!rawmath -2*$val9
+val17=!exec pari print($t_)
+!endif
+evaltmp=$val16
+
+evaltmp=!mathsubst t=($val17) in $evaltmp
+tmp0=($evaltmp)
+val18=$[$(tmp0)]
+
+!ifval $val10<>$val9
+tmp0=!sort numeric item $val12,$val10,$val9,-$val9
+
+val19= $(tmp0)
+!else
+tmp1=!sort numeric item $val10,$val9,-$val9
+
+val19=$(tmp1) 
+!endif
+tmp0=!item 1 of $val19
+
+val20=$[min($(tmp0),-1)]
+tmp0=!item -1 of $val19
+
+val21=$[max($(tmp0),1)]
+val20=$[floor(1.2*$val20)]
+val21=$[ceil(1.2*$val21)]
+
+!ifval $val10<>$val9 
+val22=$[ max( abs($val11),abs($val13))]
+!else
+val22=$[abs($val11)]
+!endif
+val22=$[ceil($val22*1.5)]
+val23=$[($val21-$val20)/(2*$val22)]
+val24=$[rint(600)]
+val23=$[$val24*$val23^(-1)]
+val25=purple,orange,navy,skyblue
+tmp0=!shuffle $val25
+
+val26=$(tmp0)
+tmp0=!item 1 of $val26
+
+val27=$(tmp0)
+tmp0=!item 2 of $val26
+
+val28=$(tmp0)
+val29=$val27
+tmp0=!positionof item $val29 in  $val25
+
+val30=$(tmp0)
+
+!ifval $val7=
+val7= $val26
+!endif
+tmp0=!item $val30 of $val7
+
+val31=$(tmp0)
+val32=$[-$val22*1.3]
+val33=$[$val22]
+val34=xrange $val20,$val21	  yrange $val32,$val33	  hline 0,0, black	  linewidth 1	  arrow $val20+($val21-$val20)/20,-$val22*1.2,$val20+($val21-$val20)/10,-$val22*1.2,15, black	
+val35=linewidth 1	dhline 0,$val11, grey	dhline 0,$val13, grey
+val34=$val34	  parallel 0,-$val22/20,0,$val22/20, 1,0,50, blue	  parallel 0,-$val22/20,0,$val22/20, -1,0,50, blue	  text $val27,$val10+0.1,0,large, A	  text $val28,$val12+0.1,$val13,large, B'	  text $val27, $val10+0.1,$val11,large, B	  text $val28, $val12+0.1,0,large, A'	  $val35	  
+
+!ifval $val10<>$val9 
+val34= $val34	  linewidth 4	  segment $val10,0,$val10,$val11,$val27	  segment $val12,0,$val12,$val13, $val28	  $val35	
+!endif
+
+!ifval $val10<>$val9
+val36=	  linewidth 4	  vline 0,0,black	  linewidth 1	  text black, 0.2,-0.2,medium, O	  trange $val20,$val21	  plot green, t, $val14	
+!endif
+
+!ifval $val10<>$val9
+val37=	  dpolyline red,min($val10,0),$val11, 0,$val11	  dpolyline red,-min(-$val10,0),$val11, 0,$val11	  dpolyline red, -($val9),0,0,$val11	  dpolyline red, $val12,$val13,0,$val11	  polyline blue, 0,$val13,abs($val17),$val13	  dpolyline blue, 0,$val13,$val17,$val13	  dpolyline blue, 0,$val13,$val10,$val11	  dpolyline blue, 0,$val13,$val9,0	  trange 0,$val21	  plot red, t,$val16	  trange min($val10,0),0	  plot red, t,$val11	  trange min(-$val10,0),0	  plot red, t,$val11	  trange $val20,0	  plot blue, t,$val15	  text black,$val9,-0.2,large, F	  text black,-($val9),-0.2,large, F'	  linewidth 4	  segment $val10,0,$val10,$val11,$val27	  segment $val12,0,$val12,$val13, $val28	
+!endif
+
+!ifval $val10=$val9
+val36=	  polyline red, $val10,$val11, 0,$val11,-$val9,0,$val17,$val18	  polyline blue, $val10,$val11	  polyline green, $val10,$val11,	  polyline red, $val10,$val11, 0,$val11,-$val9,0	  polyline blue, $val9,0, $val10,$val11,0	  polyline green, $val10,$val11,-($val10),-($val11)	  linewidth 4	  segment $val10,0,$val10,$val11,$val27	  segment $val12,0,$val12,$val13, $val28	  $val35	
+!endif
+val38=$[abs(round(1000*($val12-($val10)))/1000)]
+val39=$[round(1000*abs($val11))/1000]
+val40=$[round(1000*abs($val13))/1000]
+val41=$[rint(-($val20))]
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+
+!ifval $val2=1 
+val42= convergente
+!else
+val42=
+!endif
+
+!ifval $val2=2 
+val42= divergente
+!endif
+val43=Il s'agit d'un entier.
+val44=On considère une lentille mince $val42 de centre optique \(O). Un objet \(A B)	  perpendiculaire à l'axe optique a comme image \(A'B') où 
+val45=Calculer \(\overline{O A'}), \(\overline{O A}) et la distance focale.
+val46=Distance focale
+val47=est de longueur
+replytype1=numeric
+replyname1=\(\overline{O A})
+replygood1=$[$val10]
+replytype2=numeric
+replyname2=\(\overline{O A'})
+replygood2=$[$val12]
+replytype3=numeric
+replyname3=$val46
+replygood3=$[-$val9]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val44	
+!insmath A B
+$() $val47 
+!insmath  $val39 \ cm
+$(), 
+!insmath A'B'
+$() $val47 
+!insmath $val40 \ cm
+$(), 
+!insmath A A'
+$() $val47 
+!insmath  $val38 \ cm
+$().	$val45	<div class="wimscenter"> 
+!read oef/draw.phtml 600,200 \
+$val34 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><div class="wimscenter">	 
+!read oef/draw.phtml 600,200 \
+	  $val34	  $val36	  $val37	 
+$()	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=34,36,37,38,39,40,44,45,47
+embedcnt=0

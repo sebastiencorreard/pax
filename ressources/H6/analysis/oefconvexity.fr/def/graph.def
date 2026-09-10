@@ -1,0 +1,339 @@
+!set title=Lecture graphique de la convexité
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bmifsud@ac-aix-marseille.fr
+
+ansorder=r
+varcnt=74
+prevarcnt=73
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=$[rint(3)]
+val7=$[rint(1)]
+val8=$[rint(0)]
+val9=Dans le plan muni d'un repère orthonormé \((O,i,j)\),	on a tracé la courbe représentative d'une fonction \(f).	
+val10=Parmi les propositions suivantes, une seule est juste. Laquelle
+val11=lightblue
+tmp0=!randint -4, -2
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val13=$[rint($val12+$(tmp0))]
+tmp0=!randint 1, 3
+
+val14=$[rint($val13+$(tmp0))]
+tmp0=!randint 1, 3
+
+val15=$[rint($val14+$(tmp0))]
+tmp0=!randitem -1,1
+
+val16=$[rint($(tmp0))]
+val17=$[rint(5*$val16)]
+tmp0=!randint -3, -1
+
+val18=$[rint($val16*$(tmp0))]
+tmp0=!randint 1, 3
+
+val19=$[rint($val16*$(tmp0))]
+val20=$[rint($val16*-3)]
+val21=$val17*(x-($val13))*(x-($val14))*(x-($val15))/(($val12-($val13))*($val12-($val14))*($val12-($val15)))
+val22=$val18*(x-($val12))*(x-($val14))*(x-($val15))/(($val13-($val12))*($val13-($val14))*($val13-($val15)))
+val23=$val19*(x-($val13))*(x-($val12))*(x-($val15))/(($val14-($val13))*($val14-($val12))*($val14-($val15)))
+val24=$val20*(x-($val13))*(x-($val14))*(x-($val12))/(($val15-($val13))*($val15-($val14))*($val15-($val12)))
+val25=!rawmath $val21 + ($val22) +($val23)+ ($val24)
+tmp=!translate ;";': to $     $ in $val25,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val26=$(tmp0)
+tmp=!translate ;";': to $     $ in $val26,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val27=$(tmp0)
+tmp=!replace internal .. by , in $val27=0,x=$val12..$val15  
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+t_=!rawmath $(tmp0)
+val28=!exec pari print($t_)
+val29=$[rint(floor($val28))]
+val30=$[rint($val29+1)]
+tmp0=!randint 1, 5
+
+val31=$[rint($val29-$(tmp0))]
+tmp0=!randint 1, 5
+
+val32=$[rint($val30+$(tmp0))]
+val33=xrange -5,7	yrange -6,6	gridfill 0,0,5,5,$val11	linewidth 1	linewidth 2	  parallel -5,-6,-5,6,1,0,12,blue	  parallel -5,-6,7,-6,0,1,13,blue	linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	    linewidth 2	    plot red,$val25			
+evaltmp=$val27
+
+evaltmp=!mathsubst x=($val29) in $evaltmp
+tmp0=($evaltmp)
+val34=$(tmp0)
+!if $val34<0 
+tmp0=!nosubst La fonction est convexe sur  [$val30;$val32]	La fonction est concave sur [$val31; $val29]	La fonction est ni convexe ni concave sur [$val31;$val32]
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp0=!nosubst La fonction est concave sur [$val30;$val32]	La fonction est convexe sur [$val31;$val29]	La fonction est ni convexe ni concave sur [$val31;$val32]
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val34>0 
+tmp0=!nosubst La fonction est convexe sur  [$val30;$val32]	La fonction est concave sur [$val31; $val29]	La fonction est ni convexe ni concave sur [$val31;$val29]	La fonction est ni convexe ni concave sur [$val30;$val32]
+
+tmp=!trim $(tmp0)
+val36=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp0=!nosubst La fonction est concave sur [$val30;$val32]	La fonction est convexe sur [$val31;$val29]	La fonction est ni convexe ni concave sur [$val31;$val29]	La fonction est ni convexe ni concave sur [$val30;$val32]
+
+tmp=!trim $(tmp0)
+val36=!translate internal $	\
+$ to ;; in $tmp
+!endif
+val37=
+val38=
+val39=
+val40=Il faut revoir son cours.	 <p> Une fonction est convexe sur un intervalle	  lorsque, sur cet intervalle, sa courbe est au dessus de ses tangentes.	<br>Elle est concave lorsque, sur cet intervalle, sa courbe est au dessous	de ses tangentes.	</p>	<b>Exemples :</b>	<ul class="wims_nopuce"><li>	\(f(x)=x^2) est convexe sur \(\mathbb{R})	</li><li>	\(f(x)=-2x^2) est concave sur \(\mathbb{R}_{+}^{*})	</li></ul>	
+val41=
+tmp0=!item 1 of 1 oui, 2 non
+
+val42=$(tmp0)
+tmp0=!word 1 of $val42
+
+val42=$(tmp0)
+val43=
+!if $val38 != $val43 
+val38=<div class="feedback">$val38</div>
+!endif
+!if $val39 != $val43 
+val39=<div class="feedback good_answer">$val39</div>
+!endif
+!if $val40 != $val43 
+val40=<div class="feedback bad_answer">$val40</div>
+!endif
+!if $val41 != $val43 
+!endif
+tmp0=!nonempty rows $val35
+
+val35=$(tmp0)
+tmp0=!nonempty rows $val36
+
+val36=$(tmp0)
+tmp=!translate internal $	$ to ; in $val35
+
+tmp0=!rowcnt $tmp
+val44=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val36
+
+tmp0=!rowcnt $tmp
+val45=$[rint($(tmp0))]
+
+!ifval $val7<1
+val7=$[rint(1)]
+!endif
+
+!ifval $val7>$val44
+val7=$[rint($val44)]
+!endif
+
+!ifval $val6 > $val45+$val7
+val6=$[rint($val45+$val7)]
+!endif
+
+!ifval $val7>$val6-1
+val7=$[rint($val6-1)]
+!endif
+
+!ifval $val8>$val6-$val7
+val8=$[rint($val6-$val7)]
+!endif
+tmp0=!shuffle $val44
+
+val46=$(tmp0)
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row $val46 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val47=$(tmp0)
+!if $val8>0 
+tmp=!translate internal $	$ to ; in $val36
+
+tmp=!row 1 to $val8 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val48=$(tmp0);
+tmp=!translate internal $	$ to ; in $val36
+
+tmp=!row $val8+1 to $val45 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val49=$(tmp0)
+!else
+val8=$[rint(0)]
+val48=
+val49=$val36
+!endif
+tmp0=!shuffle $val45
+
+val50=$(tmp0)
+tmp=!translate internal $	$ to ; in $val49
+
+tmp=!row $val50 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val49=$(tmp0)
+tmp=!translate internal $	$ to ; in $val47
+
+tmp=!row 1 to $val7 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!translate internal $	$ to ; in $val49
+
+tmp=!row 1 to $val6-$val7-$val8 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+val51=$(tmp0);$val48 $(tmp1)
+tmp0=!makelist 1 for x=1 to $val7
+
+tmp1=!makelist 0 for x=1 to $val6-$val7
+
+val52=$(tmp0),$(tmp1)
+tmp0=!shuffle $val6
+
+val53=$(tmp0)
+tmp0=!item $val53 of $val52
+
+val52=$(tmp0)
+tmp=!translate internal $	$ to ; in $val51
+
+tmp=!row $val53 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val51=$(tmp0)
+
+!ifval $val42=1 
+tmp0=!embraced randitem $val51
+
+val51= $(tmp0)
+!endif
+
+!ifval $val42=1 
+tmp0=!embraced randitem \explain
+
+val54= $(tmp0)
+!endif
+tmp0=!positionof item 1 in $val52
+
+val55=$(tmp0)
+tmp0=!item 1 to $val6 of A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+
+val56=$(tmp0)
+
+!ifval checkbox iswordof $val37
+val57=checkbox
+!else
+val57=radio
+!endif
+replytype1=$val57
+
+replyoption1=$val37 
+replyname1=La réponse
+replygood1=$val55;$val56
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val41
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right">  
+!read oef/draw.phtml 400,400 \
+$val33 
+$()</div>	<div class="enonce">	$val9	</div>	<div class="question">	$val10 ?	<div class="reponse">	   
+!for m_i=1 to $val6 
+$()<div class="oefreply"> 
+!read oef/embed.phtml reply 1,\i, $(val56[$m_i]) : $(val51[$m_i;]) 
+$()</div> 
+!next
+$()	</div>	</div>			
+$()
+!exit
+
+:hint
+$()$val41
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val38
+$()</div>
+!endif
+!ifval $m_reply1 isitemof $(val56[$val55])
+ <div class='oef_feedbacks'>$val39
+$()</div>
+!endif
+!ifval $m_reply1 notitemof $(val56[$val55])
+ <div class='oef_feedbacks'>$val40
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,33,38,39,40,41,51,55,56
+embedcnt=1

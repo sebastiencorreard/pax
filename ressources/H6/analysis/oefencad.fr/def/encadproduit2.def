@@ -1,0 +1,278 @@
+!set title=Encadrement d'un produit 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=71
+prevarcnt=70
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=et
+val7=Le type d'inégalités est imposé, on ne cherche pas à savoir si les bornes	  sont atteintes.
+val8=Soient \(x\) et \(y\) deux réels vérifiant
+val9=Les valeurs possibles de \(x\) et \(y\) sont figurées ci-dessous	  en <span style="color:red">rouge</span> pour \(x\) et	  <span style="color:green">en vert</span> pour \(y\).
+val10=Lorsque \(x\) ou \(y\) ne sont pas de signe constant, c'est-à-dire encadrés par	  des nombres de signes différents,	  séparez votre encadrement de \(x\) (ou de \(y\)) en deux autres encadrements	  de façon à ne travailler que sur des inégalités entre nombres de même signe.
+val11=Votre encadrement n'a pas de sens puisqu'on a :
+val12=Faites attention aux signes.
+val13=Votre encadrement est juste mais n'est pas le meilleur possible.
+tmp0=!randint 1, 8
+
+val14=$[rint($(tmp0))]
+tmp0=!randint $val14+2, 10
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 1, 8
+
+val16=$[rint($(tmp0))]
+tmp0=!randint $val16+2, 10
+
+val17=$[rint($(tmp0))]
+val18=$[rint(-1)]
+tmp0=!randint 1, 2
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19=1
+val20=$[rint( -1)]
+!else
+val20=$[rint(1)]
+!endif
+val21=$[rint($val18 * $val16)]
+val22=$[rint($val20 * $val17)]
+val23=$[rint(min($val21,$val22))]
+val24=$[rint(max($val21,$val22))]
+val21=$[rint($val23)]
+val22=$[rint($val24)]
+val16=$[rint(abs($val21))]
+val17=$[rint(abs($val22))]
+val25=$[rint(-$val21)]
+val26=$[rint(-$val22)]
+val27=$[rint($val14*$val21)]
+val28=$[rint($val14*$val22)]
+val29=$[rint($val15*$val21)]
+val30=$[rint($val15*$val22)]
+val31=$[min(min($val27,$val29),min($val28,$val30))]
+val32=$[max(max($val27,$val29),max($val28,$val30))]
+t_=!replace internal \( by ( in vecmin([0,$val14,$val15,$val21,$val22])-4
+tmp0=!exec pari $t_
+
+val33=$[rint($(tmp0))]
+t_=!replace internal \( by ( in vecmax([$val14,$val15,$val21,$val22,0])+4
+tmp0=!exec pari $t_
+
+val34=$[rint($(tmp0))]
+val35=$val31 / x,$val32 / x
+val36=$[$val14*$val15]
+val37=$[$val21*$val22]
+val38=$[-$val14]
+val39=$[-$val15]
+val25=$[-$val21]
+val26=$[-$val22]
+val40=$[-$val27]
+!if $val14>=0 and $val21>=0 
+val41=Les deux réels \(x\) et \(y\) sont positifs et vérifient les double-inégalités \({$val14 < x < $val15}\) et \({$val21 < y < $val22}\). On les multiplie terme à terme et l'on obtient :	  \({$val27 < x \times y < $val30}\).
+!endif
+!if $val15<=0 and $val22<=0 
+val41=Les réels \(x\) et \(y\) sont négatifs. Les deux réels positifs \(-x\) et \(-y\)	  vérifient les double-inégalités	  \({$val39 < -x < $val38}\) et \({$val26 < -y < $val25}\). On les multiplie	  terme à terme et l'on obtient : \({$val30 < x \times y < $val27}\).	  
+!endif
+!if $val14>=0 and $val22<=0 
+val41=Le réel \(x\) est positif et \(y\) est négatif. Les deux réels positifs \(x\) et \(-y\) vérifient les double-inégalités	  \({$val14 < x < $val15}\) et \({$val26 < -y < $val25}\). On les multiplie terme à terme puis on multiplie l'encadrement de \(-(x\times y)\) par \(-1\) pour obtenir cet encadrement de \(x\times y\) :	  \({$val29 < x \times y < $val28}\).	  
+!endif
+!if $val21>=0 and $val15<=0 
+val41=Le réel \(x\) est négatif et \(y\) est positif. Les deux réels positifs \(-x\) et \(y\) vérifient les double-inégalités	  \({$val39 < -x < $val38}\) et \({$val21 < x < $val22}\). On les multiplie terme à terme puis on multiplie l'encadrement de \(-(x\times y)\) par \(-1\) pour obtenir cet encadrement de \(x\times y\) :	  \({$val28 < x \times y < $val29}\).	  
+!endif
+!if $val14>=0 and $val37<0 
+val41=Le réel \(x\) est positif mais le signe de \(y\) varie selon sa position entre les bornes \($val21\) et \($val22\).	  <p>Dans le cas où \({$val21 < y \leq 0}\), les réels positifs \(x\) et \(-y\) vérifient les double-inégalités \({$val14 < x < $val15}\) et \({0 \leq -y < $val25}\).	  On les multiplie terme à terme puis on multiplie l'encadrement de \(-(x\times y)\) par \(-1\) pour obtenir cet encadrement partiel de \(x\times y\) :	   \({$val29 < x \times y \leq 0}\).</p>	  <p>Dans le cas où \(0 \leq y < $val22\), les réels positifs \(x\) et \(y\) vérifient les double-inégalités	  \({$val14 < x < $val15}\) et \({0 \leq y < $val22}\).	  On les multiplie terme à terme pour obtenir cet encadrement partiel de	  \(x \times y\) :	  \({0 \leq x \times y < $val30}\).</p>	  En joignant les deux cas, on obtient l'encadrement final \({$val29 < x \times y < $val30}\).	  
+!endif
+!if $val15<=0 and $val37<0 
+val41=Le réel \(x\) est négatif mais le signe de \(y\) varie selon sa position entre les bornes \($val21\) et \($val22\).	  <p>Dans le cas où \({$val21 < y \leq 0}\), les réels positifs \(-x\) et \(-y\) vérifient les double-inégalités	  \({$val39 < -x < $val38}\) et \({0 \leq -y < $val25}\).	  On les multiplie terme à terme pour obtenir cet encadrement partiel de \(x\times y\) :	  \({0 \leq x \times y \leq $val27}\).</p>	  <p>Dans le cas où \({0 \leq y < $val22}\), les deux réels positifs \(-x\) et \(y\) vérifient les double-inégalités \({$val39 < -x < $val38}\) et \({0 \leq y < $val22}\).	  On les multiplie terme à terme puis on multiplie l'encadrement de \(-(x\times y)\) par \(-1\) pour obtenir cet encadrement partiel de \(x\times y\) : \({$val28 \leq x \times y \leq 0}\).</p>	  En joignant les deux cas on obtient l'encadrement final \({$val28 < x \times y < $val27}\).	  
+!endif
+!if $val36<0 and $val21>=0 
+val41=On a \({y > 0}\), mais le signe de \(x\) varie selon sa position entre les bornes \($val14\) et \($val15\).	  <p>Dans le cas où \({$val14 < x \leq 0}\), les réels positifs \(-x\) et \(y\) vérifient les double-inégalités	  \({0 \leq -x < $val38}\) et \({$val21 < y < $val22}\).	  On multiplie leur produit terme à terme par \(-1\), d'où l'encadrement \({$val28 < x \times y \leq 0}\).</p>	  <p>Dans le cas où \({0 \leq x < $val15}\), les réels positifs \(x\) et \(y\) vérifient les double-inégalités	  \({0 \leq x < $val15}\) et \({$val21 < y < $val22}\).	  On les multiplie terme à terme, d'où \({0 \leq x \times y < $val30}\).</p>	  En joignant les deux cas on obtient l'encadrement \({$val28 < x \times y < $val30}\).	  
+!endif
+!if $val36<0 and $val22<=0 
+val41=On a \({y < 0}\), mais le signe de \(x\) varie selon sa position entre les bornes \($val14\) et \($val15\).	  <p>Dans le cas où \({$val14 < x \leq 0}\), les réels positifs \(-x\) et \(-y\) vérifient les double-inégalités	  \({0 \leq -x < $val38}\) et \({$val26 < -y < $val25}\).	  On les multiplie terme à terme, d'où \({0 \leq x \times y < $val27}\).</p>	  <p>Dans le cas où \({\0 \leq x < $val15}\), les réels positifs \(x\) et \(-y\) vérifient les double-inégalités	  \({\0 \leq x < $val15}\) et \({$val26 < -y < $val25}\).	  On les multiplie terme à terme ces et on multiplie le tout par \(-1\), d'où	  \({$val29 \leq x \times y \leq 0}\).</p>	  En joignant les deux cas on obtient l'encadrement \({$val29 < x \times y < $val27}\).	  
+!endif
+!if $val36<0 and $val37<0 
+val41=Le signe de \(x\) varie selon sa position entre les bornes \($val14\) et \($val15\) et celui de \(y\) entre les bornes \($val21\) et \($val22\).	  <p>Dans le cas où \({0 \leq x < $val15}\) et \({0 \leq y < $val22}\), les deux réels \(x\) et \(y\) sont positifs. On multiplie terme à terme ces double-inégalités, d'où \({0 \leq x \times y < $val30}\).</p>	  <p>Dans le cas où \({$val14 < x \leq 0}\) et \({$val21 < y \leq 0}\), les réels positifs \(-x\) et \(-y\) vérifient les double-inégalités \({0 \leq -x < $val38}\) et \({0 \leq -y < $val25}\).	  On les multiplie terme à terme, d'où \({0 \leq x \times y < $val27}\).</p>	  <p>Dans le cas où \({$val14 < x \leq 0}\) et \({0 \leq y < $val22}\), les réels positifs \(-x\) et \(y\) vérifient les double-inégalités \({0 \leq -x < $val38}\) et \({0 \leq y $val22}\).	  On les multiplie terme à terme et on multiplie le tout par \(-1\), d'où \({$val28 < x \times y \leq 0}\).</p>	  <p>Dans le cas où \({0 \leq x < $val15}\) et \({$val21 < y \leq 0}\), les réels positifs \(x\) et \(-y\) vérifient les double-inégalités \({0 \leq x < $val15}\) et \({0 \leq -y < $val25}\).	  On les multiplie terme à terme et on multiplie le tout par \(-1\), d'où \({$val29 < x \times y \leq 0}\).</p>	  En joignant les quatre cas on obtient l'encadrement \({P_1 < x \times y < P_2}\) avec pour bornes : \({P_1 = min($val28, $val29) = $val31}\) et \({P_2 = max($val27, $val30) = $val32}\).	  
+!endif
+val42=<p>Dans le plan muni d'un repère	  \(( O \overrightarrow{x}\textrm{,} O \overrightarrow{y} )\),	  l'ensemble des points de coordonnées \((x,y)\) vérifiant les inégalités	  \({$val14 < x < $val15}\) et \({$val21 < y <$val22}\)	  est le rectangle <span style="color:red";>rouge</span> situé entre les deux courbes vertes	  (hyperboles) d'équations \(y = \frac{$val31}{x}\) et \(y = \frac{$val32}{x}\).</p>	  <p>Les coefficients \($val31\) et \($val32\) figurent les bornes	  qui encadrent le produit \(P = x\cdot y\) pour tout point \((x,y)\)	  du rectangle rouge.</em></p>	
+val43=15
+val44=12
+val45=0.2
+val46=0.2
+val47=3.5
+val48=text blue,-10-0.25,-1.5,medium,-10
+!for val49 = -9 to -1 
+val48=$val48	text blue,$val49-0.25,-1.5,medium,$val49
+!next
+val50=text blue,0,-1.5,medium,0
+!for val49 = 1 to 10 
+val50=$val50	text black,$val49,-1.5,medium,$val49
+!next
+val51=range -12,12,-8,8	linewidth 1	parallel -12,-1,-12,1,1,0,25,red	parallel -12,-0.5,-12,0.5,0.5,0,48,red	linewidth 3	arrow -12.0,0,12.0,0,20,blue	fcircle 0,0,$val43,blue	$val48	$val50	hline 0,0,black
+
+!ifval $val14>0
+val52=$[$val14]
+!else
+val52=$[$val14-0.25]
+!endif
+
+!ifval $val15>0
+val53=$[$val15]
+!else
+val53=$[$val15-0.25]
+!endif
+
+!ifval $val21>0
+val54=$[$val21]
+!else
+val54=$[$val21-0.25]
+!endif
+
+!ifval $val22>0
+val55=$[$val22]
+!else
+val55=$[$val22-0.25]
+!endif
+val56=$val51	fcircle 0,0,$val44,blue	fcircle $val14,$val46,$val44,red	fcircle $val15,$val46,$val44,red	fcircle $val21,-0.5,$val44,green	fcircle $val22,-0.5,$val44,green	linewidth 4	segment $val14,$val45,$val15,$val45,red	segment $val21,-0.5,$val22,-0.5,green	text red,$val52,$val47,medium,$val14	text red,$val53,$val47,medium,$val15	text green,$val54,5,medium,$val21	text green,$val55,5,medium,$val22	
+val57=$[rint($val34-$val33+1)]
+val58=xrange $val33,$val34	   yrange $val33,$val34	   parallel $val33,$val33,$val34,$val33,0,1,$val57, grey	   parallel $val33,$val33,$val33,$val34,1,0,$val57, grey	   fpoly red,$val14,$val21,$val15,$val21,$val15,$val22,$val14,$val22	   arrow $val33,0,$val34,0,8,black	   arrow 0,$val33,0,$val34,8,black	   arrow 0,0,1,0,8, black	   arrow 0,0,0,1,8, black	   plot green, $(val35[1])	   plot green, $(val35[2])	   fcircle 0,0,10,black	   text black,-0.3,-0.5,times, O	   text black,$val34-0.5,1,times, x	   text black,0.5,$val34-0.25,times, y	   text red,$val14-0.25,-0.5,times,$val14	   text red,$val15+0.25,-0.5,times,$val15	   text green,-0.5,$val21,times,$val21	   text green,-0.5,$val22,times,$val22	
+replytype1=numexp
+replyname1=\(P_1\)
+replygood1=$val31
+replytype2=numexp
+replyname2=\(P_2\)
+replygood2=$val32
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val7
+
+help=!nosubst $val10
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8	  <div class="wimscenter">	
+!insmath {$val14 < x < $val15}
+$() et 
+!insmath {$val21 < y < $val22}
+$().	</div>	<p>$val9</p><p class="wimscenter"> 
+!read oef/draw.phtml 900,100 \
+$val56 
+$()</p>	<label for="reply1">Trouver le meilleur encadrement de 
+!insmath x y
+$():</label>	 <div class="wimscenter">	   
+!read oef/embed.phtml r1, 3 
+$() <label for="reply2">
+!insmath \;\leq x y \;\leq
+$()</label>  
+!read oef/embed.phtml r2,3  
+$().	</div>	
+$()
+!exit
+
+:hint
+$()$val7
+$()
+!exit
+
+:help
+$()$val10
+$()
+!exit
+
+:solution
+$()	<p><strong>Solution au cas par cas :</strong></p>	<p>$val41</p>	<p><strong>Solution globale</strong> : on calcule les quatre produits deux à deux des bornes 
+!insmath a=$val14
+$(),	
+!insmath b=$val15
+$() qui encadrent le réel 
+!insmath x
+$() et des bornes 
+!insmath c=$val21
+$() et 
+!insmath d=$val22
+$()	qui encadrent le réel 
+!insmath y
+$() :</p>	<ul>	<li>
+!insmath P_{ac} = $val14 \times $val21 = $val27
+$().</li>	<li>
+!insmath P_{ad} = $val14 \times $val22 = $val28
+$().</li>	<li>
+!insmath P_{bc} = $val15 \times $val21 = $val29
+$().</li>	<li>
+!insmath P_{bd} = $val15 \times $val22 = $val30
+$().</li>	</ul>	<p>Le nombre 
+!insmath $val31
+$() est le plus petit et 
+!insmath $val32
+$() est le plus grand de ces 4 produits,	d'où l'encadrement :</p>	<p class="wimscenter">
+!insmath $val31 < x \times y < $val32
+$().</p>	<p><em>On peut visualiser cet encadrement du produit 
+!insmath x \times y
+$() par la figure ci-dessous.</em>	$val42</p>	<p class="wimscenter"> 
+!read oef/draw.phtml 400,400  \
+$val58 
+$()</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1>$m_reply2
+ <div class='oef_feedbacks'>$val11 
+!insmath $m_reply1 > $m_reply2
+$().
+$()</div>
+!endif
+!ifval ($m_reply1<>$val31 and $m_reply1=$val27) or ($m_reply2<>$val32 and $m_reply2=$val30)
+ <div class='oef_feedbacks'>	  $val12	
+$()</div>
+!endif
+!ifval $m_reply1<$val31 and $m_reply2>$val32
+ <div class='oef_feedbacks'>$val13
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15,21,22,27,28,29,30,31,32,41,42,56,58
+embedcnt=2

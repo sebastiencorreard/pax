@@ -1,0 +1,110 @@
+!set title=Produit de deux matrices carrées
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+keywords=matrix
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/random 2,2,5 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/random 2,2,5 
+tmp0=$slib_out
+val7=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];B=[$val7];C=A*B;print(C)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];B=[$val7];C=B*A;print(C)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+tmp0=!item $val10 of A B,B A
+
+val11=$(tmp0)
+
+!ifval $val10=1
+val12=$val8
+!else
+val12=$val9
+!endif
+replytype1=matrix
+replyname1=Produit
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère les matrices 
+!insmath A=[$val6]
+$() et 
+!insmath B=[$val7]
+$(). Calculer le produit 
+!insmath $val11
+$().	<p>Ce produit vaut:</p>	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,4x8 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11
+embedcnt=1

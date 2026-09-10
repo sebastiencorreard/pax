@@ -1,0 +1,147 @@
+!set title=Sixième 9
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+language=fr
+
+ansorder=c
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 18, 40
+
+val6=$[rint(3*$(tmp0))]
+tmp0=!values 3*v for v=1 to 4
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in 1,1,1	2,1,0
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$[rint($(val8[1])+$(val7[1]))]
+val10=$[rint($(val8[2])+$(val7[2]))]
+val11=$[rint($(val8[3])+$(val7[3]))]
+val12=$[rint(($val6-$val9-$val10-$val11)/3+$val9)]
+tmp=!translate ";': to $     $ in $val10-5
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val10-3
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val10+3
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val10+5
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val13=$(tmp0),$(tmp1),$val6,$(tmp2),$(tmp3)
+tmp0=!shuffle $val12,$val13
+
+val14=$(tmp0)
+val15=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val14
+
+val16=$[rint($(tmp0))]
+val17=
+val18=
+!for val19 =1 to $val16 
+tmp0=!item $val19 of $val14
+
+val20=$(tmp0)
+val21=Réponse $(val15[$val19])
+!if $val20 isitemof $val12 
+tmp0=!append item $val21 to $val17
+
+val17=$(tmp0)
+!else
+tmp0=!append item $val21 to $val18
+
+val18=$(tmp0)
+!endif
+!next
+choicename1=Choisissez
+choicegood1=$val17
+choicebad1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"><img src="$val1/6_9.jpg" alt=""></div>		Madame BOULE distribue $val6 jetons à 3 élèves Estelle, Tim et Georges.	Georges enlève $val9 jetons de son tas, Tim $val10 et Estelle $val11. Après cela, chaque élève se retrouve	avec le même nombre de jetons.	<p>	Combien de jetons Georges a-t-il reçu de Madame BOULE ?	</p>	<ul>	 
+!for m_l=1 to $val16 
+$()	 <li>$(val15[$m_l]) : $(val14[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,9,10,11,14,15,16
+embedcnt=1

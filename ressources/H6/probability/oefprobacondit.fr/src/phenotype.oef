@@ -1,0 +1,113 @@
+\title{Phénotypes}
+\language{fr}
+\author{Sophie, Lemaire}
+\email{Sophie.Lemaire@math.u-psud.fr}
+\keywords{modelling}
+\description{exercice comportant deux questions}
+\observation{Si le niveau de difficulté le plus bas est choisi, l'énoncé portera sur l'étude de 2 phénotypes. Sinon, il y aura 3 ou 4 phénotypes. }
+\computeanswer{yes}
+\format{html}
+\precision{990}
+\integer{nph=randint(2..4)}
+
+\integer{nivex=\confparm1= ? randint(1,2): \confparm1}
+\if{\nivex=1}{\integer{nph=2}}
+\if{\nivex>1}{\integer{nph=randint(3..4)}}
+\text{nom1=pères, mères}
+\text{nom=père, mère}
+\text{nbphenot=un,deux,trois,quatre}
+\text{type=A,B,C,D}
+\text{listtyp1=item(1..\nph-1,\type)}
+\text{listtyp2=item(\nph,\type)}
+\integer{ne=random(1,2)}
+\integer{n1=randint(1..\nph)}
+\integer{n2=randint(1..\nph)}
+
+\text{enonce1=item(\ne,\nom1)}
+\text{enonce=item(\ne,\nom)}
+\text{article=du,de la}
+\text{article2=le,la}
+\text{article3=son,sa}
+\text{acc=item(\ne,\article)}
+\text{acc2=item(\ne,\article2)}
+\text{acc3=item(\ne,\article3)}
+\text{typ1=item(\n1,\type)} enfant
+\text{typ2=item(\n2,\type)} parent
+\text{p1=slib(stat/posdiscretelaw, \nph, 10, Q)}
+\text{p2=slib(stat/posdiscretelaw, \nph, 10, Q)}
+\text{M=slib(stat/multinomial 1,100,[\p1])}
+\matrix{A=slib(stat/multinomial 1,100,[\p2])}
+\for{i=2 to \nph}{
+\matrix{A=\A ; slib(stat/multinomial 1,100,[shuffle(\p2)])}
+}
+\text{descrip=\M[1]% de phénotypes A}
+\for{i=2 to \nph}{\text{descrip=\descrip, \M[\i]% de phénotypes item(\i,\type)}}
+\text{tableau=<table class="wimscenter wimsborder">}
+\text{tableau=\tableau <tr><th> </th>}
+\for{j=1 to \nph}{\text{tableau=\tableau <th> enfant item(\j,\type) </th>}}
+\text{tableau=\tableau </tr>}
+\for{i=1 to \nph}{\text{tableau=\tableau <tr><th> \enonce item(\i,\type) </th>}
+  \for{j=1 to \nph}{\text{tableau=\tableau <td> \A[\i;\j]% </td>}}
+\text{tableau=\tableau </tr>}
+}
+\text{tableau=\tableau </table>}
+\text{affirm1=ait, n'ait pas}
+\text{affirm2=a, n'a pas}
+\integer{c1=random(1,2)}
+\integer{c2=random(1,2)}
+\integer{c3= \c1*\c2=1 ? 3-\c2 : \c2}
+\text{quest1= item(\c1,\affirm1)}
+\text{quest2=item(\c2,\affirm1)}
+\text{quest3=item(\c1,\affirm2)}
+\text{choixquest=et que \acc3 \enonce \quest2 le phénotype \typ2, ,sachant que \acc3 \enonce item(\c3,\affirm2) le phénotype \typ2}
+\integer{v=randint(1..3)}
+\text{questp=item(\v,\choixquest)}
+\real{pxey=\A[\n2;\n1]*\M[\n2]/10000}
+\real{pnxey=\M[\n2]/100-\pxey}
+\real{px=0}\for{i=1 to \nph}{\real{px=\px+\A[\i;\n1]*\M[\i]/10000}}
+\real{pxeny=\px-\pxey}
+\real{pnxeny=1-\M[\n2]/100-\pxeny}
+\real{pnxsy=1-\A[\n2;\n1]/100}
+\real{pxsny=\pxeny/(1-\M[\n2]/100)}
+\real{pnxsny=1-\pxsny}
+\if{\v=2}{\real{proba1=\c1=1? \px : 1-\px}}
+{\if{\v=1}{\text{listp=\pxey,\pxeny,\pnxey,\pnxeny}}
+          {\text{listp=\pxsny,\pxsny,\pnxsy,\pnxsny}}
+\real{proba1=item(\c2+\c1*(\c1-1),\listp)}
+}
+\text{listp2=\pxey/\px,1-\pxey/\px, \pnxey/(1-\px),1-\pnxey/(1-\px)}
+\real{proba2=item(\c2+\c1*(\c1-1),\listp2)}
+
+\steps{reply1
+reply2}
+
+\statement{Supposons que dans une population, on observe \nbphenot[\nph] phénotypes différents notés \listtyp1 et \listtyp2 avec
+la répartition suivante parmi les \enonce1 de famille : \descrip.<p>
+Le tableau suivant donne la proportion d'enfants de phénotype donné
+en fonction du phénotype \acc \enonce.</p>
+\tableau<p>
+Par exemple, le tableau indique que \A[1;1]% des enfants dont \acc2 \enonce est
+de phénotype A ont le phénotype A.</p>
+<div class="wims_question">On choisit un enfant au hasard dans cette population.
+<ol class="spacer">
+\if{\step>=1}{<li> Quelle est la probabilité qu'il \quest1 le phénotype \typ1 \questp ? 
+  \if{\step=1}{\embed{reply1,5}</li>}
+  }
+
+\if{\step>=2}{
+<div class="oef_indgood">Bonne réponse. La probabilité qu'il \quest1 le phénotype
+\typ1 \questp est \proba1.</div>
+</li>
+<li>L'enfant choisi \quest3 le phénotype \typ1. 
+Quelle est la probabilité que \acc3 \enonce \quest2 le phénotype \typ2 ? \embed{reply2,5} </li>}
+</ol>
+<div class="wims_instruction">Ecrire la valeur en gardant au moins quatre chiffres significatifs.</div>
+</div>
+}
+\answer{1ère question}{\proba1}{type=numeric}
+\answer{2ème question}{\proba2}{type=numeric}
+\hint{Commencer par exprimer les données de l'énoncé en introduisant des événements de la forme
+<ul><li><span class="wims_emph"> \acc2 \enonce a le phénotype X</span></li>
+<li><span class="wims_emph">l'enfant a le phénotype Y</span></li>
+</ul>
+Puis écrire les questions à l'aide de ces événements.}

@@ -1,0 +1,208 @@
+!set title=Ombre 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+
+ansorder=r
+varcnt=54
+prevarcnt=53
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oui,non
+val7=aucune
+val8=Pour s'aider, il est possible de tracer un segment.	  Il n'en sera pas tenu compte dans la notation.
+val9=On éclaire une sphère avec une source lumineuse ponctuelle
+val10=l'ombre portée,le cône d'ombre,les rayons limites,l'ombre propre
+val11=Tracer
+tmp=!trim L'ombre portée est la région non éclairée sur l'écran.	Le cône d'ombre est l'ombre de forme conique portée par un objet sphérique éclairé par une source de lumière.	Les rayons limites xxx	L'ombre propre est la région du corps non éclairée.
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=0
+tmp0=!randint 1, 3
+
+val14=$[rint($(tmp0))]
+tmp0=!shuffle 4
+
+val15=$(tmp0)
+tmp0=!shuffle A,B,C,D,E,F
+
+val16=$(tmp0)
+val16=$(val16[1..$val13+1])
+tmp0=!randint 100, 140
+
+val17=$(tmp0)
+tmp=!nonempty items 140,160,170
+
+tmp0=!randitem $tmp
+val18=$[$val17+$(tmp0)]
+val17=$[pi/180*$val17]
+val18=$[pi/180*$val18]
+t_=!replace internal \( by ( in [cos($val17),sin($val17)]
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in [cos($val18),sin($val18)]
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+t_=!replace internal \( by ( in [$(val20[2])-($(val19[2])),$(val19[1])-($(val20[1]))]/sin($val18-($val17))
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+val22=$[$(val21[1])-2]
+val23=10
+val24=$val21
+!for val25 =1 to $val13 
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val26=$(tmp0)
+val27=$[$(val21[2])+2*$val26*$(val15[$val25])]
+val24=$val24,$(val21[1]),$val27
+val23=$[max($val23,$val27)]
+val22=$[min($val22,$val27)]
+!next
+t_=!replace internal \( by ( in [floor($val22),ceil($val23)]
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+val29=$[$(val28[2])-1]
+t_=!replace internal \( by ( in floor([$val29,(1-($(val19[1]))*$val29)/($(val19[2]))]*1000)/1000.
+tmp0=!exec pari $t_
+
+val30=$(tmp0)
+t_=!replace internal \( by ( in floor([$val29,(1-($(val20[1]))*$val29)/($(val20[2]))]*1000)/1000.
+tmp0=!exec pari $t_
+
+val31=$(tmp0)
+val22=$[min($(val28[1]),min($(val30[2]),$(val31[2])))]
+val23=$[max($(val28[2]),max($(val30[2]),$(val31[2])))]
+t_=!replace internal \( by ( in [floor($val22),ceil($val23)]
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+val32=
+val33=
+!for val25 =1 to $val13+1 
+val32=$val32	string black,$(val24[2*$val25-1])-1,$(val24[2*$val25]),$(val16[$val25])
+!next
+!for val25 =1 to $val13+1 
+val33=$val33	text black,$(val24[2*$val25-1])-1,$(val24[2*$val25]),medium,$(val16[$val25])
+!next
+val34=linewidth 4	segments black,$val30,$val31
+val35=linewidth 1	arrow $val21,$val30,10,black,	arrow $val21,$val31,10,black
+t_=!replace internal \( by ( in ([$val19]+[$val20]+[$val30]+[$val31])/4
+tmp0=!exec pari $t_
+
+val36=linewidth 1	segments black,$val19,$val30,$val20,$val31	fill $(tmp0),lightgrey	
+val37=xrange $val28	yrange $val28	vline $val29,0,black	textup black,$val29,$(val28[1]),large,Ecran	linewidth 1	crosshairs black,$val24	filled	circles black,0,0,1
+
+!ifval $val14=1
+val38=segments,$val30,$val31
+!endif
+
+!ifval $val14=2
+val38=segments,$val19,$val30,$val20,$val31
+!endif
+
+!ifval $val14=3
+val38=arrows,$val21,$val30,$val21,$val31
+!endif
+
+!ifval $val14=1
+val39=$val34
+!endif
+
+!ifval $val14=2
+val39=$val36
+!endif
+
+!ifval $val14=3
+val39=$val35	$val36
+!endif
+t_=!replace internal \( by ( in [$val29,($(val30[2])+3*$(val31[1]))/2,$val29,($(val30[2])+$(val31[1]))/2,$val29,($(val30[2])+2*$(val31[1]))/4,$val29,($(val30[2])+2*$(val31[1]))]
+tmp0=!exec pari $t_
+
+val40=$(tmp0)
+val37=$val37	precision 100	linewidth 3	snaptopoints $val30,$val31,$val21,$val19,$val20,$val40
+replytype1=draw
+
+replyoption1=color="green" eqweight split 
+replyname1=
+replygood1=[$val37];$val38
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val9 A.	  $val11 $(val10[$val14]).	  <div class="wimscenter"> 
+!read oef/embed.phtml r1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'>	
+!if $val14<3 
+$()$(val12[$val14;]) 
+!endif
+$()	  <div class="wimscenter">	   
+!read oef/draw.phtml 400,400 \
+$val37	  $val39 
+$()	  </div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,12,14,37,39
+embedcnt=1

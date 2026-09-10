@@ -1,0 +1,242 @@
+target=varPolydeg3
+
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+
+***etude de fc de degre 3
+*** derivee d = k(x-a)(x-b)=k[x^2 -(a+b)x +ab]
+*** fc prim f = kx^3/3 - k(a+b)x^2/2 + kab + k'
+*** k = 2 ou 3
+*** zero1 = min(a , b) < zero2 = max(a , b)
+
+
+\integer{nbcol=3}
+
+\steps{reply1
+reply2,reply3,reply4,reply5,reply6,reply7,reply8,reply9,reply10,reply11,reply12,reply13
+reply14,reply15,reply16,reply17,reply18,reply19,reply20
+reply21,reply22}
+
+\integer{k=randint(2,3,4,-2,-3,-4)}
+\integer{a=random(0..8)}
+\integer{b=random(2..8)}
+\integer{b=\a=\b?randint(\b+2,\b-2)}
+\integer{k'=random(-12..12)}
+\rational{a1=\k/3}
+\rational{a2=-\k*(\a+\b)/2}
+\rational{a3=\k*\a*\b}
+
+\function{d=maxima(expand((\k)*(x-\a)*(x-\b)))}
+\function{dfact=\a=0?\k*x*(x-\b):\k*(x-\a)*(x-\b)}
+\function{f=maxima(expand((\a1)*x^3+(\a2)*x^2+(\a3)*x+\k))}
+
+\text{ft=texmath(\f)}
+\text{dt=texmath(\d)}
+
+\rational{zero2=max(\a,\b)}
+\rational{zero1=min(\a,\b)}
+
+\integer{inf=random(-5..\zero1 - 1)}
+\integer{sup=random(\zero2 + 1..10)}
+
+\rational{fi=evalue(\f,x=\inf)}
+\rational{fz1=evalue(\f,x=\zero1)}
+\rational{fz2=evalue(\f,x=\zero2)}
+\rational{fs=evalue(\f,x=\sup)}
+
+*** extremum = maximum (1) ou minimum (2)
+\text{ext=random(1,2)}
+\text{extremum=item(\ext,maximum,minimum)}
+
+*** eviter qu'un extremum soit atteint deux fois : modifier les bornes
+
+\if{\k>0 and \ext=1 and \fz1=\fs}{
+  \integer{sup=\sup + 1}
+  \rational{fs=evalue(\f,x=\sup)}
+}
+\if{\k>0 and \ext=2 and \fz2=\fi}{
+  \integer{inf=\inf-1}
+  \rational{fi=evalue(\f,x=\inf)}
+}
+\if{\k<0 and \ext=2 and \fz1=\fs}{
+  \integer{sup=\sup + 1}
+  \rational{fs=evalue(\f,x=\sup)}
+}
+\if{\k<0 and \ext=1 and \fz2=\fi}{
+  \integer{inf=\inf-1}
+  \rational{fi=evalue(\f,x=\inf)}
+}
+
+**** maximum
+\if{\k>0}{\text{MMax=\fz1>\fs?\zero1,f(\zero1):\sup,f(\sup)}}
+       {\text{MMax=\fz2>\fi?\\zero2,f(\\zero2):\inf,f(\inf)}}
+**** minimum
+\if{\k>0}{\text{MMin=\fz2<\fi?\zero2,f(\zero2):\inf,f(\inf)}}
+         {\text{MMin=\fz1<\fs?\zero1,f(\zero1):\sup,f(\sup)}}
+\text{extrema=\ext==1?\MMax:\MMin}
+\text{max=\extrema[2]}
+\text{val=\extrema[1]}
+
+
+\text{signes=+,-}
+\text{variations=\(\nearrow),\(\searrow)}
+\text{images = f(\inf),f(\a),f(\b),f(\sup),f'(\inf),f'(\a),f'(\b),f'(\sup)}
+\text{valeurs=\a,\b,\inf,\sup}
+
+*** colonnes du tableau : 1 pour croissant, 2 pour décroissant
+
+\text{cc=\k>0?1,2,1:2,1,2}
+
+\text{s=\signes[\cc]}
+\text{v=\variations[\cc]}
+
+\text{sk=\k>0?+:-}
+\text{question41=wims(replace internal XXXX by \extremum in \name_question41)}
+
+\statement{\name_enonce[1] \(f(x) = \ft\) \name_enonce[2] [\inf ; \sup].<br>
+
+\if{\step=1}{<b>1.</b> \name_question1[1] \(f'(x)\) (\name_question1[2]).
+<div class="wimscenter">\(f'(x) = \)\embed{reply1}</div>}
+
+\if{\step=2}{
+  <p><b>\name_repquest 1 :</b> \name_question2[1;] : \(f'(x) = \dt\).</p>
+  <p><b>\name_quest 2 : </b>\name_question2[2;]:</p>
+  <div class="wimscenter">\(f'(x) = \dfact )</div>
+  <p>\name_question2[3;] \(f'(x)) :</p>
+  <div class="wims_instruction">\name_inst</div>
+  <table class="wimscenter wimsborder" style="width:90%">
+  <tr>
+  <td style="width:15%">\(x\)</td>
+  <td style="width:25%; text-align:left">\(\inf\)</td>
+  <td style="width:5%;">\zero1</td>
+  <td style="width:25%; text-align:right"></td>
+  <td style="width:5%;">\zero2</td>
+  <td style="width:25%; text-align:right">\(\sup\)</td>
+  </tr><tr>
+  <td>\(\k\)</td>
+  <td>\embed{reply2}</td>
+  <td>|</td>
+  <td>\embed{reply3}</td>
+  <td>|</td>
+  <td>\embed{reply4}</td>
+  </tr><tr>
+  <td>\if{\a=0}{\(x\)}{\(x - \zero1\)}</td>
+  <td>\embed{reply5}</td>
+  <td>0</td>
+  <td>\embed{reply6}</td>
+  <td>|</td>
+  <td>\embed{reply7}</td>
+  </tr><tr>
+  <td>\(x - \zero2\)</td>
+  <td>\embed{reply8}</td>
+  <td>|</td>
+  <td>\embed{reply9}</td>
+  <td>0</td>
+  <td>\embed{reply10}</td>
+  </tr><tr>
+  <td>\(f'(x)\)</td>
+  <td>\embed{reply11}</td>
+  <td>0</td>
+  <td>\embed{reply12}</td>
+  <td>0</td>
+  <td>\embed{reply13}</td>
+  </tr>
+  </table>
+}
+\if{\step=3}{
+<p><b>\name_repquest 2 :</b> \name_question3[1;1] \(f'\) \name_question3[1;2] </p>
+
+<b>\name_quest 3 :</b>
+\name_question3[2;].
+<div class="wims_instruction">\name_inst</div>
+<table class="wimscenter wimsborder" style="width:90%">
+<tr>
+<td style="width:20%;">\(x\)</td>
+<td style="width:5%;">\(\inf\)</td>
+<td style="width:20%; text-align:left"></td>
+<td style="width:5%;">\zero1</td>
+<td style="width:20%; text-align:right"></td>
+<td style="width:5%;">\zero2</td>
+<td style="width:20%; text-align:right"></td>
+<td style="width:5%; text-align:right">\(\sup\)</td>
+</tr><tr>
+<td>\(f'(x)\)</td>
+<td></td>
+<td>\s[1]</td>
+<td>0</td>
+<td>\s[2]</td>
+<td>0</td>
+<td>\s[3]</td>
+<td></td>
+</tr><tr>
+<td>\name_answer[2] \(f\)</td>
+<td>\embed{reply14}</td>
+<td>\embed{reply15}</td>
+<td>\embed{reply16}</td>
+<td>\embed{reply17}</td>
+<td>\embed{reply18}</td>
+<td>\embed{reply19}</td>
+<td>\embed{reply20}</td>
+</tr>
+</table>
+}
+\if{\step=4}{
+<p><b>\name_repquest 3 :</b> \name_question4</p>
+<table class="wimscenter wimsborder" style="width:20%">
+<tr>
+<td style="width:20%">\(x\)</td>
+<td style="width:5%">\(\inf\)</td>
+<td style="width:20%; text-align:left"></td>
+<td style="width:5%">\(\zero1\)</td>
+<td style="width:20%; text-align:right"></td>
+<td style="width:5%">\(\zero2\)</td>
+<td style="width:20%; text-align:right"></td>
+<td style="width:5%">\(\sup\)</td>
+</tr><tr>
+<td>\name_answer[2] \(f\)</td>
+<td>\( \fi\)</td>
+<td>\v[1]</td>
+<td>\(\fz1\)</td>
+<td>\v[2]</td>
+<td>\(\fz2)</td>
+<td>\v[3]</td>
+<td>\( \fs\)</td>
+</tr>
+</table>
+<b>\name_quest 4 :</b> \question41[1], \question41[2] \embed{reply21}
+  \question41[3] \(x\) = \embed{reply22}.
+}
+}
+
+\answer{f'(x)}{\d}{type=formal}{option=nonstop}
+
+\answer{\name_answer[1] k }{\sk;\variations,\signes}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] k }{\sk}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] k }{\sk}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] x-\zero1 }{-}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] x-\zero1 }{+}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] x-\zero1 }{+}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] x-b }{-}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] x-b }{-}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] x-b }{+}{type=clickfill}{option=shuffle,nonstop}
+
+\answer{\name_answer[1] f'(x) }{\s[1];\variations,\signes}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] f'(x) }{\s[2];\variations,\signes}{type=clickfill}{option=shuffle,nonstop}
+\answer{\name_answer[1] f'(x) }{\s[3];\variations,\signes}{type=clickfill}{option=shuffle,nonstop}
+
+\answer{\name_answer[2] f}{f(\inf);\variations,\signes,\images }{type=clickfill}{option=nonstop}
+\answer{\name_answer[2] f }{\v[1]}{type=clickfill}{option=nonstop}
+\answer{\name_answer[2] f}{f(\zero1)}{type=clickfill}{option=nonstop}
+\answer{\name_answer[2] f }{\v[2]}{type=clickfill}{option=nonstop}
+\answer{\name_answer[2] f }{f(\zero2)}{type=clickfill}{option=nonstop}
+\answer{\name_answer[2] f}{\v[3]}{type=clickfill}{option=nonstop}
+\answer{\name_answer[2] f}{f(\sup)}{type=clickfill}{option=nonstop}
+
+\answer{\name_answer[3]}{\max ; \images,\valeurs}{type=clickfill}
+\answer{x_ext}{\val}{type=clickfill}

@@ -1,0 +1,142 @@
+!set title=Variation d'un trinôme du second degré 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=function_variation,trinomial
+author=Régine, Mangeard;Maguy, Bruno
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 0.5,1,2,3,4,5,6,7,8,9,10
+
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+val9=$val8*x^2+$val6*x+$val7
+t_=!replace internal \( by ( in $val9
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val10=$(tmp1)
+t_=!rawmath -$val6/(2*$val8)
+val11=!exec pari print($t_)
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+val13=\(\searrow),\(\nearrow)
+
+!ifval $val8>0
+val14=1,2
+!else
+val14=2,1
+!endif
+val15=$(val13[$val14])
+val16=Compléter le tableau des variations de la fonction \(f\) telle que
+val17=Donner les valeurs exactes des coordonnées du sommet	  de la parabole.
+replytype1=numexp
+replyname1=abscisse du sommet
+replygood1=$val11
+replytype2=clickfill
+replyoption2=shuffle 
+replyname2=monotonie 1
+replygood2=$(val15[1]) 
+replytype3=numexp
+replyname3=ordonnée du sommet
+replygood3=$val12
+replytype4=clickfill
+replyoption4=shuffle 
+replyname4=monotonie 2
+replygood4=$(val15[2]) 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val16 
+!insmath f(x)=$val10
+$().	<div class="wims_instruction">$val17</div>	<table class="wimsborder wimscenter">	<tr>	<th style="width:10%">
+!insmath x
+$()</th>	<td style="width:40%;text-align:left">
+!insmath -\infty
+$()</td>	<td style="width:10%">  
+!read oef/embed.phtml reply1,5 
+$() </td>	<td style="width:40%;text-align:right">
+!insmath +\infty
+$()</td>	</tr><tr>	<th style="width:10%">
+!insmath var f
+$()</th>	<td style="width:40%">  
+!read oef/embed.phtml reply2 
+$() </td>	<td style="width:10%">  
+!read oef/embed.phtml reply3,5 
+$() </td>	<td style="width:40%">  
+!read oef/embed.phtml reply4 
+$() </td>	</tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,16,17
+embedcnt=4

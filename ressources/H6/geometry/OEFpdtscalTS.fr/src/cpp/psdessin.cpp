@@ -1,0 +1,91 @@
+target=psdessin
+
+\title{Produit scalaire dans l'espace : signe}
+\author{Solène, Charneau}
+\email{solene.charneau@gmail.com}
+\format{html}
+\precision{1000}
+\computeanswer{yes}
+
+\description{Détermination du signe d'un produit scalaire à partir d'un dessin}
+\text{lstpts=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X}
+\text{ind=shuffle(24)}
+\text{pt1=\lstpts[\ind[1]]}
+\text{pt2=\lstpts[\ind[2]]}
+\text{pt3=\lstpts[\ind[3]]}
+\text{pt4=\lstpts[\ind[4]]}
+\text{abs=0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3}
+\text{cot=0,0,0,0,1,1,1,1,2,2,2,2,0,0,0,0,1,1,1,1,2,2,2,2}
+\text{ord=0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1}
+\integer{ux=\abs[\ind[2]]-\abs[\ind[1]]}
+\integer{uy=\ord[\ind[2]]-\ord[\ind[1]]}
+\integer{uz=\cot[\ind[2]]-\cot[\ind[1]]}
+\integer{vx=\abs[\ind[4]]-\abs[\ind[3]]}
+\integer{vy=\ord[\ind[4]]-\ord[\ind[3]]}
+\integer{vz=\cot[\ind[4]]-\cot[\ind[3]]}
+\integer{p=\ux*\vx+\uy*\vy+\uz*\vz}
+
+\if{\p<0}{\integer{rep=1}}{\if{\p>0}{\integer{rep=2}}{\integer{rep=3}}}
+\text{choix=<,>,=}
+text{choix=&lt;,&gt;,=}
+\text{v1=\overrightarrow{\pt1 \pt2}}
+\text{v2=\overrightarrow{\pt3 \pt4}}
+\text{dessin=
+ xrange -2,20
+ yrange -2,15
+ poly black,0,0,0,10,15,10,15,0
+ segment 0,5,15,5,black
+ polyline black,0,10,3,12,18,12,18,2,15,0
+ parallel 15,10,18,12,0,-5,2,black
+ polyline gray,0,0,3,2,18,2
+ polyline gray,0,5,3,7,18,7
+ parallel 3,2,3,12,5,0,3,gray
+ parallel 5,0,8,2,0,5,2,gray
+ parallel 10,0,13,2,0,5,2,gray
+ polyline black,5,0,5,10,8,12
+ polyline black,10,0,10,10,13,12
+ text black,-0.2,-0.2,medium,A
+ text black,4.8,-0.2,medium,B
+ text black,9.8,-0.2,medium,C
+ text black,14.8,-0.2,medium,D
+ text black,-0.3,4.8,medium,E
+ text black,4.7,4.8,medium,F
+ text black,9.7,4.8,medium,G
+ text black,14.7,4.8,medium,H
+ text black,-0.3,9.8,medium,I
+ text black,4.7,9.8,medium,J
+ text black,9.7,9.8,medium,K
+ text black,14.7,9.8,medium,L
+ text black,2.8,1.8,medium,M
+ text black,7.8,1.8,medium,N
+ text black,12.8,1.8,medium,O
+ text black,17.8,1.8,medium,P
+ text black,2.7,6.8,medium,Q
+ text black,7.7,6.8,medium,R
+ text black,12.7,6.8,medium,S
+ text black,17.7,6.8,medium,T
+ text black,2.7,11.8,medium,U
+ text black,7.7,11.8,medium,V
+ text black,12.7,11.8,medium,W
+ text black,17.7,11.8,medium,X
+ linewidth 3
+ arrow \abs[\ind[1]]*5+(\ord[\ind[1]])*3,\cot[\ind[1]]*5+(\ord[\ind[1]])*2,\abs[\ind[2]]*5+(\ord[\ind[2]])*3,\cot[\ind[2]]*5+(\ord[\ind[2]])*2,10,blue
+ arrow \abs[\ind[3]]*5+(\ord[\ind[3]])*3,\cot[\ind[3]]*5+(\ord[\ind[3]])*2,\abs[\ind[4]]*5+(\ord[\ind[4]])*3,\cot[\ind[4]]*5+(\ord[\ind[4]])*2,10,green
+}
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col">\draw{500,300}{\dessin}</div>
+ <div class="medium_size text_col">
+ L'espace est muni du repère orthonormal
+ \((A,\overrightarrow{A B},\overrightarrow{A M},\overrightarrow{A E})).
+ Compléter :
+  <div class="wimscenter">\(\v1 \cdot \v2) \embed{reply1} 0.</div>
+ </div>
+</div>
+}
+\answer{}{\rep;\choix}{type=menu}{option=noanalyzeprint}
+
+\feedback{\reply1 notsametext \choix[\rep]}{
+  Vous avez choisi : \(\v1 \cdot \v2) \reply1 0.}
+\feedback{1 = 1}{
+  La réponse est : \(\v1 \cdot \v2) \choix[\rep] 0.}

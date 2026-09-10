@@ -1,0 +1,110 @@
+!set title=Rang 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=unités,dixièmes,centièmes,millièmes,dix millièmes,cent millièmes
+val7=unités,dizaines,centaines,milliers,dix milliers,cent milliers
+tmp=!trim Voici un nombre	  Dans ce nombre, le chiffre, est le chiffre des 
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 9
+
+val9=$(tmp0)
+tmp0=!randint 4, 7
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val10-2, $val10-1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, $val11+1
+
+val12=$[rint($(tmp0))]
+val13=$[rint(0)]
+!for val14 =1 to $val10 
+val13=$[rint($val13+$(val9[$val14])*10^($val10-$val14))]
+!next
+val13=$[$val13/10^$val11]
+val15=$(val8[1;]) $val13.	  $(val8[2;1,2]) $(val9[$val10-$val11+$val12-1]) $(val8[2;3])
+val16=$(val6[$val12])
+val17=$[rint(15)]
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val15 \(\dots\dots\) \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<label for="reply1">$val15</label>	 
+!read oef/embed.phtml r1,$val17 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val15 
+!insmath \dots\dots
+$() $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,17
+embedcnt=1

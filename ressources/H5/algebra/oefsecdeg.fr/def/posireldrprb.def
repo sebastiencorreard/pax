@@ -1,0 +1,180 @@
+!set title=Position relative droite/parabole
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=pitoun.wims@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val8*(x-$val6)^2+$val7)
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val10=$[rint($(tmp0)*$(tmp1))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val11=$[rint($(tmp0))]
+tmp=!translate ;";': to $     $ in $val9,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val12=!rawmath $(tmp0)
+evaltmp=$val12
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val13=!exec pari print($t_)
+t_=!rawmath $val11-$val13*$val10
+val14=!exec pari print($t_)
+!if \p=0 
+val15=$[rint(1)]
+!endif
+!if \p=1 and $val8>0 
+val15=$[rint(2)]
+!endif
+!if \p=1 and $val8<0 
+val15=$[rint(0)]
+!endif
+!if \p=-1 and $val8>0 
+val15=$[rint(0)]
+!endif
+!if \p=-1 and $val8<0 
+val15=$[rint(2)]
+!endif
+t_=!replace internal \( by ( in $val9-$val13*x-$val14-\p
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val13*x+b
+tmp0=!exec maxima $t_
+
+val17=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val13*x+$val14
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+val19=$[rint(-10)]
+val20=$[rint(10)]
+val21=$[rint($val20-$val19+1)]
+val22=animate 10,0.5,0	xrange=-6,6	yrange $val19,$val20	linewidth 1	parallel -6,$val19,-6,$val20,1,0,13,blue	parallel -6,$val19,6,$val19,0,1,$val21,blue	linewidth 2	line -6,0,6,0,red	line 0,$val19,0,$val20,red	arrow 0,0,1,0,10,red	arrow 0,0,0,1,10,red	plot green,$val9	plot blue,$val13*x+s*20-10	
+replytype1=default
+replyname1=Valeur de b
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 300,300 \
+	$val22 
+$()</div>	 <div class="medium_size text_col">	 On considère la parabole 
+!insmath P
+$() d'équation 
+!insmath y = $val9
+$().	Pour quelle valeur de 
+!insmath b
+$() la droite d'équation 
+!insmath y = $val17
+$() et	
+!insmath P
+$() possèdent-elles un unique point d'intersection ?	<div class="wimscenter">	
+!insmath P
+$() et 
+!insmath d
+$() possède un unique point d'intersection lorsque <label for="reply1">
+!insmath b=
+$()</label>  
+!read oef/embed.phtml reply 1,15 
+$().	</div>	 </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath d
+$() et 
+!insmath P
+$() possèdent un unique point d'interection si et seulement	  si l'équation 
+!insmath $val9=$val17
+$() possède une unique solution.	  Or cette équation se ramène à une équation du second degré, il suffit donc	  de trouver la valeur de 
+!insmath b
+$()	  pour laquelle cette dernière ne possède qu'une seule solution (
+!insmath \Delta=0
+$()).	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,17,22
+embedcnt=1

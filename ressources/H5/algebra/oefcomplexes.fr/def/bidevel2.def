@@ -1,0 +1,148 @@
+!set title=Calcul d'un coefficient du binôme dans &#8450;
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=polynomials,complex_number
+keywords=complex_number,polynomials
+oefobservation=Partie imaginaire ou réelle de (i+a)^n, a=+/-1, n entier de 3 à 10
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp0=!randint 3, 10
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items réelle,imaginaire
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val9=(i+$val6)^$val7
+
+!ifval $val8 issametext réelle
+t_=!replace internal \( by ( in realpart($val9)
+tmp0=!exec maxima $t_
+
+val10=$[rint($(tmp0))]
+!else
+t_=!replace internal \( by ( in imagpart($val9)
+tmp1=!exec maxima $t_
+
+val10=$[rint($(tmp1))]
+!endif
+val11=
+
+!ifval $val7%2==0
+val12=$[rint($val7/2)]
+!else
+val12=$[rint($val7/2-1)]
+!endif
+!if $val8 issametext réelle 
+!for val13 =0 to $val12 
+val14=$[rint(2*$val13)]
+val15=i^$val14 \binom{$val7}{$val14}
+
+!ifval $val11=
+val11=$val15
+!else
+val11=$val11+$val15
+!endif
+!next
+!else
+!for val13 =0 to $val12 
+val14=$[rint(min($val7,2*$val13+1))]
+val15=i^$val14 \binom{$val7}{$val14}
+
+!ifval $val11=
+val11=$val15
+!else
+val11=$val11+$val15
+!endif
+!next
+!endif
+
+!ifval $val8 issametext réelle
+val16=paire
+!else
+val16=impaire
+!endif
+val17=Pour avoir la partie $val8 il additionner toutes les puissances $val16 de i donc : \($val11\)
+replytype1=numeric
+replyname1=Réponse
+replygood1=$[$val10]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	Quelle est la partie  $val8 de 
+!insmath (i+$val6)^$val7
+$() ?	<p>Réponse :  
+!read oef/embed.phtml r1,10	autofocus 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'>	<div class="feedback">$val17</div>	 
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,17
+embedcnt=1

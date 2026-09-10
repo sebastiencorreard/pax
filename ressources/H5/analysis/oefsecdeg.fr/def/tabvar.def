@@ -1,0 +1,351 @@
+!set title=Tableau de variation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Guillet
+email=mathextra@free.fr
+oefcss= <style type="text/css"> div.tabvar.enonce { background-color: #EEEEFF; color: black; line-height: 20px;} table.tabvar.table1 { border-collapse: collapse; border: 1px solid black; margin: auto;} td.tabvar.left { text-align :left;} td.tabvar.center{ text-align :center;} td.tabvar.right{ text-align :right;} </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=22
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+tmp0=!randitem 1,-1
+
+tmp1=!randitem 2,4,5,8,10,12
+
+val6=$[$(tmp0)*$(tmp1)]
+tmp0=!randint 5, 15
+
+val7=$[$(tmp0)]
+tmp0=!randint -10, 5
+
+val8=$[$(tmp0)]
+val9=$[$val8+$val7]
+tmp=!translate ";': to $     $ in $val6*(x-$val8)*(x-$val9)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val10
+tmp0=!exec pari $t_
+
+val10=!rawmath $(tmp0)
+tmp0=!randint 1, 4
+
+val11=$[$val8-$(tmp0)]
+tmp0=!randint 1, 4
+
+val12=$[$val9+$(tmp0)]
+val13=$[($val8+$val9)/2]
+evaltmp=$val10
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val14=$[$(tmp0)]
+evaltmp=$val10
+
+evaltmp=!mathsubst x=($val13) in $evaltmp
+tmp0=($evaltmp)
+val15=$[$(tmp0)]
+evaltmp=$val10
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val16=$[$(tmp0)]
+tmp=!translate ;";': to $     $ in $val10,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val17,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val18=!rawmath $(tmp0)
+val6=$[$val18/2]
+evaltmp=$val17
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val19=$[$(tmp0)]
+evaltmp=$val10
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val20=$[$(tmp0)]
+val21=oui,non,autre
+
+!ifval $val13>$val11 and $val13<$val12 
+val22=oui
+!else
+val22=non
+!endif
+tmp0=!positionof item $val22 in $val21
+
+val23=$(tmp0)
+val24=positif,negatif,ça depend
+
+!ifval $val6>0 
+val25=positif
+!else
+val25=negatif
+!endif
+tmp0=!positionof item $val25 in $val24
+
+val26=$(tmp0)
+val27=croissante,décroissante,ça depend
+
+!ifval $val6>0 
+val28=décroissante
+!else
+val28=croissante
+!endif
+tmp0=!positionof item $val28 in $val27
+
+val29=$(tmp0)
+val30=croissante,décroissante,ça depend
+
+!ifval $val6>0 
+val31=croissante
+!else
+val31=décroissante
+!endif
+tmp0=!positionof item $val31 in $val30
+
+val32=$(tmp0)
+val33=&#8599;
+val34=&#8600;
+val35=$val33,$val34,ça depend
+
+!ifval $val6>0 
+val36=$val34
+!else
+val36=$val33
+!endif
+tmp0=!positionof item $val36 in $val35
+
+val37=$(tmp0)
+val38=$val33,$val34,ça depend
+
+!ifval $val6>0 
+val39=$val33
+!else
+val39=$val34
+!endif
+tmp0=!positionof item $val39 in $val38
+
+val40=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$val6]
+replytype2=numeric
+replyname2=
+replygood2=$[$val19]
+replytype3=numeric
+replyname3=
+replygood3=$[$val13]
+replytype4=menu
+replyoption4=shuffle 
+replyname4=
+replygood4=$val23;$val21
+replytype5=numeric
+replyname5=
+replygood5=$[$val15]
+replytype6=menu
+replyoption6=shuffle 
+replyname6=
+replygood6=$val26;$val24
+replytype7=menu
+replyoption7=shuffle 
+replyname7=
+replygood7=$val29;$val27
+replytype8=numeric
+replyname8=
+replygood8=$[$val11]
+replytype9=numeric
+replyname9=
+replygood9=$[$val13]
+replytype10=menu
+replyoption10=shuffle 
+replyname10=
+replygood10=$val32;$val30
+replytype11=numeric
+replyname11=
+replygood11=$[$val13]
+replytype12=numeric
+replyname12=
+replygood12=$[$val12]
+replytype13=numeric
+replyname13=
+replygood13=$[$val14]
+replytype14=numeric
+replyname14=
+replygood14=$[$val16]
+replytype15=numeric
+replyname15=
+replygood15=$[$val11]
+replytype16=numeric
+replyname16=
+replygood16=$[$val13]
+replytype17=numeric
+replyname17=
+replygood17=$[$val12]
+replytype18=numeric
+replyname18=
+replygood18=$[$val14]
+replytype19=menu
+replyoption19=shuffle 
+replyname19=
+replygood19=$val37;$val35
+replytype20=numeric
+replyname20=
+replygood20=$[$val15]
+replytype21=menu
+replyoption21=shuffle 
+replyname21=
+replygood21=$val40;$val38
+replytype22=numeric
+replyname22=
+replygood22=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	<p>Soit la fonction 
+!insmath f
+$() définie par 
+!insmath f(x)=$val10
+$() sur l'intervalle &#91; $val11&#44; $val12 &#93;. Etablir le tableau de variation de la fonction 
+!insmath f
+$().</p>	<ol>	<li>Repérer les coefficients 
+!insmath a
+$() et 
+!insmath b
+$() : 
+!insmath a
+$() =  
+!read oef/embed.phtml r1,4 
+$(), 
+!insmath b
+$() =  
+!read oef/embed.phtml r2,4 
+$()</li>	<li>Calculer le nombre 
+!insmath -b/(2*a)
+$() =  
+!read oef/embed.phtml r3,4 
+$().	  Appartient-il à l'intervalle &#91; $val11&#44; $val12 &#93; ?	   
+!read oef/embed.phtml r4 
+$().	  </li>	 <li>Calculer son image 
+!insmath f (-b/(2*a))
+$() = 
+!read oef/embed.phtml r5,4 
+$().	 </li>	  <li>	    Donner le signe du coefficient 
+!insmath a
+$() :  
+!read oef/embed.phtml r6,4 
+$().	  </li>	  <li>En déduire le sens de variation de 
+!insmath f
+$() :	    <ul class="wims_nopuce">	      <li> 
+!insmath f
+$() est  
+!read oef/embed.phtml r7 
+$() sur l'intervalle &#91;  
+!read oef/embed.phtml r8,4 
+$() &#44;  
+!read oef/embed.phtml r9,4 
+$() &#93;</li>	      <li> 
+!insmath f
+$() est  
+!read oef/embed.phtml r10 
+$() sur l'intervalle &#91;  
+!read oef/embed.phtml r11,4 
+$() &#44;  
+!read oef/embed.phtml r12,4 
+$() &#93;</li>	    </ul>	  </li>	  <li>Calculer les images des bornes de l'intervalle de définition :	  
+!insmath f($val11)=
+$()  
+!read oef/embed.phtml r13,4 
+$() et 
+!insmath f($val12)=
+$()  
+!read oef/embed.phtml r14,4 
+$()</li>	  <li>Établir le tableau de variation :		<table class="tabvar.table1">	  <tbody>	    <tr>	      <th>
+!insmath x
+$()</th>	      <td> 
+!read oef/embed.phtml r15,15 
+$()  
+!read oef/embed.phtml r16,15 
+$()  
+!read oef/embed.phtml r17,15 
+$() </td>	    </tr>	    <tr>	      <th>
+!insmath f(x)
+$()</th>	      <td> 
+!read oef/embed.phtml r18,4 
+$()  
+!read oef/embed.phtml r19 
+$()  
+!read oef/embed.phtml r20,4 
+$()  
+!read oef/embed.phtml r21 
+$()  
+!read oef/embed.phtml r22,4 
+$()</td>	    </tr>	  </tbody>	</table>	</li>	</ol>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12
+embedcnt=22

@@ -1,0 +1,200 @@
+!set title=Calculs avec des événements indépendants
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire;Bernadette, Perrin-Riou
+email=sophie.lemaire@universite-paris-saclay.fr,bernadette.perrin-riou@universite-paris-saclay.fr
+keywords=probability,independent_events
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=61
+prevarcnt=60
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+!if $val3 issametext oui 
+val10=\bar{A}
+val11=\bar{C}
+val12=\bar{B}
+!else
+val10=A^c
+val11=C^c
+val12=B^c
+!endif
+!if $val8=1 
+val13=a
+val14=A
+val15=$val10
+!else
+val14=$val10
+val15=A
+val13=(1-a)
+!endif
+!if $val9=1 
+val16=B
+val17=C
+val18=$val12
+val19=$val11
+val20=b
+val21=c
+!else
+val16=$val12
+val17=$val11
+val18=B
+val19=C
+val20=(1-b)
+val21=(1-c)
+!endif
+!if $val7=1 
+val22=\cup
+val23=\cap
+val24=($val20+$val21-$val20*$val21)
+!else
+val22=\cap
+val23=\cup
+val24=($val20*$val21)
+!endif
+!if $val6=1 
+val25=\cup
+val26=\cap
+val27=$val13+$val24-$val13*$val24
+!else
+val25=\cap
+val26=\cup
+val27=$val13*$val24
+!endif
+val28=$val14$val25 ($val16$val22 $val17)
+val29=\($val15$val25 ($val18$val22 $val19)\)
+val30=\($val15$val26 ($val18$val22 $val19)\)
+val31=\($val15$val26 ($val18$val23 $val19)\)
+val32=\($val14$val26 ($val16$val23 $val17)\)
+val33=\($val14$val26 ($val16$val22 $val17)\)
+val34=\($val14$val25 ($val16$val23 $val17)\)
+val35=\($val15$val26 ($val16$val22 $val17)\)
+val36=\($val15$val26 ($val16$val23 $val17)\)
+val37=\($val14$val26 ($val18$val23 $val19)\)
+val38=\($val14$val25 ($val18$val23 $val19)\)
+val39=\($val14$val26 ($val18$val22 $val19)\)
+val40=\($val14$val26 ($val18$val23 $val19)\)
+val41=$val29,$val30,$val31,$val32,$val33,$val34,$val35,$val36,	$val37,$val38,$val39,$val40
+!readproc slib/data/random 3, $val41 
+tmp0=$slib_out
+val42=$(tmp0)
+val43=$val28,$val42
+!readproc slib/data/random 4,,$val43 
+tmp0=$slib_out
+val44=$(tmp0)
+tmp0=!positionof item $val28 in $val44
+
+val45=$(tmp0)
+t_=!replace internal \( by ( in Expand($val27)
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+tmp0=!record 1 of notations
+
+val46=$(tmp0)
+replytype1=function
+replyname1=\(P(F)=\)
+replygood1=!rawmath $val27,a,b,c
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val46
+
+
+!goto stat
+
+!exit
+
+:question
+$()On suppose que 
+!insmath A
+$(), 
+!insmath B
+$() et 
+!insmath C
+$() sont des événements indépendants de probabilité respectivement 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$(). <p>	<div class="wims_question">	Exprimer en fonction de 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$() la probabilité de l'événement 
+!insmath F = $val28
+$() :	<div class="wimscenter"><label for="reply1">
+!insmath P ( F ) =
+$()</label>  
+!read oef/embed.phtml reply1 
+$()</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val46
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=28,46
+embedcnt=1

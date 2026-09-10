@@ -1,0 +1,190 @@
+!set title=Transformer et placer
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=1
+tmp0=!randitem -1,-2,2
+
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+!else
+tmp1=!randitem -1,-2,-3,2,3
+
+t_=!rawmath $(tmp1)/$val7
+val8=!exec pari print($t_)
+!endif
+
+!ifval $val8=1
+t_=!rawmath 2
+val8=!exec pari print($t_)
+!endif
+t_=!rawmath 1-$val8
+val9=!exec pari print($t_)
+
+!ifval $val8>0
+val10=+
+!else
+val10=-
+!endif
+
+!ifval $val8>0
+val11=
+!else
+val11=-
+!endif
+t_=!rawmath -1*($val8)
+val12=!exec pari print($t_)
+
+!ifval $val8>0
+val13=$val8
+!else
+val13=$val12
+!endif
+tmp0=!replace internal / by , in $val13
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+
+!ifval $(tmp0)>1
+val13=\frac{$(val13[1])}{$(val13[2])}
+!endif
+
+!ifval $val13=1
+val13= 
+!endif
+val14=$val9
+tmp0=!replace internal / by , in $val14
+
+val14=$(tmp0)
+tmp0=!itemcnt $val14
+
+
+!ifval $(tmp0)>1
+val14=\frac{$(val14[1])}{$(val14[2])}
+!endif
+
+!ifval $val14=-1
+val14=-
+!endif
+val15=$[rint($val8*($val7))]
+val16=$[rint(0)]
+val17=$[rint(403)]
+val18=$[rint(31)]
+val19=$[rint($val17+$val18*$val15)]
+val20=$[rint($val19-0.3*$val18)]
+val21=$[rint($val19+0.3*$val18)]
+!readproc oef/draw.phtml 806,64 \
+  xrange -13,13	  yrange -1,3	  hline 0,0,red	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,2,blue	  text red,-0.1,1.5,medium,A	  text red,$val7-0.1,1.5,medium,B	  segment 0,-0.2,\a,0.2,red	  segment $val7,-0.2,$val7,0.2,red 
+tmp0=$ins_url
+val22=$(tmp0)	  
+val23=xrange -13,13	  yrange -1.5,3	  hline 0,0,red	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,2,blue	  text red,-0.1,1.5,medium,A	  text red,$val7-0.1,1.5,medium,B	  text red,$val15-0.1,-0.5,medium,M	  segment 0,-0.2,\a,0.2,red	  segment $val7,-0.2,$val7,0.2,red	  segment $val15,-0.2,$val15,0.2,red	  
+replytype1=coord
+replyname1=f(\X)
+replygood1=$val22;rectangle,$val20,0,$val21,64
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Placer le point 
+!insmath M
+$() défini par	<div class="wimscenter"> 
+!insmath $val14 \overrightarrow{A M} $val10 $val13 \overrightarrow{B M}=\overrightarrow{0}
+$().</div>	Cliquer à l'emplacement du point 
+!insmath M
+$().	<div class="wimscenter  unbreakable">	 
+!read oef/embed.phtml r1 
+$()	</div>	 
+$()
+!exit
+
+:hint
+$()Transformer l'écriture 
+!insmath $val14 \overrightarrow{A M} $val10 $val13 \overrightarrow{B M}=\overrightarrow{0}
+$() pour obtenir une expression de la forme&nbsp;:	<div class="wimscenter"> 
+!insmath \overrightarrow{A M}=k \overrightarrow{A B}
+$() </div>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	On commence par transformer l'écriture 
+!insmath $val14 \overrightarrow{A M}$val10 $val13 \overrightarrow{B M}=\overrightarrow{0}
+$()	pour obtenir une expression de la forme&nbsp;:	<div class="wimscenter"> 
+!insmath \overrightarrow{A M}=k \overrightarrow{A B}
+$() </div>	On trouve 
+!insmath \overrightarrow{A M}= $val11 $val13 \overrightarrow{A B}
+$()	<p>	On peut alors facilement placer le point <span class="nowrap">
+!insmath M
+$()&nbsp;:</span>	</p>	<div class="wimscenter">	 
+!read oef/draw.phtml 800,64 \
+$val23 
+$()	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,13,14,23
+embedcnt=1

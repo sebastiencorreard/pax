@@ -1,0 +1,318 @@
+!set title=Calcul de vitesse limite par Euler
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît,Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=48
+prevarcnt=47
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 20
+
+val6=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val6,2 
+tmp0=$slib_out
+val7=$(tmp0)
+val8=$[$val6/1000]
+val9=$[4/3*pi*($val8/2)^3]
+!readproc slib/text/sigunits $val9 ,2 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!randint 8000, 9000
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 900, 1200
+
+val12=$[rint($(tmp0))]
+val13=$[$val11*$val10]
+tmp0=!randint 1, 2
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 8, 20
+
+val15=$[rint($(tmp0))]
+val16=$[$val15/100]
+
+!ifval $val14=1
+val17=$[ 3*pi*$val16*$val8 ]
+!else
+val17=$[ 44/100*pi*($val8*$val8)*$val12/8]
+!endif
+
+!ifval $val14=1
+val18= 3 \pi \eta d 
+!else
+val18= 0,44\pi d^2\rho_{liq}/8
+!endif
+tmp0=!texmath $val18
+
+val18=$(tmp0)
+
+!ifval $val14=1
+val19= kg/s
+!else
+val19=kg/m
+!endif
+!readproc slib/text/sigunits $val17 ,2 
+tmp0=$slib_out
+val20=$(tmp0)
+
+!ifval $val14=1
+val21= v
+!else
+val21=v^2
+!endif
+tmp0=!texmath a*$val21+b
+
+val22=$(tmp0)
+tmp0=!randint 3, 8
+
+val23=$[rint($(tmp0))]
+val24=$[$val23/100]
+val25=$[-$val20/($val11*$val10)]
+!readproc slib/text/sigunits $val25,2 
+tmp0=$slib_out
+val26=$(tmp0)
+val27=$[9.81*(1-$val12/$val11)]
+!readproc slib/text/sigunits $val27,2 
+tmp0=$slib_out
+val28=$(tmp0)
+
+!ifval $val14=1
+val29=$[-$val28/$val26]
+!else
+val29=$[(-$val28/$val26)^0.5]
+!endif
+
+!ifval $val14=1
+val30= s^-1
+!else
+val30=m^-1
+!endif
+val31=$[rint(0)]
+val32=$[rint(0)]
+val33=$[rint(0)]
+val34=$[rint(0)]
+val35=$[rint(0)]
+!for val36 =1 to 10 
+val31=$[$val31+$val24]
+val33=$val33,$val31
+val32=$[$val32+($val26*$val32^$val14+$val28)*$val24]
+!readproc slib/text/sigunits $val32,2 
+tmp0=$slib_out
+val32=$(tmp0)
+val34=$val34,$val32
+val35=$val35,$val32
+!next
+!readproc slib/text/sigunits $val17  $val19,2 
+tmp0=$slib_out
+val20=$(tmp0)
+!readproc slib/text/sigunits $val13 kg ,2 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/text/sigunits $val9 m^3 ,2 
+tmp0=$slib_out
+val10=$(tmp0)
+!readproc slib/text/sigunits $val25  $val30,2 
+tmp0=$slib_out
+val38=$(tmp0)
+!readproc slib/text/sigunits $val27 N/kg,2 
+tmp0=$slib_out
+val39=$(tmp0)
+!readproc slib/text/sigunits $val29 m/s,2 
+tmp0=$slib_out
+val40=$(tmp0)
+!readproc slib/text/sigunits $(val35[4]),2 
+tmp0=$slib_out
+val41=$(tmp0)
+!readproc slib/text/sigunits $(val35[8]),2 
+tmp0=$slib_out
+val42=$(tmp0)
+!readproc slib/text/sigunits $(val35[10]),2 
+tmp0=$slib_out
+val43=$(tmp0)
+replytype1=sigunits
+replyname1=V
+replygood1=$val10 
+replytype2=sigunits
+replyname2=\(m_b\)
+replygood2=$val37 
+replytype3=sigunits
+replyname3=k
+replygood3=$val20
+replytype4=sigunits
+replyname4=a
+replygood4=$val38 
+replytype5=sigunits
+replyname5=b
+replygood5=$val39 
+replytype6=sigunits
+replyname6=vlim
+replygood6=$val40
+replytype7=sigunits
+replyname7=v4
+replygood7=$val41
+replytype8=sigunits
+replyname8=v8
+replygood8=$val42
+replytype9=sigunits
+replyname9=v10
+replygood9=$val43
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">Dans cet exercice, on donnera toutes les réponses avec 2 chiffres significatifs sans oublier d'indiquer l'unité.<br>	L'unité 
+!insmath \textrm{m}^3
+$() se note m^3 .<br>	Les unités composées se notent avec un point entre les unités. Exemple: 
+!insmath \textrm{m}\times \textrm{s}^{-1}
+$() se note m.s^-1 ou encore m/s .</div>	<p style="color:#0000FF;">Une bille de diamètre 
+!insmath d=$val7
+$() 
+!insmath \textrm{mm}
+$() et 	de masse volumique 
+!insmath \rho_b =$val11
+$() 
+!insmath \textrm{kg}\cdot\textrm{m}^{-3}
+$() est lâchée 	sans vitesse initiale dans un liquide de masse volumique 	
+!insmath \rho_{liq} =$val12
+$() 
+!insmath \textrm{kg}\cdot\textrm{m}^{-3}
+$() et de viscosité 	
+!insmath \eta =$val16
+$() 
+!insmath \textrm{Pa}\cdot\textrm{s}.
+$()	Elle a un mouvement de chute verticale.</p>	<ul><li>Calculer le volume de la bille : 
+!insmath V=
+$() 
+!read oef/embed.phtml reply1,10x10 
+$()</li>	 <li>En déduire la masse de la bille : 
+!insmath m_b = 
+$() 
+!read oef/embed.phtml reply2,10x10 
+$()</li></ul>	 <p style="color:#0000FF;">Cette bille subit une force de frottement lors de sa chute que l'on peut modéliser par  
+!insmath \vec f=-k$val21 \vec i
+$() où 
+!insmath k
+$() est égal à 
+!insmath $val18
+$() et 
+!insmath \vec i
+$() est le vecteur unitaire orienté dans le sens du déplacement.</p>	<ul><li> Calculer 
+!insmath k
+$() : 
+!insmath k = 
+$() 
+!read oef/embed.phtml reply3,10x10 
+$()</li></ul>	<p style="color:#0000FF;">Montrer que l'équation différentielle peut se mettre sous la forme	
+!insmath \frac{dv}{dt} = $val22 
+$().</p>	<div class="wims_instruction"> Effectuer la démonstration sur un brouillon et	calculer 
+!insmath a
+$() et 
+!insmath b
+$() en prenant garde au signe de 
+!insmath a
+$().</div>	<ul><li>
+!insmath a = 
+$()  
+!read oef/embed.phtml reply4,10x10 
+$()</li>	<li>
+!insmath b = 
+$()  
+!read oef/embed.phtml reply5,10x10 
+$()</li>	<li>En déduire la valeur de la vitesse limite : 
+!insmath v_{lim} = 
+$() 
+!read oef/embed.phtml reply6,20 
+$()</li></ul><p style="color:#0000FF;">On cherche à résoudre l'équation différentielle précédente par la méthode d'Euler.</p>	<ul><li>Compléter le tableau suivant :</li></ul>	<table class="wimsborder wimscenter">	    <tr><th>
+!insmath t
+$() (s)</th><th>
+!insmath v \ (\textrm{m}\cdot \textrm{s}^{-1})
+$()</th></tr>	 
+!for m_j=1 to 3 
+$()	<tr><td>$(val33[$m_j])</td><td>
+!insmath $(val34[$m_j])
+$()</td></tr>	 
+!next
+$()		<tr><td>$(val33[4])</td><td> 
+!read oef/embed.phtml reply7,7 
+$()</td></tr>	 
+!for m_j2=5 to 7 
+$()	<tr><td>$(val33[$m_j2])</td><td>
+!insmath $(val34[$m_j2])
+$()</td></tr>	 
+!next
+$()	<tr><td>$(val33[8])</td><td> 
+!read oef/embed.phtml reply8,7 
+$()</td></tr>	<tr><td>$(val33[9])</td><td>
+!insmath $(val34[9])
+$()</td></tr>	<tr><td>$(val33[10])</td><td> 
+!read oef/embed.phtml reply9,7 
+$()</td></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>La notation 2e-2 signifie 
+!insmath 2.10^{-2}
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,12,16,18,21,22,33,34
+embedcnt=9

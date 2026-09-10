@@ -1,0 +1,346 @@
+!set title=E- Past tenses: practice
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Csilla, Ducrocq
+email=csilla.ducrocq@u-psud.fr
+language=fr
+computeanswer=no
+oefcss=<style> .question {background-color: #FFCCFF;margin: 2% 5%;padding: 2%;} .reponse {background-color: #FFCC99;color: black;margin: 2% 5%;padding: 2%;} ol li {list-style: upper-alpha; } </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=62
+prevarcnt=61
+postvarcnt=0
+replycnt=20
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=practice_pasts
+val7=$(val6[1])
+tmp0=!nosubst Complete the sentences with the	appropriate past tense: <b>simple past, past perfect,	 past progressive,	was/were to +verb, would+verb</b>.	Decide whether you have to use the <b>active</b> or the <b>passive</b> form. Write the <b>full form of the auxiliaries</b>
+
+val8=$(tmp0)
+tmp0=!subst 
+
+val9=$(tmp0)
+val10=
+val11=no
+val12=no
+val13=no
+val14=yes
+val15=16
+
+!ifval $val8 issametext 
+tmp0=!getdef instruction in $val7
+
+val8= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction2 in $val7
+
+val9= $(tmp0)
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef size in $val7
+
+val15= $(tmp0)
+!endif
+
+!ifval $val12 issametext 
+tmp0=!getdef reading_file in $val7
+
+val12= $(tmp0)
+!endif
+tmp0=!record 0 of $val12
+
+val16=$(tmp0)
+
+!ifval $val11 issametext 
+tmp0=!getdef audio_file in $val7
+
+val11= $(tmp0)
+!endif
+
+!ifval $val11 notsametext  and  $val11 notsametext no
+!readproc slib/media/audio $val1/$val11 
+tmp0=$slib_out
+val17=	<p class="wimscenter">$(tmp0)</p>
+!endif
+
+!ifval $val13 issametext 
+tmp0=!getdef image_file in $val7
+
+val13= $(tmp0)
+!endif
+
+!ifval $val13 notsametext  and  $val13 notsametext no
+tmp0=!makelist <img src=$val1/x for x in $val13>
+
+val18=	$(tmp0)
+!endif
+
+!ifval \video_file issametext 
+tmp0=!getdef video_file in $val7
+
+val19= $(tmp0)
+!endif
+
+!ifval $val19 notsametext  and  $val19 notsametext no
+val20=	<a target="wims_external" href="$val1/$val19">[video] </a></p>
+!endif
+
+!ifval $val10 issametext 
+tmp0=!getdef choice in $val7
+
+val21= $(tmp0)
+!else
+val21=$val10
+!endif
+tmp0=!recordcnt $val7
+
+val22=$[rint($(tmp0))]
+val23=$val22
+val24=1
+val25=3
+val24=$[rint(min($val22,$val24))]
+val23=$[rint(min($val24*$val23,$val22))]
+val26=
+
+!ifval $val14 issametext yes 
+tmp0=!shuffle $val22
+
+val27= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val22
+
+val27=	$(tmp1)
+!endif
+tmp0=!itemcnt $val6
+
+val28=$(tmp0)
+!for val29  = 2 to $val28 
+tmp0=!recordcnt $(val6[$val29])
+
+val30=$[rint($(tmp0))]
+tmp0=!shuffle $val30
+
+val31=$(tmp0)
+tmp=!trim $val27	  $(val31[1..$val24])
+val27=!translate internal $	\
+$ to ;; in $tmp
+!next
+val32=
+!for val29 = 1 to $val24 
+tmp0=!randint 1, $val28
+
+val33=$(tmp0)
+tmp0=!record $(val27[$val33;$val29]) of  $(val6[$val33])
+
+val32=$val32 <p> $(tmp0) </p>
+!next
+tmp0=!embraced randitem $val32
+
+val32=$(tmp0)
+val32=$val32
+tmp0=!nospace $val32
+
+val34=$(tmp0)
+tmp0=!char 1 of $val34
+
+tmp1=!replace internal ? by | in $(tmp0)
+
+val35=$(tmp1)
+
+!ifval $val35 issametext | 
+val36= 1 
+!else
+val36= 0
+!endif
+
+!ifval $val36 = 0 
+val37= -1
+!else
+val37=1
+!endif
+!readproc slib/text/cutchoices $val32 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val38=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val38
+
+tmp0=!rowcnt $tmp
+val39=$(tmp0)
+val40=$[rint(($val39+$val37*$val39%2)/2)]
+tmp=!trim 
+val41=!translate internal $	\
+$ to ;; in $tmp
+val42=
+val43=
+!for val29 = 1 to $val40 
+val44=$(val38[2*$val29 -$val36;])
+tmp0=!itemcnt $val44
+
+val30=$(tmp0)
+tmp0=!shuffle $val30
+
+val45=$(tmp0)
+tmp=!trim $val41	  $(val44[$val45])
+val41=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!positionof item 1 in $val45
+
+val42=$val42,$(tmp0)
+val43=$val43,$val30
+!next
+tmp0=!nonempty items $val42
+
+val42=$(tmp0)
+tmp0=!nonempty items $val43
+
+val43=$(tmp0)
+tmp0=!makelist r x for x = 1 to $val40
+
+val46=$(tmp0)
+oefsteps=$val46 
+nextstep=!nosubst $val46 
+!readproc oef/steps.proc
+replytype1=case
+replyname1=
+replygood1=$(val41[1;$(val42[1])])
+replytype2=case
+replyname2=
+replygood2=$(val41[2;$(val42[2])])
+replytype3=case
+replyname3=
+replygood3=$(val41[3;$(val42[3])])
+replytype4=case
+replyname4=
+replygood4=$(val41[4;$(val42[4])])
+replytype5=case
+replyname5=
+replygood5=$(val41[5;$(val42[5])])
+replytype6=case
+replyname6=
+replygood6=$(val41[6;$(val42[6])])
+replytype7=case
+replyname7=
+replygood7=$(val41[7;$(val42[7])])
+replytype8=case
+replyname8=
+replygood8=$(val41[8;$(val42[8])])
+replytype9=case
+replyname9=
+replygood9=$(val41[9;$(val42[9])])
+replytype10=case
+replyname10=
+replygood10=$(val41[10;$(val42[10])])
+replytype11=case
+replyname11=
+replygood11=$(val41[11;$(val42[11])])
+replytype12=case
+replyname12=
+replygood12=$(val41[12;$(val42[12])])
+replytype13=case
+replyname13=
+replygood13=$(val41[13;$(val42[13])])
+replytype14=case
+replyname14=
+replygood14=$(val41[14;$(val42[14])])
+replytype15=case
+replyname15=
+replygood15=$(val41[15;$(val42[15])])
+replytype16=case
+replyname16=
+replygood16=$(val41[16;$(val42[16])])
+replytype17=case
+replyname17=
+replygood17=$(val41[17;$(val42[17])])
+replytype18=case
+replyname18=
+replygood18=$(val41[18;$(val42[18])])
+replytype19=case
+replyname19=
+replygood19=$(val41[19;$(val42[19])])
+replytype20=case
+replyname20=
+replygood20=$(val41[20;$(val42[20])])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8	
+!if $val16 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$()	 
+!endif
+$()	
+!if $val18 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	$val17$val20	<div class="question">	  
+!for m_k = 1 to $val40 
+$()	    $(val38[2*$m_k-1-$val36;])   
+!read oef/embed.phtml $(val46[$m_k]),$val15 
+$()	  
+!next
+$()	$(val38[2*$val40+1-$val36;])	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,15,16,17,18,20,36,38,40,46
+embedcnt=3

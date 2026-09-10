@@ -1,0 +1,296 @@
+!set title=Arbre pondéré à paramètre et inéquation du second degré par étapes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille Douriez, David Rousseau, IREM Picardie
+email=cyrille.douriez@ac-amiens.fr,david.rousseau@ac-amiens.fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 9
+
+val7=$[$(tmp0)/10]
+val8=$[1-$val7]
+val9=$[(1-2*$val6)*$val7-1]
+val10=$[$val7*($val6-$val6^2)]
+t_=!replace internal \( by ( in $val8*x^2+$val9*x+$val10
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp0=!texmath $val11
+
+val11=$(tmp0)
+val12=$[($val9)^2-4*($val8)*($val10)]
+val13=$[(-$val9-sqrt($val12))/(2*$val8)]
+val14=$[(-$val9+sqrt($val12))/(2*$val8)]
+val15=$[round($val14*10)/10]
+
+!ifval (floor($val14)=$val14)
+val16=$[rint( $val14)]
+!else
+val16=$[rint(floor($val14)+1)]
+!endif
+!readproc slib/utilities/tooltip sans remise, on ne remet pas la première boule tirée dans l'urne avant de tirer la seconde boule 
+tmp0=$slib_out
+val17=$(tmp0)
+t_=!replace internal \( by ( in x*(x-1)
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+t_=!replace internal \( by ( in (x+$val6)*(x+$val6-1)
+tmp0=!exec maxima $t_
+
+val19=!rawmath $(tmp0)
+val20=1,2
+
+!ifval ($val15=$val14)
+val21=$[rint( 1)]
+!else
+val21=$[rint(0)]
+!endif
+t_=!replace internal \( by ( in $val8*x^2+$val9*x+$val10
+tmp0=!exec maxima $t_
+
+val22=!rawmath $(tmp0)
+val23=$[rint($val6-1)]
+val24=$[rint($val6+$val23)]
+val25=$[rint($val6*$val23)]
+val26=$[$val7*$val24]
+val27=$[$val7*$val25]
+val28=r1,r2	r3,r4	r5,r6,r7	r8
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=function
+replyoption1=nonstop 
+replyname1=1
+replygood1=!rawmath $val18
+replytype2=function
+replyoption2=nonstop 
+replyname2=2
+replygood2=!rawmath $val19
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=3
+replygood3=$[$val9]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=4
+replygood4=$[$val10]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=5
+replygood5=$[$val15]
+replytype6=menu
+replyoption6=nonstop 
+replyname6=6
+replygood6=$(val20[1]);-,+
+replytype7=menu
+replyoption7=nonstop 
+replyname7=7
+replygood7=$(val20[2]);-,+
+replytype8=numeric
+replyname8=8
+replygood8=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Une urne contient 
+!insmath $val6
+$() boules vertes et 
+!insmath x
+$() boules rouges où 
+!insmath x
+$() est un entier naturel non nul.<br/>	On tire successivement $val17 deux boules de l'urne.<br>	<b>Le but est de déterminer la plus petite valeur de l'entier naturel 
+!insmath x
+$() telle que la probabilité d'obtenir deux boules rouges soit supérieure ou égale à 
+!insmath $val7
+$().</b>	
+!if $m_step=1 
+$()<div class="wims_question">1&#41;Ecrire la probabilité d'obtenir deux boules rouges, en fonction de 
+!insmath x
+$(), sous la forme d'une fraction rationnelle.</div>	La probabilité est 	  
+!read oef/special.phtml mathmlinput [ \frac{reply1}{reply2}],2	reply1,7	reply2,7	 
+$().		 
+!endif
+$()	
+!if $m_step=2 
+$()<br><br>La probabilité d'obtenir deux boules rouges est 
+!insmath \frac{$val18}{$val19}
+$().	<br>Déterminer l'entier 
+!insmath x
+$() se ramène à la résolution d'une inéquation de la forme 
+!insmath $val8 x^2+b x+c \geq 0
+$().	<div class="wims_question">2&#41;Déterminer la valeur des réels 
+!insmath b
+$() et 
+!insmath c
+$().</div>	
+!insmath b
+$()= 
+!read oef/embed.phtml r3,4 
+$() et 
+!insmath c
+$()= 
+!read oef/embed.phtml r4,4 
+$(). 
+!endif
+$()		
+!if $m_step=3 
+$()<br><br>Déterminer l'entier 
+!insmath x
+$() se ramène à la résolution de l'inéquation 
+!insmath $val11 \geq 0
+$().	<div class="wims_question">3&#41;Etudier le signe de 
+!insmath $val11
+$() sur &#91;0; +&infin;&#91;.</div>	<table class="wimsborder">	<tr><th>
+!insmath x
+$()</th><td align="left">0</td><td></td><td> 
+!read oef/embed.phtml r5,4 
+$()</td><td></td><td align="right">+&infin;</td></tr>	<tr><th>
+!insmath $val11
+$()</th><td align="left"></td><td> 
+!read oef/embed.phtml r6,4 
+$()</td><td>0</td><td> 
+!read oef/embed.phtml r7,4 
+$()</td><td></td></tr>	</table><br>	<div class="wims_instruction">On arrondira la racine positive de 
+!insmath $val11
+$() à 0,1 près.</div>	 
+!endif
+$()	
+!if $m_step=4 
+$()<br><br>Déterminer l'entier 
+!insmath x
+$() se ramène à la résolution de l'inéquation 
+!insmath $val11 \geq 0
+$().	<br>Le signe de 
+!insmath $val11
+$() est<br>	<table class="wimsborder">	<tr><th>
+!insmath x
+$()</th><td align="left">0</td><td></td><td>
+!insmath $val15
+$()</td><td></td><td align="right">+&infin;</td></tr>	<tr><th>
+!insmath $val11
+$()</th><td align="left"></td><td>-</td><td>0</td><td>+</td><td></td></tr>	</table>	<br>	<div class="wims_question">4&#41;En déduire la plus petite valeur de 
+!insmath x
+$() telle que la probabilité d'obtenir deux boules rouges soit supérieure ou égale à 
+!insmath $val7
+$().</div>	La valeur de 
+!insmath x
+$() est  
+!read oef/embed.phtml r8,3 
+$(). 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Si on note 
+!insmath R_1
+$() l'événement "obtenir une boule rouge au 1er tirage" et 
+!insmath R_2
+$() l'événement "obtenir une boule rouge au 2ème tirage" alors la probabilité d'obtenir deux boules rouges est 
+!insmath p(R_1\cap R_2)
+$(). <br>	Les boules ayant la même probabilité d'être choisies 
+!insmath p(R_1)=\frac{x}{x+$val6}
+$() et 
+!insmath p_{R_1}(R_2)=\frac{x-1}{x+$val23}
+$() puisque la boule choisie au 1er tirage n'est pas remise dans l'urne avant le 2ème tirage.	<br>Donc 
+!insmath p(R_1\cap R_2)=p(R_1)p_{R_1}(R_2)=\frac{x}{x+$val6} \times\frac{x-1}{x+$val23}=\frac{x^2-x}{x^2+$val24 x+$val25}
+$().	<br>On cherche donc à déterminer la plus petite valeur de 
+!insmath x
+$() telle que 
+!insmath \frac{n^2-n}{n^2+$val24 n+$val25}\geq $val7
+$().	<br>
+!insmath \frac{x^2-x}{x^2+$val24 x+$val25}\geq $val7
+$() &hArr; 
+!insmath x^2-x\geq $val7(x^2+$val24 x+$val25)
+$()	<br>
+!insmath \frac{x^2-x}{x^2+$val24 x+$val25}\geq $val7
+$() &hArr; 
+!insmath x^2-x\geq $val7 x^2+$val26 x+$val27
+$()	<br>
+!insmath \frac{x^2-x}{x^2+$val24 x+$val25}\geq $val7
+$() &hArr; 
+!insmath $val11 \geq 0
+$().	<br>La solution positive 
+!if $val21==0 
+$()approchée 
+!endif
+$() de l'équation 
+!insmath $val11=0
+$() est 
+!insmath $val15
+$().	<br>Comme 
+!insmath x>0
+$() et 
+!insmath $val8>0
+$(), 
+!insmath $val11 \geq 0
+$() &hArr; 
+!insmath x \geq $val15
+$(). 	<br>La plus petite valeur de 
+!insmath x
+$() est donc 
+!insmath $val16
+$(). 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,15,16,17,18,19,21,23,24,25,26,27
+embedcnt=7

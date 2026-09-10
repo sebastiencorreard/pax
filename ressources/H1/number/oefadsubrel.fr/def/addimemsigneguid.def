@@ -1,0 +1,191 @@
+!set title=Addition de nombres relatifs de même signe (guidé)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r,r,r
+varcnt=34
+prevarcnt=32
+postvarcnt=1
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle +,-
+
+val6=$(tmp0)
+val7=positif,négatif
+val8=$(val6[1])
+!if $val8=+ 
+val9=\plus
+val10=positif,positifs
+!else
+val9=\minus
+val10=négatif,négatifs
+!endif
+val11=$val8
+val12=$val8
+val13=$(val10[1])
+!if $val11=+ 
+val14=\plus
+val15=positif,positifs
+!else
+val14=\minus
+val15=négatif,négatifs
+!endif
+tmp0=!makelist x for x=1 to 50
+
+val16=$(tmp0)
+!readproc slib/data/random 2,item, $val16 
+tmp0=$slib_out
+val17=$(tmp0)
+val18=$[rint($(val17[1]))]
+val19=$[rint($(val17[2]))]
+val20=$[$val8$val18+$val11$val19]
+val21=$[rint(abs($val20))]
+val22=$[rint($val18+$val19)]
+val23=$[rint(abs($val18-$val19))]
+!if $val18>$val19 
+val24=\($val18 - $val19 = $val21 \)
+val25=$val9
+val12=$val8
+val13=$(val10[1])
+val26=Comme les deux nombres sont de signes contraires et que <span class="nowrap">\($val18>$val19\),</span>	<ul><li>le signe de \(A\) est $(val13[1]),</li>	<li>la distance à zéro de \(A\) est <span class="nowrap">$val24.</span></li>	</ul>
+!else
+val24=\($val19 - $val18 = $val21 \)
+val25=$val14
+val12=$val11
+val13=$(val15[1])
+val26=Comme les deux nombres sont de signes contraires et que <span class="nowrap">\($val19>$val18\),</span>	<ul><li>le signe de \(A\) est $(val13[1]),</li>	<li>la distance à zéro de \(A\) est <span class="nowrap">$val24.</span></li>	</ul>
+!endif
+replytype1=clickfill
+replyname1=
+replygood1=$val13;$val7
+replytype2=numexp
+replyname2=
+replygood2=$val21
+replytype3=numexp
+replyname3=
+replygood3=$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst La somme de deux nombres relatifs de même signe&nbsp;: <ul> <li>a pour signe&nbsp;: le signe commun aux deux nombres.</li> <li>a pour distance à zéro&nbsp;: la somme des deux distances à zéro.</li> </ul>
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<p>On désire calculer l'expression&nbsp;:	<span class="nowrap">
+!insmath A=( $val9 $val18 ) + ( $val14 $val19 )
+$().</span></p>	Pour cela, on commence par déterminer le signe et la distance à zéro de <span class="nowrap">
+!insmath A
+$() :</span>	<ul>	<li>le signe de 
+!insmath A
+$() est  
+!read oef/embed.phtml r1,60x30 
+$().</li>	<li><label for="reply2">la distance à zéro de 
+!insmath A
+$() est </label> 
+!read oef/embed.phtml r2,3 
+$().</li>	</ul>	<p>et enfin, on conclut&nbsp;:</p>	<p>
+!insmath A=( $val9 $val18 ) + ( $val14 $val19 )
+$()</p>	<label for="reply3">
+!insmath A=
+$()</label> 
+!read oef/embed.phtml r3,5 
+$().							
+$()
+!exit
+
+:hint
+$()La somme de deux nombres relatifs de même signe&nbsp;: <ul> <li>a pour signe&nbsp;: le signe commun aux deux nombres.</li> <li>a pour distance à zéro&nbsp;: la somme des deux distances à zéro.</li> </ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>Pour calculer l'expression 
+!insmath A=( $val8 $val18 ) + ( $val8 $val19 )
+$().</p>	On détermine son signe et sa distance à zéro&nbsp;:	<ul>	<li>
+!insmath A
+$() est $(val10[1]) car 
+!insmath A
+$() est la somme de deux nombres $(val10[2]).</li>	<li>la distance à zéro de 
+!insmath A
+$() est <span class="nowrap">
+!insmath $val18+$val19=$val22
+$().</span></li>	</ul>	
+!insmath A=( $val9 $val18 ) + ( $val9 $val19 )
+$()	<p><span class="nowrap">
+!insmath A= $val20
+$().</span></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val23=$[rint(abs($val18-$val19))]
+
+!exit
+
+:feedback
+!ifval $m_reply3=$val20 and $m_sc_reply1=0
+ <div class='oef_feedbacks'><div class="macss">Vous avez le bon résultat final mais vous vous êtes trompé dans le signe de la première réponse.</div>
+$()</div>
+!endif
+!ifval $m_reply2=$val23 or abs($m_reply3)=$val23
+ <div class='oef_feedbacks'><div class="macss">Vous avez soustrait les distances à zéro au lieu de les additionner.</div>
+$()</div>
+!endif
+!ifval $m_reply2<0
+ <div class='oef_feedbacks'><div class="macss">Attention, une distance à zéro est toujours positive.</div>
+$()</div>
+!endif
+!ifval ($m_reply3<0 and $val20>0 ) or ($m_reply3>0 and $val20<0 )
+ <div class='oef_feedbacks'><div class="macss">Vous vous êtes trompé dans le signe de <span class="nowrap">
+!insmath A
+$().</span></div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,14,18,19,20,22,23
+embedcnt=3

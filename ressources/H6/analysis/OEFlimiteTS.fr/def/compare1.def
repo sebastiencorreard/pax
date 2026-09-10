@@ -1,0 +1,264 @@
+!set title=Limite et comparaison 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Bonne réponse
+val7=Choisissez la bonne réponse&nbsp;
+val8=\(+\infty)
+val9=\(-\infty)
+val10=\(0)
+val11=sans limite
+val12=80x30x1
+val13=$val8, $val9
+val14=a une limite finie nulle, a une limite finie non nulle, a une limite infinie, n'a pas de limite
+val12=50x20x1
+tmp0=!randint 1, 5
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 2, 6
+
+val16=$[rint($(tmp0))]
+val17=cos($val15*x)/x^2,\RR^*,+\infty,1,-1/x^2,1/x^2,0	1-($val15*cos(x))/x^2,\RR^*,+\infty,1,1-$val15/x^2,1+$val15/x^2,1	1/(sqrt(x+1)+sqrt(x)), \RR^+,+\infty,1,0,1/(2sqrt(x)),0	($val15*x)/($val16+sin(x)), \RR,+\infty,2,($val15*x)/($val16+1),($val15*x)/($val16-1),0	(-$val15*x)/($val16+sin(x)), \RR,+\infty,3,(-$val15*x)/($val16-1),(-$val15*x)/($val16+1),0	($val15*x)/($val16+sin(x)), \RR,-\infty,3,($val15*x)/($val16-1),($val15*x)/($val16+1),0	(-$val15*x)/($val16+sin(x)), \RR,-\infty,2,(-$val15*x)/($val16+1),(-$val15*x)/($val16-1),0	$val15*x^3-$val16*sin(x),\RR,+\infty,2,$val15*x^3-$val16,$val15*x^3+$val16,0	$val16*sin(x)-$val15*x^3,\RR,+\infty,3,-$val15*x^3-$val16,-$val15*x^3+$val16,0	$val15*x^3-$val16*sin(x),\RR,-\infty,3,$val15*x^3-$val16,$val15*x^3+$val16,0	$val16*sin(x)-$val15*x^3,\RR,-\infty,2,-$val15*x^3-$val16,-$val15*x^3+$val16,0	
+tmp=!translate internal $	$ to ; in $val17
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val18=$[rint($(tmp1))]
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!row $val18 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+val20=$(val19[1])
+tmp0=!texmath $val20
+
+val21=$(tmp0)
+val22=$(val19[2])
+val23=$(val19[3])
+val24=$[rint($(val19[4]))]
+val25=$(val19[5])
+val26=$(val19[6])
+val27=$(val19[7])
+
+!ifval $val24=2
+val28=$val8
+!else
+val28=$val9
+!endif
+t_=!replace internal \( by ( in $(val19[4])
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val29=$(tmp1)
+!if $val24=1 
+val30=r1	r2,r3,r4
+!endif
+!if $val24=2 
+val30=r1	r2,r5
+!endif
+!if $val24=3 
+val30=r1	r3,r5
+!endif
+val31=Si pour \(x) assez proche de \(a), on a l'encadrement \(u(x) \leq f(x)	\leq v(x)) et que \(u) et \(v) aient la même limite \(l) en \(a), alors on a	\(\displaystyle\lim_{x\rightarrow a}f(x)=l).
+val32=Si pour \(x) assez proche de \(a), on a l'inégalité \(u(x) \leq	f(x)) et que \(\displaystyle\lim_{x\rightarrow a}u(x)\) soit égale à \(+\infty), alors on a	\(\displaystyle\lim_{x\rightarrow a}f(x)=+\infty).
+val33=Si pour \(x) assez proche de \(a), on a l'inégalité \(f(x) \leq	v(x)) et que \(\displaystyle\lim_{x\rightarrow a}v(x)\) soit égale à \(-\infty), alors on a	\(\displaystyle\lim_{x\rightarrow a}f(x)=-\infty).
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=théorème
+replygood1=$val24;1,2,3
+replytype2=algexp
+replyname2=fonction u
+replygood2=$val25
+replytype3=algexp
+replyname3=fonction v
+replygood3=$val26
+replytype4=numexp
+replyname4=limite finie
+replygood4=$val27
+replytype5=clickfill
+replyname5=
+replygood5=$val28;$val9,$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_smallhelp">Cet exercice comporte plusieurs étapes.</div>	<p>On veut déterminer la limite éventuelle en 
+!insmath $val23
+$() de la fonction 
+!insmath f
+$() définie sur	
+!insmath \,$val22
+$() par :</p>	<div class="wimscenter"> 
+!insmath f(x)=$val21
+$().</div>	
+!if $m_step=1 
+$()	Quel théorème faut-il utiliser&nbsp;?<p>	Soit 
+!insmath a
+$() un réel ou 
+!insmath a=+\infty
+$() ou 
+!insmath a=-\infty
+$() et 
+!insmath l
+$() un réel.	Soit 
+!insmath u
+$(), 
+!insmath v
+$() et 
+!insmath f
+$() trois fonctions définies au voisinage de 
+!insmath a
+$().</p>	<div>	 
+!read oef/embed.phtml reply1,1 
+$()&nbsp;: $val31	</div><div>	 
+!read oef/embed.phtml reply1,2 
+$()&nbsp;: $val32	</div><div>	 
+!read oef/embed.phtml reply1,3 
+$()&nbsp;: $val33	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	 
+!if $val24=1 
+$()	<span class="oef_indgood">$val6.</span>	$val31	<p>	Déterminer un encadrement de 
+!insmath f(x)
+$() vérifié pour 
+!insmath x
+$() assez proche de 
+!insmath $val23
+$() et	permettant d'appliquer le théorème des gendarmes.	</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2,10 
+$() 
+!insmath \leq f(x) \leq
+$()  
+!read oef/embed.phtml reply3,10 
+$()</div>	En déduire la limite finie de 
+!insmath f
+$() en 
+!insmath $val23
+$()&nbsp;:<br>	
+!insmath \displaystyle{\lim_{x \rightarrow $val23}f(x) = }
+$()  
+!read oef/embed.phtml reply 4 
+$()	  
+!endif
+$()	 
+!if $val24=2 
+$()	  <span class="oef_indgood">$val6.</span>	  $val32	  <p>	  Déterminer une minoration de 
+!insmath f(x)
+$() vérifiée pour 
+!insmath x
+$() assez proche de 
+!insmath $val23
+$()	  et permettant d'appliquer le théorème de minoration.	  </p>	  <div class="wimscenter"> 
+!read oef/embed.phtml reply2,10 
+$() 
+!insmath \leq f(x) 
+$()</div>	  En déduire la limite infinie de 
+!insmath f
+$() en 
+!insmath $val23
+$()&nbsp;:<br>	  
+!insmath \displaystyle{\lim_{x \rightarrow $val23}f(x) = }
+$()  
+!read oef/embed.phtml reply 5 
+$()	    
+!endif
+$()	  
+!if $val24=3 
+$()	   <span class="oef_indgood">$val6.</span>	   $val33	  <p>	    Déterminer une majoration de 
+!insmath f(x)
+$() vérifiée pour 
+!insmath x
+$() assez proche de 
+!insmath $val23
+$()	    et permettant d'appliquer le théorème de majoration.	  </p>	  <div class="wimscenter"><label for="reply3">
+!insmath  f(x) \leq 
+$()</label>  
+!read oef/embed.phtml reply3 
+$()</div>	    En déduire la limite infinie de 
+!insmath f
+$() en 
+!insmath $val23
+$()&nbsp;:<br>	  
+!insmath \displaystyle{\lim_{x \rightarrow $val23}f(x) = }
+$()  
+!read oef/embed.phtml reply 5 
+$()	    
+!endif
+$()	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1=1 and $val24>1
+ <div class='oef_feedbacks'>Attention.	Le théorème des gendarmes ne s'applique que dans le cas d'une limite finie.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,21,22,23,24,31,32,33
+embedcnt=10

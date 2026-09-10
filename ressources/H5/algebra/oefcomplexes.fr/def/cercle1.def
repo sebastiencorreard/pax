@@ -1,0 +1,171 @@
+!set title=Point sur un cercle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=cyrille.douriez@ac-amiens.fr
+keywords=complex_number
+computeanswer=yes
+precision=100000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, .10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, .10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=$[rint($val6-$val10*($val9-$val7))]
+val12=$[rint($val7+$val10*($val8-$val6))]
+t_=!rawmath $val6+$val7*i
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+t_=!rawmath $val8+$val9*i
+t_=!exec pari print($t_)
+val14=!mathsubst I=i in $t_
+t_=!rawmath $val11+$val12*i
+t_=!exec pari print($t_)
+val15=!mathsubst I=i in $t_
+val16=$[rint(($val8-$val6)*($val8-$val6)+($val9-$val7)*($val9-$val7))]
+val17=$[rint(($val11-$val6)*($val11-$val6)+($val12-$val7)*($val12-$val7))]
+val18=sqrt($val17)
+
+!ifval ($val16=$val17)
+val19=$[rint( 1)]
+!else
+val19=$[rint(2)]
+!endif
+val20=$[sqrt($val16)]
+
+!ifval (round($val20)=$val20)
+val21= $val20
+!else
+val21=\sqrt{$val16}
+!endif
+replytype1=formal
+replyname1=
+replygood1=$val18
+replytype2=radio
+replyname2=
+replygood2=$val19;oui,non
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst AB=|z<sub>B</sub>-z<sub>A</sub>|, on calcule d'abord la différence z<sub>B</sub>-z<sub>A</sub> puis le module.
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question"><p>Le point 
+!insmath M
+$() d'affixe 
+!insmath $val15
+$() appartient-il au cercle de centre 
+!insmath A
+$() d'affixe 
+!insmath $val13
+$() et de rayon 
+!insmath $val21
+$() ?</p>	<label for="reply1">
+!insmath A M=
+$() 
+!read oef/embed.phtml r1,6 
+$()</label></div>	<div class="wims_instruction">Pour noter 
+!insmath \sqrt{...}
+$() : écrire sqrt(...). Ne pas utiliser plus d'une racine carrée.</div>	<div class="wims_question">
+!insmath M
+$() appartient au cercle?  
+!read oef/embed.phtml r2 
+$()</div>	
+$()
+!exit
+
+:hint
+$()AB=|z<sub>B</sub>-z<sub>A</sub>|, on calcule d'abord la différence z<sub>B</sub>-z<sub>A</sub> puis le module.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'><div class="feedback">	<p>On calcule d'abord le module de 
+!insmath \lvert z_M -z_A \rvert
+$()
+!insmath {}=\lvert $val15-($val13) \rvert 
+$() ici égal à 
+!insmath $val18
+$().	</p>	<p>Puis on compare avec le rayon : 
+!insmath $val21
+$(). Ici ils sont 
+!if $val21=$val18 
+$()égaux 
+!else
+$() différents 
+!endif
+$().</p>	<p>Le point 
+!if $val21=$val18 
+$() est donc  
+!else
+$() n'est donc pas  
+!endif
+$()sur le cercle.</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15,18,21
+embedcnt=2

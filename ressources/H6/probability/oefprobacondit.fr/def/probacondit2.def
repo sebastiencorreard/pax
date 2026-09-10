@@ -1,0 +1,164 @@
+!set title=Efficacité d'un vaccin
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=Sophie.Lemaire@universite-paris-saclay.fr
+keywords=conditional_probability,modelling
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 95
+
+val6=$[rint($(tmp0))]
+t_=!rawmath $val6/100
+val7=!exec pari print($t_)
+tmp0=!randint 1, ($val6-2)
+
+t_=!rawmath $(tmp0)/100
+val8=!exec pari print($t_)
+t_=!rawmath max(1,(100*$val8-2))
+val9=!exec pari print($t_)
+t_=!rawmath 99-$val6
+val10=!exec pari print($t_)
+!if $val9>=$val10 
+t_=!rawmath 1
+val9=!exec pari print($t_)
+!endif
+tmp0=!randint $val9, $val10
+
+t_=!rawmath $(tmp0)/100
+val11=!exec pari print($t_)
+t_=!rawmath $val8/($val7)
+val12=!exec pari print($t_)
+t_=!rawmath $val8+$val11
+val13=!exec pari print($t_)
+t_=!rawmath $val8/($val13)
+val14=!exec pari print($t_)
+val15=$[$val14]
+val16=$[$val12]
+t_=!rawmath $val11/(1-$val7)
+val17=!exec pari print($t_)
+tmp0=!randint 1, 2
+
+val18=$[rint($(tmp0))]
+val19=ont été, n'ont pas été
+tmp0=!item $val18 of $val19
+
+val20=$(tmp0)
+!if $val18=1 
+val21=$[100*$val13]
+!else
+val21=$[(100*(1-$val13))]
+!endif
+val22=$[$val17]
+
+!ifval $val17>$val12 
+val23=$[rint( 1 )]
+!else
+val23=$[rint( 2)]
+!endif
+oefsteps=reply 1	reply 2	reply 3 
+nextstep=!nosubst reply 1	reply 2	reply 3 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Question 1 (en %)
+replygood1=$[$val21]
+replytype2=numeric
+replyname2=Question 2
+replygood2=$[$val22]
+replytype3=radio
+replyname3=Question 3 :
+replygood3=$val23;oui,non
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6 % de la population a été vacciné contre une maladie contagieuse. 	Au cours d'une épidémie, on constate que la proportion de vaccinés parmi les malades est de 	$val14=$val15. 	On sait de plus qu'au cours de cette épidémie, il y avait une proportion de $val12=$val16 malades 	parmi les vaccinés. 	<div class="wims_question">	<ol>	<li> Quel est le pourcentage de personnes qui $val20 malades durant cette  épidémie ? <br>	
+!if $m_step=1 
+$()</li> 
+!endif
+$()	
+!if $m_step>1 
+$()<div class="oef_indgood">Bonne réponse, au cours de cette épidémie, $val21 % des 	personnes $val20 malades. </div></li>	<li> En se basant uniquement sur ces informations, quelle est la probabilité de tomber 	malade pour une personne non vaccinée ? <br>	
+!if $m_step=2 
+$()<div class="wims_instruction"> Ecrire la probabilité en gardant au moins quatre chiffres significatifs. </div>	</li> 
+!endif
+$() 
+!endif
+$()	
+!if $m_step>2 
+$() <div class="oef_indgood"> Bonne réponse, la probabilité de tomber malade 	pour une personne non vaccinée est $val22.  </div></li>	<li>Le vaccin est-il efficace ?</li> 
+!endif
+$()	</ol></div>
+$()
+!exit
+
+:hint
+$() 
+!if $m_step <= 2 
+$()Uniquement pour la question 3 
+!endif
+$() 	
+!if $m_step>2 
+$()Le vaccin est efficace si on a moins de chance d'être malade en étant 	vacciné qu'en ne l'étant pas. 
+!endif
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,14,15,16,20,21,22
+embedcnt=0

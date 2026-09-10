@@ -1,0 +1,503 @@
+!set title=Étude guidée d'un polynôme (deg.3)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+computeanswer=no
+precision=100
+title_en=Derivative of a polynomial (deg.3)
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=70
+prevarcnt=69
+postvarcnt=0
+replycnt=22
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Soit \(f\) la fonction définie par,sur l'intervalle
+val8=Calculer,sous forme développée
+val9=Réponse à la question
+tmp=!trim Le calcul de dérivée donne	  On admet que \(f'(x)\) s'écrit sous forme factorisée (produit) comme suit	  Compléter le tableau de signes de
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Sélectionner une icône dans la liste ci-dessous	  et la glisser-coller dans une case.
+val12=Signe de,var. de, Extremum
+tmp=!trim L'étude de signes de la dérivée, donne les résultats consignés dans le tableau ci-dessous.	  Complétez ce tableau pour indiquer le <b>sens de variation</b> de la fonction
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=Question
+val15=Le tableau complet des variations	  de la fonction \(f\) est rapporté ci-dessous.
+val16=D'après ce tableau, le XXXX de la fonction \(f\) est,	  et ce XXXX est atteint pour
+!if $val6=en 
+val7=Let \(f\) be the function defined by,on the interval
+val8=Calculate,developed form
+val9=Answer to the question
+tmp=!trim The calculation of derivative gives	  It is assumed that \(f'(x)\) is written in factored form (product) in the following way	  Complete then the sign table of
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=select an icon from the list below	  and drag and paste it into a box
+val12=Sign of,var. of, Extremum
+tmp=!trim The study of signs of the derivative, gives the results recorded in the table.	  Complete this table to indicate the<b>variation direction</b> of the function
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=Question
+val15=The table of the variations	  of the function \(f\) is shown.
+val16=According this table, the XXXX of the function \(f\) is,	  and this XXXX is reached for
+!endif
+val17=$[rint(3)]
+tmp0=!randitem 2,3,4,-2,-3,-4
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 0, 8
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val20=$[rint($(tmp0))]
+
+!ifval $val19=$val20
+tmp0=!randitem $val20+2,$val20-2
+
+val20=$[rint($(tmp0))]
+!endif
+t_=!rawmath $val18/3
+val21=!exec pari print($t_)
+t_=!rawmath -$val18*($val19+$val20)/2
+val22=!exec pari print($t_)
+t_=!rawmath $val18*$val19*$val20
+val23=!exec pari print($t_)
+t_=!replace internal \( by ( in expand(($val18)*(x-$val19)*(x-$val20))
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+
+!ifval $val19=0
+val25=!rawmath $val18*x*(x-$val20)
+!else
+val25=!rawmath $val18*(x-$val19)*(x-$val20)
+!endif
+t_=!replace internal \( by ( in expand(($val21)*x^3+($val22)*x^2+($val23)*x+$val18)
+tmp0=!exec maxima $t_
+
+val26=!rawmath $(tmp0)
+tmp0=!texmath $val26
+
+val27=$(tmp0)
+tmp0=!texmath $val24
+
+val28=$(tmp0)
+t_=!rawmath max($val19,$val20)
+val29=!exec pari print($t_)
+t_=!rawmath min($val19,$val20)
+val30=!exec pari print($t_)
+tmp0=!randint -5, $val30 - 1
+
+val31=$[rint($(tmp0))]
+tmp0=!randint $val29 + 1, 10
+
+val32=$[rint($(tmp0))]
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val31) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val33=!exec pari print($t_)
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val30) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val34=!exec pari print($t_)
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val29) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val35=!exec pari print($t_)
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val32) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val36=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val37=$(tmp0)
+tmp0=!item $val37 of maximum,minimum
+
+val38=$(tmp0)
+!if $val18>0 and $val37=1 and $val34=$val36 
+val32=$[rint($val32 + 1)]
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val32) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val36=!exec pari print($t_)
+!endif
+!if $val18>0 and $val37=2 and $val35=$val33 
+val31=$[rint($val31-1)]
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val31) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val33=!exec pari print($t_)
+!endif
+!if $val18<0 and $val37=2 and $val34=$val36 
+val32=$[rint($val32 + 1)]
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val32) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val36=!exec pari print($t_)
+!endif
+!if $val18<0 and $val37=1 and $val35=$val33 
+val31=$[rint($val31-1)]
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val31) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val33=!exec pari print($t_)
+!endif
+!if $val18>0 
+
+!ifval $val34>$val36
+val39=$val30,f($val30)
+!else
+val39=$val32,f($val32)
+!endif
+!else
+
+!ifval $val35>$val33
+val39=\\zero2,f(\\zero2)
+!else
+val39=$val31,f($val31)
+!endif
+!endif
+!if $val18>0 
+
+!ifval $val35<$val33
+val40=$val29,f($val29)
+!else
+val40=$val31,f($val31)
+!endif
+!else
+
+!ifval $val34<$val36
+val40=$val30,f($val30)
+!else
+val40=$val32,f($val32)
+!endif
+!endif
+
+!ifval $val37==1
+val41=$val39
+!else
+val41=$val40
+!endif
+val42=$(val41[2])
+val43=$(val41[1])
+val44=+,-
+val45=\(\nearrow),\(\searrow)
+val46=f($val31),f($val19),f($val20),f($val32),f'($val31),f'($val19),f'($val20),f'($val32)
+val47=$val19,$val20,$val31,$val32
+
+!ifval $val18>0
+val48=1,2,1
+!else
+val48=2,1,2
+!endif
+val49=$(val44[$val48])
+val50=$(val45[$val48])
+
+!ifval $val18>0
+val51=+
+!else
+val51=-
+!endif
+tmp0=!replace internal XXXX by $val38 in $val16
+
+val52=$(tmp0)
+oefsteps=reply1	reply2,reply3,reply4,reply5,reply6,reply7,reply8,reply9,reply10,reply11,reply12,reply13	reply14,reply15,reply16,reply17,reply18,reply19,reply20	reply21,reply22 
+nextstep=!nosubst reply1	reply2,reply3,reply4,reply5,reply6,reply7,reply8,reply9,reply10,reply11,reply12,reply13	reply14,reply15,reply16,reply17,reply18,reply19,reply20	reply21,reply22 
+!readproc oef/steps.proc
+replytype1=formal
+replyoption1=nonstop 
+replyname1=f'(x)
+replygood1=$val24
+replytype2=clickfill
+replyoption2=shuffle nonstop 
+replyname2=$(val12[1]) k
+replygood2=$val51;$val45,$val44
+replytype3=clickfill
+replyoption3=shuffle nonstop 
+replyname3=$(val12[1]) k
+replygood3=$val51
+replytype4=clickfill
+replyoption4=shuffle nonstop 
+replyname4=$(val12[1]) k
+replygood4=$val51
+replytype5=clickfill
+replyoption5=shuffle nonstop 
+replyname5=$(val12[1]) x-$val30
+replygood5=-
+replytype6=clickfill
+replyoption6=shuffle nonstop 
+replyname6=$(val12[1]) x-$val30
+replygood6=+
+replytype7=clickfill
+replyoption7=shuffle nonstop 
+replyname7=$(val12[1]) x-$val30
+replygood7=+
+replytype8=clickfill
+replyoption8=shuffle nonstop 
+replyname8=$(val12[1]) x-b
+replygood8=-
+replytype9=clickfill
+replyoption9=shuffle nonstop 
+replyname9=$(val12[1]) x-b
+replygood9=-
+replytype10=clickfill
+replyoption10=shuffle nonstop 
+replyname10=$(val12[1]) x-b
+replygood10=+
+replytype11=clickfill
+replyoption11=shuffle nonstop 
+replyname11=$(val12[1]) f'(x)
+replygood11=$(val49[1]);$val45,$val44
+replytype12=clickfill
+replyoption12=shuffle nonstop 
+replyname12=$(val12[1]) f'(x)
+replygood12=$(val49[2]);$val45,$val44
+replytype13=clickfill
+replyoption13=shuffle nonstop 
+replyname13=$(val12[1]) f'(x)
+replygood13=$(val49[3]);$val45,$val44
+replytype14=clickfill
+replyoption14=nonstop 
+replyname14=$(val12[2]) f
+replygood14=f($val31);$val45,$val44,$val46 
+replytype15=clickfill
+replyoption15=nonstop 
+replyname15=$(val12[2]) f
+replygood15=$(val50[1])
+replytype16=clickfill
+replyoption16=nonstop 
+replyname16=$(val12[2]) f
+replygood16=f($val30)
+replytype17=clickfill
+replyoption17=nonstop 
+replyname17=$(val12[2]) f
+replygood17=$(val50[2])
+replytype18=clickfill
+replyoption18=nonstop 
+replyname18=$(val12[2]) f
+replygood18=f($val29)
+replytype19=clickfill
+replyoption19=nonstop 
+replyname19=$(val12[2]) f
+replygood19=$(val50[3])
+replytype20=clickfill
+replyoption20=nonstop 
+replyname20=$(val12[2]) f
+replygood20=f($val32)
+replytype21=clickfill
+replyname21=$(val12[3])
+replygood21=$val42 ; $val46,$val47
+replytype22=clickfill
+replyname22=x_ext
+replygood22=$val43
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) 
+!insmath f(x) = $val27
+$() $(val7[2]) [$val31 ; $val32].<br>	
+!if $m_step=1 
+$()<b>1.</b> $(val8[1]) 
+!insmath f'(x)
+$() ($(val8[2])).	<div class="wimscenter">
+!insmath f'(x) = 
+$() 
+!read oef/embed.phtml reply1 
+$()</div> 
+!endif
+$()	
+!if $m_step=2 
+$()	  <p><b>$val9 1 :</b> $(val10[1;]) : 
+!insmath f'(x) = $val28
+$().</p>	  <p><b>$val14 2 : </b>$(val10[2;]):</p>	  <div class="wimscenter">
+!insmath f'(x) = $val25 
+$()</div>	  <p>$(val10[3;]) 
+!insmath f'(x)
+$() :</p>	  <div class="wims_instruction">$val11</div>	  <table class="wimscenter wimsborder" style="width:90%">	  <tr>	  <td style="width:15%">
+!insmath x
+$()</td>	  <td style="width:25%; text-align:left">
+!insmath $val31
+$()</td>	  <td style="width:5%;">$val30</td>	  <td style="width:25%; text-align:right"></td>	  <td style="width:5%;">$val29</td>	  <td style="width:25%; text-align:right">
+!insmath $val32
+$()</td>	  </tr><tr>	  <td>
+!insmath $val18
+$()</td>	  <td> 
+!read oef/embed.phtml reply2 
+$()</td>	  <td>|</td>	  <td> 
+!read oef/embed.phtml reply3 
+$()</td>	  <td>|</td>	  <td> 
+!read oef/embed.phtml reply4 
+$()</td>	  </tr><tr>	  <td>
+!if $val19=0 
+$()
+!insmath x
+$() 
+!else
+$() 
+!insmath x - $val30
+$() 
+!endif
+$()</td>	  <td> 
+!read oef/embed.phtml reply5 
+$()</td>	  <td>0</td>	  <td> 
+!read oef/embed.phtml reply6 
+$()</td>	  <td>|</td>	  <td> 
+!read oef/embed.phtml reply7 
+$()</td>	  </tr><tr>	  <td>
+!insmath x - $val29
+$()</td>	  <td> 
+!read oef/embed.phtml reply8 
+$()</td>	  <td>|</td>	  <td> 
+!read oef/embed.phtml reply9 
+$()</td>	  <td>0</td>	  <td> 
+!read oef/embed.phtml reply10 
+$()</td>	  </tr><tr>	  <td>
+!insmath f'(x)
+$()</td>	  <td> 
+!read oef/embed.phtml reply11 
+$()</td>	  <td>0</td>	  <td> 
+!read oef/embed.phtml reply12 
+$()</td>	  <td>0</td>	  <td> 
+!read oef/embed.phtml reply13 
+$()</td>	  </tr>	  </table>	 
+!endif
+$()	
+!if $m_step=3 
+$()	<p><b>$val9 2 :</b> $(val13[1;1]) 
+!insmath f'
+$() $(val13[1;2]) </p>	<b>$val14 3 :</b>	$(val13[2;]).	<div class="wims_instruction">$val11</div>	<table class="wimscenter wimsborder" style="width:90%">	<tr>	<td style="width:20%;">
+!insmath x
+$()</td>	<td style="width:5%;">
+!insmath $val31
+$()</td>	<td style="width:20%; text-align:left"></td>	<td style="width:5%;">$val30</td>	<td style="width:20%; text-align:right"></td>	<td style="width:5%;">$val29</td>	<td style="width:20%; text-align:right"></td>	<td style="width:5%; text-align:right">
+!insmath $val32
+$()</td>	</tr><tr>	<td>
+!insmath f'(x)
+$()</td>	<td></td>	<td>$(val49[1])</td>	<td>0</td>	<td>$(val49[2])</td>	<td>0</td>	<td>$(val49[3])</td>	<td></td>	</tr><tr>	<td>$(val12[2]) 
+!insmath f
+$()</td>	<td> 
+!read oef/embed.phtml reply14 
+$()</td>	<td> 
+!read oef/embed.phtml reply15 
+$()</td>	<td> 
+!read oef/embed.phtml reply16 
+$()</td>	<td> 
+!read oef/embed.phtml reply17 
+$()</td>	<td> 
+!read oef/embed.phtml reply18 
+$()</td>	<td> 
+!read oef/embed.phtml reply19 
+$()</td>	<td> 
+!read oef/embed.phtml reply20 
+$()</td>	</tr>	</table>	 
+!endif
+$()	
+!if $m_step=4 
+$()	<p><b>$val9 3 :</b> $val15</p>	<table class="wimscenter wimsborder" style="width:20%">	<tr>	<td style="width:20%">
+!insmath x
+$()</td>	<td style="width:5%">
+!insmath $val31
+$()</td>	<td style="width:20%; text-align:left"></td>	<td style="width:5%">
+!insmath $val30
+$()</td>	<td style="width:20%; text-align:right"></td>	<td style="width:5%">
+!insmath $val29
+$()</td>	<td style="width:20%; text-align:right"></td>	<td style="width:5%">
+!insmath $val32
+$()</td>	</tr><tr>	<td>$(val12[2]) 
+!insmath f
+$()</td>	<td>
+!insmath  $val33
+$()</td>	<td>$(val50[1])</td>	<td>
+!insmath $val34
+$()</td>	<td>$(val50[2])</td>	<td>
+!insmath $val35
+$()</td>	<td>$(val50[3])</td>	<td>
+!insmath  $val36
+$()</td>	</tr>	</table>	<b>$val14 4 :</b> $(val52[1]), $(val52[2])  
+!read oef/embed.phtml reply21 
+$()	  $(val52[3]) 
+!insmath x
+$() =  
+!read oef/embed.phtml reply22 
+$().	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15,18,19,25,27,28,29,30,31,32,33,34,35,36,49,50,52
+embedcnt=22

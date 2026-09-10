@@ -1,0 +1,299 @@
+!set title=Variation et limite d'une suite géométrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+
+ansorder=r,r,r,r,r,r
+varcnt=52
+prevarcnt=49
+postvarcnt=2
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 50
+
+val7=$[$(tmp0)/10]
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val9=$[$val8$val7]
+tmp0=!randint 1, 50
+
+val10=$[$(tmp0)/10]
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=$[$val11$val10]
+tmp0=!randint 1, 50
+
+val13=$[$(tmp0)/10]
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+val15=$[0$val14$val13]
+val16=$[$val9*$val15]
+val17=$[$val12*$val9*$val15]
+!if $val16<0 
+val18=\(u_n=$val17\times($val16)^{n})
+!else
+val18=\(u_n=$val17\times $val16^{n})
+!endif
+!if $val16<0 
+val19=\(u_n=$val17\times($val16)^{n+1})
+!else
+val19=\(u_n=$val17\times $val16^{n+1})
+!endif
+!if $val16<0 
+val20=\(u_n=$val17\times($val16)^{n-1})
+!else
+val20=\(u_n=$val17\times $val16^{n-1})
+!endif
+!if $val16<0 and $val15<0 
+val21=\(u_n=$val17\times ($val16)^n\times ($val15)^n)
+!endif
+!if $val16<0 and $val15>0 
+val21=\(u_n=$val17\times ($val16)^n\times $val15^n)
+!endif
+!if $val16>0 and $val15<0 
+val21=\(u_n=$val17\times $val16^n\times ($val15)^n)
+!endif
+!if $val16>0 and $val15>0 
+val21=\(u_n=$val17\times $val16^n\times $val15^n)
+!endif
+!if $val16<0 and $val15<0 
+val22=\(u_n=$val17\times \frac{($val16)^n}{($val15)^n})
+!endif
+!if $val16<0 and $val15>0 
+val22=\(u_n=$val17\times \frac{($val16)^n}{$val15^n})
+!endif
+!if $val16>0 and $val15<0 
+val22=\(u_n=$val17\times \frac{$val16^n}{($val15)^n})
+!endif
+!if $val16>0 and $val15>0 
+val22=\(u_n=$val17\times \frac{$val16^n}{$val15^n})
+!endif
+val23=$val18,$val19,$val20,$val21,$val22
+!if $val6=1 or $val6=4 or $val6=5 
+val24=$[$val17]
+!endif
+!if $val6=2 
+val24=$[$val17*$val16]
+!endif
+!if $val6=3 
+val24=$[$val12]
+!endif
+!if $val6=1 or $val6=2 or $val6=3 
+val25=$[$val16]
+!endif
+!if $val6=4 
+val25=$[$val16*$val15]
+!endif
+!if $val6=5 
+val25=$[$val9]
+!endif
+!if $val24>0 
+val26=1
+!endif
+!if $val24<0 
+val26=2
+!endif
+!if $val25<0 
+val27=\(q<0)
+!endif
+!if 0<$val25 and $val25<1 
+val27=\(0<q<1)
+!endif
+!if $val25=1 
+val27=\(q=1)
+!endif
+!if $val25>1 
+val27=\(q>1)
+!endif
+!if $val25<0 
+val28=3
+!endif
+!if $val24>0 and 0<$val25 and $val25<1 
+val28=2
+!endif
+!if $val24>0 and $val25>1 
+val28=1
+!endif
+!if $val24<0 and 0<$val25 and $val25<1 
+val28=1
+!endif
+!if $val24<0 and $val25>1 
+val28=2
+!endif
+!if 0<$val25 and $val25<1 
+val29=0
+!endif
+!if $val24>0 and $val25>1 
+val29=\(+\infty)
+!endif
+!if $val24<0 and $val25>1 
+val29=\(-\infty)
+!endif
+val30=\(q<0),\(0<q<1),\(q=1),\(q>1)
+val31=r1,r2
+dynsteps=yes
+oefsteps=$val31 
+nextstep=!nosubst $val31 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=
+replygood1=$[$val24]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=
+replygood2=$[$val25]
+replytype3=menu
+replyoption3=nonstop 
+replyname3=
+replygood3=$val26;positif,negatif
+replytype4=clickfill
+replyoption4=nonstop 
+replyname4=
+replygood4=$val27;$val30
+replytype5=menu
+replyoption5=nonstop 
+replyname5=
+replygood5=$val28;croissante,décroissante,non monotone
+replytype6=clickfill
+replyoption6=nonstop 
+replyname6=
+replygood6=$val29;0,$val12,\(+\infty),\(-\infty),1,$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div id="enonce">	On considère la suite de terme général $(val23[$val6])	</div>		
+!if $m_step=1 
+$()	<div class="question">	Justifier que cette suite est géométrique.	<div class="reponse">	Cette suite est géométrique car son terme général peut s'écrire sous la forme 
+!insmath u_n=u_0\times q^n
+$()	avec 
+!insmath u_0
+$()= 
+!read oef/embed.phtml r1,4 
+$() et q= 
+!read oef/embed.phtml r2,4 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and ($m_sc_reply1=1 and $m_sc_reply2=1) 
+$()	<div class="question">	<div class="oui">Effectivement, 
+!insmath u_n=u_0\times q^n=$val24\times($val25)^n
+$().	</div>	Etudier les variations de cette suite.	<div class="reponse">	Puisque 
+!insmath u_0
+$() est  
+!read oef/embed.phtml r3 
+$() et  
+!read oef/embed.phtml r4 
+$(), on peut donc affirmer que la suite 
+!insmath (u_n)
+$() est   
+!read oef/embed.phtml r5 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and ($m_sc_reply1!=1 or $m_sc_reply2!=1) 
+$()	<div class="question">	<div class="non">On a 
+!insmath u_n=u_0\times q^n=$val24\times($val25)^n
+$().	</div>	Etudier les variations de cette suite.	<div class="reponse">	Puisque 
+!insmath u_0
+$() est  
+!read oef/embed.phtml r3 
+$() et  
+!read oef/embed.phtml r4 
+$(), on peut donc affirmer que la suite 
+!insmath (u_n)
+$() est   
+!read oef/embed.phtml r5 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $val25>0 and $m_step=3 
+$()	<div class="question">	Nous savons que 
+!insmath u_n=$val24\times$val25^n
+$().<br>	Calculer maintenant la limite de 
+!insmath u_n
+$().	<div class="reponse">	
+!insmath lim_{n\to+\infty} u_n
+$()= 
+!read oef/embed.phtml r6 
+$()	</div>	</div>	 
+!endif
+$()			
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 
+val31=r3,r4,r5
+!endif
+!if $m_step=3 and $val25>0 
+val31=r6
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,23,24,25
+embedcnt=9

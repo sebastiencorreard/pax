@@ -1,0 +1,94 @@
+\title{Troisième loi de Képler}
+\language{fr}
+\computeanswer{yes}
+\precision{100}
+\author{Chantal,Causse}
+\email{chantal.causse@noos.fr}
+\keywords{solar_system, planet, Kepler, orbit, satellite }
+
+\real{G = 6.6726*10^(-11)}
+
+\text{intro = L'astronome Képler (1571-1630) a découvert trois lois décrivant le mouvement d'un corps en orbite autour d'un autre (planète autour du Soleil ou satellite autour d'une planète).<br>
+
+La troisième loi de Képler relie la période de révolution \(T) en secondes, le demi-grand axe de l'orbite \(r) en mètres et la masse du corps central \(M) en kilogrammes :
+<p class="wimscenter"> \(\frac{T^2}{r^3} = \frac{4 \pi^2}{G \times M}) où \(G) est la constante de gravitation \(G = \G m^3 kg^(-1) s^(-2))</p>
+ <p class = "small">Ces orbites sont des ellipses (en application de la première loi de Képler), mais celles des corps étudiés dans cet exercice sont très proches de cercles, \(r) est alors la distance moyenne entre les centres des deux objets.<br>
+ La période de révolution est le temps mis par le corps en orbite pour faire un tour complet autour de l'objet central, par rapport au repère des étoiles lointaines (considérées comme fixes). Pour cette raison, on l'appelle aussi "période de révolution sidérale". </p>
+}
+
+\text{cas = random(1,2)}
+
+\text{etape = \cas = 1 ? reply2,reply3 : reply2}
+
+\steps{reply1
+\etape}
+********* cas 1 satellites de la Terre - cas 2 satellites du Soleil
+
+\text{centre = item(\cas,la Terre,le Soleil)}
+\text{centre2 = item(\cas,de la Terre,du Soleil)}
+\text{satellite = item(\cas,la Lune,la Terre)}
+
+\text{rkm = item(\cas,384 000,149 600 000)}
+\real{rm = 1000*\rkm}
+\real{Tj = item(\cas,27.3,365.25) }
+\real{Ts = \Tj * 24*3600}
+
+\real{M = (4*pi^2*(\rm)^3)/((\G)*(\Ts)^2)}
+\real{M2 = item(\cas,6.02*10^24,1.99*10^30)}
+\text{suite = la masse \centre2 est de \(\M2) kg }
+\real{K = 4 * pi^2 / ((\G) * (\M2)) }
+
+
+\text{qu1 =Sachant que la période de révolution de \satellite autour \centre2 est de \Tj jours et que
+ la distance moyenne entre \satellite et \centre est \rkm km, calculer la masse \centre2 en kg.
+ }
+
+\if{\cas = 1}{
+\text{SatArts = artificiel en orbite basse,randint(20..40)*10
+de télédétection, randint(80..85)*10
+de télécommunication,randint(85..110)*10
+géostationnaire,36000
+artificiel,randint(2..35)*1000}
+\text{SatArt = randomrow(\SatArts)}
+\text{nom = \SatArt[1]}
+\real{altitude = \SatArt[2]}
+\integer{RTer = 6350}
+\real{rP2 = (\RTer + \altitude)*10^3 }
+\real{T = sqrt(\K * (\rP2)^3)}
+\integer{Th = floor(\T/3600)}
+\real{Tmin = round((\T - 3600*\Th)/60) }
+\real{good = \Th}
+\real{good2 = \Tmin}
+\text{objet = satellite}
+\text{unite = heures}
+\text{qu2 = Un satellite \nom est mis en orbite circulaire autour de la Terre à une altitude de \altitude km ; comme pour les satellites naturels, son mouvement autour de la Terre suit les lois de Képler. Le rayon de la Terre est \RTer km.<br> }
+}
+
+\if{\cas = 2}{
+\text{planetes = Mercure,57.9
+Vénus,108.2
+Mars,227.9
+Jupiter,778.3
+Saturne,1427
+Uranus,2870
+Neptune,4497}
+\text{planete = randomrow(\planetes)}
+\real{rP2 = \planete[2]*10^9 }
+\real{Tj2 = round(sqrt(\K * (\rP2)^3)/(3600*24))}
+\real{good = \Tj2}
+\text{objet = \planete[1]}
+\text{unite = jours}
+
+\text{qu2 = La distance moyenne au Soleil de la planète \planete[1] est \planete[2] millions de kilomètres.}
+}
+\statement{
+\intro
+\if{\step = 1}{\qu1}{Le calcul fait à la première question montre que \suite <br>}
+\if{\step = 2}{\qu2<br>
+\if{\cas = 1}{La période de révolution de ce satellite autour de la Terre sera de \embed{reply 2,3} heures et \embed{reply 3,2} minutes (arrondir à la minute entière).}
+\if{\cas = 2}{La troisième loi de Képler permet de calculer la période de révolution de \planete[1] autour du Soleil : \embed{reply 2,3} jours  (arrondir à l'entier).}
+}
+}
+\answer{Masse \centre2 en kg}{\M}{type = numeric}
+\answer{}{\good}{type = numeric}
+\answer{}{\good2}{type = numeric}

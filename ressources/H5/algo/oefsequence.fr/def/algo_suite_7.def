@@ -1,0 +1,348 @@
+!set title=Algorithme de seuil d'une suite géométrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, El Hmouzi
+email=khalidhmouzi@gmail.com
+language=fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=37
+prevarcnt=32
+postvarcnt=4
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=def seuil(A):	  n = 0	  u = ??	  while u <A:	    n=n+1	    u=u*2	  print(n,u)	  	  	seuil(??)
+!readproc slib/runcode [python,[$val6]],id1,init theme=[ambiance,neat] fullscreen,Jouer le code 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+val10=$[rint($(tmp0))]
+!if $val9=$val10 
+val9=$[rint($val9+1)]
+!endif
+val11=$[$val9/$val10]
+tmp0=!randint 0, 1
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+val10=$[rint($(tmp0))]
+!if $val9=$val10 
+val9=$[rint($val9+1)]
+!endif
+val11=$[$val9/$val10]
+tmp0=!randint 0, 1
+
+val12=$[rint($(tmp0))]
+!if $val11>1 
+val13=$[rint(1)]
+!else
+val13=$[rint(2)]
+!endif
+!if $val11>1 
+val14=$[rint(1)]
+!else
+val14=$[rint(2)]
+!endif
+!if $val14=1 
+val15=\ge
+!else
+val15=\le
+!endif
+!if $val14=1 
+tmp0=!randint 100, 1000
+
+val16=$[$(tmp0)]
+!else
+tmp0=!randint -3, -1
+
+val16=$[10^($(tmp0))]
+!endif
+val17=$[$val8]
+val18=$[rint($val12)]
+!if $val14=1 
+!while $val17<$val16 
+val17=$[$val9/$val10*$val17]
+val18=$[rint($val18+1)]
+!endwhile
+!else
+!while $val17>$val16 
+val17=$[$val9/$val10*$val17]
+val18=$[rint($val18+1)]
+!endwhile
+!endif
+!if $val11>1 
+val19=\(+\infty)
+!else
+val19=0
+!endif
+val20=
+val21=r1,r2,r3
+dynsteps=yes
+oefsteps=$val21 
+nextstep=!nosubst $val21 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=nonstop 
+replyname1=q
+replygood1=$val13;>1,<1
+replytype2=menu
+replyoption2=nonstop 
+replyname2=monotonie de la suite
+replygood2=$val14;strictement croissante, strictement décroissante
+replytype3=dragfill
+replyoption3=nonstop 
+replyname3=limite de la suite
+replygood3=$val19;0,\(+\infty),\(-\infty)
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=u
+replygood4=$[$val8]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=n
+replygood5=$[$val12]
+replytype6=algexp
+replyoption6=nonstop 
+replyname6=tant que
+replygood6=u
+replytype7=menu
+replyoption7=nonstop 
+replyname7=
+replygood7=$val14;<,>
+replytype8=numeric
+replyoption8=nonstop 
+replyname8=
+replygood8=$[$val16]
+replytype9=algexp
+replyoption9=nonstop 
+replyname9=u
+replygood9=$val9/$val10*u
+replytype10=algexp
+replyoption10=nonstop 
+replyname10=n
+replygood10=n+1
+replytype11=numeric
+replyname11=valeur affichée
+replygood11=$[$val18]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<div id="enonce">	On considère la suite 
+!insmath  (U_n) 
+$() définie par 
+!insmath  U_{$val12}=$val8 
+$() et 	
+!insmath U_{n+1}=\frac{$val9}{$val10} U_n
+$() pour 	tout entier naturel 
+!if $val12>0 
+$()
+!insmath n \ge 1
+$() 
+!else
+$() 
+!insmath n
+$() 
+!endif
+$().<br><br>	</div>		
+!if $m_step=1 
+$()	<div class="question">	Etudier les variations de cette suite.		<div class="reponse">	Cette suite est géométrique de raison <em>strictement positive</em> 
+!insmath q
+$() 
+!read oef/embed.phtml r1 
+$() 	et de premier terme 
+!insmath  U_{$val12}
+$() <em> positif</em>. Elle est donc  
+!read oef/embed.phtml r2 
+$().<br>	</div>	</div>		<div class="question">	Quelle est sa limite ?	<div class="reponse">	
+!insmath \displaystyle{\lim_{n\to+\infty}U_n}
+$()= 
+!read oef/embed.phtml r3 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and $m_sc_reply1=1 and $m_sc_reply2=1 and $m_sc_reply3=1 
+$()	<div class="question">	<p class="oui">	Effectivement, cette suite géométrique est  
+!if $val14=1 
+$()positive, strictement croissante et tend vers 
+!insmath +\infty
+$() 
+!else
+$()	 positive, strictement décroissante et converge vers 0 
+!endif
+$().	</p>		Compléter l'algorithme suivant permettant de trouver le rang 
+!insmath  n 
+$() à partir duquel 
+!insmath  U_n $val15 $val16 
+$().	<p class="consigne">La notation <span class="ielem">&larr;</span> signifie "prend la valeur de".</p>	<div class="reponse">		<table class="algo">	<tr class="init"><th>Initialisation</th><td>u<span class="ielem"> &larr; </span> 
+!read oef/embed.phtml r4,5 
+$()</td></tr>	<tr class="init"><th></th><td>n<span class="ielem"> &larr; </span> 
+!read oef/embed.phtml r5,5 
+$()</td></tr>	<tr class="traitement"><th>Traitement</th><td><span class="ielem"> Tant que </span>  
+!read oef/embed.phtml r6,1 
+$() 
+!read oef/embed.phtml r7 
+$() 
+!read oef/embed.phtml r8,5 
+$()</td></tr>	<tr class="traitement"><th></th><td>&nbsp;u<span class="ielem"> &larr; </span>  
+!read oef/embed.phtml r9,10 
+$()</td></tr>	<tr class="traitement"><th></th><td>&nbsp;n<span class="ielem"> &larr; </span> 
+!read oef/embed.phtml r10,10 
+$()</td></tr>	<tr class="traitement"><th></th><td><span class="ielem">Fin Tant que</span></td></tr>	</table>	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and ($m_sc_reply1!=1 or $m_sc_reply2!=1 or $m_sc_reply3!=1) 
+$()	<div class="question">	<p class="non">	Cette suite géométrique est  
+!if $val14=1 
+$()positive, strictement croissante et tend vers 
+!insmath +\infty
+$() 
+!else
+$()	 positive, strictement décroissante et converge vers 0 
+!endif
+$().	</p>		Compléter l'algorithme suivant permettant de trouver le rang n à partir duquel 
+!insmath  U_n $val15 $val16 
+$().	<p class="consigne">La notation <span class="ielem">&larr;</span> signifie "prend la valeur de".</p>		<div class="reponse">	<table class="algo">	<tr class="init"><th>Initialisation</th><td>u<span class="ielem"> &larr; </span> 
+!read oef/embed.phtml r4,5 
+$()</td></tr>	<tr class="init"><th>Initialisation</th><td>n<span class="ielem"> &larr; </span> 
+!read oef/embed.phtml r5,5 
+$()</td></tr>	<tr class="traitement"><th>Traitement</th><td><span class="ielem"> Tant que </span>  
+!read oef/embed.phtml r6,1 
+$() 
+!read oef/embed.phtml r7 
+$() 
+!read oef/embed.phtml r8,1 
+$()</td></tr>	<tr class="traitement"><th></th><td>&nbsp;u<span class="ielem"> &larr; </span>  
+!read oef/embed.phtml r9,10 
+$()</td></tr>	<tr class="traitement"><th></th><td>&nbsp;n<span class="ielem"> &larr; </span> 
+!read oef/embed.phtml r10,10 
+$()</td></tr>	<tr class="traitement"><th></th><td><span class="ielem">Fin Tant que</span></td></tr>	</table>	</div>	</div>	 
+!endif
+$()			
+!if $m_step>=3 and $val20=1 
+$()	<div class="question">	<div class="oui">	Bravo, l'algorithme est correct !<br>		<table class="algo">	<tr class="init"><th>Initialisation</th><td>u<span class="ielem"> &larr; </span>$val8</td></tr>	<tr class="init"><th>Initialisation</th><td>n<span class="ielem"> &larr; </span>$val12</td></tr>	<tr class="traitement"><th>Traitement</th><td><span class="ielem"> Tant que </span> u
+!if $val14=1 
+$()< 
+!else
+$() > 
+!endif
+$()$val16</td></tr>	<tr class="traitement"><th></th><td>&nbsp;u<span class="ielem"> &larr; </span> 
+!insmath \frac{$val9}{$val10}
+$()u</td></tr>	<tr class="traitement"><th></th><td>&nbsp;n<span class="ielem"> &larr; </span>n+1</td></tr>	<tr class="traitement"><th></th><td><span class="ielem">Fin tant que</span></td></tr>	</table>				</div>		Modifier cet algorithme sous Python et donner le rang à partir duquel 
+!insmath  U_n $val15 $val16 
+$().<br>		<div>	$val7	</div>		<div class="reponse">	
+!insmath n
+$()= 
+!read oef/embed.phtml r11 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step>=3 and $val20=0 
+$()	<div class="question">	<div class="non">	Votre algorithme n'est pas bon.<br>	Voici un algorithme correct :		<table class="algo">	<tr class="init"><th>Initialisation</th><td>u<span class="ielem"> &larr; </span>$val8</td></tr>	<tr class="init"><th></th><td>n<span class="ielem"> &larr; </span>$val12</td></tr>	<tr class="traitement"><th>Traitement</th><td><span class="ielem"> Tant que </span> u
+!if $val14=1 
+$()< 
+!else
+$() > 
+!endif
+$()$val16</td></tr>	<tr class="traitement"><th></th><td>&nbsp;u<span class="ielem"> &larr; </span> 
+!insmath \frac{$val9}{$val10}
+$()u</td></tr>	<tr class="traitement"><th></th><td>&nbsp;n<span class="ielem"> &larr; </span>n+1</td></tr>	<tr class="traitement"><th></th><td><span class="ielem">Fin tant que</span></td></tr>	</table>	</div>			Modifier cet algorithme sous Python et donner le rang à partir duquel 
+!insmath  U_n $val15 $val16 
+$().<br>	<div>	$val7	</div>		<div class="reponse">	
+!insmath n
+$()= 
+!read oef/embed.phtml r11 
+$()	</div>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_sc_reply4=1 and $m_sc_reply5=1 and $m_sc_reply6=1 and $m_sc_reply7=1 	and $m_sc_reply8=1 and $m_sc_reply9=1 and $m_sc_reply10=1)
+val20=1
+!else
+val20=0
+!endif
+!if $m_step=2 
+val21=r4,r5,r6,r7,r8,r9,r10
+!endif
+!if $m_step=3 
+val21=r11
+!endif
+!if $m_step>3 
+val21=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,12,14,15,16,20
+embedcnt=19

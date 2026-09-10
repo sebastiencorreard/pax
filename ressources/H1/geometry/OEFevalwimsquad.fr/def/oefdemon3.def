@@ -1,0 +1,108 @@
+!set title=Démonstration 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@gmail.com
+email=jluc.donadoni@laposte.net
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Il a ses côtés opposés de même longueur.,	 Il a ses côtés opposés parallèles.,	Il a quatre angles droits.,	Il a tous ses côtés de même longueur.,	Il a ses diagonales de même longueur.,	Il a ses diagonales perpendiculaires.,	Ses diagonales ont le même milieu.
+val7=Trouver la (ou les) bonne(s) justification(s)
+val8=Soit un cercle de centre,	  avec un diamètre, et un deuxième cercle de centre, avec un diamètre,	  Les droites, et , sont perpendiculaires.
+val9=Le quadrilatère, est un losange.
+tmp0=!shuffle A,B,C,E,F,G,H,J,K,L,M,N,R,S,T
+
+val10=$(tmp0)
+val11=xrange -150,150	yrange -150,150	rotate 40	segment 0,120,80,0,black	segment 80,0,0,-120,black	segment 0,-120,-80,0,black	segment -80,0,0,120,black	segment -80,0,80,0,black	segment 0,-120,0,120,black	circle 0,0,240,black	circle 0,0,160,black	text black,-95,10,medium,$(val10[1])	text black,-15,-125,medium,$(val10[2])	text black,90,10,medium,$(val10[3])	text black,-15,135,medium,$(val10[4])	text black,10,20,medium,$(val10[5])
+!readproc oef/draw.phtml 300,300 \
+$val11 
+tmp0=$ins_url
+val12=$(tmp0)
+val13=<img src="$val12" alt="">
+!readproc oef/drawtikz.phtml 300,300 \
+$val11 
+tmp0=$ins_tikz
+val14=$(tmp0)
+val15=6,7
+val16=$(val8[1]) $(val10[5]) $(val8[2]) [$(val10[1])$(val10[4])]	  $(val8[3]) $(val10[5]) $(val8[4]) [$(val10[2])$(val10[4])]. $(val8[5])	  ($(val10[1])$(val10[3])) $(val8[6]) ($(val10[2])$(val10[4])) $(val8[7])
+val17=
+!for val18 =1 to 7 
+val17=$val17	  \item $(val6[$val18])
+!next
+replytype1=checkbox
+replyname1=
+replygood1=$val15;$val6
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val16 \par $(val9[1]) $(val10[1])$(val10[2])$(val10[4])$(val10[3]) $(val9[2]) \begin{center} $val14 \end{center} $val7: \begin{radio} $val17 \end{radio} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">$val13</div>	 <div class="medium_size text_col">	$val16	<p>	$(val9[1]) $(val10[1])$(val10[2])$(val10[4])$(val10[3]) $(val9[2])	</p>	$val7:	<ul> 
+!for m_h=1 to 7 
+$()<li> 
+!read oef/embed.phtml r1,\h 
+$()</li> 
+!next
+$()</ul>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val16 $m_par $(val9[1]) $(val10[1])$(val10[2])$(val10[4])$(val10[3]) $(val9[2]) $m_begin{center} $val14 $m_end{center} $val7: $m_begin{radio} $val17 $m_end{radio} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,13,14,16,17
+embedcnt=1

@@ -1,0 +1,149 @@
+!set title=Equation 1 sur un intervalle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -8, 8
+
+val6=$(tmp0)/2
+tmp0=!randint 5, 8
+
+t_=!rawmath $val6+$(tmp0)/2
+val7=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val6*pi
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val8=$(tmp0)
+tmp=!translate ";': to $     $ in $val7*pi
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+tmp0=!randitem 1,2
+
+val10=$(tmp0)
+!if $val10=1 
+tmp=!nonempty items 1/6,1/4,1/3,1/2,2/3,3/4,5/6
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=$val11
+t_=!rawmath 2-$val11
+val13=!exec pari print($t_)
+tmp=!translate ";': to $     $ in cos($val11*pi)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+val15=cos(x)=$val14
+!else
+tmp=!nonempty items 0,1/6,1/4,1/3,-1/6,-1/4,-1/3
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=$val11
+t_=!rawmath 1-$val11
+val13=!exec pari print($t_)
+tmp=!translate ";': to $     $ in sin($val11*pi)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+val15=sin(x)=$val14
+!endif
+val16=
+!for val17  = -3 to 4 
+t_=!rawmath $val12+2*$val17
+val18=!exec pari print($t_)
+!if ($val18>=$val6) and ($val18<=$val7) 
+tmp0=!append item $val18*pi to $val16
+
+val16=$(tmp0)
+!endif
+t_=!rawmath $val13+2*$val17
+val18=!exec pari print($t_)
+!if ($val18>=$val6) and ($val18<=$val7) 
+tmp0=!append item $val18*pi to $val16
+
+val16=$(tmp0)
+!endif
+!next
+replytype1=fset
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div>Déterminer les solutions de l'équation 
+!insmath $val15
+$() sur l'intervalle [
+!insmath $val8,$val9
+$()] ?</div></br>		<div>L'ensemble des solutions est  
+!read oef/embed.phtml reply1,30 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,15
+embedcnt=1

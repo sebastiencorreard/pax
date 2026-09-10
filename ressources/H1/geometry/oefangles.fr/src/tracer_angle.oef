@@ -1,0 +1,127 @@
+\title{Tracer un angle de mesure donnée}
+\language{fr}
+\author{Jean-Baptiste, Frondas}
+\email{jbfrondas@gmail.com}
+\format{html}
+\precision{10000}
+\computeanswer{no}
+
+\integer{a=random(1..4)}
+\text{Size = 600,420}
+
+\matrix{ANGLE=shuffle(randint(1..60),randint(60..120),randint(120..180))}
+
+\integer{angle1=\ANGLE[1]}
+\integer{angle2=\ANGLE[2]}
+\integer{angle3=\ANGLE[3]}
+
+
+\real{angrad1=(3.14159*\angle1/180)}
+\real{abs1=280*cos(\angrad1)+303}
+\real{ord1=280*sin(\angrad1)+127}
+\real{abs1lab= 293*cos(\angrad1+0.07)+303}
+\real{ord1lab= 293*sin(\angrad1+0.07)+127}
+\text{coord1=\abs1,\ord1}
+\text{coordlabel1=\abs1lab,\ord1lab}
+
+\real{angrad2=(3.14159*\angle2/180)}
+\real{abs2=280*cos(\angrad2)+303}
+\real{ord2=280*sin(\angrad2)+127}
+\real{abs2lab= 293*cos(\angrad2+0.07)+303}
+\real{ord2lab= 293*sin(\angrad2+0.07)+127}
+\text{coord2=\abs2,\ord2}
+\text{coordlabel2=\abs2lab,\ord2lab}
+
+\real{angrad3=(3.14159*\angle3/180)}
+\real{abs3=280*cos(\angrad3)+303}
+\real{ord3=280*sin(\angrad3)+127}
+\real{abs3lab=293*cos(\angrad3+0.07)+303}
+\real{ord3lab=293*sin(\angrad3+0.07)+127}
+\text{coord3=\abs3,\ord3}
+\text{coordlabel3=\abs3lab,\ord3lab}
+
+\real{ord3rep=420-\ord3}
+\text{coord3rep=\abs3rep,\ord3rep}
+
+\matrix{label=shuffle(A,B,C,D,E,F,G,H,I,J,K,L,M,N,P,Q,S,T,U,V,W,Y,Z)}
+
+\text{x=X}
+\text{r=R}
+
+\text{quest=
+0,\x
+180,\r
+\angle1,\label[1]
+\angle2,\label[2]
+\angle3,\label[3]}
+
+\integer{m=rows(\quest)}
+\matrix{quest=\quest}
+\text{choix=shuffle(\m)}
+
+\text{ligne1=\quest[\choix[1];]}
+\text{ligne2=\quest[\choix[2];]}
+
+\real{signe=(\ligne1[1]-\ligne2[1])}
+\if{\signe<0}{
+ \text{rem=De plus, on sait que \( \widehat{XO\ligne1[2]} < \widehat{XO\ligne2[2]} \) }
+ }{
+ \text{rem=De plus, on sait que \( \widehat{XO\ligne1[2]} > \widehat{XO\ligne2[2]}\) }
+ }
+
+\if{\ligne1[1]=0 or \ligne1[1]=180}{\text{rem=}}
+\if{\ligne2[1]=0 or \ligne2[1]=180}{\text{rem=}}
+
+\integer{rep=abs(\ligne1[1]-\ligne2[1])}
+
+\text{enonce=\ligne1[2] O \ligne2[2]}
+
+\if{\ligne1[2]=\x}{\text{coordtrace=590,128}}{}
+\if{\ligne1[2]=\r}{\text{coordtrace=303,128}}{}
+\if{\ligne1[2]=\label[1]}{\text{coordtrace=\coord1} and \text{coordtracelabel=\coordlabel1}}{}
+\if{\ligne1[2]=\label[2]}{\text{coordtrace=\coord2} and \text{coordtracelabel=\coordlabel2}}{}
+\if{\ligne1[2]=\label[3]}{\text{coordtrace=\coord3} and \text{coordtracelabel=\coordlabel3}}{}
+
+\if{\ligne2[2]=\x}{\text{coordrep=590,128}}{}
+\if{\ligne2[2]=\r}{\text{coordrep=10,128}}{}
+\if{\ligne2[2]=\label[1]}{\text{coordrep=\coord1}}{}
+\if{\ligne2[2]=\label[2]}{\text{coordrep=\coord2}}{}
+\if{\ligne2[2]=\label[3]}{\text{coordrep=\coord3}}{}
+
+
+\text{couleur=shuffle(red,blue,green)}
+
+\if{\ligne1[2]=\x or \ligne2[2]=\x or \ligne1[2]=\r or \ligne2[2]=\r}{\text{plus=} and \text{plusline=}}{\text{plusline= line 303,128,,,\couleur[2]} and \text{pluslabel=}}
+
+\text{dessinprelim=xrange 0,600
+yrange 0,420
+copy 0,420,-1,-1,-1,-1,rapporteur600.png
+linewidth 3
+
+line 303,128,\coordtrace,\couleur[1]
+text \couleur[1],\coordtracelabel,giant,\ligne1[2]
+text red,303,127,giant,O
+
+line 303,128,10,128,gray
+text black,5,128,medium,\r
+
+line 590,128,10,128,gray
+text black ,590,128, medium,\x
+}
+
+\text{point1=slib(draw/convpixel 300,128,600,420,0,600,0,420,1,pixels)}
+\text{point2=slib(draw/convpixel \coordrep,600,420,0,600,0,420,1,pixels)}
+
+## line 303,128,\coord3,green
+## text green,\coordlabel3,medium,\label[3]
+
+\text{figure = draw(\Size
+\dessinprelim) }
+
+\statement{
+Tracer la droite \( (O \ligne2[2]) \) afin que l'angle \( \widehat{ \enonce }\)
+mesure \rep degrés. \rem
+<div class="wimscenter">\embed{reply1,600 x 420} </div>
+}
+
+\answer{}{\figure;sline,\point1,\point2}{type=jsxgraphcurve}

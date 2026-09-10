@@ -1,0 +1,227 @@
+!set title=Vocabulary (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Csilla, Ducrocq
+email=csilla.ducrocq@u-psud.fr
+language=fr
+computeanswer=no
+oefcss=<style type="text/css"> .question{background-color: #FF6666; margin: 2% 5%; padding: 1%;} .reponse{background-color: #FFCC99; color: black; margin: 2% 5%; padding: 0%;} ol li {list-style: upper-alpha; } </style> 
+
+ansorder=r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=ex1_vocabulaire
+val7=$(val6[1])
+tmp0=!nosubst Match the English words with their	French equivalents. (<i>Trouver les paires</i>)
+
+val8=$(tmp0)
+tmp0=!subst 
+
+val9=$(tmp0)
+val10=
+val11=no
+val12=no
+val13=no
+val14=yes
+val15=100x100x150
+val16=
+val17=1
+
+!ifval $val8 issametext 
+tmp0=!getdef instruction in $val7
+
+val8= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction2 in $val7
+
+val9= $(tmp0)
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef size in $val7
+
+val15= $(tmp0)
+!endif
+
+!ifval $val12 issametext 
+tmp0=!getdef reading_file in $val7
+
+val12= $(tmp0)
+!endif
+tmp0=!record 0 of $val12
+
+val18=$(tmp0)
+
+!ifval $val11 issametext 
+tmp0=!getdef audio_file in $val7
+
+val11= $(tmp0)
+!endif
+
+!ifval $val11 notsametext  and  $val11 notsametext no
+!readproc slib/media/audio $val1/$val11 
+tmp0=$slib_out
+val19=	<p class="wimscenter">$(tmp0)</p>
+!endif
+
+!ifval $val13 issametext 
+tmp0=!getdef image_file in $val7
+
+val13= $(tmp0)
+!endif
+
+!ifval $val13 notsametext  and  $val13 notsametext no
+tmp0=!makelist <img src="$val1/x" alt=""> for x in $val13'
+
+val20=	$(tmp0)
+!endif
+
+!ifval \video_file issametext 
+tmp0=!getdef video_file in $val7
+
+val21= $(tmp0)
+!endif
+
+!ifval $val21 notsametext  and  $val21 notsametext no
+val22=	<a target="wims_external" href="$val1/$val21">[video] </a></p>
+!endif
+
+!ifval $val10 issametext 
+tmp0=!getdef choice in $val7
+
+val23= $(tmp0)
+!else
+val23=$val10
+!endif
+val24=clickfill
+val25=
+val26=
+val27=
+val28=
+val29=
+
+!ifval $val29 notwordof 1 2 3 4 5 6 7 8 9 10 
+val29= 1
+!endif
+tmp0=!recordcnt $val7
+
+val30=$[rint($(tmp0))]
+val31=1
+val32=1
+val33=3
+val32=$[rint(min($val30,$val32))]
+val31=$[rint(min($val32*$val31,$val30))]
+
+!ifval $val14 issametext yes 
+tmp0=!shuffle $val30
+
+val34= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val30
+
+val34=	$(tmp1)
+!endif
+tmp0=!randrecord $val6
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val35
+
+tmp0=!rowcnt $tmp
+val36=$[rint($(tmp0))]
+
+!ifval $val33 issametext all 
+val33=$[rint( $val36)]
+!else
+val33=$[rint(min($val36,$val33))]
+!endif
+tmp0=!shuffle $val36
+
+val23=$(tmp0)
+tmp=!trim $(val35[$(val23[1..$val33]);])
+val35=!translate internal $	\
+$ to ;; in $tmp
+replytype1=correspond
+replyname1=
+replygood1=$(val35[1..$val33;1]); $(val35[1..$val33;2])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val8	  
+!if $val18 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val20 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val19$val22	  <div class="wimscenter question"> 
+!read oef/embed.phtml reply1,$val15 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,15,18,19,20,22
+embedcnt=3

@@ -1,0 +1,160 @@
+!set title=Interprétation géométrique du module et de l'argument
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+tmp=!nonempty items 1,2,3,4
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+!else
+tmp=!nonempty items $val2,$val2
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+!endif
+!if $val6=1 
+tmp=!nonempty items 0,1/2,1,3/2
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+!if $val6=2 
+tmp=!nonempty items 1/4,3/4,5/4,7/4
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+!if $val6=3 
+tmp=!nonempty items 1/3,2/3,4/3,5/3
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+!if $val6=4 
+tmp=!nonempty items 1/6,5/6,7/6,11/6
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp0)*$val7*pi
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val7=$(tmp1)
+tmp0=!randint 1, 3
+
+val8=$(tmp0)
+val9=$[($val8)*cos($val7)]
+val10=$[($val8)*sin($val7)]
+val11=$[3.1]
+val12=trange 0,2*pi	plot blue,cos(t),sin(t)	plot blue,2*cos(t),2*sin(t)	plot blue,3*cos(t),3*sin(t)
+val13=
+!for val14 =-6 to  6 
+val13=$val13	dline -3,$val14/2, 3,$val14/2,blue
+!next
+!for val14 =-6 to  6 
+val13=$val13	dline $val14/2,-3, $val14/2,3,blue
+!next
+val13=$val13	text black,1.1,0.3,giant,1	text black,0.1,1.3,giant,i
+val15=$[400]
+val16=hline 0,0,black	arrow  0,0,1,0,10,black	arrow 0,0,0,1,10,black	vline 0,0,black	
+!readproc oef/draw.phtml $val15,$val15 \
+xrange -$val11,$val11	yrange -$val11,$val11	$val16	$val12	$val13 
+tmp0=$ins_url
+val17=$(tmp0)
+val18=$[($val15*$val9/$val11+$val15)/2]
+val19=$[(-$val15*$val10/$val11+$val15)/2]
+replytype1=coord
+replyname1=
+replygood1=$val17;point,$val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soit 
+!insmath z
+$() le nombre complexe de module 
+!insmath $val8
+$() et d'argument 
+!insmath $val7
+$(). Cliquer sur le point d'affixe 
+!insmath z
+$().	<div class=wimscenter> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_result1=-1
+ <div class='oef_feedbacks'>Voici la réponse	<center>  
+!read oef/draw.phtml $val15,$val15 \
+	xrange -$val11,$val11	yrange -$val11,$val11	hline 0,0,black	arrow  0,0,1,0,10,black	arrow 0,0,0,1,10,black	vline 0,0,black	disk $val9,$val10,10,blue	$val16	$val12	$val13 
+$()	</center>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,15,16
+embedcnt=1

@@ -1,0 +1,418 @@
+!set title=Coordonnées sphériques II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oefenv lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=coordonnées cylindriques,coordonnées sphériques
+val8=un demi-plan,un cylindre,une sphère,un demi-cône,un plan,un cône,une demi-droite
+val9=vers le haut,vers le bas
+val10=coordonnées cylindriques,coordonnées sphériques
+tmp=!trim On considère l'ensemble des points de \(\RR^3\) vérifiant en	  De quel type de lieu s'agit-il	  Le demi-cône est-il orienté vers le haut ou vers le bas&nbsp;	  Donnez l'équation cartésienne du cône qui le contient&nbsp;	  La demi-droite est-elle orientée vers le haut ou vers le bas&nbsp;	  Donnez l'équation cartésienne (polynomiale en x, y et z)	  Donnez l'équation cartésienne (polynomiale en x, y et z) du plan qui le contient	  Donnez l'équation cartésienne (polynomiale en x, y et z) du cône qui le contient
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=type de surface,équation cartésienne,orientation
+tmp=!trim Faites un dessin&nbsp;	  Pour obtenir l'équation du cône, partez de l'équation
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=2
+tmp0=!randitem 1,2
+
+val15=$(tmp0)
+
+!ifval $val15=1
+val16= theta.gif
+!else
+val16= varphi.gif
+!endif
+
+!ifval $val15=1
+val17= varphi.gif
+!else
+val17=theta.gif
+!endif
+
+!ifval $val15=1 
+val18= \theta
+!else
+val18= \varphi
+!endif
+
+!ifval $val15=1 
+val19= \varphi
+!else
+val19=\theta
+!endif
+
+!ifval $val14=1 
+val20= $(val10[$val14]), r,\theta , z 
+!else
+val20= $(val10[$val14]) , r, $val18, $val19
+!endif
+
+!ifval $val14=1 
+tmp0=!randitem 1,2,2,3,3,4
+
+val21= $(tmp0)
+!else
+tmp1=!randitem 1,2,2,3,3
+
+val21=$(tmp1)
+!endif
+tmp0=!item 1 of $val20
+
+val22=$(tmp0)
+tmp0=!item 3 of $val20
+
+val23=$(tmp0)
+!if $val14=2 
+tmp0=!item 4 of $val20 
+
+val24=$(tmp0)
+!endif
+tmp0=!randint 4, 9
+
+val25=$[$(tmp0)]
+tmp0=!randint 0, $val25
+
+val26=$[$(tmp0)]
+
+!ifval $val21<4
+tmp0=!item $val21+1 of $val20
+
+val27= $(tmp0)
+!else
+val27= z
+!endif
+
+!ifval z notin $val27 and r notsametext $val27 
+tmp=!translate ";': to $     $ in ($val26)/$val25
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val28= $(tmp0)
+!else
+val28=$val25
+!endif
+
+!ifval z isin $val27 and $val21=4
+val28= r
+!endif
+
+!ifval $val14=1 and $val21=1 
+val29= 2
+!else
+val29= 5
+!endif
+
+!ifval $val14=1 and $val21=2 
+val29= 1
+!endif
+
+!ifval $val14=1 and $val21=4 
+val29= 4
+!endif
+
+!ifval $val14=2 and $val21=1 
+val29= 3
+!endif
+
+!ifval $val14=2 and $val21=3 
+val29= 4
+!endif
+
+!ifval $val14=2 and $val21=2 
+val29= 1
+!endif
+
+!ifval $val14=2 and $val21=3 and ($val28=0 or $val28=1) 
+val29= 7
+!endif
+
+!ifval $val14=2 and $val21=3 and $val28=1/2 
+val29= 5
+!endif
+val30=$[($val28)^2]
+
+!ifval $val14=1 and $val21=1 
+tmp=!translate ";': to $     $ in x^2+y^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31= $(tmp0)=$val30
+!endif
+
+!ifval $val14=1 and $val21=2 
+tmp=!translate ";': to $     $ in cos($val28*pi)*y-sin($val28*pi)*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=!rawmath  $(tmp0)
+!endif
+
+!ifval $val14=1 and $val21=2 
+val31= $val31=0
+!endif
+
+!ifval $val14=1 and $val21=3 
+val31= z=$val28
+!endif
+
+!ifval $val14=1 and $val21=4 
+val31= z^2=x^2+y^2
+!endif
+
+!ifval $val14=2 and $val21=1 
+val31= x^2+y^2+z^2=$val30
+!endif
+
+!ifval $val14=2 and $val21=3
+tmp=!translate ";': to $     $ in sin($val28*\pi)^2*(x^2+y^2)-cos($val28*\pi)^2*z^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=!rawmath  $(tmp0)
+!endif
+
+!ifval $val14=2 and $val21=3
+val31= $val31=0
+!endif
+
+!ifval $val14=2 and $val21=3 and $val28=1/2
+val31=z=0
+!endif
+
+!ifval $val14=2 and $val21=2 
+tmp=!translate ";': to $     $ in cos($val28*\pi)*y-sin($val28*\pi)*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=!rawmath  $(tmp0)
+!endif
+
+!ifval $val14=2 and $val21=2 
+val31= $val31=0
+!endif
+
+!ifval $val14=2 and $val21=3 and $val28<1/2
+val32=1
+!else
+val32=2
+!endif
+
+!ifval $val14=2 and $val21=3 and $val28=0
+val32=1
+!endif
+
+!ifval $val14=2 and $val21=3 and $val28=1
+val32=2
+!endif
+val33=arrow 0,0,3,0,10,black	arrow 0,0,0,3, 10,black	arrow 0,0,-1.6,-1.6, 10,black	text blue, -1.8,-1.8, medium, x	text blue,0.5,2.9, medium, z	text blue,2.8, 0.5,medium, y	
+!if $val14=2 
+val34=xrange -3,3	yrange -3,3	$val33	linewidth 2	segment 0,0,2.2,2.2,green	segment 0,0, 2.2,-0.5,green	dsegment 2.2,-0.5,2.2,2.2,black	dsegment 0,2.5,2.2,2.2,black	trange 5*pi/4,2*pi-pi/16	plot , cos(t),sin(t)	arrow cos(-pi/16-0.2),sin(-pi/16-0.2),cos(-pi/16),sin(-pi/16),10, red	trange pi/4, pi/2	plot , cos(t),sin(t)	arc 0, 0, 2, 2, 45, 90, red	arc 0, 0, 2, 2, 225,348.75, red	text black, 1.1, 0.8, large, r	arrow cos(pi/4+0.2),sin(pi/4+0.2),cos(pi/4),sin(pi/4),10, red	copy 1.3*cos(3*pi/8),1.3*sin(3*pi/8),-1,-1,-1,-1,mathfonts/109/$val17	copy 1.3*cos(3*pi/2+0.2),1.3*sin(3*pi/2+0.2),-1,-1,-1,-1,mathfonts/109/$val16	  
+!else
+val34=xrange -3,3	yrange -3,3	$val33	linewidth 2	segment 0,0,2.2,2.2,green	segment 0,0, 2.2,-0.8,green	dsegment 2.2,-0.8,2.2,2.2,black	dsegment 0,2.8,2.2,2.2,black	arrow cos(-pi/16-0.4),sin(-pi/16-0.4),cos(-pi/16-0.2),sin(-pi/16-0.2),10, red	text black, 1.3, -0.6, medium, r	text black, -0.2, 1.5, medium, z	arc 0, 0, 2, 2, 225,335, red	copy 1.3*cos(3*pi/2+0.2),1.3*sin(3*pi/2+0.2),-1,-1,-1,-1,mathfonts/109/theta.gif	
+!endif
+
+!ifval $val14=2 and $val21=3 and ($val28 <> 1/2 and $val28 <> 0 and $val28<>1) 
+val35= r1	r3, r2
+!else
+val35=	r1	r2
+!endif
+
+!ifval $val14=2 and $val21=3 and ( $val28 = 0 or $val28 =1)
+val35= r1	r3
+!endif
+oefsteps=$val35 
+nextstep=!nosubst $val35 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=$(val12[1])
+replygood1=$val29;$val8
+replytype2=equation
+replyname2=$(val12[2])
+replygood2=!rawmath $val31
+replytype3=radio
+replyname3=$(val12[3])
+replygood3=$val32;$val9
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 150,150 \
+$val34 
+$()</div>	 <div class="medium_size text_col">	$(val11[1;]) $val22	  
+!if $val14=1 
+$()
+!insmath ( r,$val23, z)
+$() 
+!else
+$() 	   
+!if $val15=1 
+$()
+!insmath (r,$val23,$val24)
+$()  
+!else
+$() 
+!insmath (r,$val23,$val24)
+$()  
+!endif
+$()	   
+!endif
+$()	 <div class="wimscenter">	  
+!if z notin $val27 and r notsametext $val27 
+$()	    
+!if $val28=1 
+$()
+!insmath $val27=\pi
+$() 
+!endif
+$()	    
+!if $val28<>1 and $val28<>-1 and $val28<>0 
+$()
+!insmath $val27=$val28\pi
+$() 
+!endif
+$()	    
+!if $val28=-1 
+$()
+!insmath $val27=-\pi
+$() 
+!endif
+$()	    
+!if $val28=0 
+$()
+!insmath $val27=0
+$() 
+!endif
+$()	   
+!else
+$() 
+!insmath $val27=$val28 
+$() 
+!endif
+$()	  </div>	  
+!if $m_step <=1 
+$()$(val11[2;])?  
+!read oef/embed.phtml r1 
+$() 
+!endif
+$()	  
+!if $m_step=2 
+$()	    
+!if $val14=2 and $val21=3 and $val28<>1/2  
+$()	      
+!if $val28<>0 and $val28<>1 
+$()	        $(val11[3;])?	        <div class="wimscenter"> 
+!read oef/embed.phtml r3 
+$()</div>	        <label for="reply2">$(val11[4;]):</label>	        <div class="wimscenter"> 
+!read oef/embed.phtml r2 
+$()</div>	       
+!endif
+$()	      
+!if $val14=2 and $val21=3 and ($val28=0 or $val28=1) 
+$()	        $(val11[5;])?	        <div class="wimscenter"> 
+!read oef/embed.phtml r3 
+$()</div>	       
+!endif
+$()	     
+!else
+$() 	    <label for="reply2">	    
+!if ($val14=1 and $val21=2) or ($val14=2 and $val21=3) or ($val14=2 and $val21=2) 
+$() 
+!else
+$() $(val11[6;]) 
+!endif
+$()	    
+!if ($val14=1 and $val21=2) or ($val14=2 and $val21=2) 
+$()$(val11[7;]) 
+!endif
+$()	    
+!if ($val14=2 and $val21=3) or ($val14=1 and $val21=4)  
+$()$(val11[8;]) 
+!endif
+$()	    </label><div class="wimscenter"> 
+!read oef/embed.phtml r2 
+$()</div>	     
+!endif
+$()	   
+!endif
+$()	</div></div>	
+$()
+!exit
+
+:hint
+$()$(val13[1;])!	  
+!if $val14=2 and $val21=3 
+$()$(val13[2;]) 
+!insmath z^2= r^2 sin^2($val19)
+$(). 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,14,15,19,21,22,23,24,27,28,34
+embedcnt=5

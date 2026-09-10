@@ -1,0 +1,151 @@
+!set title=Ranger 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=croissant,décroissant
+val7=
+val8=Choisir le symbole correct&nbsp;
+val7=Les nombres sont rangés en ordre 
+val9=\(\Large{<}\),\(\Large{>}\),\(\Large{=}\)
+tmp0=!values x/10 for x=1 to 99
+
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp0=!item 1 to 4 of $val10
+
+val10=$(tmp0)
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+!if $val11=1 
+tmp0=!sort numeric items $val10
+
+val10=$(tmp0)
+!else
+tmp0=!sort reverse numeric items $val10
+
+val10=$(tmp0)
+!endif
+val12=$(val10[1])
+val13=$(val10[2])
+val14=$(val10[3]) 
+val15=$(val10[4])
+val16=$(val9[$val11])
+tmp=!trim $val16	$(val9[3]),$(val9[2/$val11])
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val16	$(val9[3]),$(val9[2/$val11])
+val18=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val16	$(val9[3]),$(val9[2/$val11])
+val19=!translate internal $	\
+$ to ;; in $tmp
+val20=$[rint($val11)]
+val21=50x50
+val22=menu
+val23=
+replytype1=dragfill
+replyname1=
+replygood1=$val17
+replytype2=dragfill
+replyname2=
+replygood2=$val18
+replytype3=dragfill
+replyname3=
+replygood3=$val19
+replytype4=$val22
+
+replyname4=
+replygood4=$val20;$val6
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val8 \begin{center} $val12 \(\ldots\) $val13 \(\ldots\) $val14 \(\ldots\) $val15 \end{center} $val7 \(\ldots\) \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8:<div class="wimscenter">	$val12  
+!read oef/embed.phtml r1,$val21 
+$()	$val13  
+!read oef/embed.phtml r2,$val21 
+$()	$val14  
+!read oef/embed.phtml r3,$val21 
+$()	$val15	</div>	$val7  
+!read oef/embed.phtml r4,$val21 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val8 $m_begin{center} $val12 
+!insmath \ldots
+$() $val13 
+!insmath \ldots
+$() $val14 
+!insmath \ldots
+$() $val15 $m_end{center} $val7 
+!insmath \ldots
+$() $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,12,13,14,15,21
+embedcnt=4

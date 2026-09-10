@@ -1,0 +1,151 @@
+!set title=Expression analytique dans le plan
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss=<style> .enonce { margin:2% 2%; padding:1em;} </style> 
+
+ansorder=c
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 2
+
+val6=$[rint($(tmp0))]
+!if $val6=1 
+!readproc slib/matrix/orthogonal 2,10 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+!else
+!readproc slib/matrix/invertible 2,10 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!trim $(val7[1;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val7[2;])
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+t_=!replace internal \( by ( in print([$val8]*$val10)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val9]*$val11)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+val12=$[rint($(val8[1])*$(val9[1])+$(val8[2])*$(val9[2]))]
+
+!ifval $val12=0
+val6=$[rint(1)]
+!else
+val6=$[rint(2)]
+!endif
+
+!ifval $val6=1
+val13= orthogonaux
+!else
+val13=non orthogonaux
+!endif
+val14=orthogonaux,non orthogonaux
+val15=le produit scalaire vaut:<br>	 \(\overrightarrow{u}\cdot \overrightarrow{v})=\($(val8[1])\times($(val9[1]))+($(val8[2]))\times($(val9[2]))=$val12\)	<br>donc les vecteurs sont $val13
+choicename1=
+choicegood1=$val13
+choicebad1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst L'orthogonalité est assurée si le produit scalaire est nul!
+
+solution=!nosubst  $val15
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	Les vecteurs 
+!insmath \overrightarrow{u}
+$() et 
+!insmath \overrightarrow{v}
+$(),	 dont les coordonnées dans un repère orthonormal donné sont respectivement	 <div class="wimscenter">	 
+!insmath \overrightarrow{u}\left(\begin{array}{c} $(val8[1]) \\ $(val8[2]) \end{array}\right)
+$() ,	 
+!insmath \overrightarrow{v}\left(\begin{array}{c} $(val9[1]) \\ $(val9[2])\end{array}\right)
+$().	 </div>	 sont-ils orthogonaux ?	</div>	<div class="wims_question">	Les vecteurs sont  
+!read oef/embed.phtml choice1 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()L'orthogonalité est assurée si le produit scalaire est nul!
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() $val15
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,15
+embedcnt=1

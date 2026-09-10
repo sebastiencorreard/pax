@@ -1,0 +1,160 @@
+!set title=Choix opérations 3 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Philippe, Colpin
+email=jp.colpin@laposte.net
+computeanswer=no
+
+ansorder=r,r,r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 150, 200
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 150, 200
+
+val7=$[$val6 + $(tmp0)/100]
+tmp0=!randint 40, 60
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 200, 300
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 10, 20
+
+val10=$[rint($(tmp0))]
+val11=$[$val6 * $val9]
+val12=$[$val6 + $val9]
+val13=$[$val9-$val10]
+val14=$[$val8+$val10]
+val15=$[$val7+$val13]
+val16=$[$val11+$val8]
+val17=$[$val7*$val13]
+val18=$[$val7*$val9]
+val19=$[$val17-$val16]
+val20=$[$val18-$val16]
+val21=Un marchand de fruits de Cayenne achète $val9 kg de ramboutans à un producteur d'Iracoubo au prix de $val6 &euro; le kilogramme	et dépense $val8 &euro; pour les transporter. Il les vend au prix	de $val7&euro; le kilogramme; mais le ramboutan étant un produit périssable, il doit en jeter $val10 kg .	<p>Calcule le bénéfice réalisé par ce marchand de fruits.</p>	<ul><li>	Calcul du prix payé au producteur d'Iracoubo:?? $val6 x $val9 = $val11, $val6 + $val9 = $val12,$val9 - $val10 = $val13,$val8 + $val10 = $val14,$val11 + $val8 = $val16,$val7 x $val13 = $val17,$val17 - $val16 = $val19,$val7 + $val13 = $val15,$val7 x $val9 = $val18,$val18 - $val16 = $val20 ??&euro;.	</li><li>	Calcul du prix payé au producteur plus le transport:??$val11 + $val8 = $val16, $val6 x $val9 = $val11, $val6 + $val9 = $val12,$val9 - $val10 = $val13,$val8 + $val10 = $val14,$val7 x $val13 = $val17,$val17 - $val16 = $val19,$val7 + $val13 = $val15,$val7 x $val9 = $val18,$val18 - $val16 = $val20 ??&euro;.	</li><li>	Calcul du nombre de kg vendu:??$val9 - $val10 = $val13,$val11 + $val8 = $val16, $val6 x $val9 = $val11, $val6 + $val9 = $val12,$val8 + $val10 = $val14,$val7 x $val13 = $val17,$val17 - $val16 = $val19,$val7 + $val13 = $val15,$val7 x $val9 = $val18,$val18 - $val16= $val20?? kg.	</li><li>	Calcul de la recette:??$val7 x $val13 = $val17,$val9 - $val10 = $val13,$val11 + $val8 = $val16, $val6 x $val9 = $val11, $val6 + $val9 = $val12,$val8 + $val10 = $val14,$val17 - $val16 = $val19,$val7 + $val13 = $val15,$val7 x $val9 = $val18,$val18 - $val16 = $val20 ??&euro;.	</li><li>	Calcul du bénéfice:??$val17 - $val16 = $val19,$val9 - $val10 = $val13,$val11 + $val8 = $val16, $val6 x $val9 = $val11, $val6 + $val9 = $val12,$val8 + $val10 = $val14,$val7 x $val13 = $val17,$val7 + $val13 = $val15,$val7 x $val9 = $val18,$val18 - $val16 = $val20??&euro;.	</li></ul>	
+tmp0=!singlespace $val21
+
+val21=$(tmp0)
+tmp0=!embraced randitem $val21
+
+val21=$(tmp0)
+!readproc slib/text/cutchoice2 $val21 
+tmp0=$slib_out
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in $val21
+
+tmp0=!rowcnt $tmp
+val22=$[rint(min(20,floor($(tmp0)/2)))]
+val23=
+val24=
+!for val25 =1 to $val22 
+val26=$(val21[2*$val25;])
+val27=$(val26[1])
+tmp0=!sort items $val26
+
+val26=$(tmp0)
+tmp0=!positionof item $val27 in $val26
+
+val27=$(tmp0)
+val23=$val23$val27,
+val24=$val24$val26;
+!next
+tmp0=!embraced randitem \pre
+
+val28=$(tmp0)
+tmp0=!embraced randitem \post
+
+val29=$(tmp0)
+tmp0=!makelist reply x for x=1 to $val22
+
+val30=$(tmp0)
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Champ 1
+replygood1=$(val23[1]);$(val24[1;])
+replytype2=menu
+replyname2=Champ 2
+replygood2=$(val23[2]);$(val24[2;])
+replytype3=menu
+replyname3=Champ 3
+replygood3=$(val23[3]);$(val24[3;])
+replytype4=menu
+replyname4=Champ 4
+replygood4=$(val23[4]);$(val24[4;])
+replytype5=menu
+replyname5=Champ 5
+replygood5=$(val23[5]);$(val24[5;])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val21[1;])	 
+!for m_k=1 to $val22 
+$()	 
+!read oef/embed.phtml r \k,\len 
+$() $(val21[2*$m_k+1;])	 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,22
+embedcnt=1

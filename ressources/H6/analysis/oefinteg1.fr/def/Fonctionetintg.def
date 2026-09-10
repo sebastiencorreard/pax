@@ -1,0 +1,170 @@
+!set title=Fonction et intégrale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Michel, Gosse
+email=michel.gosse@ac-poitiers.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=c
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem $val6*sqrt($val7+$val8*x^2),$val6/($val7+$val8*x^2),	$val6*exp($val9*x^2),$val6*log(1+$val7+$val8*x^2)
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val10;
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+tmp0=!texmath $val10
+
+val11=$(tmp0)
+tmp0=!randint -10, 10
+
+val12=$[rint($(tmp0))]
+evaltmp=$val10
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val13=$[$(tmp0)]
+
+!ifval ($val13>0)
+val14=croissante
+!else
+val14=décroissante
+!endif
+
+!ifval ($val13>0)
+val15=>0
+!else
+val15=<0
+!endif
+
+!ifval ($val13>0)
+val16=,décroissante
+!else
+val16=croissante
+!endif
+t_=!replace internal \( by ( in subst(x=t,$val10);
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+choicename1=Sens :
+choicegood1=$val14
+choicebad1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction 
+!insmath F
+$() définie sur 
+!insmath \,\RR
+$() par&nbsp;:	<div class="wimscenter">	
+!insmath F(x)=integrate($val17,t=$val12, x)
+$()	</div>	Sur 
+!insmath \,\RR
+$(), la fonction 
+!insmath F
+$() est&nbsp;:	
+$()
+!exit
+
+:hint
+$()Par définition, la fonction 
+!insmath F
+$() désigne l'unique primitive sur 
+!insmath \,\RR
+$() de la fonction	<div class="wimscenter">	
+!insmath t \longmapsto $val18
+$()	</div>	qui s'annule en <span class="nowrap">
+!insmath $val12
+$().</span>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On peut dire que pour tout 
+!insmath x
+$() de <span class="nowrap">
+!insmath \,\RR
+$(),</span>	la dérivée de la fonction 
+!insmath F
+$() a pour expression&nbsp;:	<div class="wimscenter">	
+!insmath F^{'}(x)=$val11
+$()	</div>	Comme <span class="nowrap">
+!insmath F^{'}(x)$val15
+$(),</span> on en déduit que la fonction 
+!insmath F
+$() est $val14 sur <span class="nowrap">
+!insmath \,\RR
+$().</span>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14,15,17,18
+embedcnt=0

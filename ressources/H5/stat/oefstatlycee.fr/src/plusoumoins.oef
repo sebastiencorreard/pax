@@ -1,0 +1,121 @@
+\title{Effectifs cumulés et plus ou moins}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard} d'après un exo de Jean-jacques Kamdem Fodjo et Bernadette Perrin-Riou
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{nb=randint(5..6)}
+\integer{neff=randint(20..30)}
+\text{heure=wims(values x for x = 0 to \nb-1)}
+
+\text{eff=slib(stat/random \nb, 0,\neff)}
+
+\text{moy=item(1,slib(stat/arithmean [\heure],[\eff]))}
+\integer{moy=\moy*10}
+\real{moy=\moy/10}
+
+\text{liste=wims(sort  numeric item \eff)}
+\text{maxi=item( -1 ,  \liste)}
+\text{mini=item( 1 ,  \liste)}
+\real{etendue=\maxi-\mini}
+\real{S=slib(stat/sum \eff)}
+
+\integer{cas=random(1..4)}
+
+\integer{h=randint(2..\nb-1)}
+
+\real{N=0}
+\if{\cas=1 or \cas=4}
+  {\integer{hmax=\h-1}}
+  {\integer{hmax=\h}}
+ \for{i=1 to \hmax+1}{
+  \real{N=\N+item(\i,\eff)}
+  }
+
+\integer{h2=randint(2..\nb-1)}
+\real{N2=\S}
+\if{\cas=1 or \cas=2}
+  {\integer{h2max=\h2+1}}
+  {\integer{h2max=\h2}}
+\for{i=1 to \h2max}{
+  \real{N2=\N2-item(\i,\eff)}
+  }
+\if{\cas=1}
+  {
+  \text{quest1=moins de \h heures (au sens strict)}
+  \text{quest2=plus de \h2 heures (au sens strict)}
+  }  
+\if{\cas=2}
+  {
+  \text{quest1=au plus \h heures (au sens large)}
+  \text{quest2=plus de \h2 heures (au sens strict)}
+  }  
+\if{\cas=3}
+  {
+  \text{quest1=au plus \h heures (au sens large)}
+  \text{quest2=au moins \h2 heures (au sens large)}
+  }  
+\if{\cas=4}
+  {
+  \text{quest1=moins de \h heures (au sens strict)}
+  \text{quest2=au moins \h2 heures (au sens large)}
+  }  
+
+\text{table=<table class="wimscenter wimsborder" style="background-color:skyblue">
+	 <tr>} 
+\text{table=\table<th>nombres d'heures </th>}
+
+\for{a=0 to \nb-1}{
+\text{table=\table <td> \a </td>}
+}
+\text{table=\table </tr> <tr><th>effectif par heure </th>}
+
+\for{i=1 to \nb}{
+        
+	\text{c=item(\i,\eff)}
+	\text{table=\table <td> \c </td>}
+
+	}
+\text{table=\table </tr> 
+</table>}
+
+\real{S=\S*0.5}
+\real{M=item(1,\eff)}
+\for{i=1 to \nb}{
+\if{\M<\S}{\real{M=\M+item(\i+1,\eff)}
+  \integer{m=\i}}
+}
+
+
+\statement{<p>Voici les résultats d'une enquête sur le  nombre  d'heures passées devant la télévision par jour :</p>
+ \table 
+<p>
+Calculer  pour cette série statistique 
+ la moyenne  : \embed{reply 1, 6}
+</p>
+<p>
+Combien ont passé \quest1  devant l'écran
+ ? \embed{reply 2, 6}
+</p>
+
+<p>
+Combien ont passé \quest2 devant l'écran
+ ? \embed{reply 3, 6}
+</p>
+
+<p>
+Dans quelle classe se situe la médiane de la statistique ?
+\embed{reply 4,6}
+</p>
+<p>
+Le résultat de la moyenne sera donné avec une précision de \( 10^-1) (arrondi scientifique)
+</p>
+}
+
+\answer{Moyenne}{\moy}{type=numeric}
+\answer{ont passé \quest1}{\N}{type=numeric}
+\answer{ont passé \quest2}{\N2}{type=numeric}
+\answer{classe médiane}{\m}{type=numeric}

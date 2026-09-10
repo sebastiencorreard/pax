@@ -1,0 +1,264 @@
+!set title=Nature de la suite ? (numérique)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=sequence,geometric_sequence,arithmetic_sequence
+oefobservation=En fonction de la configuration de l'exercice sur le module, le vocabulaire utilisé est : <ul><li>Que celui des suites arithmétiques</li> <li>Que celui des suites géométriques</li> <li>Aléatoirement l'un ou l'autre</li> </ul> 
+
+ansorder=r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem A,G,AG
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+!if $val3 == A 
+val6=être arithmétique,ne pas être arithmétique, je n'en sais rien
+!endif
+!if $val3 == G 
+val6=ne pas être géométrique,être géométrique, je n'en sais rien
+!endif
+!if $val3 == AG 
+val6=être arithmétique, être géométrique, je n'en sais rien
+!endif
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp=!nonempty items P,R
+
+tmp1=!randitem $tmp
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+
+!ifval $val2= R 
+tmp0=!randitem -1,1,1,1
+
+val7=$[rint( $(tmp0))]
+!else
+val7=$[rint(1)]
+!endif
+
+!ifval $val2= R 
+tmp0=!randitem -1,1,1,1
+
+val8=$[rint( $(tmp0))]
+!else
+val8=$[rint(1)]
+!endif
+
+!ifval $val2= R 
+tmp0=!randitem -1,1,1
+
+val9=$[rint( $(tmp0))]
+!else
+val9=$[rint(1)]
+!endif
+
+!ifval $val2= R 
+tmp0=!randitem 8,8,-8
+
+val10=$[rint( $(tmp0))]
+!else
+val10=$[rint(1)]
+!endif
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+!if $val11=1 
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val13=$[rint($(tmp0))]
+val14=$val13
+!for val15 =1 to 5 
+val16=$[rint($val13+$val15*$val12)]
+val14=$val14,&nbsp;$val16
+!next
+!else
+tmp=!nonempty items 0.5,1.5,2,3,4,5,10,20
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)*$val7
+val12=!exec pari print($t_)
+
+!ifval ($val12>=2)
+tmp=!nonempty items 1,2,3
+
+tmp0=!randitem $tmp
+val13=$[rint( $(tmp0)*$val8)]
+!endif
+
+!ifval (floor($val12)=$val12)
+tmp0=!randint 1, 5
+
+val13=$[rint( $(tmp0)*$val9)]
+!else
+tmp1=!randint 1, 6
+
+val13=$[rint($val10*$(tmp1))]
+!endif
+val14=$val13
+!for val15 =1 to 5 
+val16=$[$val13*($val12)^$val15]
+val14=$val14,&nbsp;$val16
+!next
+!endif
+val17=$[rint(abs($val12))]
+tmp0=!replace internal , by  &nbsp;; in $val14
+
+val14=$(tmp0)
+!if $val3 == A 
+!if $val11=1 
+val18=reply 1	reply 2
+!endif
+!if $val11=2 
+val18=reply 1 
+!endif
+!endif
+!if $val3 == G 
+!if $val11=1 
+val18=reply 1
+!endif
+!if $val11=2 
+val18=reply 1	 reply 2
+!endif
+!endif
+!if $val3 == AG 
+val18=reply 1	reply 2
+!endif
+
+!ifval $val11=1
+val19=arithmétique
+!else
+val19=géométrique
+!endif
+oefsteps=$val18 
+nextstep=!nosubst $val18 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val11;$val6
+replytype2=numeric
+replyname2=
+replygood2=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici les premiers termes d'une suite 
+!insmath u
+$() : $val14.	<div class="wims_question">	
+!if $m_step=1 
+$()<p>	Conjecturer la <label for="reply1">nature de cette suite</label>.	</p>	<p>La suite 
+!insmath u
+$() semble  
+!read oef/embed.phtml r1 
+$().</p> 
+!endif
+$()	
+!if $m_step>1 
+$()	<p>La suite est $val19 de <label for="reply2">raison</label>  
+!read oef/embed.phtml r2,3 
+$().</p> 
+!endif
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On passe d'un terme au suivant en 	
+!if $val11=1 
+$()
+!if $val12>0 
+$()additionnant 
+!else
+$() soustrayant 
+!endif
+$()	$val17 donc la suite 
+!if $val3==A or $val3==AG 
+$() semble <b>arithmétique de raison $val12</b> 
+!else
+$() ne semble pas être géométrique 
+!endif
+$() 
+!endif
+$()	
+!if $val11=2 
+$()multipliant par $val12 donc la suite 
+!if $val3==G or $val3==AG 
+$()semble <b>géométrique de raison $val12</b> 
+!else
+$() ne sembe pas être arithmétique 
+!endif
+$()	 
+!endif
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,11,12,14,17,19
+embedcnt=2

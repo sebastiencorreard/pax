@@ -1,0 +1,260 @@
+!set title=H. Probabilité conditionnelle et arbre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=conditional_probability
+author=Régine, Mangeard
+computeanswer=no
+oefdescription=Trouver une probabilité conditionnelle à partir d'un arbre pondéré de probabilités
+
+ansorder=r
+varcnt=66
+prevarcnt=64
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(4)]
+
+!ifval $val2=1 
+val6=$[rint( 1)]
+!endif
+
+!ifval $val2=2 
+val6=$[rint( 2)]
+!endif
+
+!ifval $val2=3 
+val6=$[rint( 4)]
+!endif
+tmp0=!randint 1, 7
+
+val7=$[rint($(tmp0))]
+!if $val7=1 
+tmp=!trim 1,2,3	2,4,5,6	3,7,8,9
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,B1,B2,B3,B1,B2,B3
+!endif
+!if $val7=2 
+tmp=!trim 1,2,3	2,4,5	3,6,7,8
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,B1,B2,B1,B2,B3
+!endif
+!if $val7=3 
+tmp=!trim 1,2,3	2,4,5,6	3,7,8,9,10
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,B1,B2,B3,B1,B2,B3,B4
+!endif
+!if $val7=4 
+tmp=!trim 1,2,3,4	2,5,6	3,7,8	4,9,10
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,A3,B1,B2,B1,B2,B1,B2
+!endif
+!if $val7=5 
+tmp=!trim 1,2,3,4	2,5,6,7	3,8,9,10	4,11,12,13
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,A3,B1,B2,B3,B1,B2,B3,B1,B2,B3
+!endif
+!if $val7=6 
+tmp=!trim 1,2,3,4	2,5,6,7	3,8,9	4,10,11,12
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,A3,B1,B2,B3,B1,B2,B1,B2,B3
+!endif
+!if $val7=7 
+tmp=!trim 1,2,3,4	2,5,6	3,7,8,9	4,10,11,12
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=*,A1,A2,A3,B1,B2,B1,B2,B3,B1,B2,B3
+!endif
+val10=
+tmp=!translate internal $	$ to ; in $val8
+
+tmp0=!rowcnt $tmp
+val11=$(tmp0)
+!for val12 =2 to $val11 
+val13=$(val8[$val12;2..-1])
+!for val14  in $val13 
+tmp=!trim $val10	$val12,$val14
+val10=!translate internal $	\
+$ to ;; in $tmp
+!next
+!next
+tmp=!nonempty items 10,20,50
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+val16=0
+!for val12 =1 to $val11 
+tmp0=!itemcnt $(val8[$val12;])
+
+val17=$[rint($(tmp0)-1)]
+tmp0=!makelist 1/$val17 for x = 1 to $val17-1
+
+val18=$(tmp0)
+!readproc slib/stat/multinomial 1,$val15, [$val18] 
+tmp0=$slib_out
+val16=$val16,$(tmp0)
+!next
+t_=!replace internal \( by ( in 1.*[$val16]/$val15
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+!readproc slib/graph/drawtree [$val8],[[$val9],[$val16]],middle point 
+tmp0=$slib_out
+val19=$(tmp0)
+tmp0=!declosing $(val19[1])
+
+val20=$(tmp0)
+val21=$(val19[3])
+val22=$(val19[4])
+tmp0=!declosing $val21
+
+tmp=!trim $(tmp0)
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val22
+
+tmp=!trim $(tmp0)
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem 1,2
+
+val23=$[rint($(tmp0))]
+!if $val23=1 
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val24=$[rint($(tmp1))]
+val25=$[rint($(val10[$val24;1]))]
+val26=$[rint($(val10[$val24;2]))]
+val27=$(val9[$val26])
+val28=$(val9[$val25])
+val29=$[$(val16[$val26])]
+val30=Cette probabilité conditionnelle se lit directement sur l'arbre, c'est celle indiquée sur la branche reliant	$(val9[$val25]) à $(val9[$val26]).
+!else
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val24=$[rint($(tmp1))]
+val25=$[rint($(val10[$val24;1]))]
+val26=$[rint($(val10[$val24;2]))]
+val27=$(val9[$val25])
+val28=$(val9[$val26])
+val31=$[$(val16[$val26])*$(val16[$val25])]
+tmp0=!positionof item $(val9[$val26]) in $val9
+
+val32=$(tmp0)
+val33=$[0]
+val30=Cette probabilité ne se lit pas directement sur l'arbre. <br />	  Il faut d'abord calculer \(P($(val9[$val25]) \cap $(val9[$val26]))=$(val16[$val26])\times $(val16[$val25])=$val31\).<br />	  Puis calculer 
+val34=
+!for val35  in $val32 
+!for val36 =2 to $val11 
+!if $val35 isitemof $(val8[$val36;]) 
+tmp0=!positionof item $val35 in $(val8[$val36;])
+
+val37=$[rint($(val8[$val36;$(tmp0)-1]))]
+val33=$[$val33+$(val16[$val36])*$(val16[$val35])]
+tmp0=!append item $(val16[$val36])\times $(val16[$val35]) to $val34
+
+val34=$(tmp0)
+!endif
+!next
+!next
+tmp0=!replace internal , by + in $val34
+
+val34=$(tmp0)
+val29=$[round(100*$val31/$val33)/100]
+val30=$val30 \(P($(val9[$val26]))=$val34=$val33\).<p>	  On obtient alors la probabilité cherchée : \(P_{$val28}($val27) = \frac{$val31}{$val33}\simeq $val29\).	</p>
+!endif
+replytype1=numeric
+replyname1=Probabilité de \(F\)
+replygood1=$[$val29]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val30
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	  Voici un arbre pondéré de probabilités.	</p>	<p class="wimscenter"> 
+!read oef/draw.phtml 700,200 \
+$val20 
+$()</p>	<div class="wims_question">	  Calculer la probabilité conditionnelle de l'événement $val27 sachant $val28 :	<div class="wimscenter"><label for="reply1">
+!insmath P_{$val28}($val27) = 
+$()</label> 
+!read oef/embed.phtml reply1,5 
+$()</div>	</div>	<div class="wims_instruction">Arrondir la probabilité à 
+!insmath 10^{-2}
+$() près.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val30
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!randitem 1,2
+
+val24=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,27,28,30
+embedcnt=1

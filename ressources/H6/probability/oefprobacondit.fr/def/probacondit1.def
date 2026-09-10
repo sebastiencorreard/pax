@@ -1,0 +1,328 @@
+!set title=Probabilité conditionnelle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=Sophie.Lemaire@universite-paris-saclay.fr
+keywords=conditional_probability
+language=fr
+computeanswer=no
+oefdescription=en renouvelant l'exercice, les données de l'énoncé et la probabilité à calculer peuvent changer.
+oefobservation=suivant les données de l'énoncé, il y a 5 à 6 types possibles de probabilités à calculer.
+precision=1000
+
+ansorder=r
+varcnt=102
+prevarcnt=95
+postvarcnt=6
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2=  
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val7=$[rint($(tmp0))]
+!else
+!if $val2=1 
+tmp0=!randint 1, 2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val7=$[rint($(tmp0))]
+!else
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+
+!ifval $val2=2 
+tmp0=!randint 1, 3
+
+val7=$[rint( $(tmp0) )]
+!else
+tmp1=!randint 4, 6
+
+val7=$[rint($(tmp1))]
+!endif
+!endif
+!endif
+val8=P ( A )
+val9=P ( B )
+val10=P( A cap B)
+!if $val3 issametext oui 
+val11=P_{A} ( B )
+val12=P_{\bar{A}}( B )
+val13=P_{B} ( A )
+val14=P_{\bar{B}}( A )
+val15=P (A \cap \bar{B} )
+val16=P (\bar{A} \cap B )
+val17=P (\bar{A} \cap \bar{B} )
+!else
+val11=P ( B | A )
+val12=P( B | A ^c )
+val13=P( A | B )
+val14=P( A | B ^c )
+val15=P (A cap B^c )
+val16=P (A^c cap B )
+val17=P (A^c cap B^c )
+!endif
+!if $val6=1 
+val18=$val8
+val19=$val9
+val20=$val13
+val21=$val11,$val10,$val16,$val15,$val12,$val14
+val22=[bsa,aeb,aceb,aebc,bsac,asbc]
+val23=p
+val24=q
+val25=r
+val26=bsa
+val27=aeb
+val28=aceb
+val29=aebc
+val30=bsac
+val31=asbc
+!endif
+!if $val6=2 
+val18=$val8
+val19=$val9
+val20=$val11
+val21=$val13,$val10,$val16,$val15,$val12,$val14
+val22=[asb,aeb,aceb,aebc,bsac,asbc]
+val23=p
+val24=q
+val26=r
+val25=asb
+val27=aeb
+val28=aceb
+val29=aebc
+val30=bsac
+val31=asbc
+!endif
+!if $val6=3 
+val18=$val8
+val19=$val11
+val20=$val12
+val21=$val10,$val16,$val15,$val13,$val9,$val14
+val22=[aeb,aceb,aebc,asb,b,asbc]
+val23=p
+val26=q
+val30=r
+val24=b
+val25=asb
+val27=aeb
+val28=aceb
+val29=aebc
+val31=asbc
+!endif
+!if $val6=4 
+val18=$val9
+val19=$val13
+val20=$val14
+val21=$val10,$val16,$val15,$val11,$val8,$val12
+val22=[aeb,aceb,aebc,bsa,a,bsac]
+val23=a
+val25=q
+val31=r
+val24=p
+val26=bsa
+val27=aeb
+val28=aceb
+val29=aebc
+val30=bsac
+!endif
+tmp0=!item $val7 of $val21
+
+val32=$(tmp0)
+t_=!replace internal \( by ( in algsys([$val23*$val26=$val25*$val24,$val23*$val26=$val27,$val25*$val24=$val27,	$val28=$val24-$val27,$val29=$val23-$val27,$val30=$val28/(1-$val23),$val31=$val29/(1-$val24)],$val22)
+tmp0=!exec maxima $t_
+
+tmp=!trim $(tmp0)
+val33=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val33
+
+val34=$(tmp0)
+tmp0=!item $val7 of $val34
+
+val35=$(tmp0)
+tmp0=!declosing $val22
+
+val36=$(tmp0)
+tmp0=!item $val7 of $val36
+
+val37=$(tmp0)
+tmp0=!replace internal $val37 by in $val35
+
+val35=$(tmp0)
+tmp0=!replace internal ; by in $val35
+
+val35=$(tmp0)
+tmp0=!replace internal = by in $val35
+
+val38=$(tmp0)
+tmp0=!texmath $val38
+
+val39=$(tmp0)
+tmp0=!replace internal p by $val18 in $val38
+
+val40=$(tmp0)
+tmp0=!replace internal q by $val19 in $val40
+
+val40=$(tmp0)
+tmp0=!replace internal r by $val20 in $val40
+
+val40=$(tmp0)
+tmp0=!replace internal | by \mid in $val40
+
+val40=$(tmp0)
+tmp0=!replace internal * by in $val40
+
+val40=$(tmp0)
+tmp0=!record 1 of notations
+
+tmp1=!record 2 of notations
+
+val41=$(tmp0)<p>$(tmp1)</p>
+replytype1=formal
+replyoption1=noanalyzeprint 
+replyname1=\($val32\)
+replygood1=$val38
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val41
+
+
+!goto stat
+
+!exit
+
+:question
+$()On considère une expérience aléatoire dont l'ensemble des résultats est noté 
+!insmath \Omega
+$().	On note 
+!insmath P
+$() une probabilité sur 
+!insmath \Omega
+$() associée à cette expérience aléatoire.	On s'intéresse à deux événements 
+!insmath A
+$() et 
+!insmath B
+$() qui ont une probabilité strictement comprise entre 0 et 1 d'être réalisés.	On suppose connu <div class="wimscenter">
+!insmath p = $val18
+$(), 
+!insmath q = $val19
+$() et 
+!insmath r = $val20
+$().</div>	<div class="wims_question">	Donner l'expression de 
+!insmath $val32
+$() en fonction de 
+!insmath p
+$(), 
+!insmath q
+$() et 
+!insmath r
+$().	<div class="wimscenter"><label for="reply1">
+!insmath $val32
+$() = </label>  
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wims_instruction" style="font-style:italic;"> Ne pas oublier de mettre l'opérateur * pour multiplier deux expressions.</div>	</div> 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val41
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_sc_reply1=1 
+tmp0=!replace internal p by $val18 in $m_reply1
+
+val42=$(tmp0)
+tmp0=!replace internal q by $val19 in $val42
+
+val42=$(tmp0)
+tmp0=!replace internal r by $val20 in $val42
+
+val42=$(tmp0)
+tmp0=!replace internal | by \vert in $val42
+
+val42=$(tmp0)
+tmp0=!replace internal * by in $val42
+
+val42=$(tmp0)
+!else
+val42=$val40
+!endif
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1=1
+ <div class='oef_feedbacks'>
+!insmath $val32
+$() = 
+!insmath $m_reply1
+$() = 
+!insmath $val42
+$().
+$()</div>
+!endif
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'>La probabilité 
+!insmath $val32
+$() n'est pas égale à $m_reply1.	 Avec les notations de l'exercice, 
+!insmath $val32
+$() peut s'écrire $val38. Autrement dit,	  <div class="wimscenter">
+!insmath $val32
+$() = 
+!insmath  $val39
+$() = 
+!insmath  $val42
+$().</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,20,32,38,39,40,41
+embedcnt=1

@@ -1,0 +1,44 @@
+\title{分式的界 I}
+\author{Gang Xiao}
+\email{xiao@unice.fr}
+\language{en}
+\options{nofloat}
+\text{rmeth=randitem(ineq/trans,ineq/addineq)}
+\methods{ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/divexp,
+ineq/obvineq, \rmeth, ineq/mulineq,
+ineq/sqrpos,exp/rewrite}
+\minsteps{5}
+\variables{x}
+
+\integer{a=random(1..20)*random(-1,1)}
+\integer{b=random(2..20)}
+\integer{c=random(2..10)*random(-1,1)}
+\function{fn=(\c*x+\a)/(x^2+\b)}
+
+\integer{orient=random(1,2)}
+\text{sens=item(\orient,<,>)}
+\text{osens=item(\orient,>,<)}
+\text{orer=item(\orient,上界,下界)}
+\text{orant=item(\orient,上界,下界)}
+
+\statement{对于 \(x in RR), 用整数给出函数 \(f(x) = \fn) 的\orer.
+}
+
+\text{cut=mathexp_cut(不等式 \newobject)}
+\integer{test=items(\cut)}
+\if{\test=3}{
+ \text{eq==}
+ \text{sign=item(2,\cut)}
+ \if{\sign iswordof \sens \sens\eq}{
+  \text{left=item(1,\cut)}
+  \text{right=item(3,\cut)}
+ }
+ \if{\sign iswordof \osens \osens\eq}{
+  \text{left=item(3,\cut)}
+  \text{right=item(1,\cut)}
+ }
+ \text{rtest=yacas(IsInteger(\right))}
+ \text{ltest=yacas(Simplify((\fn)-(\left)))}
+}
+
+\condition{\ltest issametext 0 and \rtest issametext true}

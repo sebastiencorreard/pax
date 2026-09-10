@@ -1,0 +1,206 @@
+!set title=Transformation d'écriture 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+
+ansorder=r,r,r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0)*2+1)]
+val7=$[rint(2*$val6)]
+val8=0,1/6,1/4,1/3,1/2,2/3,3/4,5/6,1,-5/6,-3/4,-2/3,-1/2,-1/3,-1/4,-1/6
+val9=1,sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1,-sqrt(3)/2,-sqrt(2)/2,-1/2,0,1/2,sqrt(2)/2,sqrt(3)/2
+val10=$val6,\frac{$val6 \sqrt{3}}{2},\frac{$val6 \sqrt{2}}{2},\frac{$val6}{2},,-\frac{$val6}{2},-\frac{$val6 \sqrt{2}}{2},-\frac{$val6 \sqrt{3}}{2},-$val6,-\frac{$val6 \sqrt{3}}{2},-\frac{$val6 \sqrt{2}}{2},-\frac{$val6}{2},,\frac{$val6}{2},\frac{$val6 \sqrt{2}}{2},\frac{$val6 \sqrt{3}}{2}
+val11=$val7,$val6 \sqrt{3},$val6 \sqrt{2},$val6,,-$val6,-$val6 \sqrt{2},-$val6 \sqrt{3},-$val7,-$val6 \sqrt{3},-$val6 \sqrt{2},-$val6,,$val6,$val6 \sqrt{2},$val6 \sqrt{3}
+val12=$val7 \sqrt{2},$val6 \sqrt{6},$val7,$val6 \sqrt{2},,-$val6 \sqrt{2},-$val7 ,-$val6 \sqrt{6},-$val7 \sqrt{2},-$val6 \sqrt{6},-$val7 ,-$val6 \sqrt{2},,$val6 \sqrt{2},$val7 ,$val6 \sqrt{6}
+val13=0,1/2,sqrt(2)/2,sqrt(3)/2,0,sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1,-sqrt(3)/2,-sqrt(2)/2,-1/2
+val14=0,\frac{$val6}{2},\frac{$val6 \sqrt{2}}{2},\frac{$val6 \sqrt{3}}{2},$val6,\frac{$val6 \sqrt{3}}{2},\frac{$val6 \sqrt{2}}{2},\frac{$val6}{2},0,-\frac{$val6}{2},-\frac{$val6 \sqrt{2}}{2},-\frac{$val6 \sqrt{3}}{2},-$val6,-\frac{$val6 \sqrt{3}}{2},-\frac{$val6 \sqrt{2}}{2},-\frac{$val6}{2}
+val15=0,$val6,$val6 \sqrt{2},$val6 \sqrt{3},$val7,$val6 \sqrt{3},$val6 \sqrt{2},$val6,0,-$val6,-$val6 \sqrt{2},-$val6 \sqrt{3},-$val7,-$val6 \sqrt{3},-$val6 \sqrt{2},-$val6
+val16=0,$val6 \sqrt{2},$val7 ,$val6 \sqrt{6},$val7 \sqrt{2},$val6 \sqrt{6},$val7 ,$val6 \sqrt{2},0,-$val6 \sqrt{2},-$val7 ,-$val6 \sqrt{6},-$val7 \sqrt{2},-$val6 \sqrt{6},-$val7 ,-$val6 \sqrt{2}
+tmp0=!itemcnt $val8
+
+tmp1=!randint 1, $(tmp0)
+
+val17=$[rint($(tmp1))]
+t_=!rawmath $(val8[$val17])
+val18=!exec pari print($t_)
+t_=!rawmath abs($val18)
+val19=!exec pari print($t_)
+val20=$[($val18)*pi]
+
+!ifval $val18=1
+val21= \pi
+!else
+tmp0=!texmath $val18
+
+val21=$(tmp0)\pi
+!endif
+
+!ifval $val18=-1
+val21=-\pi
+!endif
+
+!ifval $val18=1
+val22=\imath \pi
+!else
+tmp0=!texmath $val18
+
+val22=\imath $(tmp0)\pi
+!endif
+
+!ifval $val18<0
+tmp0=!texmath $val19
+
+val22=-\imath $(tmp0) \pi
+!endif
+
+!ifval $val18=-1
+val22=-\imath \pi
+!endif
+
+!ifval $val18=0
+val23= 
+!else
+val23=e^{\displaystyle{$val22}}
+!endif
+tmp0=!randint 1, 3
+
+val24=$[rint($(tmp0))]
+!if $val24=1 
+val25=$(val10[$val17])
+val26=$(val14[$val17])
+val27=$[$val6]
+val28=$val6
+!endif
+!if $val24=2 
+val25=$(val11[$val17])
+val26=$(val15[$val17])
+val27=$[$val7]
+val28=$val7
+!endif
+!if $val24=3 
+val25=$(val12[$val17])
+val26=$(val16[$val17])
+val27=$val7*sqrt(2)
+val28=$val7 \sqrt{2}
+!endif
+
+!ifval $val17<10
+val29=+
+!else
+val29=
+!endif
+
+!ifval $val26 issametext 0
+val30=$val25
+!else
+val30=$val25 $val29 $val26 \imath
+!endif
+val31=exponentielle
+replytype1=formal
+replyname1=module
+replygood1=$val27
+replytype2=numeric
+replyname2=Argument
+replygood2=$[$val20]
+replytype3=formal
+replyname3=
+replygood3=$val27
+replytype4=numeric
+replyname4=
+replygood4=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On veut déterminer la forme $val31 du nombre complexe 
+!insmath z=$val30
+$().</p>	<ol>	<li>Calculer son module: <label for="reply1">
+!insmath |z|
+$() =</label>  
+!read oef/embed.phtml reply1,5 
+$().</li>	<li>Donner son argument principal (appartenant à &#93;
+!insmath \pi;\pi
+$()&#93;):	  <label for="reply2">
+!insmath Arg(z)=
+$()</label> 
+!read oef/embed.phtml reply2,5 
+$().	<div class="wims_instruction">Taper <span class="tt">pi</span> pour 
+!insmath \pi
+$().</div>	</li>	<li> En déduire la forme $val31 de 
+!insmath z
+$():	<div class="wimscenter"><label for="reply3">
+!insmath z
+$()=</label> 
+!read oef/embed.phtml reply3,4 
+$() e <sup>
+!insmath \imath
+$() 
+!read oef/embed.phtml reply4,4 
+$()</sup></div>	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La forme $val31 est 
+!insmath z=$val28$val23
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=23,28,30,31
+embedcnt=4

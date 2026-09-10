@@ -1,0 +1,185 @@
+!set title=Charge d'un condensateur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=10
+
+ansorder=r,r
+varcnt=52
+prevarcnt=51
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=!rawmath 1-exp(-temps/tau)
+tmp0=!random -3, -2
+
+val7=$[$(tmp0)]
+val8=$[round(100000*10^$val7)/100000]
+tmp0=!randitem 10000,33000,47000,56000,100000
+
+val9=$[$(tmp0)]
+val10=$[$val8/$val9]
+val11=$[3.1415927]
+val12=$[rint(300)]
+val13=$[rint($val12/4)]
+val14=$[rint($val13/2)]
+val15=$[8*$val11/10]
+val16=$[1*$val11/10]
+val17=51,51,51
+val18=hline 0, $val12/10 ,$val17	hline 0, 2*$val12/10 ,$val17	hline 0, 3*$val12/10 ,$val17	hline 0, 4*$val12/10 ,$val17	hline 0, 5*$val12/10 ,white	hline 0, 6*$val12/10 ,$val17	hline 0, 7*$val12/10 ,$val17	hline 0, 8*$val12/10 ,$val17	hline 0, 9*$val12/10 ,$val17	vline $val12/10, 0 ,$val17	vline 2*$val12/10, 0 ,$val17	vline 3*$val12/10, 0 ,$val17	vline 4*$val12/10, 0 ,$val17	vline 5*$val12/10, 0 ,white	vline 6*$val12/10, 0 ,$val17	vline 7*$val12/10, 0 ,$val17	vline 8*$val12/10, 0 ,$val17	vline 9*$val12/10, 0 ,$val17	
+val19=0.1,0.05,0.02,0.01,0.005,0.002,0.001,0.0005
+val20=100 ms/c, 50 ms/c, 20 ms/c, 10 ms/c, 5 ms/c, 2 ms/c, 1 ms/c, 500 us/c
+!for val21 =1 to 8 
+val22=$[$val12/10/$(val19[$val21])]
+tmp0=!replace tau by $val8 in $val6
+
+val23=!rawmath $val12*(1-($(tmp0)))
+tmp0=!replace internal temps by x/$val22 in $val23
+
+val23=!rawmath $(tmp0)
+val24=!rawmath $val12*(1-x/$val22/$val8)
+!readproc oef/draw.phtml $val12, $val12 \
+    fill $val12/2,$val12/2,black	    $val18	    plot green, $val23	    plot darkslategrey, $val24	    
+tmp0=$ins_url
+val25=$(tmp0)	  
+val26=$[$val15+($val16-$val15)/8*($val21-1)]
+val27=$[1.8]
+val28=$[8]
+!for val29 =1 to 8 
+val30=$[$val15+($val16-$val15)/8*($val29-1)]
+val31=$[cos($val30)]
+val32=$[sin($val30)]
+val33=$[$val13/2+($val13/$val27/2+4)*$val31]
+val34=$[$val13/2-($val13/$val27/2+4)*$val32]
+val35=$[$val13/2+($val13/$val27/2+9)*$val31]
+val36=$[$val13/2-($val13/$val27/2+9)*$val32]
+!if j=1 
+val37=segment $val33,$val34,$val35,$val36,grey
+!else
+val37=$val37	                      segment $val33,$val34,$val35,$val36,black
+!endif
+!next
+val31=$[cos($val26)]
+val32=$[sin($val26)]
+val38=$[$val13/2+($val13/$val27/2-4)*$val31]
+val39=$[$val13/2-($val13/$val27/2-4)*$val32]
+val40=$[$val13/2-($val13/$val27/2-4)*$val31]
+val41=$[$val13/2+($val13/$val27/2-4)*$val32]
+val33=$[$val13/2+($val13/$val27/2+$val28)*$val31]
+val34=$[$val13/2-($val13/$val27/2+$val28)*$val32]
+val35=$[$val13/2+($val13/$val27/2)*$val31+$val28/2*$val32]
+val36=$[$val13/2-($val13/$val27/2)*$val32+$val28/2*$val31]
+val42=$[$val13/2+($val13/$val27/2)*$val31-$val28/2*$val32]
+val43=$[$val13/2-($val13/$val27/2)*$val32-$val28/2*$val31]
+!readproc oef/draw.phtml $val13, $val13 \
+    fcircle $val13/2, $val13/2, $val13/$val27+3, black	    fpoly black,$val33,$val34,$val35,$val36,$val42,$val43	    fcircle $val13/2, $val13/2, $val13/$val27, slategrey	    segment $val38, $val39, $val40, $val41, white	    fcircle $val38, $val39, 5, red	    $val37	    text black, 10, $val13-15, medium, $(val20[$val21])	    text blue, 10,0,medium, -	    text blue, $val13-15,0,medium, +	    
+tmp0=$ins_url
+val44=$(tmp0)	  
+!if $val21=1 
+val45=$val25
+val46=$val44
+!else
+val45=$val45 , $val25
+val46=$val46, $val44
+!endif
+!next
+replytype1=units
+replyname1=-
+replygood1=$val8 s
+replytype2=units
+replyname2=-
+replygood2=$val10 F
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<script language="javascript" type="text/javascript">	  var ecran = new Array(8);	  var bouton = new Array(8);	  var choix = 0;	  var basetemps = new Array(8);	 
+!for m_k=1 to 8 
+$()	 /* this is a bug from wims 3.32 (12 October 2003) : var j is not usable !!! */	 ecran[$m_k-1] = '$(val45[$m_k])';	 
+!next
+$()	 
+!for m_l=1 to 8 
+$()	 bouton[$m_l-1] = '$(val46[$m_l])';	 
+!next
+$()	 
+!for m_m=1 to 8 
+$()	 basetemps[$m_m-1] = '$(val20[$m_m])';	 
+!next
+$()		  function inc_choix(){	    if (choix < 7){	      choix = choix + 1;	    }	  }		  function dec_choix(){	    if (choix > 0){	      choix = choix - 1;	    }	  }	  function redraw(){	      document.images['ecran'].src=ecran[choix];	      document.images['bouton'].src=bouton[choix];	  }	</script>	<map name="map1">	  <area shape="rect" coords="0,0,$val14,$val13" 	    alt=  "tourne à gauche"	    title="tourne à gauche" 	    self.status="tourne à gauche"	    href="javascript:dec_choix();redraw();">	  <area shape="rect" coords="$val14,0,$val13,$val13" 	    alt=  "tourne à droite"	    title="tourne à droite" 	    self.status="tourne à droite"	    href="javascript:inc_choix();redraw();">	</map>	Un condensateur de capacité C est chargé au travers d'une résistance R 	( $val9 
+!insmath Omega
+$()). 	Voici l'oscillogramme enregistrant la tension du condensateur. <br>	<table><tr>	<td><img src="$(val45[1])" name="ecran"></td>	<td align="center">	<font size="-2"><i>Réglez la base de temps 	<br>de l'oscillogramme	<br> avec les boutons + et -</i></font><br>	<br><img src='$(val46[1])' name='bouton' border='0' usemap='#map1'>	<br><b>Base de temps</b>	</td>	</tr></table>	<table><tr>	<td align="right">&Eacute;valuez le temps de relaxation 
+!insmath tau
+$() : </td>	<td> 
+!read oef/embed.phtml reply 1 
+$() </td>	</tr><tr>	<td align='right'>Puis calculez la valeur de la capacité C : </td>	<td> 
+!read oef/embed.phtml reply 2 
+$() </td>	</tr></table>	
+$()
+!exit
+
+:hint
+$() 	<p>Le temps de relaxation se calcule selon : 
+!insmath tau
+$() = R 
+!insmath times
+$() C<p>	L'écart entre la tension instantanée du condensateur et sa limite est	divisé par 2 au bout d'une durée 0,69 
+!insmath times
+$() 
+!insmath tau
+$().<p>	La tangente à la courbe à l'instant t=0 coupe l'asymptote à l'abscisse	t = 
+!insmath tau
+$().<p>	Quelquefois, le temps de montée de la tension est si court qu'on ne voit	rien sur l'oscillogramme, tant que la base de temps n'est pas bien	réglée.	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,13,14,20,45,46
+embedcnt=2

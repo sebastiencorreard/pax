@@ -1,0 +1,197 @@
+!set title=Travail d'une force (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 12, 35
+
+val6=$[$(tmp0)/10]
+!readproc slib/text/sigunits $val6 N,2 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!randint -179, 180
+
+val8=$[$(tmp0)]
+val9=$[$val8/180*pi]
+val10=(param-0.5)^2,param-0.5;	cos(pi*param),sin(pi*param);	2*(param-0.5),0.6*sin(2*(param*pi));	cos(3*pi*param),param-0.5+0.6*sin(3*pi*param);	cos(5*pi*param),param-0.5+0.6*sin(3*pi*param);	param-0.5,param-0.5+0.4*cos(10*param)	
+tmp0=!randrow $val10
+
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val12=!rawmath $(tmp0)
+tmp0=!item 2 of $val11
+
+val13=!rawmath $(tmp0)
+tmp0=!replace param by 0 in $val12
+
+val14=$(tmp0)
+tmp0=!eval $val14
+
+val14=$[$(tmp0)]
+tmp0=!replace param by 0 in $val13
+
+val15=$(tmp0)
+tmp0=!eval $val15
+
+val15=$[$(tmp0)]
+tmp0=!replace param by s in $val12
+
+val16=$(tmp0)
+tmp0=!replace param by t in $val12
+
+val17=$(tmp0)
+tmp0=!replace param by 1 in $val12
+
+val18=$(tmp0)
+tmp0=!eval $val18
+
+val18=$[$(tmp0)]
+tmp0=!replace param by 1 in $val13
+
+val19=$(tmp0)
+tmp0=!eval $val19
+
+val19=$[$(tmp0)]
+tmp0=!replace param by s in $val13
+
+val20=$(tmp0)
+tmp0=!replace param by t in $val13
+
+val21=$(tmp0)
+val22=$[0.35]
+val23=$[0.2 ]
+val24=$[3]
+val25=$[$val22*$val6*cos($val9)]
+val26=$[$val22*$val6*sin($val9)]
+val27=$[$val25+$val23*cos($val9+pi)+$val23/$val24*cos($val9+pi/2)]
+val28=$[$val26+$val23*sin($val9+pi)+$val23/$val24*sin($val9+pi/2)]
+val29=$[$val25+$val23*cos($val9+pi)+$val23/$val24*cos($val9-pi/2)]
+val30=$[$val26+$val23*sin($val9+pi)+$val23/$val24*sin($val9-pi/2)]
+val31=$[$val6*cos($val9)]
+!readproc slib/text/sigunits $val31,2 
+tmp0=$slib_out
+val31=$(tmp0)
+!readproc slib/text/sigunits $val31 N,2 
+tmp0=$slib_out
+val32=$(tmp0)
+val33=$[$val6*sin($val9)]
+!readproc slib/text/sigunits $val33,2 
+tmp0=$slib_out
+val33=$(tmp0)
+!readproc slib/text/sigunits $val33 N,2 
+tmp0=$slib_out
+val34=$(tmp0)
+!readproc slib/text/sigunits $val14,2 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/text/sigunits $val15,2 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/text/sigunits $val18,2 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/text/sigunits $val19,2 
+tmp0=$slib_out
+val38=$(tmp0)
+val39=$[$val31*($val37-$val35)+$val33*($val38-$val36)]
+!readproc slib/text/sigunits $val39 J,2 
+tmp0=$slib_out
+val40=$(tmp0)
+val41=animate 50,0.04,0	xrange -1.5,1.5	yrange -1.5,1.5	linewidth 7	point $val14,$val15, blue	text black,$val14,$val15,medium,A	point $val18,$val19, blue	text black,$val18,$val19,medium,B	linewidth 1	plot blue,$val17,$val21	linewidth 7	point $val16, $val20, red	text black,$val16, $val20, medium, M	linewidth 2	segment $val16,$val20,$val16+$val25, $val20+$val26, red	segment $val16+$val25, $val20+$val26, $val16+$val27, $val20+$val28, red	segment $val16+$val25, $val20+$val26, $val16+$val29, $val20+$val30, red	
+!readproc slib/text/matrixtex [x_1;y_1] 
+tmp0=$slib_out
+val42=$(tmp0)
+!readproc slib/text/matrixtex [x_2;y_2] 
+tmp0=$slib_out
+val43=$(tmp0)
+val44=$[rint(0)]
+replytype1=sigunits
+replyname1=
+replygood1=$val40
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val44=1 
+$()	<div style="font-size:80%;background:lightyellow; border:1px solid black;">	<h3>debug</h3>	f = $val6 alpha=$val9 rad fx =$val31 fy=$val33	Fx = $val32 Fy = $val34<br>	trajectoire=$val11<br>	xa=$val14 xb=$val18 ya=$val15 yb=$val19<br>	</div>	 
+!endif
+$()		<table><tr><td>	 
+!read oef/draw.phtml 300,300 \
+$val41 
+$()	</td><td>	Un objet mobile M est se déplace entre un point de départ A et 	un point d'arrivée B. Cet objet est soumis à une 	force F de valeur $val7,	Voici une liste de coordonnées	<p>	<center>	<table style="border:1px solid black; background=lightyellow;"><tr>	<th>&nbsp;</th><th>force F</th><th>point A</th><th>point B</th>	</tr><tr>	<th>abscisses&nbsp;:&nbsp;</td><td>$val32</td><td>$val35 m</td><td>$val37 m</td>	</tr><tr>	<th>ordonnées&nbsp;:&nbsp;</td><td>$val34</td><td>$val36 m</td><td>$val38 m</td>	</tr></table>	</center>	<p>	Calculez le travail de la force F&nbsp;: 
+!read oef/embed.phtml r1 
+$()	<span style="font-size:80%;color:grey;">	Attention au nombre de chiffres significatifs, précisez l'unité.<br>	Vous pouvez consulter l'indication ...	</span>	</td></tr></table>	
+$()
+!exit
+
+:hint
+$()Le travail d'une force constante F reçue par un mobile qui se 	déplace d'un point A à un point B peut se calculer come le	produit scalaire 
+!insmath \vec{F}.\vec{AB}
+$(). Il suffit donc de déterminer	les coordonnées de 
+!insmath \vec{AB}
+$() et d'effectuer le 	produit scalaire.	<hr width="60%">	Dans un plan, le produit scalaire de deux vecteurs 	
+!insmath \vec{u_1}=$val42
+$() et 
+!insmath \vec{u_2}=$val43
+$() 	<br>se calcule comme	
+!insmath \vec{u_1}.\vec{u_2}=x_1 x_2 + y_1 y_2
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,14,15,18,19,31,32,33,34,35,36,37,38,41,42,43,44
+embedcnt=1

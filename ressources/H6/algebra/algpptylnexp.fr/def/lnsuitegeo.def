@@ -1,0 +1,339 @@
+!set title=Logarithme et suites géométriques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c,r,c,r,r,r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=4
+choicecnt=2
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=converge vers 0, diverge vers +infini, diverge vers -infini
+val7=inférieurs ou égaux,supérieurs ou égaux
+val8=décroissante,croissante
+tmp0=!randint 101, 350
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 99
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem $val9,$val10
+
+val11=$[$(tmp0)/100]
+tmp0=!randitem 1,-1
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 50
+
+val13=$[rint($(tmp0)*$val12)]
+tmp0=!randitem 1,10,100
+
+val14=$[rint($(tmp0))]
+val13=$[rint($val13*$val14)]
+!if $val11<1 
+
+!ifval ($val12=1)
+val15=$[rint(0)]
+!else
+val15=$[rint(1)]
+!endif
+!endif
+!if $val11>1 
+
+!ifval ($val12=1)
+val15=$[rint(1)]
+!else
+val15=$[rint(0)]
+!endif
+!endif
+
+!ifval (/ isin $val11)
+val16=($val11)
+!else
+val16=\times$val11
+!endif
+t_=!replace internal \( by ( in floor($val11)
+tmp0=!exec pari $t_
+
+val17=$[rint($(tmp0))]
+
+!ifval ($val11>1)
+tmp0=!randint 10, 50
+
+tmp1=!randint 5, 12
+
+val18=$[rint($(tmp0)*$val14*$val17^$(tmp1))]
+!endif
+
+!ifval ($val11>1 && $val15=0)
+val18=$[rint($val13-$val18)]
+!endif
+
+!ifval ($val11>1 && $val15=0)
+val19=$[rint(3)]
+!endif
+
+!ifval ($val11>1 && $val15=1)
+val18=$[rint($val13+$val18)]
+!endif
+
+!ifval ($val11>1 && $val15=1)
+val19=$[rint(2)]
+!endif
+
+!ifval ($val11<1)
+tmp0=!randitem 10,100,1000,1000,10^4
+
+t_=!rawmath 1/$(tmp0)
+val18=!exec pari print($t_)
+!endif
+
+!ifval ($val11<1)
+tmp0=!randitem 10^-(1),10^(-2),10^(-3),10^(-4),10^(-5)
+
+t_=!rawmath $(tmp0)
+val18=!exec pari print($t_)
+!endif
+
+!ifval ($val11<1 && $val12=-1)
+t_=!rawmath -$val18
+val18=!exec pari print($t_)
+!endif
+
+!ifval ($val11<1)
+val19=$[rint(1)]
+!endif
+
+!ifval $val15=0
+val20=<,>
+!endif
+tmp0=!randitem <,>
+
+val20=$(tmp0)
+tmp0=!positionof item $val20 in <,>
+
+val21=$(tmp0)
+val22=$val13*log($val11)
+
+!ifval ($val13>0)
+val23=$val20
+!endif
+
+!ifval ($val13<0 && $val21=1)
+tmp0=!item 2 of <,>
+
+val23=$(tmp0)
+!endif
+
+!ifval ($val13<0 && $val21=2)
+tmp0=!item 1 of <,>
+
+val23=$(tmp0)
+!endif
+
+!ifval ($val22>0)
+val24=$val20
+!endif
+
+!ifval ($val22<0 && $val21=1)
+tmp0=!item 2 of <,>
+
+val24=$(tmp0)
+!endif
+
+!ifval ($val22<0 && $val21=2)
+tmp0=!item 1 of <,>
+
+val24=$(tmp0)
+!endif
+
+!ifval ($val24 issametext <)
+val25=\le
+!else
+val25=\ge
+!endif
+
+!ifval ($val13=1)
+val26=$val16^{n} 
+!else
+val26=$val13 $val16^{n}
+!endif
+val27=$val26 $val20 $val18 
+
+!ifval ($val24 issametext <)
+val28=$[rint(1)]
+!else
+val28=$[rint(2)]
+!endif
+
+!ifval ($val15=0)
+val29=$(val8[1])
+!else
+val29=$(val8[2])
+!endif
+t_=!rawmath $val18/$val13
+val30=!exec pari print($t_)
+val31=$[log($val18/$val13)/log($val11)]
+
+!ifval ($val28=1)
+t_=!replace internal \( by ( in  floor($val31)
+tmp0=!exec pari $t_
+
+val31=$[rint($(tmp0))]
+!else
+t_=!replace internal \( by ( in  ceil($val31)
+tmp1=!exec pari $t_
+
+val31=$[rint($(tmp1))]
+!endif
+replytype1=menu
+replyname1=Limite
+replygood1=$val19;$val6
+replytype2=numexp
+replyname2=
+replygood2=$val30
+replytype3=menu
+replyname3=Ensemble des solutions
+replygood3=$val28;$val7
+replyname4=Valeur de n0
+replygood4=$val31
+choicename1=Sens de variation
+choicegood1=$val29
+choicebad1=$(val8[2]),$(val8[1])
+choicename2=Inegalité
+choicegood2=$val24
+choicebad2=<,>
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<p>On considère la suite géométrique (
+!insmath u_n
+$()\) de premier terme 
+!insmath u_0 = $val13
+$() et	de raison 
+!insmath  q = $val11
+$(). </p><p>	On cherche pour quelles valeurs de l'entier 
+!insmath n
+$()	on a 
+!insmath  u_n $val20 $val18
+$().<br>	Il s'agit donc de résoudre dans $m_NN l'inéquation (I) : 
+!insmath $val27
+$()	</p><p>	Résolvez (I) sur papier libre, puis complétez les affirmations suivantes.</p>	</div>	<ol><li>	La suite géométrique 
+!insmath (u_n)
+$() est  
+!read oef/embed.phtml choice1,8 
+$() et  
+!read oef/embed.phtml reply1 
+$().	</li><li>	L'inéquation (I) équivaut à 
+!insmath n 
+$()  
+!read oef/embed.phtml choice2 
+$() ln( 
+!read oef/embed.phtml reply2,8 
+$()) / ln(q) .	</li><li>	Les solutions de l'inéquation (I) sont tous les entiers naturels	  
+!read oef/embed.phtml reply3 
+$() à <label for="reply4">l'entier 
+!insmath n_0
+$() =</label>  
+!read oef/embed.phtml reply4,5 
+$().	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>	<b>Voici une résolution détaillée de l'inéquation (I) </b>	<p>On divise l'inégalité par $val13	
+!if $val12=-1 
+$()(en inversant le sens de l'inégalité car on divise par un nombre négatif) 
+!endif
+$() :	</p>	<div class="wimscenter">	(I) 
+!insmath  \Longleftrightarrow $val11^n $val23 $val30
+$().	</div>	La fonction logarithme conserve les inégalités :	<div class="wimscenter">	(I) 
+!insmath  \Longleftrightarrow \ln($val11^n) $val23 \ln($val30) \Longleftrightarrow n\ln($val11) $val23 \ln($val30) 
+$()	</div>	On a $val11 
+!if $val11>1 
+$()> 
+!else
+$() < 
+!endif
+$() 1, donc	ln($val11) est 
+!if $val11>1 
+$()positif 
+!else
+$() négatif 
+!endif
+$(). En divisant l'inégalité par ln($val11)	on 
+!if $val11>1 
+$()conserve 
+!else
+$() inverse 
+!endif
+$() le sens de l'inégalité :	<div class="wimscenter">	(I) 
+!insmath \Longleftrightarrow n $val24 \frac{ln($val30)}{ \ln($val11)}
+$().	</div>	Comme 
+!insmath n
+$() est un entier naturel :	<div class="wimscenter">	
+!insmath  (I) \Longleftrightarrow n $val25 $val31 
+$().	</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,18,20,23,24,25,27,30,31
+embedcnt=6

@@ -1,0 +1,206 @@
+!set title=Produit scalaire dans l'espace 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/orthogonal 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in content([$val6])^(-1)*[$val6]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[1;])
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[2;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val11=$[rint($(tmp0))]
+!if $val11=1 
+t_=!replace internal \( by ( in print($val9*[$val7]+$val10*[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val12]+[$val7])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val12]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val11=2 
+t_=!replace internal \( by ( in print($val9*[$val7]+$val10*[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val13]+[$val7])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val13]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val11=3 
+t_=!replace internal \( by ( in print($val9*[$val7]+$val10*[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val14]+[$val7])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val14]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val11=4 
+t_=!replace internal \( by ( in print($val9*[$val7]+$val10*[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val13]+[$val7]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items 2,3,-2
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+t_=!replace internal \( by ( in print([$val13]+$val15*[$val7]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+!endif
+val16=$[rint($val11)]
+val17=\(A B C) est rectangle en A,\(A B C) est rectangle en B,\(A B C) est rectangle en C,\(A B C) n'est pas rectangle 
+replytype1=radio
+replyname1=nature
+replygood1=$val16;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p>	   L'espace est muni d'un repère orthonormal 
+!insmath (O,\vec{i},\vec{j},\vec{k})
+$().	    On considère les points 
+!insmath A($(val12[1]),$(val12[2]),$(val12[3])),B($(val13[1]),$(val13[2]),$(val13[3]))
+$() et	  
+!insmath C($(val14[1]),$(val14[2]),$(val14[3]))
+$().</p>	  <p>Le triangle 
+!insmath A B C
+$() est-il rectangle ?</p>	  <ul class="wims_nopuce"><li>	   
+!read oef/embed.phtml reply1,1 
+$()	  </li><li>	   
+!read oef/embed.phtml reply1,2 
+$()	  </li><li>	   
+!read oef/embed.phtml reply1,3 
+$()	  </li><li>	   
+!read oef/embed.phtml reply1,4 
+$()	  </li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14
+embedcnt=4

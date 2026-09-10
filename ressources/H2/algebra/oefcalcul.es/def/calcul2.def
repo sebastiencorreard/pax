@@ -1,0 +1,222 @@
+!set title=Cálculo y paréntesis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=22
+prevarcnt=14
+postvarcnt=7
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+val6=$(tmp0)
+tmp0=!randint 2, 10
+
+val7=$(tmp0)
+tmp0=!randint 3, 10
+
+val8=$(tmp0)
+tmp=!trim \($val6 + $val7 \times $val8),\(($val6 + $val7) \times $val8)	\($val6 \times $val7+$val8),\($val6 \times ($val7+$val8))	 \($val6 + \frac{$val7}{$val8}),\(\frac{$val6+$val7}{$val8})	 \(\frac{$val6}{$val7+$val8}),\(\frac{$val6}{$val7}+$val8)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val6 + $val7 * $val8, ($val6 + $val7)* $val8	$val6*$val7+$val8,$val6*($val7+$val8)	$val6 + $val7/$val8, ($val6+$val7)/$val8	$val6/($val7+$val8),$val6/$val7+$val8
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 4
+
+val11=$(tmp0)
+val12=$(val9[$val11;])
+tmp0=!shuffle 1,2
+
+val13=$(tmp0)
+t_=!rawmath $(val10[$val11;$(val13[1])])
+val14=!exec pari print($t_)
+t_=!rawmath $(val10[$val11;$(val13[2])])
+val15=!exec pari print($t_)
+val10=$val14,$val15
+val16=$(val12[$(val13[1])])
+val17=$(val12[$(val13[2])])
+
+!ifval $val11<=2
+val18= reply1,reply3
+!else
+val18=reply1,reply2,reply3,reply4
+!endif
+oefsteps=$val18 
+nextstep=!nosubst $val18 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Premier
+replygood1=?analyze 19
+replytype2=numeric
+replyname2=Second
+replygood2=?analyze 20
+replytype3=numeric
+replyname3=Premier
+replygood3=?analyze 21
+replytype4=numeric
+replyname4=Second
+replygood4=?analyze 22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!if $val11<=2 
+$()	Calcule	<center> $val16=  
+!read oef/embed.phtml reply1,8 
+$() </center>	y 	<center> $val17=  
+!read oef/embed.phtml reply3,8 
+$() </center>	 
+!else
+$()	 Calcule	<center> <table><tr><td></td><td></td><td> 
+!read oef/embed.phtml reply1,8 
+$()</td></tr>	<tr><td>$val16 </td><td>=</td><td><hr></td></tr>	<tr><td></td><td></td><td> 
+!read oef/embed.phtml reply2,8 
+$()</td>	</tr></table> </center>		y 		<center> <table><tr><td></td><td></td><td> 
+!read oef/embed.phtml reply3,8 
+$()</td></tr>	<tr><td>$val17</td><td>=</td><td><hr></td></tr>	<tr><td></td><td></td><td> 
+!read oef/embed.phtml reply4,8 
+$()</td>	</tr></table> </center>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val11<=2
+val20= 1
+!endif
+
+!ifval $val11<=2
+val22= 1
+!endif
+
+!ifval $val19=round($val19) and $val20=round($val20) and 	$val21=round($val21) and $val22=round($val22) 
+val23= 1
+!else
+val23=0
+!endif
+t_=!rawmath $val19/$val20
+val24=!exec pari print($t_)
+t_=!rawmath $val21/$val22
+val25=!exec pari print($t_)
+
+!ifval $val24 isitemof $val10 
+tmp0=!positionof item $val24 in $val10
+
+val26=$(tmp0) 
+!else
+val26=100 
+!endif
+
+!ifval $val25 isitemof $val10 
+tmp0=!positionof item $val25 in $val10
+
+val27=$(tmp0)
+!else
+val27=100  
+!endif
+
+!exit
+
+:feedback
+!ifval $val23=0
+ <p>Sólo debe escribir números enteros. 
+$()
+!endif
+!ifval 1=1
+ <p>La buena respuesta es $val16=$val14 y $val17=$val15
+$()
+!endif
+!ifval $val23=1 and $val19/$val20 !=$val14 and   $val26<>100
+ <p>Tu primer resultado vale  
+!for m_i in $val26 
+$()$(val12[$(val13[$m_i])]) ,  
+!next
+$()	y no $val16.
+$()
+!endif
+!ifval $val23=1 and $val21/$val22 !=$val15 and   $val27<>100
+ <p>Tu segundo resultado vale  
+!for m_i in $val27 
+$()$(val12[$(val13[$m_i])]) ,  
+!next
+$()	y no $val17.	
+$()
+!endif
+
+!exit
+
+:test
+
+!ifval $val19=round($val19) and $val19/$val20=$val14
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=¿Primero?
+
+!ifval $val21=round($val21) and $val21/$val22=$val15
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=¿Segundo?
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,14,15,16,17,19,20,21,22
+embedcnt=6

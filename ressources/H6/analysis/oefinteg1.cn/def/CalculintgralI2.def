@@ -1,0 +1,185 @@
+!set title=积分学 II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+leftrange=-5.000000
+rightrange=5.000000
+author=Michel Gosse
+email=michel.gosse@ac-poitiers.fr
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -2,-1,1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val8=$[rint($(tmp0))]
+val9=$[rint(-$val8/$val6)]
+tmp0=!randitem 2,3
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val11*($val6)^2)]
+val13=$[rint($val11*$val8*$val6)]
+val14=$[rint(($val6)^2)]
+val15=$[rint(2*$val8*$val6)]
+val16=$[rint(($val8)^2)]
+
+!ifval ($val6>0)
+tmp0=!randitem $val9+1,$val9+2
+
+val17=$[rint($(tmp0))]
+!else
+tmp1=!randitem $val9-2,$val9-1
+
+val17=$[rint($(tmp1))]
+!endif
+
+!ifval ($val6>0)
+tmp0=!randint $val9+3, 6
+
+val18=$[rint($(tmp0))]
+!else
+tmp1=!randint -6, $val9-3
+
+val18=$[rint($(tmp1))]
+!endif
+
+!ifval ($val18<$val17)
+val19=$[rint(1)]
+!else
+val19=$[rint(0)]
+!endif
+
+!ifval ($val19=1)
+val20=$[rint($val17)]
+!else
+val20=$[rint($val18)]
+!endif
+
+!ifval ($val19=1)
+val21=$[rint($val18)]
+!else
+val21=$[rint($val17)]
+!endif
+tmp0=!randitem ($val6*x+$val8)^$val10,1/($val6*x+$val8)^$val10,$val7/($val6*x+$val8),	($val12*x+$val13)/($val14*x^2+$val15*x+$val16),$val7/sqrt($val6*x+$val8),$val7*e^($val6*x),	$val7*e^($val6*x+$val8),($val12*x+$val13)*e^($val14*x^2+$val15*x+$val16),	$val6*x^2+$val8*x+$val7	
+
+val22=!rawmath $(tmp0)
+tmp0=!texmath $val22
+
+val23=$(tmp0)
+tmp=!translate ;";': to $     $ in $val22,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val24=!rawmath $(tmp0)
+t_=!replace internal \( by ( in 1/($val20-$val21)*(subst(x=$val20,$val24)-subst(x=$val21,$val24));
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+tmp0=!texmath $val25
+
+val26=\$(tmp0)
+tmp0=!texmath $val24
+
+val27=\$(tmp0)
+replytype1=auto
+
+replyname1=I 的值
+replygood1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()计算由下式定义的函数 <i>f</i> 在区间 [$val21;$val20] 上的平均值 :	<center>	
+!insmath f(x)=$val23
+$()	</center>	<br>	在输入回答时, 可利用以下的协定:<br>	自然对数写成 <i>log</i>. 例如, 输入	<i>log(2)</i> 代表实数 <i>ln(2)</i>. 反之, 软件用 <i>log</i> 代表 <i>ln</i>. <br>	平方根函数写成 <i>sqrt</i>. 例如, 输入	<i>sqrt(2)</i> 代表实数 
+!insmath \sqrt{2}
+$(). <br>	最后, 指数函数写成 <i>exp</i>. 例如, 输入	<i>exp(2)</i> 代表实数 
+!insmath e^2
+$(). 	也可以记为 <i>e^2</i>.	
+$()
+!exit
+
+:hint
+$()函数 <i>f</i> 在区间	[<i>a</i>,<i>b</i>] (其中 <i>a</i> 严格小于 <i>b</i>) 上的平均值	<i>V</i> 由下式给出 :<br>	<center>	
+!insmath V=\frac{1}{b-a}\int_{a}^{b}f(x)\,dx
+$()	</center><br>	即要计算 :<br>	<center>	
+!insmath \frac{1}{($val20)-($val21)} \int_{$val21}^{$val20} $val23 \, dx
+$()	</center>	回想求导公式 :<br>	
+!insmath (\frac{1}{u})'=-\frac{u'}{u^2}
+$() <br>	
+!insmath \texmath(e^u)'=u'e^u
+$()<br>	
+!insmath \texmath(\ln u)'=\frac{u'}{u}
+$()<br>	
+!insmath \texmath(u^n)'=nu^{n-1}u'
+$()<br>	
+!insmath \texmath(\sqrt{u})'=\frac{u'}{2\sqrt{u}}
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()函数	<center>	
+!insmath x \rightarrow $val23
+$()	</center>	的原函数是 :	<center>	
+!insmath x \rightarrow $val27
+$()	</center>	这允许用下式计算平均值 :	<center>	
+!insmath \frac{1}{($val20)-($val21)} \int_{$val21}^{$val20} $val23 \, dx=$val26
+$()	</center>	
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,21,23,26,27
+embedcnt=0

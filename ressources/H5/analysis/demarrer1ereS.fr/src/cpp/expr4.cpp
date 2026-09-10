@@ -1,0 +1,102 @@
+target=expression4
+
+%% associer droites et équations
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\format{html}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+## couleur des grilles
+\text{gridcolor=blue}
+
+### cadre générique ###
+\text{dimh=300}
+\text{dimv=300}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor}
+
+\text{groscarreaux=linewidth 1
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor}
+
+\text{axes=linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.2,medium,i
+text red,-0.5,0.7,medium,j
+text black,-0.5,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.5,-0.2,large,x
+text black,-0.5,\ymax-0.4,large,y}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\groscarreaux
+\axes
+}
+%% fin du cadre générique ##
+
+%% fabrication de quatre droites et de leur équation réduite ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\integer{u1=random(-1,1)*random(1,2,3)}
+\integer{u2=random(-1,1)*random(1,2,3)}
+\text{w1=random(-3,-2,-1,1,2,3)}
+\text{dList=shuffle(-3,-2,-1,1,2,3)}
+\text{coeffDirList=}
+\for{k=1 to 3}{
+  \text{coeff=(\u2)/(\u1)+((\dList[\k])/((\w1)*(\u1)))}
+  \text{coeffDirList=wims(append item \coeff to \coeffDirList)}
+}
+\text{coeff=(\u2)/(\u1)}
+\text{coeffDirList=wims(append item \coeff to \coeffDirList)}
+
+\text{eqList=}
+\text{graphList=}
+\for{k=1 to 3}{
+  \integer{oxD=random((\xmin+2)..(\xmax-2))}
+  \integer{oyD=random((\ymin+2)..(\ymax-2))}
+  \text{f=maxima(expand((\coeffDirList[\k])*(x-(\oxD))+(\oyD));)}
+  \text{eq=\(texmath(y=\f))}
+  \text{eqList=wims(append item \eq to \eqList)}
+  \text{graph=<img src="draw(\dimh,\dimv
+    \cadre
+    plot \couleurs[\k],\f
+    )" width="\dimh" height="\dimv" border="0" alt="">}
+  \text{graphList=wims(append item \graph to \graphList)}
+}
+
+\text{size=\dimh}
+\text{taille=\size x\size x150}
+%%### enoncé de l'exo #######
+\statement{<p>\name_enonce</p>
+  <div class="wimscenter">
+  \embed{reply 1,\taille}
+</div>
+}
+%% soumission de réponse ####
+\reply{\name_answer}{\graphList;\eqList}{type=correspond}
+## Aide ou rappel ##
+\hint{
+  <div style="background-color:wheat">
+    <p>\name_hint1</p><p>\name_hint2</p>
+  <:div>
+}

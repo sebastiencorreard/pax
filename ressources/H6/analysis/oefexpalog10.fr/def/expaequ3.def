@@ -1,0 +1,182 @@
+!set title=Equation avec une exponentielle de base a 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+tmp=!nonempty items 1,1,1,-1
+
+tmp1=!randitem $tmp
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 20
+
+tmp=!nonempty items 1,1,1,-1
+
+tmp1=!randitem $tmp
+val8=$[rint($(tmp0)*$(tmp1))]
+
+!ifval ($val8==10)
+tmp0=!randint 1, 9
+
+val8=$[rint( $(tmp0))]
+!else
+val8=$[rint($val8)]
+!endif
+t_=!replace internal \( by ( in $val6*x+$val8
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!texmath $val9
+
+val9=$(tmp0)
+tmp0=!randint 1, 9
+
+tmp=!nonempty items 1,1,-1
+
+tmp1=!randitem $tmp
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=$val7^{$val9}=$val7^{$val10}
+val12=$[rint($val10-$val8)]
+t_=!rawmath $val12/$val6
+val13=!exec pari print($t_)
+val14=numeric
+val15=\($val7^{$val9}=$val7^{$val10}) &hArr; \($val9=$val10) &hArr; \(x=$val13).
+val16=$[rint(0)]
+val17=r2
+val18=$[rint(1)]
+
+!ifval $val13 issametext aucune 
+val19=$[rint(2)]
+!else
+val19=$[rint(1)]
+!endif
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=radio
+replyweight1=1 
+replyname1=
+replygood1=$val19;Oui,Non
+replytype2=$val14
+
+replyoption2=absolute comma 
+replyweight2=3 
+replyname2=
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val15
+
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère l'équation 
+!insmath  $val11 
+$() dans 
+!insmath \mathbb{R}
+$().	
+!if $m_step=1 and $val18>1 
+$()<div class="wims_question">Cette équation a-t-elle des solutions ?  
+!read oef/embed.phtml reply1,10 
+$() </div> 
+!endif
+$()	
+!if $m_step=1 and $val18=1 
+$()<div class="wims_question">	
+!if $val14 issametext fset 
+$()L'ensemble des solutions est 
+!else
+$() La solution est  
+!endif
+$()  
+!read oef/embed.phtml reply2,8 
+$().</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()<div class="wims_question">	
+!if $val14 issametext fset 
+$()L'ensemble des solutions est 
+!else
+$() La solution est  
+!endif
+$()  
+!read oef/embed.phtml reply2,8 
+$().</div>	
+!if $val16=1 
+$()<div class="wims_instruction">$m_instruction</div>  
+!endif
+$() 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val15
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,14,15,16,18
+embedcnt=3

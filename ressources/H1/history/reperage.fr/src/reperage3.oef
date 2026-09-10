@@ -1,0 +1,160 @@
+type=game
+textarea="data"
+:Frise chronologique
+Evénements à classer du type frise chronologique.
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Repérage 3°}
+:\author{Jean-Baptiste, Frondas}
+:Consigne
+
+\text{instruction=Mettre les dates en bas et les événements correspondants sur la ligne du haut. Quand les événements courent sur une période, c'est la date de début qui compte. Quand deux événements ont la même date, les classer par ordre alphabétique.}
+
+:Nombre de mots maximum (maximum 10)
+
+\text{N=5}
+
+:couleur de la flèche
+
+\text{couleur=orange}
+
+:Largeur des étiquettes
+
+\text{facteur=100}
+
+:Hauteur des étiquettes
+
+\integer{height=100}
+
+:utilise les deux items des données principales (0), seulement la première colonne (1), seulement la deuxième colonne (2)
+
+\text{choix=0}
+
+:Données principales.
+
+\text{data=28-juin-14,Attentat de Sarajevo
+août-14,Début 1ère guerre mondiale
+1916,Bataille de Verdun
+1917,Mutineries
+1917,Révolutions russes
+11-nov-18,Armistice
+1929,Collectivisations des terres en URSS
+1929,Crise économique mondiale
+30-janv-33,Hitler, chancelier
+1935,Lois de Nuremberg
+1936,Lois sociales du Front populaire
+1939,Début de la 2nd guerre mondiale
+1939,Invasion de la Pologne
+18-juin-40,Appel du général De Gaulle
+1944,Droit de vote pour les femmes
+08-mai-45,Capitulation allemande
+06-août-45,Bombe atomique sur Hiroshima
+02-sept-45,Capitulation japonaise – fin de la guerre
+1945,Création de la sécurité sociale
+1945 - 1954,Guerre d’Indochine
+1947 - 1958,4ème république
+1947,Indépendance de l’Inde
+1947,Plan Marshall
+1949,Proclamation République populaire de Chine
+1953,Mort de Staline
+1954 - 1962,Guerre d’Algérie
+1957,Traité de Rome
+1958 - 1969,Charles De Gaulle
+1958,Début de la 5ème république
+1969 - 1974,Georges Pompidou
+1974 - 1981,Valéry Giscard d’Estaing
+1981 - 1995,François Mitterrand
+1989,Chute du mur de Berlin
+1990,Réunification de l’Allemagne
+1991,Eclatement de l’URSS
+1992,Traité de Maastricht
+1995 - 2007,Jacques Chirac
+11-sept-01,Attentat des World Trade Center
+2007 - 2012,Nicolas Sarkozy
+2011,Le printemps arabe}
+
+:%%%%%%%%%%%%%% Rien à modifier ensuite %%%%%%%%%%%%%%%%
+
+\real{M=\N-0.3}
+\text{xrange=-1,\N+1}
+\text{yrange=\choix=0 ? -5,5:-2,5}
+\text{yrange=\choix=1 ? -5,2}
+\text{cnt=rows(\data)}
+\text{shu=shuffle(\cnt)}
+\text{shu=\shu[1..\N]}
+\text{shu=wims(sort numeric item \shu)}
+\text{data=row([\shu],\data)}
+\matrix{rep=\data}
+\integer{size=(1.5*\facteur)*(\M+1)}
+\integer{height2=4*\height}
+\text{size=\size,\height2}
+\text{fleche=xrange \xrange
+yrange \yrange
+lines \couleur,\M,1,-1,1,-1,-1,\M,-1,\M,-2,\N+0.5,0,\M,2,\M,1
+fill 0,\0,\couleur
+}
+
+\text{STEP=\choix=0 ? wims(values x for x=1 to 2*\N)}
+\text{STEP=\choix=1 ? wims(values 2*x-1 for x=1 to \N)}
+\text{STEP=\choix=2 ? wims(values 2*x for x=1 to \N)}
+\text{STEP=wims(makelist r x for x in  \STEP)}
+\steps{\STEP}
+\text{positionbas=}
+\text{positionhaut=}
+\for{j=0 to \N-1}{
+  \text{fleche=\choix=0 or \choix=1 ? \fleche
+  line \j-0.1,-1,\j-0.1,-2,\couleur}
+  \text{fleche=\choix=0 or \choix=2 ? \fleche
+  line \j-0.1,0.7,\j-0.1,2,\couleur}
+  \text{ans=pari([2*\j+1,2*\j+2])}
+ \text{v=slib(draw/convpixel \j-0.5,-2,\size,\xrange,\yrange,0,pixels)}
+ \text{positionbas=\positionbas
+ r\ans[1],\v[1] x \v[2]}
+ \text{v=slib(draw/convpixel \j-0.5,4,\size,\xrange,\yrange,0,pixels)}
+ \text{positionhaut=\positionhaut
+r\ans[2],\v[1] x \v[2]}
+ }
+ \text{position=\choix=1 or \choix=0? \positionbas}
+ \text{position=\choix=2 or \choix=0? \position
+ \positionhaut}
+ text{position=\positionbas
+ \positionhaut}
+ \text{urlfleche=draw(\size
+\fleche)}
+\statement{\instruction
+<div class="wimscenter">
+\special{imagefill \urlfleche,\size[1]x\size[2],\facteur x \height
+\position}
+</div>
+}
+
+\answer{}{\rep[1;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[1;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;2]}{type=clickfill}{option=shuffle}

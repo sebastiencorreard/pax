@@ -1,0 +1,491 @@
+!set title=4. Enquête sur l'usage d'un bon d'achat
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=38
+prevarcnt=33
+postvarcnt=4
+replycnt=30
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist r x for x = 1 to 29
+
+val6=$(tmp0)
+tmp=!trim $val6
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=$[rint(3)]
+!readproc slib/draw/graphviz digraph  {	rankdir = LR	ranksep="1"	bgcolor= grey50	  edge [color=black, arrowsize=2];	  node [color=black,shape=box,style=rounded];	  "A0"->"node5"[label=""];	  "A0"->"node6"[label=""];	  "node5" -> "node1"[label=""];	  "node5"-> "node2";	  "node6"-> "node3";	  "node6"-> "node4";	  "node1"->"node7"[arrowhead=none,color=gold,style=bold];	        "node2"->"node8"[arrowhead=none,color=gold,style=bold];	        "node3"->"node9"[arrowhead=none,color=gold,style=bold];	  "node4"->"node10"[arrowhead=none,color=gold,style=bold];	  	A0 [label="" shape=point];	node1 [label="V"];	node2 [label="PV"]; 	node3 [label="V"];	node4 [label="PV"];	node5 [label="B"];	node6 [label="PB"];	node7 [label="<f0>B et V|<f1>"shape=Mrecord];	node8 [label="<f0>B et PV|<f1>"shape=Mrecord];	node9 [label="<f0>PB et V|<f1>"shape=Mrecord];	node10 [label="<f0>PB et PV|<f1>"shape=Mrecord];		subgraph cluster_cache1 {	  label = "Premier Événement"fontcolor =blue4	  style="rounded, filled"	  color =blue4	  fillcolor=deepskyblue1	  "node5"	  "node6"	  }	subgraph cluster_cache2 {	  label = "Deuxième Événement"fontcolor = darkgreen	  style="rounded, filled"	  color = darkgreen	  fillcolor= darkolivegreen3	  "node1"	  "node2"	  "node3"	  "node4"	  }	subgraph cluster_cache3 {	  label = "Conclusion"fontcolor =violetred3	  style="rounded, filled"	  color = violetred3	  fillcolor = darksalmon	  "node7"	  "node8"	  "node9"	  "node10"	  } 	},dot 
+tmp0=$slib_out
+val9=$(tmp0)
+!readproc slib/draw/graphviz digraph  {	rankdir = LR	ranksep="1"	bgcolor= grey50	  edge [color=black, arrowsize=2];	  node [color=black,shape=box,style=rounded];	  "A0"->"node5"[label=""];	  "A0"->"node6"[label=""];	  "node5" -> "node1"[label=""];	  "node5"-> "node2";	  "node6"-> "node3";	  "node6"-> "node4";	  "node1"->"node7"[arrowhead=none,color=gold,style=bold];	        "node2"->"node8"[arrowhead=none,color=gold,style=bold];	        "node3"->"node9"[arrowhead=none,color=gold,style=bold];	  "node4"->"node10"[arrowhead=none,color=gold,style=bold];	  	A0 [label="" shape=point];	node1 [label="B"];	node2 [label="PB"]; 	node3 [label="B"];	node4 [label="PB"];	node5 [label="V"];	node6 [label="PV"];	node7 [label="<f0>V et B|<f1>"shape=Mrecord];	node8 [label="<f0>V et PB|<f1>"shape=Mrecord];	node9 [label="<f0>PV et B|<f1>"shape=Mrecord];	node10 [label="<f0>PV et PB|<f1>"shape=Mrecord];		subgraph cluster_cache1 {	  label = "Premier Événement"fontcolor =blue4	  style="rounded, filled"	  color =blue4	  fillcolor=deepskyblue1	  "node5"	  "node6"	  }	subgraph cluster_cache2 {	  label = "Deuxième Événement"fontcolor = darkgreen	  style="rounded, filled"	  color = darkgreen	  fillcolor= darkolivegreen3	  "node1"	  "node2"	  "node3"	  "node4"	  }	subgraph cluster_cache3 {	  label = "Conclusion"fontcolor =violetred3	  style="rounded, filled"	  color = violetred3	  fillcolor = darksalmon	  "node7"	  "node8"	  "node9"	  "node10"	  } 	},dot 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!shuffle 3
+
+val11=$(tmp0)
+val12=Tableau à double entrée,Premier arbre de probabilité,Deuxième arbre de probabilité
+tmp0=!randint 0, 6
+
+val13=$[rint($(tmp0))]
+val14=$[rint(10+$val13*5)]
+tmp0=!randint 0, 3
+
+val15=$[rint($(tmp0))]
+val16=$[rint(70+5*$val15)]
+val17=$[rint($val16-50)]
+val18=$[rint(100-$val14)]
+val19=$[$val14*$val16/100]
+val20=$[$val18*$val17/100]
+val21=$[$val19+$val20]
+val22=$[$val14-$val19]
+val23=$[$val18-$val20]
+val24=$[100-$val21]
+val25=$[$val14/100]
+val26=$[1-$val25]
+val27=$[$val16/100]
+val28=$[1-$val27]
+val29=$[$val17/100]
+val30=$[1-$val29]
+val31=$[$val25*$val27]
+val32=$[$val25*$val28]
+val33=$[$val26*$val29]
+val34=$[$val26*$val30]
+tmp0=!randint 1, 3
+
+val35=$[rint($(tmp0))]
+val36=
+val37=Quel est le pourcentage de clients qui achètent un vêtement ?
+val38=Suite à l'envoi de bons de réduction par internet, le service marketing	 d'un magasin de prêt-à-porter effectue une enquête sur ses clients.	<br>L'enquête revèle que :	 <ul><li>$val14 % des clients possédaient un bon de réduction.</li>	 <li>$val16 % des clients munis d'un bon de réduction ont acheté un vêtement.</li>	 <li>$val17 % des clients ne possédant pas de bon de réduction ont acheté un vêtement.</li></ul>	  On considère les événements suivants :	  <ul><li>B : "Le client avait un bon de réduction"</li>	  <li>V : "Le client a acheté un vêtement"</li>	  <li>PB : "Le client n'a pas reçu de bon de réduction"</li>	  <li>PV : "Le client n'a pas acheté de vêtement."</li></ul>	  
+dynsteps=yes
+oefsteps=$val7 
+nextstep=!nosubst $val7 
+!readproc oef/steps.proc
+replytype1=nocase
+replyoption1=symtext nonstop 
+replyname1=tab1.1
+replygood1=$val19|x
+replytype2=nocase
+replyoption2=symtext nonstop 
+replyname2=tab1.2
+replygood2=$val20|x
+replytype3=nocase
+replyoption3=symtext nonstop 
+replyname3=tab1.3
+replygood3=$val21|x
+replytype4=nocase
+replyoption4=symtext nonstop 
+replyname4=tab2.1
+replygood4=$val22|x
+replytype5=nocase
+replyoption5=symtext nonstop 
+replyname5=tab2.2
+replygood5=$val23|x
+replytype6=nocase
+replyoption6=symtext nonstop 
+replyname6=tab2.3
+replygood6=$val24|x
+replytype7=nocase
+replyoption7=symtext nonstop 
+replyname7=tab3.1
+replygood7=$val14|x
+replytype8=nocase
+replyoption8=symtext nonstop 
+replyname8=tab3.2
+replygood8=$val18|x
+replytype9=nocase
+replyoption9=symtext nonstop 
+replyname9=tab3.3
+replygood9=100|x
+replytype10=nocase
+replyoption10=symtext nonstop 
+replyname10=1er arbre: B
+replygood10=$val25|x
+replytype11=nocase
+replyoption11=symtext nonstop 
+replyname11=1er arbre: PB
+replygood11=$val26|x
+replytype12=nocase
+replyoption12=symtext nonstop 
+replyname12=1er arbre: BV
+replygood12=$val27|x
+replytype13=nocase
+replyoption13=symtext nonstop 
+replyname13=1er arbre: BPV
+replygood13=$val28|x
+replytype14=nocase
+replyoption14=symtext nonstop 
+replyname14=1er arbre: PBV
+replygood14=$val29|x
+replytype15=nocase
+replyoption15=symtext nonstop 
+replyname15=1er arbre: PBPV
+replygood15=$val30|x
+replytype16=nocase
+replyoption16=symtext nonstop 
+replyname16=1er arbre: Conclusion BV
+replygood16=$val31|x
+replytype17=nocase
+replyoption17=symtext nonstop 
+replyname17=1er arbre: Conclusion BPV
+replygood17=$val32|x
+replytype18=nocase
+replyoption18=symtext nonstop 
+replyname18=1er arbre: Conclusion PBV
+replygood18=$val33|x
+replytype19=nocase
+replyoption19=symtext nonstop 
+replyname19=1er arbre: Conclusion PBPV
+replygood19=$val34|x
+replytype20=nocase
+replyoption20=nonstop 
+replyname20=1er arbre: I
+replygood20=x
+replytype21=nocase
+replyoption21=nonstop 
+replyname21=1er arbre: S
+replygood21=x
+replytype22=nocase
+replyoption22=nonstop 
+replyname22=1er arbre: IC
+replygood22=x
+replytype23=nocase
+replyoption23=nonstop 
+replyname23=1er arbre: ID
+replygood23=x
+replytype24=nocase
+replyoption24=nonstop 
+replyname24=1er arbre: SC
+replygood24=x
+replytype25=nocase
+replyoption25=nonstop 
+replyname25=1er arbre: SD
+replygood25=x
+replytype26=nocase
+replyoption26=nonstop 
+replyname26=1er arbre: Conclusion IC
+replygood26=x
+replytype27=nocase
+replyoption27=nonstop 
+replyname27=1er arbre: Conclusion ID
+replygood27=x
+replytype28=nocase
+replyoption28=nonstop 
+replyname28=1er arbre: Conclusion SC
+replygood28=x
+replytype29=nocase
+replyoption29=nonstop 
+replyname29=1er arbre: Conclusion SD
+replygood29=x
+replytype30=numeric
+replyweight30=12 
+replyname30=Réponse à la problèmatique
+replygood30=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<div id="boited">	<img src="$val1/Pretaporter.jpg" alt="Modèle">	</div>	<p class="problematique"> $val37</p>	<div class="enonce">$val38</div>	<div class="question">	<b>A l'aide du tableau à double entrée ou des arbres de probabilité, répondre à la problématique.</b>	<div class="wims_instruction">Lorsque le tableau ou l'arbre ne semble pas pertinent	 pour la résolution du problème, mettre des croix dans les cases avec la touche x.</div>		<ul class="conteneur-onglets">	<li class="inactif onglet" id="affiche-contenu-$(val11[1])" onclick="javascript:Affiche('$(val11[1])');">$(val12[$(val11[1])])</li>	<li class="inactif onglet" id="affiche-contenu-$(val11[2])" onclick="javascript:Affiche('$(val11[2])');">$(val12[$(val11[2])])</li>	<li class="inactif onglet" id="affiche-contenu-$(val11[3])" onclick="javascript:Affiche('$(val11[3])');">$(val12[$(val11[3])])</li>	</ul>		<div class="contenu" id="contenu_1">		<table class="wimscenter wimsborder">	<tr>	<th></th>	<th>B</th>	<th>PB</th>	<th>Total</th>	</tr>	<tr>	<th>V</th>	<td> 
+!read oef/embed.phtml reply1, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply2, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply3, 5 
+$()  </td>	</tr>	<tr>	<th>PV</th>	<td> 
+!read oef/embed.phtml reply4, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply5, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply6, 5 
+$()</td>	</tr>	<tr>	<th>Total</th>	<td> 
+!read oef/embed.phtml reply7, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply8, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply9, 5 
+$()</td>	</tr>	</table>		</div>		<div class="contenu" id="contenu_2">	<div class="sp_image">	
+!if $m_step==2 
+$()<div id="ana10"> 
+!endif
+$() 
+!read oef/embed.phtml reply10, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana11"> 
+!endif
+$() 
+!read oef/embed.phtml reply11, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana12"> 
+!endif
+$() 
+!read oef/embed.phtml reply12, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana13"> 
+!endif
+$() 
+!read oef/embed.phtml reply13, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana14"> 
+!endif
+$() 
+!read oef/embed.phtml reply14, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana15"> 
+!endif
+$() 
+!read oef/embed.phtml reply15, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana16"> 
+!endif
+$() 
+!read oef/embed.phtml reply16, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana17"> 
+!endif
+$() 
+!read oef/embed.phtml reply17, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana18"> 
+!endif
+$() 
+!read oef/embed.phtml reply18, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana19"> 
+!endif
+$() 
+!read oef/embed.phtml reply19, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	<img src="$val9" style="width:731px;height:420px;" alt="Arbre de Probabilité">	</div>		</div>		<div class="contenu" id="contenu_3">	<div class="sp_image">	
+!if $m_step==2 
+$()<div id="ana20"> 
+!endif
+$() 
+!read oef/embed.phtml reply20, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana21"> 
+!endif
+$() 
+!read oef/embed.phtml reply21, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana22"> 
+!endif
+$() 
+!read oef/embed.phtml reply22, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana23"> 
+!endif
+$() 
+!read oef/embed.phtml reply23, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana24"> 
+!endif
+$() 
+!read oef/embed.phtml reply24, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana25"> 
+!endif
+$() 
+!read oef/embed.phtml reply25, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana26"> 
+!endif
+$() 
+!read oef/embed.phtml reply26, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana27"> 
+!endif
+$() 
+!read oef/embed.phtml reply27, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana28"> 
+!endif
+$() 
+!read oef/embed.phtml reply28, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	
+!if $m_step==2 
+$()<div id="ana29"> 
+!endif
+$() 
+!read oef/embed.phtml reply29, $val8 
+$()
+!if $m_step==2 
+$()</div> 
+!endif
+$()	<img src="$val10" style="width:731px;height:420px;" alt="Arbre de Probabilité">	</div>	</div>		<script>	Affiche('$val35');	</script>	<br>	<b>En déduire le pourcentage de clients qui ont acheté un vêtement.</b>	<div class="wimscenter"> 
+!read oef/embed.phtml reply30, 3 
+$() %</div>	</div>		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_reply1 issametext x)
+val36=30
+!endif
+
+!ifval ($m_reply10 issametext x)
+val36=11
+!endif
+
+!ifval ($m_reply10 issametext x and $m_reply1 issametext x)
+val36=20
+!endif
+
+!ifval ($m_step=2)
+val7=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,9,10,11,12,35,37,38
+embedcnt=30

@@ -1,0 +1,131 @@
+!set title=Diffraction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+oefcss=<style> .box{display:flex ; align-items: stretch} .marge{margin: 10px} .imgmax{height:100% ; width : 100% ; object-fit : contain} **/adaptation du conteneur au contenu /** </style>
+
+ansorder=r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 400, 800
+
+val6=$[rint($(tmp0))]
+!if $val6>399 and $val6<460 
+val7=purple
+!endif
+!if $val6>459 and $val6<500 
+val7=blue
+!endif
+!if $val6>499 and $val6<580 
+val7=green
+!endif
+!if $val6>579 and $val6<600 
+val7=yellow
+!endif
+!if $val6>599 and $val6<625 
+val7=orange
+!endif
+!if $val6>624  
+val7=red
+!endif
+tmp0=!randint 2, 7
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 10, 50
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/10]
+!readproc slib/text/sigunits $val10 cm,2,,cm 
+tmp0=$slib_out
+val11=$(tmp0)
+val12=$[(2*$val6*$val8/$val10)*1e-4]
+!readproc slib/text/sigunits $val12 ,2 
+tmp0=$slib_out
+val13=$(tmp0)
+!readproc oef/draw.phtml 500,300 \
+fpoly grey, 360,10,490,30,490,290,360,270	fpoly grey, 200,10,270,20,270,290,200,280	fpoly white, 232,45,238,49,238,249,232,245		frect 10,115,70,155,skyblue	fellipse 10,135,20,40,skyblue	arc 10,135,20,40,270,90,black	frect 70,125,90,145,skyblue	fellipse 88,135,10,20,skyblue	arc 88,135,10,20,270,90,black	segment 70,125,90,125,black	segment 70,145,90,145,black	segment 70,125,70,145,black	segment 90,125,90,145,black	fellipse 70,135,20,40,skyblue	arc 70,135,20,40,270,90,black	segment 10,115,70,115,black	segment 10,155,70,155,black		dline 420,130,420,100,black	dline 440,139,440,109,black	arrow 430,115,420,113,6,black	arrow 430,115,440,117,6,black	text black,430,100,medium,d	dline 236,135,415,130,$val7	dline 236,135,445,139,$val7	arrow 300,100,333,130,10,black	text black,295,95,medium, angle u	arc 336,132,12,12,0,60,black	fellipse 425,135,25,8,$val7	fellipse 445,137,10,6,$val7	fellipse 455,139,10,5,$val7	fellipse 465,141,10,4,$val7	fellipse 475,143,10,3,$val7	fellipse 405,133,10,6,$val7	fellipse 395,131,10,5,$val7	fellipse 385,129,10,4,$val7	fellipse 375,127,10,3,$val7		arrow 210,60,232,70,10,black	arrow 260,85,237,75,10,black	text black,220,45,medium, a	text black,25,130,medium, laser	text black,150,20,medium, fente	text black,400,20,medium, ecran	text black,350,265, medium, D	linewidth 3	arrow 90,135,170,135,15, $val7	segment 169,135,236,135,$val7	arrow 340,270,270,270,15, black	arrow 360,270,490,270,15, black	 
+tmp0=$ins_url
+val14=$(tmp0)
+!readproc oef/draw.phtml 500,300 \
+new 60*8,60*4	xrange -0.5, 10*8-0.5	yrange -0.5, 10*4-0.5	fill 1,1,240,233,255	linewidth 1	parallel 0, 0, 0, 10*4, 1, 0, 10*8+1, 255,220,180	parallel 0, 0, 10*8, 0, 0, 1, 10*8+1, 255,220,180	linewidth 3	parallel 0, 0, 0, 10*8, 10, 0, 8+1, 255,220,180	parallel 0, 0, 10*8, 0, 0, 10, 8+1, 255,220,180	linewidth 0	fellipse 40,20,$val9,10,$val7	fellipse 40+3*$val9/4,20,$val9/2,5,$val7	fellipse 40-3*$val9/4,20,$val9/2,5,$val7	fellipse 40+5*$val9/4,20,$val9/2,3,$val7	fellipse 40-5*$val9/4,20,$val9/2,3,$val7	fellipse 40+7*$val9/4,20,$val9/2,2,$val7	fellipse 40-7*$val9/4,20,$val9/2,2,$val7	 
+tmp0=$ins_url
+val15=$(tmp0)
+replytype1=sigunits
+replyname1=d
+replygood1=$val10 cm#2
+replytype2=sigunits
+replyname2=a
+replygood2=$val13 mm#2
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  Il est conseillé de trouver la relation entre u en fonction de d et D. Ensuite, sachant que u=2&lambda;/a, en déduire la relation entre a, &lambda; ,D et d
+
+
+!goto stat
+
+!exit
+
+:question
+$()La lumière issue d'un laser de longueur d'onde &lambda;=$val6 nm 	est diffractée par une fente fine de largeur a. La figure de diffraction est observée sur un écran situé à la distance	 D=$val8.0 m de la fente.	<div class="wims_instruction">Consulter l'indication pour débuter</div>	<div class="center"><img src="$val14"> </div>		<div class="spacer">Sur l'image ci-dessous, on a réalisé un agrandissement d'une	 partie de l'écran: celui-ci est constitué de papier millimétré. </div>	<div class="center"><img src="$val15"> </div>	<div class="wims_question">	<ol class="wims_nopuce">	<li class="spacer">Déterminer la largeur de la tache centrale d= 
+!read oef/embed.phtml r1,10x20 
+$()</li>	<li>Déterminer la largeur de la fente a= 
+!read oef/embed.phtml r2,10x20 
+$() </li></ol></div>	<div class="wims_instruction">Les réponses seront données en tenant compte des chiffres	 significatifs et des unités. Les puissances de 10 s'écrivent en utilisant la lettre e: 4,2 &times;10<sup>-3</sup> se note 4.2e-3 </i>	</div>		
+$()
+!exit
+
+:hint
+$() Il est conseillé de trouver la relation entre u en fonction de d et D. Ensuite, sachant que u=2&lambda;/a, en déduire la relation entre a, &lambda; ,D et d
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,14,15
+embedcnt=2

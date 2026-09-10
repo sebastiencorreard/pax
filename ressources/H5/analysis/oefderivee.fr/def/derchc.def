@@ -1,0 +1,393 @@
+!set title=Calcul paramétrable de dérivée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=62
+prevarcnt=61
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$val3
+val7=$val2
+tmp0=!itemcnt $val6
+
+!if $(tmp0)=0 
+val6=TS,S
+!endif
+tmp0=!itemcnt $val7
+
+!if $(tmp0)=0 
+val7=A,P1,P2,INV
+!endif
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp0=!itemcnt $val7
+
+
+!ifval ($(tmp0)=1)
+val7= $val7
+!else
+tmp1=!shuffle $val7
+
+tmp2=$(tmp1)
+
+val7=$(tmp2)
+!endif
+val9=$(val7[1])
+!if $val8 = TS or $val8 = C or $val8 = I 
+val10=0
+!else
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+tmp=!nonempty items  $(val7[-1]), $(tmp0)
+
+tmp1=!randitem $tmp
+val10=$(tmp1)
+!endif
+tmp0=!randint 4, 30
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -8, 8
+
+tmp=!nonempty items 0,$(tmp0)
+
+tmp1=!randitem $tmp
+val14=$[rint($(tmp1))]
+tmp0=!randint -10, 10
+
+val15=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val16=$[rint($(tmp0))]
+tmp=!nonempty items 1,3,5,7,11
+
+tmp0=!randitem $tmp
+tmp1=!randitem 1,$(tmp0)
+
+val17=$[rint($(tmp1))]
+
+!ifval ($val17=1)
+tmp0=!randint 1, 12
+
+tmp1=!randitem -1,1
+
+val18=$[rint( $(tmp0)*$(tmp1))]
+!else
+tmp2=!randint 1, ($val17-1)
+
+tmp3=!randitem -1,1
+
+val18=$[rint($(tmp2)*$(tmp3))]
+!endif
+
+!ifval (($val8 issametext Q) or ($val8 issametext P) or (formule issametext C))
+val19=$[rint( 1)]
+!else
+tmp0=!randint 1, 12
+
+tmp1=!randitem -1,1
+
+val19=$[rint($(tmp0)*$(tmp1))]
+!endif
+
+!ifval (($val8 issametext Q) or ($val8 issametext P) or (formule issametext C))
+val20=$[rint( 1)]
+!else
+tmp0=!randint 1, 12
+
+tmp1=!randitem -1,1
+
+val20=$[rint($(tmp0)*$(tmp1))]
+!endif
+val21=$val13,$val14
+tmp0=!shuffle $val21
+
+tmp1=$(tmp0)
+
+val21=$(tmp1)
+val22=cos,sin
+tmp0=!shuffle $val22
+
+tmp1=$(tmp0)
+
+val22=$(tmp1)
+tmp0=!randint 2, 20
+
+val23=$[rint($(tmp0))]
+!if $val9 = A 
+t_=!replace internal \( by ( in ($val15)*x + $val16
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val9 = P1 
+t_=!replace internal \( by ( in $(val21[1])*x^3+$(val21[2])*x^2+$val15*x+$val16
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val9 = P2 
+t_=!replace internal \( by ( in ($val12)*x^$val11
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val9 = INV 
+t_=!replace internal \( by ( in $val18/($val17*x)
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val9 = INVN 
+t_=!replace internal \( by ( in $val18/($val17*x^$val23)
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val9 = T 
+t_=!replace internal \( by ( in ($val19)*$(val22[1])(x) 
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val9 = R 
+t_=!replace internal \( by ( in ($val20)*sqrt (x)
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+!endif
+!if $val10 != 0 
+tmp0=!randint 4, 30
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem -1,1
+
+val26=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem -1,1
+
+val27=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -8, 8
+
+tmp=!nonempty items 0,$(tmp0)
+
+tmp1=!randitem $tmp
+val28=$[rint($(tmp1))]
+tmp0=!randint -10, 10
+
+val29=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val30=$[rint($(tmp0))]
+tmp0=!randint 1, 12
+
+tmp1=!randitem -1,1
+
+val31=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 12
+
+tmp1=!randitem 1,1,-1
+
+val32=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val33=$[rint($(tmp0))]
+val34=$val27,$val28
+tmp0=!shuffle $val34
+
+tmp1=$(tmp0)
+
+val34=$(tmp1)
+tmp0=!randint 2, 20
+
+val35=$[rint($(tmp0))]
+!if $val10 = A 
+t_=!replace internal \( by ( in $val29*x + $val30
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!if $val10 = P1 
+t_=!replace internal \( by ( in $(val34[1])*x^3+$(val34[2])*x^2+$val29*x+$val30
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!if $val10 = P2 
+t_=!replace internal \( by ( in $val26*x^$val25
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!if $val10 = INV 
+t_=!replace internal \( by ( in $val31/x
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!if $val10 = INVN 
+t_=!replace internal \( by ( in $val31/x^$val35
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!if $val10 = T 
+t_=!replace internal \( by ( in $(val22[1])(x)
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!if $val10 = R 
+t_=!replace internal \( by ( in sqrt(x)
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+!endif
+!endif
+!if $val8 = TS 
+val37=!rawmath $val24
+!endif
+!if $val8 = C 
+tmp0=!randint 1, 12
+
+tmp1=!randitem 1,1,-1
+
+val38=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val39=$[rint($(tmp0))]
+tmp0=!replace x by ($val38*x +$val39) in $val24
+
+val37=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val37
+tmp0=!exec maxima $t_
+
+val37=!rawmath $(tmp0)
+!endif
+!if $val8 = S 
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+t_=!replace internal \( by ( in ($val24)+ $(tmp0)*($val36)
+tmp1=!exec maxima $t_
+
+val37=!rawmath $(tmp1) 
+!endif
+!if $val8 = P 
+t_=!replace internal \( by ( in ($val24)*($val36)
+tmp0=!exec maxima $t_
+
+val37=!rawmath $(tmp0)
+!endif
+!if $val8 = Q 
+t_=!replace internal \( by ( in ($val24)/($val36)
+tmp0=!exec maxima $t_
+
+val37=!rawmath $(tmp0)
+!endif
+!if $val8 = I 
+t_=!replace internal \( by ( in 1/($val24) 
+tmp0=!exec maxima $t_
+
+val37=!rawmath $(tmp0)
+!endif
+tmp=!translate ;";': to $     $ in $val37,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val40=$(tmp0)
+tmp0=!texmath $val37
+
+val37=$(tmp0)
+replytype1=formal
+replyname1=\(f'(x))
+replygood1=$val40
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer la dérivée sur son ensemble de définition de la fonction 
+!insmath f
+$() d'expression 
+!insmath f(x) = $val37
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=37
+embedcnt=0

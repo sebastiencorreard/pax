@@ -1,0 +1,297 @@
+!set title=Signe d'un trinôme, inéquations 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Maguy, Bruno
+email=regine@mangeard.fr
+keywords=function_variation,trinomial
+
+ansorder=r
+varcnt=65
+prevarcnt=64
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Attention: Les deux lignes du tableau doivent avoir	 le même nombre d'étiquettes, utiliser l'étiquette vide pour compléter et aligner,	  mais ne pas mettre plusieurs étiquettes vides côte à côte.
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+val8=$[rint(2*$val7)]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!texmath $val7*x^2+$val9*x+$val10
+
+val11=$(tmp0)
+val12=$[rint(($val9)^2-4*$val7*$val10)]
+val13=$[rint(-$val12)]
+tmp0=!texmath (-$val9-x)/$val8
+
+val14=$(tmp0)
+tmp0=!texmath (-$val9+x)/$val8
+
+val15=$(tmp0)
+
+!ifval $val12>0
+tmp0=!replace internal x by \sqrt{$val12} in $val14
+
+val14=$(tmp0)
+!else
+tmp1=!replace internal x by \sqrt{$val13} in $val14
+
+val14=$(tmp1)
+!endif
+
+!ifval $val12>0
+tmp0=!replace internal x by \sqrt{$val12} in $val15
+
+val15=$(tmp0)
+!else
+tmp1=!replace internal x by \sqrt{$val13} in $val15
+
+val15=$(tmp1)
+!endif
+
+!ifval $val12=0
+tmp=!translate ";': to $     $ in -$val9/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val16=$(tmp1)
+!endif
+
+!ifval $val12=0
+tmp=!translate ";': to $     $ in $val9/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val17=$(tmp1)
+!endif
+
+!ifval $val12=0
+val14=$val16
+!endif
+
+!ifval $val12=0
+val15=$val17
+!endif
+tmp0=!randitem 1,2
+
+val18=$[rint($(tmp0))]
+tmp0=!randitem 0,1
+
+val19=$[rint($(tmp0))]
+val18=$[rint(2)]
+val19=$[rint(1)]
+val20=$[rint(2*$val19+$val18)]
+val21=<,\leq,>,\geq
+val22=$(val21[$val20])
+val23=<span style="color:red" class="large">+</span>
+val24=<span style="color:red" class="large">-</span>
+val25=&nbsp;
+val26=0
+val27=\(-\infty\)
+val28=\(+\infty\)
+
+!ifval $val7>0
+val29=\($val14\)
+!else
+val29=\($val15\)
+!endif
+
+!ifval $val7>0
+val30=\($val15\)
+!else
+val30=\($val14\)
+!endif
+
+!ifval $val12=0
+val29=\($val14\)
+!endif
+
+!ifval $val12=0
+val30=\($val15\)
+!endif
+val31=a
+val32=b
+val33=$val31,$val32,$val23,$val24,$val25,$val26,$val27,$val28
+tmp0=!listuniq $val33
+
+val33=$(tmp0)
+val34=&#91;
+val35=&#93;
+val36=&#123;
+val37=&#125;
+val38=\(\cup\)
+val39=\(\cap\)
+val27=\(-\infty\)
+val28=\(+\infty\)
+val40=\(\emptyset\)
+val41=&#59;
+val42=$val33,$val34,$val35,$val37,$val36,$val38,$val39,$val41,$val40
+tmp0=!shuffle $val42
+
+val42=$(tmp0)
+val43=40x40x17
+
+!ifval $val18=1
+val44=$val35
+!else
+val44=$val34
+!endif
+
+!ifval $val18=1
+val45=$val34
+!else
+val45=$val35
+!endif
+tmp0=!shuffle $val33
+
+val46=$(tmp0)
+val47=40x40x7
+!if $val12>0 
+val48=$val27,$val25,$val31,$val25,$val32,$val25,$val28
+
+!ifval $val7>0
+val49=$val25,$val23,$val26,$val24,$val26,$val23,$val25
+!else
+val49=$val25,$val24,$val26,$val23,$val26,$val24,$val25
+!endif
+
+!ifval ($val7>0 and $val19=1) or ($val7<0 and $val19=0)
+val50=$val35,$val27,$val41,$val31,$val45,$val38,$val44,$val32,$val41,$val28,$val34
+!else
+val50=$val44,$val31,$val41,$val32,$val45
+!endif
+!endif
+!if $val12=0 
+val48=$val27,$val25,$val31,$val25,$val28
+
+!ifval $val7>0
+val49=$val25,$val23,$val26,$val23,$val25
+!else
+val49=$val25,$val24,$val26,$val24,$val25
+!endif
+!if $val18=1 
+
+!ifval ($val7>0 and $val19=1) or ($val7<0 and $val19=0)
+val50=$val35,$val27,$val41,$val31,$val45,$val38,$val44,$val31,$val41,$val28,$val34
+!else
+val50=$val40
+!endif
+!else
+
+!ifval ($val7>0 and $val19=1) or ($val7<0 and $val19=0)
+val50=$val35,$val27,$val41,$val28,$val34
+!else
+val50=$val36,$val31,$val37
+!endif
+!endif
+!endif
+!if $val12<0 
+val48=$val27,$val25,$val28
+
+!ifval $val7>0
+val49=$val25,$val23,$val25
+!else
+val49=$val25,$val24,$val25
+!endif
+
+!ifval ($val7>0 and $val19=1) or ($val7<0 and $val19=0)
+val50=$val35,$val27,$val41,$val28,$val34
+!else
+val50=$val40
+!endif
+!endif
+replytype1=clickfill
+replyname1=Domaine de définition
+replygood1=$val50;$val46
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_warning">$m_calcindic</div>	<p>	  On définit les réels 
+!insmath a
+$() et 
+!insmath b
+$() par 
+!insmath a=
+$()$val29 et 
+!insmath b=
+$()$val30.</p><p>	  Déterminer le plus grand ensemble de réels sur lequel on peut définir la fonction 
+!insmath f
+$() telle que:	</p>	<div class="wimscenter"> 
+!insmath f(x)=\sqrt{$val11}
+$()</div>	<div>	<label for="reply1">
+!insmath \mathcal{D}_f
+$()=</label> 
+!read oef/embed.phtml reply1,$val43 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,29,30,43
+embedcnt=1

@@ -1,0 +1,130 @@
+!set title=Syracuse 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=14
+prevarcnt=7
+postvarcnt=6
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(100)]
+val7=$[rint(2)]
+val8=$[rint($val6*2)]
+tmp0=!randint $val6, $val8
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9)]
+!for val11 =1 to $val7 
+
+!ifval $val10%2=0
+val10=$[rint($val10/2)]
+!else
+val10=$[rint($val10*3+1)]
+!endif
+!next
+replytype1=numeric
+replyname1=\(n)
+replygood1=?analyze 12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Le jeu de Syracuse consiste à partir d'un entier quelconque. S'il	  est pair, on le divise par 2 ; s'il est impair, on le multiplie par 3 et on	  ajoute 1. Puis on recommence avec le nouvel entier obtenu, ainsi de suite.	<p>	  Trouve un entier du départ 
+!insmath n
+$(), entre $val6 et $val8 (inclus), qui donne $val10 après	$val7 étapes.	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val13=$[rint(0)]
+!if $val12>=$val6 and $val12<=$val8 
+val13=$[rint(1)]
+val14=$[rint($val12)]
+!for val11 =1 to $val7 
+
+!ifval $val14%2=0
+val14=$[rint($val14/2)]
+!else
+val14=$[rint($val14*3+1)]
+!endif
+!next
+
+!ifval $val14=$val10
+val13=$[rint(2)]
+!endif
+!endif
+
+!exit
+
+:feedback
+!ifval $val13=0
+ <div class='oef_feedbacks'>$val12 n'est pas inclus entre $val6 et $val8 !	  Réponse invalide.
+$()</div>
+!endif
+!ifval $val13=1
+ <div class='oef_feedbacks'>	 Au bout de $val7 étapes de Syracuse à partir de $val12, j'obtiens $val14 au	 lieu de $val10. Désolé mais ce n'est pas bon.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val13>1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Votre nombre donne $val10 après $val7 étapes
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,12
+embedcnt=0

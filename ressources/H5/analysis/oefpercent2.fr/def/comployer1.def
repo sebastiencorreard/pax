@@ -1,0 +1,296 @@
+!set title=Comparaison loyers et prix par graphique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+oefcss=<style> .myred {color:red} .myblue {color:blue} </style>
+oefdescription=Choisir parmi 4 graphiques, préciser les calculs à faire, comparer.
+
+ansorder=r,r,r
+varcnt=103
+prevarcnt=102
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,0,1
+
+val6=$[rint($(tmp0))]
+val7=$[rint(1-$val6*$val6)]
+val8=$[rint(5)]
+val9=le loyer
+val10=l'indice des prix
+val11=$[rint(100)]
+tmp0=!randint 1, 5
+
+val12=$[rint(400+10*$(tmp0))]
+val13=$[100/$val12]
+val14=$[100/$val11]
+val15=$[rint($val12)]
+val16=$[rint($val11)]
+val17=$val12
+val18=$val11
+val19=$val9,100
+val20=$val10,100
+val21=$[rint(100)]
+val22=$[rint($val11)]
+val23=$[rint(1)]
+val24=Année 2010 +,0
+val25=polyline red, 0,$val12
+val26=polyline blue, 0,$val11
+val27=polyline red, 0,100
+val28=polyline blue, 0,100
+val29=$[rint($val12)]
+val30=$[rint($val11)]
+!for val31 =1 to 9 
+val32=$[rint($val31%2)]
+val32=$[rint(2*$val32-1)]
+tmp0=!randint 5, 8
+
+val33=$[1+0.01*$(tmp0)]
+val23=$[$val23*$val33]
+val16=$[rint($val16*$val33)]
+tmp0=!randint 1, 5
+
+val34=$[$(tmp0)*0.01]
+val15=$[rint($val7*$val12*$val23*(1+$val32*$val34)+(1-$val7)*$val15*($val33+$val6*$val34))]
+val29=$[rint(max($val29,$val15))]
+val30=$[rint(max($val30,$val16))]
+val21=$[rint($val13*$val15)]
+val22=$[rint($val14*$val16)]
+val24=$val24,$val31
+val17=$val17,$val15
+val18=$val18,$val16
+val25=$val25,$val31,$val15
+val26=$val26,$val31,$val16
+val27=$val27,$val31,$val21
+val28=$val28,$val31,$val22
+!if $val31=1 
+val19=$val19,$val21
+!else
+val19=$val19, xxx
+!endif
+val20=$val20,$val21
+!next
+val35=$val9,$val17
+val36=$val10,$val18
+tmp=!trim $val24;$val35;$val36
+val37=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val37],wimscenter wimsborder,TH=[;1] CAPTION="Tableau initial" 
+tmp0=$slib_out
+val38=$(tmp0)
+tmp=!trim $val24;$val19;$val36
+val39=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val39],wimscenter wimsborder,TH=[;1] CAPTION="Tableau des indices de base 100 en 2010" 
+tmp0=$slib_out
+val40=$(tmp0)
+val30=$[rint(1.15*$val30)]
+val29=$[rint(1.1*$val29)]
+val41=$[rint(max(110*$val29/$val12,$val30))]
+tmp=!trim $val24;$val20;$val36
+val42=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val42],wimscenter wimsborder,TH=[;1] CAPTION="Tableau des indices de base 100 en 2010" 
+tmp0=$slib_out
+val43=$(tmp0)
+val8=$[rint(ceil($val29/$val30))]
+val44=$[rint($val12/$val8)]
+val45=polyline red, 0,$val44
+val46=$[rint(max($val29/$val8,$val30))]
+val47=$[rint(-0.1*$val30)]
+val48=$[rint(floor($val29*0.0018)*50+50)]
+val49=$[rint(floor($val41*0.002)*25+25)]
+val50=$[rint(ceil($val46*0.005)*5)]
+val51=$[0.5*$val49]
+val52=$[rint(ceil($val30*0.01)*10)]
+val53=$[0.15*$val50]
+val54=$[0.4*$val52]
+val55=$[0.2*$val50]
+val56=text black, 0,-1,large, 0
+val57=text black, -1, $val51, large,0
+val58=text black, -1,2,large,0 %
+val59=text red, -1,$val53,large,0
+val60=text blue, -1,0.2*$val52,large,0
+val61=text blue, 9.1,0.2*$val50,large,0
+!for val31 =1 to 10 
+val62=$[rint($val48*$val31)]
+val63=$[rint($val49*$val31)]
+val64=$[$val62/$val8]
+val65=$[rint($val52*$val31)]
+val66=$[rint($val50*$val31)]
+val56=$val56;text black, $val31,-1,large, $val31
+val57=$val57;text black, -1,$val62+$val51, large,$val62
+val58=$val58;text black, -1.5, $val63+5, large,$val63 %
+val59=$val59;text red, -1, $val64+$val53,large,$val62
+val60=$val60;text blue, -1,$val65+$val54,large,$val65
+val61=$val61;text blue, 9.1,$val66+$val55,large,$val66
+!next
+!for val31 =1 to 9 
+val44=$[rint($(val17[$val31+1])/$val8)]
+val45=$val45,$val31,$val44
+!next
+val67=Les loyers ont augmenté moins vite que les prix,Les loyers ont augmenté environ comme les prix,Les loyers ont augmenté plus vite que les prix
+val68=$[rint(2+$val6)]
+val69=xrange -2,11	yrange -0.1*$val29,$val29	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val29,10,black	linewidth 4	$val56	$val57	
+val70=$val69		$val25	$val26	
+val71=xrange -2,11	yrange -0.1*$val41,$val41	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val41,10,black	linewidth 4	$val56	$val58	$val27	$val28	
+val72=$val69	$val25	
+val73=xrange -2,11	yrange $val47,$val30	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val30,10,black	linewidth 4	$val56	$val60	$val26	
+val74=xrange -2,10	yrange -0.1*$val46,$val46	linewidth 3		arrow 0,0,10,0,10,black	arrow 9,0,9,$val46,10,blue	arrow 0,0,0,$val46,10,red	linewidth 4		$val56	$val59	$val61		$val26	$val45	
+tmp=!trim Données brutes dans un même repère.	  Indices de base 100 en 2010.	  Chaque série dans un repère adapté l'un en dessous de l'autre.	  Un seul graphique avec un axe pour chaque liste.
+val75=!translate internal $	\
+$ to ;; in $tmp
+val76=Jean compare l'évolution de son loyer depuis 2010 avec l'indice des prix.
+oefsteps=reply1	reply2	reply3 
+nextstep=!nosubst reply1	reply2	reply3 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=Graphique
+replygood1=2;A,B,C,D
+replytype2=numeric
+replyname2=Coefficient liste 1
+replygood2=$[$val13]
+replytype3=radio
+replyname3=Analyse
+replygood3=$val68;$val67
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val76	$val38	
+!if $m_step=1 
+$()	  <p>Déterminer parmi les graphiques ci-dessous celui qui permet le mieux de comparer	  les évolutions des deux séries statistiques à partir de 2010.	  </p>	  Dans les graphiques, $val9 est en rouge et $val10 en bleu.	  <ul class="inline">	  <li> 
+!read oef/draw.phtml 400,400 \
+$val70 
+$()<br /> 
+!read oef/embed.phtml reply1,1,$(val75[1;]) 
+$()</li>	  <li> 
+!read oef/draw.phtml 400,400 \
+$val71 
+$()<br /> 
+!read oef/embed.phtml reply1,2,$(val75[2;]) 
+$()</li>	  <li> 
+!read oef/draw.phtml 400,200 \
+$val72 
+$()<br /> 
+!read oef/draw.phtml 400,200 \
+$val73 
+$()<br /> 
+!read oef/embed.phtml reply1,3,$(val75[3;]) 
+$()</li>	  <li> 
+!read oef/draw.phtml 400,400 \
+$val74 
+$()<br /> 
+!read oef/embed.phtml reply1,4,$(val75[4;]) 
+$()</li>				  </ul>	   
+!endif
+$()	
+!if $m_step=2 
+$()	  <p>	  Vous avez choisi le bon graphique !	  </p><p>	  Pour le réaliser, on doit compléter le tableau ci-dessous, obtenu à partir	  du tableau initial par proportionnalité.	  </p>	  $val40	  <ul><li><label for="reply2">	  Par quel nombre doit-on multiplier $val9 pour calculer l'indice de base 100 en 2010 ?  
+!read oef/embed.phtml reply2,10 
+$()<br />						  </li></ul>	   
+!endif
+$()		
+!if $m_step=3 
+$()	  <p>	  Bonne réponse !<br />	  Voici le tableau des indices de base 100 en 2010 des loyers et des prix.	  $val43	  <p>Voici le graphique où $val9 est en rouge et $val10 en bleu :</p>	   
+!read oef/draw.phtml 400,400 \
+$val71 
+$()	  <p>Quel est votre avis :</p>	  <ul class="wims_nopuce"><li>	     
+!read oef/embed.phtml reply3,1 
+$()</li><li>	     
+!read oef/embed.phtml reply3,2 
+$()</li><li>	     
+!read oef/embed.phtml reply3,3 
+$()</li>	  </ul>	   
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <p>	  B : Remplacer les données brutes par leur pourcentage par rapport à	  leur valeur de 2010 permet de bien comparer les évolutions des deux séries depuis 2010.	  </p><p>	  On appelle ces pourcentages les indices de base 100 en 2010.	  </p>	  <p>	  Les indices de base 100 en 2010 sont calculés par proportionnalité.<br />	  Pour obtenir l'indice de base 100 en 2010 d'une série de termes, il suffit de diviser	  chaque terme de la série par la valeur de l'année 2010 et de le multiplier par 100,	   par exemple pour  $val9 de multiplier chaque terme par 100/$val12.	  </p>		<p>	  $(val67[$val68]) car	  
+!if $val68=1 
+$()l'indice des loyers est toujours inférieur à l'indice des prix. 
+!endif
+$()	  
+!if $val68=2 
+$()l'indice des loyers est parfois inférieur à l'indice des prix, parfois supérieur à l'indice des prix. 
+!endif
+$()	  
+!if $val68=3 
+$()l'indice des loyers est toujours supérieur à l'indice des prix. 
+!endif
+$()	  </p>		  <div class="wimscenter"> 
+!read oef/draw.phtml 400,400 \
+$val71 
+$()</div>	  <ul class="inline wimscenter">	  <li class="myred">$val9 en rouge</li>	  <li class="myblue">$val10 en bleu</li>	  </ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 issametext A 
+ <div class='oef_feedbacks'>	<p class="myred">	A : Ce graphique est facile à faire parce qu'il utilise les données brutes et n'utilise qu'un axe.<br />	Mais les valeurs des deux séries sont disproportionnées ce qui fait que les évolutions de la petite série sont écrasées et peu visibles.<br />	</p>	
+$()</div>
+!endif
+!ifval $m_reply1 issametext C 
+ <div class='oef_feedbacks'>	<p class="myred">	C : Utiliser un repère adapté à chaque série et les placer l'un en dessous de l'autre est une bonne idée.<br />	Mais la distance entre les deux courbes ne facilite pas la comparaison.	</p>	
+$()</div>
+!endif
+!ifval $m_reply1 issametext D 
+ <div class='oef_feedbacks'>	<p class="myred">	D : Réaliser un seul graphique avec deux axes est une bonne idée.<br />	Mais c'est difficile à réaliser et à lire et le point de départ en 2010	n'est pas automatiquement le même ce qui peut fausser la comparaison.	</p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,12,38,40,43,67,68,70,71,72,73,74,75,76
+embedcnt=8

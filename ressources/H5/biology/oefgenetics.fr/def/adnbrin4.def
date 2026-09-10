@@ -1,0 +1,323 @@
+!set title=Traduction 2 (codon START)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r
+varcnt=76
+prevarcnt=75
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Cette séquence correspond au début d'un ARN messager.	  Identifiez le codon d'initiation où débute la traduction.
+val7=Donner le début de la séquence protéique traduite.
+tmp0=!makelist A,T,C,G for x=1 to 5
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val8=$(val8[1..15])
+
+!ifval $val2=
+val9= 1
+!else
+tmp=!nonempty items $val2
+
+tmp0=!randitem $tmp
+val9= $(tmp0)
+!endif
+val10=15
+val11=$[rint(3*$val10)]
+tmp=!nonempty items 1,2,3,4
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp=!nonempty items 3,3,3,1,2
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0)+3*($val12-1))]
+val14=Tableau des codons ARN
+val15=Si un codon STOP apparait, la traduction s'arrête,	  les codons ne sont plus traduits en acides aminés.
+val16=Ala, Arg, Asn, Asp, Cys, Gln, Glu, Gly, His, Ile,	  Leu, Lys, Met, Phe, Pro, Prp, Ser, Thr, Trp, Tyr, Val
+tmp0=!makelist A,U,G,U for x=1 to $val10
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val8=$(val8[1..$val11])
+tmp0=!items2words $val8
+
+tmp1=!nospace $(tmp0)
+
+val8=$(tmp1)
+tmp0=!text expand $val8 using 0111
+
+val8=$(tmp0)
+tmp0=!words2items $val8
+
+val8=$(tmp0)
+tmp0=!replace internal UGA by AUA in $val8
+
+val8=$(tmp0)
+tmp0=!replace internal UAA by AGU in $val8
+
+val8=$(tmp0)
+tmp=!nonempty items 0,1
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+tmp0=!randint 2, 4
+
+val18=$[rint($(tmp0))]
+tmp0=!replace internal item number $val18 by AUG in $val8
+
+val8=$(tmp0)
+tmp=!nonempty items A,U,G,T
+
+tmp0=!randitem $tmp
+val8=$(tmp0) $val8
+tmp0=!items2words $val8
+
+tmp1=!text expand $(tmp0) using 01
+
+tmp2=!words2items $(tmp1)
+
+val19=$(tmp2)
+tmp0=!items2words $val8
+
+tmp1=!nospace $(tmp0)
+
+val8=$(tmp1)
+tmp0=!charcnt $val8
+
+val11=$(tmp0)
+val20=1
+val13=0
+!while j <= $val18 and $val13=0 
+tmp0=!char $val20 to -1 of $val8
+
+tmp1=!text compare $(tmp0) and AUG
+
+tmp2=!char 1 to 3 of $(tmp1)
+
+val21=$(tmp2)
+
+!ifval $val21=0
+val13= $val20
+!endif
+val20=$[rint($val20+1)]
+!endwhile
+tmp0=!items2words $val8
+
+tmp1=!text expand $(tmp0) using 01
+
+tmp2=!words2items $(tmp1)
+
+val22=$(tmp2)
+val22=$(val22[1..$val13])
+tmp0=!items2words $val22
+
+tmp1=!nospace $(tmp0)
+
+val22=$(tmp1)
+tmp0=!text expand $val22 using 0111
+
+val22=$(tmp0)
+tmp0=!words2items $val22
+
+val22=$(tmp0)
+tmp0=!itemcnt $val22
+
+val23=$[rint($(tmp0))]
+val24=
+val25=0
+!for val20 =1 to $val23 
+!if $val25=0 
+val26=$(val22[$val20])
+!if $val20=$val23 
+tmp0=!charcnt $val26
+
+val27=$(tmp0)
+
+!ifval $val27<3
+val25= $val20
+!endif
+!endif
+tmp0=!lookup $val26 in codon2am
+
+val28=$(tmp0)
+
+!ifval $val28 issametext STOP 
+val25= $val20
+!endif
+
+!ifval $val25=0
+tmp0=!append item $val28 to $val24
+
+val24= $(tmp0)
+!endif
+!endif
+!next
+tmp0=!items2words $val8
+
+val8=$(tmp0)
+val29=5,3
+tmp0=!nospace $val8
+
+val8=$(tmp0)
+tmp0=!char 1 to $val13-1 of $val8
+
+val30=$(tmp0)
+tmp0=!char $val13 to -1 of $val8
+
+val22=$(tmp0)
+tmp0=!text expand $val22 using 0111
+
+val8=$(tmp0)
+val31=<table class="wimscenter wimsborder">	<caption>Tableau des codons ARN</caption>	<tr>	<th rowspan="2">nucléotide 1</th>	<th colspan="4">nucléotide 2</th>	<th rowspan="2">nucléotide 3</th>	</tr><tr>	<th>U</th><th>C</th><th>A</th><th>G</th>	</tr>
+val32=,U,C,A,G
+!for val33  in U,C,A,G 
+val31=$val31<tr><th rowspan="4">$val33</th>
+!for val34  in U,C,A,G 
+val32=$val32	  $val33,
+val31=$val31
+!for val35  in U,C,A,G 
+tmp0=!lookup $val33$val35$val34 in codon2am
+
+val32=$val32 $(tmp0),
+tmp0=!lookup $val33$val35$val34 in codontype
+
+tmp1=!lookup $val33$val35$val34 in codon2am
+
+val31=$val31<td class="$(tmp0)">	      $(tmp1)</td>
+!next
+val32=$val32$val34
+val31=$val31<th>$val34</th></tr>
+!next
+!next
+val31=$val31</table>
+tmp=!trim apolaire,Acide aminé apolaire	polaire,Acide aminé polaire	basique,Acide aminé basique	acide,Acide aminé acide	terminaison,Terminaison
+val36=!translate internal $	\
+$ to ;; in $tmp
+val31=$val31<div>	  <p class="inline">Légende</p>	  <ul class="inline">
+!for val20 =1 to 5 
+val31=$val31<li class="$(val36[$val20;1])">$(val36[$val20;2])</li>
+!next
+val31=$val31</ul></div>
+tmp=!trim $val32
+val32=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val32], wimsborder wimscenter,TH=[1;1,6] caption="Tableau des codons ARN" 
+tmp0=$slib_out
+val37=$(tmp0)
+tmp0=!makelist x for x=$val13 to $val13+2
+
+val38=$(tmp0)
+oefsteps=r1	r2 
+nextstep=!nosubst r1	r2 
+!readproc oef/steps.proc
+replytype1=mark
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$val38;$val19
+replytype2=clickfill
+replyname2=
+replygood2=$val24;$val16
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst  <style> /*<![CDATA[*/ .apolaire{background-color:#EFEFCE} .polaire{background-color:#CEEFCE} .basique{background-color:#CECEEF} .terminaison{background-color:#EFEFEF} .acide{background-color:#EFCECE} /*]]>*/ </style> $val31 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  
+!if $m_step=1 
+$()	  $val6	    <div class="wimscenter">
+!insmath ^{$(val29[1])'}
+$()	     
+!for m_h=1 to $val11 
+$() 
+!read oef/embed.phtml r1,\h 
+$() 
+!next
+$()
+!insmath ^{$(val29[2])'}
+$()	    </div>	   
+!endif
+$()	  
+!if $m_step>=2 
+$()	  $val7	    <div class="wimscenter">
+!insmath ^{$(val29[1])'}
+$() $val30 <span class="bold">$val8</span> 
+!insmath ^{$(val29[2])'}
+$()</div>	    <div class="wimscenter"> 
+!read oef/embed.phtml r2, 40x30x15 
+$()</div>	    <div class="wims_instruction"> 
+!read oef/special.phtml help gencode, $val14 
+$()</div>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() <style> /*<![CDATA[*/ .apolaire{background-color:#EFEFCE} .polaire{background-color:#CEEFCE} .basique{background-color:#CECEEF} .terminaison{background-color:#EFEFEF} .acide{background-color:#EFCECE} /*]]>*/ </style> $val31 
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1=0
+ <div class='oef_feedbacks'>	  <div class="wimscenter">
+!insmath ^{$(val29[1])'}
+$() $val30 <span class="bold">$val8</span> 
+!insmath ^{$(val29[2])'}
+$()</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,14,29,30,31
+embedcnt=3

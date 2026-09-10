@@ -1,0 +1,431 @@
+!set title=Correct the mistakes 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Csilla, Ducrocq
+email=csilla.ducrocq@u-psud.fr
+language=fr
+computeanswer=no
+oefcss=<style type="text/css"> .question{background-color: #99ffff; margin: 2% 5%; padding: 1%;} .reponse{background-color: #FFCC99; color: black; margin: 2% 5%; padding: 0%;} ol li {list-style: upper-alpha; } </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=76
+prevarcnt=75
+postvarcnt=0
+replycnt=21
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=ex5_correct_mistakes
+val7=$(val6[1])
+tmp0=!nosubst Find the mistakes and click on them	(<i>Trouver les erreurs et cliquer dessus</i>).
+
+val8=$(tmp0)
+tmp0=!nosubst  Write the appropriate word to correct	the mistakes	 (<i>écrire le bon mot pour corriger les fautes</i>).
+
+val9=$(tmp0)
+val10=
+val11=no
+val12=no
+val13=no
+val14=yes
+val15=12
+val16=
+val17=1
+
+!ifval $val8 issametext 
+tmp0=!getdef instruction in $val7
+
+val8= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction2 in $val7
+
+val9= $(tmp0)
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef size in $val7
+
+val15= $(tmp0)
+!endif
+
+!ifval $val12 issametext 
+tmp0=!getdef reading_file in $val7
+
+val12= $(tmp0)
+!endif
+tmp0=!record 0 of $val12
+
+val18=$(tmp0)
+
+!ifval $val11 issametext 
+tmp0=!getdef audio_file in $val7
+
+val11= $(tmp0)
+!endif
+
+!ifval $val11 notsametext  and  $val11 notsametext no
+!readproc slib/media/audio $val1/$val11 
+tmp0=$slib_out
+val19=	<p class="wimscenter">$(tmp0)</p>
+!endif
+
+!ifval $val13 issametext 
+tmp0=!getdef image_file in $val7
+
+val13= $(tmp0)
+!endif
+
+!ifval $val13 notsametext  and  $val13 notsametext no
+tmp0=!makelist <img src="$val1/x" alt=""> for x in $val13
+
+val20=	$(tmp0)
+!endif
+
+!ifval \video_file issametext 
+tmp0=!getdef video_file in $val7
+
+val21= $(tmp0)
+!endif
+
+!ifval $val21 notsametext  and  $val21 notsametext no
+val22=	<a wims_target=external href="$val1/$val21">[video] </a></p>
+!endif
+
+!ifval $val10 issametext 
+tmp0=!getdef choice in $val7
+
+val23= $(tmp0)
+!else
+val23=$val10
+!endif
+val24=case
+val25=
+val26=inside
+val27=yes
+val28=yes
+val29=1
+
+!ifval $val29 notwordof 1 2 3 4 5 6 7 8 9 10 
+val29= 1
+!endif
+tmp0=!recordcnt $val7
+
+val30=$[rint($(tmp0))]
+val31=1
+val32=1
+val33=3
+val32=$[rint(min($val30,$val32))]
+val31=$[rint(min($val32*$val31,$val30))]
+
+!ifval $val14 issametext yes 
+tmp0=!shuffle $val30
+
+val34= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val30
+
+val34=	$(tmp1)
+!endif
+tmp=!trim 
+val35=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val36=!translate internal $	\
+$ to ;; in $tmp
+val37=
+tmp=!trim 
+val38=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val39=!translate internal $	\
+$ to ;; in $tmp
+val40=
+val41=
+!for val42 = 1 to $val32 
+tmp0=!record $(val34[$val42]) of $val7
+
+val41=$val41 <br>	  $(tmp0)
+!next
+tmp0=!embraced randitem $val41
+
+val41=$(tmp0)
+!readproc slib/text/markgroup $val41 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val41=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val41[1..-4;])
+val38=!translate internal $	\
+$ to ;; in $tmp
+val43=$(val41[-2;])
+tmp=!translate internal $	$ to ; in $val38
+
+tmp0=!rowcnt $tmp
+val44=$(tmp0)
+tmp0=!rows2lines $val38
+
+val45=$(tmp0)
+tmp0=!lines2items $val45
+
+val45=$(tmp0)
+tmp0=!column 1 of $val38
+
+val46=$(tmp0)
+val41=$(val41[-3;])
+tmp0=!replace internal | by , in $val41
+
+val47=$(tmp0)
+tmp0=!itemcnt $val41
+
+val40=$(tmp0)
+tmp0=!items2words $val41
+
+val48=$(tmp0)
+val49=
+!for val42  = 1 to $val44 
+val50=$(val41[$(val38[$val42;])])
+tmp0=!items2words $val50
+
+val50=$(tmp0)
+val49=$val49,$val50
+!next
+tmp0=!nonempty items $val49
+
+val49=$(tmp0)
+tmp0=!makelist r x for x = 2 to $val44+1
+
+val51=$(tmp0)
+val52=
+val53=$[rint(0)]
+!for val54  = 1 to $val40 
+!if $val54 isitemof $val46 
+val53=$[rint($val53+1)]
+val52=$val52,$val53
+!else
+val52=$val52,0
+!endif
+!next
+tmp0=!nonempty items $val52
+
+val52=$(tmp0)
+val55=r1
+
+!ifval $val27 issametext yes 
+val55= $val55	$val51	
+!endif
+oefsteps=$val55 
+nextstep=!nosubst $val55 
+!readproc oef/steps.proc
+replytype1=mark
+replyoption1=$val16 
+replyname1=
+replygood1=$val45;$val41
+replytype2=$val24
+
+replyname2=$(val49[1])
+replygood2=$(val43[1])
+replytype3=$val24
+
+replyname3=$(val49[2])
+replygood3=$(val43[2])
+replytype4=$val24
+
+replyname4=$(val49[3])
+replygood4=$(val43[3])
+replytype5=$val24
+
+replyname5=$(val49[4])
+replygood5=$(val43[4])
+replytype6=$val24
+
+replyname6=$(val49[5])
+replygood6=$(val43[5])
+replytype7=$val24
+
+replyname7=$(val49[6])
+replygood7=$(val43[6])
+replytype8=$val24
+
+replyname8=$(val49[7])
+replygood8=$(val43[7])
+replytype9=$val24
+
+replyname9=$(val49[8])
+replygood9=$(val43[8])
+replytype10=$val24
+
+replyname10=$(val49[9])
+replygood10=$(val43[9])
+replytype11=$val24
+
+replyname11=$(val49[10])
+replygood11=$(val43[10])
+replytype12=$val24
+
+replyname12=$(val49[11])
+replygood12=$(val43[11])
+replytype13=$val24
+
+replyname13=$(val49[12])
+replygood13=$(val43[12])
+replytype14=$val24
+
+replyname14=$(val49[13])
+replygood14=$(val43[13])
+replytype15=$val24
+
+replyname15=$(val49[14])
+replygood15=$(val43[14])
+replytype16=$val24
+
+replyname16=$(val49[15])
+replygood16=$(val43[15])
+replytype17=$val24
+
+replyname17=$(val49[16])
+replygood17=$(val43[16])
+replytype18=$val24
+
+replyname18=$(val49[17])
+replygood18=$(val43[17])
+replytype19=$val24
+
+replyname19=$(val49[18])
+replygood19=$(val43[18])
+replytype20=$val24
+
+replyname20=$(val49[19])
+replygood20=$(val43[19])
+replytype21=$val24
+
+replyname21=$(val49[20])
+replygood21=$(val43[20])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val8	  
+!if $val18 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val20 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val19$val22	  
+!if $m_step=1 
+$()	    <div class="question">	     
+!for m_h=1 to $val40 
+$()	       
+!read oef/embed.phtml reply 1,\h 
+$()	     
+!next
+$()	    </div>	    
+!endif
+$()	 
+!if $m_step >=2  
+$()	   
+!if $val26=outside 
+$()	     <div class="reponse">	      
+!for m_s = 1 to $val40 
+$()	      
+!if $m_s notitemof $val45 
+$()$(val41[$m_s]) 
+!else
+$() 	      
+!if $m_s isitemof $val45 
+$()	      <span class="larger" style="color:blue">$(val41[$m_s])</span> 
+!endif
+$()	       
+!endif
+$()	     
+!next
+$()	    </div>	     <div>$val9</div>	    <div class="question">	    
+!for m_s= 1 to $val44 
+$()	         <br> $(val49[$m_s]) :  
+!read oef/embed.phtml reply $(val51[$m_s]),$val15 
+$()	    
+!next
+$()	   </div>	  
+!else
+$()	  	    <div class="question">	       <p>$val9</p>	     
+!for m_s = 1 to $val40 
+$()	      
+!if $m_s notitemof $val45 
+$()$(val41[$m_s]) 
+!else
+$() 	      
+!if $m_s isitemof $val46 
+$()	       
+!read oef/embed.phtml $(val51[$(val52[$m_s])]), $val15 
+$()	       
+!endif
+$()	      <span class="smaller" style="color:red">$(val41[$m_s])</span> 
+!endif
+$()	     
+!next
+$()	   </div>	   
+!endif
+$()	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,15,18,19,20,22,26,40,41,44,45,46,49,51,52
+embedcnt=5

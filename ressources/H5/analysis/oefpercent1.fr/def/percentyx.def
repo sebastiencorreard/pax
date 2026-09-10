@@ -1,0 +1,178 @@
+!set title=Déterminer le pourcentage d'une quantité y par rapport à x
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 19
+
+val6=$[rint(5*$(tmp0))]
+tmp0=!randint 26, 99
+
+val7=$[rint(2*$(tmp0))]
+val8=$[0.01*$val6*$val7]
+val9=\(\times)
+val10=&#47
+val11=&#0151
+val12=&#43
+val13=\(x)
+val14=100
+val15=\(y)
+val16=$val15,$val10,$val13,$val9,$val14
+val17=$val14,$val9,$val15,$val10,$val13
+val18=$val15,$val9,$val14,$val10,$val13
+val19=$val14,$val10,$val13,$val9,$val15
+val20=!rawmath 100*y/$val7
+tmp0=!shuffle $val9,$val10,$val11,$val12,$val13,$val14,$val15
+
+val21=$(tmp0)
+val22=xrange=80	yrange=16	line 0,0,0,16,black	arrow 0,8,80,8,20,black
+!readproc oef/draw.phtml 80,16 \
+$val22 
+tmp0=$ins_url
+val23=$(tmp0)
+val24=<table class="wimscenter wimsborder">	<caption>Tableau de proportionnalité</caption>	  <tr>	  <td>$val8</td><td>&#63;&#63;&#63;</td>	 </tr>	  <tr>	  <td>$val7</td><td>100 %</td>	 </tr>	</table>
+val25=<table class="wimscenter wimsborder">	<caption>Tableau de proportionnalité</caption>	  <tr>	  <td>\(y)</td><td>&#63;&#63;&#63;</td>	 </tr>	  <tr>	  <td>$val7</td><td>100 %</td>	 </tr>	</table>
+val26=<table class="wimscenter wimsborder">	<caption>Tableau de proportionnalité</caption>	  <tr>	  <td>\(y)</td><td>&#63;&#63;&#63;</td>	 </tr>	  <tr>	  <td>\(x)</td><td>100 %</td>	 </tr>	</table>
+oefsteps=reply1	reply2	reply3 
+nextstep=!nosubst reply1	reply2	reply3 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$val8 par rapport à $val7
+replygood1=$[$val6]
+replytype2=function
+replyname2=$val8 par rapport à \(x)
+replygood2=!rawmath $val20
+replytype3=dragfill
+replyname3=Pourcentage
+replygood3=$val16|$val17|$val18|$val19;$val21
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  
+!if $m_step=1 
+$()	  <label for="reply1">Quel pourcentage correspond à $val8 par rapport à $val7 ?</label>  
+!read oef/embed.phtml reply1,\size 
+$() % (arrondir à 1 % près si nécessaire)	  $val24	   
+!endif
+$()	  
+!if $m_step=2 
+$()	  <label for="reply2">Quelle formule permet de calculer le pourcentage de 
+!insmath y
+$() par rapport à $val7 ?</label>  
+!read oef/embed.phtml reply2,7 
+$() %	  $val25	 
+!endif
+$()	  
+!if $m_step=3 
+$()	  Quelle formule permet de calculer le pourcentage de 
+!insmath y
+$() par rapport à 
+!insmath x
+$() ?<br />	  
+!read oef/embed.phtml reply3,50x30x5 
+$() %		$val26		 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()	
+!if $m_step=1 
+$()	Utiliser le tableau de proportionnalité pour trouver l'opération.<br />	 
+!endif
+$()	
+!if $m_step=2 
+$()	Ecrire le calcul à effectuer avec 
+!insmath y
+$() en notant * pour multiplier et $val10 pour diviser.	 
+!endif
+$()	
+!if $m_step=3 
+$()	Prendre les opérations ou nombres en bas et les placer pour écrire la réponse en calculant à partir de 
+!insmath y
+$().<br />	$val21	 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ul class="wims_nopuce">	<li>Pourcentage proportion</li>	<li>
+!insmath \large{ x\; \overset{\phantom{xxxx}p\%\phantom{xxxx}}{\underset{\times p/100}{\mapsto}}\; y}
+$()</li>	</ul>		Pour déterminer le pourcentage 
+!insmath p
+$() % de 
+!insmath y
+$() par rapport à 
+!insmath x
+$(), on divise 
+!insmath y
+$() par 
+!insmath x
+$() et on multiplie par 100.	<br />	
+!insmath p=100 \frac{y}{x}
+$()	<br />	Le quotient 
+!insmath \frac{y}{x}
+$() est la fréquence de 
+!insmath y
+$() par rapport à 
+!insmath x
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,21,24,25,26
+embedcnt=3

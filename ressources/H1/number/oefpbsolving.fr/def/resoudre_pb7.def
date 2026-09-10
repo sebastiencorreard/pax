@@ -1,0 +1,131 @@
+!set title=Résoudre un problème 7
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim XXXX avait un rendez-vous à	  Elle est arrivée avec	  de retard.	  Pour y aller, elle a couru	  et a pris le bus pendant
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=A quelle heure XXXX est-elle partie&nbsp;
+val8=Elle est partie de chez elle à 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+val10=girl
+!readproc slib/lang/fname fr,$val10 
+tmp0=$slib_out
+val11=$(tmp0)
+tmp0=!replace internal XXXX by $val11 in $val6
+
+val12=$(tmp0)
+tmp0=!replace internal XXXX by $val11 in $val7
+
+val13=$(tmp0)
+val14=$val8
+tmp0=!randint 9, 15
+
+val15=$(tmp0)
+tmp0=!randint 1, 11
+
+val16=$[rint($(tmp0)*5)]
+
+!ifval $val16<10
+val16=0$val16
+!endif
+tmp0=!randint 1, 30
+
+val17=$(tmp0)
+tmp0=!randint 5, 15
+
+val18=$(tmp0)
+tmp0=!randint 15, 40
+
+val19=$(tmp0)
+val20=$[rint($val16+$val15*60)]
+val21=$[rint($val20+$val17-($val18+$val19))]
+t_=!replace internal \( by ( in divrem($val21,60)~
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+val23=$(val22[1])
+val24=$(val22[2])
+
+!ifval $val24<10
+val24=0$val24
+!endif
+val25=$val15,$val16,$val23,$val24
+replyname1=H
+replygood1=$(val25[3])
+replyname2=mn
+replygood2=$(val25[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val12[1;]) $(val25[1]) h $(val25[2]) mn. $(val12[4;]) $val18 mn $(val12[5;]) $val19 mn.	$(val12[2;]) $val17 mn $(val12[3;])	$val13?	<div class="wims_question">	<label for="reply1">$val14</label>  
+!read oef/embed.phtml r1,4 
+$() h  
+!read oef/embed.phtml r2,4 
+$() mn.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14,17,18,19,25
+embedcnt=2

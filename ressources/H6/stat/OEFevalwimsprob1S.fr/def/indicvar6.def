@@ -1,0 +1,186 @@
+!set title=Variable aléatoire et indicateurs 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange -1,4	 yrange -1,4	 parallel 0,0,0,3,1,0,4,red	 parallel 0,0,3,0,0,1,4,red	 linewidth 3	 points black,0,3,2,3,3,3,2,2,0,0,1,0,3,0	 text black,-0.3,3.2,medium,A	 text black,3.2,0,medium,B	 text black,3.2,3.2,medium,D	 text black,2.1,3.4,medium,I	 text black,2.1,2.4,medium,J	 text black,-0.2,0,medium,K	 text black,1,-0.05,medium,L	 arrow 0.2,3.2,0.8,3.2,10,black	 arrow -0.2,2.8,-0.2,2.2,10,black	
+tmp0=!shuffle 10
+
+val7=$(tmp0)
+tmp0=!item 1 to 3 of $val7
+
+val7=$(tmp0)
+val8=$[rint($(val7[1])+$(val7[2]))]
+!if $(val7[3])<=$val8 
+tmp0=!randint 1, 5
+
+val9=$[rint($val8+$(tmp0))]
+tmp0=!replace item number 3 by $val9 in $val7
+
+val7=$(tmp0)
+!endif
+val10=$[rint($(val7[3]))]
+val7=$val7,0,$val8
+tmp0=!sort numeric list $val7
+
+val7=$(tmp0)
+val11=0.45,0.3,0.05,0.15,0.05
+tmp0=!randint 3, 8
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val10+$val12)]
+val7=$val7,$val13,$val12
+val14=0.3,0.3,0.05,0.15,0,0.05,0.15
+val15=$[rint(0)]
+!for val16 =1 to 5 
+t_=!rawmath $val15+$(val11[$val16])*$(val7[$val16])
+val15=!exec pari print($t_)
+!next
+val17=$[rint(0)]
+!for val16 =1 to 7 
+t_=!rawmath $val17+$(val14[$val16])*$(val7[$val16])
+val17=!exec pari print($t_)
+!next
+replytype1=numexp
+replyname1=p($(val7[1]))
+replygood1=$(val11[1])
+replytype2=numexp
+replyname2=p($(val7[2]))
+replygood2=$(val11[2])
+replytype3=numexp
+replyname3=p($(val7[3]))
+replygood3=$(val11[3])
+replytype4=numexp
+replyname4=p($(val7[4]))
+replygood4=$(val11[4])
+replytype5=numexp
+replyname5=p($(val7[5]))
+replygood5=$(val11[5])
+replytype6=numexp
+replyname6=E(S)
+replygood6=$val15
+replytype7=numexp
+replyname7=Nb points pour L
+replygood7=$val12
+replytype8=numexp
+replyname8=Nb de trajets
+replygood8=20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	  <div class="medium_size text_col">	  On déplace au hasard un pion sur le quadrillage ci-contre de A 	  jusqu'à B à l’aide de déplacements d'une unité vers la droite ou vers le bas.	  </div>	  <div class="medium_size img_col"> 
+!read oef/draw.phtml 180,180 \
+$val6 
+$()</div>	</div>	<div class="wims_question">	<label for="reply8">Combien y a-t-il de trajets possibles ? </label> 
+!read oef/embed.phtml reply8,4 
+$()	</div>	On suppose par la suite que les trajets sont équiprobables.	<p>	Le passage du pion par I rapporte 
+!if $(val7[3])=1 
+$()un point, 
+!else
+$() $(val7[3]) points, 
+!endif
+$()	 par J rapporte 
+!if $(val7[2])=1 
+$()un point, 
+!else
+$() $(val7[2]) points, 
+!endif
+$() 	 et par K rapporte 
+!if $(val7[5])=1 
+$()un point. 
+!else
+$() $(val7[5]) points. 
+!endif
+$()</p>	<p>	On appelle 
+!insmath S
+$() la variable qui associe à chaque trajet le nombre	 de points qu'il rapporte.</p>	 <div class="wims_question">	Déterminer la loi de probabilité de 
+!insmath S
+$().		<table class="wimscenter wimsborder"><tr><th>
+!insmath s
+$()</th><td> $(val7[1]) </td><td> $(val7[2])	</td><td>$(val7[3])</td><td>$(val7[4])</td><td>$(val7[5])</td></tr>	<tr><th>
+!insmath P(S=s)
+$()</th><td> 
+!read oef/embed.phtml reply1,4 
+$()</td><td> 
+!read oef/embed.phtml reply2,4 
+$()</td><td> 
+!read oef/embed.phtml reply3,4 
+$()</td>	<td> 
+!read oef/embed.phtml reply4,4 
+$()</td><td> 
+!read oef/embed.phtml reply5,4 
+$()</td></tr>	</table>		Calculer l'espérance mathématique de 
+!insmath S
+$() : <label for="reply6">
+!insmath E(S)=
+$()</label> 
+!read oef/embed.phtml reply6,3 
+$()	<p>	Déterminer le nombre de points à attribuer au passage en L	 pour avoir 
+!insmath E(S)=$val17
+$().</p>	<div class="wimscenter"> <label for="reply7">Nombre de points pour L :</label>  
+!read oef/embed.phtml reply7,3 
+$()</div>	<div class="wims_instruction">Donner les valeurs exactes.</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,17
+embedcnt=8

@@ -1,0 +1,318 @@
+!set title=Série d'équations avec exp
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=40
+prevarcnt=19
+postvarcnt=20
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<br>
+tmp0=!randint -15, 15
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+!while $val8=0 
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+!endwhile
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val10=$[rint($(tmp0))]
+!while $val10=0 
+tmp0=!randint -10, 10
+
+val10=$[rint($(tmp0))]
+!endwhile
+tmp0=!randint -10, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val12=$[rint($(tmp0))]
+
+!ifval $val7>0
+val13=1
+!else
+val13=2
+!endif
+!if $val13=1 
+val14=$[rint(ln($val7)*1000)/1000]
+!endif
+t_=!rawmath $val9/$val8
+val15=!exec pari print($t_)
+
+!ifval $val15>0
+val16=1
+!else
+val16=2
+!endif
+!if $val16=1 
+val17=$[rint(ln($val15)*1000)/1000]
+!endif
+t_=!rawmath ($val12-$val11)/$val10
+val18=!exec pari print($t_)
+
+!ifval $val18>0
+val19=1
+!else
+val19=2
+!endif
+!if $val19=1 
+val20=$[rint(ln($val18)*1000)/1000]
+!endif
+val21=r1
+val22=1
+dynsteps=yes
+oefsteps=$val21 
+nextstep=!nosubst $val21 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=nonstop 
+replyname1=nbre de sol de equ1
+replygood1=$val13;1,0
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=sol de equ1
+replygood2=$[$val14]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=equ2 équiv
+replygood3=$[$val15]
+replytype4=menu
+replyoption4=nonstop 
+replyname4=
+replygood4=$val16;1,0
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=
+replygood5=$[$val17]
+replytype6=numeric
+replyoption6=nonstop 
+replyname6=
+replygood6=$[$val18]
+replytype7=menu
+replyoption7=nonstop 
+replyname7=
+replygood7=$val19;1,0
+replytype8=numeric
+replyname8=
+replygood8=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div id="enonce">	
+!if $val22>=1 
+$()	 Cet exercice est composé de 3 équations à résoudre dans 
+!insmath \mathbb R
+$().$val6	 <div class="question">Equation 1 :  
+!insmath e^x=$val7
+$()</div>	 <div class="reponse">	 Cette équation a  
+!read oef/embed.phtml r1 
+$() solution.	 </div>	 
+!if r2 isin $val21 or $m_sc_reply2!= 
+$()	  <div class="reponse">	  Une valeur approchée à 
+!insmath 10^(-3)
+$() de la solution est  
+!read oef/embed.phtml r2 
+$()	  </div>	  
+!endif
+$()		 
+!endif
+$()		
+!if $val22>=2 
+$()	 <div class="question">Equation 2 : 
+!insmath $val8*e^x=$val9
+$()</div>		 <div class="reponse">	 Cette équation est équivalente à 
+!insmath e^x=
+$() 
+!read oef/embed.phtml r3 
+$()	 </div>			 
+!if (r4 isin $val21 or $m_sc_reply4!=) and $m_sc_reply3=1 
+$()	  <div class="reponse">	  Cette équation a  
+!read oef/embed.phtml r4 
+$() solution.	  </div>	  
+!endif
+$()	 
+!if (r4 isin $val21 or $m_sc_reply4!=) and $m_sc_reply3!=1 
+$()	  <div class="non">Attention, l'équation est équivalente à 
+!insmath e^x=$val15
+$()</div>	  <div class="reponse">	  Cette équation a  
+!read oef/embed.phtml r4 
+$() solution.	  </div>	  
+!endif
+$()	 
+!if r5 isin $val21 or $m_sc_reply5!= 
+$()	  <div class="reponse">	  Une valeur approchée à 
+!insmath 10^(-3)
+$() de la solution est  
+!read oef/embed.phtml r5 
+$()	  </div>	  
+!endif
+$()	 
+!endif
+$()		
+!if $val22>=3 
+$()	 <div class="question">Equation 3 : 
+!insmath $val10*e^x+$val11=$val12
+$()</div>		 <div class="reponse">	 Cette équation est équivalente à 
+!insmath e^x=
+$() 
+!read oef/embed.phtml r6 
+$()	 </div>	 
+!if (r7 isin $val21 or $m_sc_reply7!=) and $m_sc_reply6=1 
+$()	  <div class="reponse">	  Cette équation a  
+!read oef/embed.phtml r7 
+$() solution.	  </div>	  
+!endif
+$()	 
+!if (r7 isin $val21 or $m_sc_reply7!=) and $m_sc_reply6!=1 
+$()	  <div class="non">Attention, l'équation est équivalente à 
+!insmath e^x=$val18
+$()</div>	  <div class="reponse">	  Cette équation a  
+!read oef/embed.phtml r7 
+$() solution.	  </div>	  
+!endif
+$()	 
+!if r8 isin $val21 or $m_sc_reply8!= 
+$()	  <div class="reponse">	  Une valeur approchée à 
+!insmath 10^(-3)
+$() de la solution est  
+!read oef/embed.phtml r8 
+$()	  </div>	  
+!endif
+$()		 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $val22=1 
+!if $m_sc_reply1=1 
+!if $val13=1 
+val21=r2
+!else
+val21=r3
+val22=2
+!endif
+!endif
+!if $m_sc_reply1!=1 
+val21=r3
+val22=2
+!endif
+!endif
+!if $m_sc_reply2!= 
+val22=2
+val21=r3
+!endif
+!if $val22=2 
+!if $m_sc_reply3!= 
+val21=r4
+!endif
+!endif
+!if $val22=2 and $m_sc_reply4!= 
+!if $m_sc_reply4=1 
+!if $val16=1 
+val21=r5
+!else
+val21=r6
+val22=3
+!endif
+!endif
+!if $m_sc_reply4!=1 
+val21=r6
+val22=3
+!endif
+!endif
+!if $m_sc_reply5!= 
+val22=3
+val21=r6
+!endif
+!if $val22=3 
+!if $m_sc_reply6!= 
+val21=r7
+!endif
+!endif
+!if $val22=3 and $m_sc_reply7!= 
+!if $m_sc_reply7=1 
+!if $val19=1 
+val21=r8
+!else
+val21=
+!endif
+!endif
+!if $m_sc_reply7!=1 
+val21=
+!endif
+!endif
+!if $m_sc_reply8!= 
+val21=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,15,16,18,19,21,22
+embedcnt=10

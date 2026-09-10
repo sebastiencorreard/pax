@@ -1,0 +1,142 @@
+\title{Mesure principale et Relation de Chasles}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+## choix des angles
+\matrix{anglst=u,v,v,w,w,t,
+-u,-v,-v,-w,-w,-t,
+v,u,w,v,t,w,
+-v,-u,-w,-v,-t,-w,
+u,-v,v,-w,w,-t,
+-u,v,-v,w,-w,t,
+v,-u,w,-v,t,-w,
+-v,u,-w,v,-t,w}
+\text{lstrep=\((\overrightarrow{u},\overrightarrow{v})),\((\overrightarrow{v},\overrightarrow{w})),\((\overrightarrow{w},\overrightarrow{t}))}
+## choix des coefficients
+\text{numlst=}
+\text{denlst=}
+\text{coeflst=}
+\text{tcoeflst=}
+\text{donnee=}
+\text{mplst=}
+\text{feed1lst=}
+\text{feed2lst=}
+\for{i=1 to 3}
+ {
+  \integer{a=random(2..11)}
+  \integer{p=random(1,2)}
+  \integer{b=\p=1?random(1..15)*2+1:random(1..15)*2}
+  \integer{c=random(1..\a-1)}
+  \integer{s=random(1,-1)}
+  \integer{num=\a*\b+\c}
+  \rational{coef=\num*\s / \a}
+  \text{coeflst=wims(append item \coef to \coeflst)}
+  \text{tcoef=\s=1?\frac{\num}{\a}:-\frac{\num}{\a}}
+  \text{tcoeflst=wims(append item \tcoef to \tcoeflst)}
+  \integer{j=random(1..4)}
+  \integer{k=random(1..2)}
+  \integer{jj=2*(\j-1)+\k}
+  \text{quest=\((\overrightarrow{\anglst[\jj;(\i-1)*2+1]},\overrightarrow{\anglst[\jj;(\i-1)*2+2]})=\tcoef \pi+2k \pi)}
+  \text{donnee=wims(append item \quest to \donnee)}
+  \if{\j=1}
+     { \integer{num=\num*\s}
+       \text{d=\b}
+       \integer{p2=\p}
+       \integer{s2=\s}}
+  \if{\j=2}
+     { \integer{num=\num*(-1)*\s}
+       \text{d=\b}
+       \integer{p2=\p}
+       \integer{s2=-1*(\s)}}
+  \if{\j=3}
+     { \integer{num=(\num+\a)*\s}
+       \text{d=\b-1}
+       \integer{p2=\p=1?2:1}
+       \integer{s2=\s}}
+  \if{\j=4}
+     { \integer{num=(\num*(-1)+\a)*\s}
+       \text{d=\b+1}
+       \integer{p2=\p=1?2:1}
+       \integer{s2=-1*(\s)}}
+  \text{numlst=wims(append item \num to \numlst)}
+  \text{denlst=wims(append item \a to \denlst)}
+\text{lstpair=impair,pair}
+\text{signej=,-,,-}
+\text{signemp=\s2=1? :-}
+\text{pluspi=,,+ \(pi),+\(pi)}
+\text{tfeed1=\((\overrightarrow{\anglst[\jj;(\i-1)*2+1]},\overrightarrow{\anglst[\jj;(\i-1)*2+2]})) = \signej[\j] \lstrep[\i] \pluspi[\j]}
+
+\text{tfeed2= et \lstrep[\i]=\signemp \(\frac{\a \times \b + \c}{\a})\(pi) \pluspi[\j] + \(2k pi).
+Comme \d est \lstpair[\p2] la mesure principale de \lstrep[\i] est }
+
+\if{(\j=1 and \s=1 and \p=1) or (\j=2 and \s=-1 and \p=1) or (\j=3 and \s=1 and \p=2) or (\j=4 and \s=-1 and \p=2)}
+    {
+    \rational{mp=(\c-\a)/ \a}
+    \text{tfeed2=\tfeed2 \(\frac{(\c - \a)\pi}{\a})}
+    }
+  \if{(\j=1 and \s=1 and \p=2) or (\j=2 and \s=-1 and \p=2) or (\j=3 and \s=1 and \p=1) or (\j=4 and \s=-1 and \p=1)}
+    {
+    \rational{mp=\c /\a}
+    \text{tfeed2=\tfeed2 \(\frac{\c \pi}{\a})}
+    }
+  \if{(\j=1 and \s=-1 and \p=1) or (\j=2 and \s=1 and \p=1) or (\j=3 and \s=-1 and \p=2) or (\j=4 and \s=1 and \p=2)}
+    {
+    \rational{mp=(\a-\c)/ \a}
+    \text{tfeed2=\tfeed2 \(\frac{(\a - \c)\pi}{\a})}
+    }
+  \if{(\j=1 and \s=-1 and \p=2) or (\j=2 and \s=1 and \p=2) or (\j=3 and \s=-1 and \p=1) or (\j=4 and \s=1 and \p=1)}
+    {
+    \rational{mp=-\c /\a}
+    \text{tfeed2=\tfeed2 \(-\frac{\c \pi}{\a})}
+    }
+  \text{mplst=wims(append item \mp to \mplst)}
+  \text{feed1lst=wims(append item \tfeed1 to \feed1lst)}
+  \text{feed2lst=wims(append item \tfeed2 to \feed2lst)}
+ }
+
+## calcul de la réponse
+\rational{mpf=simplify(\mplst[1]+\mplst[2]+\mplst[3])}
+\text{feed4=\((\overrightarrow{u},\overrightarrow{t}))= (\((\mplst[1])) + \((\mplst[2])) + \((\mplst[3])) ) \(pi+2k pi) = \mpf \(pi+2k pi)}
+
+\if{\mpf>=3}{
+  \rational{mpf=\mpf-2}}
+\if{\mpf>1}{
+  \rational{mpf=\mpf-2}}
+\if{\mpf<=-3}{
+  \rational{mpf=\mpf+2}}
+\if{\mpf<=-1}{
+  \rational{mpf=\mpf+2}}
+
+
+
+\statement{
+Déterminer la mesure principale de l'angle \((\overrightarrow{u},\overrightarrow{t}))
+en complétant le tableau suivant:
+
+<table class="wimscenter wimsborder">
+  <tr><td>\donnee[1]</td>
+  <td> \((\overrightarrow{u},\overrightarrow{v}))=\embed{reply 1,4}\(pi +2k pi)
+  </td></tr><tr><td>
+  \donnee[2]</td>
+  <td> \((\overrightarrow{v},\overrightarrow{w}))=\embed{reply 2,4}\(pi +2k pi)
+  </td></tr><tr><td>
+  \donnee[3]</td>
+  <td> \((\overrightarrow{w},\overrightarrow{t}))=\embed{reply 3,4}\(pi +2k pi)
+   </td></tr><tr><td>
+&nbsp;</td><td> \((\overrightarrow{u},\overrightarrow{t}))= \embed{reply 4,5} \(pi +2k pi)
+    </td></tr>
+</table>
+ }
+\answer{angle(u,v)}{\mplst[1]}{numeric}
+\answer{angle(v,w)}{\mplst[2]}{numeric}
+\answer{angle(w,t)}{\mplst[3]}{numeric}
+\answer{angle(u,t)}{\mpf}{numeric}
+\feedback{\reply1 != \mplst[1]}{\feed1lst[1]<br>\feed2lst[1]}
+\feedback{\reply2 != \mplst[2]}{\feed1lst[2]<br>\feed2lst[2]}
+\feedback{\reply3 != \mplst[3]}{\feed1lst[3]<br>\feed2lst[3]}
+\feedback{\reply4 != \mpf}{\feed4<br>
+La mesure principale de cette angle est donc \mpf \(pi)}

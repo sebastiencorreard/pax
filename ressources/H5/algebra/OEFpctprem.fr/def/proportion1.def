@@ -1,0 +1,109 @@
+!set title=Proportion 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2004,2005,2006,2007
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 4000, 6000
+
+val7=$[rint($(tmp0)/2)]
+val7=$[rint(2*$val7)]
+tmp0=!randint 1000, 3000
+
+val8=$[rint($(tmp0)/2)]
+val8=$[rint(2*$val8)]
+tmp=!translate ";': to $     $ in $val8 / $val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val9=!exec pari print($t_)
+val10=$[rint($val7-$val8)]
+val11=$[rint($val9*1000)]
+val11=$[$val11/10]
+replytype1=numexp
+replyname1=fraction
+replygood1=$val9
+replytype2=numeric
+replyname2=pourcentage
+replygood2=$[$val11]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p>	    En $val6, un musée a reçu $val7 visiteurs dont $val10 étrangers.	  </p>	  <ol>	  <li><label for="reply1">	  Calculer la proportion de visiteurs français en $val6 sous forme de fraction irréductible&nbsp;:	  </label> 
+!read oef/embed.phtml reply1 
+$()</li>	  <li>	  <label for="reply2">Exprimer ensuite ce résultat sous forme de pourcentage ( à 0.1 % près):</label>	   
+!read oef/embed.phtml reply2,4 
+$()</li>	  </ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La proportion est le rapport 
+!insmath \frac{partie}{total}
+$() soit 
+!insmath \frac{$val8}{$val7}
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10
+embedcnt=2

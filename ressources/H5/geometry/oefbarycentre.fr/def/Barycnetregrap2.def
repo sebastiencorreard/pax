@@ -1,0 +1,171 @@
+!set title=Barycentre graphique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@gmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r,r,r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -8, -2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -12, $val6-1
+
+val8=$[rint($(tmp0))]
+tmp0=!randint $val6+1, $val7-1
+
+val9=$[rint($(tmp0))]
+tmp0=!randint $val7+1, 12
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem $val8,$val9,$val10
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val6-$val11)]
+val13=$[rint($val7-$val11)]
+tmp=!translate ";': to $     $ in $val13/($val13-$val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in -$val12/($val13-$val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=!rawmath $(tmp0)
+oefsteps=reply 1, reply 2	reply 3, reply 4 
+nextstep=!nosubst reply 1, reply 2	reply 3, reply 4 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=Valeur de \(a)
+replygood1=$val12
+replytype2=numexp
+replyname2=Valeur de \(b)
+replygood2=$val13
+replytype3=numexp
+replyname3=Valeur de \(\alpha)
+replygood3=$val14
+replytype4=numexp
+replyname4=Valeur de \(\beta)
+replygood4=$val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On a représenté sur la droite graduée ci-dessous trois points 
+!insmath A
+$(), 
+!insmath B
+$() et 
+!insmath G
+$(). On note	  
+!insmath \overrightarrow{u}
+$() le vecteur représenté en vert.	<div class="wimscenter">	   
+!read oef/draw.phtml 512,64 \
+xrange -13,13	   yrange -1,1.5	  hline 0,0,red	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,4,blue	  text red,$val6-0.1,0.75,medium,A	  text red,$val7-0.1,0.75,medium,B	  text red,$val11-0.1,-0.5,medium,G	  line $val6,-0.2,$val6,0.2,red	  line $val7,-0.2,$val7,0.2,red	  line $val11,-0.2,$val11,0.2,red	  line 0,0.8,0,1.2,green	  arrow 0,1,1,1,10,green	   
+$()	</div>		
+!if $m_step=1 
+$()	Déterminer des réels 
+!insmath a
+$() et 
+!insmath b
+$() tels que 
+!insmath \overrightarrow{GA} = a\overrightarrow{u}
+$() et	
+!insmath \overrightarrow{GB} = b\overrightarrow{u}
+$()	 
+!endif
+$()		
+!if $m_step=2 
+$()Oui, on a bien	
+!insmath \overrightarrow{GA} = $val12 \overrightarrow{u}
+$() et	
+!insmath \overrightarrow{GB} = $val13 \overrightarrow{u}
+$().		En déduire deux réels 
+!insmath \alpha
+$() et 
+!insmath \beta
+$() tels que:	<ul>	<li>	
+!insmath G=\lbrack \left(A,\alpha \right);\left( B,\beta \right) \rbrack
+$()	</li>	<li> 
+!insmath \alpha + \beta = 1
+$()</li>	</ul>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()Pour le 2, on pourra utiliser la propriété :	<div class="wimscenter">	
+!insmath \lbrack \left(A,\alpha \right);\left( B,\beta \right) \rbrack	 = \lbrack \left(A,k.\alpha \right);\left( B,k.\beta \right) \rbrack,\forall k \in \RR^{*}	
+$()	</div>	et choisir 
+!insmath k
+$() de sorte que 
+!insmath k.\alpha + k.\beta = 1
+$().	<div class="wims_instruction">	<b>Remarque:</b> Le symbole 
+!insmath \forall
+$() se lit "quel que soit".	</div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11,12,13
+embedcnt=0

@@ -1,0 +1,144 @@
+!set title=Lire un tableau 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Août,Septembre,Octobre,Novembre,Décembre
+val7=de janvier,de février,de mars,d'avril,de mai,de juin,	  de juillet,d'août,de septembre,d'octobre,de novembre,de décembre
+val8=Toulouse,Nice,Paris,Marseille,Strasbourg,Lille
+val9=Nous avons les moyennes des températures par mois pour la ville de
+val10=Si nécessaire, séparer les mois par une virgule.
+val11=Donner le(s) mois le(s) plus chaud(s) en moyenne.
+tmp=!trim 5,2,2,3,4,4,2,1,3,4,5,3	13,1,2,2,4,3,3,1,2,4,4,2	5,1,3,3,4,3,2,1,3,4,5,2	7,1,3,3,4,4,3,1,3,4,5,3	1,1,4,3,4,3,2,1,4,5,5,3	3,1,2,2,4,3,2,1,3,4,4,2
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val13=$[rint($(tmp0))]
+val8=$(val8[$val13])
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val13 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!randint $(val12[1]), $(val12[1])+1
+
+val14=$(tmp0)
+val15=$val14
+!for val16 =2 to 8 
+tmp0=!randint $(val12[$val16])-1, $(val12[$val16])+1
+
+val15=$[rint($val15+$(tmp0))]
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+!next
+!for val16 =9 to 12 
+tmp0=!randint $(val12[$val16]), $(val12[$val16])+1
+
+val15=$[rint($val15-$(tmp0))]
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+!next
+val17=$val11 <div class="wims_instruction">$val10</div>
+val18=$[rint(0)]
+!for val19 =1 to 12 
+val18=$[rint(max($val18,$(val14[$val19])))]
+!next
+val20=
+!for val19 =1 to 12 
+!if $val18=$(val14[$val19]) 
+tmp0=!append item $(val6[$val19]) to $val20
+
+val20=$(tmp0)
+!endif
+!next
+val21=$[rint(20)]
+replytype1=raw
+replyoption1=nocase 
+replyname1=
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val9 $val8.	<table class="wimscenter wimsborder table-scroll">	<tr>	 
+!for m_m=1 to 12 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr><tr>	 
+!for m_k=1 to 12 
+$()<td>$(val14[$m_k])</td> 
+!next
+$()	</tr></table>	<div class="spacer"><label for="reply1">$val17</label>  
+!read oef/embed.phtml r1,$val21 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,14,17,21
+embedcnt=1

@@ -1,0 +1,224 @@
+!set title=Loi binomiale 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+precision=100
+title_it=Legge binomiale 1
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 3, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+val9=$[rint(6-$val8)]
+t_=!rawmath $val8/6
+val10=!exec pari print($t_)
+t_=!rawmath $val9/6
+val11=!exec pari print($t_)
+val12=
+t_=!rawmath 0
+val13=!exec pari print($t_)
+!for val14 =0 to $val7 
+t_=!rawmath binomial($val7,$val14)*($val10)^$val14*($val11)^($val7-$val14)
+val15=!exec pari print($t_)
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+t_=!rawmath $val13+$val15
+val13=!exec pari print($t_)
+!next
+t_=!rawmath $val10^2
+val16=!exec pari print($t_)
+t_=!rawmath $val11^2
+val17=!exec pari print($t_)
+t_=!rawmath 1-$val16-$val17
+val18=!exec pari print($t_)
+tmp0=!makelist r x for x=1 to $val7+1
+
+val19=$(tmp0)
+tmp0=!nospace $val19
+
+val19=$(tmp0)
+val20=et
+val21=Donner les valeurs exactes des probabilités en utilisant si besoin des fractions.
+val22=On a acheté un dé équilibré ayant
+val23=une face blanche,faces blanches,une face noire,faces noires
+val24=On lance le dé,fois de suite,les lancers étant indépendants,et on désigne par,la variable aléatoire
+val25=nombre de faces blanches obtenues
+val26=Donner la loi de probabilité de
+val27=A chaque lancer, la probabilité d'avoir une face blanche est de
+val28=et celle d'avoir une face noire est de
+val29=une probabilité de
+val30=Par exemple si on lance le dé 2 fois, le principe multiplicatif donne&nbsp;
+val31=d'avoir 0 face blanche&nbsp;
+val32=d'avoir 2 faces blanches&nbsp;
+val33=d'avoir 1 face blanche
+!if $val6=it 
+val20=e
+val21=Indicare i valori esatti delle probabilità, per esempio utilizzando frazioni.
+val22=Abbiamo comprato un dado non truccato con
+val23=una faccia bianca,facce bianche,una faccia nera,facce nere
+val24=Lanciamo il dado,volte di seguito,i lanci sono indipendenti,e indichiamo con,la variabile aleatoria
+val25=numero di facce bianche ottenute
+val26=Fornire la legge di probabilità di
+val27=Ad ogni lancio,la probabilità di avere una faccia bianca è
+val28=e quella di avere una faccia nera è
+val29=una probabilità di
+val30=Per esempio se lanciamo il dado 2 volte, il principio del prodotto dà
+val31=di avere 0 facce bianche
+val32=di avere 2 facce bianche
+val33=di avere 1 faccia bianca
+!endif
+oefsteps=$val19 
+nextstep=!nosubst $val19 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=\(P(X=0))
+replygood1=$(val12[1])
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=\(P(X=1))
+replygood2=$(val12[2])
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=\(P(X=2))
+replygood3=$(val12[3])
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=\(P(X=3))
+replygood4=$(val12[4])
+replytype5=numexp
+replyoption5=noreduction 
+replyname5=\(P(X=4))
+replygood5=$(val12[5])
+replytype6=numexp
+replyoption6=noreduction 
+replyname6=\(P(X=5))
+replygood6=$(val12[6])
+replytype7=numexp
+replyoption7=noreduction 
+replyname7=\(P(X=6))
+replygood7=$(val12[7])
+replytype8=numexp
+replyoption8=noreduction 
+replyname8=\(P(X=7))
+replygood8=$(val12[8])
+replytype9=numexp
+replyoption9=noreduction 
+replyname9=\(P(X=8))
+replygood9=$(val12[9])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	$val22 
+!if $val8=1 
+$()$(val23[1]) 
+!else
+$() $val8 $(val23[2]) 
+!endif
+$() $val20 
+!if $val9=1 
+$()$(val23[3]). 
+!else
+$() $val9 $(val23[4]). 
+!endif
+$()	$(val24[1]) $val7 $(val24[2]), $(val24[3]),	$(val24[4]) 
+!insmath X
+$() $(val24[5]) <span class="wims_emph">"$val25"</span>.</p>	<p>$val26 
+!insmath X
+$().</p>	<table class="wimscenter wimsborder"><tr><th>
+!insmath i
+$()</th>	 
+!for m_i=0 to $val7 
+$()<th>$m_i</th> 
+!next
+$()	</tr>	<tr><th>
+!insmath P( X = i )
+$()</th>	 
+!for m_j=1 to $val7+1 
+$()<td> 
+!read oef/embed.phtml reply\j,8 
+$()</td> 
+!next
+$()	</tr>	</table>	<div class="wims_instruction">$val21</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val27 
+!insmath \frac{$val8}{6}
+$() $val28 
+!insmath \frac{$val9}{6}
+$().<p>	$val30:	<ul>	<li> $val29 
+!insmath (\frac{$val9}{6})^2
+$() $val31;</li>	<li> $val29 
+!insmath (\frac{$val8}{6})^2
+$() $val32;</li>	<li> $val29 
+!insmath 1-(\frac{$val8}{6})^2-(\frac{$val9}{6})^2
+$() $val33.</li>	</ul>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,20,21,22,23,24,25,26,27,28,29,30,31,32,33
+embedcnt=1

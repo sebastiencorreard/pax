@@ -1,0 +1,137 @@
+!set title=Point sur un axe en numération binaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+title_it=Punti sulla retta in base 2
+
+ansorder=r
+varcnt=18
+prevarcnt=16
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 7
+
+val6=$[rint($(tmp0))]
+val7=7
+!readproc slib/stat/random $val6, 0,1,Z 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!positionof item 0 in $val8
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+
+!ifval $(tmp0)>($val6+1)/2 
+tmp1=!replace item number $(val9[1]) by 1 in $val8
+
+val8= $(tmp1)
+!endif
+tmp0=!items2words $val8
+
+tmp1=!nospace $(tmp0)
+
+val10=0.$(tmp1)
+val11=0
+!for val12  = 1 to $val6 
+val11=$[$val11 + 2^(-$val12)*$(val8[$val12])]
+!next
+val13=xrange 0,1.1	yrange -1,1	hline black,0,0	parallel 0,-0.1,0,0.1,2^(-$val7+1),0,2^($val7+1),grey	parallel 0,-0.2,0,0.2,2^(-$val7+2),0,2^($val7+1),red	parallel 0,-0.3,0,0.3,2^(-$val7+3),0,2^($val7+1),blue	parallel 0,-0.4,0,0.4,2^(-$val7+4),0,2^($val7+1),green	parallel 0,-0.5,0,0.5,2^(-$val7+5),0,2^($val7+1),orange	parallel 0,-0.6,0,0.6,2^(-$val7+6),0,2^($val7+1),purple	text black,1,0,large,1	text black,0,0,large,0	
+val14=$val13	linewidth 10	point $val11,0,green
+!readproc slib/draw/convpixel $val11,0,700,100,0,1.1,-1,1,0,pixels 
+tmp0=$slib_out
+val15=$(tmp0)
+!readproc oef/draw.phtml 700,100 \
+$val13 
+tmp0=$ins_url
+val13=$(tmp0)	
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=Placer le point de l'axe de coordonnée	  <b>$val10</b> écrite dans le système de numération binaire
+!if $val16=it 
+val17=Posizionare sulla retta dei numeri il punto di coordinate	  <b>$val10</b> scritto nel sistema di numerazione binario
+!endif
+replytype1=coord
+replyname1=
+replygood1=$val13;point,$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val17	 <div class="wimscenter">	   
+!read oef/embed.phtml r1 
+$()	 </div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_sc_reply1<1 
+!readproc oef/draw.phtml 700,100 \
+$val14 
+tmp0=$ins_url
+val18=$(tmp0)	
+!endif
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'><div class="wimscenter">	<img src="$val18" alt="">	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,17
+embedcnt=1

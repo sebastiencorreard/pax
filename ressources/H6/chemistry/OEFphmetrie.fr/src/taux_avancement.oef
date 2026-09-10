@@ -1,0 +1,216 @@
+\title{Taux d'avancement}
+\language{fr}
+\range{-5..5}
+\author{Benoît,MARKEY}
+\email{benoit.markey@ac-lille.fr}
+\computeanswer{yes}
+\format{html}
+\precision{100}
+\css{<style>
+table.tableau {margin-left:auto;margin-right:auto;
+   border:solid 2px black;}
+table.tableau tr, table.tableau td, table.tableau th {
+   text-align:center; min-width:10pt;border:solid 1px black}
+</style>
+}
+
+Tableau d'équations:
+\text{donnee=
+CH3COOH + H2O -> CH3COO- + H3O+,2,2,CH_3COOH,H_2O,CH_3COO^-,H_3O^+,1,1,1,1,4.75,éthanoïque;
+C6H5COOH + H2O -> C6H5COO- + H3O+,2,2,C_6H_5COOH,H_2O,C_6H_5COO^-,H_3O^+,1,1,1,1,4.20,benzoïque;
+HCOOH + H2O -> HCOO- + H3O+,2,2,HCOOH,H_2O,HCOO^-,H_3O^+,1,1,1,1,3.75,méthanoïque;
+HClO + H2O -> HClO- + H3O+,2,2,HClO,H_2O,HClO^-,H_3O^+,1,1,1,1,7.30,hypochloreux;
+HF + H2O -> F- + H3O+,2,2,HF,H_2O,F^-,H_3O^+,1,1,1,1,3.2,fluorhydrique;
+
+}
+\text{l=randomrow(\donnee)}
+
+\integer{gauche=\l[2]}
+\integer{droite=\l[3]}
+\integer{n=\gauche + \droite}
+\integer{vol=random(50,100,125,150,200)}
+\integer{conc=randint(2..10)}
+\real{a=\vol*\conc*1e-6}
+
+\integer{b=9}
+\integer{c=randint(1..9)}
+\integer{d=randint(1..9)}
+\integer{e=0}
+\integer{f=0}
+\integer{g=0}
+\integer{h=0}
+\text{reac=\a,\b,\c,\d}
+
+\text{prod=\e,\f,\g,\h}
+
+
+
+
+\integer{total=3+2*\gauche+2*\droite}
+\integer{coeffp=1+ \total-\gauche-\droite}
+\integer{coeffr=\total-\droite+1}
+
+\text{polyreac=wims(simplify(\reac[1]-\l[\coeffp+1-1]*x))}
+\for{i11=2 to \gauche}
+{
+\text{polyreac=\polyreac,wims(simplify(\reac[\i11]-\l[\coeffp+\i11-1]*x))}
+}
+\text{polyprod=wims(simplify(\prod[1]+\l[\coeffr+1-1]*x))}
+\for{i12=2 to \droite}
+{
+\text{polyprod=\polyprod,wims(simplify(\prod[\i12]+\l[\coeffr+\i12-1]*x))}
+}
+
+
+\real{xmax=\a}
+\real{i=0.1}
+\while{\conc*(1e-3)<10^(-\i)}{
+\real{i=\i+0.1}
+}
+
+
+\real{pH=0}
+\while{2*\i+lg(\conc*(1e-3)-(10^(-\i)))<\l[12]}{
+
+\real{pH=\i}
+\real{i=\i+0.01}
+}
+
+
+\real{xf=\vol*1e-3*10^(-\pH)}
+\real{tau2=10^(-\pH)/(\conc*1e-3)}
+
+
+
+
+\text{sol=\polyreac[1]}
+
+\for{i14=1 to \droite}
+{
+\text{sol=\sol,\polyprod[\i14]}
+}
+\text{sol=\sol,\xmax}
+
+\text{sol=\sol,wims(simplify (wims(replace x by \xmax in \polyreac[1])))}
+
+\for{i16=1 to \droite}
+{
+\text{sol=\sol,wims(simplify (wims(replace x by \xmax in \polyprod[\i16])))}
+}
+\text{sol=\sol,\xf,\xmax-\xf,\xf,\xf,\tau2}
+
+
+\text{r=reply 1}
+\for{i1=2 to 2*\n+4}
+{ 
+  \text{r=\r,reply \i1} 
+}
+
+IMPORTANT : 
+
+\steps{\r}
+\statement{
+<p>On mélange \vol mL d'acide \l[13] (\(\l[4])) avec l'eau. On obtient alors une 
+concentration de \(\conc\) \(mmol \times \mathrm{L}^{-1}\).
+Un pH-mètre mesure le pH de la solution et donne : <strong> pH = \pH.</strong></p>
+<p>Compléter le tableau d'avancement ci-dessous. </p>
+<div class="wims_instruction">On ne tiendra pas compte des chiffres significatifs</div>
+<table class="tableau"><tr><td colspan=2>équation chimique</td>
+<!-- ligne 1 -->
+\for{i2=1 to \gauche-1}
+{
+ <th>\(\l[3+\i2]) </th><th>+</th>
+}
+ <th>\(\l[3+\gauche]) </th><td> \(\rightarrow) </td>
+\for{i3=1 to \droite-1}
+{
+<th>\(\l[3+\gauche+\i3]) </th><th>+</th>
+}
+<th>\(\l[3+\gauche+\droite]) </th></tr>
+<!-- ligne 2 -->
+<tr><td>état du système</td><td>avancement</td>
+\for{i4=1 to \gauche-1}
+{
+ <td>nombre de moles</td><td>&nbsp;</td>
+}
+<td>nombre de moles</td><td>&nbsp;</td>
+\for{i5=1 to \droite-1}
+{
+<td>nombre de moles</td><td>&nbsp;</td>
+}
+<td>nombre de moles</td>
+</tr>
+<!-- ligne 3 -->
+<tr><td>état initial</td><td>\(x = 0\)</td>
+
+<td>\reac[1]</td><td>&nbsp;</td>
+
+<td>excès</td><td>&nbsp;</td>
+\for{i7=1 to \droite-1}
+{
+<td>\prod[\i7]</td><td>&nbsp;</td>}
+
+<td>\prod[\droite]</td>
+
+</tr>
+<!-- ligne 4 -->
+<tr><td>état intermédiaire</td><td>\(x\)</td>
+
+<td>
+\embed{\r[1],10}</td><td>&nbsp;</td>
+<td>
+excès</td><td>&nbsp;</td>
+
+<td>
+\embed{\r[2],10}</td><td>&nbsp;</td>
+
+<td>
+\embed{\r[3],10}</td>
+
+</tr>
+<!-- ligne 5 -->
+<tr><td>état maximal</td><td >\(x_max=\)\embed{\r[4],4}</td>
+<td>
+\embed{\r[5],10}</td><td>&nbsp;</td>
+<td>
+excès</td><td>&nbsp;</td>
+<td>
+\embed{\r[6],10}</td><td>&nbsp;</td>
+<td>
+\embed{\r[7],10}</td>
+</tr>
+
+<!-- ligne 6 -->
+<tr><td>état final</td><td>\(x_f =\)\embed{\r[8],4}</td>
+<td>
+\embed{\r[9],10}</td><td>&nbsp;</td>
+<td>
+excès</td><td>&nbsp;</td>
+<td>
+\embed{\r[10],10}</td><td>&nbsp;</td>
+<td>
+\embed{\r[11],10}</td>
+</tr>
+
+</table>
+
+<p>
+En déduire le taux d'avancement \(\tau = \)\embed{\r[12],10}.
+</p>
+}
+
+\answer{\Name 1}{\sol[1]}{type=function}
+\answer{\Name 2}{\sol[2]}{type=function}
+\answer{\Name 3}{\sol[3]}{type=function}
+\answer{\Name 4}{\sol[4]}{type=numeric}
+\answer{\Name 5}{\sol[5]}{type=numeric}
+\answer{\Name 6}{\sol[6]}{type=numeric}
+\answer{\Name 7}{\sol[7]}{type=numeric}
+\answer{\Name 8}{\sol[8]}{type=numeric}
+\answer{\Name 9}{\sol[9]}{type=numeric}
+\answer{\Name 10}{\sol[10]}{type=numeric}
+\answer{\Name 11}{\sol[11]}{type=numeric}
+\answer{\Name 12}{\sol[12]}{type=numeric}
+\answer{\Name 13}{\sol[13]}{type=function}
+\hint{Pour remplir la dernière ligne du tableau, commencez par la case
+la plus à droite...}

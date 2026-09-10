@@ -1,0 +1,185 @@
+target=oefalign1 oefalign2 oefalign3 oefalign4 oefalign5
+#define TITRE Points alignés
+\language{fr}
+\author{Jean-Luc, Donadoni}
+\email{jluc.donadoni@laposte.net}
+\format{html}
+
+\integer{n=randint(1..3)}
+\integer{x1=randint(20..235)}
+\integer{y1=randint(20..480)}
+\integer{x2=randint(265..480)}
+\integer{y2=randint(20..480)}
+\integer{x3=randint(\x1+15..\x2-15)}
+\real{p=(\y2-\y1)/(\x2-\x1)}
+\real{y3=\y1+\p*(\x3-\x1)}
+
+#if defined TARGET_oefalign1
+\title{TITRE 1}
+\text{nom=shuffle(A,B,C)}
+\text{reps=Oui,Non,Ils ne sont pas dans le bon ordre,Je ne sais pas}
+
+\text{dessin=draw(500,500
+linewidth 2
+segment \x1+4,\y1+4,\x1-4,\y1-4,black
+segment \x1-4,\y1+4,\x1+4,\y1-4,black
+text black,\x1-15,\y1-10,medium,\nom[1]
+segment \x2+4,\y2+4,\x2-4,\y2-4,black
+segment \x2-4,\y2+4,\x2+4,\y2-4,black
+text black,\x2-15,\y2-10,medium,\nom[2]
+segment \x3+4,\y3+4,\x3-4,\y3-4,black
+segment \x3-4,\y3+4,\x3+4,\y3-4,black
+text black,\x3-15,\y3-10,medium,\nom[3]
+)}
+\text{enonc=Les points A, B et C sont alignés :}
+\integer{rep=1}
+#endif
+
+#if defined TARGET_oefalign2
+\title{TITRE 2}
+\text{nom=shuffle(R,S,T,U)}
+\integer{x4=randint(\x1+15..\x2-15)}
+\integer{y4=\y1+\p*(\x4-\x1)}
+\if{\y4>500-\y4}{\integer{y4=randint(15..\y4-30)}}
+       {\integer{y4=randint(\y4+30..485)}}
+\text{reps=Oui,Non,Ils ne sont pas dans le bon ordre,Je ne sais pas}
+
+\text{dessin=draw(500,500
+linewidth 2
+segment \x1+4,\y1+4,\x1-4,\y1-4,black
+segment \x1-4,\y1+4,\x1+4,\y1-4,black
+text black,\x1-15,\y1-10,medium,\nom[1]
+segment \x2+4,\y2+4,\x2-4,\y2-4,black
+segment \x2-4,\y2+4,\x2+4,\y2-4,black
+text black,\x2-15,\y2-10,medium,\nom[2]
+segment \x3+4,\y3+4,\x3-4,\y3-4,black
+segment \x3-4,\y3+4,\x3+4,\y3-4,black
+text black,\x3-15,\y3-10,medium,\nom[3]
+segment \x4+4,\y4+4,\x4-4,\y4-4,black
+segment \x4-4,\y4+4,\x4+4,\y4-4,black
+text black,\x4-15,\y4-10,medium,\nom[4])}
+\integer{a=randint(1..5)}
+\if{\a=1}{\text{enonc=Les points \nom[1], \nom[2] et \nom[3] sont alignés :}
+\integer{rep=1}}
+\if{\a=2}{\text{enonc=Les points \nom[1], \nom[2] et \nom[4] sont alignés :}
+\integer{rep=2}}
+\if{\a=3}{\text{enonc=Les points \nom[1], \nom[4] et \nom[2] sont alignés :}
+\integer{rep=2}}
+\if{\a=4}{\text{enonc=Les points \nom[1], \nom[3] et \nom[2] sont alignés :}
+\integer{rep=1}}
+\if{\a=5}{\text{enonc=Les points \nom[4], \nom[1] et \nom[2] sont alignés :}
+\integer{rep=2}}
+#endif
+
+#if defined TARGET_oefalign3
+\title{TITRE 3}
+\text{nom=shuffle(R,S,T,U)}
+\integer{x4=randint(\x1+15..\x2-15)}
+\integer{y4=\y1+\p*(\x4-\x1)}
+\if{\y4>500-\y4}{\integer{y4=randint(15..\y4-30)}}
+       {\integer{y4=randint(\y4+30..485)}}
+
+\text{dessin=draw(500,500
+linewidth 2
+segment \x1+4,\y1+4,\x1-4,\y1-4,black
+segment \x1-4,\y1+4,\x1+4,\y1-4,black
+text black,\x1-15,\y1-10,medium,\nom[1]
+segment \x2+4,\y2+4,\x2-4,\y2-4,black
+segment \x2-4,\y2+4,\x2+4,\y2-4,black
+text black,\x2-15,\y2-10,medium,\nom[2]
+segment \x3+4,\y3+4,\x3-4,\y3-4,black
+segment \x3-4,\y3+4,\x3+4,\y3-4,black
+text black,\x3-15,\y3-10,medium,\nom[3]
+segment \x4+4,\y4+4,\x4-4,\y4-4,black
+segment \x4-4,\y4+4,\x4+4,\y4-4,black
+text black,\x4-15,\y4-10,medium,\nom[4])}
+\text{reps1=\(\nom[3], \nom[2] et \nom[1])}
+\text{reps2=\(\nom[1], \nom[2] et \nom[4])}
+\text{reps3=\(\nom[1], \nom[4] et \nom[3])}
+\text{reps4=\(\nom[2], \nom[3] et \nom[4])}
+\integer{rep=1}
+\text{reps=\reps1,\reps2,\reps3,\reps4}
+\text{enonc= Les points alignés sont :}
+#endif
+
+#if defined TARGET_oefalign4
+\title{TITRE 4}
+\text{nom=shuffle(R,S,T,U)}
+\integer{x4=randint(\x1+15..\x2-15)}
+\integer{y4=\y1+\p*(\x4-\x1)}
+\if{\y4>500-\y4}{\integer{y4=randint(15..\y4-30)}}
+       {\integer{y4=randint(\y4+30..485)}}
+\text{reps=Oui,Non,Ils ne sont pas dans le bon ordre,Je ne sais pas}
+
+\text{dessin=draw(500,500
+linewidth 2
+segment \x1+4,\y1+4,\x1-4,\y1-4,black
+segment \x1-4,\y1+4,\x1+4,\y1-4,black
+text black,\x1-15,\y1-10,medium,\nom[1]
+segment \x2+4,\y2+4,\x2-4,\y2-4,black
+segment \x2-4,\y2+4,\x2+4,\y2-4,black
+text black,\x2-15,\y2-10,medium,\nom[2]
+segment \x3+4,\y3+4,\x3-4,\y3-4,black
+segment \x3-4,\y3+4,\x3+4,\y3-4,black
+text black,\x3-15,\y3-10,medium,\nom[3]
+segment \x4+4,\y4+4,\x4-4,\y4-4,black
+segment \x4-4,\y4+4,\x4+4,\y4-4,black
+text black,\x4-15,\y4-10,medium,\nom[4]
+segment \x1,\y1,\x3,\y3,black
+segment \x1,\y1,\x4,\y4,black)}
+\integer{a=randint(1..5)}
+\if{\a=1}{\text{enonc=Les points \nom[1], \nom[2] et \nom[3] sont alignés :}
+\integer{rep=1}}
+\if{\a=2}{\text{enonc=Les points \nom[1], \nom[2] et \nom[4] sont alignés :}
+\integer{rep=2}}
+\if{\a=3}{\text{enonc=Les points \nom[1], \nom[4] et \nom[2] sont alignés :}
+\integer{rep=2}}
+\if{\a=4}{\text{enonc=Les points \nom[1], \nom[3] et \nom[2] sont alignés :}
+\integer{rep=1}}
+\if{\a=5}{\text{enonc=Les points \nom[4], \nom[1] et \nom[2] sont alignés :}
+\integer{rep=2}}
+#endif
+
+#if defined TARGET_oefalign5
+\title{TITRE 5}
+\text{nom=shuffle(R,S,T,U)}
+\integer{x4=randint(\x1+15..\x2-15)}
+\integer{y4=\y1+\p*(\x4-\x1)}
+\if{\y4>500-\y4}{\integer{y4=randint(15..\y4-30)}}
+       {\integer{y4=randint(\y4+30..485)}}
+
+\text{dessin=draw(500,500
+linewidth 2
+segment \x1+4,\y1+4,\x1-4,\y1-4,black
+segment \x1-4,\y1+4,\x1+4,\y1-4,black
+text black,\x1-15,\y1-10,medium,\nom[1]
+segment \x2+4,\y2+4,\x2-4,\y2-4,black
+segment \x2-4,\y2+4,\x2+4,\y2-4,black
+text black,\x2-15,\y2-10,medium,\nom[2]
+segment \x3+4,\y3+4,\x3-4,\y3-4,black
+segment \x3-4,\y3+4,\x3+4,\y3-4,black
+text black,\x3-15,\y3-10,medium,\nom[3]
+segment \x4+4,\y4+4,\x4-4,\y4-4,black
+segment \x4-4,\y4+4,\x4+4,\y4-4,black
+text black,\x4-15,\y4-10,medium,\nom[4]
+segment \x1,\y1,\x3,\y3,black
+segment \x1,\y1,\x4,\y4,black)}
+\text{reps1=\(\nom[3], \nom[2] et \nom[1])}
+\text{reps2=\(\nom[1], \nom[2] et \nom[4])}
+\text{reps3=\(\nom[1], \nom[4] et \nom[3])}
+\text{reps4=\(\nom[2], \nom[3] et \nom[4])}
+\integer{rep=1}
+\text{reps=\reps1,\reps2,\reps3,\reps4}
+\text{enonc= Les points alignés sont :}
+#endif
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\dessin" alt=""></div>
+ <div class="medium_size text_col">
+ \enonc
+ <div class="spacer">\embed{r1}</div></div>
+</div>
+}
+
+\answer{}{\rep;\reps}{type=radio}{option=shuffle}

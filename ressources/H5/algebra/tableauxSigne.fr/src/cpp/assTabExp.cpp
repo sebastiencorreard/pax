@@ -1,0 +1,72 @@
+target=assTabExp
+
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\integer{a = (-1)^random(0,1)*random(1..4)}
+\integer{b = (-1)^random(0,1)*random(1..10)}
+\integer{k = (-1)^random(0,1)*random(2..10)}
+\rational{zero=-\b/\a}
+\function{u=\a *x + \b}
+\function{u=\a==1?x + \b}
+\function{u=\a==-1?-x + \b}
+\function{q2=\k/(\u)}
+\function{q1=1/(\u)}
+\function{q3=\k/(\u)^2}
+\text{\sign=\a>0?+:-}
+\text{\oppsign=\a>0?-:+}
+\rational{zero=-\b/\a}
+\text{sign1=random(-,+)}
+\text{sign2=random(-,+)}
+\text{chge=random(0,||)}
+\text{data=\sign1,\chge,\sign2}
+
+\text{list=\(\u),\(\k(\u)),\((\u)^2), \(\k(\u)^2), \(\q1) , \(\q2) ,
+\(\q3) , \name_aucun}
+
+\text{rep=(\data issametext \oppsign,0,\sign) and \k>0?1,2}
+\text{rep=(\data issametext \oppsign,0,\sign) and \k<0?1}
+\text{rep=(\data issametext \sign,0,\oppsign) and \k>0?8}
+\text{rep=(\data issametext \sign,0,\oppsign) and \k<0?2}
+\text{rep=(\data issametext \oppsign,||,\sign) and \k>0?5,6}
+\text{rep=(\data issametext \oppsign,||,\sign) and \k<0?5}
+\text{rep=(\data issametext \sign,||,\oppsign) and \k>0?8}
+\text{rep=(\data issametext \sign,||,\oppsign) and \k<0?6}
+\text{rep=(\data issametext +,||,+) and \k<0?8}
+\text{rep=(\data issametext -,||,-) and \k<0?7}
+\text{rep=(\data issametext +,||,+) and \k>0?7}
+\text{rep=(\data issametext -,||,-) and \k>0?8}
+\text{rep=(\data issametext +,0,+) and \k>0?3,4}
+\text{rep=(\data issametext +,0,+) and \k<0?3}
+\text{rep=(\data issametext -,0,-) and \k>0?8}
+\text{rep=(\data issametext -,0,-) and \k<0?4}
+
+\statement{
+<div class="wims_question">
+<p>\name_question?</p>
+<p>\name_inst</p>
+<div class="wimscenter">
+<table class="wimsborder" style="width:60%">
+<tr>
+<td style="width:10%;text-align:center">\(x\)</td>
+<td style="width:30%;text-align:left">\(-\infty\)</td>
+<td style="width:5%;text-align:center">\(\zero\)</td>
+<td style="width:30%;text-align:right">\(+\infty\)</td>
+</tr>
+<tr>
+<td style="width:10%;text-align:center">\(f(x)\)</td><td style="width:30%;text-align:center">\sign1</td>
+<td style="width:5%;text-align:center">\chge</td><td style="width:30%;text-align:center">\sign2</td>
+</tr>
+</table>
+</div>
+</div>
+}
+
+\answer{}{\rep ; \list}{type=checkbox}
+\hint{
+<div class="enbleu"><p>\name_hint1</p><p>\name_hint2</p></div>}

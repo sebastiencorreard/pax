@@ -1,0 +1,117 @@
+!set title=Évolution réciproque
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+precision=100
+
+ansorder=r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 100, 130
+
+val6=$[0.01*$(tmp0)]
+tmp0=!randint 10, 50
+
+val7=$[$val6+0.01*$(tmp0)]
+val8=$[rint(($val7-$val6)/$val6*100)]
+val9=$[rint(($val7-$val6)/$val7*100)]
+val10=$[rint(100*$val7/$val6)]
+val11=$[rint(100*$val6/$val7)]
+val10=$[0.01*$val10]
+val11=$[0.01*$val11]
+tmp0=!randint 3, 15
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 10, 80
+
+val13=$[rint($(tmp0))]
+val14=$[$val13*(1+0.01*$val12)]
+val15=$[1+0.01*$val12]
+val16=Dans la première question, la référence est $val6 et dans la deuxième c'est $val7.	  <br />	  Pour calculer le prix HT, on utilise la formule:	  \(HT = \frac{TTC}{1 + \frac{p}{100}} = \frac{$val14}{1 + \frac{$val12}{100}}) 
+replytype1=numeric
+replyname1=pourcentage 1
+replygood1=$[$val8]
+replytype2=numeric
+replyname2=pourcentage 2
+replygood2=$[$val9]
+replytype3=numeric
+replyname3=Prix HT
+replygood3=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<ol>	<li><label for="reply1">	Si le prix d'un litre de carburant augmente de $val6&euro; à $val7&euro;, cela correspond à quel pourcentage d'augmentation ?	</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$() % (à 1% près).</div></li>	<li><label for="reply2">Si le prix d'un litre de carburant diminue de $val7&euro; à $val6&euro;, cela correspond à quel pourcentage de diminution ?	</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2 
+$() % (à 1% près).</div></li>	<li><label for="reply3">Le prix TTC d'un objet est $val14 euros, sachant que la Taxe est de	$val12 % sur le prix Hors Taxe.</label>	Quel était son prix Hors Taxe ?  
+!read oef/embed.phtml reply3 
+$() euros (arrondir à 1 centime d'euro).	</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ol>	<li>Pourcentage d'augmentation : 
+!insmath \large{ $val6\; \overset{\phantom{xxx}+ $val8 \%\phantom{xxxx}}{\underset{\times $val10}{\mapsto}}\; $val7}
+$()	</li>	<li>Pourcentage de diminution : 
+!insmath \large{ $val7\; \overset{\phantom{xxx}- $val9 \%\phantom{xxxx}}{\underset{\times $val11}{\mapsto}}\; $val6}
+$()	</li>	<li>Pourcentage d'augmentation : 
+!insmath \large{ $val13\; \overset{\phantom{xxx}+ $val12 \%\phantom{xxxx}}{\underset{\times $val15}{\mapsto}}\; $val14}
+$()</li>	</ol>		$val16
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,15,16
+embedcnt=3

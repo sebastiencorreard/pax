@@ -1,0 +1,260 @@
+!set title=Intersection de deux droites
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, PITOUN
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val6+$val8)]
+val11=$[rint($val7+$val9)]
+tmp0=!randint 1, 3
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val6+$val12*$val14)]
+val17=$[rint($val7+$val12*$val15)]
+val18=$[rint($val10+$val13*$val14)]
+val19=$[rint($val11+$val13*$val15*(-1))]
+tmp=!translate ";': to $     $ in $val6+k*($val16-$val6)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val7+k*($val17-$val7)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in ($val20-$val10)*($val19-$val11)-($val21-$val11)*($val18-$val10) 
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in ($val6-$val10)*($val19-$val11)-($val7-$val11)*($val18-$val10) 
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in ($val16-$val6)*($val19-$val11)-($val17-$val7)*($val18-$val10) 
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in (-1)*$val23/$val24
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val6+$val25*($val16-$val6)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val7+$val25*($val17-$val7)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=!rawmath $(tmp0)
+val28=de(\overrightarrow{CM};\overrightarrow{CD})
+oefsteps=reply1, reply2	reply3	reply4	reply5,reply6 
+nextstep=!nosubst reply1, reply2	reply3	reply4	reply5,reply6 
+!readproc oef/steps.proc
+replytype1=default
+replyname1=Expression de \(x) en fonction de \(k) :
+replygood1=$val20
+replytype2=default
+replyname2=Expression de \(y) en fonction de \(k) :
+replygood2=$val21
+replytype3=default
+replyname3=Déterminant (en fonction de \(k) ):
+replygood3=$val22
+replytype4=default
+replyname4=Valeur de \(k) :
+replygood4=$val25
+replytype5=default
+replyname5=Valeur de \(x) :
+replygood5=$val26
+replytype6=default
+replyname6=Valeur de \(y) :
+replygood6=$val27
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_instruction">	Cet exercice comporte 4 étapes,	son objectif est de détailler la méthode permettant de déterminer le point 
+!insmath M
+$(), intersection 	des droites 
+!insmath (AB)
+$() et 
+!insmath (CD)
+$(), en utilisant le déterminant.<br />	</div>	Dans un repère donné, on considère les points 
+!insmath A ($val6 , $val7) 
+$(), 
+!insmath B ( $val16 , $val17 ) 
+$(), 
+!insmath C( $val10 , $val11) 
+$() et 
+!insmath D( $val18 , $val19) 
+$().<br />		
+!if $m_step=1 
+$()<b>Etape 1:</b><br> Soit 
+!insmath M
+$() un point tel qu'il exsite un réel 
+!insmath k
+$() vérifiant 
+!insmath \overrightarrow{AM}=k.\overrightarrow{AB}
+$().	Un tel point est donc nécessairement sur la droite 
+!insmath (AB)
+$().<br />	Exprimer les coordonnées du point 
+!insmath M
+$(), en fonction de la valeur de 
+!insmath k
+$().	<div class="wimscenter">	
+!insmath x
+$() = 
+!read oef/embed.phtml reply 1,10 
+$() <br />	
+!insmath y
+$() = 
+!read oef/embed.phtml reply 2,10 
+$() 	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()<b>Etape 2:</b><br>Oui les coordonnées de 
+!insmath M
+$() sont : 
+!insmath x=$val20
+$() et 
+!insmath y=$val21
+$().<br />	Pour exprimer l’hypothèse " M est situé sur la droite (CD) " , calculer le déterminant suivant en fonction de k.<br>		<div class="wimscenter">	det( 
+!insmath \overrightarrow{CM},\overrightarrow{CD}
+$() ) = 
+!read oef/embed.phtml reply 3,15 
+$() <br />		</div>	 
+!endif
+$()	
+!if $m_step=3 
+$()<b>Etape 3:</b><br>Oui, le déterminant des vecteurs 
+!insmath \overrightarrow{CM}
+$() et 
+!insmath \overrightarrow{CD}
+$() vaut 
+!insmath $val22
+$().	 Le point 
+!insmath M
+$() appartient à la droite 
+!insmath (CD)
+$() pour la seule valeur:	 <div class="wimscenter">	
+!insmath k
+$() = 
+!read oef/embed.phtml reply 4,10 
+$() 	</div>	 
+!endif
+$()	
+!if $m_step=4 
+$()<b>Etape 4:</b><br>	On a vu que les coordonnées de 
+!insmath M
+$() étaient 
+!insmath ($val20,$val21)
+$(), puis 
+!insmath k=$val25
+$().<br />	En déduire les coordonnées du point 
+!insmath M
+$(), intersection des droites 
+!insmath (AB)
+$() et 
+!insmath (CD)
+$() :	<div class="wimscenter">	x = 
+!read oef/embed.phtml reply 5,10 
+$() <br />	y = 
+!read oef/embed.phtml reply 6,10 
+$() 	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,16,17,18,19,20,21,22,25
+embedcnt=6

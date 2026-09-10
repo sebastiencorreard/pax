@@ -1,0 +1,205 @@
+!set title=Dérivée d'un produit
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+title_en=The product rule
+
+ansorder=r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Calculez la dérivée de la fonction définie, sur,par,avec&nbsp;
+val8=Les fonctions \(u) et \(v) sont dérivables sur \(\,\RR)
+val9=On applique la formule de dérivation&nbsp;,	  La dérivée mise sous forme polynomiale développée est&nbsp;
+val10=Nombre dérivé,Formule de dérivation
+val11=Solution.,	  La forme développée de \(f'(x)\) est,	  La forme factorisée de \(f'(x)\) est
+!if $val6=en 
+val7=Determine the derivative of a function , in ,defined by,with
+val8=The functions \(u\) and \(v\) are differentiable in \(\,\RR)
+val9=The derivation formula is applied,	  The derivative in developed polynomial form is
+val10=Derivative number,The applied rule of differentiation
+val11=Solution.,	  The normal form of \(f'(x)\) is,	  The factorized form of \(f'(x)\) is
+!endif
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val17=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 2,3
+
+tmp=!nonempty items 	 $val12*x+$val13,	 $val12*x^$(tmp0)	
+
+tmp1=!randitem $tmp
+val18=!rawmath $(tmp1)
+tmp0=!randitem $val17,$val17*x
+
+tmp=!nonempty items $val14*x^2+$val15*x+$val16,	$val16*x^2+$(tmp0),	$val16*x+$val17
+
+tmp1=!randitem $tmp
+val19=!rawmath $(tmp1)
+val20=!rawmath ($val18)($val19)
+tmp=!translate ;";': to $     $ in $val18,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val21=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val19,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val22=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val20,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val23=!rawmath $(tmp0)
+t_=!replace internal \( by ( in factor($val23)
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val23)
+tmp0=!exec maxima $t_
+
+val25=!rawmath $(tmp0)
+val26=\(f'=u'v+uv'\)
+val27=\(f'=u'v'\) , $val26, \(f'=u'v-uv'\)
+tmp0=!shuffle $val27
+
+val28=$(tmp0)
+tmp0=!positionof item $val26 in $val28
+
+val29=$[rint($(tmp0))]
+replytype1=formal
+replyname1=$(val10[1]) \(u'(x))
+replygood1=$val21
+replytype2=formal
+replyname2=$(val10[1]) \(v'(x))
+replygood2=$val22
+replytype3=checkbox
+replyname3=$(val10[2])
+replygood3=$val29;$val28
+replytype4=algexp
+replyname4=$(val10[1]) \(f'(x))
+replygood4=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<p>$(val7[1])	$(val7[2]) 
+!insmath \,\RR
+$() $(val7[3]) 
+!insmath f(x) = u(x) v(x)
+$() $(val7[4]):</p>	<div class="wimscenter">
+!insmath u(x) = $val18
+$()<br>
+!insmath v(x) = $val19 
+$()</div>	</div>	<p>$val8: </p>	<div class="wimscenter"><label for="reply1">
+!insmath u'(x)
+$()</label> =  
+!read oef/embed.phtml reply1,20 
+$() </div>	<div class="wimscenter"><label for="reply2">
+!insmath v'(x)
+$()</label> =  
+!read oef/embed.phtml reply2,20 
+$() </div>	<p><label for="reply3">$(val9[1]):</label></p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply3 
+$()</div>	<p> $(val9[2]):</p>	<div class="wimscenter"><label for="reply4">
+!insmath f'(x)
+$()</label> =  
+!read oef/embed.phtml reply4,30 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <div class='oef_feedbacks'><b>$(val11[1])</b> <br>	$(val11[2]) 
+!insmath $val25
+$().<br>	$(val11[3]) 
+!insmath $val24
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,18,19,24,25
+embedcnt=4

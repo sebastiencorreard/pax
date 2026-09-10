@@ -1,0 +1,185 @@
+!set title=Variable aléatoire et indicateurs 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 6, 10
+
+val6=$[rint($(tmp0))]
+val7=Bernoulli, Fermat, Gauss, Kolmogorov, Laplace, Pascal, Poincaré, Tchebychev, Markov, Galton
+tmp0=!item 1 to $val6 of $val7
+
+val8=$(tmp0)
+val9=$[rint($val6^4)]
+t_=!rawmath 1/$val6^3
+val10=!exec pari print($t_)
+t_=!rawmath $val6*($val6-1)*4/$val9
+val11=!exec pari print($t_)
+t_=!rawmath $val6*($val6-1)*($val6-2)*($val6-3)/$val9
+val12=!exec pari print($t_)
+t_=!rawmath 1-$val10-$val11-$val12
+val13=!exec pari print($t_)
+val14=$val13,$val12,$val11,$val10
+t_=!rawmath 0
+val15=!exec pari print($t_)
+t_=!rawmath 0
+val16=!exec pari print($t_)
+val17=-1,0,4,49
+!for val18 =1 to 4 
+t_=!rawmath $val15+$(val14[$val18])*$(val17[$val18])
+val15=!exec pari print($t_)
+t_=!rawmath $val16+$(val14[$val18])*($(val17[$val18]))^2
+val16=!exec pari print($t_)
+!next
+t_=!rawmath $val16-($val15)^2
+val16=!exec pari print($t_)
+val19=$[round(100*sqrt($val16))/100]
+
+!ifval $val15<0
+val20=$[rint(1)]
+!else
+val20=$[rint(2)]
+!endif
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=P(A)
+replygood1=$val10
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=P(B)
+replygood2=$val11
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=P(C)
+replygood3=$val12
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=P(-1)
+replygood4=$(val14[1])
+replytype5=numexp
+replyoption5=noreduction 
+replyname5=P(0)
+replygood5=$(val14[2])
+replytype6=numexp
+replyoption6=noreduction 
+replyname6=P(4)
+replygood6=$(val14[3])
+replytype7=numexp
+replyoption7=noreduction 
+replyname7=P(49)
+replygood7=$(val14[4])
+replytype8=numexp
+replyoption8=noreduction 
+replyname8=E(G)
+replygood8=$val15
+replytype9=numexp
+replyname9=\(\sigma(G))
+replygood9=$val19
+replytype10=radio
+replyname10=rentable
+replygood10=$val20;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Au casino « Royal des mathématiques » on peut jouer aux machines à sous.<br>	 Parmi toutes celles qui existent, voici celle qui emporte le plus grand succès, <b>Le Jackpot des Grands Mathématiciens : </b><br>	 Quatre rouleaux tournent indépendamment les uns des autres	et $val6 portraits de grands probabilistes (parmi d'autres) peuvent	 sortir (pour chacun des rouleaux) : <b>$val8</b>.</p>	Exemple d'une partie (après avoir mis une pièce d'1 euro et actionné la manivelle)	<div class="wimscenter"><img src="$val1/jackpot.gif" alt="jackpot"></div>	On joue une partie à 1 euro.	<div class="wims_question">	Quelle est la probabilité des événements suivants ?	<ul>	<li>A  "<span class="wims_emph">Obtenir quatre portraits identiques</span>" :<label for="reply1"> P(A) =</label>  
+!read oef/embed.phtml reply1,7 
+$()</li>	<li>B  "<span class="wims_emph">Obtenir exactement 3 portraits identiques</span>" :<label for="reply2"> P(B) =</label>  
+!read oef/embed.phtml reply2,7 
+$()</li>	<li>C  "<span class="wims_emph">Obtenir quatre portraits distincts</span>" : <label for="reply3">P(C) =</label>  
+!read oef/embed.phtml reply3,7 
+$()</li>	</ul>	<div class="wims_instruction">Entrer les valeurs exactes.</div>	</div>	On gagne :	<ul><li> 50 euros si l'événement A se réalise ;</li>	<li> 5 euros si l'événement B se réalise ;</li>	<li> et 1 euro si l'événement C se réalise. </li>	</ul>	 Dans les autres cas, on ne gagne rien.	<div class="wims_question">	Soit 
+!insmath G
+$() la variable aléatoire donnant le gain d'une partie.	<ol>	<li> Déterminer la loi de probabilité de 
+!insmath G
+$().	<table class="wimsborder wimscenter">	<tr><td>
+!insmath g
+$()</td><td>-1</td><td>0</td><td>4</td><td>49</td></tr>	<tr><td>
+!insmath P(G=g)
+$()</td><td> 
+!read oef/embed.phtml reply4,7 
+$()</td><td> 
+!read oef/embed.phtml reply5,7 
+$()</td><td> 
+!read oef/embed.phtml reply6,7 
+$()</td><td> 
+!read oef/embed.phtml reply7,7 
+$()</td></tr>	</table>	</li>	<li> Calculer l'espérance mathématique de 
+!insmath G
+$() et son écart type.	<div class="wimscenter"><label for="reply8">
+!insmath E(G)=
+$()</label> 
+!read oef/embed.phtml reply8,7 
+$() et	<label for="reply9">
+!insmath \sigma(G)=
+$()</label> 
+!read oef/embed.phtml reply9,7 
+$()<i>arrondi au centième.</i>	</div></li>	<li>	<label for="reply10">Le jeu est-il rentable pour le casino ?</label>  
+!read oef/embed.phtml reply10 
+$()	</li></ol></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()On considère que le jeu est rentable pour le casino si l'espérance de 
+!insmath G
+$() est strictement négative.
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,8
+embedcnt=10

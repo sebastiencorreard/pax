@@ -1,0 +1,133 @@
+!set title=Signe de la dérivée et variations 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard ; Maguy, Bruno
+email=regine@mangeard.fr
+precision=100
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -2, 2
+
+val8=$[rint($val6+$(tmp0))]
+val9=1/x^2,-1,6,-3,3	1/x-$val6,-$val6-3,-$val6+3,-3,3	ln(abs(x))-$val6*x,-$val6-2,-$val6+4,-$val6-2,-$val6+4	x^3/3-1.5*x^2+x,-3,3,-3,3	2*$val7*arctan(x)-$val7*x,-4,4,-4,4	$val6/(x^2+1)-$val8,-$val8-4,-$val8+4,-3,3	
+tmp0=!shuffle 6
+
+val10=$(tmp0)
+val11=160
+val12=
+val13=
+!for val14 =1 to 4 
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row $(val10[$val14]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+val16=!rawmath $(val15[1])
+tmp=!translate ;";': to $     $ in $val16,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+val18=$[rint($(val15[2]))]
+val19=$[rint($(val15[3]))]
+val20=$[rint($(val15[4]))]
+val21=$[rint($(val15[5]))]
+!readproc oef/draw.phtml $val11,$val11 \
+ xrange -4,4	 yrange $val18,$val19	 parallel -4,$val18,4,$val18,0,1,$val19-$val18+1,gray	 parallel -4,$val18,-4,$val19,1,0,9,gray	 arrow -4,0,4,0,10,black	 arrow 0,$val18,0,$val19,10,black	 plot red,$val16	     
+tmp0=$ins_url
+val22=<img src="	    $(tmp0)"	    width="$val11"	    height="$val11"	    alt="">	    
+tmp0=!append item $val22 to $val12
+
+val12=$(tmp0)
+!readproc oef/draw.phtml $val11,$val11 \
+ xrange -4,4	 yrange $val20,$val21	 parallel -4,$val20,4,$val20,0,1,$val21-$val20+1,gray	 parallel -4,$val20,-4,$val21,1,0,9,gray	 arrow -4,0,4,0,10,black	 arrow 0,$val20,0,$val21,10,black	 plot blue,$val17	     
+tmp0=$ins_url
+val23=<img src="	    $(tmp0)"	    width="$val11"	    height="$val11"	    alt="" >	    
+tmp0=!append item $val23 to $val13
+
+val13=$(tmp0)
+!next
+val24=$val11 x$val11 x$val11
+replytype1=correspond
+replyname1=Correspondance graphe/fonction
+replygood1=$val12;$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On a dessiné les courbes représentatives de 4 fonctions (en rouge)	et de leurs dérivées (en bleu).	<p>	Associez à la courbe de chaque fonction, celle de sa dérivée.	</p>	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val24 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24
+embedcnt=1

@@ -1,0 +1,186 @@
+!set title=Faire un tableau 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=1000
+
+ansorder=r,r,r,r,r,r
+varcnt=35
+prevarcnt=33
+postvarcnt=1
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Voici les âges dans une population à la suite d'une enquête&nbsp;
+val7=Compléter le tableau suivant,Nbre de personnes,	  Nombre total de personnes (Effectif total), Effectif,Nbre total de personnes,Ages
+tmp0=!randint 20, 50
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 30, 40
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9+4)]
+!readproc slib/stat/random $val8, $val9,$val10 
+tmp0=$slib_out
+val11=$(tmp0)
+tmp0=!values x for x= $val9 to $val10+1
+
+val12=$(tmp0)
+!readproc slib/stat/effectif [$val11],[$val12] 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val13=$(tmp0)
+tmp0=!declosing $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$(tmp0)
+tmp0=!item 2 of $val13
+
+val15=$(tmp0)
+tmp0=!item 3 of $val13
+
+val16=$(tmp0)
+tmp0=!item 4 of $val13
+
+val17=$(tmp0)
+tmp0=!item 5 of $val13
+
+val18=$(tmp0)
+val19=<table class="wimscenter wimsborder" style="background-color:skyblue">
+val20=$[rint(ceil($val8/10))]
+!for val21 =0 to $val20-1 
+val19=$val19<tr>
+!for val22 =1 to 10 
+tmp0=!item $val21*10+$val22 of $val11
+
+val23=$(tmp0)
+val19=$val19<td>$val23</td>
+!next
+val19=$val19</tr>
+!next
+val19=$val19</table>
+tmp0=!item 1 of $val12
+
+val24=$[$(tmp0)]
+tmp0=!item 2 of $val12
+
+val25=$[$(tmp0)]
+tmp0=!item 3 of $val12
+
+val26=$[$(tmp0)]
+tmp0=!item 4 of $val12
+
+val27=$[$(tmp0)]
+tmp0=!item 5 of $val12
+
+val28=$[$(tmp0)]
+val29=<table class="wimscenter wimsborder table-scroll">
+val29=$val29<tr><th>$(val7[6])</th>	<td><label for="reply1">$val24</label></td>	<td><label for="reply2">$val25</label></td>	<td><label for="reply3">$val26</label></td>	<td><label for="reply4">$val27</label></td>	<td><label for="reply5">$val28</label></td>	
+val29=$val29</tr>
+val30=$[rint($val14+$val15+$val16+$val17+$val18)]
+replytype1=numeric
+replyname1=$(val7[4]) 1
+replygood1=$[$val14]
+replytype2=numeric
+replyname2=$(val7[4]) 2
+replygood2=$[$val15]
+replytype3=numeric
+replyname3=$(val7[4]) 3
+replygood3=$[$val16]
+replytype4=numeric
+replyname4=$(val7[4]) 4
+replygood4=$[$val17]
+replytype5=numeric
+replyname5=$(val7[4]) 5
+replygood5=$[$val18]
+replytype6=numeric
+replyname6=$(val7[5])
+replygood6=$[$val30]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6:	$val19	$(val7[1])	$val29	<tr><th>$(val7[2])</th>	<td> 
+!read oef/embed.phtml reply 1,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 2,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 3,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 4,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 5,8 
+$()</td>	</tr>	</table>	<label for="reply6">$(val7[3])&nbsp;:</label> 
+!read oef/embed.phtml r6,8 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val14+$val15+$val16+$val17+$val18=$val30
+$().<p>$m_sol</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val31=<p>Le nombre total de personnes est \($val30\).</p>
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,14,15,16,17,18,19,29,30
+embedcnt=6

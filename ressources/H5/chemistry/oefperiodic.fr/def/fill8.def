@@ -1,0 +1,279 @@
+!set title=Remplissage 8
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=41
+prevarcnt=39
+postvarcnt=1
+replycnt=20
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of table
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val7=$[rint($(tmp0))]
+
+!ifval $val2 notitemof 1,2,3,4
+val2=$[rint(0)]
+!endif
+
+!ifval $val3 notitemof 1,2,3,4
+val3=$[rint(0)]
+!endif
+val8=
+
+!ifval $val4 issametext $val8 or $val4<7 or	  $val4>$val7
+val4=$[rint(54)]
+!endif
+tmp0=!values x for x=1 to $val7
+
+val9=$(tmp0)
+tmp0=!listintersect $val5 and $val9
+
+val5=$(tmp0)
+
+!ifval $val2>0
+val10=$[rint($val2)]
+!else
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+!endif
+
+!ifval $val3=$val2
+val11=$[rint(0)]
+!else
+val11=$[rint($val3)]
+!endif
+tmp0=!listcomplement $val10 in 1,2,3,4
+
+val12=$(tmp0)
+
+!ifval \candouble issametext yes and $val10 != 1
+val12=$val10,$val12
+!endif
+
+!ifval $val11>0 and $val11 isitemof $val12
+val13=$[rint($val11)]
+!else
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+!endif
+val14=$[rint(0)]
+val15=Placer les symboles donnés dans le tableau suivant.
+val16=Case
+tmp0=!word 1 of 8
+
+val17=$[rint($(tmp0))]
+tmp0=!record 0 of position
+
+val18=$(tmp0)
+val19=$val18
+val8=
+!if $val5 notsametext $val8 and \selective notsametext no 
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!row $val5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in $val19
+
+tmp0=!rowcnt $tmp
+val22=$[rint(min($val4,$(tmp0)))]
+val17=$[rint(min($val17,$val22))]
+tmp0=!shuffle $val22
+
+tmp1=!item 1 to $val17+$val14 of $(tmp0)
+
+val23=$(tmp1)
+tmp0=!sort numeric items $val23
+
+val23=$(tmp0)
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!row $val23 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+val24=$(val6[;2])
+
+!ifval $val14>0 and $val22>$val17
+val25=;$(val24[$val17+1..$val17+$val14])
+!else
+val25=
+!endif
+val26=
+val27=$[rint(35)]
+val28=$[rint(30)]
+!for val29 =1 to $val17 
+
+!ifval $(val6[$val29;3])>8
+val30=$[rint($(val6[$val29;4])*$val27+$val27*2+1)]
+!else
+val30=$[rint($(val6[$val29;4])*$val27+1)]
+!endif
+
+!ifval $(val6[$val29;3])>8
+val31=$[rint($(val6[$val29;3])*$val28+6)]
+!else
+val31=$[rint($(val6[$val29;3])*$val28+1)]
+!endif
+val26=$val26	r$val29,$val30 x $val31
+!next
+val32=$val27-1 x $val28-1
+tmp0=!item 1 to $val17 of r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20
+
+val33=$(tmp0)
+oefsteps=$val33 
+nextstep=!nosubst $val33 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=$val16 1
+replygood1=$(val24[1])$val25
+replytype2=dragfill
+replyname2=$val16 2
+replygood2=$(val24[2])
+replytype3=dragfill
+replyname3=$val16 3
+replygood3=$(val24[3])
+replytype4=dragfill
+replyname4=$val16 4
+replygood4=$(val24[4])
+replytype5=dragfill
+replyname5=$val16 5
+replygood5=$(val24[5])
+replytype6=dragfill
+replyname6=$val16 6
+replygood6=$(val24[6])
+replytype7=dragfill
+replyname7=$val16 7
+replygood7=$(val24[7])
+replytype8=dragfill
+replyname8=$val16 8
+replygood8=$(val24[8])
+replytype9=dragfill
+replyname9=$val16 9
+replygood9=$(val24[9])
+replytype10=dragfill
+replyname10=$val16 10
+replygood10=$(val24[10])
+replytype11=dragfill
+replyname11=$val16 11
+replygood11=$(val24[11])
+replytype12=dragfill
+replyname12=$val16 12
+replygood12=$(val24[12])
+replytype13=dragfill
+replyname13=$val16 13
+replygood13=$(val24[13])
+replytype14=dragfill
+replyname14=$val16 14
+replygood14=$(val24[14])
+replytype15=dragfill
+replyname15=$val16 15
+replygood15=$(val24[15])
+replytype16=dragfill
+replyname16=$val16 16
+replygood16=$(val24[16])
+replytype17=dragfill
+replyname17=$val16 17
+replygood17=$(val24[17])
+replytype18=dragfill
+replyname18=$val16 18
+replygood18=$(val24[18])
+replytype19=dragfill
+replyname19=$val16 19
+replygood19=$(val24[19])
+replytype20=dragfill
+replyname20=$val16 20
+replygood20=$(val24[20])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val15	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val1/table2.gif,700x360,$val32	$val26	 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val32=$val27 x $val28-1
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,15,26,27,28,32
+embedcnt=1

@@ -1,0 +1,27 @@
+target=power10
+#include "lang_titles.inc"
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang.inc"
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{n=random(2..11)*random(1,-1)}
+\integer{m=random(2..11)*random(1,-1)}
+\integer{p=random(2..11)*random(1,-1)}
+\integer{o=random(2..11)*random(1,-1)}
+\integer{q=random(2..11)*random(1,-1)}
+\text{a=10^{\n}}
+\text{b=10^(\m)}
+\text{c=10^(\o)}
+\text{d=10^(\p)}
+\text{f=10^(\q)}
+\integer{sol= (\n)+(\m)+(\o)-(\p)-(\q)}
+
+\statement{\name_statement \(10^n) :
+<div class="wimscenter"> \(\frac{10^{\n}\times 10^{\m} \times 10^{\o}}{10^{\p}\times 10^{\q}})
+= 10<sup><sup>\embed{reply 1,3}</sup></sup></div>
+}
+\answer{\name_answer}{\sol}{type=numeric}

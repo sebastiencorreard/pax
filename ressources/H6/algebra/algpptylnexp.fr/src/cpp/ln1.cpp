@@ -1,0 +1,74 @@
+target=ln1
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\text{l=shuffle(2,3,5,7,11)}
+\integer{a0=item(1,\l)}
+\integer{b0=item(2,\l)}
+\integer{a=(\a0<\b0)?\a0:\b0}
+\integer{b=(\a0<\b0)?\b0:\a0}
+\integer{n=random(2..5)*random(-1,1)}
+\integer{s=random(-1,1)}
+\integer{m0=random(2..5)}
+\integer{m=\s*\m0}
+\rational{p=(\a^\n)*(\b^\m)}
+\text{sum=\s=1?\n*ln(\a) + \m*ln(\b):\n*ln(\a) - \m0*ln(\b)}
+
+\text{AA=\sum,ln(\p)}
+\integer{cas=random(1,2)}
+\text{A=item(\cas,\AA)}
+\text{BB=\p,\sum}
+\text{B=item(\cas,\BB)}
+
+\statement{
+<div class="wims_question">
+\name_enonce0[1] \(A = \A\) \name_enonce0[2]
+<p>\name_enonce[\cas;].</p>
+  <div class="wimscenter">
+\if{\cas=1}{
+  \(A\) = ln(\embed{reply1,10}).
+  }{
+  \(A\) = \embed{reply1,15}.
+  }
+  </div>
+  </div>
+}
+\answer{}{\B}{type=litexp}
+
+\hint{Les règles de calcul des logarithmes sont :
+  <div>
+  \(\ln (a \times b) = \ln(a) + \ln(b) \)<br>
+  \(\ln (\frac{a}{b}) = \ln(a) - \ln(b)\)<br>
+  \(\ln(a^{n}) = n \ln(a)\) <br>
+  \(\ln(\frac{1}{a}) = - \ln(a)\)
+  </div>
+}
+
+\feedback{0=0}{
+  Voici un corrigé :<br>
+  \if{\cas=1}{
+    \(\n ln(\a) = ln(\a^\n)) et \(\m ln(\b) = ln(\b^\m)\)<br>
+    \( \sum = ln(\a^\n) + ln(\b^\m) = ln(\a^\n * \b^\m)
+    = ln(\p) \)
+  }{
+    On décompose \p sous la forme \(\a^n\times\b^m) : <br>
+    \( \p = \a^{\n}\times\b^{\m} )
+    <br>
+    \if{\s=1}{
+      En appliquant la règle du logarithme d'un produit : <br>
+        \(\ln(\a^{\n}\times\b^{\m}) = \ln(\a^{\n}) + \ln(\b^{\m}) = \n\ln(\a) + \m\ln(\b))
+    }{
+      En appliquant la règle sur le logarithme d'un produit :
+      \( \ln( \a^{\n}\times \b^{\m}) = \ln(\a^{\n}) + \ln(\b^{\m}) = \n\ln(\a) + (\m\ln(\b)) = \n\ln(\a) - \m0\ln(\b) )
+      <br>
+      On peut aussi appliquer la règle sur le logarithme d'un quotient : <br>
+      \( \ln(\a^{\n}\times\b^{\m}) = \ln(\frac{\a^{\n}}{\b^{\m0}}) = \ln(\a^{\n}) - \ln(\b^{\m0}) = \n\ln(\a) - \m0\ln(\b))
+    }
+  }
+}

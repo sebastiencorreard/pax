@@ -1,0 +1,210 @@
+!set title=Alliage 3 métaux
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=9000
+
+ansorder=r,r,r
+varcnt=39
+prevarcnt=32
+postvarcnt=6
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 70, 85
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 0.25*(100-$val7), 0.75*(100-$val7)
+
+val8=$[rint($(tmp0))]
+val9=$[rint(100-$val7-$val8)]
+tmp0=!randint 70, 85
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 0.25*(100-$val10), 0.75*(100-$val10)
+
+val11=$[rint($(tmp0))]
+val12=$[rint(100-$val11-$val10)]
+tmp0=!randint 70, 85
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 0.25*(100-$val13), 0.75*(100-$val13)
+
+val14=$[rint($(tmp0))]
+val15=$[rint(100-$val14-$val13)]
+tmp0=!randint 100, 999
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 28, 38
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 28, 38
+
+val18=$[rint($(tmp0))]
+
+!ifval $val17+$val18<100-38
+val18=$[rint(100-38-$val17)]
+!endif
+
+!ifval $val17+$val18>100-28
+val18=$[rint(100-28-$val17)]
+!endif
+val19=$[rint(100-$val17-$val18)]
+val20=$[rint($val16*$val17)]
+val21=$[rint($val16*$val18)]
+val22=$[rint($val16*$val19)]
+val23=$[$val7*$val10*$val13-$val7*$val15*$val12+$val11*$val15*$val9-$val11*$val8*$val13+$val14*$val8*$val12-$val14*$val10*$val9]
+val24=$[$val16*($val17*$val10*$val13-$val17*$val15*$val12+$val11*$val15*$val19-$val11*$val18*$val13+$val14*$val18*$val12-$val14*$val10*$val19)/$val23]
+val25=$[$val16*($val7*$val18*$val13-$val7*$val15*$val19+$val17*$val15*$val9-$val17*$val8*$val13+$val14*$val8*$val19-$val14*$val18*$val9)/$val23]
+val26=$[$val16*($val7*$val10*$val19-$val7*$val18*$val12+$val11*$val18*$val9-$val11*$val8*$val19+$val17*$val8*$val12-$val17*$val10*$val9)/$val23]
+val27=Une usine produit un alliage à partir de trois types de métaux	de récupération. Les compositions des trois métaux récupérés sont comme suit.
+val28=L'usine a reçu une commande de $val16 tonnes d'alliage avec	  $val17% de fer, $val18% de nickel et $val19% de cuivre. Combien de tonnes de chaque	  type de métal récupéré faut-il prendre pour satisfaire cette commande&nbsp;
+val29=type,fer,nickel,cuivre,métal
+val30=Donner les valeurs en gardant 4 chiffres significatifs.
+tmp=!trim Il faut au total	  tonnes d'un alliage des 3 métaux et non	  tonnes
+val31=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim En utilisant	  du métal A	  du métal B et	  du métal C, on obtient	  d'un alliage dont les proportions en fer, nickel et cuivre ne sont pas celles voulues&nbsp;	  on obtient un alliage composé de	  de fer	  de nickel et	  de cuivre
+val32=!translate internal $	\
+$ to ;; in $tmp
+val33=Notons \(a\), \(b\) et \(c\) respectivement les quantités des métaux A,	  B et C (exprimées en tonnes) nécessaires pour satisfaire la commande.	  Ces quantités sont solutions du système linéaire suivant
+val34=Ce système a une unique solution qui est
+tmp=!trim Donc avec	  du métal A	  du métal B et	  du métal C	  on peut obtenir	  d'un alliage composé de	  de fer	  de nickel et	  de cuivre	
+val35=!translate internal $	\
+$ to ;; in $tmp
+replyname1=$(val29[5]) A (t)
+replygood1=$val24
+replyname2=$(val29[5]) B (t)
+replygood2=$val25
+replyname3=$(val29[5]) C (t)
+replygood3=$val26
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val27	<table class="wimscenter wimsborder">	<tr><th>$(val29[1])</th><th>$(val29[2])</th>	<th>$(val29[3])</th><th>$(val29[4])</th></tr>	<tr><th>$(val29[5]) A</th><td>$val7%</td><td>$val8%</td><td>$val9%</td></tr>	<tr><th>$(val29[5]) B</th><td>$val11%</td><td>$val10%</td><td>$val12%</td></tr>	<tr><th>$(val29[5]) C</th><td>$val14%</td><td>$val15%</td><td>$val13%</td></tr>	</table>	$val28?	<div class="wims_instruction">$val30</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val33:	<div class="wimscenter">	
+!insmath \left\lbrace\begin{array}{cccccc}	$val7 a &+& $val11 b &+& $val14 c &=& $val20\\$val8 a &+& $val10 b &+& $val15 c &=& $val21\\$val9 a &+& $val12 b &+& $val13 c &=& $val22 \end{array}\right .
+$()	</div>	$val34 
+!insmath a=$val24
+$(), 
+!insmath b=$val25
+$(), 
+!insmath c=$val26
+$().	<p>	$(val35[1;]) 
+!insmath $val24
+$() t $(val35[2;]), 
+!insmath $val25
+$() t $(val35[3;])	
+!insmath $val26
+$() t $(val35[4;]),	$(val35[5;]) 
+!insmath $val16
+$() t $(val35[6;])	
+!insmath $val17 \%
+$() $(val35[7;]), 
+!insmath $val18 \%
+$() $(val35[8;]) 
+!insmath $val19 \%
+$() $(val35[9;]).	</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $m_sc_reply1<0.5 or $m_sc_reply2<0.5 or $m_sc_reply3<0.5
+val36=$[rint(1)]
+!else
+val36=$[rint(0)]
+!endif
+val37=$[$m_reply1+$m_reply2+$m_reply3]
+val38=$[abs($val37-$val16)/$val16]
+val39=$[($val7*($m_reply1) + $val11 *($m_reply2) + $val14 *($m_reply3))/$val16]
+val40=$[($val8*($m_reply1) + $val10 *($m_reply2) + $val15 *($m_reply3))/$val16]
+val41=$[($val9*($m_reply1) + $val12 *($m_reply2) + $val13 *($m_reply3))/$val16]
+
+!exit
+
+:feedback
+!ifval $val38>0.0001 and $val36=1
+ <div class='oef_feedbacks'>	<p>$(val31[1;]) 
+!insmath $val16
+$() $(val31[2;]) $val37$(val31[3;]).</p>
+$()</div>
+!endif
+!ifval $val36=1
+ <div class='oef_feedbacks'>	<p>$(val32[1;]) 
+!insmath $m_reply1
+$() t $(val32[2;]), 
+!insmath $m_reply2
+$() t $(val32[3;]) 
+!insmath $m_reply3
+$() t	$(val32[4;]) 
+!insmath $val37
+$() t	$(val32[5;]):	$(val32[6;]) 
+!insmath $val39 \%
+$() $(val32[7;]), 
+!insmath $val40 \%
+$() $(val32[8;]) 
+!insmath $val41 \%
+$()	$(val32[9;]).</p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,24,25,26,27,28,29,30,31,32,33,34,35
+embedcnt=0

@@ -1,0 +1,30 @@
+target=parmdeg2
+
+#include "header.inc"
+#include "lang_titles.inc"
+
+\integer{a=random(1..10)*random(-2,2)}
+\integer{b=random(1..9)*random(-2,2)+1}
+\integer{c=random(1..10)*random(-2,2)}
+\integer{na=-(\a)}
+\text{A=\a>0?+\a:\a}
+\text{B=\b>0?+\b:\b}
+\text{C=\c>0?+\c:\c}
+\real{side=\b-\a-\c}
+\integer{type=random(1,2,3)}
+\text{ctype=\side>0?item(\type,m&gt;c,m&lt;c,m=c)}
+\text{ctype=\side<0?item(\type,m&lt;c,m&gt;c,m=c)}
+\real{cc=-0.25*((\b)^2-4*(\a)*(\c))/(\side)}
+
+#include "lang.inc"
+
+\text{roottype=item(\type,\name_type_list)}
+
+\statement{\name_statement[1] \(m\) \name_statement[2]
+<div class="wimscenter">
+\((m\A)X^2 + (2m\B)X + m\C\)
+</div>
+\name_statement[3] \roottype&nbsp;? (\(m \ne \na))}
+
+\choice{\name_choice}{\ctype}{m&gt;c,m&lt;c,m=c}
+\answer{\name_answer \(c\)}{\cc}

@@ -1,0 +1,327 @@
+target=vedette1 vedette2
+
+\language{fr}
+\range{-5..5}
+\author{Rémi, Belloeil}
+\email{remi.belloeil@orange.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+#if TARGET_vedette1
+\title{La vedette de Bréhat}
+#define TYPE 1
+#else
+\title{La vedette de Bréhat 2}
+#define TYPE 2
+#endif
+
+%%Choix du type%%
+
+1-> mono méthode
+2-> poly méthode
+
+
+\text{list=1,2,4,9}
+\text{list2=1,2,10,9}
+\text{repchoix=répondre,dessin,tableau,suite}
+
+
+#include "method.inc"
+
+\integer{r=200+50*randint(0..4)}
+\integer{s=20*randint(4..7)}
+\integer{u1=\r+\s}
+\integer{l=8}
+\integer{H1=8}
+
+\real{H2=8.5}
+\integer{hp=12}
+
+\integer{d=floor(\s/\l)}
+\integer{k=\r-\d}
+\integer{p=\l+1}
+\integer{b=\l-3}
+\integer{m=randint(4..6)}
+
+\real{dH=\H2-\H1}
+\real{H3=\H1+(\m-1)*\dH}
+
+\integer{up=\u1-(\p-1)*\d}
+\integer{u0=\u1+\d}
+\real{H0=\H1-0.5}
+
+
+%% Fond du dessin
+\text{fond =yrange -15,35
+comment Le quai
+linewidth 4
+segment 0,0,65,0, black
+segment 65,0,65, -10+3*sin(6.5), black
+
+comment Les nouvelles personnes
+linewidth 9
+segment 0,1,3,4, orange
+segment 6,0,3,4, orange
+segment 3,4,3,10, orange
+segment 2.4,8.5,3.6,11, orange
+
+segment 6,0,7.5,2, orange
+segment 9,0,7.5,2, orange
+segment 7.5,2,7.5,5.5, orange
+segment 6.9,3,6.9,5, orange
+segment 7.5,6.5,7.8,6.5, orange
+
+segment 9,0,12,4, orange
+segment 15,0,12,4, orange
+segment 9,0,12,4, orange
+segment 12,10,12,4, orange
+circle 12,11.5,3.5, orange
+
+comment Ceux qui attendent
+segment 30,0,30,10, orange
+segment 30,11,31.3,11, orange
+
+segment 33,0,33,5.5, orange
+segment 33,5.5,35,6, orange
+
+segment 38,0.5,38,9, orange
+
+segment 41,0.5,41,11, orange
+segment 40,11,41,11, orange
+
+segment 45,0,45,4, orange
+circle 46,5,1.5, orange
+
+segment 48,0,48,9, orange
+segment 47,8.5,47,10, orange
+
+
+segment 51,0,51,7, orange
+segment 51,7,50,7.3, orange
+
+segment 54,0.5,54,10, orange
+segment 53.5,10,55,10, orange
+segment 54,4,56.5,0, orange
+
+comment le groom
+segment 62,0,62,10, blue
+circle 62,11.5,3.5, pink
+
+comment Les flèches
+linewidth 6
+
+segment 3,15,12,15,red
+segment 3,15,3,18,red
+segment 3,18,12,18,red
+segment 12,13.5,12,15,red
+segment 12,13.5,15,16.5,red
+segment 12,18,12,19.5,red
+segment 12,19.5,15,16.5,red
+text red, 1, 26, medium, chaque
+
+
+segment 45,15,54,15,green
+segment 45,15,45,18,green
+segment 45,18,54,18,green
+segment 54,13.5,54,15,green
+segment 54,13.5,57,16.5,green
+segment 54,18,54,19.5,green
+segment 54,19.5,57,16.5,green
+
+comment Le nombre de personnes qui attendent
+text black, 35.5, 17.5, giant, \u1
+
+comment L'horloge analogique et numérique
+linewidth 6
+point 35, 25, black
+text black, 42, 26, giant, 8:00
+linewidth 4
+circle 35, 25, 60, black
+segment 35,25,35,28, black
+segment 35,25,33,24, black
+comment La mer
+plot blue, -10+3*sin(0.1*x)
+}
+%% La vedette
+\real{v1=-10+3*sin(7.5)}
+\text{obj=linewidth 4
+segment 65,0,75,\v1,brown
+segment 65,0,110,0,brown
+segment 75,0,90,15,brown
+segment 90,15,110,15,brown
+circle 90, -5, 30, brown
+text blue, 70,-2,medium, vedette 1
+}
+
+
+
+%% Dessin avec le nombre de personnes en attente et l'heure sans les autres infos
+\text{graph= xrange 0,110
+\fond
+\obj}
+%% Dessins avec les infos
+\text{infos=\graph
+text black, 4.5, 17.5, giant, \k
+text black, 46.5, 17.5, giant, \r
+text red, 1, 26, medium, chaque demi-heure
+}
+
+\text{url = draw(660,400
+\graph)}
+\text{url2 = draw(660,400
+\infos)}
+
+\text{tableau1=<table class="wimsborder wimscenter"><caption>Tableau à compléter</caption>
+<tr><td>N° \(n\)</td><td>Heure \(h_n\)</td><td>Passager \(p_n\)</td></tr>
+<tr><td>1</td><td>\H1</td><td>\u1</td></tr>
+<tr><td>2</td><td>\H2</td><td> ... </td></tr>
+<tr><td>...</td><td>...</td><td> ... </td></tr>
+</table>
+}
+\text{tableau2=<table class="wimsborder wimscenter"><caption>Tableau complet</caption>
+<tr><td>N° \(n\)</td><td>Heure \(h_n\)</td><td>Passager \(p_n\)</td></tr>
+<tr><td>1</td><td>\H1</td><td>\u1</td></tr>}
+\real{H=\H1}
+\integer{u=\u1}
+\for{ i = 2 to \p}{
+  \real{H=\H+\dH}
+  \integer{u=\u-\d}
+  \text{tableau2=\tableau2
+<tr><td>\i</td><td>\H</td><td>\u</td></tr>}
+}
+\text{tableau2=\tableau2
+ </table>}
+
+\text{MM=0,0,0,0}
+
+\text{W=}
+\text{ETAPE = r1}
+\text{COND = 1}
+\nextstep{ \ETAPE}
+\conditions{ \COND}
+
+\statement{
+<div class="wims_question">
+<p> Un jour \u1 clients attendent la première vedette pour l'île de Bréhat à \H1 h.</p>
+<p>Il y a une vedette chaque demi-heure.<br>
+Chaque vedette prend \r personnes et un matelot limite strictement l'entrée à ce nombre.<br>
+Mais il arrive \k nouvelles personnes à l'entrée chaque demi-heure jusqu'à \hp h.</p>
+<p>On note \(h_n\) l'heure où la \(n\)-ième vedette arrive avec \(h_1=\H1\) et \(h_2=\H2\).<br>
+On note \(p_n\) le nombre de personnes qui attendent à l'entrée la \(n\)-ième vedette ; ainsi \(p_1=\u1\).
+</p>
+
+\if{\W != répondre}{
+Voici les questions de ce problème :
+<ol>
+<li>A quelle heure arrive la \(\m\)<sup>ième</sup> vedette c'est-à-dire \(h_{\m}\) ? </li>
+<li>Quel est le numéro d'ordre de la vedette qui arrive à \hp h ? </li>
+<li>Quelle est la nature de la suite \((p_n)\) et sa raison ?</li>
+<li>Combien de personnes attendent à l'entrée la vedette qui arrive à \hp h ?</li>
+</ol>}
+
+</div>
+\if{\step=1}{
+#include "listmethodb.inc"
+}
+\if{\step>1}{
+#if TARGET_vedette2
+ \if{\W=répondre}
+ {<ol>
+ <li><label for="reply2">A quelle heure arrive la \(\m\)<sup>ième</sup> vedette
+  c'est-à-dire \(h_{\m}\) ?</label> \embed{reply 2,3}h (heure décimale).</li>
+ <li><label for="reply3">Quel est le numéro d'ordre de la vedette qui arrive à \hp h ?
+ </label>\embed{reply 3,3}. </li>
+ <li><label for="reply4">La suite \((p_n)\) est une suite </label> \embed{reply 4}
+  <label for="reply5">de raison </label> \embed{reply 5,3}.</li>
+ <li><label for="reply6">Combien de personnes attendent à l'entrée la vedette
+  qui arrive à \hp h ?</label> \embed{reply 6,3} personnes.</li>
+ </ol>
+ }
+#endif
+ \if{\W != répondre}{
+ <p style="color:red">
+ Voici l'aide pour la méthode \W.</p>
+ \if{\W=dessin}{
+  <p>Un dessin comme celui-ci aide à comprendre l'énoncé.</p>
+  <div class="wimscenter"><img src="\url" alt=""></div>
+  <p>Complétez les flèches au brouillon avec les données du problème.
+  Ceci aide à répondre à la question 3.</p>
+ }
+ \if{\W=tableau}{
+  <p>Réaliser un tableau comme celui-ci au brouillon ou sur un tableur et le compléter.</p>
+  <div class="wimscenter">\tableau1</div>
+ }
+ \if{\W=suite}{<p>
+  Il est facile de déterminer la raison de chacune des suites \((h_n)\) et \((p_n)\).
+  Mais attention l'indice de départ est ici \(n=1\).
+  </p><p>
+  La formule générale classique utilise la valeur d'indice 0 qui n'a pas de sens ici.</p>
+  On peut :
+  </p>
+  <ul>
+  <li>soit calculer les valeurs fictives de \(h_0\) et \(p_0\),</li>
+  <li>soit utiliser la formule \(u_n = u_1 + r (n -1)\).</li>
+  </ul>
+ }
+#if TARGET_vedette2
+ Choisir ensuite soit une autre aide soit de répondre aux questions.
+ </p>
+ <ul class="wims_nopuce">
+  \for{tt=1 to \nb_meth}{
+  \if{\MM[\tt]==0}{
+    <li>
+    \embed{reply1,\tt,<img src="gifs/images/methods/\ListImage[\tt]" alt="\Listdesc[\tt]">}
+    \slib{text/balloon}{[\tch[\tt]],\color[\tt],250,100,triangle=left-in}
+    </li>
+  }
+}
+ </ul>
+#endif
+ }
+#if TARGET_vedette1
+<p style="color:red">
+Répondre maintenant aux questions :</p>
+<ol>
+<li><label for="reply2">
+A quelle heure arrive la \(\m\)<sup>ième</sup> vedette c'est-à-dire \(h_{\m}\) ?
+</label>\embed{reply 2,3}h (heure décimale).</li>
+<li><label for="reply3">
+Quel est le numéro d'ordre de la vedette qui arrive à \hp h ? </label>
+\embed{reply 3,3}.</li>
+<li><label for="reply4">La suite \((p_n)\) est une suite</label> \embed{reply 4}
+<label for="reply5">de raison</label> \embed{reply 5,3}.</li>
+<li><label for="reply6">Combien de personnes attendent à l'entrée la vedette
+  qui arrive à \hp h ?</label> \embed{reply 6,3} personnes.</li>
+</ol>
+#endif
+}
+}
+
+\answer{Méthode}{\var1;\repchoix}{type=radio}{option=nonstop}{weight=0}
+\answer{\(h_{\m}\) =  }{\H3}{type=numeric}
+\answer{Numéro d'ordre  }{\p}{type=numeric}
+\answer{Nature de la suite }{1;arithmétique,géométrique,autre}{type=menu}
+\answer{Raison }{-\d}{type=numeric}
+\answer{Nombre de personnes }{\up}{type=numeric}
+\condition{Choix de la méthode}{1=1}
+
+#include "method_step.inc"
+
+\solution{<ul><li>Représentation :
+<div class="wimscenter"><img src="\url2" alt="dessin de personnes qui attendent la vedette prêtes à partir et d'autres arrivent sur le quai."></div>
+</li><li>Tableau :
+<div class="wimscenter">\tableau2</div>
+</li></ul>
+<ul><li>
+On peut utiliser les valeurs fictives \(h_0= \H0\) et \(p_0= \u0\)
+</li><li>
+\(h_\m=8+(\m-1)*0.5=\H3\)  ou \(h_(\m)=7.5+\m*0.5=\H3\).
+</li><li>
+L'équation \(8+(n-1)*0.5=\hp\) ou \(7.5+n*0.5=\hp\) équivaut à \(n=\p\).
+</li><li>
+Chaque demi-heure, \r personnes prennent la vedette et \k arrivent donc
+le nombre de personnes à attendre sur le quai diminue de \d personnes.
+</li><li>
+\(h_\p=\hp\) donc on calcule \(p_\p=\u1 + (\p - 1)*(-\d)=\up\).
+</li>
+}

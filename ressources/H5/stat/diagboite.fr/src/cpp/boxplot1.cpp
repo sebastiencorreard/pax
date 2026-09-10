@@ -1,0 +1,50 @@
+target=1
+#include "lang_boxplot.inc"
+
+\title{TITRE}
+\range{-5..5}
+
+\computeanswer{no}
+\precision{10}
+
+\integer{xmin=randint(1..10)}
+\integer{xmax=randint(\xmin+5..20)}
+\integer{med=randint(\xmin+2..\xmax-3)}
+\integer{q1=randint(\xmin+1..\med-1)}
+\integer{q3=randint(\med+1..\xmax-1)}
+\text{defaut=pari([\xmin+2,\xmin+3,\xmin+4])}
+\text{range=pari([max(\xmin-5,0), \xmax+3])}
+
+\text{script=slib(stat/boxplot [\range],[\defaut],,anstype)}
+\text{height=wims(getopt Y in \script)}
+
+\statement{
+\name_instruction1
+<table class="wimsborder wimscenter">
+<tr><th>\entete[3]</th><th>\entete[2]</th><th>\entete[4]</th></tr>
+<tr><td>\med</td><td>\q1</td><td>\q3</td></tr>
+</table>
+
+\name_instruction2
+<div class="wimscenter">
+\embed{reply1,600x150
+\script
+
+}
+</div>
+}
+
+\answer{}{\q1;\med;\q3}{type=jsxgraph}{option=absolute precision=2}
+
+\text{rep=wims(replace internal ; by , in \reply1)}
+\feedback{1=1}{<ul>
+<li>\if{(abs(\rep[1]-\q1)<0.2)}{Le premier quartile est bien placé en \(Q_1) = <span class="oef_indgood">\q1</span>}{Le premier quartile est mal placé ; \(Q_1) = <span class="oef_indgood">\q1</span> et non <span class="oef_indbad">\rep[1]</span>}</li>
+<li>\if{(abs(\rep[2]-\med)<0.2)}{La médiane est bien placée en \(M_e\) = <span class="oef_indgood">\med</span>}{La médiane est mal placée ; \(M_e\) = <span class="oef_indgood">\med</span> et non <span class="oef_indbad">\rep[2]</span>}</li>
+<li>\if{(abs(\rep[3]-\q3)<0.2)}{Le troisième quartile est bien placé en \(Q_3) = <span class="oef_indgood">\q3</span>}{Le troisième quartile est mal placé ; \(Q_3) = <span class="oef_indgood">\q3</span> et non <span class="oef_indbad">\rep[3]</span>}</li>
+</ul>
+<script type="text/javascript">
+brd.suspendUpdate();
+brd.create('point',[\q1,\height], {face:'o', name:'Q<sub>1</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+brd.create('point',[\med,\height], {face:'o', name:'M<sub>e</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+brd.create('point',[\q3,\height], {face:'o', name:'Q<sub>3</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+</script>}

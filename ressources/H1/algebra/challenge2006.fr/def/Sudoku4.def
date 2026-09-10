@@ -1,0 +1,224 @@
+!set title=Sudoku 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=16
+prevarcnt=7
+postvarcnt=8
+replycnt=30
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(4)]
+val7=30x30x1
+tmp0=!values v for v=1 to 4
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!values v for v=1 to $val6*($val6-1)
+
+val9=$(tmp0)
+tmp0=!replace internal , by ,r in $val9
+
+val9=$(tmp0)
+val9=r$val9
+oefsteps=$val9 
+nextstep=!nosubst $val9 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=
+replygood1=?analyze 10;$val8
+replytype2=clickfill
+replyname2=
+replygood2=?analyze 11
+replytype3=clickfill
+replyname3=
+replygood3=?analyze 12
+replytype4=clickfill
+replyname4=
+replygood4=?analyze 13
+replytype5=clickfill
+replyname5=
+replygood5=?analyze 14
+replytype6=clickfill
+replyname6=
+replygood6=?analyze 15
+replytype7=clickfill
+replyname7=
+replygood7=?analyze 16
+replytype8=clickfill
+replyname8=
+replygood8=?analyze 17
+replytype9=clickfill
+replyname9=
+replygood9=?analyze 18
+replytype10=clickfill
+replyname10=
+replygood10=?analyze 19
+replytype11=clickfill
+replyname11=
+replygood11=?analyze 20
+replytype12=clickfill
+replyname12=
+replygood12=?analyze 21
+replytype13=clickfill
+replyname13=
+replygood13=?analyze 22
+replytype14=clickfill
+replyname14=
+replygood14=?analyze 23
+replytype15=clickfill
+replyname15=
+replygood15=?analyze 24
+replytype16=clickfill
+replyname16=
+replygood16=?analyze 25
+replytype17=clickfill
+replyname17=
+replygood17=?analyze 26
+replytype18=clickfill
+replyname18=
+replygood18=?analyze 27
+replytype19=clickfill
+replyname19=
+replygood19=?analyze 28
+replytype20=clickfill
+replyname20=
+replygood20=?analyze 29
+replytype21=clickfill
+replyname21=
+replygood21=?analyze 30
+replytype22=clickfill
+replyname22=
+replygood22=?analyze 31
+replytype23=clickfill
+replyname23=
+replygood23=?analyze 32
+replytype24=clickfill
+replyname24=
+replygood24=?analyze 33
+replytype25=clickfill
+replyname25=
+replygood25=?analyze 34
+replytype26=clickfill
+replyname26=
+replygood26=?analyze 35
+replytype27=clickfill
+replyname27=
+replygood27=?analyze 36
+replytype28=clickfill
+replyname28=
+replygood28=?analyze 37
+replytype29=clickfill
+replyname29=
+replygood29=?analyze 38
+replytype30=clickfill
+replyname30=
+replygood30=?analyze 39
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Compléter la grille suivante de telle sorte que chaque chiffre n'apparaisse qu'une seule fois dans chaque ligne, chaque colonne et les deux diagonales.	<table class="wimscenter wimsborder">	  
+!for m_k=1 to $val6 
+$()	  <tr>	   <td>$(val8[$m_k])</td>	   
+!for m_l=2 to $val6 
+$()	   <td > 
+!read oef/embed.phtml $(val9[($m_k-1)*($val6-1)+$m_l-1]),$val7 
+$()</td>	   
+!next
+$()	  </tr>	  
+!next
+$()	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val40=$(val8[1]),$val10,$val11,$val12	$(val8[2]),$val13,$val14,$val15	$(val8[3]),$val16,$val17,$val18	$(val8[4]),$val19,$val20,$val21	$val10,$val13,$val16,$val19	$val11,$val14,$val17,$val20	$val12,$val15,$val18,$val21	$(val8[1]),$val13,$val17,$val21	$(val8[4]),$val16,$val14,$val12
+val41=
+!for val42 =1 to 9 
+tmp=!translate internal $	$ to ; in $val40
+
+tmp=!row $val42 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val43=$(tmp0)
+tmp0=!listuniq $val43
+
+val43=$(tmp0)
+tmp0=!itemcnt $val43
+
+val43=$(tmp0)
+tmp0=!append item $val43 to $val41
+
+val41=$(tmp0)
+!next
+tmp0=!listuniq $val41
+
+val41=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val41=$val6
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Grille correcte
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
+embedcnt=1

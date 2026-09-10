@@ -1,0 +1,194 @@
+!set title=Taux de variation 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,2,2
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+
+!ifval ($val6=2)
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+tmp=!nonempty items 1,$(tmp0)*$(tmp1)
+
+tmp2=!randitem $tmp
+val7=$[rint( $(tmp2))]
+!else
+val7=$[rint(0)]
+!endif
+
+!ifval ($val6=1)
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val8=$[rint( $(tmp0)*$(tmp1))]
+!else
+tmp2=!randint -8, 8
+
+val8=$[rint($(tmp2))]
+!endif
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val7*x^2+$val8*x+$val9
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in 2*$val7*a+$val7*h+$val8
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp0=!texmath $val10
+
+val10=$(tmp0)
+tmp0=!replace internal x by a in $val10
+
+val12=$(tmp0)
+tmp0=!replace internal x by (a+h) in $val10
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in $val8*a+$val8*h+$val9
+tmp0=!exec maxima $t_
+
+val14=!rawmath $(tmp0)
+tmp0=!texmath $val14
+
+val14=$(tmp0)
+!if $val8>0 
+
+!ifval ($val7=1)
+val15= (a^2+2ah+h^2)+$val14-($val12) 
+!else
+val15=$val7(a^2+2ah+h^2)+$val14-($val12)
+!endif
+!else
+
+!ifval ($val7=1)
+val15= (a^2+2ah+h^2)$val14-($val12) 
+!else
+val15=$val7(a^2+2ah+h^2)$val14-($val12)
+!endif
+!endif
+t_=!replace internal \( by ( in 2*$val7*a*h+$val7*h^2+$val8*h
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+tmp0=!texmath $val16
+
+val16=$(tmp0)
+tmp0=!texmath $val11
+
+val17=$(tmp0)
+replytype1=algexp
+replyname1=Taux de variation
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soit 
+!insmath f
+$() la fonction définie pour tout réel 
+!insmath x
+$() par : 
+!insmath f(x)=$val10
+$(). Soit 
+!insmath  a
+$() un nombre réel et soit 
+!insmath h
+$() un nombre réel strictement positif.	<div class="wims_question">Calculer en fonction de 
+!insmath a
+$() et 
+!insmath h
+$(), le taux de variation de 
+!insmath f
+$() entre 
+!insmath a
+$() et 
+!insmath a+h
+$() .</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Le taux de variation de 
+!insmath f
+$() entre 
+!insmath a
+$() et 
+!insmath a+h
+$() est 	
+!insmath \frac{f(a+h)-f(a)}{a+h-a}=\frac{$val13-($val12)}{h}
+$()<br/>	
+!if $val6=2 
+$()
+!insmath \frac{$val15}{h}
+$() 
+!endif
+$()
+!insmath =\frac{$val16}{h}=$val17
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,12,13,15,16,17
+embedcnt=0

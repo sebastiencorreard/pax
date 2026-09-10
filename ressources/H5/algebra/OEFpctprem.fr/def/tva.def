@@ -1,0 +1,205 @@
+!set title=Facture et TVA
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=38
+prevarcnt=34
+postvarcnt=3
+replycnt=8
+choicecnt=0
+conditioncnt=4
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Produits type 1,Produits type 2,Montant Brut,	  Taux de remise,Montant de la remise,Net HT,Taux de TVA,Montant de la TVA,	  Net TTC
+val7=Calcul du prix brut,Calcul du prix Net,Calcul de la TVA,	  Calcul du montant TTC
+val8=Compléter la facture suivante&nbsp;
+val9=5.5,10,20
+val10=5,7,8,10,12,15
+tmp0=!randint 200000, 400000
+
+tmp1=!randint 10000, 30000
+
+val11=$(tmp0)/100,$(tmp1)/100
+val12=$[$(val11[1])]
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val13=$val12,$(tmp0)
+val14=$[$(val13[2])*$(val13[1])/100]
+val15=$[$(val13[1])-$val14]
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val16=$[$(tmp0)]
+val17=$[$val16*$val15/100]
+val18=$[$val15+$val17]
+val13=$val13,$val14,$val15,$val16,$val17,$val18
+val19=
+!for val20 =1 to 7 
+val21=$[rint($(val13[$val20])*100)]
+val21=$[$val21/100]
+tmp0=!append item $val21 to $val19
+
+val19=$(tmp0)
+!next
+val13=$val19
+val12=$[$(val11[2])]
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val22=$val12,$(tmp0)
+val14=$[$(val22[2])*$(val22[1])/100]
+val15=$[$(val22[1])-$val14]
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val16=$[$(tmp0)]
+val17=$[$val16*$val15/100]
+val18=$[$val15+$val17]
+val22=$val22,$val14,$val15,$val16,$val17,$val18
+val19=
+!for val20 =1 to 7 
+val21=$[rint($(val22[$val20])*100)]
+val21=$[$val21/100]
+tmp0=!append item $val21 to $val19
+
+val19=$(tmp0)
+!next
+val22=$val19
+replytype1=numeric
+replyname1=
+replygood1=?analyze 23
+replytype2=numeric
+replyname2=
+replygood2=$[$(val13[3])]
+replytype3=numeric
+replyname3=
+replygood3=$[$(val13[4])]
+replytype4=numeric
+replyname4=
+replygood4=?analyze 24
+replytype5=numeric
+replyname5=
+replygood5=$[$(val13[6])]
+replytype6=numeric
+replyname6=
+replygood6=?analyze 25
+replytype7=numeric
+replyname7=
+replygood7=$[$(val13[7])]
+replytype8=numeric
+replyname8=
+replygood8=?analyze 26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	$val8	</p>	<div class="table-scroll">	<table class="wimscenter wimsborder">	<tr><th>&nbsp;</th><th>$(val6[1])</th><th>$(val6[2])</th></tr>	<tr><th>$(val6[3])</th><td>$(val13[1])</td><td> 
+!read oef/embed.phtml reply1,6 
+$()</td></tr>	<tr><th>$(val6[4])</th><td>$(val13[2]) %</td><td>$(val22[2]) %</td></tr>	<tr><th>$(val6[5])</th><td> 
+!read oef/embed.phtml reply2,6 
+$()</td><td>$(val22[3])</td></tr>	<tr><th>$(val6[6])</th><td> 
+!read oef/embed.phtml reply3,6 
+$()</td><td> 
+!read oef/embed.phtml reply4,6 
+$()</td></tr>	<tr><th>$(val6[7])</th><td>$(val13[5]) %</td><td>$(val22[5]) %</td></tr>	<tr><th>$(val6[8])</th><td> 
+!read oef/embed.phtml reply5,6 
+$()</td><td> 
+!read oef/embed.phtml reply6,6 
+$()</td></tr>	<tr><th>$(val6[9])</th><td> 
+!read oef/embed.phtml reply7,6 
+$()</td><td> 
+!read oef/embed.phtml reply8,6 
+$()</td></tr>	</table>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val27=$[rint($val23*$(val22[2]))/100]
+val28=$[rint(($val23-$(val22[3]))*100)/100]
+val29=$[rint($val24*$(val22[5]))/100]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val27=$(val22[3])
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val7[1])&nbsp;
+
+!ifval $val24=$val28
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val7[2])&nbsp;
+
+!ifval $val25=$val29
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$(val7[3])&nbsp;
+
+!ifval $val26=$val29+$val28
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=$(val7[4])&nbsp;
+
+!exit
+
+:stat
+vsavelist=6,7,8,13,22,23,24,25,26
+embedcnt=8

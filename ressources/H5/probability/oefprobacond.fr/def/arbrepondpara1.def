@@ -1,0 +1,194 @@
+!set title=Arbre pondéré à paramètre et inéquation du second degré
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille Douriez, David Rousseau, IREM Picardie
+email=cyrille.douriez@ac-amiens.fr,david.rousseau@ac-amiens.fr
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 9
+
+val7=$[$(tmp0)/10]
+val8=$[1-$val7]
+val9=$[(1-2*$val6)*$val7-1]
+val10=$[$val7*($val6-$val6^2)]
+val11=$[($val9)^2-4*($val8)*($val10)]
+val12=$[(-$val9-sqrt($val11))/(2*$val8)]
+val13=$[(-$val9+sqrt($val11))/(2*$val8)]
+
+!ifval (floor($val13)=$val13)
+val14=$[rint( $val13)]
+!else
+val14=$[rint(floor($val13)+1)]
+!endif
+!readproc slib/utilities/tooltip sans remise,, on ne remet pas la première boule tirée dans l'urne avant de tirer la seconde boule 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=$[rint($val6-1)]
+val17=$[rint($val6+$val16)]
+val18=$[rint($val6*$val16)]
+val19=$[$val7*$val17]
+val20=$[$val7*$val18]
+t_=!replace internal \( by ( in $val8*n^2+$val9*n+$val10
+tmp0=!exec maxima $t_
+
+val21=!rawmath $(tmp0)
+tmp0=!texmath $val21
+
+val22=$(tmp0)
+
+!ifval (round($val11)=$val11)
+val23=$[rint( 1)]
+!else
+val23=$[rint(0)]
+!endif
+
+!ifval ($val23==1)
+val24=$[ $val12]
+!else
+val24=$[floor(10*$val12)/10]
+!endif
+
+!ifval ($val23==1)
+val25=$[ $val13]
+!else
+val25=$[floor(10*$val13)/10+0.1]
+!endif
+replytype1=formal
+replyname1=Réponse
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Il est conseillé d'utiliser un arbre pondéré afin d'obtenir une inéquation du second degré.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Une urne contient 
+!insmath $val6
+$() boules vertes et 
+!insmath n
+$() boules rouges indiscernables au toucher, où 
+!insmath n
+$() est un entier naturel non nul.<br>	On tire successivement $val15 deux boules de l'urne.<br>	<div class="wims_question">Déterminer la plus petite valeur de 
+!insmath n
+$() telle que la probabilité d'obtenir deux boules rouges soit supérieure ou égale à 
+!insmath $val7
+$().</div>	<br>La plus petite valeur de 
+!insmath n
+$() est  
+!read oef/embed.phtml r1,4 
+$().
+$()
+!exit
+
+:hint
+$()Il est conseillé d'utiliser un arbre pondéré afin d'obtenir une inéquation du second degré.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Si on note 
+!insmath R_1
+$() l'événement "obtenir une boule rouge au 1er tirage" et 
+!insmath R_2
+$() l'événement "obtenir une boule rouge au 2ème tirage" alors la probabilité d'obtenir deux boules rouges est 
+!insmath p(R_1\cap R_2)
+$(). <br>	Les boules ayant la même probabilité d'être choisies 
+!insmath p(R_1)=\frac{n}{n+$val6}
+$() et 
+!insmath p_{R_1}(R_2)=\frac{n-1}{n+$val16}
+$() puisque la boule choisie au 1er tirage n'est pas remise dans l'urne avant le 2ème tirage.	<br>Donc 
+!insmath p(R_1\cap R_2)=p(R_1)p_{R_1}(R_2)=\frac{n}{n+$val6} \times\frac{n-1}{n+$val16}=\frac{n^2-n}{n^2+$val17 n+$val18}
+$().	<br>On cherche donc à déterminer la plus petite valeur de 
+!insmath n
+$() telle que 
+!insmath \frac{n^2-n}{n^2+$val17 n+$val18}\geq $val7
+$().	<br>
+!insmath \frac{n^2-n}{n^2+$val17 n+$val18}\geq $val7
+$() &hArr; 
+!insmath n^2-n\geq $val7(n^2+$val17 n+$val18)
+$()	<br>
+!insmath \frac{n^2-n}{n^2+$val17 n+$val18}\geq $val7
+$() &hArr; 
+!insmath n^2-n\geq $val7 n^2+$val19 n+$val20
+$()	<br>
+!insmath \frac{n^2-n}{n^2+$val17 n+$val18}\geq $val7
+$() &hArr; 
+!insmath $val22 \geq 0
+$().	<br>Les solutions 
+!if $val23==0 
+$()approchées 
+!endif
+$() de l'équation 
+!insmath $val22=0
+$() sont 
+!insmath $val24
+$() et 
+!insmath $val25
+$().	<br>Comme 
+!insmath n>0
+$() et 
+!insmath $val8>0
+$(), 
+!insmath $val22 \geq 0
+$() &hArr; 
+!insmath n \geq $val25
+$(). 	<br>La plus petite valeur de 
+!insmath n
+$() est donc 
+!insmath $val14
+$(). 	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,14,15,16,17,18,19,20,22,23,24,25
+embedcnt=1

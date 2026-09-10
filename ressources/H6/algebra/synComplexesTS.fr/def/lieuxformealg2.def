@@ -1,0 +1,295 @@
+!set title=Lieux de points par formes algébriques (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+!if $val8==$val6 
+!endif
+!if $val9==$val7 
+!endif
+tmp=!translate ";': to $     $ in $val6+$val7*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val10=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val8+$val9*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+val12=!rawmath (x-$val8)^2+(y-$val9)^2
+
+!ifval ($val8==0)
+val12=!rawmath x^2+(y-$val9)^2
+!endif
+
+!ifval ($val9==0)
+val12=!rawmath (x-$val8)^2+y^2
+!endif
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+val13=!rawmath (x-$val6)(x-$val8) + (y-$val7)(y+$val9)
+val14=!rawmath (y-$val7)(x-$val8) - (x-$val6)(y+$val9)
+t_=!replace internal \( by ( in expand($val13)
+tmp0=!exec maxima $t_
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in expand($val14)
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+tmp0=!texmath $val13
+
+val15=$(tmp0)
+tmp0=!texmath $val14
+
+val16=$(tmp0)
+val17=vide,un cercle, un cercle privé d'un point,une droite, une droite privée d'un point
+val18=$[rint(2)]
+val19=vide, un cercle, un cercle privé d'un point,une droite, une droite privée d'un point
+val20=$[rint(4)]
+t_=!rawmath ($val6+$val8)/2
+val21=!exec pari print($t_)
+t_=!rawmath ($val7-$val9)/2
+val22=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val21+i*$val22
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val23=!mathsubst I=i in $t_
+t_=!rawmath -$val6*$val8 +$val7*$val9 +($val21)^2 + ($val22)^2
+val24=!exec pari print($t_)
+val25=!rawmath (x-$val21)^2 + (y-$val22)^2
+oefsteps=reply 1, reply 2	reply 3, reply 4 
+nextstep=!nosubst reply 1, reply 2	reply 3, reply 4 
+!readproc oef/steps.proc
+replytype1=algexp
+replyoption1=nonstop 
+replyname1=X
+replygood1=$val13
+replytype2=algexp
+replyoption2=nonstop 
+replyname2=Y
+replygood2=$val14
+replytype3=menu
+replyoption3=shuffle 
+replyname3=Ensemble E
+replygood3=$val18;$val17
+replytype4=menu
+replyoption4=shuffle 
+replyname4=Ensemble E
+replygood4=$val20;$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Soient A et B les points du plan complexe d'affixes respectives 
+!insmath z_A = $val10
+$()	et 
+!insmath z_B = $val11
+$().	</p>	 <p>A tout complexe 
+!insmath z
+$() différent de 
+!insmath $val11
+$(), on associe le complexe 
+!insmath f(z)
+$() défini par :	
+!insmath  f(z) = (z - z_A)(\overline{\,z\,} - z_B) 
+$(). </p>		<p> On note 
+!insmath z = x + iy
+$() la forme algébrique du complexe 
+!insmath z
+$().</p>		
+!if $m_step=1 
+$()	<div><strong>Question 1.</strong> Calculer en fonction de 
+!insmath x
+$() et 
+!insmath y
+$() la forme algébrique de 
+!insmath f(z)
+$() .	<div class="wimscenter">
+!insmath Re(f(z))
+$() =  
+!read oef/embed.phtml reply1 , 20 
+$() </div>		<div class="wimscenter">
+!insmath Im(f(z))
+$() =  
+!read oef/embed.phtml reply2 , 20 
+$() </div>		<div class="wimscenter" style="color:blue;font-size:smaller">	Ecrire 
+!insmath X
+$() et 
+!insmath Y
+$() sous <strong>forme développée.</strong></div>	</div>	 
+!endif
+$()			
+!if $m_step=2 
+$()	<p> <em>Question 1.</em>	
+!if $m_reply1 = $val13 && $m_reply2 = $val14 
+$()<span style="color:green">Vos réponses sont justes.</span> 
+!else
+$()	 <span style="color:red">Vos réponses ne sont pas justes.</span>  
+!endif
+$()	</p>	<div class="wimscenter"><span style="color:blue">On obtient pour tout 
+!insmath z 
+$() : 
+!insmath f(z) = $val15 + i($val16) 
+$() </span> </div>		<p><strong>Question 2.</strong> Soit 
+!insmath \mathcal{E}
+$() l'ensemble des points M(
+!insmath z
+$()) tels que 
+!insmath f(z)
+$() soit imaginaire pur.		Alors 
+!insmath \mathcal{E}
+$() est  
+!read oef/embed.phtml reply3 
+$() .	</p>		<p> <strong>Question 3.</strong> Soit 
+!insmath \mathcal{F}
+$() l'ensemble des points M(
+!insmath z
+$()) tels que 
+!insmath f(z)
+$() soit réel.		Alors 
+!insmath \mathcal{F}
+$() est  
+!read oef/embed.phtml reply4 
+$() .	</p>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1==1
+ <div class='oef_feedbacks'>	<div style="background-color:#ADD8E6;">	<strong>Solution </strong> :	<p>
+!insmath f(z) 
+$() s'écrit sous forme algébrique : 
+!insmath  f(z) = X + i Y 
+$() avec 
+!insmath X = $val15
+$() et 
+!insmath  Y = $val16
+$() </p>		<p>
+!insmath M(z) \in \mathcal{E} 
+$() si et seulement si 
+!insmath X = 0
+$(). <br> L' équation 
+!insmath X = 0
+$() équivaut à :	
+!insmath $val15 = 0 \Longleftrightarrow $val25 = $val24 
+$().<br>		Comme 
+!insmath $val24
+$() est positif, on reconnaît l'équation canonique d'un cercle.	<br>	L'ensemble 
+!insmath \mathcal{E}
+$() est le cercle de centre 
+!insmath \Omega
+$()(
+!insmath $val23
+$()) et de rayon 
+!insmath \sqrt{$val24}
+$().		 <br> On remarquera que ce cercle passe par le point A, car 
+!insmath f(z_A) = 0
+$() et donc 
+!insmath Re(f(z_A)) = 0
+$().	</p>		<p>
+!insmath M(z) \in \mathcal{F}
+$() si et seulement si 
+!insmath Y = 0
+$() . <br>	L'équation 
+!insmath Y = 0
+$() équivaut à 
+!insmath $val16 = 0
+$() . <br>		On reconnaît l'équation cartésienne d'une droite.	<br> Donc l'ensemble 
+!insmath \mathcal{F}
+$() est la droite d'équation cartésienne 
+!insmath  $val16 = 0
+$().		<br> On remarquera que cette droite passe aussi par le point A, car 
+!insmath f(z_A) = 0
+$() et donc 
+!insmath Im(f(z_A)) = 0
+$().		</p>		</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,13,14,15,16,23,24,25
+embedcnt=4

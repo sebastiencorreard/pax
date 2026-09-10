@@ -1,0 +1,166 @@
+\title{Combinaison de demi-réactions (niveau 1)}
+
+/////////////////////////////////////////////////////////
+// récupération de deux 1/2 équations au hasard dans la
+// base de données redox.dat
+/////////////////////////////////////////////////////////
+// à faire : ajouter un quatrième champ avec des mots-clés
+// tels que "simple" ou "ordinaire" ou "entre_-1_et_1.8_V"
+// etc. afin de pouvoir restreindre le choix des réactions
+/////////////////////////////////////////////////////////
+
+\integer{nreac=wims(recordcnt redox_mini.dat)}
+\text{index=shuffle(\nreac)}
+\integer{i1=\index[;1]}
+\integer{i2=\index[;2]}
+\text{reac1=wims (record \i1 of redox_mini.dat)}
+\text{reac2=wims (record \i2 of redox_mini.dat)}
+
+/////////////////////////////////////////////
+// découpage des champs de la base de donnée
+/////////////////////////////////////////////
+\text{vide=}
+
+\text{r1=\reac1[;1]}
+\text{V1=\reac1[;2]}
+\text{V1=wims(replace V by \vide in \V1)}
+\text{titre1=\reac1[;3]}
+
+\text{r2=\reac2[;1]}
+\text{V2=\reac2[;2]}
+\text{V2=wims(replace V by \vide in \V2)}
+\text{titre2=\reac2[;3]}
+
+//////////////////////////////////////////////////
+// la base de données est ordonnée par potentiels
+// décroissants. Détermination de l'oxydant et du
+// réducteur.
+//////////////////////////////////////////////////
+\text{oxyr=\i1<\i2?\r1:\r2}
+\real{oxyV=\i1<\i2?\V1:\V2}
+\text{oxytitre=\i1<\i2?\titre1:\titre2}
+\text{oxytex=slib(chemistry/chemeq_tex \oxyr)}
+\text{redr=\i1<\i2?\r2:\r1}
+\text{redrButtons=slib(chemistry/chemeq_components \redr, htmlbuttons 1,shuffle,[extra, redox_extra])}
+\real{redV=\i1<\i2?\V2:\V1}
+\text{redtitre=\i1<\i2?\titre2:\titre1}
+\text{redtex=slib(chemistry/chemeq_tex \redr)}
+
+///////////////////////////////////////////////////
+// retournement de l'équation du réducteur.
+///////////////////////////////////////////////////
+\text{revredr=slib(chemistry/chemeq_rev \redr)}
+\text{revredtex=slib(chemistry/chemeq_tex \revredr)}
+
+///////////////////////////////////////////////////
+// comptage des électrons, calcul des coefficients.
+// la fonction gcd() permet de connaître le PGCD.
+///////////////////////////////////////////////////
+\integer{oxyel=slib(chemistry/chemeq_el \oxyr)}
+\integer{redel=slib(chemistry/chemeq_el \redr)}
+\integer{gcd=gcd(\oxyel,\redel)}
+\integer{oxycoeff=\redel/\gcd}
+\integer{redcoeff=\oxyel/\gcd}
+
+///////////////////////////////////////////////////
+// application des coefficients.
+///////////////////////////////////////////////////
+\text{oxymulr=slib(chemistry/chemeq_add \oxycoeff,\oxyr)}
+\text{oxymultex=slib(chemistry/chemeq_tex \oxymulr)}
+
+\text{redmulr=slib(chemistry/chemeq_add -\redcoeff,\redr)}
+\text{redmultex=slib(chemistry/chemeq_tex \redmulr)}
+
+////////////////////////////////////////////////////
+// fabrication de l'équation-bilan.
+////////////////////////////////////////////////////
+\text{eqbilan=slib(chemistry/chemeq_add \oxycoeff,\oxyr,-\redcoeff,\redr)}
+\text{eqbilantex=slib(chemistry/chemeq_tex \eqbilan)}
+\text{eqbilanButtons=slib(chemistry/chemeq_components \eqbilan, htmlbuttons 4,shuffle,[extra,redox_extra])}
+\text{script1=<script type="text/javascript">
+function getInput(n){
+  f=window.document.forms[0];
+  for(i=0; i<f.elements.length; i=i+1){
+    if (f.elements[i].name=="reply"+n) { 
+      return f.elements[i];
+    }
+  }
+  return null;
+}
+function appendToInput(n,msg){
+  var i=getInput(n);
+  i.value=i.value+msg+' ';
+  i.focus();
+}
+</script>
+}
+
+\steps{r1
+r2,r3
+r4}
+
+\text{debug=0}
+
+\statement{
+\if{\debug=1}{
+  DEBUG : \debugstr
+  <hr>
+}
+\script1
+Deux demi-réactions ont été choisies au hasard parmi 
+une base de données. Votre travail consiste à prévoir 
+l'équation-bilan d'oxydo-réduction qui peut en résulter.
+<ul>
+<li><b>Couple oxydant (\oxytitre)</b> :<br>\(\oxytex)
+</li>
+<li><b>Couple réducteur (\redtitre)</b> :<br>\(\redtex)
+</li>
+</ul>
+
+\if{\step=1}{
+  Réécrivez la demi-réaction du couple réducteur dans le sens inverse
+  de celui de l'énoncé ci-dessus :<br>
+  \embed{r1,80}
+  <br><span style="font-size:80%; color:grey;">Les boutons ci-dessous permettent d'écrire plus facilement ...</span>
+  <br>\redrButtons
+}
+
+\if{\step>=2}{
+  Maintenant, les demi-réactions sont toutes deux écrites dans
+  le bon sens. Inscrivez les coefficients minimaux qui permettront
+  d'obtenir la réaction rédox complète par addition membre à 
+  membre&nbsp;:
+  <ul>
+  <li>\embed{r2,1} &times; \(\oxytex)
+  </li>
+  <li>\embed{r3,1} &times; \(\revredtex)
+  </li>
+  </ul>
+}
+
+\if{\step>=3}{
+Les coefficients \oxycoeff et \redcoeff sont corrects. Maintenant,
+veuillez écrire l'équation de l'équation-bilan complète en combinant
+les deux demi-équations. Vous devez simplifier en tenant compte des
+espèces chimiques présentes des deux côtés.<br>
+\embed{r4,80}
+<br>\eqbilanButtons
+}
+}
+
+\reply{}{\revredr}{type=chemeq}
+\reply{}{\oxycoeff}{type=number}
+\reply{}{\redcoeff}{type=number}
+\reply{}{\eqbilan}{type=chemeq}
+
+\solution{
+On renverse la demi-équation qui concerne le réducteur, ce qui donne
+<br>\(\revredtex)<br>
+On multiplie par \oxycoeff la demi-réaction de l'oxydant, ce qui donne
+<br>\(\oxymultex).<br>
+On multiplie par \redcoeff la demi-réaction du réducteur après l'avoir 
+renversée, ce qui donne
+<br>\(\redmultex).<br>
+Enfin, on combine ces deux équations et on simplifie, ce qui donne
+<br>\(\eqbilantex)
+}

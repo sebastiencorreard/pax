@@ -1,0 +1,198 @@
+!set title=Freinage urgent (fct puissance)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefobservation=Exercice demandant de retrouver graphiquement la fonction donnant la distance d'arrêt en fonction de la vitesse, à partir d'un tableau de valeurs.
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 60,65,70,75,80
+
+tmp0=!randitem $tmp
+val6=$[$(tmp0)]
+tmp=!nonempty items 20,25,30,35,40,45
+
+tmp0=!randitem $tmp
+val7=$[$(tmp0)]
+tmp=!nonempty items 0.003,0.004,0.005,0.006,0.007
+
+tmp0=!randitem $tmp
+val8=$[$(tmp0)]
+val9=30,50,90,110,130
+val10=!rawmath $val8*x^2
+tmp0=!values $val10 for x in $val9
+
+val11=$(tmp0) 
+!readproc slib/text/matrixhtml [\(v \) (en km/h),$val9; \(d_F \) (en m),$val11], wimscenter wimsborder,TH=[;1] CAPTION="distance d'arrêt en fonction de la vitesse du vehicule"  
+tmp0=$slib_out
+val12=$(tmp0)
+val13=$[$val8*$val6^2 ]
+
+!ifval $val13<$val7 
+val14=$[rint( 1)]
+!else
+val14=$[rint(2)]
+!endif
+val15=width=780	height=400	language=fr		file=freinage.ggb	
+!readproc slib/geo2D/geogebra ,$val15 
+tmp0=$slib_out
+val16=$(tmp0)
+replytype1=radio
+replyname1=1
+replygood1=1;vrai,faux,ça dépend
+replytype2=radio
+replyname2=2
+replygood2=2;vrai,faux,ça dépend
+replytype3=radio
+replyname3=3
+replygood3=1;vrai,faux,ça dépend
+replytype4=radio
+replyname4=4
+replygood4=2;oui,non,on ne peut pas savoir
+replytype5=radio
+replyoption5=shuffle 
+replyname5=5
+replygood5=2;\(\frac{$(val11[5])}{$(val9[5])} < \frac{$(val11[3])}{$(val9[3])} \),\(\frac{$(val11[5])}{$(val9[5])}  \neq \frac{$(val11[3])}{$(val9[3])}  \),\(\frac{$(val11[5])}{$(val9[5])}  = \frac{$(val11[3])}{$(val9[3])}  \)
+replytype6=numeric
+replyoption6=comma 
+replyname6=6
+replygood6=$[$val8]
+replytype7=function
+replyname7=7
+replygood7=!rawmath $val10
+replytype8=radio
+replyname8=8
+replygood8=1;croissante,décroissante,constante
+replytype9=numeric
+replyoption9=comma 
+replyname9=9
+replygood9=$[$val13]
+replytype10=radio
+replyname10=10
+replygood10=$val14;oui,non,l'étude doit être complétée
+replytype11=radio
+replyname11=11
+replygood11=$val14;La collision pourra être évitée.,Le conducteur va renverser le piéton.
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<span class="float_right"><img src="$val1/freinage.jpg" alt="freinage"></span>	<p>Un conducteur roule à <span class="bold">
+!insmath $val6 
+$() km/h</span> lorsqu'il aperçoit un piéton traversant la chaussée. Ce piéton est à <span class="bold">
+!insmath $val7 
+$() m</span> de lui lorsqu'il commence à freiner.	<div class="bold"><span style="color:blue; font-weight:bolder">Problématique</span>:	Le conducteur pourra-t-il éviter la collision ? </div>	<ol class="spacer">	  <li>Lors d'un freinage d'urgence, la distance <span class="bold">
+!insmath d_F 
+$()</span> parcourue par une voiture,	  jusqu'à son arrêt, dépend :	  <small><span style= "color:purple;">(cocher les bonnes réponses)</span></small>	    <ul>	      <li>de la vitesse 
+!insmath v 
+$() de cette voiture:	       <span class="wimscenter" style="color:blue">  
+!read oef/embed.phtml r1 
+$()</span> </li>	      <li>de la couleur de cette voiture: <span class="wimscenter" style="color:blue"> 
+!read oef/embed.phtml r2 
+$()</span></li>	      <li>de l'état de la chaussée: <span class="wimscenter" style="color:blue"> 
+!read oef/embed.phtml r3 
+$()</span></li>	    </ul></li>	  <li>Le tableau suivant indique, pour le véhicule sélectionné et sur route sèche,	    les distances <span class="bold">
+!insmath d_F 
+$()</span> pour cinq vitesses réglementaires :	    $val12	    <ol type="a">	      <li>La suite de nombres formée par les vitesses <span class="bold">
+!insmath v 
+$()</span> est-elle proportionnelle à celle formée par les distances <span class="bold">
+!insmath d_F 
+$()</span> ?	        <div class="wimscenter" style="color:blue"> 
+!read oef/embed.phtml r4 
+$()</div> </li>	      <li>Justifier votre réponse.<br>	        <div class="wimscenter" style="color:blue"> 
+!read oef/embed.phtml r5 
+$()</div> </li>	    </ol></li>	    <li><span style="color:red;font-weight: bold">TIC : GeoGebra </span>	      <ol type="a" class="spacer">	        <li> À l'aide du tableau ci-dessus, compléter le tableur GeoGebra :	        <small><span style= "color:purple;">remplacer les « 1 » dans la colonne « ordonnées »	        du tableau ci-dessous par les valeurs connues.</span> </small><br>	      $val16	      </li>	      <li>Choisir la bonne fonction, puis ajuster le curseur <span class="larger">
+!insmath k 
+$()</span> pour qu'elle passe par tous les points. (Vous pouvez décocher les fonctions qui ne conviennent pas.)	      </li>	      <li> Le coefficient <span class="bold">
+!insmath k 
+$()</span> est <span style="color:blue">
+!insmath k =
+$()</span>  
+!read oef/embed.phtml r6,4 
+$()	        <br>La fonction correspondante est: <span style="color:blue">
+!insmath f(x)= 
+$()</span>  
+!read oef/embed.phtml r7,8 
+$() </li>	      <li> Sur l'intervalle [0 ; 130], la fonction 
+!insmath f
+$() est :	      <div class="wimscenter" style="color:blue">  
+!read oef/embed.phtml r8 
+$()</div>	      </li>	      <li>En utilisant le curseur 
+!insmath v 
+$() dans la fenêtre GeoGebra, déterminer l'image	      de $val6 par la fonction <span class="bold">
+!insmath f 
+$()</span>.	      <div style="color:blue"> 
+!insmath f($val6 )= 
+$() 
+!read oef/embed.phtml r9,5 
+$() </div></li>	      </ol>	      </li><li>	      Déduire de l'étude précédente si le véhicule, roulant sur route sèche à $val6 km/h lorsque son conducteur commence à freiner, met moins de $val7 mètres pour s'arrêter.	      <div class="wimscenter" style="color:blue"> 
+!read oef/embed.phtml r10 
+$()</div> </li>	      <li> Répondre à la problématique :	        <div class="wimscenter" style="color:blue">  
+!read oef/embed.phtml r11 
+$()</div></li>	    </ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,12,16
+embedcnt=11

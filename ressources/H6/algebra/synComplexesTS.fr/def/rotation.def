@@ -1,0 +1,404 @@
+!set title=Image par une rotation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Hélène, Brion; Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=78
+prevarcnt=77
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -3, 3
+
+val6=$[rint(2*$(tmp0))]
+tmp0=!randint -3, 3
+
+val7=$[rint(2*$(tmp0))]
+tmp0=!randint -3, -1,1..3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -3, -1,1..3
+
+val9=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val6+($val7)*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val10=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val6+$val8+($val7+$val9)*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+val12=\(pi/3),\(pi/2),\(3pi/4),\(pi),\(-pi/6),\(-pi/2)
+val13=\(\frac{1}{2}+i\frac{\sqrt{3}}{2}),\(i),\(-\frac{\sqrt{2}}{2}+i\frac{\sqrt{2}}{2}),\(-1),\(\frac{\sqrt{3}}{2}-i\frac{1}{2}),\(-i)
+tmp=!trim 1/2,0,0,-1,0,0
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,-1/2,0,1/2,0
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,1,0,0,-1/2,-1
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1/2,0,1/2,0,0,0
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val18=$[rint($(tmp0))]
+val19=\(\sqrt{3})
+val20=$[sqrt(3)]
+
+!ifval $val18=3
+val19= \(\sqrt{2})
+!endif
+
+!ifval $val18=3
+val20=$[ sqrt(2)]
+!endif
+t_=!rawmath $(val14[$val18])
+val21=!exec pari print($t_)
+t_=!rawmath $(val15[$val18])
+val22=!exec pari print($t_)
+t_=!rawmath $(val16[$val18])
+val23=!exec pari print($t_)
+t_=!rawmath $(val17[$val18])
+val24=!exec pari print($t_)
+val25=$[($val21)+($val22)*$val20]
+val26=$[($val23)+($val24)*$val20]
+val27=$(val13[$val18])
+t_=!rawmath ($val6)*(1-$val21)+($val7)*($val23)
+val28=!exec pari print($t_)
+t_=!rawmath -($val6)*($val22)+($val7)*($val24)
+val29=!exec pari print($t_)
+t_=!rawmath ($val7)*(1-$val21)-($val6)*($val23)
+val30=!exec pari print($t_)
+t_=!rawmath -($val7)*($val22)-($val6)*($val24)
+val31=!exec pari print($t_)
+val32=$[($val28)+($val29)*$val20]
+val33=$[($val30)+($val31)*$val20]
+t_=!rawmath $val28
+val34=!exec pari print($t_)
+t_=!rawmath $val29
+val35=!exec pari print($t_)
+t_=!rawmath $val30
+val36=!exec pari print($t_)
+t_=!rawmath $val31
+val37=!exec pari print($t_)
+!if $val35=0 and $val37=0 
+t_=!rawmath $val34+i*$val36
+t_=!exec pari print($t_)
+val38=!mathsubst I=i in $t_
+val39=\($val38)
+!else
+val40=+
+val41=+
+val42=+
+!if $val35<0 
+val40=-
+t_=!rawmath -($val35)
+val35=!exec pari print($t_)
+!endif
+!if $val36<0 
+val41=-
+t_=!rawmath -($val36)
+val36=!exec pari print($t_)
+!endif
+!if $val37<0 
+val42=-
+t_=!rawmath -($val37)
+val37=!exec pari print($t_)
+!endif
+!if \s1=+ 
+val43=
+!else
+val43=-
+!endif
+!if $val40=+ 
+val44=
+!else
+val44=-
+!endif
+!if $val41=+ 
+val45=
+!else
+val45=-
+!endif
+
+!ifval $val35<>1
+val46= \($val35)
+!endif
+
+!ifval $val36<>1 
+val47= \($val36)
+!endif
+
+!ifval $val37<>1
+val48= \($val37)
+!endif
+!if $val34=0 
+!if $val35=0 
+!if $val36=0 
+!if $val37=0 
+val39=0
+!else
+val39=\pps4 $val48 i $val19
+!endif
+!else
+!if $val37=0 
+val39=$val45 $val47 \ i
+!else
+val39=i ($val45 \($val36) $val42 ppB4$val19)
+!endif
+!endif
+!else
+!if $val36=0 
+!if $val37=0 
+val39=$val44 $val46$val19
+!else
+val39=$val44 $val46$val19 $val42 $val48 i $val19
+!endif
+!else
+!if $val37=0 
+val39=$val44 $val46 $val41 i $val19 
+!else
+val39=$val44 $val46 $val19 + i ($val45\($val36) $val42 $val48 $val19)
+!endif
+!endif
+!endif
+!else
+!if $val35=0 
+!if $val36=0 
+!if $val37=0 
+val39=\($val34)
+!else
+val39=\($val34) $val42 $val48 i $val19
+!endif
+!else
+!if $val37=0 
+val39=\($val34) $val41 $val47 i 
+!else
+val39=\($val34) + i ($val45\($val36) $val42 $val48 $val19)
+!endif
+!endif
+!else
+!if $val36=0 
+!if $val37=0 
+val39=\($val34) $val40 $val46 $val19
+!else
+val39=\($val34) $val40 $val46 $val19 $val42 $val48 i $val19
+!endif
+!else
+!if $val37=0 
+val39=\($val34) $val40 $val46 $val19 $val41 $val47 i 
+!else
+val39=\($val34) $val40 $val46 $val19 + i ($val45 \($val36) $val42 $val48 $val19)
+!endif
+!endif
+!endif
+!endif
+!endif
+val49=$val39
+t_=!rawmath ($val8)*($val21)-($val9)*($val23)+($val6)
+val50=!exec pari print($t_)
+t_=!rawmath ($val8)*($val22)-($val9)*($val24)
+val51=!exec pari print($t_)
+t_=!rawmath ($val8)*($val23)+($val9)*($val21)+($val7)
+val52=!exec pari print($t_)
+t_=!rawmath ($val8)*($val24)+($val9)*($val22)
+val53=!exec pari print($t_)
+val54=$[($val50)+($val51)*$val20]
+val55=$[($val52)+($val53)*$val20]
+oefsteps=reply 1, reply2	reply 3, reply 4	reply 5,reply 6 
+nextstep=!nosubst reply 1, reply2	reply 3, reply 4	reply 5,reply 6 
+!readproc oef/steps.proc
+replyoption1=nonstop 
+replytype1=numeric
+replyname1=m1
+replygood1=$[$val25]
+replyoption2=nonstop 
+replytype2=numeric
+replyname2=m2
+replygood2=$[$val26]
+replyoption3=nonstop 
+replytype3=numeric
+replyname3=p1
+replygood3=$[$val32]
+replyoption4=nonstop 
+replytype4=numeric
+replyname4=p2
+replygood4=$[$val33]
+replyoption5=nonstop 
+replytype5=numeric
+replyname5=q1
+replygood5=$[$val54]
+replyoption6=nonstop 
+replytype6=numeric
+replyname6=q2
+replygood6=$[$val55]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<i>Cet exercice comporte 3 étapes.</i><p>	Soit 
+!insmath r
+$() la rotation de centre C(
+!insmath $val10
+$()) et d'angle $(val12[$val18]).	L'écriture complexe de 
+!insmath r
+$() est 
+!insmath z' = a z + b
+$() où 
+!insmath M(z)
+$() est un point quelconque du plan complexe et 
+!insmath M'(z')
+$() est son image par 
+!insmath r
+$().</p>	<ol><li> <b> Quelle est la forme algébrique de 
+!insmath a
+$() ? </b>	<div class="wimscenter">
+!insmath a
+$() =  
+!read oef/embed.phtml reply1,10 
+$() + i  
+!read oef/embed.phtml reply2,10 
+$()</div>		
+!if $m_step>1 
+$()<br>	  
+!if $m_reply1-$val25 <0.01 and $m_reply1-$val25 >-0.01 and $m_reply2-$val26<0.01 and $m_reply2-$val26>-0.01  
+$()<span style="color:green"> Bien ! 
+!insmath a
+$() = </span>$val27 
+!else
+$()	    <span style="color:red"> Non ... 
+!insmath a
+$() = </span>$val27 
+!endif
+$()	  </li>	  <li> <b>Quelle est la forme algébrique de 
+!insmath b
+$() ? </b>	  <div class="wimscenter">
+!insmath b
+$() =  
+!read oef/embed.phtml reply3,10 
+$() + i  
+!read oef/embed.phtml reply4,10 
+$()</div>	   
+!endif
+$()	
+!if $m_step>2 
+$()<br>	  
+!if $m_reply3-$val32 <0.01 and $m_reply3-$val32 >-0.01 and $m_reply4-$val33<0.01 and $m_reply4-$val33>-0.01  
+$()<span style="color:green"> Bien ! 
+!insmath b
+$() = </span>$val49 
+!else
+$()	    <span style="color:red"> Non ... 
+!insmath b
+$() = </span>$val49 
+!endif
+$()	  </li>	    <li><b> On considère le point D(
+!insmath $val11
+$()).	  Quel est l'affixe de 
+!insmath r
+$()(D) ?</b><br>	  <div class="wimscenter">L'affixe de 
+!insmath r
+$()(D) est :  
+!read oef/embed.phtml reply5,10 
+$() + i  
+!read oef/embed.phtml reply6,10 
+$()</div>		   
+!endif
+$()	   </li></ol>	
+$()
+!exit
+
+:hint
+$()	<p> Soit 
+!insmath M(z)
+$() un point	du plan complexe et 
+!insmath M'(z')
+$() son image par la rotation 
+!insmath r
+$() de centre 
+!insmath \Omega(\omega)
+$() et d'angle 
+!insmath theta
+$().	 <br>	L'<i>écriture complexe</i> de 
+!insmath r
+$()	 est la relation qui permet d'exprimer 
+!insmath z'
+$() en fonction de 
+!insmath z
+$().	</p>	<p>	Géométriquement, on a : <div class="wimscenter"> 
+!insmath \Omega M' = \Omega M 
+$() et 
+!insmath (\vec{\Omega M} , \vec{\Omega M'}) = \theta \quad [2\pi] 
+$()	</div>	En passant aux affixes : <div class="wimscenter">	
+!insmath  \frac{z' - \omega}{z' - \omega} = e^{i\theta}
+$() soit 
+!insmath z' - \omega = e^{i\theta}(z - \omega)
+$().	</div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,18,25,26,27,32,33,49
+embedcnt=6

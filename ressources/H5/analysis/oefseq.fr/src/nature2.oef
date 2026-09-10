@@ -1,0 +1,112 @@
+\title{Nature de la suite ? (concret)}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\format{html}
+\computeanswer(yes)
+\keywords{sequence,geometric_sequence,arithmetic_sequence}
+
+%%%%%%%%%%% MB :
+\observation{En fonction de la configuration de l'exercice sur 
+le module, le vocabulaire utilisé est :
+<ul><li>Que celui des suites arithmétiques</li>
+<li>Que celui des suites géométriques</li>
+<li>Aléatoirement l'un ou l'autre</li>
+</ul>
+}
+
+%%%%%%%%%%% MB : introduction du confparm2 : suite arithm (A) ou géom (G) ou les deux (AG)
+\text{confparm2= items(\confparm2)=0 ? random(A,G,AG):\confparm2} %%% necessaire car non présent dans les premières versions
+\if{\confparm2 == A}{\text{proprep=est arithmétique,n'est pas arithmétique, je n'en sais rien}}
+\if{\confparm2 == G}{\text{proprep=n'est pas géométrique,est géométrique, je n'en sais rien}}
+\if{\confparm2 == AG}{\text{proprep=est arithmétique,est géométrique, je n'en sais rien}}
+
+%%%% Paramètres et termes de la suite %%%
+\integer{type=random(1,2)}
+\integer{choix=randint(1..6)}##choix énoncé##
+
+\if{\choix=1}{\integer{U0=randint(15..100)}
+\real{R=\U0+randint(10..200)}##raison suite arith##
+\real{p=randint(2..20)}##pourcentage suite géo##
+\text{genre1=Un vidéaste,Une vidéaste}
+}
+\if{\choix=2}{\integer{U0=1600+5*randint(8,14)}
+  \integer{annee=randitem(2017,2018,2019,2020)}
+  \text{genre21=Un employé,Une employée}
+  \text{genre22=cet employé,cette employée}
+  \real{R=25+5*randint(0..5)}
+  \real{p=0.5*randint(1..6)}
+}
+
+\if{\choix=3 or \choix=5}{
+  \integer{U0=300+100*randint(0..18)}
+  \integer{annee=randitem(2017,2018,2019,2020)}
+  \real{R=40*randint(1..7)}
+  \real{p=randint(1..10)}
+}
+
+\if{\choix=4 or \choix=6}{\integer{U0=15000+1000*randint(0..50)}
+  \integer{annee=randitem(2017,2018,2019,2020)}
+  \real{R=randint((0.02*\U0)..(0.1*\U0))}
+  \real{p=randint(1..10)}
+}
+
+\integer{genre=randint(1,2)}
+\real{q=(\choix<5)? 1+\p/100:1-\p/100}
+\integer{r=(\choix<5)? \R:-\R}
+\text{rep=\r,\q}
+
+
+
+\matrix{enonce=\genre1[\genre] publie une vidéo sur le web . Le jour de la publication&sbquo; la vidéo a été vue \U0 fois. Chaque jour&sbquo; le nombre de visionnages de la vidéo augmente de,vues,le nombre de vues \(n\) jours après la publication
+Le salaire mensuel en \annee d'\genre21[\genre] s'élève à \U0 euros . Chaque année&sbquo; ce salaire est augmenté de ,euros,le salaire mensuel de \genre22[\genre] en \annee+\(n)
+Le nombre de spectateurs à un festival en \annee était de \U0. Chaque année&sbquo; le nombre de spectateurs augmente de,spectateurs,le nombre de spectateurs en \annee+\(n)
+Le bénéfice d'une entreprise s'élève à \U0 euros . Chaque année&sbquo; ce chiffre d'affaire augmente de,euros,,le chiffre d'affaire de l'entreprise en \annee+\(n)
+Le nombre de spectateurs à un festival en \annee était de \U0. Chaque année&sbquo; le nombre de spectateurs baisse de,spectateurs,le nombre de spectateurs en \annee+\(n)
+Le bénéfice d'une entreprise s'élève à \U0 euros . Chaque année&sbquo; ce chiffre d'affaire baisse de,euros,le chiffre d'affaire de l'entreprise en \annee+\(n)
+
+}
+%%% gestion des réponses %%%
+\if{\confparm2 == A}{
+\if{\type=1}{
+\text{temp=reply 1
+reply 2}}
+{\text{temp=reply 1}}
+}
+
+
+\if{\confparm2 == G}{
+\if{\type=1}{
+\text{temp=reply 1}}
+{\text{temp=reply 1
+reply 2}}
+}
+
+\if{\confparm2 == AG}{
+\text{temp=reply 1
+reply 2}}
+\steps{\temp
+}
+%%%% Nom Nature
+\text{nature=\type=1?arithmétique:géométrique}
+
+
+
+\statement{\enonce[\choix;1] \if{\type=1}{\R \enonce[\choix;2]}{\p %}.
+On note \(u_n) \enonce[\choix;3].
+\if{\step=1}{
+<div class="wims_question">Quelle est la nature  de la suite \(u) ? <label for="reply1">La suite \(u)</label>  \embed{r1}</div>}
+
+\if{\step>1}{<p>La suite est \nature.</p>
+<div class="wims_question"> Sa <label for="reply2">raison est égale à :</label> \embed{r2,3}.</div>}
+}
+
+\answer{}{\type;\proprep}{type=menu}
+\answer{}{\rep[\type]}{type=formal}
+
+\solution{
+Pour tout entier naturel non nul n, \if{\type=1}{\if{\choix<5}{\(u_{n+1}=u_n+\R)}{\(u_{n+1}=u_n-\R)}}{\(u_{n+1}=u_n)\if{\choix<5}{ \(\times \left ( 1+\frac{\p}{100} \right ))}{\(\times \left ( 1-\frac{\p}{100} \right ))}\(=u_n \times \q)}
+donc la suite \proprep[\type]. 
+\if{\confparm2==A}{\if{\type=1}{de raison \(\rep[\type]).}}
+\if{\confparm2==G}{\if{\type=2}{de raison \(\rep[\type]).}}
+\if{\confparm2==AG}{de raison \(\rep[\type]).}
+}

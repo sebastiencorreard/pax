@@ -1,0 +1,165 @@
+!set title=Utiliser un graphique 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(50)]
+val7=Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Août,Septembre,Octobre,Novembre,Décembre
+val8=de janvier,de février,de mars,d'avril,de mai,de juin,	  de juillet,d'août,de septembre,d'octobre,de novembre,de décembre
+val9=Toulouse,Nice,Paris,Marseille,Strasbourg,Lille
+val10=Voici le total des précipitations en mm	  par mois pour la ville de
+val11=Mois,Precipitations en mm
+val12=inférieur
+val13=Cliquer sur le(s) mois dont le total des précipitations	  est strictement $val12 à $val6 mm
+tmp=!trim 50,50,50,60,70,60,40,50,50,50,50,50	80,60,60,70,50,40,20,20,80,140,100,90	50,40,50,50,60,60,60,40,50,60,50,60	50,50,40,50,40,30,15,30,50,80,60,60	30,40,40,40,80,80,70,60,60,50,50,40	60,40,60,50,60,70,60,50,60,70,70,70
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val15=$[rint($(tmp0))]
+val9=$(val9[$val15])
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+val16=
+val17=
+!for val18 =1 to 12 
+tmp0=!randint $(val14[$val18])-10, $(val14[$val18])+10
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=50
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val16=$[rint( $val16+ $(tmp0)*6)]
+!endif
+
+!ifval $val16 - 50 <4 and $val16 > 50 
+val16=$[rint( $val16+6)]
+!endif
+
+!ifval $val16 - 50 >-4 and $val16 < 50 
+val16=$[rint( $val16-6)]
+!endif
+tmp0=!append item $val16 to $val17
+
+val17=$(tmp0)
+!next
+val19=frect 1,0,2,$(val17[1]),red
+val20=frect 3,0,4,$(val17[2]),red
+val21=frect 5,0,6,$(val17[3]),red
+val22=frect 7,0,8,$(val17[4]),red
+val23=frect 9,0,10,$(val17[5]),red
+val24=frect 11,0,12,$(val17[6]),red
+val25=frect 13,0,14,$(val17[7]),red
+val26=frect 15,0,16,$(val17[8]),red
+val27=frect 17,0,18,$(val17[9]),red
+val28=frect 19,0,20,$(val17[10]),red
+val29=frect 21,0,22,$(val17[11]),red
+val30=frect 23,0,24,$(val17[12]),red
+val31=$[rint(\effs[1])]
+!for val18 =2 to 6 
+val31=$[rint($val31+\effs[$val18])]
+!next
+val32=
+!for val33 =1 to 12 
+val32=$val32	  text black,$val33*2-0.5,-1,small,$val33
+!next
+!for val33 =10 to 150 step 10 
+val32=$val32	  text black,-1.5,$val33+3.5,small,$val33
+!next
+val34=fill 0,0,220,220,255
+!readproc oef/draw.phtml 506,308, \
+  xrange -2,25	  yrange -20,160	  $val34	  parallel 1,0,1,150,1,0,25,grey	  parallel -0.5,0.5,25,0.5,0,10,16,grey	  linewidth 2	  arrow -1,0,25,0,10,black	  arrow 0,-1,0,160,10,black	  text black,23,-9,medium,$(val11[1])	  text black,0.5,159.9,medium,$(val11[2])	  $val32	$val19	$val20	$val21	$val22	$val23	$val24	$val25	$val26	$val27	$val28	$val29	$val30  
+tmp0=$ins_url
+val35=$(tmp0)
+val31=
+!for val36 =1 to 12 
+!if $val6>$(val17[$val36]) 
+tmp0=!append item $val36 to $val31
+
+val31=$(tmp0)
+!endif
+!next
+val31=$val31;$val7
+replytype1=mark
+replyname1=
+replygood1=$val31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	  <div class="medium_size img_col">	   <img src="$val35" alt="">	  </div>	  <div class="medium_size text_col">	    $val10 $val9.	  <div>$val13.	  <div  class="spacer"> 
+!read oef/embed.phtml r1 
+$().</div></div>	  </div>	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,13,35
+embedcnt=1

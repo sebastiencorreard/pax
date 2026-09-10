@@ -1,0 +1,215 @@
+\title{Ongelijkheid en Quotient}
+\language{nl}
+\range{-5..5}
+\author{Véronique Royer}
+\email{royer.veronique@wanadoo.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\integer{cas=random(1..2)}
+
+\integer{a = (-1)^random(0,1)*random(1..10)}
+\integer{b = (-1)^random(0,1)*random(1..10)}
+\integer{c = (-1)^random(0,1)*random(1..10)}
+\integer{d = (-1)^random(0,1)*random(1..10)}
+\integer{k1=(-1)^random(0,1)*random(1..10)}
+\integer{k2=(-1)^random(0,1)*random(1..10)}
+\integer{cas=random(1..2)}
+
+\function{f=\a *x + \b}
+\function{f=\a==1?x + \b}
+\function{f=\a==-1?-x + \b}
+\function{g=\c *x + \d}
+\function{g=\c==1?x + \d}
+\function{g=\c==-1?-x + \d}
+\text{lsymb=<,>,\leq,\geq}
+\text{symb=item(1,shuffle(\lsymb))}
+\function{q1=\k2/(\g)}
+\function{q2=\k1/(\f)}
+
+
+
+\text{lineq=\(\k1\symb)\(\q1), \(\q2)\(\symb\k2)}
+
+\function{ineq=item(\cas,\lineq)}
+\text{uu=(\k1*(\g)-\k2),(\k1-\k2*(\f))}
+\text{vv=\g,\f}
+\function{u=maxima(expand(item(\cas,\uu)))}
+\function{v=item(\cas,\vv)}
+\function{q=(\u)/(\v)}
+
+\integer{ua=pari(polcoeff(\u,1))}
+\integer{ub=pari(polcoeff(\u,0))}
+\rational{racu=-\ub/\ua}
+\rational{racv=\cas==1?-\d/\c}
+\rational{racv=\cas==2?-\b/\a}
+
+/** ordonner les racines ; preparer les tests de signe **/
+\integer{test=\racu<\racv?1:2}
+\rational{x1=\test==1?\racu:\racv}
+\rational{x2=\test==1?\racv:\racu}
+
+
+/** placer le terme ayant la plus petite racine en premier **/
+/** cas = 1 :  u avant v  ; cas = 2 : v avant u  **/ 
+
+\rational{xm=(\x1+\x2)/2}
+\rational{ug = evaluate(\u,x=\x1-1)}
+\rational{um = evaluate(\u,x=\xm)}
+\rational{ud = evaluate(\u,x=\x2+1)}
+\rational{vg = evaluate(\v,x=\x1-1)}
+\rational{vm = evaluate(\v,x=\xm)}
+\rational{vd = evaluate(\v,x=\x2+1)}
+
+
+/**  elements du tableau **/
+\rational{rep1=\x1}
+\rational{rep2=\x2}
+\text{rep3=\ug>0?+:-}
+\text{rep4=\x1==\racu?0:|}
+\text{rep5=\um>0?+:-}
+\text{rep6=\x2==\racu?0:|}
+\text{rep7=\ud>0?+:-}
+
+\text{rep8=\vg>0?+:-}
+\text{rep9=\x1==\racv?0:|}
+\text{rep10=\vm>0?+:-}
+\text{rep11=\x2==\racv?0:|}
+\text{rep12=\vd>0?+:-}
+
+\text{rep13=\rep3  issametext \rep8?+:-}
+\text{rep14=\x1==\racv?||:0}
+\text{rep15=\rep5  issametext \rep10?+:-}
+\text{rep16=\x2==\racv?||:0}
+\text{rep17=\rep7 issametext \rep12?+:-}
+
+\text{tableau=<table border=1 border="solid" width="80%">
+<tr>
+<td width="15%" align="center"> \(x)</td>
+<td  width="25%" align="left">\(-\infty)</td>
+<td  width="5%" align="center">\x1</td>
+<td width="25%" align="right"> </td>
+<td  width="5%" align="center">\x2</td>
+<td width="25%" align="right">\(+\infty)</td>
+</tr>
+<tr>
+<td width="15%" align="center"> \(\u)</td>
+<td  width="25%" align="center">\rep3</td>
+<td  width="5%" align="center">\rep4</td>
+<td width="25%" align="center">\rep5 </td>
+<td  width="5%" align="center">\rep6</td>
+<td width="25%" align="center">\rep7</td>
+</tr>
+<tr>
+<td width="15%" align="center"> \(\v)</td>
+<td  width="25%" align="center">\rep8</td>
+<td  width="5%" align="center">\rep9</td>
+<td width="25%" align="center">\rep10 </td>
+<td  width="5%" align="center">\rep11</td>
+<td width="25%" align="center">\rep12</td>
+</tr>
+<tr>
+<td width="15%" align="center"> \(f(x))</td>
+<td  width="25%" align="center">\rep13</td>
+<td  width="5%" align="center">\rep14</td>
+<td width="25%" align="center">\rep15 </td>
+<td  width="5%" align="center">\rep16</td>
+<td width="25%" align="center">\rep17</td>
+</tr>
+</table>}
+
+/** choix des intervalles **/ 
+
+\text{int1= &#93; -&#8734; &#44;\x1 &#91; }
+\text{int2=&#93; -&#8734; &#44;\x1 &#93; }
+\text{int3=&#91; \x2 &#44; +&#8734; &#91; }
+\text{int4=&#93; \x2   &#44; +&#8734;  &#91; }
+\text{S1=\int1 \(\cup) \int3}
+\text{S2=\int1 \(\cup) \int4 }
+\text{S3=\int2 \(\cup) \int3}
+\text{S4=\int2 \(\cup) \int4 }
+\text{S5=&#91; \x1   &#44; \x2   &#91; }
+\text{S6=&#91; \x1   &#44; \x2   &#93; }
+\text{S7=&#93; \x1   &#44; \x2   &#91; }
+\text{S8=&#93; \x1   &#44; \x2   &#93; }
+
+\text{choix=<i>S</i><sub>1</sub>,<i>S</i><sub>2</sub>,
+<i>S</i><sub>3</sub>,<i>S</i><sub>4</sub>, <i>S</i><sub>5</sub>,<i>S</i><sub>6</sub>,
+<i>S</i><sub>7</sub>,<i>S</i><sub>8</sub>}
+
+\text{sol=(\symb issametext < and \rep15 issametext -) or
+(\symb issametext > and \rep15 issametext +)?7}
+
+\text{sol=(\symb issametext > and \rep13 issametext +) or
+(\symb issametext < and \rep13 issametext -)?2}
+
+\text{sol=(\symb issametext \leq and \rep13 issametext - and \x1==\racv)? 1}
+
+\text{sol=(\symb issametext \leq and \rep13 issametext - and \x1!=\racv)? 4}
+
+\text{sol=(\symb issametext \leq and \rep15 issametext - and \x1==\racv)? 8}
+
+\text{sol=(\symb issametext \leq and \rep15 issametext - and \x1!=\racv)? 5}
+
+\text{sol=(\symb issametext \geq and \rep13 issametext + and \x1==\racv)? 1}
+
+\text{sol=(\symb issametext \geq and \rep13 issametext + and \x1!=\racv)? 4}
+
+\text{sol=(\symb issametext \geq and \rep15 issametext + and \x1==\racv)? 8}
+
+\text{sol=(\symb issametext \geq and \rep15 issametext + and \x1!=\racv)? 5}
+
+
+\steps{reply1
+reply2}
+
+\statement{
+Los de volgende ongelijkheid op in \(\RR) (1) :  \ineq 
+
+<ol>
+<li>
+\if{\step==1}{
+De ongelijkheid kunnen we herschrijven in: \(\quad \frac{u(x)}{v(x)} \symb 0)<br>
+Met daarin:<p align="center"> \(u(x)) =  \embed{reply1, 12}   en \( v(x)) = \(\v)</p>}
+{Men moet, om ongelijkheid (1) op te lossen, ongelijkheid (2) oplossen : &nbsp; \(\q)\(\symb 0 ) }
+</li>
+
+\if{\step==2}
+{<li> Bij het  bestuderen van het tekenverloop van de quotient-functie  &nbsp; \(f(x) = \q )  &nbsp; ,krijgt men de volgende tabel :  
+<p align="center">\tableau </p>
+</li>
+}
+
+
+\if{\step==2}{<li>
+Men definieert de  volgende verzamelingen: 
+<table align="center" width="60%">
+<tr>
+<td width="50%"> \(S_1) = \S1</td>
+<td width="50%"> \(S_5) = \S5</td>
+</tr>
+<tr>
+<td width="50%"> \(S_2) = \S2</td>
+<td width="50%"> \(S_6) = \S6</td>
+</tr>
+<tr>
+<td width="50%"> \(S_3) = \S3</td>
+<td width="50%"> \(S_7) = \S7</td>
+</tr>
+<tr>
+<td width="50%"> \(S_4) = \S4</td>
+<td width="50%"> \(S_8) = \S8</td>
+</tr>
+</table>
+
+Volgens het tekenverloop, zijn de oplossingsverzamelingen van (1) en (2) :  <center>\embed{reply2}</center>
+</li>
+}
+</ol>
+}
+\answer{}{\u}{type=algexp}
+\answer{}{\sol ; \choix}{type=radio}
+\feedback{\step==1 and \reply1 != \u }{
+Je hebt een fout gemaakt in je berekening.<br> Heb je wel gelet op het ongelijkheidsteken? Die blijft hetzelfde als in de vraag.<br>
+}

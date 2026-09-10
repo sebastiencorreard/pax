@@ -1,0 +1,148 @@
+type=question
+textarea="datatrue datafalse explain"
+:Choisir les phrases vraies parmi une liste proposée.
+Un certain nombre de phrases sont proposées dans une liste. Il faut repérer
+et noter celles qui sont vraies. Les bonnes et les mauvaises phrases sont
+tirées au hasard parmi des listes respectives. Le nombre de bonnes phrases
+dans chaque présentation n'est pas forcément fixe.
+<p>
+Plus les données (les phrases) sont abondantes, plus l'exercice est
+aléatoire et répétable. Mais vous pouvez aussi faire des exercices avec
+juste ce qu'il faut comme phrases mais pas plus. Ce sera dans ce cas un QCM
+avec plusieurs bons choix.
+</p><p class="wims_credits">
+Auteur du modèle : Gang Xiao <qualite@wimsedu.info>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{6. Réactions en chaîne}
+:\author{Céline,Dablemont}
+:\email{celine.dablemont@u-psud.fr}
+\keywords{chemistry,chemical_kinetics,reaction_rate,integrated_rate_law,rate_law,kinetic_mechanism,elementary_reaction}
+:\credits{}
+:Nombre de phrases à présenter.
+
+\integer{tot=4}
+
+:Minimum de phrases vraies dans chaque exercice présenté. Au moins 1.
+
+\integer{mintrue=1}
+
+:Minimum de phrases fausses dans chaque exercice présenté. Au moins 1.
+
+\integer{minfalse=1}
+
+:Les phrases vraies. Une phrase par ligne, point-virgule non-admis.
+Evitez les phrases trop longues !
+help
+\matrix{datatrue=La longueur de chaîne est définie comme le rapport entre la vitesse de disparition du réactif et la vitesse de la réaction d'initiation.
+Lorsque l'apport énergétique nécessaire à l'étape d'initiation provient d'un rayonnement ionisant, on parle de radiolyse.
+Lorsque l'apport énergétique nécessaire à l'étape d'initiation provient d'une source de chaleur, on parle de thermolyse.
+Certaines réactions en chaîne présentent une étape d'amplification.
+Les réactions en chaîne droite ne présentent pas d'étape d'amplification.
+Les porteurs de chaîne d'une réaction de polymérisation radicalaire ne sont pas chargés.
+Une réaction en chaîne ramifiée présente une étape d'amplification.
+Dans l'étape de propagation d'une réaction en chaîne droite, toutes les réactions conduisent à la formation d'un seul porteur de chaîne.
+L'étape de propagation est toujours rapide.
+L'étape d'initiation est toujours lente.}
+
+:Les phrases fausses. Une phrase par ligne, point-virgule non-admis.
+Evitez les phrases trop longues !
+help
+\matrix{datafalse= Les réactions en chaîne font toujours intervenir des radicaux libres.
+Les porteurs de chaîne d'une réaction de polymérisation radicalaire sont chargés négativement.
+Initier une réaction en chaîne par photolyse veut dire que l'on initie le processus grâce à des neutrons par exemple.
+Lorsque l'apport énergétique nécessaire à l'étape d'initiation provient d'un rayonnement ionisant, on parle de photolyse.
+La longueur de chaîne est définie comme le rapport entre la vitesse de disparition du réactif et la vitesse de la réaction de propagation.
+L'étape d'initiation est toujours rapide.
+La longueur de chaîne est définie comme le rapport entre la vitesse de disparition du réactif et la vitesse de la réaction de terminaison.
+L'étape de propagation est toujours lente.
+Dans l'étape de propagation d'une réaction en chaîne ramifiée, toutes les réactions conduisent à la formation d'un seul porteur de chaîne.
+Lorsque l'apport énergétique nécessaire à l'étape d'initiation provient d'un rayonnement ultra-violet, on parle de thermolyse.
+Les réactions en chaîne sont toutes difficiles à contrôler.
+Initier une réaction en chaîne par pyrolyse veut dire que l'on initie le processus en utilisant un rayonnement ultra-violet.
+Une réaction en chaîne droite présente une étape d'amplification.}
+
+:Mots d'option.
+Ajoutez le mot <span class="tt wims_code_words">split</span> à la définition si vous voulez donner une note
+partielle pour des réponses partiellement correctes.
+\text{option=split}
+
+:Le texte qui explique ce qu'il faut faire.
+Attention, si vous avez besoin de mettre à la fois
+un point d'interrogation (?) et deux points (:), mettez le code html d'un de ces symboles
+(par exemple, &amp;#63; pour ?) ou
+mettez le texte dans la commande asis de la manière suivante <span class="tt">asis(....)</span>
+help
+\text{explain=Parmi les affirmations suivantes, laquelle (lesquelles) est (sont) juste(s) au sujet des réactions en chaîne &#63;}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\text{accolade=wims(word 1 of \accolade)}
+\text{datatrue=wims(nonempty rows \datatrue)}
+\text{datafalse=wims(nonempty rows \datafalse)}
+\integer{truecnt=rows(\datatrue)}
+\integer{falsecnt=rows(\datafalse)}
+\integer{tot=\tot > min(\truecnt,\falsecnt)?min(\truecnt,\falsecnt)}
+\integer{mintrue=\mintrue<1?1}
+\integer{minfalse=\minfalse<1?1}
+\integer{mintrue=\mintrue>\tot-1?\tot-1}
+\integer{minfalse=\minfalse>\tot-1?\tot-1}
+\integer{tot<\mintrue+\minfalse?\mintrue+\minfalse}
+\text{tsh=shuffle(\truecnt)}
+\text{fsh=shuffle(\falsecnt)}
+\text{true=row(\tsh,\datatrue)}
+\text{false=row(\fsh,\datafalse)}
+\integer{truepick=randint(\mintrue..\tot-\minfalse)}
+\text{pick=row(1..\truepick,\true);row(1..\tot-\truepick,\false)}
+\text{ind=wims(makelist 1 for x=1 to \truepick),wims(makelist 0 for x=1 to \tot-\truepick)}
+
+\text{sh=shuffle(\tot)}
+\text{ind=item(\sh,\ind)}
+\text{pick=row(\sh,\pick)}
+\text{pick=\accolade=1 ? wims(embraced randitem \pick)}
+\text{ans=positionof(1,\ind)}
+\text{list=wims(values x for x=1 to \tot)}
+\text{explain=\accolade=1 ? wims(embraced randitem \explain)}
+\text{latextext=}
+\for{ll=1 to \tot}{
+  \text{latextext=\latextext
+  \item \list[\ll] : \pick[\ll;]}
+}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement{
+ <div class="instruction">\explain</div>
+ <ul style="list-style-type:none">
+  \for{i=1 to \tot}{
+   <li>
+    \embed{reply 1,\i}. &nbsp;\pick[\i;]
+   </li>
+  }
+ </ul>}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%
+
+\answer{La réponse}{\ans;\list}{type=checkbox}{option=\option}
+
+\latex{
+\begin{statement}
+  \explain
+\begin{checkbox}
+  \latextext
+\end{checkbox}
+\end{statement}
+}

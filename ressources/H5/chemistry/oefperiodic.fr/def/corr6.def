@@ -1,0 +1,194 @@
+!set title=Correspondance 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of table
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val7=$[rint($(tmp0))]
+
+!ifval $val2 notitemof 1,2,3,4
+val2=$[rint(0)]
+!endif
+
+!ifval $val3 notitemof 1,2,3,4
+val3=$[rint(0)]
+!endif
+val8=
+
+!ifval $val4 issametext $val8 or $val4<7 or	  $val4>$val7
+val4=$[rint(54)]
+!endif
+tmp0=!values x for x=1 to $val7
+
+val9=$(tmp0)
+tmp0=!listintersect $val5 and $val9
+
+val5=$(tmp0)
+
+!ifval $val2>0
+val10=$[rint($val2)]
+!else
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+!endif
+
+!ifval $val3=$val2
+val11=$[rint(0)]
+!else
+val11=$[rint($val3)]
+!endif
+tmp0=!listcomplement $val10 in 1,2,3,4
+
+val12=$(tmp0)
+
+!ifval \candouble issametext yes and $val10 != 1
+val12=$val10,$val12
+!endif
+
+!ifval $val11>0 and $val11 isitemof $val12
+val13=$[rint($val11)]
+!else
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+!endif
+val14=numéros,symboles,noms,masses
+val15=Etablissez la correspondance correcte entre les,	  et les,des atomes suivants.
+val16=La correspondance
+val17=$[rint(6)]
+tmp0=!record 0 of table
+
+val18=$(tmp0)
+val6=$val18
+val8=
+!if $val5 notsametext $val8 and \selective notsametext no 
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val21=$[rint(min($val4,$(tmp0)))]
+val22=$val10
+val23=$val13
+val24=60,60,150,100
+tmp0=!shuffle $val21
+
+tmp1=!item 1 to $val17 of $(tmp0)
+
+val25=$(tmp1)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val25 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column $val22 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column $val23 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val27=$(tmp0)
+replytype1=correspond
+replyname1=La correspondance
+replygood1=$val26;$val27
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val15[1]) $(val14[$val22])	  $(val15[2]) $(val14[$val23]) $(val15[3])	<div class="wimscenter">	  
+!read oef/embed.phtml r1,30x$(val24[$val22])x$(val24[$val23]) 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15,22,23,24
+embedcnt=1

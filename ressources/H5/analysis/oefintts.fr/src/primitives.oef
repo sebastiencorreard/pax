@@ -1,0 +1,113 @@
+\title{Primitives des fonctions usuelles}
+
+\precision{10000}
+
+\integer{a=random(-3..1)}
+\integer{b=\a+randint(1..3)}
+
+\integer{al=randint(1..3)}
+
+\integer{ka=randint(1..5)}
+\integer{ks=random(-1,1)}
+\function{u=\ka*(x-randint(-10..10))^2+randint(1..10)}
+\function{u=maxima(expand(\u))}
+\function{ud=maxima(diff(\u,x))}
+
+
+\text{tln=texmath( k \frac{u'}{u})}
+\text{tpuiss=texmath( k*u'*u^n)}
+\text{texp=texmath( k*u'*e^u)}
+
+\text{listetrpim=\(\tln),\(\texp),\(\tpuiss),}
+
+\if{\al=1}{
+\text{un=maxima(expand((\ud)/(\ka*\ks)))}
+\text{quo=texmath((\un)/(\u))}
+\function{fd=maxima((\un)/(\u))}
+\rational{k=1/(\ks*\ka)}
+\function{prim=\k*ln(\u)}
+\text{aprim=texmath(maxima(\k*ln(\u)))}
+\text{aprim=wims(replace internal log by ln in \aprim)}
+\integer{tprim=1}
+\text{u=texmath(\u)}
+\text{I=maxima(integrate((\un)/(\u),x,\a,\b))}
+\text{I=maxima(simplify(\I))}
+text{I=wims(replace internal log by ln in \I)}
+\text{trprim=function}
+}
+
+
+\if{\al=2}{
+  \text{un=maxima(expand((\ud)/(\ka*\ks)))}
+  \text{quo=texmath((\un)*e^(\u))}
+  \function{fd=maxima((\un)*exp(\u))}
+  \rational{k=1/(\ks*\ka)}
+  \function{prim=\k*exp(\u)}
+  \text{aprim=texmath(maxima(\k*e^(\u)))}
+  \integer{tprim=2}
+  \text{u=texmath(\u)}
+  \text{I=maxima(integrate((\un)*exp(\u),x,\a,\b))}
+  \text{I=maxima(simplify(\I))}
+  \text{trprim=formal}
+}
+
+\if{\al=3}{
+  \integer{N=randint(1..3)}
+  \text{un=maxima(expand((\ud)/(\ka*\ks)))}
+  \text{quo=maxima((\un)*(\u)^(\N))}
+  \function{fd=maxima((\un)*(\u)^\N)}
+  \text{quo=texmath(\quo)}
+  \rational{k=1/(\ks*\ka)}
+  \function{prim=maxima(\k*(\u)^(\N+1)/(\N+1))}
+  \text{aprim=texmath(maxima(\k*(\u)^(\N+1)/(\N+1)))}
+  \integer{tprim=3}
+  \text{u=texmath(\u)}
+  \text{I=maxima(integrate((\un)*(\u)^(\N),x,\a,\b))}
+  \text{I=maxima(simplify(\I))}
+  \text{trprim=rational}
+}
+
+\steps{reply 1
+reply 2, reply 3, reply 4
+reply 5}
+
+\statement{
+<em>Cet exercice comporte trois étapes.</em>
+<div>On considère la fonction \(f), définie par \(f(x)=\quo).
+On se propose de calculer l'intégrale
+\(I=integrate(f(x),x=\a..\b)\).</div>
+\if{\step=1}{<em>Étape 1</em>:<br>
+On pose \(u(x)=\u), <label for="reply1">
+la fonction \(f) est alors de la forme (\(k) est un nombre réel
+et \(n) un entier différent de -1):</label>
+<div class="wimscenter">\embed{reply 1}.</div>
+}
+\if{\step=2}{<em>Étape 2</em>:<br>
+En effet, \(f) est de la forme \listetrpim[\tprim]. On a de plus:
+<div class="wimscenter">
+<label for="reply2">\(k=)</label> \embed{reply 2,5} <label for="reply5">et \(u'(x))</label>=\embed{reply 3,15}
+</div>
+Une primitive \(F) de \(f) sur \(\mathbb{R}) est donc:
+<div class="wimscenter">
+<label for="reply4">\(F(x))=</label>\embed{reply 4,30}.
+</div>
+}
+\if{\step=3}{<em>Étape 3</em>:<br>
+En effet \(F), définie par \(F(x)=) \(\aprim) est bien une primtive de \(f) sur
+\(\mathbb{R}).<br>
+On en déduit que:
+<div class="wimscenter">
+<label for="reply5">\(I=)</label> \embed{reply 5}.
+</div>
+}
+}
+
+\answer{Forme}{\tprim;\listetrpim}{type=checkbox}
+\answer{Valeur de k}{\k}{type=rational}
+\answer{Valeur de \(u')}{\ud}{type=function}
+\answer{Primitive}{\repprim}{type=function}
+\answer{Valeur de I}{\I}{type=\trprim}
+
+\function{testprim=maxima(diff(\repprim,x)-\fd)}
+\function{testprim=maxima(simplify(\testprim))}
+\condition{Vérifiation via le calcul de \(F')}{\testprim=0}

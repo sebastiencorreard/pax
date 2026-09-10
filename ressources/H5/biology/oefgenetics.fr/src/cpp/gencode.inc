@@ -1,0 +1,10 @@
+<style>
+/*<![CDATA[*/
+.apolaire{background-color:#EFEFCE}
+.polaire{background-color:#CEEFCE}
+.basique{background-color:#CECEEF}
+.terminaison{background-color:#EFEFEF}
+.acide{background-color:#EFCECE}
+/*]]>*/
+</style>
+\tablehtml

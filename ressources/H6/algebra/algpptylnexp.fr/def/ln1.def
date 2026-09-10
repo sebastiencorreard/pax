@@ -1,0 +1,194 @@
+!set title=Réécriture avec des logarithmes (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On donne, où ln désigne la fonction logarithme népérien.
+tmp=!trim Réécrire \(A\) sous la forme ln(\(p\)), où \(p\) est un nombre rationnel.	  Réécrire \(A\) sous la forme \(n ln(\a) + m ln(\b)\) où \(n\) et \(m\) sont des entiers relatifs.
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 2,3,5,7,11
+
+val8=$(tmp0)
+tmp0=!item 1 of $val8
+
+val9=$[rint($(tmp0))]
+tmp0=!item 2 of $val8
+
+val10=$[rint($(tmp0))]
+
+!ifval ($val9<$val10)
+val11=$[rint($val9)]
+!else
+val11=$[rint($val10)]
+!endif
+
+!ifval ($val9<$val10)
+val12=$[rint($val10)]
+!else
+val12=$[rint($val9)]
+!endif
+tmp0=!randint 2, 5
+
+tmp1=!randitem -1,1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val14*$val15)]
+t_=!rawmath ($val11^$val13)*($val12^$val16)
+val17=!exec pari print($t_)
+
+!ifval $val14=1
+val18=$val13*ln($val11) + $val16*ln($val12)
+!else
+val18=$val13*ln($val11) - $val15*ln($val12)
+!endif
+val19=$val18,ln($val17)
+tmp0=!randitem 1,2
+
+val20=$[rint($(tmp0))]
+tmp0=!item $val20 of $val19
+
+val21=$(tmp0)
+val22=$val17,$val18
+tmp0=!item $val20 of $val22
+
+val23=$(tmp0)
+replytype1=litexp
+replyname1=
+replygood1=$val23
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	$(val6[1]) 
+!insmath A = $val21
+$() $(val6[2])	<p>$(val7[$val20;]).</p>	  <div class="wimscenter">	
+!if $val20=1 
+$()	  
+!insmath A
+$() = ln( 
+!read oef/embed.phtml reply1,10 
+$()).	   
+!else
+$() 	  
+!insmath A
+$() =  
+!read oef/embed.phtml reply1,15 
+$().	   
+!endif
+$()	  </div>	  </div>	
+$()
+!exit
+
+:hint
+$()Les règles de calcul des logarithmes sont :	  <div>	  
+!insmath \ln (a \times b) = \ln(a) + \ln(b) 
+$()<br>	  
+!insmath \ln (\frac{a}{b}) = \ln(a) - \ln(b)
+$()<br>	  
+!insmath \ln(a^{n}) = n \ln(a)
+$() <br>	  
+!insmath \ln(\frac{1}{a}) = - \ln(a)
+$()	  </div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>	  Voici un corrigé :<br>	  
+!if $val20=1 
+$()	    
+!insmath $val13 ln($val11) = ln($val11^$val13)
+$() et 
+!insmath $val16 ln($val12) = ln($val12^$val16)
+$()<br>	    
+!insmath  $val18 = ln($val11^$val13) + ln($val12^$val16) = ln($val11^$val13 * $val12^$val16)	    = ln($val17) 
+$()	   
+!else
+$() 	    On décompose $val17 sous la forme 
+!insmath $val11^n\times$val12^m
+$() : <br>	    
+!insmath  $val17 = $val11^{$val13}\times$val12^{$val16} 
+$()	    <br>	    
+!if $val14=1 
+$()	      En appliquant la règle du logarithme d'un produit : <br>	        
+!insmath \ln($val11^{$val13}\times$val12^{$val16}) = \ln($val11^{$val13}) + \ln($val12^{$val16}) = $val13\ln($val11) + $val16\ln($val12)
+$()	     
+!else
+$() 	      En appliquant la règle sur le logarithme d'un produit :	      
+!insmath  \ln( $val11^{$val13}\times $val12^{$val16}) = \ln($val11^{$val13}) + \ln($val12^{$val16}) = $val13\ln($val11) + ($val16\ln($val12)) = $val13\ln($val11) - $val15\ln($val12) 
+$()	      <br>	      On peut aussi appliquer la règle sur le logarithme d'un quotient : <br>	      
+!insmath  \ln($val11^{$val13}\times$val12^{$val16}) = \ln(\frac{$val11^{$val13}}{$val12^{$val15}}) = \ln($val11^{$val13}) - \ln($val12^{$val15}) = $val13\ln($val11) - $val15\ln($val12)
+$()	     
+!endif
+$()	   
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11,12,13,14,15,16,17,18,20,21
+embedcnt=2

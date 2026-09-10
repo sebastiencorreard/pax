@@ -1,0 +1,119 @@
+!set title=Sixième 17
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+
+ansorder=c
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 35
+
+val6=$[rint($(tmp0)*50)]
+tmp0=!randint 5, 13
+
+val7=$[rint($(tmp0)*50)]
+val8=$[rint($val6-$val7)]
+val9=$[$val7/100]
+val10=$val9 Km
+val11=$[2*$val7/100]
+val12=$[$val7/200]
+val13=$[$val7/1000]
+val14=$[$val7/10]
+val15=$val11 Km,$val12 Km,$val13 Km,$val14 Km
+tmp0=!shuffle $val10,$val15
+
+val16=$(tmp0)
+val17=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val16
+
+val18=$[rint($(tmp0))]
+val19=
+val20=
+!for val21 =1 to $val18 
+tmp0=!item $val21 of $val16
+
+val22=$(tmp0)
+val23=Réponse $(val17[$val21])
+!if $val22 isitemof $val10 
+tmp0=!append item $val23 to $val19
+
+val19=$(tmp0)
+!else
+tmp0=!append item $val23 to $val20
+
+val20=$(tmp0)
+!endif
+!next
+choicename1=Choisissez
+choicegood1=$val19
+choicebad1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"><img src="$val1/6_17_1.gif" alt=""></div>	Une voiture croise ce panneau en montage.	Elle se trouve à $val6 m d'altitude. La pente reste la même tout au long de la descente.	<p>	Combien de km faut-il rouler pour se trouver à $val8 m d'altitude ?	</p>	<ul>	 
+!for m_l=1 to $val18 
+$()	 <li>$(val17[$m_l]) : $(val16[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,8,16,17,18
+embedcnt=1

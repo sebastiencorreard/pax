@@ -1,0 +1,126 @@
+\title{Question 650 T Inéquation graphique}
+\keywords{quizz,inequations,intervals,functions}
+\observation{Question du sujet zéro sujet-techno-1_0.pdf publié sur EDUSCOL en juin 2025 }
+%%%%%% g puis f->(d) 
+\matrix{fonctions=-0.15*x^3+0.3*x^2+1.15*x-0.3,x
+-0.33*x^3+0.67*x^2+1.33*x-0.67,x
+-0.3*x^3+0.3*x^2+2.2*x-1.2,x
+-0.2*x^3+0.6*x^2+1.8*x-2.39,x}
+%%%%% coordonnées des points d'intersections
+\matrix{abscisses=-3,-1,1,2
+-2,-1,1,2
+-3,-2,1,2
+-3,-2,2,3}
+\matrix{ordonnees=3,-1,1,2
+2,-1,1,2
+3,-2,1,2
+3,-2,2,3}
+
+
+\text{q=randint(1..4)} %%%%% choix de la fonction
+
+\text{g=\fonctions[\q;1]}
+\text{f=\fonctions[\q;2]}
+%%%%%%%%%%%%%%%%% choix du nbr d'intervalles 
+\integer{nint=randomitem(3,4)} 
+
+\real{xA3=\abscisses[\q;2]+0.5}%%%%%%%%%%%%%%%%%%%%%%%%% cas nint=3, A et B confondus mais n'appartiennent pas à C, juste à C' (CD)
+\real{yA3=evalue(\g,x=\xA3)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\text{A=\nint=4?\abscisses[\q;1],\ordonnees[\q;1]:\xA3,\yA3}
+\text{B=\nint=4?\abscisses[\q;2],\ordonnees[\q;2]:\xA3,\yA3}
+\text{C=\abscisses[\q;3],\ordonnees[\q;3]}
+\text{D=\abscisses[\q;4],\ordonnees[\q;4]}
+\real{xE=\D[1]+1}
+\real{yE=evalue(\g,x=\xE)}
+\text{E=\xE,\yE}
+%%%%%%%%%%%%%%% graphique %%%%%%%%%%%%%%%
+\integer{xmin=\A[1]-1}
+\integer{xmax=\E[1]+1}
+\integer{ymin=-4}
+\integer{ymax=\q=4?5:4}
+\integer{xsc=\xmax-\xmin+2}
+\integer{ysc=\ymax-\ymin+1}
+\if{\A[1]=-2}{
+  \text{gradgauche=text black,-2.5,-0.2,medium,-2
+  segment -2,-0.2,-2,0.2,black}
+  }{
+  \text{gradgauche=text black,-1.5,-0.2,medium,-1
+  segment -1,-0.2,-1,0.2,black}
+  }
+\text{repere=xrange \xmin,\xmax
+yrange \ymin,\ymax
+linewidth 2
+  parallel \xmin,\ymin,\xmin,\ymax,1,0,\xsc,grey
+  parallel \xmin,\ymin,\xmax,\ymin,0,1,\ysc,grey
+arrow \xmin,0,\xmax,0,10,black
+arrow 0,\ymin,0,\ymax,10,black
+
+segment -0.2,1,0.2,1,black
+segment 1,-0.2,1,0.2,black
+text black,0.7,-0.1,medium,1
+text black,-0.4,1,medium,1
+text black,-0.3,-0.1,medium,O
+
+segment -0.2,1,0.2,1,black
+segment -0.2,3,0.2,3,black
+text black,-0.4,3,medium,3
+
+text black,-1,-3,medium,-3
+segment -0.2,-3,0.2,-3,black
+
+segment 3,-0.2,3,0.2,black
+text black,2.7,-0.2,medium,3
+\gradgauche}
+%%%%% pour nom des courbes %%%%
+\real{t0=0.5}
+\real{xg=\nint=4?\A[1]+\t0:\E[1]+0.8*\t0}
+\real{yg=\nint=4?\A[2]:\E[2]+1.2*\t0}
+\real{xf=\E[1]+0.8*\t0}
+\real{yf=\E[1]}
+%%%%%
+\text{fct=trange \A[1],\E[1]
+plot red,\f
+text red,\xf,\yf,giant,C
+plot blue,\g
+text blue,\xg,\yg,giant,C'}
+
+\text{cross=crosshairsize 5
+crosshair \A,blue
+crosshair \B,blue
+crosshair \C,blue
+crosshair \D,blue
+crosshair \E,blue
+crosshair \A[1],\A[1],red
+crosshair \E[1],\E[1],red }
+
+\text{img=draw(200,200
+\repere
+\fct
+\cross)}
+%%%%
+\text{debug=f=\f
+<br>g=\f
+<br>q=\q
+<br>}
+%%%%%%%%%%%%%% inversion du signe %%%%%%%%%%%%
+\text{signe=randomitem(\leq,\geq)}
+
+\text{enonce=Dans la figure ci-dessous&#44; les courbes <b>C</b> et <b>C'</b> représentent respectivement les fonctions \(f\) et <span class="nowrap">\(g\).</span><div class="wimscenter"><img src="\img" alt=""></div>L'ensemble des solutions de l'inéquation \(f(x) \signe g(x)\) est&nbsp;&#58;}
+\if{\nint=4}{
+  \text{interv1=\(\left[\A[1]&#59;\B[1]\right] \union \left[\C[1]&#59;\D[1]\right]\)}
+  \text{interv2=\(\left[\B[1]&#59;\C[1]\right] \union \left[\D[1]&#59;\E[1]\right]\)}
+  \text{good=\signe issametext \leq?\interv1:\interv2}
+  \text{bad1=\signe issametext \leq?\interv2:\interv1}
+  \text{bads=shuffle(\(\left[\A[1]&#59;\B[1]\right] \cap \left[\C[1]&#59;\D[1]\right]\),\(\left[\A[1]&#59;\B[1]\right]\),\(\left[\C[1]&#59;\D[1]\right]\),\(\left[\B[1]&#59;\C[1]\right]\),\(\left[\D[1]&#59;\E[1]\right]\))}
+  \text{bads=\bad1,\bads[1],\bads[2]}}
+\if{\nint=3}{
+  \text{interv1= \(\left[\C[1]&#59;\D[1]\right]\)} %%%% sol si leq
+  \text{interv2=\(\left[\B[1]&#59;\C[1]\right] \union \left[\D[1]&#59;\E[1]\right]\)} %%%% sol si geq
+  \text{good=\signe issametext \leq?\interv1:\interv2}
+  \text{bad1=\signe issametext \leq?\interv2:\interv1}
+  \text{bads=shuffle(\(\left[\B[1]&#59;\C[1]\right]\),\(\left[\D[1]&#59;\E[1]\right]\),\(\left[\B[1]&#59;\C[1]\right] \cap \left[\D[1]&#59;\E[1]\right]\))}
+  \text{bads=\bad1,\bads[1],\bads[2]}
+  }
+\text{position=\signe issametext \leq?au-dessous:au-dessus}
+\text{feedback=La question revient à trouver tous les \(x\) tels que <span class="nowrap">\(f(x) \signe g(x)\).</span> <br>On peut rechercher quand la courbe <b>C</b> (en rouge) est \position de la courbe <b>C'</b> (en bleue).<br> La bonne réponse est \good.<div class="wimscenter"><img src="\img" alt="Graphique"></div> }

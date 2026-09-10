@@ -1,0 +1,257 @@
+!set title=Repérage 6,5,4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=20
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Mettre les dates en bas et les événements correspondants sur la ligne du haut. Quand les événements courent sur une période, c'est la date de début qui compte. Quand deux événements ont la même date, les classer par ordre alphabétique.
+val7=5
+val8=orange
+val9=100
+val10=$[rint(100)]
+val11=0
+val12=VIII° millénaire av JC,Naissance de l’agriculture	IV° millénaire av JC,Invention de l’écriture	II-I° millénaire av JC,Le temps de la Bible	V° siècle avant JC,Apogée d’Athènes (Périclès – Parthénon)	52 av JC,Victoire de César sur Vercingétorix à Alésia	I° siècle,Début du christianisme	II° siècle,Apogée de l’empire romain	V° siècle,Dislocation de l’empire romain	496,Baptême de Clovis	622,L’Hégire (début de l’ère musulmane)	800,Couronnement de Charlemagne	987,Avènement d’Hugues Capet	XIII° siècle,Louis IX (Saint Louis) le temps des cathédrales	1453,Chute de Constantinople	Milieu du XV° siècle,Naissance de l’imprimerie en occident (la Bible de Gutenberg)	1492,Prise de Grenade et découverte de l’Amérique	XVI° siècle,Réformes protestantes (Luther et Calvin)	1661-1715,Règne personnel de Louis XIV	Milieu du XVIII° siècle,L’encyclopédie de Diderot et d’Alembert	2° moitié du XVIII°,Machine à vapeur de James Watt	1789,Prise de la Bastille – Déclaration des droits de l’homme et du citoyen	1792,Proclamation de la 1ère république	1804 - 1815,Premier empire – Napoléon 1er	1815 - 1848,Monarchie constitutionnelle	1848,Abolition de l’esclavage	1848 - 1852,2ème république	1852 - 1870,Second empire – Napoléon III	1870 - 1940,3ème république	1885,Pasteur découvre le vaccin contre la rage	1898,Affaire Dreyfus
+val13=$[$val7-0.3]
+val14=-1,$val7+1
+
+!ifval $val11=0 
+val15= -5,5
+!else
+val15=-2,5
+!endif
+
+!ifval $val11=1 
+val15= -5,2
+!endif
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val16=$(tmp0)
+tmp0=!shuffle $val16
+
+val17=$(tmp0)
+val17=$(val17[1..$val7])
+tmp0=!sort numeric item $val17
+
+val17=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val17 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!trim $val12
+val18=!translate internal $	\
+$ to ;; in $tmp
+val19=$[rint((1.5*$val9)*($val13+1))]
+val20=$[rint(4*$val10)]
+val19=$val19,$val20
+val21=xrange $val14	yrange $val15	lines $val8,$val13,1,-1,1,-1,-1,$val13,-1,$val13,-2,$val7+0.5,0,$val13,2,$val13,1	fill 0,\0,$val8	
+
+!ifval $val11=0 
+tmp0=!values x for x=1 to 2*$val7
+
+val22= $(tmp0)
+!endif
+
+!ifval $val11=1 
+tmp0=!values 2*x-1 for x=1 to $val7
+
+val22= $(tmp0)
+!endif
+
+!ifval $val11=2 
+tmp0=!values 2*x for x=1 to $val7
+
+val22= $(tmp0)
+!endif
+tmp0=!makelist r x for x in  $val22
+
+val22=$(tmp0)
+val23=
+val24=
+!for val25 =0 to $val7-1 
+
+!ifval $val11=0 or $val11=1 
+val21= $val21	  line $val25-0.1,-1,$val25-0.1,-2,$val8
+!endif
+
+!ifval $val11=0 or $val11=2 
+val21= $val21	  line $val25-0.1,0.7,$val25-0.1,2,$val8
+!endif
+t_=!replace internal \( by ( in [2*$val25+1,2*$val25+2]
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+!readproc slib/draw/convpixel $val25-0.5,-2,$val19,$val14,$val15,0,pixels 
+tmp0=$slib_out
+val27=$(tmp0)
+val23=$val23	 r$(val26[1]),$(val27[1]) x $(val27[2])
+!readproc slib/draw/convpixel $val25-0.5,4,$val19,$val14,$val15,0,pixels 
+tmp0=$slib_out
+val27=$(tmp0)
+val24=$val24	r$(val26[2]),$(val27[1]) x $(val27[2])
+!next
+
+!ifval $val11=1 or $val11=0
+val28= $val23
+!endif
+
+!ifval $val11=2 or $val11=0
+val28= $val28	 $val24
+!endif
+!readproc oef/draw.phtml $val19 \
+$val21 
+tmp0=$ins_url
+val29=$(tmp0)
+oefsteps=$val22 
+nextstep=!nosubst $val22 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyoption1=shuffle 
+replyname1=
+replygood1=$(val18[1;1])
+replytype2=clickfill
+replyoption2=shuffle 
+replyname2=
+replygood2=$(val18[1;2])
+replytype3=clickfill
+replyoption3=shuffle 
+replyname3=
+replygood3=$(val18[2;1])
+replytype4=clickfill
+replyoption4=shuffle 
+replyname4=
+replygood4=$(val18[2;2])
+replytype5=clickfill
+replyoption5=shuffle 
+replyname5=
+replygood5=$(val18[3;1])
+replytype6=clickfill
+replyoption6=shuffle 
+replyname6=
+replygood6=$(val18[3;2])
+replytype7=clickfill
+replyoption7=shuffle 
+replyname7=
+replygood7=$(val18[4;1])
+replytype8=clickfill
+replyoption8=shuffle 
+replyname8=
+replygood8=$(val18[4;2])
+replytype9=clickfill
+replyoption9=shuffle 
+replyname9=
+replygood9=$(val18[5;1])
+replytype10=clickfill
+replyoption10=shuffle 
+replyname10=
+replygood10=$(val18[5;2])
+replytype11=clickfill
+replyoption11=shuffle 
+replyname11=
+replygood11=$(val18[6;1])
+replytype12=clickfill
+replyoption12=shuffle 
+replyname12=
+replygood12=$(val18[6;2])
+replytype13=clickfill
+replyoption13=shuffle 
+replyname13=
+replygood13=$(val18[7;1])
+replytype14=clickfill
+replyoption14=shuffle 
+replyname14=
+replygood14=$(val18[7;2])
+replytype15=clickfill
+replyoption15=shuffle 
+replyname15=
+replygood15=$(val18[8;1])
+replytype16=clickfill
+replyoption16=shuffle 
+replyname16=
+replygood16=$(val18[8;2])
+replytype17=clickfill
+replyoption17=shuffle 
+replyname17=
+replygood17=$(val18[9;1])
+replytype18=clickfill
+replyoption18=shuffle 
+replyname18=
+replygood18=$(val18[9;2])
+replytype19=clickfill
+replyoption19=shuffle 
+replyname19=
+replygood19=$(val18[10;1])
+replytype20=clickfill
+replyoption20=shuffle 
+replyname20=
+replygood20=$(val18[10;2])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val29,$(val19[1])x$(val19[2]),$val9 x $val10	$val28 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,19,28,29
+embedcnt=1

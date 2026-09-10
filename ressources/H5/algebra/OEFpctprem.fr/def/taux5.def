@@ -1,0 +1,142 @@
+!set title=Taux d'évolution 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=hausse,baisse
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+val9=
+val10=
+val11=
+!for val12 =1 to 2 
+tmp0=!randint 5, 95
+
+val13=$[rint($(tmp0))]
+val14=augmentation de $val13&nbsp;%
+tmp0=!append item $val14 to $val9
+
+val9=$(tmp0)
+val15=$[1+$val13/100]
+tmp0=!append item $val15 to $val10
+
+val10=$(tmp0)
+val16=\($val15= 1 + \frac{$val13}{100}\)
+tmp0=!append item $val16 to $val11
+
+val11=$(tmp0)
+val14=baisse de $val13&nbsp;%
+tmp0=!append item $val14 to $val9
+
+val9=$(tmp0)
+val15=$[1-$val13/100]
+tmp0=!append item $val15 to $val10
+
+val10=$(tmp0)
+val16=\($val15= 1 - \frac{$val13}{100}\)
+tmp0=!append item $val16 to $val11
+
+val11=$(tmp0)
+!next
+tmp0=!randitem 0,25,50
+
+tmp1=!randint 1, 4
+
+val13=$[rint($(tmp0)+$(tmp1)*100)]
+val14=augmentation de $val13&nbsp;%
+tmp0=!append item $val14 to $val9
+
+val9=$(tmp0)
+val15=$[1+$val13/100]
+tmp0=!append item $val15 to $val10
+
+val10=$(tmp0)
+val16=\($val15= 1 + \frac{$val13}{100}\)
+tmp0=!append item $val16 to $val11
+
+val11=$(tmp0)
+val17=Coefficient<br> multiplicateur,Évolution
+!for val18 =1 to 5 
+val17=$val17;$(val10[$val18]),$(val11[$val18]) <br> correspond à une $(val9[$val18])
+!next
+!readproc slib/text/matrixhtml [$val17],1 center wimsborder,TH=[1;] 
+tmp0=$slib_out
+val19=$(tmp0)
+replytype1=correspond
+replyname1=
+replygood1=$val10;$val9
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst <div class="table-scroll">$val19</div>
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	  Associer chaque coefficient multiplicateur à l'évolution correspondante&nbsp;:	</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1,50x80x200 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<div class="table-scroll">$val19</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19
+embedcnt=1

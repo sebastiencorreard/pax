@@ -1,0 +1,157 @@
+!set title=Borne sup 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Menini
+email=chantal.menini@math.u-bordeaux.fr
+title_en=Upper bound 3
+
+ansorder=r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+credits=
+val7=est un majorant de,est un minorant de
+val8=majorés, minorés, supérieures,inférieures
+val9=Soient \(A) et \(B) deux ensembles non vides et,	  On note respectivement, et, leurs bornes, On sait que
+val10=On peut en déduire (il peut y avoir une ou plusieurs bonnes réponses).
+!if $val6=en 
+val7=is an upper bound of,is a lower bound of
+val8=above,below,above,below
+val9=Let \(A) and \(B) be two not-empty sets and,	  We denote respectively by, and, their bounds, We know that
+val10=We can deduce (there can be one or several good answers)
+!endif
+tmp=!trim \(\sup(A)\leq \sup(B)),1,1,0,0,0,0	\(\sup(A)< \sup(B)),1,1,1,0,0,1	\(\sup(A)=\sup(B)),1,1,0,0,0,0	\(\inf(A)\geq \inf(B)),1,1,0,0,0,0	\(\inf(A)> \inf(B)),1,1,1,0,0,1	\(\inf(A)=\inf(B)),1,1,0,0,0,0	
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim \(\sup(B)) $(val7[1]) \(A)	\(\forall x\in A\quad x\leq \sup(B))	\(\forall x\in A\quad x< \sup(B))	\(\sup(A))$(val7[2]) \(B)	\(\forall x\in B\quad x\geq \sup(A))	\(\exists x\in B\quad x> \sup(A))	\(\inf(B)) $(val7[2]) \(A)	\(\forall x\in A\quad x\geq \inf(B))	\(\forall x\in A\quad x> \inf(B))	\(\inf(A)) $(val7[1]) \(B)	\(\forall x\in B\quad x\leq \inf(A))	\(\exists x\in B\quad x< \inf(A))	
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+val13=$[rint($(tmp0)/2)]
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val14=$[rint($(tmp0)/2)]
+tmp0=!randint 1, $val13
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 0, 1
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16==0 
+val17= $(val8[1]) 
+!else
+val17= $(val8[2])
+!endif
+
+!ifval $val16==0 
+val18= \sup(A) 
+!else
+val18= \inf(A)
+!endif
+
+!ifval $val16==0 
+val19= \sup(B) 
+!else
+val19= \inf(B)
+!endif
+
+!ifval $val16==0 
+val20= $(val8[3]) 
+!else
+val20=$(val8[4])
+!endif
+val21=$[rint($val15+$val16*$val13)]
+val22=$[rint(1+ $val16*$val14)]
+val23=$[rint($val14+ $val16*$val14)]
+val24=$(val11[$val21 ;2..-1])
+val25=$(val11[$val21 ;1])
+tmp0=!positionof item 1 in $val24
+
+val26=$(tmp0)
+tmp0=!item 1 to $val14 of A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+
+val27=$(tmp0)
+replytype1=checkbox
+replyoption1=split 
+replyname1=\name_answer
+replygood1=$val26;$val27
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="oef_explain">$(val9[1]) $val17.	$(val9[2]) 
+!insmath $val18
+$() $(val9[3]) 
+!insmath $val19
+$() $(val9[4]) $val20.	$(val9[5])	<div class="wimscenter">	 $val25.	</div>	$val10	</div>	   
+!for m_i=1 to $val14 
+$()<div class="oefreply"> 
+!read oef/embed.phtml reply 1,\i, $(val27[$m_i]) : $(val12[$m_i+$val16*$val14;]) 
+$()</div> 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,12,14,16,17,18,19,20,25,27
+embedcnt=1

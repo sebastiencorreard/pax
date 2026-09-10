@@ -1,0 +1,230 @@
+!set title=Déterminer le coefficient de z^n
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=polynomials,complex_number
+oefobservation=
+language=fr
+computeanswer=no
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=24
+prevarcnt=22
+postvarcnt=1
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val3 notwordof 1 2 3 4 5 6 7 8 9 10 
+val3=2
+!endif
+val6=
+val7=
+val8=
+val9=
+!for val10 =1 to 10 
+tmp=!nonempty items 1,2,2,3,3
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+tmp0=!randint 3, 10
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, $val12
+
+val13=$[rint($(tmp0))]
+tmp=!nonempty items 1,2,3,3
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp0=!item $val14 of (z+$val11)^$val12,($val11+z)^$val12,($val11-z)^$val12
+
+val15=!rawmath $(tmp0)
+val16=$[rint(binomial($val12,$val13)*($val11)^($val12-$val13))]
+
+!ifval $val14=3
+val16=$[rint((-1)^$val13*$val16)]
+!else
+val16=$[rint($val16)]
+!endif
+tmp=!translate ";': to $     $ in z^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+val18=\binom{$val12}{$val13} \times $val11^{$val12-$val13}
+
+!ifval $val14=3
+val18=(-1)^$val13 \times $val18
+!else
+val18=$val18
+!endif
+
+!ifval $val6=
+val6=$val17
+!else
+val6=$val6,$val17
+!endif
+
+!ifval $val7=
+val7=$val18
+!else
+val7=$val7,$val18
+!endif
+
+!ifval $val8=
+val8=$val15
+!else
+val8=$val8,$val15
+!endif
+
+!ifval $val9=
+val9=$val16
+!else
+val9=$val9,$val16
+!endif
+!next
+tmp0=!makelist reply x for x=1 to $val3
+
+val19=$(tmp0)
+tmp0=!replace internal , by ; in $val19
+
+val19=$(tmp0)
+oefsteps=$val19 
+nextstep=!nosubst $val19 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=comma default=0 
+replyname1=
+replygood1=$[$(val9[1])]
+replytype2=numeric
+replyoption2=comma default=0 
+replyname2=
+replygood2=$[$(val9[2])]
+replytype3=numeric
+replyoption3=comma default=0 
+replyname3=
+replygood3=$[$(val9[3])]
+replytype4=numeric
+replyoption4=comma default=0 
+replyname4=
+replygood4=$[$(val9[4])]
+replytype5=numeric
+replyoption5=comma default=0 
+replyname5=
+replygood5=$[$(val9[5])]
+replytype6=numeric
+replyoption6=comma default=0 
+replyname6=
+replygood6=$[$(val9[6])]
+replytype7=numeric
+replyoption7=comma default=0 
+replyname7=
+replygood7=$[$(val9[7])]
+replytype8=numeric
+replyoption8=comma default=0 
+replyname8=
+replygood8=$[$(val9[8])]
+replytype9=numeric
+replyoption9=comma default=0 
+replyname9=
+replygood9=$[$(val9[9])]
+replytype10=numeric
+replyoption10=comma default=0 
+replyname10=
+replygood10=$[$(val9[10])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wimscenter"><div class="wims_score_bar"><div class="inline">	     
+!for m_j=1 to $m_step-1 
+$()	    <div class="inline wims_seed_item" style="background-color:blue" title="done"></div>	   
+!next
+$()	   
+!for m_j=$m_step to $val3 
+$()	    <div class="inline wims_seed_item" style="background-color:#FFF" title="todo"></div>	   
+!next
+$()	</div></div></div>	<div class="wims_question">	 
+!for m_qq=1 to $val3 
+$()
+!if $m_step=$m_qq 
+$()	<p>Quelle est la valeur du coefficient en 
+!insmath $(val6[$m_qq])
+$() de 
+!insmath $(val8[$m_qq])
+$() ?</p>	<p><label for="reply$m_qq"><STRONG>Réponse :</STRONG> </label> 
+!read oef/embed.phtml r\qq,10	autofocus 
+$()</p>	 
+!endif
+$() 
+!next
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val20=$m_sc_reply1,$m_sc_reply2,$m_sc_reply3,$m_sc_reply4,$m_sc_reply5,$m_sc_reply6,$m_sc_reply7,$m_sc_reply8,$m_sc_reply9,$m_sc_reply10
+
+!exit
+
+:feedback
+!ifval $(val20[$m_step])<1
+ <div class='oef_feedbacks'><style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	<div class="feedmutu">	  Le coefficient de 
+!insmath $(val6[$m_step])
+$() est 
+!insmath  $(val7[$m_step])
+$()	</div>	  
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,7,8
+embedcnt=1

@@ -1,0 +1,151 @@
+!set title=Fonction associée à sin
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 3, 5
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+val10=!rawmath sin(x)
+val11=!rawmath $val7*sin($val8*x)+$val9
+val12=$[rint(-$val8)]
+val13=$[rint($val9)]
+val14=$[rint(-$val8)]
+val15=$[rint($val9)]
+val16=$[rint(0)]
+val17=$[rint(min($val9,0)-$val7-2)]
+val18=$[rint(max($val9,0)+$val7+1)]
+val19=xrange -10,10	yrange $val17,$val18	linewidth 1	  parallel -9.42,$val17,-9.42,$val18,3.14,0,20,$val6	linewidth 1	  parallel -10,$val17,10,$val17,0,1,17,blue	linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.3,-0.3,medium,i	text red,-0.5,0.7,medium,j	text black,-0.2,-0.2,medium,O	text black,0,$val13,medium,$val15	    linewidth 2	    plot blue,$val10	    plot red,$val11	
+val20=<br>Multiplier la fonction \($val10) par \(k) dilate sa courbe verticalement dans un rapport \(k).<br>
+val20=$val20 Multiplier \(x) par \(k) dans \($val10) contracte horizontalement sa courbe dans un rapport \(k) <br>
+val20=$val20 <br>Ajouter une constante \(k) à \(f(x)) translate la courbe de \(f) de <br>
+val20=$val20 <ul> <li> \(k) unités vers le haut si \(k) est positif </li>
+val20=$val20  <li>\(-k) unités vers le bas si \(k) est négatif.</li></ul>   
+
+!ifval $val9>0 
+val21=$[rint( $val9)]
+!else
+val21=$[rint( -$val9)]
+!endif
+
+!ifval ($val9)^2>1 
+val22= unités
+!else
+val22=unité
+!endif
+
+!ifval $val9>0 
+val22= $val21 $val22 vers le haut
+!else
+val22=$val21 $val22 vers le bas
+!endif
+val23=<br> La courbe rouge est celle de la fonction sinus (bleue)
+!if $val7 != 1 
+val23=$val23 dilatée verticalement dans un rapport $val7 
+!endif
+!if $val8 != 1 and $val7 !=1 
+val23=$val23, 
+!endif
+!if $val8 != 1 
+val23=$val23 contractée horizontalement dans un rapport $val8 
+!endif
+!if $val8 != 1 or $val7 !=1 
+val23=$val23 et 
+!endif
+val23=$val23 translatée verticalement de $val22.<br>	Donc elle représente la fonction \(f) définie par :  \(f(x) = $val11).
+replytype1=function
+replyname1=\(f(x)) 
+replygood1=!rawmath $val11
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val20
+
+solution=!nosubst $val23
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_left spacer">	  
+!read oef/draw.phtml 500,300 \
+$val19 
+$()</div>	    	Dans le plan muni d'un repère orthogonal 
+!insmath (O,\overrightarrow{i},\overrightarrow{j})
+$(), 	on a tracé la courbe représentative de la fonction sinus (en bleu),	 et la courbe représentative d'une fonction 
+!insmath f
+$() (en rouge).<br>	Par lecture graphique, déterminer l'expression de 
+!insmath f
+$().<br>	Les lignes verticales sont espacées de 
+!insmath \pi
+$() unités.	      <br class="clearall">			
+$()
+!exit
+
+:hint
+$()$val20
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val23
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20,23
+embedcnt=0

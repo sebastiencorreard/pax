@@ -1,0 +1,211 @@
+!set title=Évolutions successives 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Fabien, Sommier
+email=regine@mangeard.fr,fabien.sommier@gmail.com
+precision=100
+
+ansorder=r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=augmenter,baisser
+val8=hausse,baisse
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1000, 3000
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val11=$[rint($(tmp0))]
+
+!ifval $val9=1
+val12=$[1+$val11/100]
+!else
+val12=$[1-$val11/100]
+!endif
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val14=$[rint($(tmp0))]
+
+!ifval $val13=1
+val15=$[1+$val14/100]
+!else
+val15=$[1-$val14/100]
+!endif
+val16=$[$val12*$val15]
+!if $val16=1 
+val13=$[rint(3-$val13)]
+
+!ifval $val13=1
+t_=!rawmath 1+$val14/100
+val15=!exec pari print($t_)
+!else
+t_=!rawmath 1-$val14/100
+val15=!exec pari print($t_)
+!endif
+t_=!rawmath $val12*$val15
+val16=!exec pari print($t_)
+!endif
+
+!ifval $val16>1
+val17=$[rint(1)]
+!else
+val17=$[rint(2)]
+!endif
+val18=$[($val16-1)*100]
+
+!ifval $val17=1
+val19=$[($val16-1)*100]
+!else
+val19=$[(1-$val16)*100]
+!endif
+t_=!rawmath $val10*$val16
+val20=!exec pari print($t_)
+val21=$[rint($val20)]
+val22=$[round($val20*100)/100]
+!readproc slib/numeration/ecriturenombre $val19,comma tex 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val16,comma tex 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val12,comma tex 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val15,comma tex 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val22,comma tex 
+tmp0=$slib_out
+val27=$(tmp0)
+!if $val22!=$val20 
+val28=euros (valeur arrondie au centime).
+!else
+val28=euros.
+!endif
+!readproc slib/numeration/ecriturenombre $val10,tex 
+tmp0=$slib_out
+val29=$(tmp0)
+
+!ifval $val9=1
+val30=\(CM1= 1+\frac{$val11}{100}\) 
+!else
+val30= \(CM1= 1-\frac{$val11}{100}\) 
+!endif
+
+!ifval $val13=1
+val31=\(CM2= 1+\frac{$val14}{100}\) 
+!else
+val31= \(CM2= 1-\frac{$val14}{100}\) 
+!endif
+val32=<span class="nowrap">\(CM= CM1 \times CM2\).</span><br> <span class="nowrap">\(CM= $val24\).</span>
+val33=<p>Dans le cas d'évolutions successives, on peut calculer les différents coefficients multiplicateurs	associés aux différentes évolutions, puis calculer le coefficient multiplicateur global.</p>	<p>Appelons CM1 le coefficient multiplicateur correspondant à la première évolution et CM2 celui de la deuxième.</p>	<p> $val30 d'où \(CM1 = $val25\) et $val31 d'où <span class="nowrap">\(CM2 = $val26\).</span> </p>	<p> Le coefficient multiplicateur global est $val32</p>
+!readproc slib/numeration/ecriturenombre $val18,comma tex 
+tmp0=$slib_out
+val34=$(tmp0)
+val35=<p>On peut calculer la valeur obtenue après les 2 évolutions&nbsp;: on obtient \($val27\) $val28<br>	  Ensuite, on calcule le taux d'évolution qui permet de passer de \($val29\) à <span class="nowrap">\($val27\) :</span>	  c'est une évolution de <span class="nowrap">\($val34\) %.</span></p>	<p><b>AUTRE MÉTHODE</b>&nbsp;: <br></p>
+
+!ifval $val17=1
+val32=\(CM > 1\) donc il s'agit d'une hausse.
+!else
+val32= \(CM < 1\) donc il s'agit d'une baisse.
+!endif
+
+!ifval $val17=1
+val36=positif, car il s'agit d'une hausse&nbsp;
+!else
+val36= négatif car il s'agit d'une baisse (de <span class="nowrap">\($val23\) %</span>)
+!endif
+val33=$val33 $val32 <br>Le taux d'évolution global en pourcentage est \(t\) avec 
+val33=$val33 \(t= (CM -1)\times 100\) ce qui donne <span class="nowrap">\(t=$val34\) %.</span> 
+val33=$val33 <br>	<i>Remarque</i> : le taux est $val36.
+replytype1=menu
+replyweight1=1 
+replyname1=évolution
+replygood1=$val17;$val8
+replytype2=numexp
+replyweight2=9 
+replyname2=taux
+replygood2=$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val35 $val33
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p> Un bien de valeur 
+!insmath $val29
+$() euros a subi une $(val8[$val9]) de <span class="nowrap">
+!insmath $val11
+$() %</span>	  puis une $(val8[$val13]) de <span class="nowrap">
+!insmath $val14
+$() %.</span></p>	<div class="wimscenter"><label for="reply1">Il a subi globalement une</label>  
+!read oef/embed.phtml reply1 
+$() <label for="reply2">de</label> <span class="nowrap"> 
+!read oef/embed.phtml reply2,4 
+$() %.</span></div>	<div class="wims_instruction">Donner la valeur exacte du taux d'évolution.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val35 $val33
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,13,14,29,33,35
+embedcnt=2

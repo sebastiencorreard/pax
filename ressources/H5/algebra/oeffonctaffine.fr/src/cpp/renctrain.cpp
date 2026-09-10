@@ -1,0 +1,121 @@
+target=renctrain1 renctrain2
+#define TITRE Rencontre de trains
+#if defined TARGET_renctrain1
+\title{TITRE 1}
+#endif
+#if defined TARGET_renctrain2
+\title{TITRE 2}
+#endif
+
+\language{fr}
+\range{-5..5}
+\author{Rémi,Belloeil}
+\email{remi.belloeil@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+### Les trains partent et se croisent un multiple de 5 minutes après 8h ###
+\integer{t0=randint(7..10)}
+\integer{d=30}
+\integer{L=5*\d}
+\integer{n1=randint(2..5)}
+\integer{n2=randint(2..5)}
+\integer{s1=0}
+\integer{t1=5*\s1}
+\integer{s2=1}
+\integer{a=(2*\d+\n1*\s1+\n2*\s2)}
+\integer{b=\n1+\n2}
+\integer{r=\a - \b*floor(\a / \b) }
+\while{ (\s2<7) and (\r >0)} {
+  \integer{s2=\s2+1}
+  \integer{a=(2*\d+\n1*\s1+\n2*\s2)}
+  \integer{b=\n1+\n2}
+  \integer{r=\a - \b*floor(\a / \b) }
+ }
+\if{ (\r > 0) or (60*\L<\t2*\v1)} {
+  \integer{n2=1}
+  \integer{a=(2*\d+\n1*\s1)}
+  \integer{b=\n1+1}
+  \integer{r=\a - \b*floor(\a / \b) }
+  \integer{s2=\n1+1-\r}
+}
+\integer{t2=5*\s2}
+\integer{v1=30*\n1}
+\integer{v2=30*\n2}
+\integer{t=5*(2*\d+\n1*\s1 + \n2*\s2)/(\n1 + \n2)}
+\integer{Di=\v1*(\t - \t1)/60}
+\integer{t3=\t1 + \L/\v1*60}
+\integer{t4=\t2 + \L/\v2*60}
+
+\integer{m2=\t2 - 60*floor(\t2/60)}
+\integer{h2=\t0 + floor(\t2/60)}
+\integer{m3=\t3 - 60*floor(\t3/60)}
+\integer{h3=\t0 + floor(\t3/60)}
+\integer{m4=\t4 - 60*floor(\t4/60)}
+\integer{h4=\t0 + floor(\t4/60)}
+
+\integer{m=\t - 60*floor(\t/60)}
+\integer{h=\t0 + floor(\t/60)}
+
+\integer{tg1=\t0+1}
+\integer{xM=max(\t3,\t4)+20}
+\text{graph= xrange -50,\xM
+yrange -50,160
+linewidth 1
+parallel 0,0,\xM,0,0,10,20,black
+parallel 0,0,0,160,5,0,40,black
+linewidth 3
+parallel 0,0,0,160,60,0,4,black
+parallel 0,50,\xM,50,0,50,2,black
+arrow 0,0,\xM,0,10,black
+arrow 0,0,0,160,10,black
+linewidth 4
+segment 0,150,\xM,150,black
+segment 0,0,\t3,150,blue
+segment \t2,150,\t4,0,red
+
+text black, -3,-1,large,\t0 h
+text black, 57,-1,large,\tg1 h
+text black, -7,2,large, 0
+text black, -13,52,large,50 km
+text black, -14,102,large,100 km
+text black, -14,152,large,150 km
+text black, \t2,160,large,\h2 h \m2
+text black, \t3,160,large,\h3 h \m3
+text black, \t4,-2,large,\h4 h \m4
+}
+
+\text{name_hint=Réalisez un graphique en graduant l'axe horizontal de 5 minutes
+  en 5 minutes à partir de \t0 h. Puis calculez la vitesse en km/min
+  du 1er train pour connaître la distance par rapport à Arnes.}
+
+\statement{
+  <ul><li>
+  Les villes Arnes et Buluc sont distantes de \L km.
+  </li><li>
+  Le train N°1 part de Arnes à \t0 h et arrive à Buluc \h3 h \m3 min.
+  </li><li>
+  Le train N°2 part de Buluc à \h2 h \m2 min et arrive à Arnes \h4 h \m4 min.
+  </li></ul>
+  <div class="wims_question">
+  <ul class="wims_nopuce"><li>
+  A quel instant les deux trains se croiseront-ils ? <br>
+  Réponse : <label for="reply1">Ils se croiseront à</label> \embed{reply1,3} h \embed{reply2,3}
+  <label for="reply2">min.</label>
+  #if defined TARGET_renctrain2
+  </li><li>
+  A quelle distance de Arnes se croiseront-ils ?<br>
+  Réponse : <label for="reply3">Ils se croiseront à</label> \embed{reply3,4} km de Arnes.
+#endif
+  </li></ul>
+  </div>
+}
+\hint{\name_hint}
+\answer{Heure du croisement}{\h}{type=default}
+\answer{Minutes du croisement}{\m}{type=default}
+#if defined TARGET_renctrain2
+\answer{Distance de Arnes}{\Di}{type=default}
+#endif
+
+\solution{\draw{800,400}{\graph}}

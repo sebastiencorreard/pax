@@ -1,0 +1,146 @@
+!set title=Décomposer en somme et produit
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Joseph,Cesaro;Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r
+varcnt=8
+prevarcnt=3
+postvarcnt=4
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 2,3,5
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 11,13,17,19
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=$[rint($val6*$val7)]
+replytype1=numexp
+replyname1=Premier facteur
+replygood1=?analyze 9
+replytype2=numexp
+replyname2=Deuxième facteur
+replygood2=?analyze 10
+replytype3=numexp
+replyname3=Premier terme
+replygood3=?analyze 11
+replytype4=numexp
+replyname4=Deuxième terme
+replygood4=?analyze 12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Décomposer $val8 en une somme et un produit de nombres entiers supérieurs ou égaux à 2.	<ul>	 <li> 
+!read oef/embed.phtml r1,5 
+$() 
+!insmath \times
+$()  
+!read oef/embed.phtml r2,5 
+$() 
+!insmath =\; $val8
+$().</li>	 <li> 
+!read oef/embed.phtml r3,5 
+$() 
+!insmath +\;
+$() 
+!read oef/embed.phtml r4,5 
+$() 
+!insmath =\; $val8
+$()</li>	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val13=$val11$val12
+
+!ifval $val11>=2 and $val12>=2 and . notin $val13
+val14=$[rint(1)]
+!else
+val14=$[rint(0)]
+!endif
+val15=$val9$val10
+
+!ifval $val9>=2 and $val10>=2 and . notin $val15
+val16=$[rint(1)]
+!else
+val16=$[rint(0)]
+!endif
+
+!exit
+
+:feedback
+!ifval $val14!=1 or $val16!=1
+ <div class='oef_feedbacks'>Vous n'avez pas tous les points car certains nombres que vous avez donnés ne sont pas des entiers plus grands que 2 !!!
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val9*$val10=$val8 and $val16=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Condition de produit
+
+!ifval $val11+$val12=$val8 and $val14=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Condition de somme
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12
+embedcnt=4

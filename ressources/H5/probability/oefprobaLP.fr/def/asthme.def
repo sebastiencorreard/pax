@@ -1,0 +1,158 @@
+!set title=Fluctuation (étude sur l'asthme)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 110, 150
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 15
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 8, 30
+
+val8=$[rint($(tmp0))]
+val9=$[$val7*10]
+val10=$[$val6/1000]
+val11=$[$val10*100]
+val12=$[rint(1000*$val8/$val9)/10]
+val13=$[rint(1000*$val8/$val9)/1000]
+val14=$[rint(($val10-1/sqrt($val9))*1000)]
+val15=$[rint(($val10+1/sqrt($val9))*1000)]
+val16=$[$val14/1000]
+val17=$[$val15/1000]
+
+!ifval $val17>$val13 
+val18=$[rint( 1)]
+!else
+val18=$[rint(2)]
+!endif
+oefsteps=reply1, reply2 , reply3	reply4 , reply5 , reply6 
+nextstep=!nosubst reply1, reply2 , reply3	reply4 , reply5 , reply6 
+!readproc oef/steps.proc
+replytype1=default
+replyoption1=comma 
+replyname1=
+replygood1=$val9
+replytype2=default
+replyoption2=comma 
+replyname2=
+replygood2=$val12
+replytype3=default
+replyoption3=comma 
+replyname3=
+replygood3=$val10
+replytype4=default
+replyoption4=comma 
+replyname4=
+replygood4=$val16
+replytype5=default
+replyoption5=comma 
+replyname5=
+replygood5=$val17
+replytype6=radio
+replyname6=
+replygood6=$val18;Une investigation plus complète n'est pas nécessaire,Une investigation plus complète doit être mise en place
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<span class="float_left"><img src="$val1/asthme.jpg" alt="Personnage asthmatique"></span>	On admet que dans la population de préadolescents d’un département français le pourcentage d’enfants ayant déjà eu une crise d’asthme dans leur vie est de<b> $val11% </b>.<br>	Le médecin d’une ville de ce département est surpris du nombre important d’enfants le consultant ayant des crises d’asthme et en informe les services sanitaires. Ceux–ci décident d’entreprendre une étude et d’évaluer la proportion de jeunes ayant déjà eu des crises d’asthme. <br>	<span class="float_right"><img src="$val1/ado.jpg" alt="adolescent"></span>Ils sélectionnent de manière aléatoire <b> $val9 </b> préadolescents de cette ville.<br>	Si la proportion observée est supérieure à la borne supérieure de l’intervalle de fluctuation au seuil de 95%, alors une investigation plus complète sera mise en place afin de rechercher les facteurs de risque pouvant expliquer cette proportion élevée.	L’étude réalisée auprès des <b>$val9</b> préadolescents a dénombré <b>$val8</b> jeunes ayant déjà eu des crises d’asthme.<br>	
+!if  $m_step = 1  
+$()<ul class="wims_nopuce"><li>Quelle est la taille de l’échantillon sélectionné?  
+!read oef/embed.phtml reply 1,4 
+$() </li>	<li>Quelle est la fréquence en % des préadolescents ayant eu une crise d’asthme dans l’échantillon considéré ?  
+!read oef/embed.phtml reply2,4  
+$() % <span class="wims_smallremark">arrondir au dixième</span></li>	<li>Quelle est la probabilité qu’un préadolescent pris au hasard dans le département ait déjà eu une crise d’asthme ?  
+!read oef/embed.phtml reply 3,4 
+$() <span class="wims_smallremark">forme décimale</span></li></ul> 
+!endif
+$()	
+!if  $m_step = 2  
+$()<span class="oef_indgood">Bonnes réponses <br>Rappel des résultats:</span> <ul class="wims_nopuce"><li>Taille de l'échantillon: 
+!insmath n=$val9
+$().</li>	<li>Probabilité de l'évènement: 
+!insmath p= $val10
+$().</li>	<li>Fréquence de l'évènement: 
+!insmath f=$val13
+$().</li></ul>	<p> Déterminer l’intervalle de fluctuation au seuil de 95% de la proportion de pré-adolescents ayant eu une crise d’asthme dans un échantillon de taille 100.</p>	L’intervalle de fluctuation est [  
+!read oef/embed.phtml reply 4,4 
+$() ;  
+!read oef/embed.phtml reply 5,4 
+$()]<br>	Que pouvez-vous conclure ? <span class="wims_smallremark">cocher la bonne réponse</span>	<ul> 
+!for m_h=1 to 2 
+$()<li> 
+!read oef/embed.phtml reply6,\h 
+$()</li> 
+!next
+$()</ul>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,9,10,11,13
+embedcnt=6

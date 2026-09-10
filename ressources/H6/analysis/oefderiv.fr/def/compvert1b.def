@@ -1,0 +1,141 @@
+!set title=Composition virtuelle Ib
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+precision=10000
+title_en=Virtual multiplication Ib
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Soit \(f\) une fonction dérivable de dérivée \(f'\).	  Calculez la dérivée de la fonction \(g\) définie par
+val8=Dérivée
+!if $val6=en 
+val7=Let \(f\) be a differentiable function, with derivative \(f'\).	  Compute the derivative of the function \(g\) defined by
+val8=Derivative
+!endif
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+!readproc slib/data/randline src/simple1.data 
+tmp0=$slib_out
+val15=!rawmath $(tmp0)
+t_=!replace internal \( by ( in subst($val11,c1,subst($val12,c2,subst($val13,c3,subst($val14,c4,$val15))))
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val15,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val16=!rawmath $(tmp0)
+val17=f($val15)
+tmp=!translate ";': to $     $ in ($val16)*fprime
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+tmp0=!replace internal fprime by f'($val15) in $val18
+
+val19=$(tmp0)
+replytype1=formal
+replyname1=$val8 \(g'(x)\)
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7 
+!insmath g(x) = $val17
+$(). 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,17
+embedcnt=0

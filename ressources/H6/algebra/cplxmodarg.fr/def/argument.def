@@ -1,0 +1,230 @@
+!set title=Argument d'un nombre complexe
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=30
+prevarcnt=28
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+tmp=!nonempty items 1,2,3,4
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+!else
+tmp=!nonempty items $val2,$val2
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+!endif
+!if $val6=1 
+tmp=!nonempty items 2,3,6,9,1,2,3,6,9,sqrt(2),sqrt(3),2*sqrt(2),2*sqrt(3),3*sqrt(2),3*sqrt(3),sqrt(2)/2,sqrt(3)/2,1/sqrt(2),1/sqrt(3),1/(2*sqrt(2)),1/(2*sqrt(3))
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp=!nonempty items $val7*i,$val7
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val8=$(tmp0)*$val8
+!endif
+!if $val6=2 
+tmp=!nonempty items 2,3,6,9,1,2,3,6,9,sqrt(2),sqrt(3),2*sqrt(2),2*sqrt(3),3*sqrt(2),3*sqrt(3),sqrt(2)/2,sqrt(3)/2,1/sqrt(2),1/sqrt(3),1/(2*sqrt(2)),1/(2*sqrt(3))
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val9=$(tmp0)*$val7
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val10=$(tmp0)*$val7
+tmp=!nonempty items $val9+$val10*i,$val10*i+$val9
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+!endif
+!if $val6>=3 
+tmp0=!randint 1, 3
+
+val11=$(tmp0)
+!if $val11=1 
+tmp=!nonempty items 1/2,1/3,2,3,6,9
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!if $val6=3 
+val12=1,sqrt(3)
+!else
+val12=sqrt(3),1
+!endif
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val9=$(tmp0)*$(val12[1])*$val7
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val10=$(tmp0)*$(val12[2])*$val7
+!endif
+!if $val11=2 
+tmp=!nonempty items 1/2,1/3,2,3,6,9
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!if $val6=3 
+val12=1/sqrt(3),1
+!else
+val12=1,1/sqrt(3)
+!endif
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val9=$(tmp0)*$(val12[1])*$val7
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val10=$(tmp0)*$(val12[2])*$val7
+!endif
+!if $val11=3 
+tmp=!nonempty items 1/2,1/3,1,2,3
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!if $val6=3 
+tmp=!translate ";': to $     $ in $val7*3
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=$val7*sqrt(3),$(tmp0)
+!else
+tmp=!translate ";': to $     $ in $val7*3
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=$(tmp0),$val7*sqrt(3)
+!endif
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val9=$(tmp0)*$(val12[1])
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val10=$(tmp0)*$(val12[2])
+!endif
+tmp=!nonempty items $val9+$val10*i,$val10*i+$val9
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+!endif
+t_=!replace internal \( by ( in round(arg($val8)/pi*12)/12
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+tmp=!translate ";': to $     $ in $val13*pi
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val13=$(tmp0)
+replytype1=function
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=?analyze 14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div> Déterminer un argument du nombre complexe 
+!insmath z=$val8
+$().</div><br>	<div> Un argument de 
+!insmath z
+$() est  
+!read oef/embed.phtml reply1,10 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val15=$[abs(($val13-$val14)/(2*pi)-round(($val13-$val14)/(2*pi)))]
+
+!exit
+
+:feedback
+!ifval ($val15>=0.0001)
+ <div class='oef_feedbacks'>Un argument de 
+!insmath z
+$() est 
+!insmath $val13
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval ($val15<0.0001)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonne réponse
+
+!exit
+
+:stat
+vsavelist=8,13,14
+embedcnt=1

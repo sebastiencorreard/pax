@@ -1,0 +1,194 @@
+!set title=Intégrale trigo
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Michel, Gosse
+email=michel.gosse@ac-poitiers.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -2,-1,1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 18
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 18
+
+val10=$[rint($(tmp0))]
+
+!ifval ($val9=$val10)
+tmp0=!randint 1, 18
+
+val10=$[rint($(tmp0))]
+!endif
+
+!ifval ($val9=$val10)
+tmp0=!randint 1, 18
+
+val10=$[rint($(tmp0))]
+!endif
+tmp0=!item $val9 of 0,	pi/6,pi/4,pi/2,pi/3,pi,	-pi/6,-pi/4,-pi/2,-pi/3,-pi,	2pi/3,3pi/4,5pi/6,	-2pi/3,-3pi/4,-5pi/6,2pi	
+
+val11=$(tmp0)
+tmp0=!item $val10 of 0,pi/6,pi/4,pi/2,pi/3,pi,	-pi/6,-pi/4,-pi/2,-pi/3,-pi,	2*pi/3,3pi/4,5pi/6,	-2*pi/3,-3*pi/4,-5pi/6,2*pi	
+
+val12=$(tmp0)
+tmp0=!item $val9 of 0,%pi/6,%pi/4,%pi/2,%pi/3,%pi,	-%pi/6,-%pi/4,-%pi/2,-%pi/3,-%pi,	2*%pi/3,3*%pi/4,5*%pi/6,	-2*%pi/3,-3*%pi/4,-5*%pi/6,2*%pi	
+
+val13=$(tmp0)
+tmp0=!item $val10 of 0,%pi/6,%pi/4,%pi/2,%pi/3,%pi,	-%pi/6,-%pi/4,-%pi/2,-%pi/3,-%pi,	2*%pi/3,3*%pi/4,5*%pi/6,	-2*%pi/3,-3*%pi/4,-5*%pi/6,2*%pi	
+
+val14=$(tmp0)
+tmp0=!randitem $val6*cos($val8*x),$val6*sin($val8*x),cos($val7*x)^2,	sin($val7*x)^2,$val6*cos(x+pi),$val6*sin(x+pi),$val6*cos(x+pi/2),	$val6*sin(x+pi/2)
+
+val15=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val15,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val16=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand(subst(x=$val14,$val16)-subst(x=$val13,$val16));
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+tmp0=!texmath $val15
+
+val18=$(tmp0)
+tmp0=!texmath $val16
+
+val19=$(tmp0)
+replytype1=formal
+replyname1=Valeur de I
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer la valeur exacte de l'intégrale	<div class="wimscenter">	
+!insmath I=integrate($val15,x=$val11, $val12)
+$()	</div>	<div class="wims_instruction">	La fonction racine carrée se note <span class="tt">sqrt</span>.	Par exemple, le nombre 
+!insmath \sqrt{2}
+$() se note <span class="tt">sqrt(2)</span>.</span>	<br>Le nombre 
+!insmath \pi
+$() se note <span class="tt">pi</span>.	</div>
+$()
+!exit
+
+:hint
+$()On rappelle les formules de dérivation&nbsp;:	<div class="wimscenter">	
+!insmath (cos(u))^{'}=-u^'\times sin(u)
+$()<br> 	
+!insmath (sin(u))^{'}=u^'\times cos(u)
+$()	</div>	On rappelle aussi les valeurs remarquables des lignes trigonométriques&nbsp;:	<table class="wimscenter wimsborder wims_scrollable" width="50%">	  <tbody>	    <tr>	      <td>
+!insmath x
+$()</td>	      <td>
+!insmath 0
+$()</td>	      <td>
+!insmath \frac{\pi}{6}
+$()</td>	      <td>
+!insmath \frac{\pi}{4}
+$()</td>	      <td>
+!insmath \frac{\pi}{3}
+$()</td>	      <td>
+!insmath \frac{\pi}{2}
+$()</td>	    </tr>	    <tr>	      <td>
+!insmath cos x
+$()</td>	      <td>
+!insmath 1
+$()</td>	      <td>
+!insmath \frac{\sqrt{3}}{2}
+$()</td>	      <td>
+!insmath \frac{\sqrt{2}}{2}
+$()</td>	      <td>
+!insmath \frac{1}{2}
+$()</td>	      <td>
+!insmath 0
+$()</td>	    </tr>	    <tr>	      <td>
+!insmath sin x
+$()</td>	      <td>
+!insmath 0
+$()</td>	      <td>
+!insmath \frac{1}{2}
+$()</td>	      <td>
+!insmath \frac{\sqrt{2}}{2}
+$()</td>	      <td>
+!insmath \frac{\sqrt{3}}{2}
+$()</td>	      <td>
+!insmath 1
+$()</td>	    </tr>	  </tbody>	</table>	ainsi que les formules trigonométriques suivantes&nbsp;:	<div class="wimscenter">	
+!insmath \cos (2x)=2 cos^2 x-1
+$() et 
+!insmath cos (2x)=1-2 sin^2 x
+$()	</div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Une primitive de la fonction	<div class="wimscenter">	
+!insmath x \longmapsto $val18
+$()	</div>	est la fonction&nbsp;:	<div class="wimscenter">	
+!insmath x \longmapsto $val19
+$()	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,15,18,19
+embedcnt=0

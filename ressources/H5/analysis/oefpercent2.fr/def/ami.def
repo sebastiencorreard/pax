@@ -1,0 +1,160 @@
+!set title=Les amis de tes amis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 15
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6*$val6)]
+val8=$[rint($val6*$val7)]
+val9=$[rint(3)]
+val10=$[$val8]
+!while $val10<7*10^7 
+val10=$[$val10*$val6]
+val9=$[rint($val9+1)]
+!endwhile
+val11=$[rint($val10/1000000)]
+val12=\($val11 10^6)
+val13=$[rint($val9)]
+!while $val10<7*10^8 
+val10=$[$val10*$val6]
+val13=$[rint($val13+1)]
+!endwhile
+val14=$[rint($val10/10^6)]
+val15=\($val14 10^6)
+val16=$[rint($val13)]
+!while $val10<7*10^9 
+val10=$[$val10*$val6]
+val16=$[rint($val16+1)]
+!endwhile
+val17=$[rint($val10/10^9)]
+val18=\($val17 10^9)
+val19=$[rint(floor(log(7*10^7)/log($val6)))]
+val19=$[rint($val19+1)]
+oefsteps=reply1,reply2	reply3,reply4,reply5 
+nextstep=!nosubst reply1,reply2	reply3,reply4,reply5 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=\(u_2)
+replygood1=$[$val7]
+replytype2=numeric
+replyname2=\(u_3)
+replygood2=$[$val8]
+replytype3=numeric
+replyname3=Plus de 70 millions
+replygood3=$[$val9]
+replytype4=numeric
+replyname4=Plus de 700 millions
+replygood4=$[$val13]
+replytype5=numeric
+replyname5=Plus de 7 milliards
+replygood5=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  <table class="wimscenter wimsborder"> <tr><th>Rang</th><th>Nouveaux amis</th></tr> <tr><tr><td>1</td><td>$val6</td></tr> <tr><td>2</td><td>$val7</td></tr> <tr><td>3</td><td>$val8</td></tr> <tr><td>$val9</td><td>$val12</td></tr> <tr><td>$val13</td><td>$val15</td></tr> <tr><td>$val16</td><td>$val18</td></tr> </table> Le nombre de nouveaux amis dépasse 70 millions au rang $val9 et atteint la population mondiale au rang $val16. 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p>Les amis de tes amis sont tes amis. A ce rythme là, tous les Français, tous les Européens,	  tous les habitants de la Terre sont tes amis !	  </p><p>	  Supposons que tu aies $val6 amis qui soient amis, chacun, de $val6 personnes nouvelles	  que toi et tes amis (sauf l'un d'eux) ne connaissez pas, et ainsi de suite.	  Notons tes $val6 amis au 1er rang 
+!insmath u_1 = $val6
+$(),	  les nouveaux amis de tes amis au 2ème rang 
+!insmath u_2
+$(), et ainsi de suite.</p>		  
+!if $m_step=1 
+$()	    <ul><li><label for="reply1">	     Combien y a-t-il de nouveaux amis au rang 2 ?  
+!insmath u_2
+$()</label>=  
+!read oef/embed.phtml reply1,10 
+$() (valeur exacte)	     </li><li><label for="reply2">	     Combien y a-t-il de nouveaux amis au rang 3 ?  
+!insmath u_3
+$()</label> =  
+!read oef/embed.phtml reply2,10 
+$() (valeur exacte)	     </li></ul>	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    <ul><li><label for="reply3">Au bout de quel rang, as-tu plus de 70 millions de nouveaux amis ?</label>  
+!read oef/embed.phtml reply3,7 
+$()	    </li><li><label for="reply4">	    Au bout de quel rang, as-tu plus de 700 millions de nouveaux amis ?</label>  
+!read oef/embed.phtml reply4,7 
+$()	    </li><li><label for="reply5">	    Au bout de quel rang, as-tu plus de 7 milliards de nouveaux amis ?</label>  
+!read oef/embed.phtml reply5,7 
+$()	    </li></ul>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	  
+!if $m_step=1 
+$()	  La suite 
+!insmath (u_n)
+$() est géométrique.	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    Tu peux utiliser un tableur ou réaliser un programme avec une boucle while.	   
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() <table class="wimscenter wimsborder"> <tr><th>Rang</th><th>Nouveaux amis</th></tr> <tr><tr><td>1</td><td>$val6</td></tr> <tr><td>2</td><td>$val7</td></tr> <tr><td>3</td><td>$val8</td></tr> <tr><td>$val9</td><td>$val12</td></tr> <tr><td>$val13</td><td>$val15</td></tr> <tr><td>$val16</td><td>$val18</td></tr> </table> Le nombre de nouveaux amis dépasse 70 millions au rang $val9 et atteint la population mondiale au rang $val16. 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,12,13,15,16,18
+embedcnt=5

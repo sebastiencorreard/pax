@@ -1,0 +1,138 @@
+!set title=Calcul d'un terme (calculatrice)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=sequence
+computeanswer=yes
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 8
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items 0,0,0,1,1
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+val9=$[rint($val8+1)]
+tmp0=!randint 2, 5
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val10*x+$val11
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+tmp0=!replace internal x by U_n in $val12
+
+val12=$(tmp0)
+val13=$[rint($val7)]
+val14=$val7
+!for val15 =$val9 to $val6 
+val13=$[rint($val10*($val13)+$val11)]
+tmp0=!append item $val13 to $val14
+
+val14=$(tmp0)
+!next
+val16=$[rint(abs($val11))]
+tmp0=!replace internal , by <br> in $val14
+
+val14=$(tmp0)
+replytype1=formal
+replyname1=\(U_$val6)
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Utiliser la touche Ans (ou Rep selon le modèle).
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!insmath (U_n)
+$() est la suite définie par 
+!insmath U_$val8=$val7
+$() et pour tout entier naturel n :	
+!insmath U_{n+1}=$val12
+$().	<div class="wims_question">A l'aide de la calculatrice, calculer 
+!insmath U_$val6
+$().</div>
+$()
+!exit
+
+:hint
+$()Utiliser la touche Ans (ou Rep selon le modèle).
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On effectue : $val7, Entrée, $val10*Ans
+!if $val11>0 
+$()+$val16 
+!else
+$() $val11 
+!endif
+$(), Entrée, Entrée, ...	pour obtenir les termes successivement. On peut également utiliser un tableau de valeurs.	<br> <b>L'affichage que l'on obtient est :</b>	<br>$val14	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,12,14,16
+embedcnt=0

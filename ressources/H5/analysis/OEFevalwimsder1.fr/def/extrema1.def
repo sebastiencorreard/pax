@@ -1,0 +1,188 @@
+!set title=Recherche d'extremum 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+!if $val6<3 
+val7=xrange -5,5	   yrange -5,5	   circle 0,0,150,black	   polyline red,2.5*cos(-pi/6),2.5*sin(-pi/6),0,0,0,2.5	   polyline blue,0,0,0,2.5*sin(-pi/6),2.5*cos(-pi/6),2.5*sin(-pi/6)	   polyline green,-2.5*cos(-pi/6),2.5*sin(-pi/6),0,2.5,2.5*cos(-pi/6),2.5*sin(-pi/6)	   ellipse 0,2.5*sin(-pi/6),2.5*sqrt(3),1,green	   text black,-0.2,0,medium,O	   text black,-0.2,-1.25,medium,O'	   text black,-0.2,2.9,medium,S	   
+val8=r1,r2
+!endif
+!if $val6=1 
+val9=!rawmath sqrt(R^2-(h-R)^2)
+val10=!rawmath pi* ($val9)^2
+val11=!rawmath ($val10)*h/3
+val12=!rawmath 4*R/3
+val13=SO'
+!endif
+!if $val6=2 
+val9=!rawmath sqrt(R^2-h^2)
+val10=!rawmath pi* ($val9)^2
+val11=!rawmath ($val10)*(R+h)/3
+val12=!rawmath R/3
+val13=OO'
+!endif
+!if $val6=3 
+val7=xrange -5,5	   yrange -5,5	   arc -2.5,0,5,5,30,-20,green	   polyline green,-2.5+2.5*cos(pi/6),2.5*sin(pi/6),-2.5,0,-2.5+2.5*cos(-pi/9),2.5*sin(-pi/9)	   polyline blue,2.5,4,2.5,2.5*sin(-pi/6),2.5+2.5*cos(-pi/6),2.5*sin(-pi/6)	   polyline green,2.5-2.5*cos(-pi/6),2.5*sin(-pi/6),2.5,4,2.5+2.5*cos(-pi/6),2.5*sin(-pi/6)	   ellipse 2.5,2.5*sin(-pi/6),2.5*sqrt(3),1,green	   text black,-1.8,1,medium,R	   text black,4,1.8,medium,R	   text black,2.3,1.5,medium,h	   text black,3,-0.7,medium,r	   fill -3,0,yellow	  
+val8=r1,r2,r3,r4
+val9=!rawmath sqrt(R^2-h^2)
+val10=!rawmath pi* ($val9)^2
+val11=!rawmath ($val10)*h/3
+val12=!rawmath sqrt(3)*R/3
+val14=!rawmath sqrt(2/3)*R
+val15=!rawmath 2*pi*(1-sqrt(2/3))
+!endif
+oefsteps=$val8 
+nextstep=!nosubst $val8 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=V(h)
+replygood1=$val11
+replytype2=formal
+replyname2=\(h_0)
+replygood2=$val12
+replytype3=formal
+replyname3=\(r_0)
+replygood3=$val14
+replytype4=formal
+replyname4=\(\alpha)
+replygood4=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter"><b> Le plus grand cône</b></div>	 
+!read oef/draw.phtml 300,300 \
+$val7 
+$()	
+!if $val6<3 
+$()	   On construit un cône dans une sphère de centre O et de rayon R comme indiqué sur la figure.<p>	   On veut déterminer la distance 
+!insmath $val13
+$() pour que ce cône ait un volume maximal.</p>	<ol>	<li> On note 
+!insmath $val13=h
+$().<br>	   Donner l'expression algébrique de 
+!insmath V(h)
+$() représentant le volume du cône en fonction de 
+!insmath h
+$() et de 
+!insmath R
+$()&nbsp;:	<div class="wimscenter"><label for="reply1">
+!insmath V(h)
+$()=</label> 
+!read oef/embed.phtml reply1 
+$() </div></li>	<li> Déterminer la hauteur 
+!insmath h_0
+$() en fonction de R pour laquelle le volume du cône est maximal&nbsp;:	<div class="wimscenter"><label for="reply2">
+!insmath h_0
+$()=</label> 
+!read oef/embed.phtml reply2 
+$()</div></li>	 </ol>	 
+!else
+$() 	   Dans un disque de rayon R, on découpe un secteur circulaire de 
+!insmath \alpha
+$() radian.<br>	  En joignant les deux bords droits du secteur angulaire restant,	   on fabrique un cône.<p>	   On veut déterminer pour quelle valeur de 
+!insmath \alpha
+$() le volume du cône est maximal.	  </p>	<ol>	<li> On note 
+!insmath h
+$() la hauteur du cône.<br>	   Donner l'expression algébrique de 
+!insmath V(h)
+$() représentant le volume du cône en fonction de 
+!insmath h
+$() et de 
+!insmath R
+$()&nbsp;:	<div class="wimscenter"> <label for="reply1">
+!insmath V(h)
+$()=</label> 
+!read oef/embed.phtml reply1 
+$() </div></li>	<li> Calculer la hauteur 
+!insmath h_0
+$() pour laquelle le volume du cône est maximal&nbsp;:	<div class="wimscenter"> <label for="reply2">
+!insmath h_0
+$()=</label> 
+!read oef/embed.phtml reply2 
+$()</div></li>	<li> Exprimer 
+!insmath r_0
+$(), rayon de la base du cône correspondant à cette hauteur 
+!insmath h_0
+$()&nbsp;:	<div class="wimscenter"> <label for="reply3">
+!insmath r_0
+$()=</label> 
+!read oef/embed.phtml reply3 
+$()</div></li>	<li> En exprimant que la circonférence du secteur angulaire de départ correspond	 à la circonférence de la base du cône, donner une valeur exacte de 
+!insmath \alpha
+$()&nbsp;:	<div class="wimscenter"> <label for="reply4">
+!insmath alpha
+$()=</label> 
+!read oef/embed.phtml reply4 
+$()</div></li>	</ol>	  
+!endif
+$()	<div class="wims_instruction"> Taper <span class="tt">pi</span> pour 
+!insmath \pi
+$() et	<span class="tt">sqrt(a)</span> pour 
+!insmath \sqrt{a}
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,13
+embedcnt=6

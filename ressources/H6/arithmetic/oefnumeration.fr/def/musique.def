@@ -1,0 +1,204 @@
+!set title=Notation musicale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+title_it=Notazione musicale
+
+ansorder=r
+varcnt=68
+prevarcnt=66
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange -1,1	  yrange -1,1	
+val7=50,50
+val8=ellipse 0,0,0.6,0.4,black
+val9=ellipse 0,0,0.6,0.4,black	  segment 0.3,0,0.3,1,black
+val10=fellipse 0,0,0.6,0.4,black	  segment 0.3,0,0.3,1,black
+val11=fellipse 0,0,0.6,0.4,black	  polylines black, 0.3,0,0.3,1,0.5,0.7
+val12=$val11	  segment 0.3,0.8,0.5,0.5,black
+val13=$val12	  segment 0.3,0.6,0.5,0.3,black
+val14=$val13	  segment 0.3,0.4,0.5,0.1,black
+val15=disk 0.5,0,3,black
+val16=$val15	  disk 0.7,0,3,black
+val17=$val16	  disk 0.9,0,3,black
+val18=$val8	  $val15
+val19=$val9	  $val15
+val20=$val10	  $val15
+val21=$val11	  $val15
+val22=$val12	  $val15
+val23=$val13	  $val15
+val24=$val8	  $val16
+val25=$val9	  $val16
+val26=$val10	  $val16
+val27=$val11	  $val16
+val28=$val12	  $val16
+tmp=!trim ($val8),($val9),($val10),($val11),($val12),($val13),($val14)	  100,10,1,0.1,0.01,0.001,0.0001
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim ($val18),($val19),($val20),($val21),($val22),($val23)	  110,11,1.1,0.11,0.011,0.0011
+val30=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim ($val24),($val25),($val26),($val27),($val28)	  111,11.1,1.11,0.111,0.0111
+val31=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val29[1;]),$(val30[1;]),$(val31[1;])	  $(val29[2;]),$(val30[2;]),$(val31[2;])
+val32=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 3, 5
+
+val33=$[rint($(tmp0))]
+tmp0=!randint 1, 18
+
+val34=$(tmp0)
+!for val35  = 2 to $val33 
+tmp0=!randint 1, 18
+
+val34=$val34,$(tmp0)
+!next
+val36=xrange -1,2*$val33	    yrange -0.8,1.2
+!for val37 = 1 to $val33 
+tmp0=!declosing $(val32[1;$(val34[$val37])])
+
+tmp1=!rows2lines $(tmp0)
+
+val36=$val36	    translate 2*$val37-2,0	    $(tmp1)	    killtranslate	  
+!next
+val38=$(val32[2;$val34])
+tmp0=!replace internal , by + in $val38
+
+val38=$(tmp0)
+tmp0=!exec float_calc	  obase=2; ibase=2; $val38
+
+val39=$(tmp0)
+val40=$[rint($val33*$(val7[1]))]
+!readproc oef/draw.phtml $val40,$(val7[2]) \
+  $val36 
+tmp0=$ins_url
+val41=$(tmp0)
+val36=<img src="$val41" alt="">
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val42=$(tmp0)
+val43=Écrire la valeur de la succession de notes	  suivantes comme un nombre binaire fractionnaire
+val44=Valeur du thème
+val45=Votre réponse :
+val46=La valeur est
+val47=noire,blanche,ronde,croche,double croche
+val48=La notation musicale s'écrit naturellement	   dans le système binaire fractionnaire.
+val49=Prenons une noire comme l'unité de base (1).	  La blanche vaut deux noires, la ronde vaut quatre noires,	  la croche vaut la moitié d'une noire, la double croche vaut le quart	  d'une noire.	  Seules interviennent dans les rapports précédents des puissances	  de 2. 
+val50=Pour écrire une valeur + la moitié de cette valeur,	  on fait suivre la valeur d'un point. Deux points	  signifient la valeur + sa moitié + son quart.
+val51=On est donc dans un système binaire fractionnaire.
+val52=explication
+!if $val42=it 
+val43=Scrivere il valore della seguente successione di note	  come un numero binario decimale
+val44=Valore del tema
+val45=La tua risposta:
+val46=Il valore è
+val47=semiminima,minima,semibreve,croma,semicroma
+val48=La notazione musicale corrisponde naturalmente	   a un sistema binario decimale.
+val49=Prendiamo una semiminima come unità di base (1).	    La minima vale due semiminime, la semibreve vale quattro semiminime,	  la croma vale la metà di una semiminima, la semicroma vale un quarto di	  una semiminima.	  Nei rapporti precedenti intervegono solo potenze di 2.
+val50=Per scrivere un valore + la metà di questo valore,	  facciamo seguire il valore da un punto. Due punti	  significano il valore + la sua metà + il suo quarto.
+val51=Siamo quindi in un sistema binario decimale.
+val52=spiegazione
+!endif
+val53=xrange -1,25	    yrange -0.8,2	    translate 0,0.4	    $val10	    text black,-0.9,-0.3,small,$(val47[1])	    killtranslate	    translate 4,0.4	    $val9	    text black,-0.9,-0.3,small,$(val47[2])	    killtranslate	    translate 8,0.4	    $val8	    text black,-0.9,-0.3,small,$(val47[3])	    killtranslate	    translate 12,0.4	    $val11	    text black,-0.9,-0.3,small,$(val47[4])	    killtranslate	    translate 16,0.4	    $val12	    text black,-0.9,-0.3,small,$(val47[5])	    killtranslate	    translate 20,0.4	    $val13	    killtranslate	    translate 24,0.4	    $val14	    killtranslate	    
+val54=$[26/2.8]
+val55=$val54*$(val7[1])
+!readproc oef/draw.phtml $val55,$(val7[2]) \
+  $val53 
+tmp0=$ins_url
+val56=$(tmp0)
+val56=<img src="$val56" alt="">
+replytype1=raw
+replyoption1=nospace 
+replyname1=$val44
+replygood1=?analyze 57
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val43 [ 
+!read oef/special.phtml help notation,$val52 
+$()] :	<div class="wimscenter">$val36</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() 
+!if $m_help_subject issametext or $m_help_subject issametext notation 
+$()$val48	<div class="wimscenter">	$val56	</div>	<div>	$val49	</div>	<div>	$val50	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!exec float_calc	  obase=2; ibase=2; 1+($val39) - ($m_reply1)
+
+val58=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val58 !=1
+ <div class='oef_feedbacks'>$val46 $val39
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val58=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val45 $val57 
+
+!exit
+
+:stat
+vsavelist=36,39,43,45,46,48,49,50,52,56,57
+embedcnt=1

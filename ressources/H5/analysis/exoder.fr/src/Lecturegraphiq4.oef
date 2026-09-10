@@ -1,0 +1,156 @@
+\title{Lecture graphique (précis)}
+\keywords{functions, graphing,function_variation}
+\language{fr}
+\range{-5..5}
+\author{Fabien, Sommier} D'après un exercice de Chantal Causse
+\email{math.sommier@gmail.com}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+Mettre le niveau de sévérité à 2
+
+\rational{a=random(-1,1)*randint(1..2)}
+\rational{b=randint(-4..4)/randint(1..2)}
+\rational{c= randint(-3..3)\randint(1..2)}
+\function{f=random(\a*x^2+\b*x+\c,\a*x^3+\b*x^2+\c*x)}
+\function{f = pari(\f)}
+\text{Tf = texmath(\f)}
+
+\integer{x0 = randint(-2..2)}
+\real{y0 = evalue(\f,x=\x0)}
+
+\function{fp = diff(\f,x)}
+
+\rational{p0 = evalue(\fp,x=\x0)}
+
+\if{abs(\p0)>=10}{
+\integer{x0 = 0}
+\real{y0 = evalue(\f,x=\x0)}
+\function{fp = diff(\f,x)}
+\rational{p0 = evalue(\fp,x=\x0)}
+}
+
+\real{xmin = -3.5}
+\real{xmax = 3.5}
+\text{A=slib(function/bounds \f, x,\xmin,\xmax)}
+\integer{ymin = \A[1]-2}
+\integer{ymax = \A[2]+2}
+\if{\ymin>=0}{\integer{ymin = -1}}
+\if{\ymax<=0}{\integer{ymax = 1}}
+\if{\ymax-\ymin > 15}{
+\if{abs(\A[2])>abs(A[1])}{
+\integer{ymin = min(\y0-4,-1)}
+\integer{ymax = max(\y0+8,1)}
+}
+{
+\integer{ymin = min(\y0-8,-1)}
+\integer{ymax = max(\y0+4,1)}
+}
+}
+
+\text{dessin1 =
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+
+parallel \xmin+.5,\ymin,\xmin+.5,\ymax,1,0,\xmax - \xmin +1, darkgrey
+parallel \xmin,\ymin,\xmax,\ymin,0,1,\ymax -\ymin +1, darkgrey
+
+linewidth 2
+hline 0,0,black
+vline 0,0,black
+
+line 1,-0.2,1,0.2, black
+line -0.05,1,0.05,1, black
+text black, 0.9,-0.25,medium, 1
+text black, -0.2,1.25,medium, 1
+text black, -0.2,-0.25,medium, "0"
+
+point 0,0, black
+hline 0,0, black
+vline 0,0, black
+
+plot blue, \f
+fcircle \x0,\y0,7, green
+
+linewidth 2
+plot green, \y0+(x-\x0)*\p0
+
+text black,\x0,\y0,medium,A
+}
+
+\text{dessin2 =
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+
+parallel \xmin+.5,\ymin,\xmin+.5,\ymax,0.5,0,2*(\xmax - \xmin) +1, lightgrey
+parallel \xmin,\ymin,\xmax,\ymin,0,0.5,2*(\ymax -\ymin) +1,lightgrey
+parallel \xmin+.5,\ymin,\xmin+.5,\ymax,1,0,\xmax - \xmin +1, darkgrey
+parallel \xmin,\ymin,\xmax,\ymin,0,1,\ymax -\ymin +1, darkgrey
+
+linewidth 2
+hline 0,0,black
+vline 0,0,black
+
+line 1,-0.2,1,0.2, black
+line -0.05,1,0.05,1, black
+text black, 0.9,-0.25,medium, 1
+text black, -0.2,1.25,medium, 1
+text black, -0.2,-0.25,medium, "0"
+
+point 0,0, black
+hline 0,0, black
+vline 0,0, black
+
+plot blue, \f
+fcircle \x0,\y0,7, green
+
+linewidth 2
+plot green, \y0+(x-\x0)*\p0
+
+text black,\x0,\y0,medium,A
+}
+
+\steps{r1
+r2,r3}
+
+\statement{
+
+\if{\step=1}{<div class="float_right">\draw{600,400}{\dessin1}</div>}
+\if{\step=2 and \choix=oui}{<div class="float_right">\draw{600,400}{\dessin2}</div>}
+
+\if{\step=2 and \choix=non}{<div class="float_right">\draw{600,400}{\dessin1}</div>}
+On considère la courbe \(C), tracée en bleu, représentant une fonction polynôme de degré 2 ou 3.
+
+Sa tangente \(d) au point A d'abscisse \(\x0) a été tracée en vert.
+Vous devez déterminer par lecture graphique \( f(\x0)) et \( f'(\x0) ).
+<p>\if{\step=1}{Souhaitez-vous, avant de répondre, avoir un quadrillage plus fin? \embed{r1}</p>
+
+}
+
+\if{\step=2}{<p>Déterminer par lecture graphique :</p>
+<div class="wimscenter">\( f(\x0) = )\embed{r2} <br />
+\( f'(\x0) )= \embed{r3}
+</div>
+}
+
+}
+
+\hint{
+\if{\step=1}{Vous devez d'abord dire si ce quadrillage vous convient
+ou si vous avez besoin d'un quadrillage plus fin.
+
+<div class="wims_instruction">
+Bien entendu, cette réponse n'influence pas la note à l'exercice.</div> }
+<ul>
+ <li>\( f(\x0) ) est l'<em>ordonnée</em> du point \(A).
+ </li>
+ <li>\( f'(\x0) ) est le <em>coefficient directeur</em> de la tangente en \(A).
+ </li>
+</ul>
+
+}
+
+\answer{}{\choix;oui,non}{type=menu}{weight=0}
+\answer{}{\y0}{type=numexp}{weight=2}
+\answer{}{\p0}{type=numexp}{weight=3}

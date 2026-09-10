@@ -1,0 +1,133 @@
+\title{Cercles et équations.}
+\author{Paul,Byache}
+\email{paul@byache.web4me.fr}
+
+\computeanswer{ yes }
+
+don est le numéro (entre 1 et 7) du type de donnée
+\text{cfp2=shuffle(\confparm2),\confparm2}
+\integer{don=\cfp2[1]}
+
+dem est le numéro (entre 1 et 5) du type de question
+\text{cfp3=shuffle(\confparm3),\confparm3}
+\integer{dem= \cfp3[1]==\don ? \cfp3[2] : \cfp3[1]}
+
+\integer{don= \don==\dem ? \cfp2[2]: \don}
+
+a,b : coordonnées du centre
+ray : rayon
+\if{\don>5 or \dem>5}{
+\text{listechoix=shuffle(-3,-2,-1,0,1,2,3)}
+\integer{a=\listechoix[1]}
+\integer{b=\listechoix[2]}
+\text{listechoix=shuffle(0.5,1,1.5,2)}
+\real{ray=\listechoix[1]}
+}{
+\text{listechoix=shuffle(wims(makelist v for v=-10 to 10))}
+\integer{a=\listechoix[1]}
+\integer{b=\listechoix[2]}
+\text{listechoix=shuffle(wims(makelist v/4 for v=1 to 8))}
+\real{ray=\listechoix[1]}
+\precision{30}
+}
+{
+\precision{1000}
+}
+
+
+équation :
+\text{eq1=wims(simplify (x-\a))}
+\text{eq2=wims(simplify (y-\b))}
+\real{ray2=\ray^2}
+\text{eq=(\eq1)^2+(\eq2)^2=\ray2}
+\text{soleq=\eq}
+
+diametre:
+\real{diam=2*\ray}
+
+points du cercle :
+\real{xa=-\ray+\a}
+\real{ya=\b}
+\real{xb=\a}
+\real{yb=\ray+\b}
+\real{xc=\ray+\a}
+\real{yc=\b}
+\real{xd=\a}
+\real{yd=-\ray+\b}
+choix au hasard de deux points diamétralement opposés :
+\text{pt=randomrow(A,\xa,\ya,\xc,\yc
+C,\xc,\yc,\xa,\ya
+B,\xb,\yb,\xd,\yd
+D,\xd,\yd,\xb,\yb)}
+
+représentation paramétrique :
+\text{eqp1=wims(simplify(\ray*cos(t)+\a))}
+\text{eqp1=wims(replace internal .0 by in \eqp1)}
+\text{eqp1=wims(replace internal * by in \eqp1)}
+\text{eqp2=wims(simplify(\ray*sin(t)+\b))}
+\text{eqp2=wims(replace internal .0 by in \eqp2)}
+\text{eqp2=wims(replace internal * by in \eqp2)}
+\text{repparam=\left\{ \begin{array}{rl}   x(t)&=\eqp1 \\   y(t)&=\eqp2 \end{array} \right.} }
+
+dessin avec diamètre:
+\integer{xmin=\a-4}
+\integer{xmax=\a+4}
+\integer{ymin=\b-4}
+\integer{ymax=\b+4}
+\text{dessin=slib(draw/repere 200,200,1,\xmin,\xmax,\ymin,\ymax,,,,,)}
+\text{elli=slib(draw/convpixel \a,\b,200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{coordtext=slib(draw/convpixel [0,1,0,-1,0],[0,0,1,0,-1],200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{dessin=\dessin
+ellipse \elli,\diam*25,\diam*25,red
+text black,\coordtext[1]+3,\coordtext[2],medium,0
+text black,\coordtext[3]+3,\coordtext[4],medium,1
+text black,\coordtext[5]+3,\coordtext[6],medium,1
+text black,\coordtext[7]+3,\coordtext[8],medium,-1
+text black,\coordtext[9]+3,\coordtext[10],medium,-1}
+
+\text{coordsomm=slib(draw/convpixel [\xa,\xc],[\ya,\yc],200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{dessin1=draw (200,200
+\dessin
+text blue,\coordsomm[1]+3,\coordsomm[2],medium,A
+text blue,\coordsomm[3]+3,\coordsomm[4],medium,C
+linewidth 3
+points blue,\coordsomm)}
+
+dessin avec centre et rayon :
+\text{coordsomm=slib(draw/convpixel [\a,\xb],[\b,\yb],200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{dessin2=draw (200,200
+\dessin
+text blue,\coordsomm[1]+3,\coordsomm[2],medium,C
+text blue,\coordsomm[3]+3,\coordsomm[4],medium,B
+linewidth 3
+points blue,\coordsomm)}
+
+morceaux de l'énoncé :
+\text{eno1=On considère un cercle}
+\text{eno3=dont l'équation cartésienne est \(\eq),de centre \(\omega(\a;\b)) et de rayon \ray,de centre \(\omega(\a;\b)) et de diamètre \diam,de diamètre [AB] avec A(\xa;\ya) et B(\xc;\yc),de représentation paramétrique \(\repparam),donné par le dessin suivant : <center><img src=\dessin1><br>(Les points sont à coordonnées entières ou demi-entières)</center>,donné par le dessin suivant : <center><img src=\dessin2><br>(Les points sont à coordonnées entières ou demi-entières)</center>}
+\text{eno3=\eno3[\don]}
+\text{eno4=Donnez son équation cartésienne.,Donnez son centre et son rayon.,Donnez son centre et son diamètre.,Donnez les coordonnées du point diamétralement opposé au point \pt[1](\pt[2];\pt[3]).,Donnez ses équations paramétriques.}
+\text{eno4=<p>\eno4[\dem]}
+
+déclaration des champs de réponse :
+\text{reponses=r1,r2 r3 r4,r2 r3 r5,r6 r7,r8 r9}
+\text{reponses=\reponses[\dem]}
+\text{reponses=wims(words2items \reponses)}
+\steps{\reponses}
+
+\statement{\eno1 \eno3 \eno4 }
+
+\answer{Equation}{\soleq}{type=equation}
+
+\answer{Abscisse du centre}{\a}{type=numeric}{option=absolute}
+\answer{Ordonnée du centre}{\b}{type=numeric}{option=absolute}
+
+\answer{Rayon}{\ray}{type=numeric}{option=absolute}
+
+\answer{Diamètre}{\diam}{type=numeric}{option=absolute}
+
+\answer{Abscisse du point opposé à \pt[1]}{\pt[4]}{type=numeric}{option=absolute}
+\answer{Ordonnée du point opposé à \pt[1]}{\pt[5]}{type=numeric}{option=absolute}
+
+\answer{x(t)}{\eqp1}{type=function}{option=absolute}
+\answer{y(t)}{\eqp2}{type=function}{option=absolute}

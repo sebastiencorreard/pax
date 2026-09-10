@@ -1,0 +1,307 @@
+!set title=3. Assurance : + ou - de &#37;
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=46
+prevarcnt=43
+postvarcnt=2
+replycnt=8
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of style.css
+
+val6=$(tmp0)
+tmp0=!record 0 of help/ProduitenCroix.txt
+
+val7=$(tmp0)
+tmp0=!record 0 of help/Arrondi.txt
+
+val8=$(tmp0)
+tmp0=!randint 500, 800
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 100, 300
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 700, 1000
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 800, 1300
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 0, 2
+
+val13=$[rint($(tmp0))]
+!if $val13==0 
+val14=$[rint(5)]
+!endif
+!if $val13==1 
+val14=$[rint(25)]
+!endif
+!if $val13==2 
+val14=$[rint(56)]
+!endif
+!if $val13==0 
+val15=-1
+!else
+val15=1
+!endif
+!if $val13==2 
+val16=accidents responsables
+!else
+val16=accident responsable
+!endif
+val17=d'augmenter,de diminuer
+
+!ifval ($val13==1 or $val13==2)
+tmp0=!item 1 of $val17
+
+val18= $(tmp0)
+!else
+tmp1=!item 2 of $val17
+
+val18=$(tmp1)
+!endif
+val19=augmente,diminue
+
+!ifval ($val13==1 or $val13==2)
+tmp0=!item 1 of $val19
+
+val20= $(tmp0)
+!else
+tmp1=!item 2 of $val19
+
+val20=$(tmp1)
+!endif
+val21=2CV4.jpg,2CV3.jpg
+tmp=!nonempty items $val21
+
+tmp0=!randitem $tmp
+val22=$(tmp0)
+val23=scootersympa.jpg,scooterpink.jpg,scooterjeune.jpg
+tmp=!nonempty items $val23
+
+tmp0=!randitem $tmp
+val24=$(tmp0)
+val25=minicoopers1.jpg,minicoopers2.jpg,minicooperspink.jpg
+tmp=!nonempty items $val25
+
+tmp0=!randitem $tmp
+val26=$(tmp0)
+val27=cons.jpg,consession.jpg,porchegt.jpg
+tmp=!nonempty items $val27
+
+tmp0=!randitem $tmp
+val28=$(tmp0)
+tmp=!trim sa mini cooper,$val1/$val26,$val9	sa 2CV,$val1/$val22,$val10	son scooter,$val1/$val24,$val9	sa voiture de sport,$val1/$val28,$val12
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val29
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val30=$(tmp0)
+val31=$[(100+($val15)*$val14)]
+val32=$val31 &#37; =>
+val33=$[rint((100+($val15)*$val14)*$(val30[3])/100)]
+val34=$[(100+($val15)*$val14)*$(val30[3])/100]
+val35=$[($val15)*$val14]
+val36=200x80x1
+val37=\( \frac {$(val30[3]) \times  $val31 } {100} )
+val38=\( \frac {$(val30[3]) \times  $val14 } {100} )
+val39=\( \frac {$(val30[3]) \times  100} {$val14} )
+val40=\( \frac {$(val30[3]) \times  100 } {$val14} )
+val41=$val14,$val14 &#37; =>,$val38,$val39,$val40
+tmp=!trim reply1 	reply2, reply3, reply4, reply5,reply6,	reply7	
+val42=!translate internal $	\
+$ to ;; in $tmp
+val43=Quelle sera la prime d'assurance payée par Lucas ?
+val44=La compagnie assurance TOURIX assure le véhicule de	 Lucas. Pour assurer $(val30[1]), celui-ci paye $(val30[3]) &#8364;.	 Lucas est un jeune conducteur donc son pourcentage lié à la prime	 est de 100 &#37;. Dans son contrat, il est spécifié les points	 suivants :<br>	<ul class="circle"><li>Si aucun accident responsable ne lui arrive	 durant l'année, il profite d'un bonus de <b>5 &#37;.</b></li>	<li>En cas d'un accident responsable, une majoration de	 <b>25 &#37;</b> sera appliquée.</li>	<li>En cas de 2 accidents responsables, une majoration de	 <b>56 &#37;</b> sera appliquée.</li>	</ul>	Sur l'année Lucas a eu <b>$val13</b> $val16.	<br><br>
+dynsteps=yes
+oefsteps=$val42 
+nextstep=!nosubst $val42 
+!readproc oef/steps.proc
+replytype1=numeric
+replyweight1=5 
+replyname1=Pourcentage
+replygood1=$[$val31 ]
+replytype2=dragfill
+replyname2=Tableau 1
+replygood2=$val32;$val41
+replytype3=dragfill
+replyname3=Tableau 2
+replygood3=$val31
+replytype4=dragfill
+replyname4=Tableau 3
+replygood4=100
+replytype5=dragfill
+replyname5=Tableau 5
+replygood5=$val37
+replytype6=dragfill
+replyname6=Tableau 6
+replygood6=$(val30[3])
+replytype7=numeric
+replyweight7=5 
+replyname7=nouvelle prime
+replygood7=?analyze 45
+replytype8=numeric
+replyweight8=5 
+replyname8=nouvelle prime
+replygood8=$[$val33]
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="consigne">	<div id="boited">	<img src="$(val30[2])" alt="véhicule" >	</div>	<p class="problematique">$val43</p>	<br><br>	<div class="consigne">$val44</div>		
+!if $m_step==1 
+$()	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	Le pourcentage lié à la nouvelle prime est	 de  
+!read oef/embed.phtml reply1, 4 
+$() &#37;.</div>		 
+!read oef/special.phtml help Indication, Super Aide 
+$()	 
+!endif
+$()		
+!if $m_step=2 
+$() 	<br>	<div class="consigne">Le pourcentage vient $val18 de <b>$val31 &#37;.</b></div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	Complètez le tableau ci-dessous pour calculer la nouvelle prime. 		<table class="wimscenter wimsborder">	<tr>	<td> 
+!read oef/embed.phtml reply2,$val36 
+$()</td>	<td> 
+!read oef/embed.phtml reply3,$val36 
+$()pour</td>	<td> 
+!read oef/embed.phtml reply4,$val36 
+$()</td>	</tr><tr>	<td></td>	<td> 
+!read oef/embed.phtml reply5,$val36 
+$()</td>	<td> 
+!read oef/embed.phtml reply6,$val36 
+$()</td>	</tr></table>	</div>	 
+!read oef/special.phtml help Aide, Super Aide 
+$()	 
+!endif
+$()			
+!if $m_step==3 
+$() 	<br>		<br>	<div class="consigne">Le calcul à réaliser est donc le suivant : <b>$val37</b>.</div>	<br>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	Le montant de sa prime est donc égale à  
+!read oef/embed.phtml reply7, 6 
+$() €.	<br>	 Arrondissez votre résultat à l'euro près.	</div>	 
+!read oef/special.phtml help Arrondi, Super Aide 
+$()	 
+!endif
+$()		
+!if $m_step==4 and $val45!=$val33 
+$()	<br>		<br>	<div class="consigne">Le calcul à réaliser est donc le suivant : <b>$val37</b>.</div>	<br>	<br>	<div class="cours">Arrondissez votre résultat à l'euro près. Consultez	 l'aide pour plus de précision.</div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	<b>2ÈME ESSAI:</b> Le montant de sa prime est donc égale à  
+!read oef/embed.phtml reply8, 6 
+$() €.	<br>	</div>	 
+!read oef/special.phtml help Arrondi, Super Aide 
+$()	 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() $val6	
+!if  $m_help_subject issametext Aide 
+$()<div class="aide">$val7</div> 
+!endif
+$()	
+!if  $m_help_subject issametext Arrondi 
+$()<div class="aide">$val8</div> 
+!endif
+$()	
+!if  $m_help_subject issametext Indication 
+$()<div class="aide">	<ul>	<li type="square">Lorsque Lucas n'a pas d'accident, la prime diminue.</li>	<li type="square">Lorsque Lucas a un ou plusieurs accidents, la prime augmente.</li>	</ul>	</div> 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$() $val6	<br>	<div class="solution">	
+!if $m_step=1 
+$()	Sur l'année Lucas a eu <b>$val13</b> $val16. La prime de départ est de 100 &#37; et elle	 $val20 de $val14 &#37;. Pour calculer le nouveau pourcentage lié à 	 l'assurance, il suffit de réaliser l'opération suivante :	100 + $val35 = $val31 
+!endif
+$()	
+!if $m_step=2 
+$()	Le pourcentage vient $val18 de <b>$val31 &#37;</b>. Pour utiliser	 un pourcentage, il suffit de construire un tableau de	 proportionnalité comme indiqué : 	<br>	<br>	<table align="center" border=1>	<tr>	<td align=center>$val31 &#37; =></td>	<td align=center>$val31 pour</td>	<td align=center>100</td>	</tr><tr>	<td align=center></td>	<td align=center>
+!insmath  \frac {$(val30[3]) \times  $val31} {100} = $val33 
+$()</td>	<td align=center>$(val30[3])</td>		</tr></table>	<br>	<div class="cours">	A savoir : Pour compléter un tableau de proportionnalité,	 on multiplie les nombres en diagonale et on divise par le dernier.	</div>	 
+!endif
+$()	
+!if $m_step=4 and $val45!=$val33 and $m_reply8!=$val33 
+$()En réalisant l'opération proposée sur votre calculatrice,	vous trouvez le résultat suivant : $val34.	En utilisant la règle suivante :<br>	<div class="cours">	A savoir : Lorsque le nombre après la virgule est compris entre 0 et 4	, on arrondi en dessous.	Lorsque le nombre après la virgule est compris entre 5 et 9	, on arrondi au dessus.	 </div>	Par conséquent le montant de la prime est de $val33 €.	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val42=
+!if  $m_step=4 and $val45!=$val33 
+val42=r8
+!endif
+
+!exit
+
+:feedback
+!ifval $val45!=$val33 and $m_reply8=$val33
+ <div class='oef_feedbacks'>Vous avez répondu correctement au 2ème essai.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val45=$val33
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Votre première réponse est-elle correcte ?? 
+
+!exit
+
+:stat
+vsavelist=6,7,8,13,14,16,18,20,30,31,33,34,35,36,37,43,44,45
+embedcnt=12

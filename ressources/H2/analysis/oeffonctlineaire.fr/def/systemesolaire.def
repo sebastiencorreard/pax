@@ -1,0 +1,214 @@
+!set title=1. Système solaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim reply1	reply2, reply3, reply4, reply5	reply6, reply7, reply8	
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val7=$[rint($(tmp0))]
+val8=proche,éloignée
+
+!ifval $val7=1 
+tmp0=!item 1 of $val8
+
+tmp1=!item 2 of $val8
+
+val9= $(tmp0),$(tmp1)
+!else
+tmp2=!item 2 of $val8
+
+tmp3=!item 1 of $val8
+
+val9=$(tmp2),$(tmp3)
+!endif
+tmp=!trim MERCURE,0.39,58.5,195,3,15,secondes,minutes,50,10,0.3,3,3,5,25	VÉNUS,0.72,108,360,6,0,secondes,minutes,100,10,0.3,5,6,0,60	TERRE,1,150,500,8,20,secondes,minutes,100,20,0.3,8,8,0,60	MARS,1.52,228,760,12,40,secondes,minutes,100,50,0.3,12,13,0,60	JUPITER,5.2,780,2600,43,20,secondes,minutes,500,100,0.3,41,45,0,60	SATURNE,9.55,1432.5,1.3,1,20,heures,minutes,1,500,1080,1,1,8,32	URANUS,19.22,2883,2.8,2,40,heures,minutes,1,500,1080,2,2,28,52	NEPTUNE,30.11,4516.5,4.2,4,11,heures,minutes,1,500,1080,3,4,0,60
+val10=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val7=1 
+val11= $(val10[;1])
+!else
+val11=NEPTUNE,URANUS,SATURNE,JUPITER,MARS,TERRE,VÉNUS,MERCURE
+!endif
+tmp0=!randint 1, 8
+
+val12=$[rint($(tmp0))]
+!while $val12=3 
+tmp0=!randint 1, 8
+
+val12=$[rint($(tmp0))]
+!endwhile
+val13=200x50
+val14=\( \frac {$(val10[$val12;2]) \times  150 } {1} ), \( \frac {$(val10[$val12;2]) \times  1} {150} )
+!readproc slib/graphpaper/func_milli 10,12,,,$(val10[$val12;9]),$(val10[$val12;10]),,,,$(val10[$val12;11])*x,[],\listcoor,\tmpin,\AB 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=linewidth 1	text red,17,118,giant,  d en  millions de km	text red,80,6,giant,  t en $(val10[$val12;7])
+val17=$val15 $val16
+!readproc oef/draw.phtml 660,480 \
+$val17 
+tmp0=$ins_url
+val18=$(tmp0)
+val19=Combien de temps la lumière met-elle pour arriver	 sur une planète du système solaire ?
+val20=On va déterminer simplement le temps du voyage de la	 lumière dans l'espace.
+val21=
+!readproc slib/geo2D/jsxgraph jsxbox,660 x 840,	var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 90, originY: 750, unitX: 60, unitY: 60, axis:false,shownavigation:false, grid:false});	var urlImg = "$val18";	var im = board.create('image',[urlImg, [-1,-1], [10,12]]);	var dfu = board.createElement('point',[1,11.5], {name:'',face:'+', size:4});	var ffu = board.createElement('point',[4,11.5], {name:'',face:'+', size:4});	var liu = board.createElement('line',[dfu,ffu], 	 {straightFirst:false, straightLast:false, strokeWidth:2, lastArrow:true});	var dfd = board.createElement('point',[5,12.1], {name:'',face:'+', size:4});	var ffd = board.createElement('point',[5,11.2], {name:'',face:'+', size:4});	var lid = board.createElement('line',[dfd,ffd], 	 {straightFirst:false, straightLast:false, strokeWidth:2, lastArrow:true});	 
+tmp0=$slib_out
+val22=$(tmp0)
+oefsteps=$val6 
+nextstep=!nosubst $val6 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyoption1=shuffle nonstop 
+replyname1=Les planètes dans l'ordre sont
+replygood1=$val11
+replytype2=numeric
+replyname2=La distance en ua est
+replygood2=$[$(val10[$val12;2])]
+replytype3=dragfill
+replyoption3=nonstop 
+replyname3=Tableau 1
+replygood3=$(val10[$val12;2]);$(val14[2])
+replytype4=dragfill
+replyoption4=nonstop 
+replyname4=Tableau 1
+replygood4=$(val14[1])
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=La distance en millions de km est
+replygood5=$[$(val10[$val12;3])]
+replytype6=range
+replyname6=Le temps mis par la lumière est de
+replygood6=!rawmath $(val10[$val12;4])-$(val10[$val12;9])/5,$(val10[$val12;4])+$(val10[$val12;9])/5,$(val10[$val12;4])
+replytype7=range
+replyname7=Le temps mis par la lumière est de
+replygood7=!rawmath $(val10[$val12;12]),$(val10[$val12;13]),$(val10[$val12;5])
+replytype8=range
+replyname8=Le temps mis par la lumière est de
+replygood8=!rawmath $(val10[$val12;14]),$(val10[$val12;15]),$(val10[$val12;6])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br />	<div class="consigne">	<div id="boiteg">	<img src="$val1/systemesolaire.jpg" alt="Système solaire" />	</div>	<p class="problematique"> $val19</p>	<p class="special_letter">$val20<br /><br /><br /></p>	<div class="wimscenter" style="height: 740px;overflow-x: scroll;">	<div class="image">	<img src="$val1/Systemesolairefrise2.jpg" alt="Frise du système solaire" />	</div>	</div>		
+!if $m_step==1 
+$()	<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 3</div>	Classez les planètes du système solaire de la plus $(val9[1]) du soleil	 à la plus $(val9[2]) :	<div class="wimscenter"> 
+!read oef/embed.phtml reply1, 4 
+$()</div>	</div> 
+!endif
+$()		
+!if $m_step==2 
+$()	<br />	<div class="solution">	
+!if $m_reply1!=$val11 
+$()Votre réponse précédente	 est erronée. 
+!endif
+$()<br /><br />	On peut se souvenir de l'ensemble des noms	 des planètes à l'aide de la phrase suivante :	<br /><br />	<div class="wimscenter" style="font-size:30px">	<span style="color:#ff0006">M</span>on <span style="color:#f87409">V</span>ieux	 <span style="color:#9808ea">T</span>aureau <span style="color:#1e08ea">M</span>'a 	 <span style="color:#08d7ea">J</span>eté <span style="color:#12ff00">S</span>ur	 <span style="color:#f10d0d">U</span>n <span style="color:#f0ff00">N</span>uage.</div>	<br /><br />	<div class="wimscenter">	<img src="$val1/planetereponse.jpg" alt="Réponse" />	</div>	<br />	On constate que Pluton a été déclassé comme planète pour passer en	 objet pluto&#239;de. (un gros astéro&#239;de)	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 3</div>	On se trouve actuellement sur $(val10[$val12;1]).	A l'aide des indications qui se trouvent en bas de la première image,	 déterminez la distance entre le soleil et cette planète.<br /><br />	La distance entre $(val10[$val12;1]) et le soleil est de  
+!read oef/embed.phtml reply2, 4 
+$()	 ua.	<br /><br />	Cette distance est donnée en unité astronomique (ua) qui correspond	à la distance entre la TERRE et le SOLEIL.	 <br /><br />	Une unité astronomique 1 ua est égale à 150 millions de kilomètres.	 <br /><br />	En conmplétant le tableau de proportionnalité ci-dessous, convertissez	 la distance en km.	 <br /><br />	<table class="wimscenter wimsborder">	<tr>	<td>1 ua</td>	<td>mesure</td>	<td>150 millions de km</td>	</tr><tr>	<td> 
+!read oef/embed.phtml reply3,$val13 
+$()</td>	<td></td>	<td> 
+!read oef/embed.phtml reply4,$val13 
+$()</td>	</tr></table>		<br /><br />	Par conséquent la distance en millions de km a pour valeur  
+!read oef/embed.phtml reply5, 4 
+$().	</div> 
+!endif
+$()		
+!if $m_step==3 
+$()	<br />		
+!if $m_reply5!=$(val10[$val12;3]) 
+$()<div class="solution">Votre	 réponse précédente est erronée.</div> 
+!else
+$() <div class="solution">Votre	 réponse précédente est juste.</div> 
+!endif
+$()			<div class="question">	<div class="etape">ÉTAPE $m_step sur 3</div>	La distance entre $(val10[$val12;1]) et le soleil est de $(val10[$val12;3])	 millions de km.<br /><br />	La vitesse de la lumière est de 300 000 km/s. Par conséquent on	définit <b>une fonction linéaire : 
+!insmath d(t)= $(val10[$val12;11]) t 
+$()</b><br /><br />	On réalise donc le graphique ci-dessous qui représente	 la distance parcourue en fonction du temps.<br /><br />	Déplacez les flèches de lecture en haut du graphique pour déterminer	 le temps mis par la lumière pour aller sur $(val10[$val12;1]).	</div>		<br /><br />	$val22	<br /><br />		<div class="question">	Le temps est donc de  
+!read oef/embed.phtml reply6, 4 
+$() $(val10[$val12;7]).	
+!if $val12<=5 
+$()	<br /><br />	Par conséquent le temps est d'environ  
+!read oef/embed.phtml reply7, 4 
+$() $(val10[$val12;8])	 et de  
+!read oef/embed.phtml reply8, 4 
+$() $(val10[$val12;7]). 
+!else
+$()	 <br /><br />	Par conséquent le temps est de  
+!read oef/embed.phtml reply7, 4 
+$() $(val10[$val12;7]) et de	  
+!read oef/embed.phtml reply8, 4 
+$() $(val10[$val12;8]). 
+!endif
+$()	</div> 
+!endif
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,10,11,12,13,19,20,22
+embedcnt=10

@@ -1,0 +1,184 @@
+\title{Dosage pH métrique}
+\language{fr}
+\range{-5..5}
+\author{Benoît, MARKEY}
+\email{benoit.markey@ac-lille.fr}
+\computeanswer{yes}
+\format{html}
+\precision{500}
+
+\text{donnee=
+éthanoïque,CH_3COOH,CH_3COO^-,4.75;
+benzoïque,C_6H_5COOH,C_6H_5COO^-,4.20;
+méthanoïque,HCOOH,HCOO^-,3.75;
+hypochloreux,HClO,HClO^-,7.30;
+fluorhydrique,HF,F^-,3.2;
+chlorhydrique,H_3O^+ (+Cl^-), H_2O,-6.3;
+nitrique,H_3O^+ (+NO_3^-), H_2O,-1.8;
+}
+\text{tir=randomrow(\donnee)}
+\integer{cb1=randint(1..10)}
+\real{cb=\cb1/10}
+\integer{Va=random(10,20,50)}
+\integer{Vb=randint(5..17)}
+\integer{dec1=randint(0..3)}
+\real{dec=\dec1/10}
+\real{sign=random(+1,-1)}
+\real{Vb2=\Vb+\sign*\dec}
+\real{min=\Vb2-2}
+\real{max=\Vb2+2}
+\real{min2=\Vb-2}
+\real{max2=\Vb+2}
+\text{Vb2_rep=slib(text/sigunits \Vb2 ,2)}
+\real{ca=\cb*\Vb2/\Va}
+\text{cb_rep=slib(text/sigunits \cb ,2)}
+
+\real{t=0.01}
+\real{pHeq=0}
+\while{\Va*1e-3*(10^(14*\t-14)+\ca*(10^(14*\t-\tir[4])/(10^(14*\t-\tir[4])+1)-10^(-14*\t))/(10^(-14*\t)+\cb-10^(14*\t-14)))<\Vb2*1e-3}{
+\real{pHeq=14*\t}
+\real{t=\t+0.01}
+}
+\text{pHeq_rep=slib(text/sigunits \pHeq ,2)}
+\text{couleurbase=}
+\text{couleuracide=}
+\text{indic=}
+\if{\pHeq<7.6 or \pHeq=7.6}{
+\text{couleurbase=0xffff00}
+\text{couleuracide=0x0066ff}
+\text{indic=Bleu de Bromothymol (BBT)}
+}
+\if{\pHeq>7.6 and \pHeq<8.2}{
+\text{couleurbase=0xcc0000}
+\text{couleuracide=0xffff00}
+\text{indic=Rouge de phénol}
+}
+\if{\pHeq=8.2 or \pHeq>8.2 }{
+\text{couleurbase=0xff33cc}
+\text{couleuracide=0x00ffff}
+\text{indic=Phénolphtaléine}
+}
+
+\text{graph=}
+
+\text{ nstep = reply 1, reply 2
+reply 3
+reply 4, reply 5, reply 6}
+\nextstep{ \nstep }
+
+
+\statement{
+<i>Cet exercice comporte trois étapes.</i>
+ \if{\step=1}{
+<div class="float_right">
+<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="350" height="550" id="\imagedir/dosage-pH1wims">
+<param name="allowScriptAccess" value="sameDomain">
+<param name="movie" value="\imagedir/dosage-pH1wims.swf">
+<param name="quality" value="high">
+<param name="flashvars" value="Vb=\Vb2&couleurbase=\couleurbase&couleuracide=\couleuracide">
+<param name="bgcolor" value="#ffffff">
+<embed src="\imagedir/dosage-pH1wims.swf" FlashVars="Vb=\Vb2&couleurbase=\couleurbase&couleuracide=\couleuracide" quality="high" bgcolor="#ffffff" width="350" height="550" name="mesure_celerite_US_bis" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">
+</object></div>
+<div><h2>1. Dosage rapide de l'acide \tir[1] à l'aide d'un indicateur coloré (\indic)</h2>
+<p>Dans cet exercice, on cherche à doser l'acide \tir[1] par de la soude. Pour cela, on verse \(\Va\) mL d'acide \tir[1] que l'on dose avec de la soude à la concentration \(c_b = \cb_rep\) \(mol \times \mathrm{L}^{-1}\).</p>
+<p>On commence par réaliser un dosage rapide.
+Pour repérer l'équivalence, on ajoute quelques gouttes d'un indicateur coloré (\indic) dans le bécher.
+En utilisant l'animation ci-contre, donnez un \special{help hint1,encadrement} de \(Vb_{\'eq}\), volume de soude versé pour obtenir l'équivalence.</p>
+</div>
+<div class="wimscenter">
+\embed{reply 1,5} mL \(< Vb_{\'eq}  <\) \embed{reply 2,5}mL
+</div><br class="clearall">
+}
+
+ \if{\step=2}{
+ <div class="float_right">
+<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="500" height="550" id="\imagedir/dosage-pH2wims">
+<param name="allowScriptAccess" value="sameDomain">
+<param name="movie" value="\imagedir/dosage-pH2wims.swf">
+<param name="quality" value="high">
+<param name="flashvars" value="Vb=\Vb2&V0=\Va&c0=\ca&cb=\cb&pKa=\tir[4]">
+<param name="bgcolor" value="#ffffff">
+<embed src="\imagedir/dosage-pH2wims.swf" FlashVars="Vb=\Vb2&V0=\Va&c0=\ca&cb=\cb&pKa=\tir[4]" quality="high" bgcolor="#ffffff" width="500" height="550" name="mesure_celerite_US_bis"  allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">
+</object>
+</div>
+<div>
+<h2>2. Mesures précises à l'aide d'un pH-mètre</h2>
+<p>Effectivement, on trouve \reply1 mL \(< Vb_{\'eq} <\) \reply2 mL. </p>
+<p>A l'aide de l'animation suivante, vous allez construire un tableau de
+ valeurs afin de tracer la courbe pH=f(V). Choisissez
+\special{help hint2,judicieusement} vos points afin d' "encadrer" le saut de pH.</p></div>
+<div>Tableau des mesures \((V,pH)\) : <br> \embed {reply 3,50}</div>
+<div class="wims_instruction clearall">N'hésitez pas à zoomer sur l'animation pour obtenir une meilleure précision (en faisant un clic droit).<br>
+La réponse peut comporter autant de points que vous le souhaitez (dans une limite de 60 valeurs entrées...).
+Chaque point est entré sur une ligne, les coordonnées \((V,pH)\) sont séparées par une virgule.
+Notez que, dans les valeurs, la virgule est remplacée par un point.
+ </div>
+}
+\if{\step=3}{
+<h2>3. Exploitation du graphique</h2>
+<p>Voici vos points placés dans un graphique.<br>
+Avec la méthode des tangentes, vous déterminerez le point d'équivalence, noté E.</p>
+<div style="top:240px; left:200px; z-index:1;padding:10px">
+\graph
+</div>
+
+<div style="position:absolute;top:240px; left:200px; z-index:3;">
+<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="780" height="480" id="\imagedir/tangentes">
+<param name="allowScriptAccess" value="sameDomain">
+<param name="movie" value="\imagedir/tangentes.swf">
+<param name="quality" value="high">
+<param name="wmode" value="transparent">
+<embed src="\imagedir/tangentes.swf"  quality="high" wmode="transparent" width="780" height="480" name="tangentes"  allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">
+</object>
+</div>
+
+<p>On rappelle que le volume d'acide versé dans le bécher est \Va mL, que la soude a une
+concentration initiale\(c_b=\cb_rep\) \(mol \times \mathrm{L}^{-1}\).</p>
+<ol>
+<li>Déterminez les coordonnées du point à l'équivalence E(\embed{reply 4,5};\embed{reply 5,5})</li>
+<li>En déduire la concentration de la solution d'acide \tir[1] étudiée \(c_a = \)\embed{reply 6,5}\(mol \times \mathrm{L}^{-1}\)</li>
+</ol>
+<div class="wims_instruction clearall">Vous pouvez "déplacer" les tangentes avec votre souris, modifier l'écartement et l'angle de rotation.<br>
+Si vous ne voyez pas la courbe, mais simplement une image à fond jaune, il vous faut installer flash player 10 <a href=http://get.adobe.com/fr/flashplayer>ici</a></div>}
+
+}
+
+\answer{Réponse 1}{\min,\Vb2}{type=range}
+\answer{Réponse 2}{\Vb2,\max}{type=range}
+
+\answer{Tableau de valeurs}{\coord}{type = matrix}
+
+\answer{\(x_{E}\)}{\Vb2-0.2,\Vb2+0.2}{type=range}
+\answer{\(pH_{E}\)}{\pHeq_rep-0.2,\pHeq_rep+0.2}{type=range}
+\answer{Concentration d'acide}{\ca-0.2,\ca+0.2}{type=range}
+\feedback{\sc_reply1=0 or \sc_reply2=0}{Votre encadrement n'est pas assez précis.}
+ \help{
+  \if{\help_subject issametext }{
+     Cliquer sur les mots bleus à l'intérieur de l'énoncé pour avoir des indications.
+   }
+   \if{\help_subject issametext hint1}{Soyez soigneux dans votre encadrement, il sera utile pour le dosage précis.}
+   \if{\help_subject issametext hint2}{
+    Dans l'intervalle d'encadrement, prenez des mesures au moins tous les \(0.5\) mL. A l'extérieur de l'intervalle, vous pouvez vous contenter de mesures tous les millilitres.
+   }
+ }
+hint{Indications pour la question
+<ol><li>Soyez soigneux dans votre encadrement, il sera utile pour le dosage précis.</li>
+<li>Dans l'intervalle d'encadrement, prenez des mesures au moins tous les \(0.5\) mL. A l'extérieur de l'intervalle, vous pouvez vous contenter de mesures tous les millilitres. </li>
+<li></li>
+</ol>}
+\text{v=\coord}
+\integer{nb=rows(\coord)}
+\text{w=\v[1;]}
+\for{i=1 to \nb-1}{
+\text{w=\w,\v[\i+1;]}}
+\text{trait=line 10+5*\v[1;1],10+5*\v[1;2],10+5*\v[2;1],10+5*\v[2;2],red}
+\for{i=1 to \nb-2}{
+\text{trait=\trait
+line 10+5*\v[\i+1;1],10+5*\v[\i+1;2],10+5*\v[\i+2;1],10+5*\v[\i+2;2],red}
+}
+\text{graph1=slib(graphpaper/millimetre 13,8,1,1,2 V(mL),2 pH,,,,\w)}
+\text{graph2=draw(100,100
+\graph1
+\trait
+)}
+\text{graph=<img src="\graph2">}

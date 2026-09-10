@@ -1,0 +1,124 @@
+target=histo
+#include "author.inc"
+#include "lang_titles.inc"
+
+#include "lang.inc"
+
+\language{fr}
+\range{-5..5}
+
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+nb : nombre d'intervalles
+eff : effectifs
+
+\integer{nb=randint(4..7)}
+\integer{ni=randint(10..20)}
+\integer{neff=randint(20..90)}
+\text{listei=slib(list/selshuf \ni,\nb)}
+\text{Is=wims(sort numeric item \listei)}
+\integer{v=item(\nb,\Is)+1}
+\text{Is=wims(replace item number \nb by \v in \Is)}
+\text{eff1=slib(list/selshuf \neff,\nb-1)}
+\text{hist1=slib(stat/histo [\eff1],[\Is],ytics 5,xtics)}
+
+\for{i=1 to \nb-1}{
+	\text{effi=item(\i,\eff1)}
+	\text{intsup=item(\i+1,\Is)}
+	\text{intinf=item(\i,\Is)}
+	\rational{calc=\effi*(\intsup-\intinf)}
+  \if{\i=1}{\text{eff=\calc}}{
+    \text{eff=\eff,\calc}}
+}
+
+histogramme 2 : modification des effectifs dans 2 colonnes
+\integer{a=randint(1..floor(\nb/2))}
+\integer{b=randint(floor(\nb/2)+1..\nb-1)}
+
+\text{eff2=\eff1}
+\rational{aeff=item(\a,\eff1)}
+\rational{aeff=\aeff+10}
+\rational{beff=item(\b,\eff1)}
+\rational{beff=max(0,\beff-10)}
+\text{eff2=wims(replace item number \a by \aeff in \eff2)}
+\text{eff2=wims(replace item number \b by \beff in \eff2)}
+
+\text{hist2=slib(stat/histo [\eff2],[\Is],ytics 5,xtics)}
+
+histogramme 3 : modification dans les abscisses
+\text{Is3=\Is}
+\text{eff4=\eff1}
+
+\integer{stop=0}
+\integer{sub=0}
+\for{i=1 to \nb-1}{
+  \if{\stop=0}{
+    \text{int=item(\i,\Is)}
+    \text{int2=item(\i+1,\Is)}
+    \if{\int2-\int>1}{
+      \integer{sub=\int+1}
+      \rational{fauxeff=item(\i,\eff1)*(\int2-\int)}
+      \text{Is3=wims(replace item number \i by \sub in \Is3)}
+      \text{eff4=wims(replace item number \i by \fauxeff in \eff4)}
+  		\integer{stop=1}
+  	}
+  }
+}
+
+\text{hist3=slib(stat/histo [\eff1],[\Is3],ytics 5,xtics)}
+\text{hist4=slib(stat/histo [\eff],[\Is],ytics 5,xtics)}
+\text{listeint=}
+\text{listeff=}
+
+\for{i=1 to \nb-1}{
+  \text{i1=item(\i,\Is)}
+  \text{i2=item(\i+1,\Is)}
+  \rational{f=item(\i,\eff1)}
+  \text{listeint=wims(append word <th scope="col">\(\i1\leq x <\i2\)</th> to \listeint)}
+  \text{listeff=wims(append word <td>\f</td> to \listeff)}
+}
+\text{U=shuffle(4)}
+\text{rep=position(1,\U)}
+\text{liste=(\hist1),(\hist2),(\hist3),(\hist4)}
+
+\text{h1=item(\U[1],\liste)}
+\text{h2=item(\U[2],\liste)}
+\text{h3=item(\U[3],\liste)}
+\text{h4=item(\U[4],\liste)}
+
+\text{h1=wims(declosing \h1)}
+\text{h2=wims(declosing \h2)}
+\text{h3=wims(declosing \h3)}
+\text{h4=wims(declosing \h4)}
+
+\statement{
+<div class="spacer">
+\name_instruction0:
+</div>
+<table class="wimscenter wimsborder">
+<tr><th scope="col">\name_header[1]</th>
+ \listeint
+</tr><tr><th>\name_header[2]</th>
+ \listeff
+</tr></table>
+<div class="wims_question">
+  \name_instruction
+<table class="wimscenter">
+<tr>
+<th scope="col">\draw{220,150}{\h1}</td>
+<th scope="col">\draw{220,150}{\h2}</td>
+<th scope="col">\draw{220,150}{\h3}</td>
+<th scope="col">\draw{220,150}{\h4}</td>
+</tr><tr>
+<td>\embed{reply1,1}</td>
+<td>\embed{reply1,2}</td>
+<td>\embed{reply1,3}</td>
+<td>\embed{reply1,4}</td>
+</tr>
+</table>
+</div>
+}
+
+\answer{\name_header[3]}{\rep;A,B,C,D}{type=radio}

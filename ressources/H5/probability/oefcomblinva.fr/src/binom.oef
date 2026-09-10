@@ -1,0 +1,132 @@
+\title{Combinaison linéaire de VA suivant une loi binomiale}
+\author{Bruno,Mifsud;Hubert,Proal}
+\email{communanute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr}
+\credits{MutuWIMS}
+\computeanswer{yes}
+\precision{1000000}
+\keywords{random_variable,binomial_distribution}
+
+%%%%% Pour la loi bino X
+\integer{nx=random(3..10)}
+\real{px=0.5}
+\real{Ex=maxima(\nx*0.5)}
+\text{ectx=maxima(sqrt(\nx/4))}
+\real{Vx=\nx/4}
+%%%%% Pour la loi bino Y
+\integer{ny=random(3..50)}
+\real{Ey=maxima(\ny/10)}
+\integer{temp=random(3..20)}
+\integer{temp1=maxima((\temp/10)^2)} %%%% avoir une racine décimale
+\text{Vy=maxima(\temp1)}
+\text{ecty=maxima(sqrt(\Vy))}
+%%%%% Loi W=aX+bY
+\integer{a=random(2,3,4,5)}
+\integer{b=random(0,0,0,2,3,4)}
+
+\if{\b=0}{
+  \text{W=pari(\a*X)}
+  \text{enonce2=On considère la variable aléatoire définie par \(W=\W\).}
+  \text{Ew=maxima(\a*\nx*0.5)}
+  \text{ectw=maxima(sqrt((\a*\ectx)^2))}
+}{
+  \text{W=pari(\a*X+\b*Y)}
+  \text{enonce2=On considère une autre variable aléatoire \(Y\), indépendante de \(X\)
+  et telle que \( E( Y ) = \Ey\) et \(V(Y)=\Vy\). On définit ensuite la variable aléatoire  
+  \(W\) par : \(W=\W\).}
+  \text{Ew=maxima(\a*\nx*0.5+\b*\Ey)}
+  \text{ectw=maxima(sqrt((\a*\ectx)^2+(\b*\ecty)^2))}
+ }
+ %%%%
+  
+%%%%%%% solution
+\integer{a2=\a*\a}
+\integer{b2=\b*\b}
+\if{\b=0}{
+%%%%% sol cas b=0
+\text{Ewsol=\a \times \Ex}
+\text{ectwsol=sqrt((\a \times \ectx)^2)}
+\text{VWsol=maxima(\a2*(\ectx)*(\ectx))}
+%%%% fin sol}
+{
+%%%% sol b<>0
+
+\text{Ewsol=\a \times \Ex+\b \times \Ey}
+\text{ectwsol=(\a \times \ectx)^2+(\b \times \ecty)^2}
+\text{VWsol=maxima(\a2*(\ectx)*(\ectx)+\b2*(\ecty)*(\ecty))}
+}
+%%%%%%% fin sol
+
+
+\statement{<p>On note \(X\) une variable aléatoire qui donne le nombre de fois où une pièce
+ équilibrée tombe sur "face" lorsqu'on la lance  \(\nx\) fois.
+On admettra que cette variable aléatoire suit la loi binomiale de paramètres
+\(\nx\) et \(0.5\)</p>
+<div class="wims_instruction"> Vous pouvez noter dans le champ de la réponse
+le calcul à effectuer,  pourvu qu'il soit bien écrit.
+<br/>Rappel : saisir <span class="tt">\(x\)^2</span> pour \(x^2\),
+<span class="tt">sqrt(20)</span> pour \(\sqrt{20}\) et le point
+pour séparer la partie entière de la partie décimale : 1.2 et pas 1,2</div>
+<p class="wims_emph">Partie 1</p>
+<div class="wims_question">
+<ul class="wims_nopuce">
+<li>Quelle est la valeur de son espérance mathématique ?
+<br/>
+<label for="reply1">\(E( X ) =\)</label> \embed{r1,20}</li>
+<li>Quelle est la valeur de son écart type ?
+<br/><label for="reply2">\(\sigma (X)= \)</label> \embed{r2,20}</li>
+</ul>
+</div>
+<p class="wims_emph">Partie 2</p>
+<p>\enonce2</p>
+<div class="wims_question">
+<ul class="wims_nopuce">
+<li>Quelle est la valeur de l'espérance mathématique de \(W=\W\) ?
+<br/><label for="reply3"> \(E(W) = \)</label>\embed{r3,20}</li>
+<li>Quelle est la valeur de son écart type ?
+<br/><label for="reply4"> \( \sigma (W) =\) </label> \embed{r4,20}</li>
+</ul>
+</div>}
+
+\answer{}{\Ex}{type=numeric}{option=noanalyzeprint}
+\answer{}{\ectx}{type=numeric}{option=noanalyzeprint}
+\answer{}{\Ew}{type=numeric}{option=noanalyzeprint}
+\answer{}{\ectw}{type=numeric}{option=noanalyzeprint}
+
+\solution{
+<p><b> Partie 1 :</b></p>
+<p>On sait que pour une variable aléatoire \(X\) de loi binomiale de paramètres \(n\) et \(p\) : </p>
+<ul class="wims_nopuce">
+<li>\(E(X)=n*p\)</li>
+<li>L'écart type vaut : \(\sigma(X)=\sqrt{n p (1-p)}\)</li>
+<li>La variance vaut : \(V(X)=n p (1-p)\)</li>
+</ul>
+<p>Ainsi, ici : </p>
+<ul class="wims_nopuce">
+<li>\(E(X)=\nx \times \px=\Ex\)</li>
+<li>L'écart type vaut : \(\sigma(X)=\sqrt{\nx \times \px \times (1-\px)}=\)\(\ectx\)</li>
+<li>La variance vaut : \(V(X)=\nx \times \px \times (1-\px)=\)\( \Vx\)</li>
+</ul>
+<p><b> Partie 2 :</b></p>
+<p>\enonce2</p>
+<p>Ici :</p>
+<ul class="wims_nopuce">
+<li>\(E(W)=)\(\Ewsol=\)\(\Ew\)</li>
+\if{\b=0}{
+<li>La variance vaut : \(V(W)=(\a)^2 V(X)\)\(=\VWsol\) </li>
+<li>L'écart type vaut : \(\sigma (W)=\)\(\sqrt{V(W)}=\)\(\ectw\)</li>
+}{
+<li>La variance vaut : \(V(W)=(\a)^2 V(X)+(\b)^2 V(Y)=\)\(\VWsol\) </li>
+<li>L'écart type vaut : \(\sigma (W)=\)\(\sqrt{V(W)}=\)\(\ectw\)</li>
+}
+</ul>
+<p> Puisque, sous les hypothèses de l'énoncé, on sait que : </p>
+<ul class="wims_nopuce">
+<li>\(E(a X)=a E(X)\)</li>
+\if{\b!=0}{
+<li>\(E(X+Y)=E(X)+E(Y)\)</li>
+<li>\(V(X+Y)=V(X)+V(Y)\)</li>
+}
+<li>\(V(a X)=a^2 V(X)\), pour tout \(a\) réel.</li>
+<li>\(\sigma(X)=\sqrt{V(X)}\)</li>
+</ul>
+}

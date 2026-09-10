@@ -1,0 +1,312 @@
+!set title=Etude d'une fonction logarithme (QCM)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -2,-1,1,2
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$[rint(($val8)^2)]
+t_=!rawmath (-$val6)/$val7
+val10=!exec pari print($t_)
+tmp=!nonempty items 1,1,2,2,3
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+
+!ifval $val11=1
+val12=!rawmath ln($val7*x+$val6)+$val8
+!endif
+
+!ifval $val11=2
+val12=!rawmath ln($val7*x+$val6)+$val8*x
+!endif
+
+!ifval $val11=3
+val12=!rawmath ln((x-$val6)^2+$val9)
+!endif
+
+!ifval $val11=3
+val13=!rawmath (x-$val6)^2+$val9
+!else
+val13=!rawmath $val7*x+$val6
+!endif
+
+!ifval $val11=1
+val14=!rawmath $val7
+!endif
+
+!ifval $val11=2
+tmp=!translate ";': to $     $ in $val8*$val7*x+$val6*$val8+$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=!rawmath $(tmp0)
+!endif
+
+!ifval $val11=3
+val14=!rawmath 2(x-$val6)
+!endif
+
+!ifval $val7<0
+val15=<
+!else
+val15=>
+!endif
+
+!ifval $val7<0
+val16=>
+!else
+val16=<
+!endif
+
+!ifval $val7<0
+val17=&#8804; 
+!else
+val17=&#8805;
+!endif
+
+!ifval $val7<0
+val18=&#8805;
+!else
+val18=&#8804;
+!endif
+tmp0=!item $val11 of  x $val15 $val10, x $val15 $val10, x est un réel quelconque
+
+val19=$(tmp0)
+val20=$val19, x $val16 $val10, x $val17 $val10, x $val18 $val10
+
+!ifval ($val11=3)
+val20=$val20, x $val15 $val10
+!else
+val20=$val20, x est un réel quelconque
+!endif
+val21=\(I_1),\(I_2),\(I_3),\(I_4),\(\RR)
+
+!ifval ($val11!=3 and $val7>0)
+val22=$[rint(1)]
+!endif
+
+!ifval ($val11!=3 and $val7<0)
+val22=$[rint(2)]
+!endif
+
+!ifval $val11=3
+val22=$[rint(5)]
+!endif
+t_=!rawmath -($val8*$val6+$val7)/($val8*$val7)
+val23=!exec pari print($t_)
+val24=est toujours positive, est toujours négative,change de signe en \($val6), change de signe en \($val23)
+
+!ifval $val8*$val7>0
+val25=$[rint(1)]
+!else
+val25=$[rint(2)]
+!endif
+
+!ifval $val8*$val7>0
+val26=$[rint(2)]
+!else
+val26=$[rint(1)]
+!endif
+!if $val11=3 
+val27=3,3
+!endif
+!if $val11=1 and $val7>0 
+val27=1,1
+!endif
+!if $val11=1 and $val7<0 
+val27=2,2
+!endif
+!if $val11=2 
+
+!ifval $val8*$val7>0
+val28=$[rint(3)]
+!else
+val28=$[rint(4)]
+!endif
+!endif
+!if $val11=2 and $val7>0 and $val10<$val23 
+val27=4,$val28
+!endif
+!if $val11=2 and $val7<0 and $val23<$val10 
+val27=4,$val28
+!endif
+!if $val11=2 and $val7>0 and $val23<=$val10 
+val27=$val25,$val25
+!endif
+!if $val11=2 and $val7<0 and $val10<=$val23 
+val27=$val26,$val26
+!endif
+tmp0=!item 1 of $val27
+
+val29=$[rint($(tmp0))]
+tmp0=!item 2 of $val27
+
+val30=$[rint($(tmp0))]
+
+!ifval ($val11=3)
+val31=$val6
+!else
+val31=$val23
+!endif
+val32=\(f) est croissante sur \(D\),	  \(f) est décroissante sur \(D\),	  \(f) a un minimum pour \(x=$val31\),	  \(f) a un maximum pour \(x=$val31\)
+replytype1=radio
+replyname1=Condition de définition
+replygood1=1;$val20
+replytype2=radio
+replyname2=Ensemble de définition
+replygood2=$val22;$val21
+replytype3=formal
+replyname3=Calcul de dérivée
+replygood3=$val14
+replytype4=radio
+replyname4=Signe de la dérivée
+replygood4=$val29;$val24
+replytype5=radio
+replyname5=Variation
+replygood5=$val30;$val32
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>On considère la fonction 
+!insmath f
+$() définie par la formule 
+!insmath f(x) = $val12
+$().	Faites-en l'étude sur papier libre, puis remplissez le questionnaire suivant.	</p>	<ul><li>	
+!insmath f(x)
+$() est défini si et seulement si :	<div class="wimscenter">  
+!read oef/embed.phtml reply1 
+$()</div>	</li><li>	Soit 
+!insmath D
+$() l'ensemble de définition de 
+!insmath f
+$().	Parmi les ensembles suivants, lequel est 
+!insmath D
+$() ?	<ul class="inline"><li>	
+!insmath I_1
+$() = &#93; $val10 &#59; +&#8734; &#91;	</li><li>	
+!insmath I_2
+$() = &#93; -&#8734; &#59; $val10 &#91;	</li><li>	
+!insmath I_3
+$() = &#91; $val10 &#59; +&#8734; &#91;	</li><li>	
+!insmath I_4
+$() = &#93; -&#8734; &#59; $val10 &#93;	</li></ul>	<div class="wimscenter"> 
+!insmath D
+$() =  
+!read oef/embed.phtml reply2 
+$() </div>	</li><li>	Pour tout réel 
+!insmath x
+$() appartenant à 
+!insmath D
+$(), on peut écrire :	<div class="wimscenter">
+!insmath f'(x)
+$() = 
+!insmath (n(x))/(d(x))
+$()	<label for="reply3">avec 
+!insmath n(x)
+$() =</label>  
+!read oef/embed.phtml reply3,12 
+$()	et 
+!insmath d(x) = $val13
+$().</div>	</li><li>	 Pour 
+!insmath x \in D
+$(), comme 
+!insmath d(x)=$val13
+$() est strictement positif,	 
+!insmath f'(x)
+$() est du signe de 
+!insmath n(x)
+$().	Donc, sur l'ensemble 
+!insmath D
+$(), on obtient que 
+!insmath f'(x)
+$() :	<div class="wimscenter"> 
+!read oef/embed.phtml reply4 
+$().</div>	</li><li>	Des variations de la fonction 
+!insmath f
+$() on déduit que :	<div class="wimscenter"> 
+!read oef/embed.phtml reply5 
+$().</div>	</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12,13
+embedcnt=5

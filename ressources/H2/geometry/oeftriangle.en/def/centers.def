@@ -1,0 +1,178 @@
+!set title=Centres
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_fr=Centres
+title_nl=Centres
+
+ansorder=r,c
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=always inside
+val8=sometimes outside
+val9=always outside
+tmp=!trim mid-perpendiculars, circumcenter, $val8, midperpendiculars, center of circumcircle	  altitudes, orthocenter, $val8	  angle-bisectors, incenter, $val7, bisectors of angles|bisectors, center of inscribed circle	  medians, center of gravity, $val7, , barycenter	
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=triangle angle sides perimeter vertex point intersection straight line
+tmp=!trim Fill-in the text	  The intersection of the three	  of a triangle is the	  of this triangle, which is	  the triangle
+val12=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=fr 
+val7=toujours à l'intérieur
+val8=parfois à l'extérieur
+val9=toujours à l'extérieur
+tmp=!trim médiatrices des côtés, le centre du cercle circonscrit, $val8, médiatrices, centre circonscrit	  hauteurs, l'orthocentre, $val8	  bissectrices intérieures des angles, le centre du cercle inscrit, $val7, bissectrices , centre inscrit	  médianes, le centre de gravité, $val7, , centre de gravité	
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=triangle angle côtés périmètre sommet point intersection droite
+tmp=!trim Complétez le texte&nbsp;	  Le point d'intersection des trois	  d'un triangle est	  de ce triangle, qui est	  du triangle
+val12=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=nl 
+val7=always inside
+val8=sometimes outside
+val9=always outside
+tmp=!trim mid-perpendiculars, circumcenter, $val8, midperpendiculars, center of circumcircle	  altitudes, orthocenter, $val8	  angle-bisectors, incenter, $val7, bisectors of angles|bisectors, center of inscribed circle	  medians, center of gravity, $val7, , barycenter	
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=triangle angle sides perimeter vertex point intersection straight line
+tmp=!trim Fill-in the text	  The intersection of the three	  of a triangle is the	  of this triangle, which is	  the triangle
+val12=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+val15=<u><tt>&nbsp;&nbsp;&nbsp;&nbsp;(A)&nbsp;&nbsp;&nbsp;&nbsp;</tt></u>
+val16=<u><tt>&nbsp;&nbsp;&nbsp;&nbsp;(B)&nbsp;&nbsp;&nbsp;&nbsp;</tt></u>
+
+!ifval $val14=1
+val17=$val15
+!else
+tmp0=!item 1 of $val13
+
+val17=$(tmp0)
+!endif
+
+!ifval $val14=1
+tmp0=!item 2 of $val13
+
+val18=$(tmp0)
+!else
+val18=$val15
+!endif
+tmp0=!item $val14 of $val13
+
+tmp1=!item 3+$val14 of $val13
+
+val19=$(tmp0)|$(tmp1)
+tmp0=!item 3 of $val13
+
+val20=$(tmp0)
+replytype1=atext
+replyname1=(A)
+replygood1=$val19;$val10 $val11
+choicename1=(B)
+choicegood1=$val20
+choicebad1=$val7,$val8,$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val12[1;]):<div>	$(val12[2;])	
+!if $val14=1 
+$() 
+!read oef/embed.phtml reply 1,35 
+$() 
+!else
+$() $val17 
+!endif
+$()$(val12[3;])	
+!if $val14=1 
+$()$val18 
+!else
+$()  
+!read oef/embed.phtml reply 1,25 
+$() 
+!endif
+$()$(val12[4;])	 
+!read oef/embed.phtml choice 1 
+$() $(val12[5;]).	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,14,17,18
+embedcnt=3

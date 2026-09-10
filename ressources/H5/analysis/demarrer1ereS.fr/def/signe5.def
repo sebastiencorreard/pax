@@ -1,0 +1,590 @@
+!set title=Étude de signe 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=123
+prevarcnt=122
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Un élève a dressé le tableau suivant pour étudier	  le signe de la fonction \(f\) définie par&nbsp;
+val7=L'élève a correctement dressé le tableau de signe de \(f(x)\).,	  L'élève n'a pas factorisé complètement \(f(x)\).,	  L'élève a oublié qu'un facteur de \(f(x)\) est élevé au carré.,	  L'élève n'a pas vu qu'un facteur de \(f(x)\) a un signe évident constant.,	  L'expression \(VVVV\) du tableau n'est pas un facteur de \(f(x)\).,	  L'élève a oublié de marquer une valeur interdite.
+val8=\(WWWW\) n'est pas un facteur de \(f(x)\).
+tmp=!trim A-t-il raison	  Sinon, cochez toutes les erreurs qu'il a commises.
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=positif,négatif
+val11=À retenir
+val12=on construit le tableau de signe correct	  en remarquant que, est toujours strictement, pour tout réel
+val13=on construit le tableau de signe correct	  en factorisant, grâce à l'identité remarquable
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val14=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 2, 10
+
+val15=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 3
+
+val16=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 2, 8
+
+val17=$[rint((-1)^$(tmp0)*$(tmp1))]
+
+!ifval $val17>0
+val18=pos
+!else
+val18=neg
+!endif
+t_=!rawmath -($val15)/($val14)
+val19=!exec pari print($t_)
+
+!ifval (-($val17)/($val16)=$val19)
+val17=$[rint(-$val17)]
+!endif
+t_=!rawmath -($val17)/($val16)
+val20=!exec pari print($t_)
+val21=!rawmath $val14*x + $val15
+val22=!rawmath ($val21)^2
+val23=!rawmath $val16*x + $val17
+val24=!rawmath ($val23)^2
+tmp0=!randint 2, 6
+
+val25=$[rint($(tmp0))]
+val26=$[rint($val25^2)]
+tmp0=!randitem 1,-1
+
+val27=$[rint($(tmp0))]
+
+!ifval $val27==1
+val28=pos
+!else
+val28=neg
+!endif
+
+!ifval $val27==1
+val29=!rawmath $val24+$val26
+!else
+val29=!rawmath -$val24-$val26
+!endif
+val30=!rawmath $val24-$val26
+val31=$[rint($val17-$val25)]
+val32=$[rint($val17+$val25)]
+
+!ifval $val31==0
+val33=!rawmath $val16*x
+!else
+val33=!rawmath $val16*x + $val31
+!endif
+t_=!rawmath -($val31)/($val16)
+val34=!exec pari print($t_)
+
+!ifval $val31==0
+val35=!rawmath $val16*x
+!else
+val35=!rawmath $val16*x + $val32
+!endif
+t_=!rawmath -($val32)/($val16)
+val36=!exec pari print($t_)
+val37=!rawmath ($val33)*($val35)
+tmp0=!randitem 1,1,0
+
+val38=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val39=$[rint($(tmp0))]
+val40=$val17($val30),($val21)$val24,($val21)($val29),($val21)/($val29),($val17)/($val30),($val21)/($val24)
+tmp0=!item $val39 of $val40
+
+val41=!rawmath $(tmp0)
+tmp0=!texmath $val41
+
+val41=$(tmp0)
+!if $val38==0 
+val42=$val33,$val21,$val21,$val21,$val33,$val21
+val43=$val35,$val24,$val29,$val29,$val35,$val24
+val44=$val17,0,0,0,$val17,0
+val45=$val34,$val19,$val19,$val19,$val34,$val19
+val46=$val36,$val20,inf,inf,$val36,$val20
+val47=$val16,$val14,$val14,$val14,$val16,$val14
+val48=$val16,pos,$val28,$val28,$val16,pos
+val49=$val18,0,0,0,$val18,0
+!endif
+!if $val38==1 
+val42=$val17,$val21,$val21,$val21,$val17,$val21
+val43=$val24,$val23,$val27*$val24,$val27*$val24,$val24,$val23
+val44=-$val26,0,$val27*$val26,$val27*$val26,-$val26,0
+val45=inf,$val19,$val19,$val19,inf,$val19
+val46=$val20,$val20,$val20,$val20,$val20,$val20
+val47=$val18,$val14,$val14,$val14,$val18,$val14 
+val48=pos,$val16,$val28,$val28,pos,$val16
+val49=neg,0,$val28,$val28,neg,0
+!endif
+tmp0=!item $val39 of $val42
+
+val50=!rawmath $(tmp0)
+tmp0=!item $val39 of $val43
+
+val51=!rawmath $(tmp0)
+tmp0=!item $val39 of $val44
+
+val52=!rawmath $(tmp0)
+tmp0=!item $val39 of $val45
+
+t_=!rawmath $(tmp0)
+val53=!exec pari print($t_)
+tmp0=!item $val39 of $val46
+
+t_=!rawmath $(tmp0)
+val54=!exec pari print($t_)
+tmp0=!item $val39 of $val47
+
+val55=$(tmp0)
+tmp0=!item $val39 of $val48
+
+val56=$(tmp0)
+tmp0=!item $val39 of $val49
+
+val57=$(tmp0)
+
+!ifval ($val38==1 and $val39>3)
+val58=$val54
+!endif
+
+!ifval ($val38==0 and $val39==5)
+val58=$val53,$val54
+!endif
+
+!ifval ($val38==0 and $val39==6)
+val58=$val54
+!endif
+
+!ifval $val53<$val54
+val59=$[rint(1)]
+!else
+val59=$[rint(2)]
+!endif
+
+!ifval $val59==1
+t_=!rawmath $val53
+val60=!exec pari print($t_)
+!else
+t_=!rawmath $val54
+val60=!exec pari print($t_)
+!endif
+
+!ifval $val59==1
+t_=!rawmath $val54
+val61=!exec pari print($t_)
+!else
+t_=!rawmath $val53
+val61=!exec pari print($t_)
+!endif
+
+!ifval ($val38==1 and $val39 isin 1,5)
+t_=!rawmath $val54
+val60=!exec pari print($t_)
+!endif
+
+!ifval ($val38==0 and $val39 isin 3,4)
+t_=!rawmath $val53
+val60=!exec pari print($t_)
+!endif
+val62=+,-
+val63=0,||,|
+
+!ifval $val55==$val14 and $val55>0
+val64=$[rint(1)]
+!else
+val64=$[rint(2)]
+!endif
+
+!ifval $val55>0
+val64=$[rint(1)]
+!else
+val64=$[rint(2)]
+!endif
+
+!ifval (pos isin $val55)
+val64=$[rint(1)]
+!endif
+
+!ifval (neg isin $val55)
+val64=$[rint(2)]
+!endif
+
+!ifval $val55==$val14 and $val55>0
+val65=$[rint(2)]
+!else
+val65=$[rint(1)]
+!endif
+
+!ifval $val55>0
+val65=$[rint(2)]
+!else
+val65=$[rint(1)]
+!endif
+
+!ifval (pos isin $val55)
+val65=$[rint(1)]
+!endif
+
+!ifval (neg isin $val55)
+val65=$[rint(2)]
+!endif
+
+!ifval ($val56==$val16 and $val56>0)
+val66=$[rint(1)]
+!else
+val66=$[rint(2)]
+!endif
+
+!ifval ($val56>0)
+val66=$[rint(1)]
+!else
+val66=$[rint(2)]
+!endif
+
+!ifval (pos isin $val56) 
+val66=$[rint(1)]
+!endif
+
+!ifval (neg isin $val56) 
+val66=$[rint(2)]
+!endif
+
+!ifval ($val56>0)
+val67=$[rint(2)]
+!else
+val67=$[rint(1)]
+!endif
+
+!ifval (pos isin $val56)
+val67=$[rint(1)]
+!endif
+
+!ifval (neg isin $val56)
+val67=$[rint(2)]
+!endif
+
+!ifval (pos isin $val57)
+val68=$[rint(1)]
+!endif
+
+!ifval (neg isin $val57)
+val68=$[rint(2)]
+!endif
+val69=$val65
+
+!ifval $val60==$val53
+val70=1
+!else
+val70=3
+!endif
+
+!ifval $val60==$val53
+val71=$val64
+!else
+val71=$val65
+!endif
+
+!ifval $val61==$val53
+val72=1
+!else
+val72=3
+!endif
+val73=$val64
+val74=$val67
+
+!ifval $val60==$val54
+val75=1
+!else
+val75=3
+!endif
+
+!ifval $val60==$val54
+val76=$val66
+!else
+val76=$val67
+!endif
+
+!ifval $val61==$val54
+val77=1
+!else
+val77=3
+!endif
+val78=$val66
+val79=$val68
+
+!ifval $val69*$val74==2
+val80=2
+!else
+val80=1
+!endif
+
+!ifval ($val39>3 and $val60 isin $val58)
+val81=2
+!else
+val81=1
+!endif
+
+!ifval $val71*$val76==2
+val82=2
+!else
+val82=1
+!endif
+
+!ifval ($val39>3 and $val61 isin $val58)
+val83=2
+!else
+val83=1
+!endif
+
+!ifval $val73*$val78==2
+val84=2
+!else
+val84=1
+!endif
+!if $val79==2 
+
+!ifval $val80==2
+val80=1
+!else
+val80=2
+!endif
+
+!ifval $val82==2
+val82=1
+!else
+val82=2
+!endif
+
+!ifval $val84==2
+val84=1
+!else
+val84=2
+!endif
+!endif
+!if ($val38==1 and $val39 notin 1,5) or ($val38==0 and $val39 notin 3,4) 
+tmp0=!item $val69 of $val62
+
+tmp1=!item $val70 of $val63
+
+tmp2=!item $val71 of $val62
+
+tmp3=!item $val72 of $val63
+
+tmp4=!item $val73 of $val62
+
+tmp5=!item $val74 of $val62
+
+tmp6=!item $val75 of $val63
+
+tmp7=!item $val76 of $val62
+
+tmp8=!item $val77 of $val63
+
+tmp9=!item $val78 of $val62
+
+val85=<table border=1 border="solid" width="80%">	<tr>	<td width="15%" align="center"> \(x)</td>	<td width="25%" align="left">\(-\infty)</td>	<td width="5%" align="center">$val60</td>	<td width="25%" align="right"></td>	<td width="5%" align="center">$val61</td>	<td width="25%" align="right">\(+\infty)</td>	</tr>	<tr>	<td width="15%" align="center"> \($val50)</td>	<td width="25%" align="center">$(tmp0)</td>	<td width="5%" align="center">$(tmp1)</td>	<td width="25%" align="center">$(tmp2)</td>	<td width="5%" align="center">$(tmp3)</td>	<td width="25%" align="center">$(tmp4)</td>	</tr>	<tr>	<td width="15%" align="center"> \($val51)</td>	<td width="25%" align="center">$(tmp5)</td>	<td width="5%" align="center">$(tmp6)</td>	<td width="25%" align="center">$(tmp7)</td>	<td width="5%" align="center">$(tmp8)</td>	<td width="25%" align="center">$(tmp9)</td>	</tr>	
+
+!ifval $val57!=0
+tmp0=!item $val79 of $val62
+
+tmp1=!item 3 of $val63
+
+tmp2=!item $val79 of $val62
+
+tmp3=!item 3 of $val63
+
+tmp4=!item $val79 of $val62
+
+val85=$val85	<tr><td align="center">\($val52)</td>	<td width="25%" align="center">$(tmp0)</td>	<td width="5%" align="center">$(tmp1)</td>	<td width="25%" align="center">$(tmp2)</td>	<td width="5%" align="center">$(tmp3)</td>	<td width="25%" align="center">$(tmp4)</td>	</tr>	
+!endif
+tmp0=!item $val80 of $val62
+
+tmp1=!item $val81 of $val63
+
+tmp2=!item $val82 of $val62
+
+tmp3=!item $val83 of $val63
+
+tmp4=!item $val84 of $val62
+
+val85=$val85	<tr>	<td width="15%" align="center"> \(f(x))</td>	<td width="25%" align="center">$(tmp0)</td>	<td width="5%" align="center">$(tmp1)</td>	<td width="25%" align="center">$(tmp2)</td>	<td width="5%" align="center">$(tmp3)</td>	<td width="25%" align="center">$(tmp4)</td>	</tr></table>
+!endif
+!if ($val38==1 and $val39 isin 1,5) or ($val38==0 and $val39 isin 3,4) 
+tmp0=!item $val69 of $val62
+
+tmp1=!item $val70 of $val63
+
+tmp2=!item $val73 of $val62
+
+tmp3=!item $val74 of $val62
+
+tmp4=!item $val75 of $val63
+
+tmp5=!item $val78 of $val62
+
+val85=<table border=1 border="solid" width="80%">	<tr>	<td width="15%" align="center"> \(x)</td>	<td width="25%" align="left">\(-\infty)</td>	<td width="5%" align="center">$val60</td>	<td width="25%" align="right">\(+\infty)</td>	</tr>	<tr>	<td width="15%" align="center"> \($val50)</td>	<td width="25%" align="center">$(tmp0)</td>	<td width="5%" align="center">$(tmp1)</td>	<td width="25%" align="center">$(tmp2)</td>	</tr>	<tr>	<td width="15%" align="center"> \($val51)</td>	<td width="25%" align="center">$(tmp3)</td>	<td width="5%" align="center">$(tmp4)</td>	<td width="25%" align="center">$(tmp5)</td>	</tr>	
+
+!ifval $val57!=0
+tmp0=!item $val79 of $val62
+
+tmp1=!item 3 of $val63
+
+tmp2=!item $val79 of $val62
+
+val85=$val85	<tr><td align="center">\($val52)</td>	<td width="25%" align="center">$(tmp0)</td>	<td width="5%" align="center">$(tmp1)</td>	<td width="25%" align="center">$(tmp2)</td>	</tr>	
+!endif
+tmp0=!item $val80 of $val62
+
+tmp1=!item $val81 of $val63
+
+tmp2=!item $val84 of $val62
+
+val85=$val85	<tr>	<td width="15%" align="center"> \(f(x))</td>	<td width="25%" align="center">$(tmp0)</td>	<td width="5%" align="center">$(tmp1)</td>	<td width="25%" align="center">$(tmp2)</td>	</tr></table>
+!endif
+
+!ifval ($val38==1 and $val39 notin 2,6) or ($val38==0 and $val39 isin 1,5)
+val86=$val7,	  $val8	
+!endif
+tmp0=!itemcnt $val86
+
+val87=$[rint($(tmp0))]
+
+!ifval $val38==0
+val88=1
+!endif
+
+!ifval ($val38==1 and $val39 isin 1,5)
+val88=2,5,7
+!endif
+
+!ifval ($val38==1 and $val39 isin 2,6)
+val88=3
+!endif
+
+!ifval ($val38==1 and $val39 isin 3,4)
+val88=4,5,7
+!endif
+tmp0=!replace internal VVVV by $val51 in $val86
+
+val86=$(tmp0)
+tmp0=!replace internal WWWW by $val52 in $val86
+
+val86=$(tmp0)
+replytype1=checkbox
+replyoption1=shuffle 
+replyname1=
+replygood1=$val88;$val86
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="monenonce">$val6	<div class="wimscenter">
+!insmath {}f(x) = $val41
+$().</div>	 $val85	$(val9[1;])? $(val9[2;])	</div>	<ul class="wims_nopuce">	 
+!for m_i=1 to $val87 
+$()<li> 
+!read oef/embed.phtml reply1,\i 
+$()</li> 
+!next
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($val39==2 or $val39==4) and $m_reply1 notsametext $val88
+ <div class='oef_feedbacks'>
+$()</div>
+!endif
+!ifval ($val39==3 or $val39==4) and $m_reply1 notsametext $val88
+ <div class='oef_feedbacks'><div class="macorrection" style="color:green"><b>$val11</b> :	  $(val12[1]) 
+!insmath $val29
+$() $(val12[2])	
+!if $val27==1 
+$()$(val10[1]) 
+!else
+$() $(val10[2]) 
+!endif
+$(), $(val12[3]) 
+!insmath x
+$().</div>
+$()</div>
+!endif
+!ifval ($val39==1 or $val39==5) and $m_reply1 notsametext $val88 
+ <div class='oef_feedbacks'>	<div class="macorrection" style="color:green"><b>$val11</b> :	$(val13[1]) 
+!insmath $val30
+$()	$(val13[2]) 
+!insmath a^2 - b^2= (a-b)(a+b)
+$().</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,11,12,13,27,29,30,39,41,85,87,88
+embedcnt=1

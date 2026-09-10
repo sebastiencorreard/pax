@@ -1,0 +1,153 @@
+!set title=Calcul mental en base décimale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_it=Calcolo mentale in base decimale
+
+ansorder=r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=10
+t_=!replace internal \( by ( in random\(100000000) + 7000
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+t_=!replace internal \( by ( in random\($val7-6000)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in $val7-$val8
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+val10=$[floor(log($val8)/log($val6))+1]
+t_=!replace internal \( by ( in 10^($val10) - $val8
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in $val7 + $val11
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=Calculer rapidement \( $val7 - $val8 \) en utilisant la	  méthode de l'aide :
+val15=Voici une méthode si vous préférez faire des additions et des compléments à 10 que des soustractions : 
+val16=Cette méthode est bien sûr encore valable en écriture	  dans une base \(b\) à la place de 10.
+val17=Nombre de chiffres
+val18=de
+val19=si \(p\) est le nombre de chiffres de $val8, calculer
+val20=Pour calculer \(10^p - $val8\) :le chiffre des unités est le	  complément du chiffre des unités à 10, les autres sont le complément à 10	  moins 1.
+val21=et enlever \(10^p\) n'est pas trop dur en général, si	  le \(p+1\) chiffre n'est pas un 0.
+!if $val13=it 
+val14=Calcolare rapidamente \( $val7 - $val8 \) utilizzando il metodo	  descritto nelle istruzioni:
+val15=Ecco un metodo che potete usare se preferite svolgere	    addizioni e complementi a 10 piuttosto che sottrazioni:
+val16=Questo metodo funziona perfettamente anche quando i numeri	    sono scritti in base \(b\) invece che in base 10.
+val17=Numero di cifre
+val18=di
+val19=se \(p\) è il numero di cifre di $val8, calcolare
+val20=Per calcolare \(10^p - $val8\): la cifra delle unità è	  il complemento a 10 della cifra delle unità, le altre sono i complementi	  a 10 meno 1.
+val21=e elevare \(10^p\) non è troppo difficile in generale, se	  la cifra \(p+1\) non è uno 0.
+!endif
+replyname1=\(p\)
+replygood1=$val10
+replyname2=\(10^p - $val8\)
+replygood2=$val11
+replyname3=\($val7 + (10^p - $val8)\)
+replygood3=$val12
+replyname4=\($val7 - $val8\)
+replygood4=$val9
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val14	<table class="wimsborder wimscenter">	<tr><td>	 $val17 
+!insmath p
+$() $val18 
+!insmath $val8
+$() : </td><td>	 
+!read oef/embed.phtml reply1 
+$()	</td></tr>	<tr><td>	
+!insmath 10^p - $val8
+$()</td><td>  
+!read oef/embed.phtml reply2 
+$()	</td></tr>	<tr><td></td><td>
+!insmath $val7
+$()</td></tr>	<tr><td>	
+!insmath $val7 + (10^p - $val8) 
+$()</td><td> 
+!read oef/embed.phtml reply3 
+$()	</td></tr>	<tr><td>	
+!insmath $val7 - $val8
+$()</td><td>  
+!read oef/embed.phtml reply4 
+$()	</td></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val15	<ul>	<li>$val19	<div class="wimscenter">
+!insmath $val7 + (10^p - $val8) - 10^p
+$(). </div>	</li><li>	$val20	</li><li>	$val21	</li></ul>	$val16
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,14,15,16,17,18,19,20,21
+embedcnt=4

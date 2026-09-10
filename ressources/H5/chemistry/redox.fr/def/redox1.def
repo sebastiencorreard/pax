@@ -1,0 +1,237 @@
+!set title=Combinaison de demi-réactions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r,r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!recordcnt redox.dat
+
+val6=$[rint($(tmp0))]
+tmp0=!shuffle $val6
+
+val7=$(tmp0)
+val8=$[rint($(val7[;1]))]
+val9=$[rint($(val7[;2]))]
+tmp0=!record $val8 of redox.dat
+
+val10=$(tmp0)
+tmp0=!record $val9 of redox.dat
+
+val11=$(tmp0)
+val12=
+val13=$(val10[;1])
+val14=$(val10[;2])
+tmp0=!replace V by $val12 in $val14
+
+val14=$(tmp0)
+val15=$(val10[;3])
+val16=$(val11[;1])
+val17=$(val11[;2])
+tmp0=!replace V by $val12 in $val17
+
+val17=$(tmp0)
+val18=$(val11[;3])
+
+!ifval $val8<$val9
+val19=$val13
+!else
+val19=$val16
+!endif
+
+!ifval $val8<$val9
+val20=$[$val14]
+!else
+val20=$[$val17]
+!endif
+
+!ifval $val8<$val9
+val21=$val15
+!else
+val21=$val18
+!endif
+!readproc slib/chemistry/chemeq_tex $val19 
+tmp0=$slib_out
+val22=$(tmp0)
+
+!ifval $val8<$val9
+val23=$val16
+!else
+val23=$val13
+!endif
+!readproc slib/chemistry/chemeq_components $val23, htmlbuttons 1,shuffle,[extra, redox_extra] 
+tmp0=$slib_out
+val24=$(tmp0)
+
+!ifval $val8<$val9
+val25=$[$val17]
+!else
+val25=$[$val14]
+!endif
+
+!ifval $val8<$val9
+val26=$val18
+!else
+val26=$val15
+!endif
+!readproc slib/chemistry/chemeq_tex $val23 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc slib/chemistry/chemeq_rev $val23 
+tmp0=$slib_out
+val28=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val28 
+tmp0=$slib_out
+val29=$(tmp0)
+!readproc slib/chemistry/chemeq_el $val19 
+tmp0=$slib_out
+val30=$[rint($(tmp0))]
+!readproc slib/chemistry/chemeq_el $val23 
+tmp0=$slib_out
+val31=$[rint($(tmp0))]
+val32=$[rint(gcd($val30,$val31))]
+val33=$[rint($val31/$val32)]
+val34=$[rint($val30/$val32)]
+!readproc slib/chemistry/chemeq_add $val33,$val19 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val35 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/chemistry/chemeq_add -$val34,$val23 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val37 
+tmp0=$slib_out
+val38=$(tmp0)
+!readproc slib/chemistry/chemeq_add $val33,$val19,-$val34,$val23 
+tmp0=$slib_out
+val39=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val39 
+tmp0=$slib_out
+val40=$(tmp0)
+!readproc slib/chemistry/chemeq_components $val39, htmlbuttons 4,shuffle,[extra,redox_extra] 
+tmp0=$slib_out
+val41=$(tmp0)
+val42=<script type="text/javascript">	function getInput(n){	  f=window.document.forms[0];	  for(i=0; i<f.elements.length; i=i+1){	    if (f.elements[i].name=="reply"+n) { 	      return f.elements[i];	    }	  }	  return null;	}	function appendToInput(n,msg){	  var i=getInput(n);	  i.value=i.value+msg+' ';	  i.focus();	}	</script>	
+val43=0
+oefsteps=r1	r2,r3	r4 
+nextstep=!nosubst r1	r2,r3	r4 
+!readproc oef/steps.proc
+replytype1=chemeq
+replyname1=
+replygood1=$val28
+replytype2=numeric
+replyname2=
+replygood2=$[$val33]
+replytype3=numeric
+replyname3=
+replygood3=$[$val34]
+replytype4=chemeq
+replyname4=
+replygood4=$val39
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val43=1 
+$()	  DEBUG : $m_debugstr	  <hr>	 
+!endif
+$()	$val42	<p><i>Cet exercice comporte 3 étapes.</i></p>	<p>Deux demi-réactions ont été choisies au hasard parmi 	une base de données. Votre travail consiste à prévoir 	l'équation-bilan d'oxydo-réduction qui peut en résulter.</p>	<ul>	<li><b>Couple oxydant ($val21)</b> :<br>
+!insmath $val22
+$()	</li>	<li><b>Couple réducteur ($val26)</b> :<br>
+!insmath $val27
+$()	</li>	</ul>	
+!if $m_step=1 
+$()	<p> 1. Réécrivez la demi-réaction du couple réducteur dans le sens inverse	  de celui de l'énoncé ci-dessus :</p>	  <div class="wimscenter"> 
+!read oef/embed.phtml r1,80 
+$()</div>	  <p class="wims_instruction">Les boutons ci-dessous permettent de compléter le champ de réponse plus facilement.</p>	 <p>$val24</p>	 
+!endif
+$()	
+!if $m_step>=2 
+$()	  <p>2. Les demi-réactions sont toutes deux écrites dans	  le bon sens. Inscrivez les coefficients minimaux qui permettront	  d'obtenir la réaction rédox complète par addition membre à 	  membre :</p>	  <ul>	  <li> 
+!read oef/embed.phtml r2,1 
+$() &times; 
+!insmath $val22
+$()</li>	  <li> 
+!read oef/embed.phtml r3,1 
+$() &times; 
+!insmath $val29
+$()</li>	  </ul>	 
+!endif
+$()	
+!if $m_step>=3 
+$()	<p>3. Les coefficients $val33 et $val34 sont corrects. Veuillez écrire l'équation de l'équation-bilan complète en combinant	les deux demi-équations. Vous devez simplifier en tenant compte des	espèces chimiques présentes des deux côtés.</p>	<div class="wimscenter"> 
+!read oef/embed.phtml r4,80 
+$()</div>	<p>$val41</p>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	On renverse la demi-équation qui concerne le réducteur, ce qui donne	<div class="wimscenter">
+!insmath $val29
+$()</div>	On multiplie par $val33 la demi-réaction de l'oxydant, ce qui donne	<div class="wimscenter">
+!insmath $val36
+$()</div>	On multiplie par $val34 la demi-réaction du réducteur après l'avoir 	renversée, ce qui donne	<div class="wimscenter">
+!insmath $val38
+$()</div>	Enfin, on combine ces deux équations et on simplifie, ce qui donne	<div class="wimscenter">
+!insmath $val40
+$()</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,22,24,26,27,29,33,34,36,38,40,41,42,43
+embedcnt=4

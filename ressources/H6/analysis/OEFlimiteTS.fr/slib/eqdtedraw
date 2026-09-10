@@ -1,0 +1,39 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=equation droite (xB,yB),(xC,yC) pour commande draw
+slib_parms=9\
+,xB,yB,xC,yC,xmin,xmax,ymin,ymax,color
+slib_author=Régine MANGEARD
+slib_out=plot color,a*t+b
+slib_example= 2,3,3,5
+!exit
+
+:proc
+slib_mat=!declosing $wims_read_parm
+!if $slib_mat=$empty
+ slib_out=
+!else
+  slib_xB=$(slib_mat[1])
+  slib_yB=$(slib_mat[2])
+  slib_xC=$(slib_mat[3])
+  slib_yC=$(slib_mat[4])
+  slib_xmin=$(slib_mat[5])
+  slib_xmax=$(slib_mat[6])
+  slib_ymin=$(slib_mat[7])
+  slib_ymax=$(slib_mat[8])
+  slib_color=$(slib_mat[9])
+  !if $slib_xB=$slib_xC
+     slib_out=line $slib_xB,$slib_ymin,$slib_xB,$slib_ymax,$slib_color
+  !else
+    !if $slib_yB=$slib_yC
+     slib_out=line $slib_xmin,$slib_yB,$slib_xmax,$slib_yB,$slib_color
+    !else
+  slib_coefdirBC=!eval ($slib_yC-$slib_yB)/($slib_xC-$slib_xB)
+  slib_ordoriBC=!eval $slib_yB-$slib_coefdirBC*$slib_xB
+  slib_out=trange $slib_xmin,$slib_xmax\
+ plot $slib_color,$slib_coefdirBC*x+$slib_ordoriBC
+    !endif
+  !endif 
+
+!endif

@@ -1,0 +1,209 @@
+!set title=De la forme trigonométrique à la forme algebrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r,r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 7
+
+tmp=!nonempty items -1,1,1
+
+tmp1=!randitem $tmp
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp=!trim 1,1,-1,1,-1,$val6	2,0,1,1,-1,-1	3,0,1,2,-1,-2	4,0,1,3,-1,-3	6,0,1,5,-1,-5
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 15
+
+val10=$[rint(2*$(tmp0))]
+t_=!replace internal \( by ( in $(val7[$val8;$val9])*pi
+tmp0=!exec maxima $t_
+
+val11=$(tmp0)
+tmp0=!replace internal * by  in $val11
+
+val11=$(tmp0)
+tmp0=!replace internal pi by \pi in $val11
+
+val11=$(tmp0)
+tmp0=!texmath $val11
+
+val11=$(tmp0)
+
+!ifval (round($val6/2)=$val6/2)
+val12=$[rint( 1)]
+!else
+val12=$[rint(-1)]
+!endif
+tmp=!trim 1,-1,-1,-1,-1,$val12	2,1,0,0,0,0	3,1,1,-1,1,-1	4,1,sqrt(2),-sqrt(2),sqrt(2),-sqrt(2)	6,1,sqrt(3),-sqrt(3),sqrt(3),-sqrt(3)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,0,0,0,0,0	2,0,1,1,-1,-1	3,0,sqrt(3),sqrt(3),-sqrt(3),-sqrt(3)	4,0,sqrt(2),sqrt(2),-sqrt(2),-sqrt(2)	6,0,1,1,-1,-1
+val14=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval ($val8>2 and $val9>2)
+val15= $(val13[$val8;$val9])/2
+!else
+val15=$(val13[$val8;$val9])
+!endif
+
+!ifval ($val8>2 and $val9>2)
+val16= $(val14[$val8;$val9])/2
+!else
+val16=$(val14[$val8;$val9])
+!endif
+tmp0=!replace internal sqrt(2) by \sqrt{2} in $val15
+
+val15=$(tmp0)
+tmp0=!replace internal sqrt(3) by \sqrt{3} in $val15
+
+val15=$(tmp0)
+tmp0=!replace internal sqrt(2) by \sqrt{2} in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal sqrt(3) by \sqrt{3} in $val16
+
+val16=$(tmp0)
+
+!ifval ($(val7[$val8;$val9])<0 and $val8>1)
+val17= $val15$val16 
+!else
+val17=$val15+$val16 
+!endif
+t_=!rawmath $val10/2
+val18=!exec pari print($t_)
+
+!ifval (round($val6/2)=$val6/2)
+val19=$[rint( $val10)]
+!else
+val19=$[rint(-$val10)]
+!endif
+tmp=!trim 1,-$val10,-$val10,-$val10,-$val10,$val19	2,$val10,0,0,0,0	3,$val10,$val18,-$val18,$val18,-$val18	4,$val10,$val18 sqrt(2),-$val18 sqrt(2),$val18 sqrt(2),-$val18 sqrt(2)	6,$val10,$val18 sqrt(3),-$val18 sqrt(3),$val18 sqrt(3),-$val18 sqrt(3)
+val20=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,0,0,0,0,0	2,0,$val10 ,$val10,-$val10,-$val10	3,0,$val18 sqrt(3),$val18 sqrt(3),-$val18 sqrt(3),-$val18 sqrt(3)	4,0,$val18 sqrt(2),$val18 sqrt(2),-$val18 sqrt(2),-$val18 sqrt(2)	6,0,$val18 ,$val18 ,-$val18 ,-$val18 
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal sqrt by \sqrt{} in $(val20[$val8;$val9])
+
+val22=$(tmp0)
+tmp0=!replace internal sqrt by \sqrt{} in $(val21[$val8;$val9])
+
+val23=$(tmp0)
+
+!ifval ($(val7[$val8;$val9])<0 and $val8>1)
+val24= $val22$val23 i
+!else
+val24=$val22+$val23 i
+!endif
+replytype1=formal
+replyname1=
+replygood1=$(val20[$val8;$val9])
+replytype2=formal
+replyname2=
+replygood2=$(val21[$val8;$val9])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question">Donner la forme algébrique de 	
+!if $val8>1 and $val9>2 
+$()
+!insmath z=$val10 \left ( cos(\frac{$val11}{$(val7[$val8;1])})+i sin  (\frac{$val11}{$(val7[$val8;1])}) \right )
+$(). 
+!else
+$() 
+!insmath z=$val10 \left ( cos($val11)+i sin  ($val11)\right ) 
+$(). 
+!endif
+$() 	<p>
+!insmath z={}
+$() 
+!read oef/embed.phtml r1,8 
+$()+ 
+!read oef/embed.phtml r2,8 
+$()i.</p></div>	<div class="wims_instruction">Pour 
+!insmath \sqrt{...}
+$(), écrire sqrt(...).</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!if $val8>1 and $val9>2 
+$()
+!insmath z=$val10 \left ( cos(\frac{$val11}{$(val7[$val8;1])})+i sin  (\frac{$val11}{$(val7[$val8;1])}) \right )
+$() 
+!else
+$() 
+!insmath z=$val10 \left ( cos($val11)+i sin  ($val11)\right ) 
+$() 
+!endif
+$()
+!insmath {}=$val10 ($val17 \; i)=$val24
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,17,24
+embedcnt=2

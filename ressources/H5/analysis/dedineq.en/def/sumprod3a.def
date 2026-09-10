@@ -1,0 +1,175 @@
+!set title=Sum and product of 3 I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang Xiao
+email=xiao@unice.fr
+language=en
+
+varcnt=26
+prevarcnt=16
+postvarcnt=9
+replycnt=0
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+m_options=nofloat fixedgoal
+tmp0=!randitem constineq,obvineq
+
+val6=$(tmp0)
+tmp0=!randitem trans,addineq
+
+val7=$(tmp0)
+m_methods=ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/lincomb,	ineq/$val6, ineq/$val7, ineq/mulineq, ineq/sqrpos
+m_minsteps=8
+tmp=!trim x,y,z	a,b,c	r,s,t	l,m,n	u,v,w	
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!item 1 of $val8
+
+val9=$(tmp0)
+tmp0=!item 2 of $val8
+
+val10=$(tmp0)
+tmp0=!item 3 of $val8
+
+val11=$(tmp0)
+tmp0=!randint 8, 30
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val12^3)]
+tmp0=!randitem rational numbers, real numbers
+
+val14=$(tmp0)
+tmp0=!randitem <,<=
+
+val15=$(tmp0)
+val16=$val9 + $val10 + $val11 $val15 $val12
+val17=0 <= $val9
+val18=0 <= $val10
+val19=0 <= $val11
+val20=$val9*$val10*$val11 $val15 $val13
+m_context=$val16	$val17	$val18	$val19	
+m_goal=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Let 
+!insmath $val9, $val10, $val11
+$() be three non-negative $val14 such that	
+!insmath  $val16 
+$().	Prove <div class="wimscenter">	
+!insmath $val20
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_newobject != &#36;empty 
+tmp0=!exec mathexp cut inequality	$m_newobject
+
+val21=$(tmp0)
+tmp0=!item 1 of $val21
+
+val22=$(tmp0)
+tmp0=!item 2 of $val21
+
+val23=$(tmp0)
+tmp0=!item 3 of $val21
+
+val24=$(tmp0)
+!if $val23 issametext $val15 
+tmp=!translate ";': to $     $ in $val22-($val9*$val10*$val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=$(tmp0)
+tmp=!translate ";': to $     $ in $val24-($val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+!else
+tmp=!translate ";': to $     $ in $val24-($val9*$val10*$val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=$(tmp0)
+tmp=!translate ";': to $     $ in $val22-($val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+tmp0=!translate internal <> to >< in $val23
+
+val23=$(tmp0)
+!endif
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val25 = 0 and $val26 = 0 and $val23 issametext $val15
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=9,10,11,13,14,15,16,20
+embedcnt=0

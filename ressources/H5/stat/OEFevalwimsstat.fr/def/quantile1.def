@@ -1,0 +1,158 @@
+!set title=Résumer: Médiane, écart interquartile 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le premier décile \(D_1\) et le neuvième décile \(D_9\) se calculent de la	même façon que le premier quartile \(Q_1\) et le troisième quartile \(Q_3\), en substituant	 au partage en 4 parties égales un partage en 10 parties égales.
+val7=On rappelle la définition du premier décile noté \(D_1\) et du neuvième décile noté \(D_9\):<br>	Pour une série statistique ordonnée dans l'ordre croissant, d'effectif total \(n\),<br>	\(D_1\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{n}{10}\),<br>	\(D_9\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{9n}{10}\)
+tmp0=!randint 5, 50
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 10, 50
+
+val9=$[rint($val8+$(tmp0))]
+tmp0=!makelist x for x=$val8 to $val9
+
+val10=$(tmp0)
+tmp0=!shuffle $val9-$val8
+
+val11=$(tmp0)
+tmp0=!item 1 to 7 of $val11
+
+val11=$(tmp0)
+tmp0=!sort numeric list $val11
+
+val11=$(tmp0)
+val8=$[rint($(val10[$(val11[1])]))]
+val12=$[rint($(val10[$(val11[2])]))]
+val13=$[rint($(val10[$(val11[3])]))]
+val14=$[rint($(val10[$(val11[4])]))]
+val15=$[rint($(val10[$(val11[5])]))]
+val16=$[rint($(val10[$(val11[6])]))]
+val9=$[rint($(val10[$(val11[7])]))]
+val17=$[rint($val15-$val13)]
+val18=$[rint($val16-$val12)]
+val19=$[rint($val9-$val8)]
+val20=valeur minimale=$val8,valeur maximale=$val9,étendue=$val19,	Q1=$val13,Q3=$val15,écart inter-quartile=$val17,	D1=$val12,D9=$val16,écart inter-décile=$val18,médiane=$val14
+tmp0=!shuffle 3
+
+val21=$(tmp0)
+val22=$(val20[$(val21[1])]),$(val20[$(val21[2])])
+tmp0=!shuffle 3
+
+val23=$(tmp0)
+val24=$(val20[$(val23[1])+3]),$(val20[$(val23[2])+3])
+tmp0=!shuffle 3
+
+val25=$(tmp0)
+val26=$(val20[$(val25[1])+6]),$(val20[$(val25[2])+6])
+val27=médiane=$val14
+tmp0=!shuffle $val22,$val24,$val26,$val27
+
+val28=$(tmp0)
+val29=$(val20[$(val21[3])])
+tmp0=!replace internal = by , in $val29
+
+val29=$(tmp0)
+val30=$(val29[1])
+val31=$[rint($(val29[2]))]
+val29=$(val20[$(val23[3])+3])
+tmp0=!replace internal = by , in $val29
+
+val29=$(tmp0)
+val32=$(val29[1])
+val33=$[rint($(val29[2]))]
+val29=$(val20[$(val25[3])+6])
+tmp0=!replace internal = by , in $val29
+
+val29=$(tmp0)
+val34=$(val29[1])
+val35=$[rint($(val29[2]))]
+replytype1=numeric
+replyname1=$val30
+replygood1=$[$val31]
+replytype2=numeric
+replyname2=$val32
+replygood2=$[$val33]
+replytype3=numeric
+replyname3=$val34
+replygood3=$[$val35]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val6
+
+help=!nosubst $val7
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère une série statistique dont on connaît les indicateurs suivants:	</p>	<table class="wimscenter wimsborder">	<tr><td>$(val28[1])</td><td>$(val28[2])</td><td>$(val28[3])</td><td>$(val28[4])</td></tr>	<tr><td>$(val28[5])</td><td>$(val28[6])</td><td>$(val28[7])</td><td>&nbsp;</td></tr>	</table>	<p>	Calculer les indicateurs manquants:	</p>	<ol>	<li><label for="reply1">$val30= </label> 
+!read oef/embed.phtml reply1,4 
+$()</li>	<li><label for="reply2">$val32= </label> 
+!read oef/embed.phtml reply2,4 
+$()</li>	<li><label for="reply3">$val34= </label> 
+!read oef/embed.phtml reply3,4 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()$val6
+$()
+!exit
+
+:help
+$()$val7
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,28,30,32,34
+embedcnt=3

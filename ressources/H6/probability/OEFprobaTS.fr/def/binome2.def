@@ -1,0 +1,129 @@
+!set title=C. Formule du binôme 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=combinatorics,combination
+oefdescription=Pour se familiariser avec la formule du binôme de Newton
+
+ansorder=r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=En utilisant la formule du binôme, développer l'expression
+tmp0=!randitem 1,2
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 3, 7
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=1
+t_=!replace internal \( by ( in 1+$val7*a
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+!else
+t_=!replace internal \( by ( in a+$val7
+tmp1=!exec maxima $t_
+
+val10=$(tmp1)
+!endif
+val10=($val10)^$val8
+
+!ifval $val9=1
+t_=!replace internal \( by ( in expand((1+$val7*a)^$val8)
+tmp0=!exec maxima $t_
+
+val11=$(tmp0)
+!else
+t_=!replace internal \( by ( in expand((a+$val7)^$val8)
+tmp1=!exec maxima $t_
+
+val11=$(tmp1)
+!endif
+tmp0=!texmath $val10
+
+val12=$(tmp0)
+tmp0=!texmath $val11
+
+val13=$(tmp0)
+replytype1=formal
+replyname1=
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val6 \[$val12.\] \end{statement} \begin{solution} \($val12 = $val13.\) \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	 $val6 :	<div class="wimscenter"><label for="reply1">
+!insmath $val10=
+$()</label> 
+!read oef/embed.phtml reply1 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val6 \[$val12.\] $m_end{statement} $m_begin{solution} 
+!insmath $val12 = $val13.
+$() $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,12,13
+embedcnt=1

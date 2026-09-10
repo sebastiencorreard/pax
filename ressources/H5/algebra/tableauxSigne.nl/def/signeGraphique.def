@@ -1,0 +1,664 @@
+!set title=Grafische methode
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Véronique Royer
+email=royer.veronique@wanadoo.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r
+varcnt=77
+prevarcnt=76
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 8,10,12
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 8,10,12
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val9=$[rint($(tmp0))]
+tmp0=!random 1, 0.5*$val7
+
+val10=$[$(tmp0)]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+
+!ifval ($val8!=4)
+tmp0=!randint 2, $val6-3
+
+val12=$[rint($val11*$(tmp0))]
+!else
+tmp1=!randint -6, -3
+
+val12=$[rint($(tmp1))]
+!endif
+
+!ifval ($val8!=4)
+tmp0=!randitem 0,1
+
+tmp1=!randint 2, $val6-1
+
+val13=$[rint($(tmp0)*(-$val11)*$(tmp1))]
+!else
+tmp2=!randint -1, 2
+
+val13=$[rint($(tmp2))]
+!endif
+
+!ifval ($val8==4)
+tmp0=!randint 4, 6
+
+val14=$[rint($(tmp0))]
+!endif
+
+!ifval ($val8>4)
+tmp0=!randint -0.5*$val7, 0.5*$val7
+
+val15=$[rint($(tmp0))]
+!endif
+
+!ifval ($val8==1)
+val16=!rawmath $val9*$val10*(x-$val12)
+!endif
+
+!ifval ($val8==2)
+val16=!rawmath ($val9/$val10)*(x-$val12)*(x-$val13)
+!endif
+
+!ifval ($val8==3)
+tmp0=!random 1, 4
+
+val16=!rawmath ($val9/$val10)*((x-$val12)^2+$(tmp0))
+!endif
+
+!ifval ($val8==4)
+val16=!rawmath ($val9/$val10^3)*(x-$val12)*(x-$val13)*(x-$val14)
+!endif
+
+!ifval ($val8==5)
+val16=!rawmath $val9*($val10/(x-$val12)+$val15)
+!endif
+
+!ifval ($val8==6)
+val16=!rawmath $val9*($val10/((x-$val12)^2+0.5)+$val15)
+!endif
+val17=none
+
+!ifval ($val8==1)
+val17=$val12 
+!endif
+
+!ifval ($val8==2 and $val12==$val13)
+val17=$val12
+!endif
+
+!ifval ($val8==2 and $val12<$val13)
+val17=$val12,$val13
+!endif
+
+!ifval ($val8==2 and $val13<$val12)
+val17=$val13,$val12
+!endif
+
+!ifval ($val8==4 and $val12==$val13)
+val17= $val12,$val14
+!endif
+
+!ifval ($val8==4 and $val12!=$val13 and $val14!=$val13)
+val17= $val12,$val13,$val14
+!endif
+
+!ifval ($val8==4 and $val12!=$val13 and $val14==$val13)
+val17= $val12,$val13
+!endif
+
+!ifval ($val8==5 and $val15!=0)
+tmp=!translate ";': to $     $ in $val12-($val10/$val15)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath  $(tmp0)
+val18=!exec pari print($t_)
+!endif
+
+!ifval ($val8==5 and $val15!=0 and $val18 <= $val6 and $val18 >= -$val6)
+val17= $val18
+!endif
+
+!ifval $val15!=0
+tmp=!translate ";': to $     $ in (-$val10/$val15)-0.5
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val19=!exec pari print($t_)
+!endif
+
+!ifval ($val8==6 and $val15!=0 and $val19>=0 )
+tmp=!translate ";': to $     $ in $val12-sqrt($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val12+sqrt($val19)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val17= $(tmp0),$(tmp1) 
+!endif
+
+!ifval (none isitemof $val17)
+val20=0
+!else
+tmp0=!itemcnt $val17
+
+val20=$(tmp0)
+!endif
+evaltmp=$val16
+
+evaltmp=!mathsubst x=(-$val6) in $evaltmp
+tmp0=($evaltmp)
+val21=$[min(max($(tmp0),-20),20)]
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val6) in $evaltmp
+tmp0=($evaltmp)
+val22=$[max(min($(tmp0), 20),-20)]
+
+!ifval ($val20>1 and $val8!=6) 
+evaltmp=$val16
+
+evaltmp=!mathsubst x=(0.5*($(val17[1])+$(val17[2]))) in $evaltmp
+tmp0=($evaltmp)
+val23=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val8==6) 
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val23=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val8==5) 
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val12-0.5) in $evaltmp
+tmp0=($evaltmp)
+val23=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val20==3)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=(0.5*($(val17[2])+$(val17[3]))) in $evaltmp
+tmp0=($evaltmp)
+val24=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val8==5) 
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val12+0.5) in $evaltmp
+tmp0=($evaltmp)
+val24=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval (($val20==1 and $val8!=5) or ($val20==0 and $val8!=6))
+t_=!replace internal \( by ( in floor(listsort(List([0,$val21,$val22]))[1])
+tmp0=!exec pari $t_
+
+val25=$[rint($(tmp0))]
+!endif
+
+!ifval ($val20==2 or $val8==6)
+t_=!replace internal \( by ( in floor(listsort(List([$val23,$val21,$val22]))[1])
+tmp0=!exec pari $t_
+
+val25=$[rint($(tmp0))]
+!endif
+
+!ifval ($val20==3 or $val8==5)
+t_=!replace internal \( by ( in floor(listsort(List([$val23,$val24,$val21,$val22]))[1])
+tmp0=!exec pari $t_
+
+val25=$[rint($(tmp0))]
+!endif
+
+!ifval (($val20==1 and $val8!=5) or ($val20==0 and $val8!=6))
+t_=!replace internal \( by ( in floor(listsort(List([0,$val21,$val22]))[3])+1
+tmp0=!exec pari $t_
+
+val26=$[rint($(tmp0))]
+!endif
+
+!ifval ($val20==2 or $val8==6)
+t_=!replace internal \( by ( in floor(listsort(List([$val23,$val21,$val22]))[3])+1
+tmp0=!exec pari $t_
+
+val26=$[rint($(tmp0))]
+!endif
+
+!ifval ($val20==3 or $val8==5)
+t_=!replace internal \( by ( in floor(listsort(List([$val23,$val24,$val21,$val22]))[4])+1
+tmp0=!exec pari $t_
+
+val26=$[rint($(tmp0))]
+!endif
+
+!ifval ($val25>0)
+val27=$[rint(-1)]
+!else
+val27=$[rint($val25-1)]
+!endif
+
+!ifval ($val26<0)
+val28=$[rint(1)]
+!else
+val28=$[rint($val26+1)]
+!endif
+val29=text black , -1, -20, small , -20	text black , -1, -15, small , -15	text black , -1,-10,small , -10	text black , -1,-5,small , -5	text black , -1, 5,small , 5	text black , -1, 10, small , 10	text black , -1, 15, small , 15	text black , -1, 20, small , 20	text black, -10, -0.2, small , -10	text black, -5, -0.2, small , -5	text black, 5, -0.2,small , 5	text black, 10, -0.2,small , 10	linewidth 3	point   -10 ,0, black	point   -5 ,0, black	point   5 , 0, black	point   10 , 0, black	point  0, -20 , black	point  0, -15 , black	point  0, -10 , black	point  0, -5 , black	point  0, 5 , black	point  0, 10 , black	point  0, 15 , black	point  0, 20 , black	
+
+!ifval ($val20!=0 and $val8<5)
+val30=$[$(val17[1])]
+!endif
+
+!ifval ($val20!=0 and $val8>4)
+t_=!replace internal \( by ( in 0.1*floor(10*$(val17[1]))
+tmp0=!exec pari $t_
+
+val30=$[$(tmp0)]
+!endif
+
+!ifval ($val20>1 and $val8<5)
+val31=$[$(val17[2])]
+!endif
+
+!ifval ($val20>1 and $val8>4)
+t_=!replace internal \( by ( in 0.1*floor(10*listsort(List([$val17]))[2])
+tmp0=!exec pari $t_
+
+val31=$[$(tmp0)]
+!endif
+
+!ifval ($val20==3)
+val32=$[$val14]
+!endif
+val33=+,-
+
+!ifval ($val20!=0 or $val8==5 )
+val34=+,-
+!endif
+
+!ifval ($val20>1 or $val8==5 )
+val35=+,-
+!endif
+
+!ifval ($val20>2)
+val36=+,-
+!endif
+
+!ifval ($val21>0)
+val37=1
+!else
+val37=2
+!endif
+
+!ifval (($val20==1 or ($val8==5 and $val20==0)) and $val22>0)
+val38=1
+!endif
+
+!ifval (($val20==1 or ($val8==5 and $val20==0)) and $val22<0)
+val38=2
+!endif
+
+!ifval ($val8==5 and $val20==1 and $val30<$val12 and $val23>0)
+val38=1
+!endif
+
+!ifval ($val8==5 and $val20==1 and $val30<$val12 and $val23<0)
+val38=2
+!endif
+
+!ifval ($val8==5 and $val20==1 and $val30>$val12 and $val24>0)
+val38=1
+!endif
+
+!ifval ($val8==5 and $val20==1 and $val30>$val12 and $val24<0)
+val38=2
+!endif
+
+!ifval ($val20>1 and $val23>0)
+val38=1
+!endif
+
+!ifval ($val20>1 and $val23<0)
+val38=2
+!endif
+
+!ifval ($val8==5 and $val20==1 and $val22>0)
+val39=1
+!endif
+
+!ifval ($val8==5 and $val20==1 and $val22<0)
+val39=2
+!endif
+
+!ifval ($val20==2 and $val22>0)
+val39=1
+!endif
+
+!ifval ($val20==2 and $val22<0)
+val39=2
+!endif
+
+!ifval ($val20==3 and $val24>0)
+val39=1
+!endif
+
+!ifval ($val20==3 and $val24<0)
+val39=2
+!endif
+
+!ifval ($val20==3 and $val22>0)
+val40=1
+!endif
+
+!ifval ($val20==3 and $val22<0)
+val40=2
+!endif
+
+!ifval $val8==5
+val41=reply2,reply3
+!else
+val41=reply2
+!endif
+
+!ifval ($val8==5 and $val20==1) 
+val41=$val41,reply4
+!endif
+
+!ifval ($val8!=5 and $val20!=0)
+val41=$val41,reply3
+!endif
+
+!ifval ($val20>1 )
+val41=$val41,reply4
+!endif
+
+!ifval ($val20>2 )
+val41=$val41,reply5
+!endif
+oefsteps=reply1	$val41 
+nextstep=!nosubst reply1	$val41 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Aantal nulpunten
+replygood1=$[$val20]
+replytype2=menu
+replyname2=
+replygood2=$val37 ; $val33
+replytype3=menu
+replyname3=
+replygood3=$val38 ; $val34
+replytype4=menu
+replyname4=
+replygood4=$val39 ; $val35
+replytype5=menu
+replyname5=
+replygood5=$val40 ; $val36
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<table width="100%">	<tr><td width="60%">	<p>	De grafiek van 
+!insmath f
+$() is gedefinieerd op het domein $m_calD =  
+!if $val8!=5 
+$()[-$val6 ,$val6] 
+!else
+$() &#91;-$val6 ,$val12&#91; $m_cup &#93; $val12,$val6 &#93; 
+!endif
+$()<br>en weergegeven in het vlak (O ; I, J) .	</p>	Beantwoord de volgende vragen over de grafiek van 
+!insmath f
+$().	<p>	<ol>		 
+!if $m_step==1 
+$()<li><b>Hoeveel oplossingen heeft de vergelijking 
+!insmath f(x) = 0
+$() in $m_calD ?  
+!read oef/embed.phtml reply1, 5 
+$()</b></li> 
+!endif
+$()			 
+!if $m_step==2 and $val8!=5 and $val20==0 
+$()	<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft geen oplossingen in het domein $m_calD.  <br/><br/>	</li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b> :   </li>	<p>	<table border="1" >	<tr>	<td width="5%" > 
+!insmath x
+$()</td><td  align="left" width="40%" >-$val6</td><td align="right" width="40%" >$val6</td>	</tr>	<tr>	<td width="5%" >
+!insmath f(x)
+$()</td><td  colspan=2 align="center">   
+!read oef/embed.phtml reply2 
+$() </td>	</tr>	</table>	</p>	 
+!endif
+$()			 
+!if $m_step==2 and $val8==5 and $val20==0  
+$()<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft geen oplossing in het domein $m_calD. <br/>	De functie 
+!insmath f
+$() is niet gedefinieerd in $val12. <br/><br/></li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b>  :   </li>	<p>	<table border="1" >	<tr>	<td width="5%" >  
+!insmath x
+$()</td><td  width="40%" align="left">-$val6</td><td  align="center">$val12</td><td width="40%" align="right">$val6</td>	</tr>	<tr>	<td width="5%" > 
+!insmath f(x)
+$()</td><td width="40%" align="center">   
+!read oef/embed.phtml reply2 
+$() </td><td  align="center">||</td><td width="40%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td>	</tr>	</table>	</p>	 
+!endif
+$()		 
+!if $m_step==2 and $val8!=5 and $val20==1  
+$()<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft &eacute;&eacute;n oplossing 
+!insmath x
+$()<sub>1</sub> op het domein $m_calD. <br/>	De waarde van 
+!insmath x
+$()<sub>1</sub> op twee decimalen afgerond is $val30. <br/><br/></li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b>  :   </li>	<p>	<table border=1 border="solid">	<tr>	<td width="5%" >  
+!insmath x
+$()</td><td  width="40%" align="left">-$val6</td><td  align="center">$val30</td><td width="40%" align="right">$val6</td>	</tr>	<tr>	<td width="5%" > 
+!insmath f(x)
+$()</td><td width="40%" align="center">   
+!read oef/embed.phtml reply2 
+$() </td><td  align="center">0</td><td width="40%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td>	</tr>	</table>	</p>	 
+!endif
+$()		 
+!if $m_step==2 and $val8==5 and $val20==1 and $val30 < $val12  
+$()<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft &eacute;&eacute;n oplossing 
+!insmath x
+$()<sub>1</sub> op het domein $m_calD.<br>	De functie 
+!insmath f
+$() is niet gedefinieerd in $val12. <br/>	De waarde van 
+!insmath x
+$()<sub>1</sub> afgerond op 0.1 nauwkeurig  : $val30. 	<br/><br/>	</li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b>  :   </li>	<p>	<table border="1">	<tr>	<td width="5%" > 
+!insmath x
+$()</td><td  width="25%" align="left">-$val6 </td>	<td width="5%"  align="center"> $val30</td><td width="25%" > &nbsp; </td> <td align="center" width="5%"> $val12</td><td width="25%" align="right">$val6</td>	</tr>	<tr>	<td width="5%" >
+!insmath f(x)
+$()</td><td width="25%" align="center">  
+!read oef/embed.phtml reply2 
+$() </td><td  width="5%" align="center">0</td><td width="25%" align="center">   
+!read oef/embed.phtml reply3 
+$() </td><td  align="center" width="5%">||</td>	<td width="25%" align="center">  
+!read oef/embed.phtml reply4 
+$() </td> 	</tr>	</table>	</p>	 
+!endif
+$()	 
+!if $m_step==2 and $val8==5 and $val20==1 and $val12 < $val30  
+$()<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft &eacute;&eacute;n oplossing  
+!insmath x
+$()<sub>1</sub> op het domein $m_calD. 	De functie 
+!insmath f
+$() is niet gedfinieerd in $val12. <br/>	De waarde van 
+!insmath x
+$()<sub>1</sub> afgerond op 0.1 nauwkeurig is  : $val30. 	<br/><br/>	</li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b>  :   </li>	<p>	<table border="1"> 	<tr>	<td width="5%"> 
+!insmath x
+$()</td><td  width="20%" align="left">-$val6 </td>	<td  align="center" width="5%"> $val12</td><td width="20%" > &nbsp; </td> <td align="center" width="5%">$val30</td><td width="20%" align="right">$val6</td>	</tr>	<tr>	<td width="5%">
+!insmath f(x)
+$()</td><td width="20%" align="center">  
+!read oef/embed.phtml reply2 
+$() </td><td  align="center" width="5%">||</td><td width="20%" align="center">   
+!read oef/embed.phtml reply3 
+$()</td><td  align="center" width="5%">0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply4 
+$() </td> 	</tr>	</table>	</p>	 
+!endif
+$()			 
+!if $m_step==2 and $val20==2 
+$()	<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft twee oplossingen 
+!insmath x
+$()<sub>1</sub> en  
+!insmath x
+$()<sub>2</sub> op het domein $m_calD. <br/>	De afgeronde waarden van 
+!insmath x
+$()<sub>1</sub> en  
+!insmath x
+$()<sub>2</sub> zijn respectievelijk : $val30 en $val31. <br/><br/>	</li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b>  :   </li>	<p>	<table border="1" >	<tr>	<td width="5%"> 
+!insmath x
+$()</td><td  width="25%" align="left">-$val6 </td>	<td  align="center" width="5%"> $val30</td><td width="25%" > &nbsp; </td> <td align="center" width="5%"> $val31</td><td width="25%" align="right">$val6</td>	</tr>	<tr>	<td width="5%">
+!insmath f(x)
+$()</td><td width="25%" align="center">  
+!read oef/embed.phtml reply2 
+$() </td><td  align="center" width="5%">0</td><td width="25%" align="center">   
+!read oef/embed.phtml reply3 
+$() </td><td  align="center" width="5%"> 0</td>	<td width="25%" align="center">  
+!read oef/embed.phtml reply4 
+$() </td> 	</tr>	</table>	</p>	 
+!endif
+$()		 
+!if $m_step==2 and $val20==3 
+$()<li>	De vergelijking 
+!insmath f(x) = 0
+$() heeft op het domein $m_calD drie oplossingen 
+!insmath x
+$()<sub>1</sub>,  
+!insmath x
+$()<sub>2</sub> en  
+!insmath x
+$()<sub>3</sub> . <br/>	De op 0.1 nauwkeurig afgeronde waarden van 
+!insmath x
+$()<sub>1</sub>,   
+!insmath x
+$()<sub>2</sub> en  
+!insmath x
+$()<sub>3</sub> zijn respectievelijk :  $val30, $val31 en $val32. </li>	<li><b>Maak het tekenverloop van 
+!insmath f
+$() in de tabel af </b>  :   </li>		<p>	<table border="1">	<tr>	<td > 
+!insmath x
+$()</td>	<td  align="left" width="20%" >-$val6 </td>	<td align="center">$val30</td>	<td width="20%" > &nbsp; </td> 	<td align="center">$val31</td>	<td width="20%" > &nbsp; </td> 	<td  align="center">$val32</td>	<td width="20%" align="right"> $val6</td> </tr>	<tr>	<td >
+!insmath f(x)
+$()</td>	<td width="20%" align="left">   
+!read oef/embed.phtml reply2 
+$() </td>	<td align="center"> 0 </td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply3 
+$() </td> 	<td align="center">0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply4 
+$() </td>	<td align="center">0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply5 
+$() </td>	</tr>	</table>	</p>	 
+!endif
+$()	</ol>	</td>	<td width="40%"> 	<center>	 
+!read oef/draw.phtml 350,350 \
+	xrange -$val6,$val6	yrange $val27,$val28	parallel -$val6,$val27,-$val6,$val28,1,0, 2*$val6+1, grey 	parallel -$val6,$val27,$val6,$val27,0,1, (-$val27)+$val28+1, grey 	hline 0,0,black	vline 0,0,black	arrow 0,0,1,0,8, black	arrow 0,0,0,1,8, black	text black , -0.5,-0.2,small , O	text black , 1,-0.3,small , I	text black , -0.5,1,small , J	$val29	linewidth 1.5	plot blue, $val16	 
+$()	</center>	</td>	</tr></table>	
+$()
+!exit
+
+:hint
+$()De waarde van 
+!insmath f(x)
+$() is strikt positief (resp. strikt negatief) voor alle re&euml;ele  waarden van 
+!insmath x
+$() op het interval 
+!insmath I
+$() 	wanneer de curve van 
+!insmath f
+$() zich uitsluitend boven of onder de I-as bevindt.<br/>.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,16,20,27,28,29,30,31,32
+embedcnt=19

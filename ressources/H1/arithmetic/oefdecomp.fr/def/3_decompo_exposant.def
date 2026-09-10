@@ -1,0 +1,471 @@
+!set title=3- Compléter une décomposition en produit de facteurs premiers (avec exposants)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Euler,Versailles
+email=euler.wims@ac-versailles.fr
+keywords=
+language=fr
+oefdescription=Dans cet exercice d'apprentissage, vous devez compléter les exposants d'une décomposition en produit de facteurs premiers d'un nombre entier non premier généré par le serveur.
+oefobservation=Dans cet exercice d'apprentissage, il est demandé de compléter les exposants d'une décomposition en produit de facteurs premiers d'un nombre entier non premier généré aléatoirement par le serveur en fonction de certains paramètres que vous pouvez régler dans INTRO/CONFIG.
+computeanswer=no
+oefcss= <style> .oefstatement sup { line-height: 4em; } /*sup{ top:-0.38em; }*/ .expo{ vertical-align: sub; line-height: 4em; } .exposol{ vertical-align: super; line-height: 4em; border:solid black 1px; } input#reply1{ padding-left:0.1rem; padding-right:0.1rem; } input#reply2{ padding-left:0.1rem; padding-right:0.1rem; } input#reply3{ padding-left:0.1rem; padding-right:0.1rem; } input#reply4{ padding-left:0.1rem; padding-right:0.1rem; } .wims_matrix1 tr:nth-child(1)>td:nth-child(2) {border-bottom:2px solid black;} .wims_matrix1 td:nth-child(1) {border-right:2px solid black;padding-right:0.3em;} .wims_matrix1 td:nth-child(2) {padding-left:0.3em;} .wims_matrix1 tr:nth-child(1)>td{padding-top:0.2em;padding-bottom:0.2em;} .wims_matrix1 tr:nth-child(2)>td{padding-top:1.2em;padding-bottom:0.3em;} .diviseur{ color: blue; font-weight: bold; background-color:#fffd94; } .wims_matrix2 td:nth-child(1) {border-right:2px solid black;} .division { -webkit-display: -webkit-box; -webkit-display: -webkit-flex; display: -webkit-box; display: -ms-flexbox; /*display: flex;*/ flex-direction:row; flex-wrap:wrap; } .item{margin-right:1.5em;} </style> 
+
+ansorder=r,r,r
+varcnt=103
+prevarcnt=81
+postvarcnt=21
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2!= 
+val6= $val2
+!else
+val6=1
+!endif
+
+!ifval $val3!= 
+val7= $val3
+!else
+val7=2
+!endif
+
+!ifval $val4!= 
+val8= $val4
+!else
+val8=1
+!endif
+
+!ifval $val5!= 
+val9= $val5
+!else
+val9=3
+!endif
+!if $val6=1 
+val10=$[rint(100)]
+!else
+!if $val6=2 
+val10=$[rint(1000)]
+!else
+val10=$[rint(5000)]
+!endif
+!endif
+!if $val7=1 
+val11=$[rint(1)]
+!else
+!if $val7=2 
+val11=$[rint(2)]
+!else
+tmp0=!randint 2, 3
+
+val11=$[rint($(tmp0))]
+!endif
+!endif
+!if $val8=1 
+val12=$[rint(4)]
+!else
+!if $val8=2 
+val12=$[rint(10)]
+!else
+val12=$[rint(25)]
+!endif
+!endif
+val13=
+!for val14 =1 to 3 
+tmp=!trim 
+val15=!translate internal $	\
+$ to ;; in $tmp
+!for val16 =0 to 2 
+val17=
+!for val18 =1 to 3 
+tmp0=!record 3*($val16+3*$val14-3)+$val18 of data/ensembles
+
+val19=[$(tmp0)]
+tmp0=!append item $val19 to $val17
+
+val17=$(tmp0)
+!next
+tmp=!trim $val15	$val17
+val15=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!append item [$val15] to $val13
+
+val13=$(tmp0)
+!next
+t_=!replace internal \( by ( in primes($val12)
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+val21=$[rint(0)]
+val22=$[rint(0)]
+!while $val22=0 or $val22>$val10 
+!if $val21<4 
+!readproc slib/data/random $val11,item,$val20 
+tmp0=$slib_out
+val23=$(tmp0)
+!if $val11=1 
+tmp0=!randint 2, 6
+
+val24=$(tmp0)
+!else
+t_=!replace internal \( by ( in concat(vector($val11-1,i,random\({[1,2]})),random\({[2,3]}))
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+!endif
+val22=$[rint($(val23[1])^$(val24[1]))]
+!if $val11>1 
+!for val25 =2 to $val11 
+val22=$[rint($val22*$(val23[$val25])^$(val24[$val25]))]
+!next
+!endif
+val21=$[rint(1+$val21)]
+!else
+tmp0=!item $val6 of $val13
+
+val26=$(tmp0)
+tmp0=!declosing $val26
+
+val26=$(tmp0)
+val26=$(val26[$val7;$val8])
+tmp0=!declosing $val26
+
+val26=$(tmp0)
+tmp0=!randitem $val26
+
+val22=$[rint($(tmp0))]
+!endif
+!endwhile
+t_=!replace internal \( by ( in omega($val22)
+tmp0=!exec pari $t_
+
+val27=$[rint($(tmp0))]
+t_=!replace internal \( by ( in bigomega($val22)
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in factor($val22)
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+val30=$(val29[;1])
+val31=$(val29[;2])
+!readproc slib/numeration/ecriturenombre $val22,tex 
+tmp0=$slib_out
+val32=$(tmp0)
+tmp0=!replace internal , by ^ in $val29
+
+val33=$(tmp0)
+tmp0=!replace internal ; by \times in $val33
+
+val33=$(tmp0)
+t_=!replace internal \( by ( in 	facteurs=[$val30];	puissances=[$val31];	sumpuis=$val28;	nb=$val22;	v=vector(sumpuis);	k=0;	for(j=1,#facteurs,for(i=1,puissances[j],v[i+k]=facteurs[j]);k=k+puissances[j]);	sol=vector(sumpuis,i,m=v[1..i];concat(m,nb/prod(t=1,#m,m[t])))	
+tmp0=!exec pari $t_
+
+val34=$(tmp0)
+val35=
+!for val36 =1 to $val28 
+val37=
+tmp0=!declosing $(val34[$val36])
+
+val37=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val37[-1]),tex 
+tmp0=$slib_out
+tmp1=!replace internal item number -1 by $(tmp0) in $val37
+
+val37=$(tmp1)
+tmp0=!replace internal , by \times in $val37
+
+val37=$(tmp0)
+val37=$val32= $val37
+val35=$val35,$val37
+!next
+t_=!replace internal \( by ( in 	w=concat([Vec(nb)],sol);	vector(sumpuis,i,concat(w[i][#w[i]],w[i+1][-2..-1]))	
+tmp0=!exec pari $t_
+
+val38=$(tmp0)
+tmp=!trim 
+val39=!translate internal $	\
+$ to ;; in $tmp
+!for val36 =1 to $val28 
+val37=
+tmp0=!declosing $(val38[$val36])
+
+val37=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val37[1]),tex 
+tmp0=$slib_out
+!readproc slib/numeration/ecriturenombre $(val37[2]),tex 
+tmp1=$slib_out
+!readproc slib/numeration/ecriturenombre $(val37[3]),tex 
+tmp2=$slib_out
+val37=$(tmp0),$(tmp1),$(tmp2)
+tmp=!trim $val39	  $val37
+val39=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp=!trim $val31
+val40=!translate internal $	\
+$ to ;; in $tmp
+val41=$[rint($val27)]
+tmp0=!makelist reply x for x=1 to $val41
+
+val42=$(tmp0)
+tmp0=!nospace $val42
+
+val42=$(tmp0)
+tmp0=!items2lines $val42
+
+val43=$(tmp0)
+tmp0=!makelist \sc_reply x for x=1 to $val41
+
+val44=$(tmp0)
+tmp0=!nospace $val44
+
+val44=$(tmp0)
+tmp0=!makelist r x for x=1 to $val41
+
+val45=$(tmp0)
+!if $val11=1 
+val46=Compléter cette décomposition du nombre <strong> \($val32\) </strong> en produit de facteurs premiers en indiquant l'exposant qui convient.
+!else
+val46=Compléter cette décomposition du nombre <strong> \($val32\) </strong> en produit de facteurs premiers en indiquant, pour chaque facteur, l'exposant qui convient.
+!endif
+val47=<div class="unbreakable">\($val32 = $(val30[1])\,\)<sup class="expo">$(val42[1])</sup>
+!for val25 =2 to $val41 
+tmp0=!append line \(\times \, $(val30[$val25])\,\)<sup class="expo">$(val42[$val25])</sup> to $val47
+
+val47=$(tmp0)
+!next
+tmp0=!append line </div> to $val47
+
+val47=$(tmp0)
+val48=$val47
+!for val49 =1 to $val41 
+tmp0=!replace internal $(val42[$val49]) by \(\quad\) in $val48
+
+val48=$(tmp0)
+!next
+tmp0=!replace internal expo by exposol in $val48
+
+val48=$(tmp0)
+val50=
+oefsteps=$val45 
+nextstep=!nosubst $val45 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$(val40[1])
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=
+replygood2=$(val40[2])
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=
+replygood3=$(val40[3])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 		<div class="euler_quest">	  <p>$val46</p>	</div>	<div class =
+!if $m_sc_reply1= 
+$()"euler_answer" 
+!else
+$() 
+!if 0 isitemof $val50 
+$()"euler_rep_bad" 
+!else
+$() "euler_rep_good" 
+!endif
+$() 
+!endif
+$()>	  
+!if $m_sc_reply1!= 
+$()Vous avez saisi : 
+!endif
+$()	   
+!read oef/special.phtml codeinput [$val47],1,div	  $val43	    
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()		<div class="euler_quest_nobg">	  <p>$val46<br>$val48</p>	  	</div>	
+!if 3 isitemof $val9 
+$()	  <div class="euler_rep_good_nobg" >	    <div>Une décomposition du nombre 
+!insmath $val32
+$() en produit de facteurs premiers peut être obtenue en 	écrivant 
+!insmath $val32
+$() en un produit de deux entiers et en remplaçant successivement les entiers non premiers en 	produit de facteurs premiers&nbsp;: 	    </div>  	    <div class="unbreakable">	     
+!for m_lig=1 to $val28 
+$()	      
+!insmath $(val35[$m_lig])
+$()<br>	       
+!next
+$()	    
+!insmath $val32=$val33
+$()	    </div>	 </div>	 
+!endif
+$()	
+!if 1 isitemof $val9 
+$()	  <div class="euler_rep_good_nobg " >	    <div>Une décomposition du nombre 
+!insmath $val32
+$() en produit de facteurs premiers est le produit des 	    diviseurs premiers obtenus dans les divisions successives suivantes&nbsp;:  	    </div>	    <div class="division">	     
+!for m_d=1 to $val28 
+$()	     <div class="item">	       <table class="wimsnoborder wimscenter wims_matrix1">	       <tr>	        <td>
+!insmath $(val39[$m_d;1])
+$()</td>	        <td class="diviseur">
+!insmath $(val39[$m_d;2])
+$()</td>	       </tr>	       	       <tr>	        <td>
+!insmath 0
+$()</td>	        <td>
+!insmath $(val39[$m_d;3])
+$()</td>	       </tr>	      </table>	     </div>	     
+!next
+$()	      <div class="item">	        <div class="spacer"></div>	        
+!insmath $(val35[-2])
+$() soit 
+!insmath $val32=$val33
+$()	      </div>	    </div>	   </div>	 
+!endif
+$()	   	
+!if 2 isitemof $val9 
+$()	   <div class="euler_rep_good_nobg" >	    <div>Une décomposition du nombre 
+!insmath $val32
+$() en produit de facteurs premiers est le produit des 	    diviseurs premiers obtenus dans la deuxième colonne dans les divisions successives présentées ainsi&nbsp;:	    </div>  	    <div class="division">	      <div class="item">	        <table class="wimsnoborder wimscenter wims_matrix2">	          
+!for m_e=1 to $val28 
+$()	         <tr>	          <td>
+!insmath $(val39[$m_e;1])
+$()</td>	          <td class="diviseur">
+!insmath $(val39[$m_e;2])
+$()</td>	         </tr>	          
+!next
+$()	         <tr>	          <td>
+!insmath 1
+$()</td>	          <td></td>	         </tr>	        </table>	      </div>	      <div class="item">	        <div class="spacer"></div>	        
+!insmath $(val35[-2])
+$() soit 
+!insmath $val32=$val33
+$()	      </div>	    </div>	   </div>	 
+!endif
+$()		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val50=$m_sc_reply1,$m_sc_reply2,$m_sc_reply3,$m_sc_reply4,$m_sc_reply5,$m_sc_reply6,$m_sc_reply7,$m_sc_reply8,$m_sc_reply9
+tmp0=!nonempty items $val50
+
+val50=$(tmp0)
+val51=$m_reply1,$m_reply2,$m_reply3
+tmp0=!nonempty items $val51
+
+val51=$(tmp0)
+val52=1
+val53=
+val54=
+!for val55 =1 to $val41 
+val56=($(val30[$val55]))^($(val51[$val55]))
+tmp0=!eval ($val52)*($val56)
+
+val52=$(tmp0)
+t_=!replace internal \( by ( in frac($(val51[$val55]))==0
+tmp0=!exec pari $t_
+
+val57=$(tmp0)
+val53=$val53,$val57
+t_=!replace internal \( by ( in sign($(val51[$val55]))==-1
+tmp0=!exec pari $t_
+
+val58=$(tmp0)
+val54=$val54,$val58
+!next
+!if (0 notitemof $val53) and (1 notitemof $val54) 
+val59=1
+!else
+val59=0
+!endif
+!if ($val52>=10^8) or ($val52=Inf) 
+val60=$[rint(1)]
+!else
+val60=$[rint(0)]
+!endif
+!readproc slib/numeration/ecriturenombre $val52,tex 
+tmp0=$slib_out
+val61=$(tmp0)
+!if ($val52 != $val22 ) or ($val52=Inf) 
+val62=1
+!else
+val62=0
+!endif
+
+!exit
+
+:feedback
+!ifval ($val59=1) and ($val62=1) 
+ <div class='oef_feedbacks'><div class="wims_msg warning">Votre décomposition en facteurs premiers est celle 
+!if $val60=0 
+$()du nombre 
+!insmath $val61
+$() 
+!else
+$() d'un nombre entier supérieur à 
+!insmath 10^8
+$() 
+!endif
+$().</div>
+$()</div>
+!endif
+!ifval (0 isitemof $val53) || (1 isitemof $val54)
+ <div class='oef_feedbacks'><div class="wims_msg warning">Vous devez saisir des exposants entiers positifs.</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,22,28,30,32,33,35,39,41,43,46,47,48,50
+embedcnt=1

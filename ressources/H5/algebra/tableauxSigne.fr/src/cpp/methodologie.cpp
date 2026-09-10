@@ -1,0 +1,284 @@
+target=methodologie
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\integer{a = (-1)^random(0,1)*random(1..10)}
+\integer{b = (-1)^random(0,1)*random(1..10)}
+\integer{c = (-1)^random(0,1)*random(1..10)}
+\integer{d = (-1)^random(0,1)*random(1..10)}
+\rational{racu=-(\b)/(\a)}
+
+/** Faire en sorte que les racines soient distinctes **/
+\integer{d=(-(\d)/(\c)=\racu)?-\d}
+\rational{racv=-(\d)/(\c)}
+
+\function{u=\a*x + \b}
+\function{u=\a==1?x + \b}
+\function{u=\a==-1?-x + \b}
+
+\function{v=\c*x + \d}
+\function{v=\c==1?x + \d}
+\function{v=\c==-1?-x + \d}
+
+/** produit ou quotient **/
+\integer{cas=random(1,2)}
+\text{listf=(\u)(\v), (\u)/(\v)}
+\rational{vi=\racv}
+
+\function{f=item(\cas,\listf)}
+\function{tf=texmath(\f)}
+
+\integer{err=random(1..5)}
+
+/** placer le terme ayant la plus petite racine en premier **/
+\integer{rgerac=\racu<\racv?1:2}
+
+/** ordonner les racines **/
+/** sauf erreur 2 où les racines seront mal ordonnées **/
+\rational{r1=\rgerac==1?\racu:\racv}
+\rational{r2=\rgerac==1?\racv:\racu}
+\rational{x1=\err==2?\r2:\r1}
+\rational{x2=\err==2?\r1:\r2}
+
+/** choix pour les barres et signes **/
+\text{signs=+,-}
+\text{bars=0,||,|}
+/** signes des coef dir des facteurs u et v**/
+\integer{sa=\a>0?1:2}
+\integer{sopa=\a>0?2:1}
+\integer{sc=\c>0?1:2}
+\integer{sopc=\c>0?2:1}
+
+/** bonnes / bad réponses sur les signes et zéros **/
+
+\text{rep3=\sopa}
+\text{bad3=\sa}
+\text{rep4=\x1==\racu?1:3}
+\text{bad4=\x1==\racu?3:2}
+\text{rep5=\x1==\racu?\sa:\sopa}
+\text{bad5=\x1==\racu?\sopa:\sa}
+\text{rep6=\x2==\racu?1:3}
+\text{bad6=\x2==\racu?3:2}
+\text{rep7=\sa}
+\text{bad7=\sopa}
+
+\text{rep8=\sopc}
+\text{bad8=\sc}
+\text{rep9=\x1==\racv?1:3}
+\text{bad9=\x1==\racv?3:2}
+\text{rep10=\x1==\racv?\sc:\sopc}
+\text{bad10=\x1==\racv?\sopc:\sc}
+\text{rep11=\x2==\racv?1:3}
+\text{bad11=\x2==\racv?3:2}
+\text{rep12=\sc}
+\text{bad12=\sopc}
+
+\text{rep13=\rep3*\rep8==2?2:1}
+\text{bad13=\rep3*\rep8==2?1:2}
+\text{rep14=\cas==2 and \x1==\vi?2:1}
+\text{bad14=\cas==1?3:1}
+\text{rep15=\rep5*\rep10==2?2:1}
+\text{bad15=\rep5*\rep10==2?1:2}
+\text{rep16=\cas>1 and \x2==\vi?2:1}
+\text{bad16=\cas==1?3:1}
+\text{rep17=\rep7*\rep12==2?2:1}
+\text{bad17=\rep7*\rep12==2?1:2}
+
+/** tableau correct, par défaut (err:1)**/
+\text{tab1=<table class="wimsborder" style="width:80%">
+<tr>
+<td style="width:15%;text-align:center">\(x)</td>
+<td style="width:25%;text-align:left">\(-\infty)</td>
+<td style="width:5%;text-align:center">\x1</td>
+<td style="width:25%;text-align:right"></td>
+<td style="width:5%;text-align:center">\x2</td>
+<td style="width:25%;text-align:right">\(+\infty)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\u)</td>
+<td style="width:25%;text-align:center">item(\rep3,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep4,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep5,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep6,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep7,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\v)</td>
+<td style="width:25%;text-align:center">item(\rep8,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep9,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep10,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep11,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep12,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(f(x))</td>
+<td style="width:25%;text-align:center">item(\rep13,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep14,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep15,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep16,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep17,\signs)</td>
+</tr>
+</table>
+}
+
+/**erreur 2 inversion des racines (x1, x2 , cf definition des xi)**/
+\text{tab2=\tab1}
+
+/** erreur 3 signe de u **/
+\text{tab3=<table class="wimsborder" style="width:80%">
+<tr>
+<td style="width:15%;text-align:center">\(x\)</td>
+<td style="width:25%;text-align:left">\(-\infty\)</td>
+<td style="width:5%;text-align:center">\x1</td>
+<td style="width:25%;text-align:right"></td>
+<td style="width:5%;text-align:center">\x2</td>
+<td style="width:25%;text-align:right">\(+\infty\)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\u\)</td>
+<td style="width:25%;text-align:center">item(\bad3,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep4,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad5,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep6,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad7,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\v)</td>
+<td style="width:25%;text-align:center">item(\rep8,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep9,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep10,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep11,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep12,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(f(x))</td>
+<td style="width:25%;text-align:center">item(\bad13,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep14,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad15,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep16,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad17,\signs)</td>
+</tr></table>}
+/** erreur 4 sign v **/
+\text{tab4=<table class="wimsborder" style="width:80%">
+<tr>
+<td style="width:15%;text-align:center">\(x\)</td>
+<td style="width:25%;text-align:left">\(-\infty\)</td>
+<td style="width:5%;text-align:center">\x1</td>
+<td style="width:25%;text-align:right"></td>
+<td style="width:5%;text-align:center">\x2</td>
+<td style="width:25%;text-align:right">\(+\infty\)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\u\)</td>
+<td style="width:25%;text-align:center">item(\rep3,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep4,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep5,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep6,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep7,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\v\)</td>
+<td style="width:25%;text-align:center">item(\bad8,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep9,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad10,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep11,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad12,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(f(x)\)</td>
+<td style="width:25%;text-align:center">item(\bad13,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep14,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad15,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep16,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad17,\signs)</td>
+</tr>
+</table>
+}
+/** erreur 5 val interdite ou zéro **/
+\text{tab5=<table class="wimsborder" style="width:80%">
+<tr>
+<td style="width:15%;text-align:center">\(x\)</td>
+<td style="width:25%;text-align:left">\(-\infty\)</td>
+<td style="width:5%;text-align:center">\x1</td>
+<td style="width:25%;text-align:right"></td>
+<td style="width:5%;text-align:center">\x2</td>
+<td style="width:25%;text-align:right">\(+\infty\)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\u\)</td>
+<td style="width:25%;text-align:center">item(\rep3,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep4,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep5,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep6,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep7,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\v\)</td>
+<td style="width:25%;text-align:center">item(\rep8,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep9,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep10,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep11,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep12,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(f(x)\)</td>
+<td style="width:25%;text-align:center">item(\rep13,\signs)</td>
+<td style="width:5%;text-align:center">item(\bad14,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep15,\signs)</td>
+<td style="width:5%;text-align:center">item(\bad16,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep17,\signs)</td>
+</tr>
+</table>
+}
+
+/** erreur 6 signes de f **/
+\text{tab6=<table class="wimsborder" style="width:80%">
+<tr>
+<td style="width:15%;text-align:center">\(x\)</td>
+<td style="width:25%;text-align:left">\(-\infty\)</td>
+<td style="width:5%;text-align:center">\x1</td>
+<td style="width:25%;text-align:right"></td>
+<td style="width:5%;text-align:center">\x2</td>
+<td style="width:25%;text-align:right">\(+\infty\)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\u\)</td>
+<td style="width:25%;text-align:center">item(\rep3,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep4,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep5,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep6,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep7,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(\v\)</td>
+<td style="width:25%;text-align:center">item(\rep8,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep9,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep10,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep11,\bars)</td>
+<td style="width:25%;text-align:center">item(\rep12,\signs)</td>
+</tr><tr>
+<td style="width:15%;text-align:center">\(f(x)\)</td>
+<td style="width:25%;text-align:center">item(\bad13,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep14,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad15,\signs)</td>
+<td style="width:5%;text-align:center">item(\rep16,\bars)</td>
+<td style="width:25%;text-align:center">item(\bad17,\signs)</td>
+</tr>
+</table>
+}
+
+\text{table=item(\err,\tab1,\tab2,\tab3,\tab4,\tab5,\tab6)}
+
+\text{produit=\cas==1?\name_produit[1]:\name_produit[2]}
+\text{msg5=\cas==1?\name_msg5[1]:\name_msg5[1]}
+
+\text{choix= \name_choix,
+\msg5,
+\name_choix2[1] \produit \(f(x)\)}
+
+\statement{
+<div class="wims_question">
+ \name_enonce:<div class="center">\(f(x) = \tf\)</div>
+<div class="wimscenter">
+ \table
+</div>
+\name_question[1]? \name_question[2], \name_question[4]?
+</div>
+<ul>
+\for{i=1 to 6}{<li class="wims_nopuce">\embed{reply1,\i}</li>}
+</ul>
+}
+
+\answer{}{\err;\choix}{type=radio}

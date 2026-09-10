@@ -1,0 +1,130 @@
+!set title=Effet Doppler et analyse d'un son
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 31
+
+val6=$[rint($(tmp0))]
+tmp=!trim dhfpt-1,300	dhfpt-2,440	dhfpt-3,450	dhfpt-4,500	dhfpt-5,550	dhfpt-6,600	dhfpt-7,700	dhfpt-8,800	dhfpt-9,900	dhfpt-10,1000	dhfpt-11,1100	dhfpt-12,1200	dhfpt-13,1500	dhfpt-14,1600	dhfpt-15,1700	dhfpt-16,1800	dhfpt-17,1900	dhfpt-18,2000	dhfpt-19,3000	dhfpt-20,4000	dhfpt-21,5000	dhfpt-22,6000	dhfpt-23,7000	dhfpt-24,8000	dhfpt-25,9000	dhfpt-26,10000	dhfpt-27,11000	dhfpt-28,12000	dhfpt-29,13000	dhfpt-30,14000	dhfpt-31,15000
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=$val1/$(val7[$val6;1]).wav
+val9=$(val7[$val6;2])
+val10=$[rint($val9)]
+tmp0=!randint 0, $val10/4
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val12=$[$(tmp0)]
+val13=$[rint($val10+$val12*$val11)]
+tmp0=!randint 320, 360
+
+val14=$[rint($(tmp0))]
+val15=$[$val14*$val11/$val13]
+!if $val13>$val10 
+tmp=!trim est en approche,s'éloigne
+val16=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim s'éloigne,est en approche
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=r1	r2, r3 
+nextstep=!nosubst r1	r2, r3 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=
+replygood1=$val9 Hz
+replytype2=menu
+replyname2=
+replygood2=1;$(val16[1]),$(val16[2])
+replytype3=units
+replyname3=v
+replygood3=$val15 m/s
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()	A l'aide d'un micro, on enregistre le son émis en continu dans un véhicule. </br>	On obtient le fichier suivant: <a href="$val8" target=_blank>fichier son à télécharger</a>.	(<i>	Faire un clic-droit et choisir "enregistrer la cible du lien sous"</i>.)</br>	Déterminer, à l'aide d'un logiciel tel que Régressi ou Audacity, la fréquence émise par ce signal.</br>	f= 
+!read oef/embed.phtml reply1, 10 
+$() <i>Ne pas oublier d'indiquer l'unité</i>	 
+!endif
+$()	
+!if $m_step=2 
+$()	Sur le trottoir,un piéton enregistre le son qu'il perçoit. Après analyse, le piéton mesure sur  un spectre que le	son qu'il a enregistré à une fréquence $val13 Hz.<br><br>	Pour les conditions de ce jour, le son se propage à la vitesse v<sub>son</sub>=$val14 m.s<sup>-1</sup>	<ol>	<li>A la lecture de ces mesures, on peut dire que le véhicule  
+!read oef/embed.phtml reply2 
+$()</li>	<li>Calculer la vitesse du véhicule: v=  
+!read oef/embed.phtml reply3 
+$() <i>Ne pas oublier d'indiquer l'unité</i></li>	</ol> 
+!endif
+$()	 		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,13,14
+embedcnt=3

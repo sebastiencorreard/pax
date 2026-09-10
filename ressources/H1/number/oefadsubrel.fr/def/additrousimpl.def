@@ -1,0 +1,126 @@
+!set title=Addition à trou de nombres relatifs #
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2
+
+val6=$[rint($(tmp0))]
+!if $val6=1 
+tmp0=!randint 1, 50
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -50, 50
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2
+
+val9=$[rint($(tmp0))]
+!if $val9=1 
+val10=,\(\plus $val7 = $val8\)
+val11=$[rint($val8-$val7)]
+!else
+val10=,\(\minus $val7 = $val8\)
+val11=$[rint($val8+$val7)]
+!endif
+!else
+tmp0=!randint -50, 50
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -50, $val7-1
+
+tmp1=!randint $val7+1, 50
+
+tmp=!nonempty items $(tmp0),$(tmp1)
+
+tmp2=!randitem $tmp
+val8=$[rint($(tmp2))]
+!if $val8<$val7 
+val10=\($val7 \minus\),\(= $val8\)
+val11=$[rint($val7-$val8)]
+!else
+val10=\($val7 \plus\),\(= $val8\)
+val11=$[rint($val8-$val7)]
+!endif
+!endif
+val12=\textcolor{green}{$val11}
+replytype1=numexp
+replyname1=?
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div><label for="reply1">Trouver le nombre manquant&nbsp;:</label>	$(val10[1])  
+!read oef/embed.phtml reply1,5 
+$() <span class="nowrap">$(val10[2]).</span></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$(val10[1]) 
+!insmath $val12
+$() $(val10[2])
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12
+embedcnt=1

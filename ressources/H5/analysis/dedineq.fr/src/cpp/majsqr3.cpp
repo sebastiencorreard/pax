@@ -1,0 +1,43 @@
+target=majsqr3
+# define NUM III
+
+#include "header.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\language{fr}
+\options{nofloat}
+\methods{ineq/addterm, ineq/mulexp, ineq/exsides,
+ineq/trans, ineq/constineq, ineq/addineq, ineq/mulineq,
+ineq/sqrpos}
+\minsteps{2}
+
+\text{x=randitem(a,b,c,d,r,s,t,x,y,z)}
+\integer{a=random(10..50)}
+\integer{b=random(10..50)}
+\integer{c=random(1..20)*random(-1,1)}
+\integer{d=max(\a-(\c),\b+(\c))}
+\integer{sqr=\d^2}
+
+\function{fn=\x+\c}
+\text{eqr=random(,=)}
+\text{less=<\eqr}
+\text{more=>\eqr}
+\text{left=\x \more -\a}
+\text{right=\x \less \b}
+\context{\left
+\right
+}
+\statement{\name_enonce[1] \((\fn)^2\), \name_enonce[2]
+<div class="wimscenter">\(-\a \less \x \less \b\).</div>
+}
+
+\text{test=}
+\text{cut=wims(translate internal <=> to , ; in \newobject)}
+\if{; notin \cut and , isin \cut}{
+ \text{left=item(1,\cut)}
+ \text{right=item(2,\cut)}
+ \text{test=yacas(Simplify((\fn)^2 - (\left)))}
+}
+
+\condition{\test issametext 0 and \right = \sqr}

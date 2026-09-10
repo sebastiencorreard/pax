@@ -1,0 +1,183 @@
+!set title=Chiffrement à clé secrète
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.Fr
+
+ansorder=r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+val7=MATH,M,A,T,H	PLAN,P,L,A,N	PLUS,P,L,U,S	CASE,C,A,S,E	BIEN,B,I,E,N	TOIT,T,O,I,T	COIN,C,O,I,N	FORT,F,O,R,T	
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+val9=$(val8[1])
+val10=
+!for val11 =1 to 4 
+tmp0=!positionof item $(val8[$val11+1]) in $val6
+
+val12=$[rint($(tmp0))]
+tmp0=!append item $val12 to $val10
+
+val10=$(tmp0)
+!next
+val13=MATHS,M,A,T,H,S	INCONNUE,I,N,C,O,N,N,U,E	COURBE,C,O,U,R,B,E	CARRE,C,A,R,R,E	RACINE,R,A,C,I,N,E	TANGENTE,T,A,N,G,E,N,T,E	ABSCISSE,A,B,S,C,I,S,S,E	PARABOLE,P,A,R,A,B,O,L,E	COURAGE,C,O,U,R,A,G,E	BRAVO,B,R,A,V,O	EXAMEN,E,X,A,M,E,N	REUSSITE,R,E,U,S,S,I,T,E	CONTROLE,C,O,N,T,R,O,L,E	VACANCES,V,A,C,A,N,C,E,S	
+tmp=!translate internal $	$ to ; in $val13
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)
+
+val14=$(tmp1)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row $(val14[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row $(val14[2]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+val16=$(val8[1])
+tmp0=!itemcnt $val8
+
+val17=$[rint($(tmp0)-1)]
+val18=
+val19=
+!for val20 =1 to $val17 
+tmp0=!positionof item $(val8[$val20+1]) in $val6
+
+val21=$[rint($(tmp0)-1)]
+t_=!replace internal \( by ( in lift(Mod($val20,4))
+tmp0=!exec pari $t_
+
+val22=$[rint($(tmp0))]
+
+!ifval $val22=0
+val22=$[rint(4)]
+!endif
+tmp0=!append item $(val10[$val22]) to $val19
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in lift(Mod($val21+$(val10[$val22]),26))
+tmp0=!exec pari $t_
+
+val23=$[rint($(tmp0))]
+val18=$val18 $(val6[$val23+1])
+!next
+tmp0=!nospace $val18
+
+val18=$(tmp0)
+val24=$(val15[1])
+tmp0=!itemcnt $val15
+
+val25=$[rint($(tmp0)-1)]
+val26=
+!for val27 =1 to $val25 
+tmp0=!positionof item $(val15[$val27+1]) in $val6
+
+val21=$[rint($(tmp0)-1)]
+t_=!replace internal \( by ( in lift(Mod($val27,4))
+tmp0=!exec pari $t_
+
+val22=$[rint($(tmp0))]
+
+!ifval $val22=0
+val22=$[rint(4)]
+!endif
+t_=!replace internal \( by ( in lift(Mod($val21+$(val10[$val22]),26))
+tmp0=!exec pari $t_
+
+val23=$[rint($(tmp0))]
+val26=$val26 $(val6[$val23+1])
+!next
+tmp0=!nospace $val26
+
+val26=$(tmp0)
+replytype1=nocase
+replyname1=Cryptage de $val16
+replygood1=$val18
+replytype2=nocase
+replyname2=Décryptage de $val26
+replygood2=$val24
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On dispose d'une clé qui peut être un mot, une phrase, etc. et	  celle-ci fournit une suite de nombres: la liste des rangs dans	  l'alphabet dans l'ordre des lettres qui la forment.<br>	  Par exemple, $val9 fournit la suite $val10.<br>	  Avec cette clé, pour chiffrer un texte, on remplace chaque lettre	  par son rang 
+!insmath x
+$() dans l'alphabet (avec 0 pour A, 1 pour B, et 25 pour Z), on ajoute $(val10[1]) au rang de la	  première lettre, $(val10[2]) au rang de la deuxième lettre, $(val10[2]) au rang de la	  troisième lettre, $(val10[4]) au rang de la quatrième lettre et on recommence	  avec la même clé, $(val10[1]) au rang de la cinquième lettre, etc.<br>	  On obtient les rangs des lettres qui remplacent.<br>	  Ces rangs sont les restes de la division de 
+!insmath x+k
+$() par 26, 
+!insmath k
+$() varie	  pour chaque lettre en fonction de la clé.<br>	  L'intérêt est qu'une lettre n'est pas toujours codée de la même façon.	<ol>	<li>	  Chiffrer le message $val16 avec la clé $val9.	  <div class="wimscenter"> message crypté=  
+!read oef/embed.phtml reply1 
+$()	</div></li>	<li>	  Déchiffrer le message $val26 avec la clé $val9.	  <div class="wimscenter"> message décrypté=  
+!read oef/embed.phtml reply2 
+$()	</div></li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,16,26
+embedcnt=2

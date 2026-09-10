@@ -1,0 +1,115 @@
+!set title=Relation pourcentage et fraction 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+keywords=percents, fraction
+precision=100000
+
+ansorder=r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Écrire le pourcentage sous forme de fraction.
+tmp0=!randint 5, 99
+
+val8=$[rint($(tmp0))]
+val9=$[rint(100)]
+val10=$[$val8/$val9]
+val11=$[rint(gcd($val8,$val9))]
+!if $val11<>1 
+val12=$[rint($val8/$val11)]
+val13=$[rint($val9/$val11)]
+!endif
+replytype1=numeric
+replyname1=
+replygood1=?analyze 14
+replytype2=numeric
+replyname2=
+replygood2=?analyze 15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val7\par \[ $val8 \% =\dfrac{\ldots}{\ldots} \] \end{statement} \begin{solution} \[ $val8 \%= \dfrac{$val8}{100}\] \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7	<div class="wimscenter">	 
+!read oef/special.phtml mathmlinput [$val8 \% = \frac{reply1}{reply2}],4 noanswer	reply1	reply2	 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val8 \% = \frac{$val8}{$val9}
+$().	
+!if $val11<>1 
+$()<p>On peut simplifier la fraction.</p>	
+!insmath $val8 \% = \frac{$val8}{$val9}=\frac{$val11 \times $val12}{$val11 \times $val13}=\frac{$val12}{$val13}
+$().</p> 
+!endif
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val7$m_par \[ $val8 \% =$m_dfrac{$m_ldots}{$m_ldots} \] $m_end{statement} $m_begin{solution} \[ $val8 \%= $m_dfrac{$val8}{100}\] $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val10=$val14/$val15
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15
+embedcnt=1

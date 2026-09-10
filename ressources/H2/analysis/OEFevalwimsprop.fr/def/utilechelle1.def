@@ -1,0 +1,107 @@
+!set title=Utiliser un rapport d'échelle 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Une réduction,Un agrandissement
+val11=possède un dessin à l'échelle
+val12=Est-ce un agrandissement ou une réduction	  de la réalité&nbsp;
+val9=$val10
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 2, 3
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val15=$[rint($(tmp0)*10^$val14)]
+
+!ifval $val13=1
+val16=\frac{1}{$val15}
+!else
+val16=\frac{$val15}{1}
+!endif
+val17=$(val9[$val13])
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val18=$(tmp0)
+choicename1=
+choicegood1=$val17
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val18 $val11 
+!insmath $val16
+$().<p>	$val12?</p> 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,16,18
+embedcnt=0

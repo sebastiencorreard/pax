@@ -1,0 +1,132 @@
+!set title=Exploiter une parabole 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Maguy, Bruno
+email=regine@mangeard.fr
+keywords=parabola
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange -15,15	 yrange -15,15	 parallel -15,-15,-15,15,1,0,30,gray	 parallel -15,-15,15,-15,0,1,30,gray	 linewidth 2	 arrow 0,-15,0,15,10,blue	 arrow -15,0,15,0,10,blue	 segment -0.2,1,0.2,1,black	 segment 1,-0.2,1,0.2,black	 text black,-0.7,1.5,small,1	 text black,0.7,-0.5,small,1	
+tmp0=!randint -3, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -3,-2,-1,0,0,0,1,2,3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val9>0
+val10=$[rint(1)]
+!else
+val10=$[rint(3)]
+!endif
+val11=$[rint($val9*$val8)]
+
+!ifval $val11>0
+val12=$[rint(3)]
+!else
+val12=$[rint(1)]
+!endif
+
+!ifval $val8=0
+val12=$[rint(2)]
+!endif
+val13=$val9*(x-$val7)^2+$val8
+tmp0=!texmath a*x^2+b*x+c
+
+val14=$(tmp0)
+tmp0=!text expand $val14 using 01
+
+val14=$(tmp0)
+val6=$val6	 plot red,$val13	
+replytype1=radio
+replyname1=\(\Delta\)
+replygood1=$val12;strictement positif, nul, strictement négatif
+replytype2=radio
+replyname2=a
+replygood2=$val10;strictement positif, nul, strictement négatif
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 300,300 \
+$val6 
+$()</div>	 <div class="medium_size text_col">	  On a représenté une parabole 
+!insmath \mathcal{P}
+$() d'équation:	<div class="wimscenter"> 
+!insmath \mathcal{P}:y=$val14
+$()</div>	<p>	  Cocher les affirmations que vous pouvez déduire de ce dessin:</p>	<ol>	<li><label for="reply1">Le discriminant 
+!insmath \Delta
+$()</label> est:  
+!read oef/embed.phtml reply1 
+$()</li>	<li><label for="reply2">Le coefficient dominant 
+!insmath a
+$()</label> est:  
+!read oef/embed.phtml reply2 
+$()</li>	</ol>	 </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14
+embedcnt=2

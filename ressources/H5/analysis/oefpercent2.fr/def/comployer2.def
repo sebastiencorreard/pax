@@ -1,0 +1,355 @@
+!set title=Comparaison loyers et prix sur tableur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+oefcss=<style> .myred {color:red} .myblue {color:blue} </style>
+oefdescription=Choisir une méthode, choisir une formule de tableur, comparer.
+
+ansorder=r,r,r,r,r
+varcnt=96
+prevarcnt=89
+postvarcnt=6
+replycnt=5
+choicecnt=0
+conditioncnt=1
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=indice des prix
+val7=loyer
+val8=$[rint(2010)]
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -1,0,1
+
+val10=$[rint($(tmp0))]
+val11=$[rint(1-$val10*$val10)]
+val12=$[rint(5)]
+val13=$[rint(100)]
+tmp0=!randint 1, 5
+
+val14=$[rint(400+10*$(tmp0))]
+val15=$[100/$val14]
+val16=$[rint($val14)]
+val17=$[rint($val13)]
+val18=$val14
+val19=$val13
+val20=100
+val21=$val8
+val22=$[rint($val16)]
+val23=$[rint($val17)]
+val24=$[rint(1)]
+val25=polyline blue, 0,$val13
+val26=polyline red, 0,100
+val27=$[rint($val14)]
+val28=$[rint($val13)]
+val29=$[rint(1000*$val14/$val13)]
+val29=$[0.001*$val29]
+val30=$val29
+val31=
+!for val32 =1 to 9 
+val33=$[$val16]
+val34=$[rint($val32%2)]
+val34=$[rint(2*$val34-1)]
+tmp0=!randint 5, 8
+
+val35=$[1+0.01*$(tmp0)]
+val24=$[$val24*$val35]
+val17=$[rint($val17*$val35)]
+tmp0=!randint 1, 5
+
+val36=$[$(tmp0)*0.01]
+val16=$[rint($val11*$val14*$val24*(1+$val34*$val36)+(1-$val11)*$val16*($val35+$val10*$val36))]
+val27=$[rint(max($val27,$val16))]
+val28=$[rint(max($val28,$val17))]
+val22=$[rint(100*$val16/$val14)]
+val26=$val26,$val32,$val22
+val25=$val25,$val32,$val17
+val18=$val18,$val16
+val19=$val19,$val17
+val33=$[rint(1000*($val16-$val33)/$val33)]
+val33=$[0.1*$val33]
+val31=$val31,$val33 %
+val29=$[rint(1000*$val16/$val17)]
+val29=$[0.001*$val29]
+val30=$val30,$val29
+val37=$[rint($val8+$val32)]
+val20=$val20,$val22
+val21=$val21,$val37
+!next
+val38=$[rint(250)]
+val39=$[rint(25)]
+val40=text black, 1050,105,large, $(val18[10])
+val41=text black, 1050,125,large, $(val19[10])
+val42=text black, 1050,80,large, $(val30[10])
+val43=text black, 1050,85,large, $(val31[10])
+val44=text black, 1050,85,large, $(val20[10])
+val45=text black, 0,-5,large, 0
+val46=text black, -1,2,large,0
+val47=text black, 1050,145,large, $(val21[10])
+!for val32 =1 to 9 
+val48=$[rint(100*$val32+50)]
+val49=$[rint($val39*$val32)]
+val40=$val40;text black, $val48,105, large,$(val18[$val32])
+val41=$val41;text black, $val48,125, large,$(val19[$val32])
+val42=$val42;text black, $val48,80,large,$(val30[$val32])
+val43=$val43;text black, $val48,85,large, $(val31[$val32])
+val44=$val44;text black, $val48,85,large, $(val20[$val32])
+val45=$val45;text black, $val32,-5,large, $val32
+val46=$val46;text black, -1.5, $val49+5, large,$val49
+val47=$val47;text black, $val48,145, large,$(val21[$val32])
+!next
+val50=xrange -50,1200	yrange 0,220	copy -50,200,-1,-1,-1,-1,TabEvol0.png	text black, -10,125, small,$val6	text black, -10,105, small,$val7	text black, -10,145, small,année	$val47	$val40	$val41	
+val51=$val50	text black, -10,80,small,Quotient L/I	
+val52=$val50	text black, -10,80,small,Taux d'évolution	
+val53=$val50	text black, -15,80,small,Indice des Loyers	text black, 150,85,large, 100	
+val54=$val51	$val42	
+val55=$val52	$val43	
+val56=$val53	$val44
+val57=xrange -2,11	yrange -0.1*$val38,$val38	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val38,10,black	linewidth 4	$val45	$val46	$val26	$val25	
+val6==C3*100/§B§3
+val58==C3*100/§B§3, =$(val18[2])*100/$(val18[1]), =C3*100/B3, =B3*100/C3, =B3/B2, =B3/§B§2, =(C3-B3)/B3, =(C3-B3)/§B§3,$(val18[1])/100
+val59=Les loyers ont augmenté moins vite que les prix,Les loyers ont augmenté environ comme les prix,Les loyers ont augmenté plus vite que les prix
+val60=$[rint(2+$val10)]
+tmp=!trim Diviser le loyer par l'indice des prix de la même année	  Déterminer les pourcentages d'évolution des loyers d'une année par rapport à la précédente.	  Déterminer l'indice des loyers de base 100 en 2010.	
+val61=!translate internal $	\
+$ to ;; in $tmp
+val62=
+val63=r1
+val64=1
+dynsteps=yes
+oefsteps=$val63 
+nextstep=!nosubst $val63 
+!readproc oef/steps.proc
+replytype1=radio
+replyoption1=nonstop 
+replyname1=Méthode
+replygood1=?analyze 65;A,B,C
+replytype2=clickfill
+replyoption2=shuffle 
+replyname2=Formule
+replygood2==B3/B2;$val58
+replytype3=clickfill
+replyoption3=shuffle 
+replyname3=Formule
+replygood3==(C3-B3)/B3;$val58
+replytype4=clickfill
+replyoption4=shuffle 
+replyname4=Formule
+replygood4=$val6;$val58
+replytype5=radio
+replyname5=Analyse
+replygood5=$val60;$val59
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Jean compare l'évolution de son loyer depuis 2010 avec	  l'indice des prix (valeurs fictives).</p>		  
+!if $m_step=1 
+$()	   
+!read oef/draw.phtml 1000,200 \
+$val50 
+$()	    <p>	    Choisir une méthode pour comparer les évolutions des deux séries statistiques à partir de 2010.	    </p>	    <ul class="wims_nopuce"><li>	     
+!read oef/embed.phtml reply1,1,$(val61[1;]) 
+$()	    </li><li>	     
+!read oef/embed.phtml reply1,2,$(val61[2;]) 
+$()	    </li><li>	     
+!read oef/embed.phtml reply1,3,$(val61[3;]) 
+$()	    </li></ul>	   
+!endif
+$()	
+!if $m_step=2 
+$()	  Vous avez choisi la méthode : <br>	  
+!if $val62=A 
+$()	  Diviser le loyer par l'indice des prix de la même année	  <div class="wimscenter"> 
+!read oef/draw.phtml 1000,200 \
+$val51 
+$()</div>	  Quelle formule faut-il mettre dans la case B4 à recopier automatiquement	    vers la droite pour obtenir tous les nombres voulus ?	  <div class="wimscenter"> 
+!read oef/embed.phtml reply2,150x20 
+$()</div>	   
+!endif
+$()	  
+!if $val62=B 
+$()	    Déterminer les pourcentages d'évolution des loyers d'une année par rapport à la précédente.	    <div class="wimscenter"> 
+!read oef/draw.phtml 1000,200 \
+$val52 
+$()</div>	    <p>Quelle formule faut-il mettre dans la case C4 à recopier	    automatiquement vers la droite pour obtenir tous les nombres voulus ?</p>	    <div class="wimscenter"> 
+!read oef/embed.phtml reply3,150x20 
+$()</div>	   
+!endif
+$()	  
+!if $val62=C 
+$()	    Déterminer l'indice des loyers de base 100 en 2010.	    <div class="wimscenter"> 
+!read oef/draw.phtml 1000,200 \
+$val53 
+$()</div>	    <p>Quelle formule faut-il mettre dans la case C4 à recopier automatiquement	    vers la droite pour obtenir tous les nombres voulus ?</p>	    <div class="wimscenter"> 
+!read oef/embed.phtml reply4,150x20 
+$()</div>	   
+!endif
+$()	 
+!endif
+$()	
+!if $m_step=3 
+$()	  <p class="oefindgood">	  Bonne réponse !</p>		  Voici le tableau complété.	    
+!if $val62=A 
+$()	  A:	   
+!read oef/draw.phtml 1000,200 \
+$val54 
+$()<br>	 
+!endif
+$()	
+!if $val62=B 
+$()	  B:	   
+!read oef/draw.phtml 1000,200 \
+$val55 
+$()	 
+!endif
+$()	  
+!if $val62=C 
+$()	  C:	     
+!read oef/draw.phtml 1000,200 \
+$val56 
+$()	 
+!endif
+$()		<p>Quel est votre avis :</p>	<ul class="wims_nopuce"><li>	 
+!read oef/embed.phtml reply5,1 
+$()</li><li>	 
+!read oef/embed.phtml reply5,2 
+$()</li><li>	 
+!read oef/embed.phtml reply5,3 
+$()</li>	</ul>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	  
+!if $m_step=1 
+$()	    Un choix peu adapté n'empêche pas de continuer.	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    <ul><li>	    Le symbole § bloque la cellule lors de la recopie vers la droite.	    </li><li>	    Sinon les références B2, B3 ... sont modifiées lors de la recopie en C2, C3...	    </li><li>	    Les nombres 100... ne sont pas modifiés lors de la recopie vers la droite.	    </li></ul>	   
+!endif
+$()	  
+!if $m_step=3 
+$()	    Vous pouvez utiliser les données du tableau ou effectuer d'autres calculs.	   
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <p>	  $(val59[$val60]) car	  
+!if $val60=1 
+$()l'indice des loyers est toujours inférieur à l'indice des prix. 
+!endif
+$()	  
+!if $val60=2 
+$()l'indice des loyers est parfois inférieur à l'indice des prix, parfois supérieur à l'indice des prix. 
+!endif
+$()	  
+!if $val60=3 
+$()l'indice des loyers est toujours supérieur à l'indice des prix. 
+!endif
+$()	  </p>	  <div class="wimscenter">	   
+!read oef/draw.phtml 400,400 \
+$val57 
+$()</div>	  <ul class="inline wimscenter">	  <li class="myred">Loyers en rouge</li>	  <li class="myblue">Prix en bleu</li>	  </ul>		  <div class="wimscenter">	   
+!read oef/draw.phtml 1000,200 \
+$val56 
+$()	  </div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val63=
+!if $m_step=2 
+val62=$val65
+!if $val65=A 
+val63=r2
+!endif
+!if $val65=B 
+val63=r3
+!endif
+!if $val65=C 
+val63=r4
+!endif
+!endif
+!if $m_step=3 
+val63=r5
+!endif
+
+!exit
+
+:feedback
+!ifval $val62 issametext A 
+ <div class='oef_feedbacks'>	  A : <ul class="wims_nopuce"><li>	  Ce calcul donne des résultats pour chaque année.	  </li><li>	  Si le quotient augmente toujours, c'est que les loyers augmentent plus vite que les prix.	  </li><li>	  Si le quotient diminue toujours, c'est que les loyers augmentent moins vite que les prix.	  </li><li>	  Dans les autres cas, si le coefficient varie autour de la même valeur, les loyers et les prix augmentent à peu près de la même façon.	  </li><li>	  Mais il aurait été intéressant de comparer les indices de l'année 2010.	  </li></ul>	
+$()</div>
+!endif
+!ifval $val62 issametext B 
+ <div class='oef_feedbacks'>	  B : Calculer le pourcentage d'évolution des loyer d'une année sur l'autre est une bonne idée.	  <br>	  Mais il faudrait alors le faire aussi pour l'indice des prix.<br>	  Mais dans ce cas, on perd l'évolution depuis l'année 2010.	  </p>	
+$()</div>
+!endif
+!ifval $val62 issametext C 
+ <div class='oef_feedbacks'>	  <p>	  C : Comme on dispose de l'indice de base 2010 des prix, c'est une bonne idée	  de calculer aussi l'indice de base 2010 des loyers.	  </p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+condlist= $val64
+condoption1=hide 
+
+!ifval $m_step > 1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Choix d'une méthode
+
+!exit
+
+:stat
+vsavelist=50,51,52,53,54,55,56,57,59,60,61,62,64,65
+embedcnt=9

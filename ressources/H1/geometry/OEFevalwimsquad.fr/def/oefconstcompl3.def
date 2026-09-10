@@ -1,0 +1,107 @@
+!set title=Figures complexes 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@gmail.com
+email=jluc.donadoni@laposte.net
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Reproduire sur une feuille la figure suivante avec les bonnes dimensions.,	 Mesurer la longueur
+tmp0=!randint 40, 70
+
+val7=$[rint($(tmp0))]
+tmp0=!randint $val7+15, 100
+
+val8=$[rint($(tmp0))]
+val7=$[$val7/10]
+val8=$[$val8/10]
+val9=xrange -100,100	yrange -100,100	poly black,-90,0,0,60,90,0,0,-60	poly black,-60,0,0,60,60,0,0,-60	segment -90,0,-60,0,black	segment 90,0,60,0,black	circle -30,-30,10,red	circle 30,-30,10,red	circle -30,30,10,red	circle 30,30,10,red	segment -47,35,-41,29,red	segment 47,35,41,29,red	segment -60,-25,10,red	segment -47,-35,-41,-29,red	segment 47,-35,41,-29,red	text black,60,10,medium,A	text black,90,10,medium,B	segment -54,4,-50,0,red	segment -50,0,-54,-4,red	segment 54,4,50,0,red	segment 50,0,54,-4,red	segment 4,-54,0,-50,red	segment 0,-50,-4,-54,red	arrow2 -95,5,-5,67,10,black	arrow2 -52,-7,7,52,10,black	text black,-20,20,medium,$val7 cm	text black,-80,48,medium,$val8 cm
+!readproc oef/draw.phtml 300,300 \
+$val9 
+tmp0=$ins_url
+val10=$(tmp0)
+!readproc oef/drawtikz.phtml 300,300 \
+$val9 
+tmp0=$ins_tikz
+val11=$(tmp0)
+val10=<img src="$val10" alt="">
+val12=$[rint(rint((sqrt($val8*$val8-$val7*$val7/2)-$val7/sqrt(2))*10))]
+val13=$[($val12-1)/10]
+val14=$[($val12+1)/10]
+replytype1=range
+replyname1=
+replygood1=!rawmath $val13,$val14
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $(val6[1]) <p>$(val6[2]) AB.</p> \par \(A B\)= \(\cdots\) cm. \begin{center} $val11 \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col">$val10</div>	 <div class="medium_size text_col">	$(val6[1])	<p>$(val6[2]) AB.</p>	<div class="spacer"><label for="reply1">AB =</label>  
+!read oef/embed.phtml r1,6 
+$() cm.</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $(val6[1]) <p>$(val6[2]) AB.</p> $m_par 
+!insmath A B
+$()= 
+!insmath \cdots
+$() cm. $m_begin{center} $val11 $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11
+embedcnt=1

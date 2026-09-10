@@ -1,0 +1,256 @@
+!set title=Tangente à une courbe (avec exp en 0)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+author=Chantal, Causse;Fabien,Sommier
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val6=$[$(tmp0)*$(tmp1)]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val7=$[$(tmp0)*$(tmp1)]
+tmp0=!randint 2, 5
+
+val8=$[$(tmp0)]
+tmp0=!randint 1, 7
+
+val9=$[$(tmp0)]
+t_=!rawmath (1-$val9)/$val8
+val10=!exec pari print($t_)
+tmp0=!randint 1, 2
+
+val11=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val7*x+$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=!rawmath $(tmp0)
+tmp0=!item $val11 of 	($val12)*e^($val6*x),	$val12 + $val9*e^($val6*x)	
+
+val13=!rawmath $(tmp0)
+tmp0=$val13
+
+val13=!rawmath $(tmp0)
+tmp0=!texmath $val13
+
+val14=$(tmp0)
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val15=!rawmath $(tmp0)
+tmp0=!texmath $val15
+
+val16=$(tmp0)
+!if $val11=1 
+val17=!rawmath ($val15)/(e^($val6*x))
+t_=!replace internal \( by ( in expand($val17)
+tmp0=!exec maxima $t_
+
+val17=!rawmath $(tmp0)
+val15=($val17)*(e^($val6*x))
+!endif
+val18=0
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val18) in $evaltmp
+tmp0=($evaltmp)
+val19=$(tmp0)
+t_=!replace internal \( by ( in expand($val19)
+tmp0=!exec maxima $t_
+
+val20=!rawmath $(tmp0)
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val18) in $evaltmp
+tmp0=($evaltmp)
+val21=$(tmp0)
+val22=!rawmath ($val19)*(x-($val18))+($val21)
+t_=!replace internal \( by ( in expand($val22)
+tmp0=!exec maxima $t_
+
+val23=!rawmath $(tmp0)
+val6=$val23
+evaltmp=$val6
+
+evaltmp=!mathsubst e=(y) in $evaltmp
+tmp0=($evaltmp)
+val6=$(tmp0)
+t_=!replace internal \( by ( in a=$val6;polcoeff(a,1,x)
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+tmp0=!replace internal y by e in $val24
+
+val24=$(tmp0)
+t_=!replace internal \( by ( in expand($val24)
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+t_=!replace internal \( by ( in a=$val6;polcoeff(a,0,x)
+tmp0=!exec pari $t_
+
+val25=$(tmp0)
+tmp0=!replace internal y by e in $val25
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in expand($val25)
+tmp0=!exec maxima $t_
+
+val25=!rawmath $(tmp0)
+val7=($val24)*x+$val25
+tmp0=!texmath $val7
+
+val26=$(tmp0)
+replytype1=function
+replyname1=\(f'(x))
+replygood1=!rawmath $val15
+replytype2=function
+replyname2=Equation de la tangente : \(y )
+replygood2=!rawmath $val23
+replyname3=Abscisse de \(B)
+replygood3=?analyze 27
+replyname4=Ordonnée de \(B)
+replygood4=?analyze 28
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soit 
+!insmath f(x) = $val14
+$().	<ul>	<li>Calculer 
+!insmath f'(x)
+$().</li>	<li>Déterminer l'équation réduite de la tangente 
+!insmath T
+$() à la courbe représentant 
+!insmath f
+$() au point 
+!insmath A
+$() d'abscisse $val18.</li>	<li>Donner les coordonnées d'un point 
+!insmath B
+$() de la tangente 
+!insmath T
+$() autre que 
+!insmath A
+$().</li>	</ul>
+$()
+!exit
+
+:hint
+$()	Calculer 
+!insmath f($val18)
+$() et 
+!insmath f'($val18)
+$()<br />	<span class="wims_emph">	La tangente passe par le point de coordonnées 
+!insmath ($val18 ; f($val18))
+$() et a comme coefficient directeur 
+!insmath f'($val18)
+$()</span>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!insmath f'(x)= $val16
+$().<br />	On en déduit que	
+!insmath f'($val18)=$val20
+$() puis que la tangente au point d'abscisse 
+!insmath $val18
+$() a pour équation 
+!insmath y = $val26
+$()<br />	Pour les coordonnées de 
+!insmath B
+$(), on choisit pour 
+!insmath x_B
+$() une valeur de 
+!insmath x
+$() différente de 
+!insmath $val18
+$() et on calcule l'ordonnée de 
+!insmath B
+$() en remplaçant 
+!insmath x
+$() par 
+!insmath x_B
+$() dans l'équation réduite de 
+!insmath T
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val28 = $val19*($val27-$val18)+$val21
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(B) est sur la droite \(T)
+
+!ifval $val27 <> $val18
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(B) est différent de \(A)
+
+!exit
+
+:stat
+vsavelist=14,16,18,19,20,21,26,27,28
+embedcnt=0

@@ -1,0 +1,146 @@
+!set title=À droite ou à gauche d'un point
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_es=A derecha o izquierda de un punto
+title_nl=Links of rechts van een punt
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=droite, gauche
+val8=Le point \(B\) est d'abscisse +BBBB ou -BBBB. Or il est à, de \(A\)	  qui est d'abscisse AAAA. Quelle est son abscisse&nbsp;
+val9=Son abscisse est
+!if $val6=es 
+val7=derecha, izquierda
+val8=El punto \(B\) tiene de abscisa +BBBB o -BBBB. Ahora bien está a la, de \(A\)	  que tiene de abscisa AAAA. ¿Cuál es su abscisa?
+val9=Su abscisa es
+!endif
+!if $val6=nl 
+val7=rechts, links
+val8=De x-co&ouml;rdinaat van punt \(B\) op de getallenlijn is +BBBB of -BBBB , van \(A\)	 met x-co&ouml;rdinaat AAAA. Wat is de x-co&ouml;rdinaat van \(B\)&nbsp;
+val9=De x-co&ouml;rdinaat is 
+!endif
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 7
+
+val10=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val10>0 
+val10= +$val10
+!endif
+tmp0=!randint abs($val10)+1, 11
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val12=$(tmp0)
+tmp0=!item $val12 of $val7
+
+val13=$(tmp0)
+
+!ifval $val12=1 and $val11>$val10
+val14=$[rint( $val11)]
+!endif
+
+!ifval $val12=1 and $val11<$val10
+val14=$[rint( -$val11)]
+!endif
+
+!ifval $val12=2 and $val11>$val10
+val14=$[rint( -$val11)]
+!endif
+
+!ifval $val12=1 and $val11<$val10
+val14=$[rint( $val11)]
+!endif
+
+!ifval $val14>0
+val14= +$val14
+!endif
+val15=$(val8[1]) $val13 $(val8[2])
+tmp0=!replace internal AAAA by $val10 in $val15
+
+val15=$(tmp0)
+tmp0=!replace internal BBBB by $val11 in $val15
+
+val15=$(tmp0)
+replytype1=numeric
+replyname1=$val9
+replygood1=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val15? \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val15?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val15? $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15
+embedcnt=0

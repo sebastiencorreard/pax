@@ -1,0 +1,223 @@
+!set title=Centre de symétrie
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+val7=$[rint(-$val6)]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+val10=!rawmath $val9/(x+$val6)+$val8
+t_=!replace internal \( by ( in expand($val9+$val8*(x+$val6))/(x+$val6)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+val12=!rawmath $val9/x
+tmp0=!texmath $val12
+
+val13=!rawmath $(tmp0)
+tmp0=!texmath f($val7+x)-$val8
+
+val14=$(tmp0)
+tmp=!trim $val7,$val8
+val15=!translate internal $	\
+$ to ;; in $tmp
+val16=xrange -$val6-5,-$val6+5	 yrange $val8-5,$val8+5	 plot red,$val10	 dsegment -$val6,$val8-5,-$val6,$val8+5,green	 dsegment -$val6-5,$val8,-$val6+5,$val8,green	 arrow 0,$val8-5,0,$val8+5,10,black	 arrow -$val6-5,0,-$val6+5,0,10,black	
+oefsteps=r1	r2	r3,r4	r5	r6 
+nextstep=!nosubst r1	r2	r3,r4	r5	r6 
+!readproc oef/steps.proc
+replytype1=algexp
+replyoption1=nonstop 
+replyname1=Forme canonique
+replygood1=$val10
+replytype2=vector
+replyoption2=nonstop 
+replyname2=Coordonnées du centre
+replygood2=$val15
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=Valeur de a
+replygood3=$[$val7]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=Valeur de b
+replygood4=$[$val8]
+replytype5=function
+replyname5=expression algébrique de \(g)
+replygood5=!rawmath $val12
+replytype6=checkbox
+replyname6=parité de \(g)
+replygood6=2;paire, impaire, ni paire ni impaire
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Rappel: Une forme canonique de 
+!insmath f(x)
+$() est une expression de 
+!insmath f(x)
+$(), dans laquelle la variable 
+!insmath x
+$()	n'apparaît qu'une seule fois.</p>	La représentation graphique de la fonction 
+!insmath f
+$() définie par:	<div class="wimscenter">
+!insmath f(x)=$val11
+$()</div>	fait apparaître un centre de symétrie.	<div class="wimscenter"> 
+!read oef/draw.phtml 200,200 \
+$val16 
+$()</div>	
+!if $m_step=1 
+$()	  Pour déterminer les coordonnées de ce centre, donnez une forme canonique de 
+!insmath f(x)
+$().	  <div class="wimscenter"><label for="reply1">
+!insmath f(x)=
+$() </label>  
+!read oef/embed.phtml reply1,10 
+$()</div>	 
+!else
+$() 	    Une forme canonique de 
+!insmath f(x)
+$() est 
+!insmath f(x) = $val10
+$().	    
+!if $m_step=2 
+$()	      <label for="reply2">	      En déduire les coordonnées du centre de symétrie de la courbe représentative de 
+!insmath f
+$().	      </label>	      <div class="wimscenter"> 
+!read oef/embed.phtml reply2,5 
+$()</div>	      <div class="wims_instruction">Séparer l'abscisse de l'ordonnée par une virgule.</div>	     
+!else
+$() 	      Le centre de symétrie a pour coordonnées 
+!insmath ($val7,$val8)
+$().	      
+!if $m_step=3 
+$()	        Pour quelles valeurs de 
+!insmath a
+$() et de 
+!insmath b
+$() a-t-on pour tout 
+!insmath x \in \RR \setminus \{ $val7 \}
+$(),	        <div class="wimscenter">
+!insmath \frac{f(a+x)+f(a-x)}{2}=b
+$()?</div>	        <div class="wimscenter"><label for="reply3">
+!insmath a=
+$()</label> 
+!read oef/embed.phtml reply3,4 
+$()</div>	        <div class="wimscenter"><label for="reply4">
+!insmath b=
+$()</label> 
+!read oef/embed.phtml reply4,4 
+$()</div>	       
+!else
+$() 	        Pour tout 
+!insmath x \in \RR \setminus \{ $val7 \}
+$(), on a 
+!insmath \frac{f($val7+x)+f($val7-x)}{2}=$val8
+$()<br>	        On pose, pour tout 
+!insmath x \in \RR^*
+$(), 
+!insmath g(x)=$val14
+$().<br>	        
+!if $m_step=4 
+$()	          Déterminer l'expression algébrique de 
+!insmath g
+$() :	          <div class="wimscenter"><label for="reply5">
+!insmath g(x)
+$()=</label>  
+!read oef/embed.phtml reply5 
+$()</div>	         
+!else
+$() 	          Donc 
+!insmath g(x)=$val13
+$().<br>	          Que peut-on dire de la fonction 
+!insmath g
+$() dont la courbe représentative	          est une translatée de celle de 
+!insmath f
+$()?	          <div class="wimscenter">
+!insmath g
+$() est :  
+!read oef/embed.phtml reply6 
+$()</div>	         
+!endif
+$()	       
+!endif
+$()	     
+!endif
+$()	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,11,13,14,16
+embedcnt=6

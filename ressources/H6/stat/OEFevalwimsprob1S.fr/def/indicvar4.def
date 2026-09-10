@@ -1,0 +1,172 @@
+!set title=Variable aléatoire et indicateurs 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=400,500,1000
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+val8=$[rint($(val6[$val7]))]
+val9=8,8,9
+val10=$[rint($(val9[$val7]))]
+val11=$[rint(6)]
+t_=!rawmath 1-1/2^$val10
+val12=!exec pari print($t_)
+t_=!rawmath 1-1/2^$val11
+val13=!exec pari print($t_)
+val14=Stratégie 1, Stratégie 2, Les deux stratégies sont équivalentes
+val15=$[(2^$val10-1)^2/2^$val10+1^2*(2^$val10-1)/2^$val10]
+val15=$[sqrt($val15)]
+val16=1,2,5,14,41,122,-364
+val17=1/2,1/4,1/8,1/16,1/32,1/64,1/64
+val18=$[0]
+val19=$[0]
+!for val20 =1 to 7 
+val19=$[$val19+$(val17[$val20])*$(val16[$val20])]
+val18=$[$val18+$(val17[$val20])*($(val16[$val20]))^2]
+!next
+val18=$[$val18-($val19)^2]
+val18=$[sqrt($val18)]
+replytype1=numeric
+replyname1=Statégie 1 : nb max de partie
+replygood1=$[$val10]
+replytype2=numexp
+replyname2=Stratégie 1 : probabilité perte
+replygood2=$val12
+replytype3=numeric
+replyname3=E(X)
+replygood3=$[0]
+replytype4=numeric
+replyname4=\(\sigma(X))
+replygood4=$[$val15]
+replytype5=numeric
+replyname5=Statégie 2 : nb max de partie
+replygood5=$[$val11]
+replytype6=numexp
+replyname6=Stratégie 2 : probabilité perte
+replygood6=$val13
+replytype7=numeric
+replyname7=E(Y)
+replygood7=$[0]
+replytype8=numeric
+replyname8=\(\sigma(Y))
+replygood8=$[$val18]
+replytype9=radio
+replyname9=chance de gagner
+replygood9=1;$val14
+replytype10=radio
+replyname10=espérance maximale
+replygood10=3;$val14
+replytype11=radio
+replyname11=gain maximal
+replygood11=2;$val14
+replytype12=radio
+replyname12=risque maximal
+replygood12=2;$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Un joueur joue au jeu de pile ou face avec la règle suivante :<br>	Si Face sort, il perd sa mise, si Pile sort, il gagne le double de sa mise.<br>	Sa mise initiale est de 1 euro et il dispose au départ d'un capital de $val8 euros.	La partie s'arrête dès qu'il gagne ou qu'il ne peut plus miser.</p>	Voici deux stratégies :	<ul>	 <li><b>Stratégie 1 : il double sa mise s'il perd.</b><br>	<label for="reply1"> Quel est le nombre maximal de parties qu'il peut jouer ?</label>  
+!read oef/embed.phtml reply1,3 
+$()<br>	<label for="reply2"> Quelle est la probabilité de gagner la partie ?</label>  
+!read oef/embed.phtml reply2,5 
+$()<br>	 Soit 
+!insmath X
+$() la variable aléatoire qui comptabilise le gain (ou la perte) réalisé(e).<br>	 Déterminer la loi de 
+!insmath X
+$() et calculer son espérance mathématique et son écart type.<br>	 <table class="wimsnoborder wimscenter"><tr><td>
+!insmath E(X)=
+$() 
+!read oef/embed.phtml reply3,5 
+$()</td>	 <td>
+!insmath \sigma(X)=
+$() 
+!read oef/embed.phtml reply4,5 
+$()</td></tr></table>	 </li>	 <li><b>Stratégie 2 : il triple sa mise s'il perd.</b><br>	<label for="reply5">Quel est le nombre maximal de parties qu'il peut jouer ?</label> 
+!read oef/embed.phtml reply5,3 
+$()<br>	<label for="reply6">Quelle est la probabilité de gagner la partie ?</label> 
+!read oef/embed.phtml reply6,5 
+$()<br>	Soit 
+!insmath Y
+$() la variable aléatoire qui comptabilise le gain (ou la perte) réalisé(e).<br>	Déterminer la loi de Y et calculer son espérance mathématique et son écart type.	<table class="wimsnoborder wimscenter"><tr><td>
+!insmath E(Y)=
+$() 
+!read oef/embed.phtml reply7,5 
+$()</td>	<td>
+!insmath \sigma(Y)=
+$() 
+!read oef/embed.phtml reply8,5 
+$()</td></tr></table>	</li>	 <li><b>Comparaison des deux stratégies.</b><br>	Avec quelle stratégie a-t-on le plus de chance de gagner ?<br>  
+!read oef/embed.phtml reply9 
+$()<br>	Avec quelle stratégie peut-on espérer le plus gagner ?<br>  
+!read oef/embed.phtml reply10 
+$()<br>	Avec quelle stratégie peut-on réaliser le gain le plus important ?<br>  
+!read oef/embed.phtml reply11 
+$()<br>	Quelle stratégie est la plus risquée ?<br>  
+!read oef/embed.phtml reply12 
+$()<br>	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8
+embedcnt=12

@@ -1,0 +1,97 @@
+!set title=Utiliser un rapport d'échelle 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val7=Largeur,Votre réponse
+val10=Compléter la phrase suivante&nbsp;
+val11=Sur un plan à l'échelle,	  kilomètres dans la réalité sont représentés par ,  centimètres sur le plan.
+tmp=!nonempty items 100000,200000,250000,400000
+
+tmp0=!randitem $tmp
+val12=$[rint($(tmp0))]
+tmp0=!randint 5, 10
+
+val13=$[rint($(tmp0))]
+val14=$[$val13*$val12/100000]
+replytype1=numexp
+replyname1=$(val7[1])
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10:	<div class="wimscenter">$(val11[1]) 
+!insmath \frac{1}{$val12}
+$(), $val14	$(val11[2])  
+!read oef/embed.phtml r1,8 
+$() $(val11[3]) </div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,14
+embedcnt=1

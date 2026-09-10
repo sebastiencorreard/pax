@@ -1,0 +1,165 @@
+!set title=Écran 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+
+ansorder=r,r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oui,non
+val7=aucune
+val8=Pour s'aider, il est possible de tracer un segment.	  Il n'en sera pas tenu compte dans la notation.
+val9=Par quelles sources chaque observateur est-il éclairé&nbsp;
+val10=Observateur
+val11=10
+val12=0,10
+tmp0=!randint 3, 4
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in [$val13-0.5,$val13+2.5]
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+val15=3
+val16=2
+val17=S1,S2,S3,S4,S5
+val18=B1,B2,B3,B4,B5
+val17=$(val17[1..$val15])
+val18=$(val18[1..$val16])
+tmp0=!makelist 2*x for x=1 to $val11/2-1
+
+val19=$(tmp0)
+tmp0=!shuffle $val19
+
+val19=$(tmp0)
+val20=$(val19[1..$val15])
+val21=$(val19[-$val16..-1])
+val22=xrange -2,$val11+2	yrange -2,12	frectangle -1,-1,$val11+1,11,lightgrey
+val23=5
+val22=$val22	linewidth 6	segments black, $val23,0,$val23,$(val14[1]),$val23,$(val14[2]),$val23,10	string black,$val23,$val11+1,E	linewidth 2
+!for val24 =1 to $val15 
+val22=$val22	crosshair $val11,$(val20[$val24]),orange	string black,$val11+0.5,$(val20[$val24]),$(val17[$val24])
+!next
+!for val25 =1 to $val16 
+val22=$val22	crosshair 0,$(val21[$val25]),blue	string black,-2,$(val21[$val25]),$(val18[$val25])
+!next
+val26=
+val27=0
+val28=0
+!for val25 =1 to $val16 
+val29=$val25
+!for val24 =1 to $val15 
+val30=$[$(val21[$val25])+($(val20[$val24])-$(val21[$val25]))/$val11*$val23]
+!if $val30>$(val14[1]) and $val30 <$(val14[2]) 
+!if $val27=0 
+val31=linewidth 1	arrows blue,10
+!endif
+val27=$[rint($val27+1)]
+val29=$val29,$val24
+val31=$val31,$val11,$(val20[$val24]),0,$(val21[$val25])
+!else
+!if $val28=0 
+val32=linewidth 1	arrows red,10
+!endif
+val28=$[rint($val28+1)]
+val32=$val32,$val11,$(val20[$val24]),5,$val30
+!endif
+!next
+tmp0=!nonempty items $val29
+
+val29=$(tmp0)
+tmp=!trim $val26	$val29
+val26=!translate internal $	\
+$ to ;; in $tmp
+!next
+val33=$(val26[1;2..-1])
+
+!ifval $val33=0 or $val33=
+val33= $val15+1
+!endif
+val34=$(val26[2;2..-1])
+
+!ifval $val34=0 or $val34=
+val33= $val15+1
+!endif
+replytype1=checkbox
+replyname1=$val10 B1:
+replygood1=$val33;$val17,$val7
+replytype2=checkbox
+replyname2=$val10 B2:
+replygood2=$val34;$val17,$val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val9?	   
+!read oef/canvasdraw.phtml 200,200 \
+	  $val22	  userdraw segment,blue	   
+$()	<div class="wims_instruction">$val8</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	 
+!read oef/canvasdraw.phtml 200,200 \
+	$val22	$val31	$val32	 
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,22,31,32
+embedcnt=0

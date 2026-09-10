@@ -1,0 +1,400 @@
+!set title=Calcul de limites 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+language=fr
+computeanswer=no
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=94
+prevarcnt=93
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Cf possède une asymptote horizontale
+val7=Cf possède une asymptote verticale
+val8=cette limite ne correspond pas à une asymptote
+val9=On écrira, pour
+val10=limite
+val11=Déterminer la limite de la fonction \(f\) définie par,	  lorsque \(x\) tend vers
+val12=On note \(C_f\) la représentation graphique de \(f\).	  On a vu que, De cette égalité, on peut déduire que
+val13=par valeurs inférieures,par valeurs supérieures
+val14=positif,négatif
+val15=La limite en XXXX s'obtient par le rapport des termes de plus haut degré.	  Comme le numérateur est de degré YYYY au dénominateur, cette limite est ZZZZ.
+val16=De plus le numérateur tend vers XXXX et le dénominateur vers UUUU,	  Donc la limite est
+val17=La limite en XXXX s'obtient par le rapport des termes de plus haut degré,	  soit le rapport
+val18=Le dénominateur et le numérateur s'annulent en XXXX.<br>	  Pour calculer la limite, il faut d'abord simplifier la fraction. On obtient
+val19=Le dénominateur s'annule en XXXX alors que le numérateur ne s'annule pas.	  La limite est donc infinie.<br>	  Reste à déterminer le signe. Le numérateur est YYYY et	  le dénominateur est ZZZZ en UUUU.<br> Donc la limite est 
+val20=non
+val9=On écrira, pour,s'il n'y a pas de limite
+val21=supérieur,inférieur
+val22=infinie, nulle
+val23=inf
+val24=-inf
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val25=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val26=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val27=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val28=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val29=$[rint($(tmp0))]
+t_=!rawmath -$val26/$val25
+val30=!exec pari print($t_)
+t_=!rawmath -$val28/$val27
+val31=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val32=$[rint($(tmp0))]
+!if $val30=$val31 and $val32=1 
+val28=$[rint($val28+1)]
+t_=!rawmath -$val28/$val27
+val31=!exec pari print($t_)
+!endif
+t_=!replace internal \( by ( in expand(($val25*x+$val26)*($val27*x+$val28))
+tmp0=!exec maxima $t_
+
+val33=!rawmath $(tmp0)
+val34=$[rint($val25*$val27)]
+tmp0=!randint -2, 2
+
+val35=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val36=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val37=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val35*x^2+$val36*x+$val37
+tmp0=!exec maxima $t_
+
+val38=!rawmath $(tmp0)
+val39=$[rint($val35)]
+!if $val35=0 and $val36=0 and $val37=0 
+val38=!rawmath x^3
+val39=$[rint(1)]
+!endif
+!if $val32=1 
+t_=!replace internal \( by ( in expand(($val25*x+$val26)*(x+$val29))
+tmp0=!exec maxima $t_
+
+val38=!rawmath $(tmp0)
+val39=$[rint($val25)]
+!endif
+val40=\(+ \infty),	\(- \infty),	$val30 $(val13[1]),	$val30 $(val13[2]),	$val31 $(val13[1]),	$val31 $(val13[2])	
+val41=+ \infty,	- \infty,	{$val30}^-,	{$val30}^+,	{$val31}^-,	{$val31}^+	
+val42=INF,	MINF,	$val30,	$val30,	$val31,	$val31	
+tmp0=!randint 1, 6
+
+val43=$[rint($(tmp0))]
+!if $val32=1 
+tmp0=!randint 3, 4
+
+val43=$[rint($(tmp0))]
+!endif
+tmp0=!item $val43 of $val40
+
+val44=$(tmp0)
+tmp0=!item $val43 of $val41
+
+val45=$(tmp0)
+tmp0=!item $val43 of $val42
+
+val46=$(tmp0)
+!if $val43<=2 
+t_=!replace internal \( by ( in limit(($val38)/($val33),x,$val46)
+tmp0=!exec maxima $t_
+
+val47=$(tmp0)
+!endif
+!if $val43=3 or $val43=5 
+t_=!replace internal \( by ( in limit(($val38)/($val33),x,$val46,MINUS)
+tmp0=!exec maxima $t_
+
+val47=$(tmp0)
+
+!ifval $val43=3
+t_=!rawmath $val30-0.01
+val36=!exec pari print($t_)
+!else
+t_=!rawmath $val31-0.01
+val36=!exec pari print($t_)
+!endif
+!endif
+!if $val43=4 or $val43=6 
+t_=!replace internal \( by ( in limit(($val38)/($val33),x,$val46,PLUS)
+tmp0=!exec maxima $t_
+
+val47=$(tmp0)
+
+!ifval $val43=4
+t_=!rawmath $val30+0.01
+val36=!exec pari print($t_)
+!else
+t_=!rawmath $val31+0.01
+val36=!exec pari print($t_)
+!endif
+!endif
+evaltmp=$val38
+
+evaltmp=!mathsubst x=($val36) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val48=!exec pari print($t_)
+evaltmp=$val33
+
+evaltmp=!mathsubst x=($val36) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val49=!exec pari print($t_)
+
+!ifval $val48>0
+val50=$(val14[1])
+!else
+val50=$(val14[2])
+!endif
+
+!ifval $val49>0
+val51=$(val14[1])
+!else
+val51=$(val14[2])
+!endif
+!if $val43<=2 
+val52=1
+!endif
+!if ($val32=2 and $val43>=3) or ($val32=1 and $val43>=5) 
+val52=2
+!endif
+!if $val32=1 and ($val43=3 or $val43=4) 
+val52=3
+!endif
+!if inf isin $val47 
+val53=+\infty
+val54=+inf
+!endif
+!if minf isin $val47 
+val53=-\infty
+val54=-inf
+!endif
+!if inf notin $val47 
+val53=$val47
+val54=$val47
+!endif
+
+!ifval $val34>0
+val55=+
+!else
+val55=-
+!endif
+!if $val38=x^3 
+val56=$val15 $val16
+tmp0=!replace internal YYYY by $(val21[1]) in $val56
+
+val56=$(tmp0)
+tmp0=!replace internal ZZZZ by $(val22[1]) in $val56
+
+val56=$(tmp0)
+tmp0=!replace internal UUUU by \( $val55 \infty\) in $val56
+
+val56=$(tmp0) \($val53\).
+tmp0=!replace internal XXXX by \(+\infty\) in $val56
+
+val57=$(tmp0)
+tmp0=!replace internal XXXX by \(-\infty\) in $val56
+
+val58=$(tmp0)
+!else
+!if $val35=0 
+val56=$val15
+tmp0=!replace internal YYYY by $(val21[2]) in $val56
+
+val56=$(tmp0)
+tmp0=!replace internal ZZZZ by $(val22[2]) in $val56
+
+val56=$(tmp0)
+tmp0=!replace internal XXXX by \(+\infty\) in $val56
+
+val57=$(tmp0)
+tmp0=!replace internal XXXX by \(-\infty\) in $val56
+
+val58=$(tmp0)
+!else
+tmp0=!replace internal XXXX by \(+\infty\) in $val17
+
+val57=$(tmp0)	    \(\frac{$val39}{$val34}).
+tmp0=!replace internal XXXX by \(-\infty\) in $val17
+
+val58=$(tmp0)	    \(\frac{$val39}{$val34}).
+!endif
+!endif
+!if $val32=2 
+val59=$val18 \($val53\).
+tmp0=!replace internal XXXX by \(x=$val30\) in $val59
+
+val59=$(tmp0)
+tmp0=!replace internal YYYY by $val50 in $val59
+
+val59=$(tmp0)
+tmp0=!replace internal ZZZZ by $val51 in $val59
+
+val59=$(tmp0)
+tmp0=!replace internal UUUU by \(x=$val45\) in $val59
+
+val59=$(tmp0)
+!else
+tmp0=!replace internal XXXX by \(x=$val30) in $val18
+
+val59=$(tmp0) \($val53).
+!endif
+val60=$val19 \($val53\).
+tmp0=!replace internal XXXX by \(x=$val31\) in $val60
+
+val60=$(tmp0)
+tmp0=!replace internal YYYY by $val50 in $val60
+
+val60=$(tmp0)
+tmp0=!replace internal ZZZZ by $val51 in $val60
+
+val60=$(tmp0)
+tmp0=!replace internal UUUU by \(x=$val45\) in $val60
+
+val60=$(tmp0)
+
+!ifval $val2=2
+val61=style="font-size
+!else
+val61=xx-large":
+!endif
+oefsteps=reply 1	reply 2 
+nextstep=!nosubst reply 1	reply 2 
+!readproc oef/steps.proc
+replytype1=function
+replyname1=$val10
+replygood1=!rawmath $val54,$val23
+replytype2=menu
+replyname2=
+replygood2=$val52;$val6,$val7,$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div $m_fsize>	  $(val11[1])	<div class="wimscenter">
+!insmath  f(x) = ($val38)/($val33) 
+$()</div>	  $(val11[2]) $val44.	<div class="wims_question">	
+!if $m_step=1 
+$()	<label for="reply1">	
+!insmath \displaystyle{\lim_{x \to $val45}f(x) = }
+$()</label>	 
+!read oef/embed.phtml reply 1,10 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()	  $(val12[1]) 
+!insmath \displaystyle{\lim_{x \to $val45}f(x) = $val53}
+$().<br>	  $(val12[2]), $(val12[3])  
+!read oef/embed.phtml reply 2 
+$()	 
+!endif
+$()	
+!if $m_step=1 
+$()	  <div class="wims_instruction">	  $(val9[1]) <span class="tt">+inf </span> $(val9[2]) 
+!insmath +\infty
+$(),	  <span class="tt">-inf </span> $(val9[2]) 
+!insmath -\infty
+$().	  </div> 
+!endif
+$()	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><div $m_fsize>	
+!if $val43=1 
+$()$val57 
+!endif
+$()	
+!if $val43=2 
+$()$val58 
+!endif
+$()	
+!if $val43=3 or $val43=4 
+$()$val59 
+!endif
+$()	
+!if $val43=5 or $val43=6 
+$()$val60 
+!endif
+$()	</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11,12,33,38,43,44,45,53,57,58,59,60
+embedcnt=2

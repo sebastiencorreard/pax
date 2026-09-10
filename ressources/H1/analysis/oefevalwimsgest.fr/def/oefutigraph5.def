@@ -1,0 +1,142 @@
+!set title=Utiliser un graphique 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Nous avons interrogé les élèves d'un collège sur leur préférence de couleur.	  Le diagramme circulaire donne leur préférence entre	  le rouge, le bleu, le jaune et le vert.	  Dans le collège, nous avons
+val7=bleu,rouge,jaune, vert
+val8=B,R,J,V
+val9=Choix des couleurs
+val10=élèves
+val11=Combien d'élèves préfèrent le
+tmp0=!randint 1, 4
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 15, 40
+
+val13=$[rint($(tmp0)*20)]
+val14=100
+tmp0=!randitem 5,10,15,20,25,30
+
+val15=$[rint($(tmp0))]
+tmp0=!randitem 5,10,15,20,25,30
+
+tmp1=!randitem 5,10,15,20,25,30
+
+val15=$val15,$(tmp0),$(tmp1)
+val14=$[$val14-$(val15[1])-$(val15[2])-$(val15[3])]
+val15=$val15,$val14
+val16=$[rint($val13*$(val15[$val12])/100)]
+val14=100
+tmp0=!randint 8, 40
+
+val17=$(tmp0)
+val18=$val17
+val14=$[$val14-$val17]
+val18=$val18,$val14
+val19=skyblue,red,yellow,lightgreen
+tmp0=!randint 1, $val13
+
+val20=$(tmp0)
+val21=ellipse 0,0,2,2,black	segment 0,0,1,0,black	text black,-1,1.4,large,$val9
+val22=0
+!for val23 =1 to 4 
+tmp0=!item $val23 of $val15
+
+val24=$[$(tmp0)*2*pi/100]
+val25=$[$val22+$val24/2]
+tmp0=!item $val23 of $val19
+
+val26=$(tmp0)
+val22=$[$val22+$val24]
+val21=$val21	segment 0,0,cos($val22),sin($val22),black	fill cos($val25)/2,sin($val25)/2, $val26
+tmp0=!item $val23 of $val8
+
+tmp1=!item $val23 of $val15
+
+val21=$val21	text black, 3.3*cos($val25)/3,3.3*sin($val25)/3, large, $(tmp0)	text black, 2.2*cos($val25)/3,2.2*sin($val25)/3, medium, $(tmp1)%	
+!next
+!readproc oef/draw.phtml 300,300 \
+xrange -1.5,1.5	yrange -1.5,1.5	$val21 
+tmp0=$ins_url
+val27=$(tmp0)
+val28=On calcule \($(val15[$val12]) \percent\) de \($val13\).	<p>\(\frac{$(val15[$val12])}{100} \times $val13 = \frac{$(val15[$val12]) \times $val13}{100}=$val16\)</p>	\($val16\) élèves préfèrent le $(val7[$val12]).
+replytype1=numeric
+replyname1=
+replygood1=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val28
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	  <img src="$val27" alt="">	  </div>	  <div class="medium_size text_col">	  $val6 $val13 $val10.	  <div class="spacer">	  <label for="reply1">$val11 $(val7[$val12]) ?</label>	   
+!read oef/embed.phtml r1,5 
+$()</div>	  </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val28
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,13,27,28
+embedcnt=1

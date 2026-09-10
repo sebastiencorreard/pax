@@ -1,0 +1,388 @@
+!set title=Nombre d'antécédents
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=63
+prevarcnt=62
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=100000000
+tmp0=!randitem 4,5,6,7,8
+
+tmp1=!randitem 3,4,5,6,7
+
+tmp2=!randitem 3,4,5,6,7
+
+tmp3=!randitem 3,4,5,6,7
+
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 4,5,10
+
+val7=1,2,3,4,5,6,7,8,9,10,	11,12,13,14,15,16,17,18,19,20,21,23,24,25,27,30,	$(tmp0)0,$(tmp1)5,$(tmp2)2,	$(tmp3)8,$(tmp4)00,$(tmp5)00	
+
+!ifval frac isitemof $val2
+val7=$val7,	 1/2,3/2,5/2,7/2,9/2,11/2,13/2,	 1/3,2/3,4/3,5/3,7/3,8/3,10/3	
+!endif
+
+!ifval root isitemof $val2
+val7=$val7,	sqrt(3),sqrt(5),sqrt(6),sqrt(7),sqrt(8),sqrt(11),sqrt(12),	sqrt(18),sqrt(20),sqrt(30),sqrt(40),sqrt(60)	
+!endif
+
+!ifval pie isitemof $val2
+val7=$val7,	pi,e,sqrt(2),pi+1,pi-1,e+1,e-1,	pi^2,e^2,pi^3,e^3,1/pi,1/e,2*pi,2*e,4*pi,4*e	
+!endif
+
+!ifval log isitemof $val2
+val7=$val7,	ln(2),ln(3),ln(4),ln(5),ln(8),ln(10),ln(15),ln(20),ln(30),ln(50)	
+!endif
+
+!ifval exp isitemof $val2
+val7=$val7,	2^e,3^e,2^pi,3^pi,pi^e,e^pi,pi^pi,e^e,	4^e,5^e,2^-e,2^-pi,pi^-e,e^-pi	
+!endif
+tmp0=!makelist -x for x in $val7
+
+val7=$(tmp0),0,$val7
+tmp0=!sort numeric items $val7
+
+val7=$(tmp0)
+tmp0=!itemcnt $val7
+
+val8=$[rint($(tmp0))]
+val9=$[rint(4)]
+tmp0=!shuffle $val8
+
+tmp1=!item 1 to 11 of $(tmp0)
+
+tmp2=!sort numeric items $(tmp1)
+
+val10=$(tmp2)
+tmp0=!item $val10 of $val7
+
+val11=$(tmp0)
+tmp0=!randint $val8/4, $val8*3/4
+
+val12=$[rint($(tmp0))]
+tmp0=!item 3 to $val12-3 of $val7
+
+tmp1=!shuffle $(tmp0)
+
+val13=$(tmp1)
+tmp0=!item $val12+3 to $val8-2 of $val7
+
+tmp1=!shuffle $(tmp0)
+
+val14=$(tmp1)
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+!if $val15=1 
+val16=ne,se,ne,se
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val17=-\infty
+!else
+val17=$(val13[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val18=-\infty
+!else
+val18=$(val13[3])
+!endif
+val19=$val17,$(val14[1]),$(val13[2]),$(val14[2]),$val18
+val20=bottom,top,bottom,top,bottom
+!else
+val16=se,ne,se,ne
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val17=+\infty
+!else
+val17=$(val14[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val18=+\infty
+!else
+val18=$(val14[3])
+!endif
+val19=$val17,$(val13[1]),$(val14[2]),$(val13[2]),$val18
+val20=top,bottom,top,bottom,top
+!endif
+tmp0=!replace internal \infty by $val6 in $val19
+
+val21=$(tmp0)
+val22=
+!for val23 =1 to 4 
+val24=
+!for val25  in $val7 
+!if $val25>min($(val21[$val23]),$(val21[$val23+1])) and $val25<max($(val21[$val23]),$(val21[$val23+1])) 
+tmp0=!append item $val25 to $val24
+
+val24=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val24
+
+tmp1=!item 1 to 2 of $(tmp0)
+
+val24=$(tmp1)
+
+!ifval $(val16[$val23]) issametext ne
+tmp0=!sort numeric items $val24
+
+val24=	    $(tmp0)
+!else
+tmp1=!sort reverse numeric items $val24
+
+val24=	    $(tmp1)
+!endif
+val22=$val22$val24;
+!next
+val26=$(val11[1,2]);$(val11[4,5]);$(val11[7,8]);$(val11[10,11])
+val27=-\infty, $(val11[3,6,9]), +\infty
+tmp0=!makelist \(x) for x in $val27
+
+val28=$(tmp0)
+tmp0=!makelist \(x) for x in $val19
+
+val29=$(tmp0)
+val30=1
+val31=&#91;
+val32=&#93;
+val33=
+val34=Soit une fonction \(f: \RR \to \RR\) continue et dérivable ayant	  le tableau de variation suivant.
+val35=Combien la valeur, possède-t-elle d'antécédents par
+val36=Le nombre d'antécédents de 
+
+!ifval \infty isin $(val19[1])
+val37=$(val19[2..-1])
+!else
+val37=$val19
+!endif
+
+!ifval \infty isin $(val37[-1])
+val37=$(val37[1..-2])
+!else
+val37=$val37
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>3
+tmp=!nonempty items $val37,$(val27[2..-2])
+
+tmp1=!randitem $tmp
+val38=$(tmp1)
+!else
+tmp=!nonempty items $val7
+
+tmp2=!randitem $tmp
+val38=$(tmp2)
+!endif
+val39=$[rint(0)]
+val40=
+val41=
+!for val42 =1 to $val9 
+!if ($val38 > $(val21[$val42]) and $val38 < $(val21[$val42+1])) or ($val38 < $(val21[$val42]) and $val38 > $(val21[$val42+1])) 
+val39=$[rint($val39+1)]
+val40=$val40 $val42
+!endif
+!if $val42>1 and $val38 = $(val21[$val42]) 
+val39=$[rint($val39+1)]
+val41=$val41 $val42
+
+!ifval $(val16[$val42]) issametext ne
+val43=Min
+!else
+val43=Max
+!endif
+!endif
+!next
+tmp0=!words2items $val40
+
+val40=$(tmp0)
+tmp0=!itemcnt $val40
+
+val44=$[rint($(tmp0))]
+tmp0=!words2items $val41
+
+val41=$(tmp0)
+replytype1=numeric
+replyname1=$val36 \($val38\)
+replygood1=$[$val39]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val34		<table class="wimscenter wimsnoborder" style="border: solid black 1px;">	<tr style="border: solid black 1px;"><th style="border-right: solid black 1px;">
+!insmath x
+$()</th>	 
+!for m_t=1 to $val9 
+$()<td>$(val28[$m_t])</td><td></td> 
+!next
+$()	<td>$(val28[$val9+1])</td></tr>	<tr style="border: solid black 1px;">	 <th style="border: solid black 1px;">
+!insmath f(x)
+$()</th>	 
+!for m_t=1 to $val9 
+$()	 <td valign="$(val20[$m_t])">$(val29[$m_t])</td>	 <td><img src="$val1/$(val16[$m_t])$val30.gif" alt="$(val16[$m_t])"></td>	 
+!next
+$()	<td valign="$(val20[$val9+1])">$(val29[$val9+1])</td></tr>	</table>		$(val35[1]) 
+!insmath $val38
+$() $(val35[2]) 
+!insmath f
+$() ?	 
+!read oef/embed.phtml reply1,3 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	 
+!if $val39=0 
+$()	  
+!insmath $val38
+$() est	  
+!if $val38<$(val19[2]) 
+$()au-dessous de 
+!else
+$() au-dessus de 
+!endif
+$()	  l'image de 
+!insmath f
+$(). Elle n'a donc aucun antécédent.	  
+!endif
+$()	 
+!if $val39=1 
+$()	  
+!if $val41 notsametext $val33 
+$()	   
+!insmath $val38
+$() est égale à $val43(
+!insmath f
+$()), atteint en 
+!insmath x = $(val27[$val41])
+$().	   
+!else
+$() 	   
+!insmath $val38
+$() a un unique antécédent dans l'intervalle	   $val32$(val28[$val40]),$(val28[$val40+1])$val31.	   
+!endif
+$()	  
+!endif
+$()	 
+!if $val39>1 
+$()	  
+!if $val44>1 
+$()	   
+!insmath $val38
+$() a un antécédent dans chacun des intervalles suivants :	   <div class="wimscenter">	    
+!for m_t in $val40 
+$()	    $val32$(val28[$m_t]),$(val28[$m_t+1])$val31 &nbsp;&nbsp;	    
+!next
+$()	   </div>	   
+!else
+$() 	   
+!insmath $val38
+$() a un antécédent dans l'intervalle	   $val32$(val28[$val40]),$(val28[$val40+1])$val31.	   
+!endif
+$()	  
+!if $val41 notsametext $val33 
+$()	   <p>Elle est aussi égale à 
+!insmath f($(val27[$val41]))
+$().</p>	   
+!endif
+$()	  
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 = $val39+1 and $val38 isitemof $(val19[1,-1])
+ <div class='oef_feedbacks'>	 <strong>Attention</strong>. 
+!insmath $val38
+$() n'est que la limite de 
+!insmath f
+$() quand 
+!insmath x
+$()	 tend vers	 
+!if $val38 issametext $(val19[1]) 
+$()	  
+!insmath -\infty
+$(). Elle n'a pas d'antécédent en 
+!insmath -\infty
+$().	  
+!else
+$() 	  
+!insmath +\infty
+$(). Elle n'a pas d'antécédent en 
+!insmath +\infty
+$().	  
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,16,19,20,27,28,29,30,31,32,33,34,35,38,39,40,41,43,44
+embedcnt=1

@@ -1,0 +1,157 @@
+!set title=Expressions 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Joachim,Yameogo; Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Dans le plan muni d'un repère orthonormé \((O,i,j)\),	 associer chaque droite dessinée dans la colonne de gauche à son équation.
+val7=Faire un premier tri en regardant l'ordonnée	  à l'origine des droites de la colonne de gauche.	  L'ordonnée à l'origine d'une droite \(D\) correspond à la valeur	  que prend \(y\) lorsque l'on pose \(x=0\) dans l'équation de \(D\).
+val8=Si ce premier tri ne suffit pas à départager deux droites,	  considérer le coefficient directeur (la pente) de la droite,	  qui est le coefficient de la variable \(x\) dans l'équation de la droite.
+val9=Correspondance droite/equation
+val10=blue
+val11=300
+val12=300
+val13=-4
+val14=4
+val15=-4
+val16=4
+val17=linewidth 1	parallel 0,$val15,0,$val16,0.2,0,floor(5*($val14))+1,$val10	parallel 0,$val15,0,$val16,-0.2,0,floor(5*abs($val13))+1,$val10	parallel $val13,0,$val14,0,0,0.2,floor(5*($val16))+1,$val10	parallel $val13,0,$val14,0,0,-0.2,floor(5*abs($val15))+1,$val10
+val18=linewidth 1	parallel 0,$val15,0,$val16,1,0,floor($val14+1),$val10	parallel 0,$val15,0,$val16,-1,0,floor(abs($val13)+1),$val10	parallel $val13,0,$val14,0,0,1,floor($val16+1),$val10	parallel $val13,0,$val14,0,0,-1,floor(abs($val15)+1),$val10
+val19=linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.2,medium,i	text red,-0.5,0.7,medium,j	text black,-0.5,-0.1,medium,O	arrow $val14-1,0,$val14,0,10,black	arrow 0,$val16-1,0,$val16,10,black	text black,$val14-0.5,-0.2,large,x	text black,-0.5,$val16-0.4,large,y
+val20=xrange $val13,$val14	yrange $val15,$val16	$val18	$val19	
+tmp0=!shuffle red,blueviolet,green,brown
+
+val21=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randitem 1,2,3
+
+val22=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randitem 1,2,3
+
+val23=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -3,-2,-1,1,2,3
+
+val24=$(tmp0)
+tmp0=!shuffle -3,-2,-1,1,2,3
+
+val25=$(tmp0)
+val26=
+!for val27 =1 to 3 
+val28=($val23)/($val22)+(($(val25[$val27]))/(($val24)*($val22)))
+tmp0=!append item $val28 to $val26
+
+val26=$(tmp0)
+!next
+val28=($val23)/($val22)
+tmp0=!append item $val28 to $val26
+
+val26=$(tmp0)
+val29=
+val30=
+!for val27 =1 to 3 
+tmp0=!randint ($val13+2), ($val14-2)
+
+val31=$[rint($(tmp0))]
+tmp0=!randint ($val15+2), ($val16-2)
+
+val32=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand(($(val26[$val27]))*(x-($val31))+($val32));
+tmp0=!exec maxima $t_
+
+val33=$(tmp0)
+tmp0=!texmath y=$val33
+
+val34=\($(tmp0))
+tmp0=!append item $val34 to $val29
+
+val29=$(tmp0)
+!readproc oef/draw.phtml $val11,$val12 \
+    $val20	    plot $(val21[$val27]),$val33	     
+tmp0=$ins_url
+val35=<img src="$(tmp0)" width="$val11" height="$val12" border="0" alt="">
+tmp0=!append item $val35 to $val30
+
+val30=$(tmp0)
+!next
+val36=$val11
+val37=$val36 x$val36 x150
+replytype1=correspond
+replyname1=$val9
+replygood1=$val30;$val29
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  <div style="background-color:wheat"> <p>$val7</p><p>$val8</p> <:div> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>$val6</p>	  <div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val37 
+$()	</div>	
+$()
+!exit
+
+:hint
+$() <div style="background-color:wheat"> <p>$val7</p><p>$val8</p> <:div> 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,37
+embedcnt=1

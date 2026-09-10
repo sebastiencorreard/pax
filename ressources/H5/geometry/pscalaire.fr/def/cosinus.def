@@ -1,0 +1,132 @@
+!set title=Produit scalaire et cosinus
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=René, Chaffard
+email=chafrene@club-internet.fr
+oefobservation=exercice de calcul du cos d'un angle dans un triangle quelconque.
+language=fr
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem a,b,c
+
+val6=$(tmp0)
+tmp0=!shuffle A,B,C
+
+val7=$(tmp0)
+val8=$(val7[1])
+val9=$(val7[2])
+val10=$(val7[3])
+tmp0=!randint 2, 8
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val12=$[rint($(tmp0))]
+val13=$[rint(abs($val11-$val12)+1)]
+val14=$[rint($val11+$val12-1)]
+tmp0=!randint $val13, $val14
+
+val15=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in ($val11^2+$val12^2-$val15^2)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+tmp0=!shuffle \($val8 $val9 = $val11 ) , \($val9 $val10 = $val15) ,  \($val10 $val8 = $val12)
+
+val17=$(tmp0)
+tmp=!translate ";': to $     $ in ($val16)/($val11*$val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+replytype1=rational
+
+replyname1=cosinus :
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère un triangle 
+!insmath A B C
+$() tel que :	<p class="wimscenter"> $(val17[1]),  $(val17[2]), $(val17[3]). </p>	Calculer	<p class="wimscenter">
+!insmath  cos(\widehat{\overrightarrow{$val8 $val9},\overrightarrow{$val8 $val10}})
+$()	=  
+!read oef/embed.phtml reply1,10 
+$(). </p>		
+$()
+!exit
+
+:hint
+$()Deux stratégies équivalentes :<br>	<ul><li>commencer par calculer un produit scalaire convenablement choisi et exploiter :	<div class="wimscenter">
+!insmath  \overrightarrow{$val8 $val9} \cdot \overrightarrow{$val8 $val10}  = $val8 $val9.$val8 $val10.\cos(\hat{A})
+$()</div>	</li><li>utiliser le théorème d'Al-Kashi</li></ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!insmath  \overrightarrow{$val8$val9} \cdot \overrightarrow{$val8 $val10} = $val16 
+$()	donc :
+!insmath $val16 = $val12\times $val11\times  cos(\widehat{\overrightarrow{$val8$val9},\overrightarrow{$val8 $val10}})
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1<-1 or $m_reply1>1
+ <div class='oef_feedbacks'><b>Attention !</b> un cosinus doit appartenir à [-1,1]
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,16,17
+embedcnt=1

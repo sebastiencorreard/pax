@@ -1,0 +1,1 @@
+#include "lang_hint_fr.inc"

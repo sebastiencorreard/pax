@@ -1,0 +1,117 @@
+!set title=Somme de proportions 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Marc,Lucie,Fred,Aurélie,Mathieu
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 30, 48
+
+val8=$[rint($(tmp0))]
+
+!ifval $val7=2
+val9=$[rint(100-$val8)]
+!else
+val9=$[rint($val8)]
+!endif
+
+!ifval $val7=2
+val10=$[rint(50)]
+!else
+val10=$[rint($val8)]
+!endif
+
+!ifval $val7=1
+val11=aussi
+!endif
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+val13=$val12 a raison,$val12 a tort
+val14=Soit respectivement \(N_1\) et \(N_2\) le nombre d'élèves dans la première et la deuxième classe de BTS.	  <ul><li>	  Le nombre de filles en BTS est&nbsp;: <span class="nowrap">\(N_1 \times \frac{$val8}{100} + N_2 \times \frac{$val9}{100}\).</span>	  </li><li>	  La proportion de filles en BTS est donc&nbsp;:	  \(\frac{N_1 \times \frac{$val8}{100} + N_2 \times \frac{$val9}{100}}{N_1+N_2}\)	 
+
+!ifval $val7=1
+val14=$val14 c'est à dire \(\frac{(N_1+N_2) \times \frac{$val8}{100}}{N_1+N_2}\) 	soit encore <span class="nowrap">\(\frac{$val8}{100}\).</span></li></ul><p>	  Cette proportion ne dépend pas du nombre d'élèves de chaque classe et $val12 a raison.
+!else
+val14=$val14</li></ul><p>	  Cette proportion dépend du nombre d'élèves dans chaque classe et $val12 a tort.
+!endif
+val14=$val14</p>
+replytype1=radio
+replyname1=
+replygood1=$val7;$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val14
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	  Dans le lycée de $val12, il y a 2 classes de BTS.<br>	  Dans la première, il y a $val8 % de filles et dans la deuxième il y a $val11 $val9 % de filles.	</p><p>	$val12 affirme qu'on peut en déduire qu'il y a $val10 % de filles en BTS.	</p><p>	  Qu'en pensez-vous&nbsp;?	</p>	<div class="wimscenter">  
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val14
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,14
+embedcnt=1

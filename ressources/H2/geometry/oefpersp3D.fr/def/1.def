@@ -1,0 +1,265 @@
+!set title=Repérage de points 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r
+varcnt=76
+prevarcnt=75
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=abscisse, ordonnée, altitude,côte
+val7=l'abscisse, l'ordonnée, l'altitude,la cote
+val8=Le point, a comme coordonnées, est
+val9=Donner, du point
+val10=Les coordonnées de certains sommets du pavé sont écrites sur la figure.
+val11=Seuls certains points sont cliquables, contenant la solution.
+
+!ifval $val2 notwordof 1 2
+val2= 1
+!endif
+
+!ifval $val3 notwordof 1 2 3 
+val3= 1
+!endif
+
+!ifval $val5 notwordof 0 1 
+val5= 0
+!endif
+
+!ifval $val4 notwordof grid nogrid
+val4= grid
+!endif
+
+!ifval $val5=1
+val4=nogrid
+!endif
+
+!ifval $val2=1
+val6=$(val6[1,2,3])
+!else
+val6=$(val6[1,2,4])
+!endif
+
+!ifval $val2=1
+val7=$(val7[1,2,3])
+!else
+val7=$(val7[1,2,4])
+!endif
+tmp0=!randint 1, 3
+
+val12=$(tmp0)
+val13=-3*pi/4
+val14=sqrt(2)/2
+val15=x,y,z
+val16=1,$val14*cos($val13),0;0,$val14*sin($val13),1
+val16=0,$val14*cos($val13),1;1,$val14*sin($val13),0
+val16=$val14*cos($val13),1,0;$val14*sin($val13),0,1
+tmp0=!shuffle A,B,C,D,E,G,H,F
+
+val17=$(tmp0)
+!if $val3=1 
+tmp0=!randint 3, 6
+
+val18=$(tmp0)
+val18=$val18,$val18,$val18
+!endif
+!if $val3=2 
+tmp0=!randint 3, 6
+
+val18=$(tmp0)
+tmp0=!randint 3, 6
+
+val18=$(tmp0),$val18,$val18
+tmp0=!shuffle $val18
+
+val18=$(tmp0)
+!endif
+!if $val3=3 
+tmp0=!shuffle 6
+
+val18=$(tmp0)
+val18=$(val18[1,2,3])
+tmp0=!replace internal 1 by 7 in $val18
+
+val18=$(tmp0)
+!endif
+tmp=!trim 0,0,0	$(val18[1]),0,0	$(val18[1]),$(val18[2]),0	0,$(val18[2]),0	0,0,$(val18[3])	$(val18[1]),0,$(val18[3])	$(val18[1]),$(val18[2]),$(val18[3])	0,$(val18[2]),$(val18[3])	
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,3,4,1	5,6,7,8,5	1,5,2,6,3,7,4,8
+val20=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val5=1
+val21= 1,1,1
+!else
+val21=0,0,0
+!endif
+t_=!replace internal \( by ( in tr=[$val21];matrix(8,3,i,j,tr[j])+[$val19]
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in [$val19]*[$val16]~
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+!if $val4 iswordof grid 
+val23=1
+val23=grid 1,1,grey,$val23,$val23,6,grey
+!else
+val23=
+!endif
+t_=!replace internal \( by ( in vecmax(abs([$val19]*[$val16]~ ))
+tmp0=!exec pari $t_
+
+val24=$[$(tmp0)]
+val25=$[1.2*$val24]
+val26=$[1.5*$val24]
+val27=500,500
+val28=0.4
+val29=
+val30=
+!if $val5=0 
+val29=arrow 0,0,2*$val25*$(val16[1;1]),2*$val25*$(val16[2;1]),10,grey	  arrow 0,0,$val26*$(val16[1;2]),1.5*$val25*$(val16[2;2]),10,grey	  arrow 0,0,$val26*$(val16[1;3]),$val26*$(val16[2;3]),5,grey	  text black,2*($val25-0.7)*$(val16[1;1])+0.1,2*($val25-0.7)*$(val16[2;1])+$val28,large,$(val15[1])	  text black,($val26-0.7)*$(val16[1;2])+0.1,($val26-0.5)*$(val16[2;2])+$val28,large,$(val15[2])	  text black,($val26-0.7)*$(val16[1;3])+0.1,($val26-0.7)*$(val16[2;3])+$val28,large,$(val15[3])	  text black,$(val16[1;1])-$val28,$(val16[2;1]),large,1	  text black,$(val16[1;2])+$val28,$(val16[2;2]),large,1	  text black,$(val16[1;3])+$val28,$(val16[2;3]),large,1	  
+val30=crosshairs black,$(val16[1;1]),$(val16[2;1])	crosshairs black,$(val16[1;2]),$(val16[2;2])	crosshairs black,$(val16[1;3]),$(val16[2;3])
+!endif
+val31=xrange -$val25,$val26	yrange -$val25,$val26	axis	comment axisnumbering	opacity 255,255	linewidth 2	$val29	precision 10	linewidth 1	$val23	
+val32=$(val22[$(val20[1;]);])
+val33=$(val22[$(val20[2;]);])
+val34=$(val22[$(val20[3;]);])
+tmp0=!replace internal ; by , in $val32
+
+val32=$(tmp0)
+tmp0=!replace internal ; by , in $val33
+
+val33=$(tmp0)
+tmp0=!replace internal ; by , in $val34
+
+val34=$(tmp0)
+val31=$val31	opacity 255,255	linewidth 3	polyline brown,$val32	polyline brown,$val33	segments brown,$val34	linewidth 2	$val30	fontfamily bold 10pt Ariel
+val35=
+val36=
+val37=
+tmp0=!randint 1, 8
+
+val38=$(tmp0)
+!for val14 =1 to 8 
+val39=string black,$(val22[$val14;1]),$(val22[$val14;2])+$val28,$(val17[$val14])
+val35=$val35	  $val39
+!if $val14!=$val38 
+
+!ifval $(val19[$val14;2])= 0 
+val40=$[ -1.5*$val28]
+!else
+val40=$[1.5*$val28]
+!endif
+tmp0=!replace internal , by ; in $(val19[$val14;])
+
+val39=centered	    string black,$(val22[$val14;1])+$val40,$(val22[$val14;2])+$val28,($(tmp0))
+!else
+val39=string black,$(val22[$val14;1]),$(val22[$val14;2])+$val28,$(val17[$val14])
+!endif
+val37=$val37	  $val39
+
+!ifval $(val19[$val14;2])=0 
+val40=$[ -1.5*$val28]
+!else
+val40=$[1.5*$val28]
+!endif
+tmp0=!replace internal , by ; in $(val19[$val14;])
+
+val39=centered	  string black,$(val22[$val14;1])+$val40,$(val22[$val14;2])+$val28,$(val17[$val14])($(tmp0))
+val36=$val36	  $val39
+!next
+val41=$(val19[$val38;])
+tmp0=!replace internal ; by , in $val22
+
+val42=$(tmp0)
+val43=$val31
+val44=$val31
+val43=$val43	$val36
+tmp0=!replace internal , by ; in $(val19[$val38;])
+
+val44=$val44	centered	string blue,$(val22[$val38;1]),$(val22[$val38;2])+$val28,$(val17[$val38])($(tmp0))	
+!readproc oef/canvasdraw.phtml $val27 \
+$val43 
+tmp0=$canvasdraw_out
+val45=$(tmp0)
+replytype1=numexp
+replyname1=$(val17[$val38]): $(val6[$val12])
+replygood1=$(val41[$val12])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<label for="reply1">	  $(val9[1]) $(val7[$val12]) $(val9[2]) $(val17[$val38])	</label>:  
+!read oef/embed.phtml r1,4 
+$()	$val45	<div class="wims_instruction">$val10</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'>	$(val8[1]) $(val17[$val38]) $(val8[2]) ($(val41[1]);$(val41[2]);$(val41[3])),	$(val7[$val12]) $(val8[3]) $(val41[$val12]).	
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>	 
+!read oef/canvasdraw.phtml $val27 \
+	$val44 
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,12,17,27,38,41,44,45
+embedcnt=1

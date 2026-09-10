@@ -1,0 +1,201 @@
+target=guidadd
+
+#include "header.inc"
+\computeanswer{no}
+
+\title{Stapsgewijs optellen}
+
+\integer{den1=random(8,9,10,12,14,15,16)}
+\integer{den2=random(randint(\den1/2+1..\den1-1),randint(\den1+1..2*\den1-1))}
+\integer{num1=randint(2..1.5*\den1)}
+\integer{num1=gcd(\num1,\den1)>1?\num1+1}
+\integer{num2=randint(2..1.5*\den2)}
+\integer{num2=gcd(\num2,\den2)>1?\num2+1}
+\text{hr=<HR noshade size=2>}
+\text{new=}
+\integer{test1=0}
+\text{big1=<font size=+2>}
+\text{big2=</font>}
+\text{objets=alleen de teller,alleen de noemer,
+zowel de teller als de noemer}
+
+\text{gtext1=random(Maak de breuken gelijknamig,
+    Verander de breuken zo dat ze dezelfde noemer krijgen
+)}
+
+\text{method1=\gtext1,
+    Verander de breuken zo dat ze dezelfde teller krijgen,
+    Tel eerst de tellers op,
+    Tel eerst de noemers op,
+    Tel de tellers op en vermenigvuldig de noemers,
+    Vermenigvuldig de tellers
+}
+\integer{cnt1=items(\method1)}
+\text{sh1=shuffle(\cnt1)}
+\integer{good1=position(1,\sh1)}
+\text{method1=item(\sh1,\method1)}
+
+\text{method2=Tel de tellers op en houdt de noemers gelijk,
+ Tel de tellers op en tel de noemers op
+ 
+}
+\integer{cnt2=items(\method2)}
+\text{sh2=shuffle(\cnt2)}
+\integer{good2=position(1,\sh2)}
+\text{method2=item(\sh2,\method2)}
+
+\text{nstep=r1}
+\nextstep{\nstep}
+
+\statement{Tel de volgende breuken op.
+<p><center>
+\(\num1/(\den1) + \num2/(\den2))
+</center> <p>
+
+\if{\step=1}{
+ Maak een keuze uit &eacute;&eacute;n van de volgende stappen:<ul>
+ \for{k=1 to \cnt1}{ <li>\embed{r1,\k} }
+ </ul>
+ \exit{}
+}
+
+\if{\step=2 or \test1<1}{
+ Etape 1. Maak de breuken gelijknamig (zelfde noemer).
+ <p>
+ Vermenigvulig \embed{r2} van \(\num1/(\den1)) met \embed{r3,3}, dan krijg je
+ <p><center><table border=0 cellpadding=3>
+  <tr>
+  <td align=center>\num1<td rowspan=3>&nbsp;\big1=\big2&nbsp;
+  <td align=center>\embed{r6,3}
+  <tr><td>\hr<td>\hr
+  <tr><td align=center>\den1
+  <td align=center>\embed{r7,3}
+ </table></center> <p>
+ Vermenigvuldig \embed{r4} van \(\num2/(\den2)) met \embed{r5,3}, dan krijg je
+ <p><center><table border=0 cellpadding=3>
+  <tr>
+  <td align=center>\num2<td rowspan=3>&nbsp;\big1=\big2&nbsp;
+  <td align=center>\embed{r8,3}
+  <tr><td>\hr<td>\hr
+  <tr><td align=center>\den2
+  <td align=center>\embed{r9,3}
+ </table></center> <p>
+ \exit{}
+}
+ Etape 1. Je hebt \(\num1/(\den1) = \new[1]/(\new[2])) en
+ \(\num2/(\den2) = \new[3]/(\new[4])), dan wordt de som
+ <p><center>
+  \(\new[1]/(\new[2]) + \new[3]/(\new[4])) .
+ </center> <p>
+ \if{\step=3}{
+  Wat wordt de volgende stap?<ul>
+  \for{k=1 to \cnt2}{ <li>\embed{r10,\k} }
+  </ul>
+  \exit{}
+ }
+ Etape 2. Je telt de tellers op en houdt de noemers gelijk, dan wordt de som
+ <p><center>
+ <table border=0 cellpadding=2>
+ 
+ <tr><td align=center>\num1
+ <td rowspan=3>&nbsp;&nbsp;\big1+\big2&nbsp;&nbsp;</td>
+ <td align=center>\num2
+ <td rowspan=3>&nbsp;&nbsp;&nbsp;\big1=\big2&nbsp;&nbsp;&nbsp;</td>
+ <td align=center>\new[1]
+ <td rowspan=3>&nbsp;&nbsp;\big1+\big2&nbsp;&nbsp;</td>
+ <td align=center>\new[3]
+ <td rowspan=3>&nbsp;&nbsp;&nbsp;\big1=\big2&nbsp;&nbsp;&nbsp;</td>
+ <td align=center>\embed{r11,4}
+ <tr><td>\hr<td>\hr<td>\hr<td>\hr<td>\hr
+ <tr><td align=center>\den1
+ <td align=center>\den2
+ <td align=center>\new[2]
+ <td align=center>\new[4]
+ <td align=center>\embed{r12,4}
+ </table> 
+ </center> <p>
+
+}
+
+\answer{Methode stap 1}{\good1;\method1}{type=click}
+
+\answer{Te vermenigvuldigen object 1}{3;\objets}{type=menu}
+\answer{Vermenigvuldiging 1}{\m1}{type=number}
+\answer{Te vermenigvuldigen object 2}{3;\objets}{type=menu}
+\answer{Vermenigvuldiging 2}{\m2}{type=number}
+\answer{Nieuwe teller 1}{\nn1}{type=number}
+\answer{Nieuwe noemer 1}{\nd1}{type=number}
+\answer{Nieuwe teller 2}{\nn2}{type=number}
+\answer{Nieuwe noemer 2}{\nd2}{type=number}
+
+\answer{Methode stap 2}{\good2;\method2}{type=click}
+
+\answer{Teller van de som}{\nsum}{type=number}
+\answer{Noemer van de som}{\dsum}{type=number}
+
+\if{\step=2}{
+ \text{nstep=r2,r3,r4,r5,r6,r7,r8,r9}
+}
+
+\text{test1=\test1<1 and \m1>0 and \m1=floor(\m1) and \m2>0 and \m2=floor(\m2)
+    and \nn1=\num1*\m1 and \nd1=\den1*\m1
+    and \nn2=\num2*\m2 and \nd2=\den2*\m2
+    and \nd1=\nd2?1}
+\if{\test1>0}{
+ \text{new=\nn1,\nd1,\nn2,\nd2}
+}
+
+\condition{De vermenigvuldigingen zijn correct}{\test1>0}
+
+\if{\step=3 and \test1>0}{
+ \text{nstep=r10}
+}
+
+\if{\step=4}{
+ \text{nstep=r11,r12}
+}
+
+\condition{De som is goed}{\test1>0 and \nsum=\nn1+\nn2 and \dsum=\nd1}
+
+\feedback{\step=1 and \reply1 notsametext ~\good1}{
+ De twee breuken hebben verschillende noemers. Je kunt de breuken zo niet 
+ direct optellen. Je moet de breuken eerst gelijknamig maken. 
+}
+
+\feedback{\step=2 and (\reply2 notsametext ~3 or \reply4 notsametext ~3)}{
+ Je moet zowel de teller als de noemer vermenigvuldigen met hetzelfde getal.
+ Op deze manier blijft de breuk hetzelfde.
+}
+
+\feedback{\step=3 and (\m1=0 or \m2=0)}{
+ Je kunt de teller en de noemer in een breuk niet vermenigvuldigen met het 
+ getal 0&nbsp;!
+ <p>
+ Je krijgt dan een onzinnige ``breuk''. \(0/(0)),
+}
+
+\feedback{\step=3 and (\m1<0 or \m2<0)}{ 
+ In deze oefening kun je jammer genoeg niet vermenigvuldigen met een 
+ negatief getal.
+}
+
+\feedback{\step=3 and \m1>0 and \m2>0 and (\floor(\m1)!=\m1 or \floor(\m2)!=\m2)}{
+ Je moet de teller en noemer vermenigvuldigen met een geheel getal.
+}
+
+\feedback{\step=3 and \nd1=\den1*\m1 and \nd2=\den2*\m2 and \nd1!=\nd2}{
+ Het is de bedoeling de breuken gelijknamig te maken. Je moet dus een zelfde noemer 
+ krijgen in beide breuken. Met jouw vermenigvuldiging krijg je verschillende noemers. 
+ Het getal waarmee je vermenigvuldigt hebt is dus fout.
+}
+
+\feedback{\step=3 and (\nd1!=\den1*\m1 or \nn1!=\num1*\m1 or
+	\nd2!=\den2*\m2 or \nn2!=\num2*\m2)}{
+  Een foute berekening in je vermenigvuldiging.
+}
+
+\feedback{\step=3 and \reply10 notsametext ~\good2}{
+ Twee breuken met een zelfde noemer kun je als volgt optellen. Je telt de tellers op en 
+ laat de noemers gewoon staan.
+}
+

@@ -1,0 +1,167 @@
+!set title=Argument of sum
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=en
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+computeanswer=yes
+title_it=Argomento della somma
+title_es=Argumento de la suma
+title_fr=Argument de somme
+title_nl=Modulus en Argument III
+
+ansorder=r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint -20, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val8+($val10)=0
+val10=$[rint($val8)]
+!endif
+val11=$[rint($val7+($val9))]
+val12=$[rint($val8+($val10))]
+t_=!rawmath $val7+$val8*i
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+t_=!rawmath $val9+$val10*i
+t_=!exec pari print($t_)
+val14=!mathsubst I=i in $t_
+val15=$[sqrt(($val11)^2+($val12)^2)]
+
+!ifval $val12>0
+val16=$[pi/2]
+!else
+val16=$[-pi/2]
+!endif
+
+!ifval $val11=0
+val17=$[$val16]
+!else
+val17=$[arctan($val12/($val11))]
+!endif
+
+!ifval $val11<0
+val18=$[$val17+pi]
+!else
+val18=$[$val17]
+!endif
+val19=Let,Give the module and an argument of
+val20=is an argument of
+!if $val6=it 
+val19=Siano,Calcolare il modulo e l'argomento di
+val20=è l'argomento di
+!endif
+!if $val6=es 
+val19=Sean, Entregue el módulo y un argumento de
+val20=es un argumento de
+!endif
+!if $val6=fr 
+val19=Soient,Donner le module et un argument de
+val20=est un argument de
+!endif
+!if $val6=nl 
+val19=Gegeven,Geef modulus en argument vanf
+val20=is een argument van 
+!endif
+replyname1=\(|z|\)
+replygood1=$val15
+replyname2=\(Arg(z)\)
+replygood2=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val19[1]) 
+!insmath z_1=$val13
+$(), 
+!insmath z_2=$val14
+$().	$(val19[2]) 
+!insmath z=z_1+z_2
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval abs(($val21-$val18)/(2*pi)-round(($val21-$val18)/(2*pi)))<0.0001
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val21 $val20 \(z\)
+
+!exit
+
+:stat
+vsavelist=13,14,18,19,20,21
+embedcnt=0

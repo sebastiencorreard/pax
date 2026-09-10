@@ -1,0 +1,39 @@
+target=angle
+
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\precision{200}
+
+\integer{mid=8}
+\integer{range=\mid*2}
+\integer{a1=2*random(-\mid..\mid-2)+1}
+\integer{b1=2*random(-\mid..\mid)}
+\integer{c1=random(-\range..\range)}
+\integer{a2=random(-\range..\range)}
+\integer{b2=2*random(-\mid..\mid-2)+1}
+\integer{c2=random(-\range..\range)}
+\integer{x1=random(-\range..\range)}
+\integer{y1=random(-\range..\range)}
+\integer{z1=random(-\range..\range)}
+\integer{x2=\x1+\a1}
+\integer{y2=\y1+\b1}
+\integer{z2=\z1+\c1}
+\integer{x3=\x1+\a2}
+\integer{y3=\y1+\b2}
+\integer{z3=\z1+\c2}
+\integer{prod=\a1*\a2+\b1*\b2+\c1*\c2}
+\real{l1=sqrt((\a1)^2+(\b1)^2+(\c1)^2)}
+\real{l2=sqrt((\a2)^2+(\b2)^2+(\c2)^2)}
+\real{angle=acos(\prod/(\l1*\l2))*180/pi}
+
+\statement{\name_enonce:
+  <div class="wimscenter">
+  \(A(\x1,\y1,\z1)\), \(B(\x2,\y2,\z2)\), \(C(\x3,\y3,\z3)\).
+  </div>
+ \name_question.
+}
+
+\answer{\name_answer}{\angle}
+\hint{\name_hint}
+

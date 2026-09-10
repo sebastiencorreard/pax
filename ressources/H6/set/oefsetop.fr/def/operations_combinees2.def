@@ -1,0 +1,232 @@
+!set title=Opérations combinées 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David, Doyen
+email=david.doyen@u-pem.fr
+language=fr
+title_it=Operazioni combinate 2
+title_es=Operaciones combinadas 2
+
+ansorder=r
+varcnt=59
+prevarcnt=58
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=0,1,2,3,4,5,6,7,8,9,10
+val8=a,b,c,d,e,f,g,h,i,j,k
+!if $val2=1 
+val9=$val7
+!endif
+!if $val2=2 
+val9=$val8
+!endif
+!if ($val2=3) or ($val2=) 
+tmp0=!randitem 1,2
+
+!if $(tmp0)=1 
+val9=$val7
+!else
+val9=$val8
+!endif
+!endif
+tmp0=!randint 3, 7
+
+val10=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val11=$(val9[1..$val10])
+tmp0=!randint 3, 7
+
+val12=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val13=$(val9[1..$val12])
+tmp0=!randint 3, 7
+
+val14=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val15=$(val9[1..$val14])
+tmp0=!randint 1, 8
+
+val16=$(tmp0)
+!if $val16=1 
+val17=(A \cap B ) \setminus C
+tmp0=!listintersect $val11 and $val13
+
+val18=$(tmp0)
+tmp0=!listcomplement $val15 in $val18
+
+val19=$(tmp0)
+!endif
+!if $val16=2 
+val17=(A \cup B ) \setminus C
+tmp0=!listunion $val11 and $val13
+
+val20=$(tmp0)
+tmp0=!listcomplement $val15 in $val20
+
+val19=$(tmp0)
+!endif
+!if $val16=3 
+val17=A \setminus (B \cup C)
+tmp0=!listunion $val13 and $val15
+
+val21=$(tmp0)
+tmp0=!listcomplement $val21 in $val11
+
+val19=$(tmp0)
+!endif
+!if $val16=4 
+val17=A \setminus (B \cap C)
+tmp0=!listintersect $val13 and $val15
+
+val22=$(tmp0)
+tmp0=!listcomplement $val22 in $val11
+
+val19=$(tmp0)
+!endif
+!if $val16=5 
+val17=A \cup (B \setminus C)
+tmp0=!listcomplement $val15 in $val13
+
+val23=$(tmp0)
+tmp0=!listunion $val23 and $val11
+
+val19=$(tmp0)
+!endif
+!if $val16=6 
+val17=A \cap (B \setminus C)
+tmp0=!listcomplement $val15 in $val13
+
+val23=$(tmp0)
+tmp0=!listintersect $val23 and $val11
+
+val19=$(tmp0)
+!endif
+!if $val16=7 
+val17=A \setminus (B \setminus C)
+tmp0=!listcomplement $val15 in $val13
+
+val23=$(tmp0)
+tmp0=!listcomplement $val23 in $val11
+
+val19=$(tmp0)
+!endif
+!if $val16=8 
+val17=(A \setminus B) \setminus C
+tmp0=!listcomplement $val13 in $val11
+
+val24=$(tmp0)
+tmp0=!listcomplement $val15 in $val24
+
+val19=$(tmp0)
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val25=vide
+val26=et
+val27=On considère les ensembles
+val28=Déterminer
+val29=Pour désigner l'ensemble vide, écrire le mot <span class="tt">$val25</span> dans le champ de réponse.
+!if $val6=it 
+val25=vuoto
+val26=e
+val27=Si considerino gli insiemi
+val28=Determinare
+val29=Se si desidera inserire l'insieme vuoto, scrivere la parola <span class="tt">$val25</span> nello spazio designato per la risposta.
+!endif
+!if $val6=es 
+val25=vacío
+val26=y
+val27=Considere los conjuntos
+val28=Determine
+val29=Para denotar el conjunto vacío, escriba la palabra <span class="tt">$val25</span> en el campo de respuesta.
+!endif
+!if $val19= 
+val19=$val25
+!endif
+replytype1=set
+replyname1=
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val27	<div class="wimscenter">	
+!insmath A=\{$val11\}
+$(), &nbsp; 
+!insmath B=\{$val13\}
+$() &nbsp; $val26 &nbsp; 
+!insmath C=\{$val15\}
+$().	</div>	$val28 
+!insmath $val17
+$().	<div class="spacer">	
+!insmath $val17=
+$() 
+!read oef/embed.phtml r1,20 
+$()	</div>	<div class="wims_instruction">$val29</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,15,17,26,27,28,29
+embedcnt=1

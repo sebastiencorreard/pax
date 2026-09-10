@@ -1,0 +1,346 @@
+!set title=Produit scalaire et ensemble de points*
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=René, Chaffard
+email=chafrene@club-internet.fr
+oefobservation=utilisation d'un produit scalaire pour déterminer des ensembles de points
+language=fr
+computeanswer=no
+precision=1000
+leftrange=-5.000000
+rightrange=5.000000
+
+ansorder=r,r,r
+varcnt=62
+prevarcnt=61
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items $val2
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+
+!ifval $val6 iswordof 1 2 3 4 5 
+val6= $val6
+!else
+tmp0=!randint 1, 5
+
+val6= $(tmp0)
+!endif
+tmp0=!randint 2, 8
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=2 
+tmp0=!randint 2, 6
+
+val7=$[rint( $(tmp0))]
+!endif
+
+!ifval $val6 = 5 
+val8= un cercle de diamètre sur \((A B))
+!endif
+
+!ifval $val6 <> 5 
+val8= un cercle de centre autre que \(I)
+!endif
+val9=-$val7-2,$val7+2
+val10=-$val7-2,$val7+2
+tmp=!nonempty items 0,20,30,60,90,120
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=animate 25,0.2,0	xrange $val10	yrange $val9	rotate $val11	text black, -$val7/2,0,medium, A	text black, $val7/2, 0,medium, B	segment $(val10[1]),0,$(val10[2]),0,black	linewidth 2	segment -$val7/2,0,$val7/2,0,blue	disk -$val7/2,0,5,blue	disk $val7/2,0,5,blue	linewidth 1	
+val13=l'ensemble vide,une droite perpendiculaire à \((A B)),une droite parallèle à (A B),un cercle de centre \( I),le seul point \( I),$val8
+!if $val6=1 
+tmp0=!randint -4, 4
+
+val14=$[rint($(tmp0))]
+val15=2
+tmp=!translate ";': to $     $ in $val14/($val7^2)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+val17=$val16
+val18=reply1	reply2
+val19=\(\special{color=green} \overrightarrow{A M} \cdot \overrightarrow{A B} = $val14 )
+val20=$(val9[1])+s*($(val9[2])-$(val9[1]))
+val12=$val12	 segment $val16*$val7-$val7/2,$(val9[1]),$val16*$val7-$val7/2,$(val9[2]), green	 text red, $val16*$val7-$val7/2,$val20, medium, M	 dsegment -$val7/2,0,$val16*$val7-$val7/2,$val20,red	 
+!endif
+!if $val6=2 
+tmp0=!randint -6, 6
+
+val14=$[rint($(tmp0))]
+val21=$[rint((4*$val14+$val7^2))]
+
+!ifval $val21>0 
+tmp=!translate ";': to $     $ in sqrt($val21)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22= $(tmp0)
+!endif
+val17=$val22
+!if $val21>0 
+val15=4
+!else
+
+!ifval $val21<0 
+val15= 1 
+!else
+val15= 5
+!endif
+!endif
+val18=reply 1
+
+!ifval $val21>0 
+val18= $val18	 reply 2
+!endif
+val19=\( \special{color=green}\overrightarrow{A M} \cdot \overrightarrow{B M} = $val14 )
+val12=$val12	 trange 0,2*pi	 plot red, $val22*cos(t),$val22*sin(t)	 text red , $val22*cos(2*pi*s),$val22*sin(2*pi*s),medium,M	 dpolyline red, -$val7/2,0,$val22*cos(2*pi*s),$val22*sin(2*pi*s),$val7/2,0	
+!endif
+!if $val6=3 
+tmp0=!randint 0, 20
+
+val14=$[rint($(tmp0))]
+val21=$[rint((2*$val14-$val7^2))]
+
+!ifval $val21>0 
+tmp=!translate ";': to $     $ in sqrt($val21)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22= $(tmp0)
+!endif
+val17=$val22
+!if $val21>0 
+val15=4
+!else
+!if $val21<0 
+val15=1
+!else
+val15=5
+!endif
+!endif
+val18=reply 1
+
+!ifval $val21>0 
+val18= $val18	 reply 2
+!endif
+val19=\( A M^2 + B M^2 = $val14 )
+val12=$val12	 trange 0,2*pi	 plot red, $val22*cos(t),$val22*sin(t)	 text red , $val22*cos(2*pi*s),$val22*sin(2*pi*s),medium,M	 dpolyline red, -$val7/2,0,$val22*cos(2*pi*s),$val22*sin(2*pi*s),$val7/2,0	
+!endif
+!if $val6=4 
+tmp0=!randint -4, 4
+
+val14=$[rint($(tmp0))]
+val15=2
+tmp=!translate ";': to $     $ in ($val14+$val7^2)/(2*$val7^2)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+val18=reply 1	reply 2
+val19=\(A M^2 - B M^2 = $val14)
+val20=$(val9[1])+s*($(val9[2])-$(val9[1]))
+val12=$val12	 segment $val17*$val7-$val7/2,$(val9[1]),$val17*$val7-$val7/2,$(val9[2]), green	 text red, $val17*$val7-$val7/2,$val20, medium, M	 dpolyline -$val7/2,0,$val17*$val7-$val7/2,$val20,red	 
+!endif
+!if $val6=5 
+tmp0=!randint 2, 4
+
+val14=$[rint($(tmp0))]
+val15=6
+tmp=!translate ";': to $     $ in $val14/($val14+1)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp=!translate ";': to $     $ in $val14/($val14-1)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$(tmp0)
+val18=reply 1	reply 2, reply 3
+val19=\( A M = $val14 B M )
+val24=$[-$val7/2+$val17*$val7]
+val25=$[-$val7/2+$val23*$val7]
+val22=$[($val25-($val24))/2]
+val26=$[($val24+$val25)/2]
+val12=$val12	 trange 0,2*pi	 plot red, $val26+($val22*cos(t)),$val22*sin(t)	 text red , $val26+$val22*cos(2*pi*s),$val22*sin(2*pi*s),medium,M	 dpolyline red, -$val7/2,0,$val26+$val22*cos(2*pi*s),$val22*sin(2*pi*s),$val7/2,0	
+!endif
+
+!ifval $val6 =4 or $val6=1 
+val27= \(k)
+!endif
+
+!ifval $val6 =2 or $val6=3 
+val27= Rayon
+!endif
+
+!ifval $val6 =5
+val27= \(k_1)
+!endif
+oefsteps=$val18 
+nextstep=!nosubst $val18 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=Nature
+replygood1=$val15;$val13
+replytype2=formal
+replyname2=$val27
+replygood2=$val17
+replytype3=formal
+replyname3=\( k_2 )
+replygood3=$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère deux points 
+!insmath A
+$() et 
+!insmath B
+$() du plan tels que 
+!insmath A B
+$() = $val7.	Le milieu de 
+!insmath [A B]
+$() est noté 
+!insmath I
+$().	Déterminer l'ensemble des points 
+!insmath M
+$() tels que :	<p class="wimscenter" style="color:green">$val19.</p>	<br>	
+!if $m_step=1 
+$()Déterminons tout d'abord la nature de l'ensemble cherché.	 C'est	 <ul>	 <li>  
+!read oef/embed.phtml reply1,1 
+$()</li>	 <li>  
+!read oef/embed.phtml reply1,2 
+$()</li>	 <li>  
+!read oef/embed.phtml reply1,3 
+$()</li>	 <li>  
+!read oef/embed.phtml reply1,4 
+$()</li>	 <li>  
+!read oef/embed.phtml reply1,5 
+$()</li>	 <li>  
+!read oef/embed.phtml reply1,6 
+$()</li>	 </ul>	  
+!endif
+$()	
+!if $m_step=2 and $val6=1 
+$()Soit 
+!insmath H
+$() le point d'intersection de la droite cherchée avec 
+!insmath (A B)
+$().<br>	  On a alors <p class="wimscenter">
+!insmath  \overrightarrow{A H} = k \overrightarrow{A B} 
+$()</p>	  Déterminons 
+!insmath k
+$().	  
+!endif
+$()	
+!if $m_step=2 and $m_n=2 and $val6=2 
+$()Déterminons le rayon 
+!endif
+$()	
+!if $m_step=2 and $val6=5 
+$()Un diamètre étant sur 
+!insmath (A B)
+$(), on note 
+!insmath H
+$() et 
+!insmath K
+$() les extrémités de ce diamètre.	 On a alors <p class="wimscenter"> 
+!insmath  \overrightarrow{A H} = k_1 \overrightarrow{A B} 
+$() et 
+!insmath  \overrightarrow{A K} = k_2 \overrightarrow{A B} 
+$().</p>	  Déterminons 
+!insmath  k_1
+$() et 
+!insmath k_2 
+$() où 
+!insmath  k_1 < k_2 
+$().	  
+!endif
+$()	
+!if $m_step=2 and $val6=4 
+$()Soit 
+!insmath H
+$() le point d'intersection de la droite cherchée avec 
+!insmath (A B)
+$().	 On a alors <p class="wimscenter"> 
+!insmath  \overrightarrow{A H} = k \overrightarrow{A B} 
+$() .</p>	  Déterminons 
+!insmath k
+$().	  
+!endif
+$()		
+!if $m_step=2 and $m_n=2 and $val6=3 
+$()Déterminons le rayon du cercle.	  <div class="wims_instruction">	   On pourra utiliser éventuellement la fonction sqrt,	   sqrt(2) = 
+!insmath  \sqrt{2}
+$().</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	<div class="wimscenter"> 
+!read oef/draw.phtml 200,200 \
+$val12 
+$()</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,12,19
+embedcnt=6

@@ -1,0 +1,64 @@
+\title{II Quelle est la formule ? (réf. rel.)}
+\langage {fr}
+\author{Paul,Byache}
+\email{paul@byache.fr}
+\langage{html}
+
+
+\integer{choix=random(3)}
+
+
+\text{sign=item(\choix,+,-,*)}
+\text{fin=item(\choix,en ajoutant ceux des colonnes A et B,en soustrayant ceux de la colonne B à ceux de la colonne A, en multipliant ceux des colonnes A et B)}
+
+\integer{ligne=random(4)+1}
+\matrix{AB=slib(matrix/non0 6,2,9)}
+\integer{rep1=\AB[1;1]\sign\AB[1;2]}
+\integer{rep2=\AB[2;1]\sign\AB[2;2]}
+\integer{rep3=\AB[3;1]\sign\AB[3;2]}
+\integer{rep4=\AB[4;1]\sign\AB[4;2]}
+\integer{rep5=\AB[5;1]\sign\AB[5;2]}
+\integer{rep6=\AB[6;1]\sign\AB[6;2]}
+\text{C=\rep1,\rep2,\rep3,\rep4,\rep5,\rep6}
+
+\text{reps=}
+\for{i=\ligne-1 to \ligne+1}{
+      \text{reps=\reps,= A\i + B\i,= A\i - B\i,= A\i * B\i}
+}
+\text{reps=shuffle(\reps)}
+\text{reps=item(1..4,\reps)}
+\text{soust=randitem(A\ligne + B\ligne,A\ligne * B\ligne,A\ligne - B\ligne)}
+\text{reps=\reps,= A \sign B,\soust}
+
+\text{good= = A\ligne \sign B\ligne}
+
+\integer{lim=139+(\ligne-1)*23}
+\text{dessin=}
+\for{i=1 to 6}{
+   \for{j=1 to 3}{
+      \text{prov= \j=3 ? \C[\i] : \AB[\i;\j]}
+      \text{dessin=\dessin
+         text black,93+(\j-1)*81,135-(\i-1)*23,medium,\prov}
+   }
+}
+\text{dessin=draw(524,280
+xrange 0,524
+yrange 0,280
+copy 0,280,-1,-1,-1,-1,tablvide.jpg
+\dessin
+)}
+
+\statement{ Voici l'image d'un écran de <b>tableur</b>.<br>
+Les nombres de la colonne C sont calculés <b>\fin</b>.<br>
+Que doit-on taper dans la cellule C\ligne ?
+
+<div class="wimscenter">
+\special{imagefill \dessin,524x280,80x22
+reply 1,197x\lim
+}
+</div> }
+
+\answer{ }{ \good;\reps }{ type=clickfill } {option=shuffle}
+\text{test=wims(replace internal = by zzz in \reply1)}
+\feedback{zzz notin \test}{<span style="color:purple">Attention ! Si ce que vous tapez dans la cellule
+C\ligne ne commence pas par "=", le tableur n'effectuera pas le calcul...</span>}

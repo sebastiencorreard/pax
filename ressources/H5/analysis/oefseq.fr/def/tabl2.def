@@ -1,0 +1,145 @@
+!set title=Calcul de termes (tableur 2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+keywords=sequence
+computeanswer=no
+
+ansorder=r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 20
+
+val8=$[rint($(tmp0))]
+val9=$[rint(abs($val7))]
+t_=!replace internal \( by ( in $val6*x+$val7* n+$val8
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+tmp0=!texmath $val10
+
+val11=$(tmp0)
+tmp0=!replace internal x by U_n in $val11
+
+val11=$(tmp0)
+tmp0=!randint 10, 19
+
+tmp1=!randitem -1,1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+
+!ifval ($val7>0)
+val13= =$val6*B2+$val7*A2+$val8,=B2*$val6+$val7*A2+$val8,=B2*$val6+A2*$val7+$val8,=$val6*B2+A2*$val7+$val8,	=$val6*B2+$val8+$val7*A2,=B2*$val6+$val8+$val7*A2,=B2*$val6+$val8+A2*$val7,=$val6*B2+$val8+A2*$val7,	=$val8+$val6*B2+$val7*A2,=$val8+B2*$val6+$val7*A2,=$val8+B2*$val6+A2*$val7,=$val8+$val6*B2+A2*$val7,	=$val7*A2+$val6*B2+$val8,=A2*$val7+$val6*B2+$val8,=A2*$val7+B2*$val6+$val8,=$val7*A2+B2*$val6+$val8,	=$val7*A2+$val8+$val6*B2,=A2*$val7+$val8+$val6*B2,=A2*$val7+$val8+B2*$val6,=$val7*A2+$val8+B2*$val6,	=$val8+$val7*A2+$val6*B2,=$val8+$val7*A2+B2*$val6,=$val8+A2*$val7+B2*$val6,=$val8+A2*$val7+$val6*B2	
+!else
+val13==$val6*B2-$val9*A2+$val8,=B2*$val6-$val9*A2+$val8,=B2*$val6-A2*$val9+$val8,=$val6*B2-A2*$val9+$val8,	=$val6*B2+$val8-$val9*A2,=B2*$val6+$val8-$val9*A2,=B2*$val6+$val8+A2*$val7,=$val6*B2+$val8-A2*$val9,	=$val8+$val6*B2-$val9*A2,=$val8+B2*$val6-$val9*A2,=$val8+B2*$val6+A2*$val7,=$val8+$val6*B2-A2*$val9,	=$val7*A2+$val6*B2+$val8,=A2*($val7)+$val6*B2+$val8,=A2*($val7)+B2*$val6+$val8,=$val7*A2+B2*$val6+$val8,	=$val7*A2+$val8+$val6*B2,=A2*($val7)+$val8+$val6*B2,=A2*($val7)+$val8+B2*$val6,=$val7*A2+$val8+B2*$val6,	=$val8-$val9*A2+$val6*B2,=$val8-$val9*A2+B2*$val6,=$val8-A2*$val9+B2*$val6,=$val8-A2*$val9+$val6*B2
+!endif
+replytype1=formal
+replyname1=
+replygood1=$val12
+replytype2=raw
+replyname2=
+replygood2=?analyze 14
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>A l'aide d'un tableur, on cherche à calculer, dans la colonne B,	  les premiers termes de la suite 
+!insmath (U_n)
+$()	  définie par 
+!insmath U_0=$val12
+$() et pour tout entier naturel 
+!insmath n
+$() :
+!insmath U_{n+1}=$val11
+$().</p>	<div class="wimscenter"> 
+!read oef/img.phtml $val1/ExoTableur1T-02.PNG alt="Capture tableur" 
+$()</div>	<div class="wims_question" >	<ul class="wims_nopuce">	  <li><p>Quelle valeur faut-il saisir dans la cellule B2 ?</p>	    <label for="reply1">On saisit en B2</label>:  
+!read oef/embed.phtml r1,5 
+$()	  </li><li><p>Saisir une formule la plus simple possible	  dans la cellule B3 pour obtenir les premiers termes de la suite 
+!insmath (U_n)
+$()	  par copier/glisser.</p>	  <label for="reply1">On saisit en B3</label>:  
+!read oef/embed.phtml r2 
+$().	  </li>	</ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>En B2, on entre la valeur 
+!insmath U_0
+$() c'est à dire $val12.</p>	<p>Pour pouvoir exploiter le copier/glisser, B3 correspond à 
+!insmath U_{n+1}
+$(), B2 correspond à 
+!insmath U_n
+$() et A2 correspond à 
+!insmath n
+$(). On entre donc la formule : $(val13[1]) <i>(ne pas oublier le symbole <b> = </b>)</i>.</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val14 issamecase $(val13[1])) or ($val14 issamecase $(val13[2]))	or ($val14 issamecase $(val13[3])) or ($val14 issamecase $(val13[4])) or ($val14 issamecase $(val13[5])) or ($val14 issamecase $(val13[6]))	or ($val14 issamecase $(val13[7])) or ($val14 issamecase $(val13[8])) or ($val14 issamecase $(val13[9])) or ($val14 issamecase $(val13[10]))	or ($val14 issamecase $(val13[11])) or ($val14 issamecase $(val13[12])) or ($val14 issamecase $(val13[13])) or ($val14 issamecase $(val13[14]))	or ($val14 issamecase $(val13[15])) or ($val14 issamecase $(val13[16])) or ($val14 issamecase $(val13[17])) or ($val14 issamecase $(val13[18]))	or ($val14 issamecase $(val13[19])) or ($val14 issamecase $(val13[20])) or ($val14 issamecase $(val13[21])) or ($val14 issamecase $(val13[22]))	or ($val14 issamecase $(val13[23])) or ($val14 issamecase $(val13[24]))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=votre formule est-elle acceptée ?
+
+!exit
+
+:stat
+vsavelist=1,11,12,13,14
+embedcnt=2

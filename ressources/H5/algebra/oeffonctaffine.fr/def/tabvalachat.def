@@ -1,0 +1,137 @@
+!set title=Tableau de valeurs pour un achat par correspondance
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem savons,photos,bracelets,stylos,nounours,verres,bols,figurines
+
+val6=$(tmp0)
+tmp0=!randint 2, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 6, 12
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val9+$val10)]
+val12=$[rint($val7*$val9+$val8)]
+val13=$[rint($val7*$val11+$val8)]
+val14=$[rint($val13-$val12)]
+val15=$[rint($val9-$val10)]
+val16=$[rint($val11+$val10)]
+val17=$[rint($val16+1)]
+val18=$[rint($val7*$val15+$val8)]
+val19=$[rint($val7*$val16+$val8)]
+val20=$[rint($val7*$val17+$val8)]
+val21=$[rint($val7*$val15)]
+tmp=!trim Lorsque le nombre de $val6 augmente de $val10, le prix augmente de $val14 &euro;.	Lorsque le nombre de $val6 augmente de 1, le prix augmente de $val7 &euro;.	Lorsque le nombre de $val6 diminue de $val10, le prix diminue de $val14 &euro;.	Lorsque le nombre de $val6 diminue de $val15, le prix diminue de $val21 &euro;.	Le prix du transport est $val8 &euro;.
+val22=!translate internal $	\
+$ to ;; in $tmp
+val23=7
+tmp=!trim ,,,,+ reply5,	Nombre de $val6,0,$val15,$val9,,$val11,$val16,$val17	Prix total,reply1,reply2,$val12,,$val13,reply3,reply4	,,,,+ reply6,,,
+val24=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val24],wimscenter wimsborder,TH=[;1] CAPTION="Tableau" 
+tmp0=$slib_out
+val25=$(tmp0)
+replytype1=default
+replyname1=Prix du transport
+replygood1=$val8
+replytype2=default
+replyname2=Coût de $val15 $val6
+replygood2=$val18
+replytype3=default
+replyname3=Coût de $val16 $val6
+replygood3=$val19
+replytype4=default
+replyname4=Coût de $val17 $val6
+replygood4=$val20
+replytype5=default
+replyname5=$val11 - $val9
+replygood5=$val10
+replytype6=default
+replyname6=$val13 - $val12
+replygood6=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <ul><li> Les écarts sur les prix sont proportionnels aux écarts sur les nombres de $val6.</li><li> De $val9 à $val11, de combien augmente le nombre de $val6 ? et le prix ?</li><li> Et de $val11 à $val16 $val6 ? </li><li> Et lorsque le nombre de $val6 n'augmente que de 1, de combien augmentera le prix ?</li><li> De $val9 à $val15, de combien diminue le nombre de $val6 ? et le prix ?</li><li> Et de $val15 à 0 ?</li></ul> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question">	<p>Pour un achat par correspondance de $val6, on paye un certain prix fixe pour le transport	et un prix proportionnel au nombre de $val6.</p><p>	Un lot de $val9 $val6 coûte $val12 &euro;, et un lot de $val11 $val6 coûte $val13 &euro;.	</p>	</div>	Compléter le tableau suivant (le prix du transport correspond à un achat de 0 objet):	 
+!read oef/special.phtml codeinput [$val25],$val23, div	reply1	reply2	reply3	reply4	reply5	reply6 
+$()	
+$()
+!exit
+
+:hint
+$()<ul><li> Les écarts sur les prix sont proportionnels aux écarts sur les nombres de $val6.</li><li> De $val9 à $val11, de combien augmente le nombre de $val6 ? et le prix ?</li><li> Et de $val11 à $val16 $val6 ? </li><li> Et lorsque le nombre de $val6 n'augmente que de 1, de combien augmentera le prix ?</li><li> De $val9 à $val15, de combien diminue le nombre de $val6 ? et le prix ?</li><li> Et de $val15 à 0 ?</li></ul> 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() <ul>	   
+!for m_i=1 to 5 
+$()<li>$(val22[$m_i;])</li> 
+!next
+$()	  </ul>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,11,12,13,15,16,22,23,25
+embedcnt=1

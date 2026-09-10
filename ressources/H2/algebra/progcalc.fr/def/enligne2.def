@@ -1,0 +1,225 @@
+!set title=Programme de calcul en ligne 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul@byache.fr
+precision=1000
+oefcss=<style> table.algo {border: 2px solid #999;} .fleche {font-size:2em;} </style>
+
+ansorder=r,r,r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2= 
+val2= 1,2,3,4,5
+!else
+val2=$val2
+!endif
+
+!ifval $val3= 
+val3=3
+!else
+val3=$val3
+!endif
+
+!ifval $val4= 
+val4= 1
+!else
+val4=$val4
+!endif
+
+!ifval $val5= 
+val5= 1
+!else
+val5=$val5
+!endif
+val6=numeric
+val7=
+val8=des valeurs décimales arrondies à \(10^(-2)) près.
+tmp0=!randint 3, 9
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+val10=$[rint($(tmp0))]
+!if $val4=2 
+tmp0=!randint 1, 300
+
+val10=$[$(tmp0)/10]
+!endif
+!if $val4=3 
+tmp0=!randint 1, 10
+
+tmp1=!randint 3, 10
+
+t_=!rawmath $(tmp0)/$(tmp1)
+val10=!exec pari print($t_)
+val6=numexp
+val7=noreduction
+val8=les réponses sous forme de fractions (pas forcément simplifiées).
+!endif
+tmp0=!values x*2 for x in $val2
+
+val11=$(tmp0)
+tmp0=!values x-1 for x in $val11
+
+val11=$val11,$(tmp0)
+!if 1 isitemof $val2 or 2 isitemof $val2 
+tmp0=!listintersect 1,2,3,4,5,6,7,8,9 and $val11
+
+val11=$(tmp0)
+!endif
+tmp0=!randitem $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem $val11
+
+val13=$[rint($(tmp0))]
+tmp0=!randitem $val11
+
+val14=$[rint($(tmp0))]
+val15=On met<br>au carré.,On prend la <br>racine carrée.,On prend<br>l'inverse.,On prend<br>l'inverse.,On double.,On prend<br>la moitié.,On divise<br> par $val9.,On multiplie<br>par $val9.,On ajoute $val9.,On soustrait $val9.
+tmp=!trim (XXX)^2	(XXX)^0.5	1/(XXX)	1/(XXX)	2*(XXX)	(XXX)/2	(XXX)/$val9	(XXX)*$val9	(XXX)+$val9	(XXX)-$val9
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal XXX by $val10 in $(val16[$val12;])
+
+val17=$(tmp0)
+t_=!rawmath $val17
+val17=!exec pari print($t_)
+val18=$[rint($val17*100)/100]
+tmp0=!replace internal XXX by $val17 in $(val16[$val13;])
+
+val19=$(tmp0)
+t_=!rawmath $val19
+val19=!exec pari print($t_)
+val20=$[rint($val19*100)/100]
+tmp0=!replace internal XXX by $val19 in $(val16[$val14;])
+
+val21=$(tmp0)
+t_=!rawmath $val21
+val21=!exec pari print($t_)
+val22=$[rint($val21*100)/100]
+!if $val4=3 
+t_=!rawmath $val17
+val18=!exec pari print($t_)
+t_=!rawmath $val19
+val20=!exec pari print($t_)
+t_=!rawmath $val21
+val22=!exec pari print($t_)
+!endif
+tmp0=!item 1 to $val3 of r1,r2,r3
+
+val23=$(tmp0)
+
+!ifval (1 isin $val2 or 2 isin $val2) 
+val24=	<iframe src=scripts/js/wincalc.html height="300" width="500" frameborder="0" align="right">	</iframe>Voici une calculatrice.<br>	Pour calculer \(sqrt(8)) par exemple, taper <span class="tt">8</span> puis la touche <span class="tt">sqrt</span>.	<br>Notez les résultats sur une feuille de brouillon.<br>	Quand vous avez fini vos calculs, cliquez sur "retour au travail" ci-dessous.	<br><I>Remarque</I> Il est plus pratique d'utiliser votre propre calculatrice...
+!else
+val24=
+!endif
+oefsteps=$val23 
+nextstep=!nosubst $val23 
+!readproc oef/steps.proc
+replytype1=$val6
+
+replyoption1=$val7 
+replyname1=Etape 1 :
+replygood1=$val18
+replytype2=$val6
+
+replyoption2=$val7 
+replyname2=Etape 2 :
+replygood2=$val20
+replytype3=$val6
+
+replyoption3=$val7 
+replyname3=Etape 3 :
+replygood3=$val22
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val24
+
+
+!goto stat
+
+!exit
+
+:question
+$()Complète le programme de calcul ci-dessous.	<br>Il faut donner $val8	<div class="unbreakable">	<table class="wimscenter algo">	<tr><td></td><td>$(val15[$val12])</td>	
+!if $val3>1 
+$()<td></td><td>$(val15[$val13])</td>	
+!if $val3>2 
+$()<td></td><td>$(val15[$val14])</td>	 
+!endif
+$() 
+!endif
+$()<td></td></tr>	<tr><td style="color:blue;background:yellow">	&nbsp;$val10 &nbsp;	</td>	<td class="fleche">&rarr;</td>	<td>	 
+!read oef/embed.phtml r1,7	autocomplete="off" 
+$()	</td>	
+!if $val3>1 
+$()	<td class="fleche">&rarr;</td>	<td>	 
+!read oef/embed.phtml r2,7	autocomplete="off" 
+$()	</td>	
+!if $val3>2 
+$()	<td class="fleche">&rarr;</td>	<td>	 
+!read oef/embed.phtml r3,7	autocomplete="off" 
+$()	</td> 
+!endif
+$() 
+!endif
+$()</tr>	</table>	</div>	
+$()
+!exit
+
+:hint
+$()$val24
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,8,10,12,13,14,15,24
+embedcnt=3

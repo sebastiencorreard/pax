@@ -1,0 +1,207 @@
+!set title=Division à trous
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_it=Divisione con elemento mancante
+
+ansorder=r,r,r
+varcnt=34
+prevarcnt=26
+postvarcnt=7
+replycnt=3
+choicecnt=0
+conditioncnt=4
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=13
+tmp0=!randint 50, 64
+
+val7=$(tmp0)
+tmp0=!randint 10, 16
+
+val8=$(tmp0)
+tmp0=!randint 3, $val6
+
+val9=$(tmp0)
+tmp0=!exec float_calc	obase=$val9; ibase=10; $val7
+
+val7=$(tmp0)
+tmp0=!charcnt $val7
+
+val10=$(tmp0)
+tmp0=!randint 1, $val10
+
+val11=$(tmp0)
+tmp0=!replace internal char number $val11 by x in $val7
+
+val12=$(tmp0)
+tmp0=!char $val11 of $val7
+
+val13=$(tmp0)
+tmp0=!exec float_calc	obase=$val9; ibase=10;$val8
+
+val8=$(tmp0)
+tmp0=!exec float_calc	obase=$val9; ibase=$val9;$val7*$val8
+
+val14=$(tmp0)
+tmp0=!charcnt $val14
+
+val15=$(tmp0)
+tmp0=!randint 1, $val15
+
+val16=$(tmp0)
+tmp0=!replace internal char number $val16 by y in $val14
+
+val17=$(tmp0)
+tmp0=!char $val16 of $val14
+
+val18=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val19=$(tmp0)
+val20=La multiplication suivante, en base \(b\),	  a été partiellement effacée. Dans quelle base se passe cette	  multiplication ? Déterminer les chiffres manquants :
+val21=La base est inférieure à $val6. Les chiffres sont	    écrits de 0 à 9, puis avec des lettres \(A\), \(B\), ...
+val22=est un chiffre en base
+val23=en base
+val24=une solution possible est,avec
+!if $val19=it 
+val20=La moltiplicazione seguente, in base \(b\),	  è stata effettuata solo parzialmente. Dire in quale base è stata effettuata	  questa moltiplicazione e individuare le cifre mancanti:
+val21=La base è inferiore a $val6. Le cifre sono	    scritte da 0 a 9, quindi con le lettere \(A\), \(B\), ...
+val22=è una cifra in base
+val23=in base
+val24=Una possibile soluzione è,con
+!endif
+replyname1=La base
+replygood1=?analyze 25
+replytype2=case
+replyname2=\(x\) :
+replygood2=?analyze 26
+replytype3=case
+replyname3=\(y\) :
+replygood3=?analyze 27
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val20	<div class="wimscenter"> 
+!insmath \overline{$val12} \times \overline{$val8} 
+$()	 = 
+!insmath \overline{$val17}
+$()	 </div>	<div class="wims_instruction">$val21</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$(val24[1]) 
+!insmath $val7 \times $val8 = $val14
+$() $(val24[2]) 
+!insmath b=$val9
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal char number $val11 by $val26 in $val7
+
+val28=$(tmp0)
+tmp0=!replace internal char number $val16 by $val27 in $val14
+
+val29=$(tmp0)
+tmp0=!exec float_calc	obase=$val25; ibase=$val25; $val28*$val8 - $val29
+
+val30=$(tmp0)
+tmp0=!exec float_calc	obase=$val25; ibase=$val25; $val26 - $val25
+
+val31=$(tmp0)
+tmp0=!charcnt $val26
+
+val32=$(tmp0)
+tmp0=!exec float_calc	obase=$val25; ibase=$val25; $val27 - $val25
+
+val33=$(tmp0)
+tmp0=!charcnt $val27
+
+val34=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val25>=2
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=base > 1
+
+!ifval base > 1 and $val31 <= 0 and $val32 =1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val26 $val22 $val25
+
+!ifval base > 1 and $val33 <= 0 and $val34 =1
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$val27 $val22 $val25
+
+!ifval base > 1 and $val30 = 0
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=$val28 \(\times\) $val8 = $val29 $val23 $val25 ? 
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,14,16,17,20,21,22,23,24,25,26,27
+embedcnt=0

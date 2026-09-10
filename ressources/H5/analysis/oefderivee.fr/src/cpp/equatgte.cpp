@@ -1,0 +1,43 @@
+target=equtgte1, equtgte2
+
+#define TITRE Equation d'une tangente
+
+\language{fr}
+\range{-5..5}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+\integer{a=randitem(-1,1,2)}
+\integer{degre=randitem(2,2,3)}
+\integer{b=(\degre==2)? randitem(-3,-2,-1,1,2,3,4):randint(-5..5)}
+\integer{c=randint(-8..8)}
+\integer{d=randint(1..9)*randitem(1,-1)}
+\function{f=(\degre==2)? maxima(\b*x^2+\c*x+\d):maxima(\a*x^3+\b*x^2+\c*x+\d)}
+\function{df=maxima(diff(\f,x))}
+
+\text{x0=randint(-5..5)}
+
+\integer{img=evalue(\f,x=\x0)}
+\integer{nbder=evalue(\df,x=\x0)}
+\function{equ=maxima(expand(\nbder*(x-\x0)+\img))}
+
+#if defined TARGET_equtgte1
+\title{TITRE - 2 informations données}
+\statement{On considère la fonction \(f) définie pour tout réel \(x) par : \(f(x)=\f\).<br>
+On donne \(f(\x0)=\img\) et \(f'(\x0)=\nbder\).<br>
+Déterminer une équation de la tangente à la courbe représentative de \(f\) au point d'abscisse \(\x0\).
+<br>Une équation de la tangente est \embed{r1,6}.}
+#endif
+
+#if defined TARGET_equtgte2
+\title{TITRE - 1 information donnée}
+\statement{On considère la fonction \(f) définie pour tout réel \(x) par : \(f(x)=\f\).<br>
+On donne \(f'(\x0)=\nbder\).<br>
+Déterminer une équation de la tangente à la courbe représentative de \(f\) au point d'abscisse \(\x0\).<br>
+Une équation de la tangente est \embed{r1,6}.}
+#endif
+
+\answer{}{y=\equ}{type=equation}

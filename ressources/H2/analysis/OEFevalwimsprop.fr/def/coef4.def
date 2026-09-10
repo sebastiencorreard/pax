@@ -1,0 +1,135 @@
+!set title=Coefficient niveau 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Denis,Guicheteau
+email=math.42@laposte.net 
+language=fr
+precision=100
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Trouver le coefficient de proportionnalité du tableau.
+tmp0=!randint 1, 5
+
+tmp1=!randint 1, 9
+
+val11=$[$(tmp0)+$(tmp1)/10]
+tmp0=!randint 2, 20
+
+val12=$[rint($(tmp0))]
+tmp=!nonempty items 1,3,5
+
+tmp0=!randitem $tmp
+val13=$[rint($val12+$(tmp0))]
+tmp0=!randint 2, 20
+
+val14=$[rint($(tmp0))]
+!while $val14==$val13 
+tmp0=!randint 2, 20
+
+val14=$[rint($(tmp0))]
+!endwhile
+tmp=!translate ";': to $     $ in $val14 * $val12 / $val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+tmp0=!texmath $val13/$val12
+
+val16=$(tmp0)
+val17=$[rint($val13/$val12)]
+val11=$[$val13/$val12 + 0.01]
+val18=$[rint($val11*100)]
+val11=$[$val18/100]
+val19=$[$val12/$val13]
+tmp0=!texmath $val12/$val13
+
+val20=$(tmp0)
+replytype1=dragfill
+replyname1=
+replygood1=\($val16);\($val17),\($val11),\($val19),\($val20)
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10	<table class="wimscenter wimsborder">	  <tr><td> 
+!insmath $val13
+$() </td> <td> 
+!insmath $val14
+$() </td><td rowspan="2">	       <img src="$val1/fleche3.JPG" alt=""><br>	       
+!insmath times
+$() 
+!read oef/embed.phtml r1,80x60 
+$()<br>	      <img src="$val1/fleche4.JPG" alt=""></td>	  </tr><tr>	    <td> 
+!insmath $val12
+$() </td> <td> 
+!insmath $val15
+$() </td>	  </tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,10,12,13,14,15
+embedcnt=1

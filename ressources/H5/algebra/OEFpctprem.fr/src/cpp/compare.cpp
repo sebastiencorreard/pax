@@ -1,0 +1,142 @@
+target=compare1 compare2
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{10000}
+#define TITLE Comparaison
+#if defined TARGET_compare1
+\title{TITLE 1}
+
+\text{data=Dans une entreprise,la moyenne des salaires masculins est de,20,40,100,euros,celle des salaires féminins est de,hommes gagnent, que les femmes,femmes gagnent, que les hommes
+  Dans un lycée,la moyenne des tailles des garçons est de,160,190,1,cm,celle des filles est de,garçons mesurent, que les filles,filles mesurent, que les garçons
+  Dans une ville,la durée de vie moyenne des femmes est de,60,90,1,ans,celle des hommes est de,femmes vivent, que les hommes,hommes vivent, que les femmes
+}
+\text{cedata=randomrow(\data)}
+\text{al=wims(makelist x for x=\cedata[3] to \cedata[4])}
+\text{al=shuffle(\al)}
+\integer{a=\al[1]*\cedata[5]}
+\integer{b=\al[2]*\cedata[5]}
+\integer{x1=\a<\b?\b:\a}
+\integer{x2=\a<\b?\a:\b}
+\rational{rep1=(\x1-\x2)/ \x2}
+\integer{rep1=10000*\rep1}
+\real{rep1=\rep1/100}
+\rational{rep2=(\x1-\x2)/ \x1}
+\integer{rep2=10000*\rep2}
+\real{rep2=\rep2/100}
+\integer{diff=\x1-\x2}
+\text{tsol=
+<div class="spacer">
+  <p>Les \cedata[8] \diff \cedata[6] de plus \cedata[9].</p>
+  <p>Dans la première phrase, la valeur de référence est \x2.<br> \(\frac{\diff}{\x2}\times 100 \simeq \rep1\)<br>
+  Les \cedata[8] donc \rep1&nbsp;% de plus \cedata[9].</p>
+  </div>
+<div class="spacer">
+  <p>Les \cedata[10] \diff \cedata[6] de moins \cedata[11].</p>
+  <p>Dans la deuxième phrase, la valeur de référence est \x1.<br> \(\frac{\diff}{\x1}\times 100 \simeq \rep2\)<br>
+  Les \cedata[10] donc \rep2&nbsp;%  de moins \cedata[11].</p>
+</div>
+}
+\statement{<p>
+\cedata[1], \cedata[2] \x1 \cedata[6], \cedata[7] \x2 \cedata[6].<br>
+  Compléter les phrases suivantes avec une précision de 0.01 %&nbsp;:
+</p>
+<ul>
+<li><label for="reply1">les \cedata[8]</label><span class="nowrap">\embed{reply1,4}&nbsp;%</span>
+de plus \cedata[9].</li>
+<li> <label for="reply2">les \cedata[10]</label><span class="nowrap">\embed{reply2,4}&nbsp;%</span> de moins \cedata[11].</li>
+</ul>
+}
+\answer{}{\rep1}{type=numeric}
+\answer{}{\rep2}{type=numeric}
+\feedback{\rep1<>\reply1 or \rep2 <>\reply2}{\tsol}
+#endif
+#if defined TARGET_compare2
+\title{TITLE 2}
+\text{series=1L,1S,1ES,1STMG}
+\text{nl=wims(makelist x for x=40 to 70)}
+\text{nl=shuffle(\nl)}
+\text{nf=\nl[1],\nl[2],\nl[3],\nl[4]}
+\text{xl=40,45,50,55,60,65,70,75,80}
+\text{xl=shuffle(\xl)}
+\text{xf=\xl[1],\xl[2],\xl[3],\xl[4]}
+\text{tl=}
+\text{ng=}
+\text{exact=}
+\text{listVal=}
+\text{listEqual=}
+\text{listPercent=}
+\text{listRound=}
+\for{i=1 to 4}
+{
+ \integer{t=\nf[\i]*100/\xf[\i]}
+ \integer{g=\t - \nf[\i]}
+ \real{val=\nf[\i]/\t}
+ \real{round=pari(round(\val*1000)/10)}
+ \text{ex=pari(\round==\val*100)}
+ \text{equal=\ex=1?=:\simeq}
+ \integer{percent=\val*1000}
+ \real{percent=\percent/10}
+ \text{listVal=wims(append item \val to \listVal)}
+ \text{listRound=wims(append item \round to \listRound)}
+ \text{listEqual=wims(append item \equal to \listEqual)}
+ \text{listPercent=wims(append item \percent to \listPercent)}
+ \text{exact=wims(append item \ex to \exact)}
+ \text{tl=wims(append item \t to \tl)}
+ \text{ng=wims(append item \g to \ng)}
+}
+\text{sxl=wims(sort item \xf)}
+\integer{rep1=position(\sxl[4],\xf)}
+\integer{rep2=(\nf[\rep1]/ \tl[\rep1])*1000}
+\real{rep2=\rep2/10}
+
+\statement{
+<p>
+  Voici la répartition des élèves de Première d'un lycée&nbsp;:
+</p>
+<div class="table-scroll">
+<table class="wimscenter wimsborder">
+<tr><th>&nbsp;</th><th>1L</th><th>1S</th><th>1ES</th><th>1STMG</th></tr>
+<tr><th>Garçons</th>
+  \for{l1=1 to 4}{<td>\ng[\l1]</td>}
+</tr>
+<tr><th>Filles</th>
+  \for{l2=1 to 4}{<td>\nf[\l2]</td>}
+</tr>
+</table>
+</div>
+
+  Dans quelle série la proportion des filles est-elle la plus importante&nbsp;?
+<div class="wimscenter">\embed{reply1}</div>
+<p>Quelle est cette proportion en pourcentage&nbsp;?</p>
+<div class="wimscenter">
+  <label for="reply2">Réponse&nbsp;:</label> <span class="nowrap">\embed{reply2,4} %</span>
+</div>
+<div class="wims_instruction">
+ La précision demandée est de 0.1&nbsp;%.
+ </div>
+}
+\answer{}{\rep1;1L,1S,1ES,1STMG}{type=radio}
+\answer{}{\rep2}{type=numeric}
+
+\solution{
+<div class="table-scroll">
+<table class="wimscenter wimsborder">
+<tr><th>&nbsp;</th><th>1L</th><th>1S</th><th>1ES</th><th>1STMG</th></tr>
+<tr><th>Garçons</th>
+  \for{l1=1 to 4}{<td>\ng[\l1]</td>}
+</tr>
+<tr><th>Filles</th>
+  \for{l2=1 to 4}{<td>\nf[\l2]</td>}
+</tr>
+<tr><th>Proportion de filles<br> en % arrondie<br>à 0,1&nbsp;%</th>
+   \for{l3=1 to 4}{<td>\(\frac{\nf[\l3]}{\ng[\l3]+\nf[\l3]} \times 100 \listEqual[\l3] \listPercent[\l3] \)</td>}
+</tr>
+</table>
+<p> C'est en série \series[\rep1] que la proportion des filles est la plus importante.</p>
+<p>Cette proportion est de
+\if{\exact[\rep1]=0}{\rep2&nbsp;% arrondi à 0.1&nbsp;%.}{\rep2&nbsp;%.}</p>
+</div>
+
+}
+#endif

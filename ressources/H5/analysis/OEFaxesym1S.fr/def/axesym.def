@@ -1,0 +1,219 @@
+!set title=Axe de symétrie
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+val7=$[rint(-$val6)]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val9=1
+val10=!rawmath (x+$val6)^2+$val8
+!else
+val10=!rawmath $val9*(x+$val6)^2+$val8
+!endif
+
+!ifval $val9=-1
+val10=!rawmath -(x+$val6)^2+$val8
+!endif
+t_=!replace internal \( by ( in expand($val10)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp0=!replace x by ($val7+x) in $val11
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in expand($val12)
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+val13=x+$val6=0
+val14=xrange -$val6-5,-$val6+5	yrange $val8-5,$val8+5	plot red,$val10	dsegment -$val6,$val8-5,-$val6,$val8+5,green	arrow 0,$val8-5,0,$val8+5,10,black	arrow -$val6-5,0,-$val6+5,0,10,black	
+oefsteps=r1	r2	r3	r4	r5 
+nextstep=!nosubst r1	r2	r3	r4	r5 
+!readproc oef/steps.proc
+replytype1=litexp
+replyoption1=nonstop 
+replyname1=Forme canonique
+replygood1=$val10
+replytype2=equation
+replyoption2=nonstop 
+replyname2=Equation de l'axe
+replygood2=!rawmath $val13
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=Valeur de a
+replygood3=$[$val7]
+replytype4=function
+replyoption4=nonstop 
+replyname4=Expression algébrique de \(g)
+replygood4=!rawmath $val12
+replytype5=checkbox
+replyname5=parité de\(g)
+replygood5=1;paire, impaire, ni paire ni impaire
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Rappel: Une forme canonique de 
+!insmath f(x)
+$() est une expression de 
+!insmath f(x)
+$(),	dans laquelle la variable 
+!insmath x
+$() n'apparaît qu'une seule fois.</p>		La représentation graphique de la fonction 
+!insmath f
+$() définie par:	<div class="wimscenter">
+!insmath f(x)=$val11
+$()</div>	fait apparaître un axe de symétrie.	<div class="wimscenter"> 
+!read oef/draw.phtml 200,200 \
+$val14 
+$()</div>	
+!if $m_step=1 
+$()	  Pour déterminer l'équation de cet axe, donnez une forme canonique de 
+!insmath f(x)
+$().	  <div class="wimscenter"><label for="reply1">
+!insmath f(x)=
+$()</label>	    
+!read oef/embed.phtml reply1,10 
+$()</div>	 
+!else
+$() 	  Une forme canonique de 
+!insmath f(x)
+$() est 
+!insmath f(x)=$val10
+$().	  
+!if $m_step=2 
+$()	    <label for="reply2">	    En déduire l'équation de l'axe de symétrie de la courbe représentative de 
+!insmath f
+$().	    </label>	    <div class="wimscenter">< 
+!read oef/embed.phtml reply2 
+$()</div>	   
+!else
+$() 	    L'axe de symétrie a pour équation 
+!insmath $val13
+$().	    
+!if $m_step=3 
+$()	    Pour quelle valeur de 
+!insmath a
+$() a-t-on pour tout 
+!insmath x \in \RR
+$(),
+!insmath f(a+x)=f(a-x)
+$()?	    <div class="wimscenter"> <label for="reply3">
+!insmath a=
+$()</label> 
+!read oef/embed.phtml reply3 
+$()</div>	     
+!else
+$() 	        Pour tout 
+!insmath x
+$(), on a:
+!insmath f($val7+x)=$val11($val7-x)
+$()<br>	        On pose 
+!insmath g(x)=f($val7+x)
+$(). <br>	        
+!if $m_step=4 
+$()	          Déterminer l'expression algébrique de 
+!insmath g
+$():	          <div class="wimscenter">	            <label for="reply4">
+!insmath g(x)
+$()=</label> 
+!read oef/embed.phtml reply4 
+$()</div>	         
+!else
+$() 	          
+!insmath g(x)=$val12
+$()<br>	          Que peut-on dire de la fonction 
+!insmath g
+$(), dont la représentation graphique	          est une translatée de celle de 
+!insmath f
+$()?	          <div class="wimscenter">	            <label for="reply5">
+!insmath g
+$() est :</label>  
+!read oef/embed.phtml redply5 
+$()</div>	         
+!endif
+$()	       
+!endif
+$()	     
+!endif
+$()	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,12,13,14
+embedcnt=5

@@ -1,0 +1,45 @@
+\language{fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\title{Age deviné}
+\integer{a=random(1,2)}
+\integer{mult=random(2,3)}
+\text{fois=\mult fois}
+
+\integer{b=random(3..9)}
+\integer{c=random(3..9)}
+\integer{d=random(0..9)}
+\integer{sum=\mult*(\a+\b+\c+\d)}
+\integer{now=\a\b\c\d+\sum}
+\text{sr=random(1,2)}
+\text{sexen=item(\sr,boy,girl)}
+\text{sexfr=item(\sr,il,elle)}
+\text{ne=item(\sr,né,née)}
+\text{prenom=slib(lang/fname \sexen)}
+\text{deprenom=slib(lang/frapostrophe de \prenom)}
+\statement{Nous sommes en l'an \now, et \prenom vient de fêter son
+anniversaire. Maintenant \sexfr un âge égal à \fois la
+somme des chiffres de son année de naissance.<br> Quel est son âge ?
+}
+\reply{L'âge \deprenom}{\age}{type=number}
+\integer{diag=0}
+\integer{age=\age}
+\if{\age>0 and \age<=150}{
+ \integer{nais=\now-\age}
+ \integer{sum2=floor(\nais/1000)+floor(\nais/100)%10+floor(\nais/10)%10+\nais%10}
+ \integer{sum2=\mult*\sum2}
+ \integer{diag=\sum2=\age?1}
+}
+\condition{L'âge \deprenom = \fois la somme des chiffres}{\diag=1}
+\feedback{\age<0}{Tiens \prenom a un âge négatif !}
+\feedback{\age=0}{\prenom vient de naître ?!}
+\feedback{\age>150}{\prenom vient de battre tous les records de longévité ?}
+\feedback{\age>0 and \age<=150 and \diag=0}{
+Si \prenom a \age ans en \now, \sexfr est \ne en l'an \nais.
+Donc \fois la somme des chiffres de son année de naissance est \sum2, qui n'est
+pas égale à l'âge \deprenom. Désolé.
+<br>
+Essaie de voir si \prenom pourrait avoir \sum ans.
+}

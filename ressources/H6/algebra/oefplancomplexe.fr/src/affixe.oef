@@ -1,0 +1,115 @@
+\title{Affixe}
+\language{fr}
+\author{Chantal, Causse}
+\email{Chantal.Causse@noos.fr}
+\format{html}
+
+\text{confparm2= items(\confparm2)=0 ? XP : \confparm2}
+\text{confparm2 = randitem(\confparm2)}
+
+\if{\confparm2 issametext ALG}{
+\real{a=randint(-6..6)/2}
+\real{b=randint(-6..6)/2}
+
+\real{pointx=\a}
+\real{pointy=\b}
+
+\complex{z=\a+\b*i}
+\text{enonce=\(\z)}
+}
+
+\if{\confparm2 iswordof XP TRI}{
+
+\rational{a=random(1/6,1/3,2/3,1/4,1/2,3/4,5/6,0/1)}
+\integer{r=randint(1..3)*random(1,-1)}
+\integer{b=random(-1..1)}
+\rational{a=\a+\b}
+sert à afficher joliment
+\text{c=pari([numerator(\a),denominator(\a)])}
+\text{api=\c[1]=1? \frac{\pi}{\c[2]}:\frac{\c[1] \pi}{\c[2]}}
+\text{api=\c[1]=-1? \frac{-\pi}{\c[2]}}
+\text{api=\c[2]=1? \c[1] \pi}
+\text{api=\a=1?  \pi}
+\text{api=\a=-1? - \pi}
+\text{api=\a=0? 0}
+
+\text{rt=\r=1? :\r}
+\text{rt=\r=-1? - :\rt}
+\real{pointx=(\r)*cos(\a*pi)}
+\real{pointy=(\r)*sin(\a*pi)}
+
+\text{enexp = \(\rt e^{\api i})}
+
+\text{entrig = \(\rt(\cos{\api}+i \sin{\api}))}
+\text{enonce =\confparm2 issametext XP ?\enexp}
+\text{enonce = \confparm2 issametext TRI ?\entrig}
+}
+
+\real{s=3.1}
+Dessin des droites d'angle  "remarquables" et des cercles
+\text{dessin=}
+\for{i=1 to 5}{
+\text{dessin=\dessin
+dsegment -2*\s*cos(\i*pi/12),-2*\s*sin(\i*pi/12), 2*\s*cos(\i*pi/12),2*\s*sin(\i*pi/12),blue}}
+\for{i=7 to 11}{
+\text{dessin=\dessin
+dsegment -2*\s*cos(\i*pi/12),-2*\s*sin(\i*pi/12), 2*\s*cos(\i*pi/12),2*\s*sin(\i*pi/12),blue}}
+\text{dessin=\dessin
+trange 0,2*pi
+plot blue,cos(t),sin(t)
+plot blue,2*cos(t),2*sin(t)
+plot blue,3*cos(t),3*sin(t)}
+
+Dessin en pointillé du quadrillage
+\text{dessin1=}
+\for{i=-3 to  3}{
+\text{dessin1=\dessin1
+dsegment -3,\i, 3,\i,blue}}
+\for{i=-3 to  3}{
+\text{dessin1=\dessin1
+dsegment \i,-3, \i,3,blue}}
+
+Axes
+\real{taille=200}
+\text{Axes=
+hline 0,0,dimgrey
+vline 0,0,dimgrey
+linewidth 3
+arrow  0,0,1,0,8,orangered
+arrow 0,0,0,1,8,orangered
+linewidth 1
+}
+
+A tracer selon choix au départ
+\text{quad= A isitemof \confparm1 ? \dessin1 :}
+\text{angl= B isitemof \confparm1 ? \dessin :}
+
+\text{AA=
+draw(\taille,\taille
+xrange -\s,\s
+yrange -\s,\s
+\Axes
+\quad
+\angl)}
+
+passage en pixels
+\real{Px=(\taille*\pointx/\s+\taille)/2}
+\real{Py=(-\taille*\pointy/\s+\taille)/2}
+
+\statement{Cliquez sur le point d'affixe <div class="wimscenter">\enonce : <p> \embed{reply1}
+</p></div>}
+\answer{}{\AA;point,\Px,\Py}{type=coord}
+
+\feedback{\result1=-1}{Voici la réponse
+<div class="wimscenter"> \draw{\taille,\taille}{
+xrange -\s,\s
+yrange -\s,\s
+hline 0,0,black
+arrow  0,0,1,0,6,black
+arrow 0,0,0,1,6,black
+vline 0,0,black
+disk \pointx,\pointy,10,blue
+\Axes
+\quad
+\angl}
+</div>}

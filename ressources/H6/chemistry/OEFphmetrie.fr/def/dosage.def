@@ -1,0 +1,262 @@
+!set title=Dosage pH métrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, MARKEY
+email=benoit.markey@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=500
+
+ansorder=r,r,r,r,r,r
+varcnt=48
+prevarcnt=36
+postvarcnt=11
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=éthanoïque,CH_3COOH,CH_3COO^-,4.75;	benzoïque,C_6H_5COOH,C_6H_5COO^-,4.20;	méthanoïque,HCOOH,HCOO^-,3.75;	hypochloreux,HClO,HClO^-,7.30;	fluorhydrique,HF,F^-,3.2;	chlorhydrique,H_3O^+ (+Cl^-), H_2O,-6.3;	nitrique,H_3O^+ (+NO_3^-), H_2O,-1.8;	
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+val9=$[$val8/10]
+tmp0=!randitem 10,20,50
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 5, 17
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 0, 3
+
+val12=$[rint($(tmp0))]
+val13=$[$val12/10]
+tmp0=!randitem +1,-1
+
+val14=$[$(tmp0)]
+val15=$[$val11+$val14*$val13]
+val16=$[$val15-2]
+val17=$[$val15+2]
+val18=$[$val11-2]
+val19=$[$val11+2]
+!readproc slib/text/sigunits $val15 ,2 
+tmp0=$slib_out
+val20=$(tmp0)
+val21=$[$val9*$val15/$val10]
+!readproc slib/text/sigunits $val9 ,2 
+tmp0=$slib_out
+val22=$(tmp0)
+val23=$[0.01]
+val24=$[0]
+!while $val10*1e-3*(10^(14*$val23-14)+$val21*(10^(14*$val23-$(val7[4]))/(10^(14*$val23-$(val7[4]))+1)-10^(-14*$val23))/(10^(-14*$val23)+$val9-10^(14*$val23-14)))<$val15*1e-3 
+val24=$[14*$val23]
+val23=$[$val23+0.01]
+!endwhile
+!readproc slib/text/sigunits $val24 ,2 
+tmp0=$slib_out
+val25=$(tmp0)
+val26=
+val27=
+val28=
+!if $val24<7.6 or $val24=7.6 
+val26=0xffff00
+val27=0x0066ff
+val28=Bleu de Bromothymol (BBT)
+!endif
+!if $val24>7.6 and $val24<8.2 
+val26=0xcc0000
+val27=0xffff00
+val28=Rouge de phénol
+!endif
+!if $val24=8.2 or $val24>8.2  
+val26=0xff33cc
+val27=0x00ffff
+val28=Phénolphtaléine
+!endif
+val29=
+val30=reply 1, reply 2	reply 3	reply 4, reply 5, reply 6
+dynsteps=yes
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=range
+replyname1=Réponse 1
+replygood1=!rawmath $val16,$val15
+replytype2=range
+replyname2=Réponse 2
+replygood2=!rawmath $val15,$val17
+replytype3=matrix
+replyname3=Tableau de valeurs
+replygood3=?analyze 31
+replytype4=range
+replyname4=\(x_{E}\)
+replygood4=!rawmath $val15-0.2,$val15+0.2
+replytype5=range
+replyname5=\(pH_{E}\)
+replygood5=!rawmath $val25-0.2,$val25+0.2
+replytype6=range
+replyname6=Concentration d'acide
+replygood6=!rawmath $val21-0.2,$val21+0.2
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<i>Cet exercice comporte trois étapes.</i>	 
+!if $m_step=1 
+$()	<div class="float_right">	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="350" height="550" id="$val1/dosage-pH1wims">	<param name="allowScriptAccess" value="sameDomain">	<param name="movie" value="$val1/dosage-pH1wims.swf">	<param name="quality" value="high">	<param name="flashvars" value="Vb=$val15&couleurbase=$val26&couleuracide=$val27">	<param name="bgcolor" value="#ffffff">	<embed src="$val1/dosage-pH1wims.swf" FlashVars="Vb=$val15&couleurbase=$val26&couleuracide=$val27" quality="high" bgcolor="#ffffff" width="350" height="550" name="mesure_celerite_US_bis" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">	</object></div>	<div><h2>1. Dosage rapide de l'acide $(val7[1]) à l'aide d'un indicateur coloré ($val28)</h2>	<p>Dans cet exercice, on cherche à doser l'acide $(val7[1]) par de la soude. Pour cela, on verse 
+!insmath $val10
+$() mL d'acide $(val7[1]) que l'on dose avec de la soude à la concentration 
+!insmath c_b = $val22
+$() 
+!insmath mol \times \mathrm{L}^{-1}
+$().</p>	<p>On commence par réaliser un dosage rapide.	Pour repérer l'équivalence, on ajoute quelques gouttes d'un indicateur coloré ($val28) dans le bécher.	En utilisant l'animation ci-contre, donnez un  
+!read oef/special.phtml help hint1,encadrement 
+$() de 
+!insmath Vb_{\'eq}
+$(), volume de soude versé pour obtenir l'équivalence.</p>	</div>	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,5 
+$() mL 
+!insmath < Vb_{\'eq}  <
+$()  
+!read oef/embed.phtml reply 2,5 
+$()mL	</div><br class="clearall">	 
+!endif
+$()		 
+!if $m_step=2 
+$()	 <div class="float_right">	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="500" height="550" id="$val1/dosage-pH2wims">	<param name="allowScriptAccess" value="sameDomain">	<param name="movie" value="$val1/dosage-pH2wims.swf">	<param name="quality" value="high">	<param name="flashvars" value="Vb=$val15&V0=$val10&c0=$val21&cb=$val9&pKa=$(val7[4])">	<param name="bgcolor" value="#ffffff">	<embed src="$val1/dosage-pH2wims.swf" FlashVars="Vb=$val15&V0=$val10&c0=$val21&cb=$val9&pKa=$(val7[4])" quality="high" bgcolor="#ffffff" width="500" height="550" name="mesure_celerite_US_bis"  allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">	</object>	</div>	<div>	<h2>2. Mesures précises à l'aide d'un pH-mètre</h2>	<p>Effectivement, on trouve $m_reply1 mL 
+!insmath < Vb_{\'eq} <
+$() $m_reply2 mL. </p>	<p>A l'aide de l'animation suivante, vous allez construire un tableau de	 valeurs afin de tracer la courbe pH=f(V). Choisissez	 
+!read oef/special.phtml help hint2,judicieusement 
+$() vos points afin d' "encadrer" le saut de pH.</p></div>	<div>Tableau des mesures 
+!insmath (V,pH)
+$() : <br>  
+!read oef/embed.phtml reply 3,50 
+$()</div>	<div class="wims_instruction clearall">N'hésitez pas à zoomer sur l'animation pour obtenir une meilleure précision (en faisant un clic droit).<br>	La réponse peut comporter autant de points que vous le souhaitez (dans une limite de 60 valeurs entrées...).	Chaque point est entré sur une ligne, les coordonnées 
+!insmath (V,pH)
+$() sont séparées par une virgule.	Notez que, dans les valeurs, la virgule est remplacée par un point.	 </div>	 
+!endif
+$()	
+!if $m_step=3 
+$()	<h2>3. Exploitation du graphique</h2>	<p>Voici vos points placés dans un graphique.<br>	Avec la méthode des tangentes, vous déterminerez le point d'équivalence, noté E.</p>	<div style="top:240px; left:200px; z-index:1;padding:10px">	$val29	</div>		<div style="position:absolute;top:240px; left:200px; z-index:3;">	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="780" height="480" id="$val1/tangentes">	<param name="allowScriptAccess" value="sameDomain">	<param name="movie" value="$val1/tangentes.swf">	<param name="quality" value="high">	<param name="wmode" value="transparent">	<embed src="$val1/tangentes.swf"  quality="high" wmode="transparent" width="780" height="480" name="tangentes"  allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">	</object>	</div>		<p>On rappelle que le volume d'acide versé dans le bécher est $val10 mL, que la soude a une	concentration initiale
+!insmath c_b=$val22
+$() 
+!insmath mol \times \mathrm{L}^{-1}
+$().</p>	<ol>	<li>Déterminez les coordonnées du point à l'équivalence E( 
+!read oef/embed.phtml reply 4,5 
+$(); 
+!read oef/embed.phtml reply 5,5 
+$())</li>	<li>En déduire la concentration de la solution d'acide $(val7[1]) étudiée 
+!insmath c_a = 
+$() 
+!read oef/embed.phtml reply 6,5 
+$()
+!insmath mol \times \mathrm{L}^{-1}
+$()</li>	</ol>	<div class="wims_instruction clearall">Vous pouvez "déplacer" les tangentes avec votre souris, modifier l'écartement et l'angle de rotation.<br>	Si vous ne voyez pas la courbe, mais simplement une image à fond jaune, il vous faut installer flash player 10 <a href=http://get.adobe.com/fr/flashplayer>ici</a></div> 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	  
+!if $m_help_subject issametext  
+$()	     Cliquer sur les mots bleus à l'intérieur de l'énoncé pour avoir des indications.	    
+!endif
+$()	   
+!if $m_help_subject issametext hint1 
+$()Soyez soigneux dans votre encadrement, il sera utile pour le dosage précis. 
+!endif
+$()	   
+!if $m_help_subject issametext hint2 
+$()	    Dans l'intervalle d'encadrement, prenez des mesures au moins tous les 
+!insmath 0.5
+$() mL. A l'extérieur de l'intervalle, vous pouvez vous contenter de mesures tous les millilitres.	    
+!endif
+$()	 
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val32=$val31
+tmp=!translate internal $	$ to ; in $val31
+
+tmp0=!rowcnt $tmp
+val33=$[rint($(tmp0))]
+val34=$(val32[1;])
+!for val35 =1 to $val33-1 
+val34=$val34,$(val32[$val35+1;])
+!next
+val36=line 10+5*$(val32[1;1]),10+5*$(val32[1;2]),10+5*$(val32[2;1]),10+5*$(val32[2;2]),red
+!for val35 =1 to $val33-2 
+val36=$val36	line 10+5*$(val32[$val35+1;1]),10+5*$(val32[$val35+1;2]),10+5*$(val32[$val35+2;1]),10+5*$(val32[$val35+2;2]),red
+!next
+!readproc slib/graphpaper/millimetre 13,8,1,1,2 V(mL),2 pH,,,,$val34 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc oef/draw.phtml 100,100 \
+$val37	$val36	 
+tmp0=$ins_url
+val38=$(tmp0)
+val29=<img src="$val38">
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1=0 or $m_sc_reply2=0
+ <div class='oef_feedbacks'>Votre encadrement n'est pas assez précis.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,9,10,15,21,22,26,27,28,29,31
+embedcnt=8

@@ -1,0 +1,222 @@
+!set title=Limite et comparaison 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Bonne réponse
+val7=Choisissez la bonne réponse&nbsp;
+val8=\(+\infty)
+val9=\(-\infty)
+val10=\(0)
+val11=sans limite
+val12=80x30x1
+val13=$val8, $val9
+val14=a une limite finie nulle, a une limite finie non nulle, a une limite infinie, n'a pas de limite
+val12=50x20x1
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randint 1, 9
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val15=!exec pari print($t_)
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+val17=\leq,1/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,1,2,$val15,abs	\geq,1/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,2,2,$val15,abs	\leq,1/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,2,2,$val15,dir	\geq,1/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,2,2,$val15,dir	\leq,x/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,2,2,$val15,abs	\leq,x^2/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,2,2,$val15,dir	\geq,x^2/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,1,3,$val8,dir	\geq,x^2/(x-$val16),&#93; $val16 &#59; \(+\infty) &#91;,+\infty,2,2,$val15,abs	\leq,x^2/(x-$val16),&#93; \(-\infty) &#59; $val16 &#91;,-\infty,1,3,$val9,dir	\geq,x^2/(x-$val16),&#93; \(-\infty) &#59; $val16 &#91;,-\infty,2,3,$val8,dir	\geq,x^3/(x-$val16),&#93; \(-\infty) &#59; $val16 &#91;,-\infty,2,3,$val8,abs	\geq,x^3/(x-$val16),&#93; \(-\infty) &#59; $val16 &#91;,-\infty,1,3,$val8,dir	
+val18=Le théorème des gendarmes donne \(\displaystyle\lim_{x \rightarrow +\infty}f(x) - $val15=0) donc \(\displaystyle\lim_{x \rightarrow +\infty}f(x) = $val15)	  Pour conclure il aurait fallu avoir le symbole \(\leq) au lieu du symbole \(\geq)	  Pour appliquer le théorème des gendarmes&#44; il aurait fallu avoir une inégalité avec valeur absolue ou un encadrement	  Pour appliquer le théorème de minoration&#44; il faut comparer à une fonction tendant vers \(+\infty)	  On obtient \(-1 \leq f(x)- $val15 \leq 1) ce qui ne permet pas de conclure	  Pour appliquer le théorème de majoration&#44; il faut comparer à une fonction tendant vers \(-\infty)	  Le théorème de minoration donne \(\displaystyle\lim_{x \rightarrow +\infty}f(x) =+\infty)	  On ne peut pas conclure car on ne connait pas le signe de \(f(x))	  Le théorème de majoration donne \(\displaystyle\lim_{x \rightarrow -\infty}f(x) =-\infty)	  Pour appliquer le théorème de minoration&#44; il faut comparer à une fonction tendant vers \(+\infty)	  On ne peut pas conclure car on ne connait pas le signe de \(f(x))	  Le théorème de minoration donne \(\displaystyle\lim_{x \rightarrow -\infty}f(x) =+\infty)	
+tmp=!translate internal $	$ to ; in $val17
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val19=$[rint($(tmp1))]
+tmp=!translate internal $	$ to ; in $val18
+
+tmp=!row $val19 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!row $val19 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+val22=pour tout \(x \in) $(val21[3])
+val23=$(val21[1])
+
+!ifval $(val21[8]) issametext abs
+tmp0=!texmath f(x) - $val15
+
+tmp1=!texmath $(val21[2])
+
+val24=|$(tmp0)| $val23 $(tmp1)
+!else
+tmp2=!texmath f(x) - $val15
+
+tmp3=!texmath $(val21[2])
+
+val24=$(tmp2) $val23 $(tmp3)
+!endif
+val25=$[rint($(val21[5]))]
+val26=$(val21[4])
+val27=$[rint($(val21[6]))]
+val28=$(val21[7])
+val29=$(val21[7])
+!if $val25=1 
+!if $val27=1 
+val30=r4	                 r1
+!endif
+!if $val27=2 
+val30=r4	           r1	           r2
+!endif
+!if $val27=3 
+val30=r4	           r1	           r3
+!endif
+!else
+val30=r4
+!endif
+val31=Oui,Non
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=type limite
+replygood1=$val27;$val14
+replytype2=numexp
+replyname2=
+replygood2=$val28
+replytype3=clickfill
+replyname3=
+replygood3=$val29;$val9,$val8
+replytype4=radio
+replyname4=
+replygood4=$val25;$val31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_smallhelp">Cet exercice comporte une ou plusieurs étapes.</div>	  
+!if $m_step=1 
+$()	    <p>Peut-on déterminer la limite de la fonction 
+!insmath f
+$() en 
+!insmath $val26
+$() sachant que</p>	    <div class="wimscenter">$val22, on a 
+!insmath $val24
+$()</div>	    <div class="wimscenter"> 
+!read oef/embed.phtml reply4 
+$().</div>	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    <p>On sait que $val22, 
+!insmath $val24
+$().</p>	    <p>$val7:</p>	    <div class="wimscenter">	    En 
+!insmath $val26
+$(), la fonction 
+!insmath f
+$()  
+!read oef/embed.phtml reply 1 
+$().	    </div>	   
+!endif
+$()	  
+!if $m_step=3 
+$()	    <p>On sait que $val22, on a 
+!insmath $val24
+$().</p>	    
+!if $val27=2 
+$()	      <p>Quelle est la limite finie de 
+!insmath f
+$() en 
+!insmath $val26
+$()&nbsp;?</p>	      <div class="wimscenter">	      <label for="reply2">
+!insmath \displaystyle{\lim_{x \rightarrow $val26}f(x) = }
+$()</label>  
+!read oef/embed.phtml reply 2 
+$()	      </div>	        
+!else
+$() 	      <p>$val7:</p>	      <div class="wimscenter">	      
+!insmath \displaystyle{\lim_{x \rightarrow $val26}f(x) = }
+$()  
+!read oef/embed.phtml reply 3 
+$()	      </div>	       
+!endif
+$()	     
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply4 notsametext $(val31[$val25])
+ <div class='oef_feedbacks'>$val20.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,20,22,24,25,26,27,31
+embedcnt=4

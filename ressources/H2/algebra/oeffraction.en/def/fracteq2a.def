@@ -1,0 +1,234 @@
+!set title=Equal fractions IIa
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=en
+computeanswer=no
+precision=10000
+title_it=Frazioni equivalenti IIa
+title_fr=Fractions égales IIa
+title_nl=Gelijke breuken IIa
+
+ansorder=r,r,r,r
+varcnt=60
+prevarcnt=54
+postvarcnt=5
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Among the fractions presented below,find,that are equal.
+val8=The equal fractions:
+val9=First pair:
+val10=Second pair:
+val11=Third pair:
+val12=Fraction
+val13=two, two pairs, three pairs
+!if $val6=it 
+val7=Tra le frazioni elencate sotto, individuarne,	che siano equivalenti.
+val8=Le frazioni equivalenti:
+val9=Prima coppia:
+val10=Seconda coppia:
+val11=Terza coppia:
+val12=Frazione
+val13=due, due coppie, tre coppie
+!endif
+!if $val6=fr 
+val7=Parmi les fractions présentées ci-dessous,trouvez,qui sont égales.
+val8=Les fractions identiques :
+val9=Première paire :
+val10=Deuxième paire :
+val11=Troisième paire :
+val12=Fraction
+val13=deux,deux paires, trois paires
+!endif
+!if $val6=nl 
+val7=Uit de onderstaande breuken ,zoek ,die gelijkwaardig zijn.
+val8=De gelijke breuken:
+val9=Eerste paar:
+val10=Tweede paar:
+val11=Derde paar:
+val12=Breuken
+val13=twee, twee paar, drie paar
+!endif
+val14=1,2,3,4,5,6
+tmp0=!itemcnt $val14
+
+val15=$[rint($(tmp0))]
+val16=1/2,3/2,5/2,1/3,2/3,4/3,5/3,	1/4,3/4,5/4,1/5,2/5,3/5,4/5,6/5,1/6,5/6
+val17=
+!for val18  in $val16 
+tmp0=!translate / to , in $val18
+
+val19=$(tmp0)
+tmp0=!values $(val19[1])*x for x in $val14
+
+val20=$(tmp0)
+tmp0=!values $(val19[2])*x for x in $val14
+
+val21=$(tmp0)
+val22=
+!for val23 =1 to $val15 
+tmp0=!append item $(val20[$val23])/$(val21[$val23]) to $val22
+
+val22=$(tmp0)
+!next
+tmp0=!shuffle $val22
+
+tmp=!trim $val17	$(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!itemcnt $val16
+
+tmp1=!values 0 for x=1 to 100
+
+tmp2=!item 1 to $(tmp0) of 3,2,1,	 $(tmp1)
+
+val24=$(tmp2)
+tmp0=!shuffle $val24
+
+val24=$(tmp0)
+val25=
+tmp0=!itemcnt $val16
+
+!for val18 =1 to $(tmp0) 
+!if $(val24[$val18])>0 
+val26=$(val17[$val18;1..$(val24[$val18])])
+tmp0=!append item $val26 to $val25
+
+val25=$(tmp0)
+!endif
+!next
+tmp0=!itemcnt $val25
+
+val27=$[rint($(tmp0))]
+val28=
+!for val29  in $val25 
+tmp0=!replace internal / by \over in $val29
+
+val26=$(tmp0)
+tmp0=!append item \({$val26}) to $val28
+
+val28=$(tmp0)
+!next
+val30=40x60x1
+tmp0=!item 2 of $val13
+
+val31=$(tmp0)
+replytype1=dragfill
+replyname1=$val12 1
+replygood1=?analyze 32;$(val28[1]),$(val28[$m_2*2+1..$val27])
+replytype2=dragfill
+replyname2=$val12 2
+replygood2=?analyze 33;$(val28[2])
+replytype3=dragfill
+replyname3=$val12 3
+replygood3=?analyze 34;$(val28[3])
+replytype4=dragfill
+replyname4=$val12 4
+replygood4=?analyze 35;$(val28[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]), $(val7[2]) $val31 	$(val7[3])	<table class="wimscenter wimsnoborder">		 <tr><td style="text-align:right">$val9</td><td> 
+!read oef/embed.phtml r1,$val30 
+$() </td><td> = </td><td> 
+!read oef/embed.phtml r2,$val30 
+$()	 <tr><td style="text-align:right">$val10</td><td> 
+!read oef/embed.phtml r3,$val30 
+$() </td><td> = </td><td> 
+!read oef/embed.phtml r4,$val30 
+$()</td></tr>		</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val36=
+tmp0=!replace internal \over by / in $val32,$val33,$val34,$val35,\o5,\o6
+
+val37=$(tmp0)
+tmp0=!text select /1234567890, in $val37
+
+val37=$(tmp0)
+t_=!replace internal \( by ( in ($(val37[1]))-($(val37[2]))
+tmp0=!exec pari $t_
+
+val38=$(tmp0)
+t_=!replace internal \( by ( in ($(val37[3]))-($(val37[4]))
+tmp0=!exec pari $t_
+
+val39=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val38 issametext 0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val32 = $val33 $val36
+
+!ifval $val39 issametext 0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val34 = $val35 $val36
+
+!exit
+
+:stat
+vsavelist=7,9,10,30,31,32,33,34,35
+embedcnt=4

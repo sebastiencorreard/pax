@@ -1,0 +1,211 @@
+!set title=Terme précédent
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=wims.irem@u-picardie.fr
+keywords=sequence
+oefobservation=En fonction de la configuration de l'exercice sur le module, il peut y avoir : <ul><li>Que des suites arithmétiques</li> <li>Que des suites géométriques</li> <li>Sinon, que des suites du type \(U_(n+1)=a U_(n)+b) ou des suites arithmétiques, ou des suites géométriques.</li> </ul>
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem A,G,AG
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+!if $val3 == A 
+val6=$[rint(1)]
+!endif
+!if $val3 == G 
+val6=$[rint(2)]
+!endif
+!if $val3 == AG 
+tmp0=!randitem 0,1,2
+
+val6=$[rint($(tmp0))]
+!endif
+
+!ifval $val6=1
+val7=$[rint(1)]
+!else
+tmp0=!randint 2, 8
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+!endif
+
+!ifval $val6=2
+val8=$[rint(0)]
+!else
+tmp0=!randint 2, 10
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+!endif
+tmp0=!randint -8, 10
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val7*$val9+$val8)]
+val11=$[rint($val10-$val8)]
+
+!ifval $val7=1 
+val12= 
+!else
+val12=$val7
+!endif
+replytype1=formal
+replyname1=U0
+replygood1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Soit 
+!insmath (U_{n})
+$() la suite vérifiant 
+!insmath U_1=$val10
+$() et pour tout entier naturel n :	</p><div class="wimscenter">	
+!if $val7=1 
+$()
+!insmath U_{n+1}= U_{n}
+$() 
+!else
+$() 
+!insmath U_{n+1}=$val7 U_{n}
+$() 
+!endif
+$()	
+!if $val8=0 
+$() 
+!else
+$() 
+!if $val8>0 
+$()
+!insmath {}+{}
+$() 
+!endif
+$()
+!insmath $val8
+$() 
+!endif
+$().</div>	<div class=wims_question>Déterminer la valeur de 
+!insmath U_0
+$() :	<br><label for="reply1">
+!insmath U_0=
+$()</label> 
+!read oef/embed.phtml r1,4 
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Grâce à la relation de récurrence donnée, on sait que :	
+!if $val7=1 
+$()
+!insmath U_{n+1}= U_{n}
+$() 
+!else
+$() 
+!insmath U_{n+1}=$val7 U_{n}
+$() 
+!endif
+$()	
+!if $val8=0 
+$() 
+!else
+$() 
+!if $val8>0 
+$()
+!insmath {}+{}
+$() 
+!endif
+$()
+!insmath $val8
+$() 
+!endif
+$()	<br>&hArr; 
+!insmath $val10=$val12 U_0
+$()
+!if $val8=0 
+$() 
+!else
+$() 
+!if $val8>0 
+$()
+!insmath {}+{}
+$() 
+!endif
+$()
+!insmath $val8
+$() 
+!endif
+$()	<i>car 
+!insmath U_1=$val10
+$()</i>	<br>&hArr; 
+!insmath $val11=$val12 U_0
+$()	<br>&hArr; 
+!insmath U_0=$val9
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12
+embedcnt=1

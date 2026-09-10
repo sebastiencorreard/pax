@@ -1,0 +1,136 @@
+!set title=Sixième 16
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+language=fr
+
+ansorder=c
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle MACEDOINE,CORBEILLE,ALTRUISME,REDACTION,MINAUTORE,ORGANISTE,SCOLARITE,CASSOULET
+
+val6=$(tmp0)
+tmp0=!shuffle CRUDITES,GRILLADE,MOUTARDE,SAUCISSE,NEOPHYTE,VINAIGRE
+
+val7=$(tmp0)
+tmp=!nonempty items CORNICHON,BROCHETTE,MEDAILLON,CONSILIER
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val9=Oui c'est $val8
+val10=Non c'est impossible,Oui c'est $(val6[1]),Oui c'est $(val6[2]),Oui c'est $(val7[1])
+tmp0=!shuffle $val9,$val10
+
+val11=$(tmp0)
+val12=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val11
+
+val13=$[rint($(tmp0))]
+val14=
+val15=
+!for val16 =1 to $val13 
+tmp0=!item $val16 of $val11
+
+val17=$(tmp0)
+val18=Réponse $(val12[$val16])
+!if $val17 isitemof $val9 
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+!else
+tmp0=!append item $val18 to $val15
+
+val15=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val8,$(val6[1]),$(val6[2]),$(val7[1])
+
+val19=$(tmp0)
+val20=
+val21=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+tmp0=!shuffle \(\alpha),\(\beta),\(\gamma),\(\xi),\(\pi),\(\lambda),\(\Upsilon),\(\Psi),\(\Omega),\(\star),\(\ddagger),\(\uplus),\(\otimes),\(\oplus),\(\odot),\(\bullet),\(\perp),\(\triangle),\(\clubsuit),\(\diamondsuit),\(\heartsuit),\(\spadesuit),\(\infty),\(\nabla),\(\exists),\(\forall)
+
+val22=$(tmp0)
+!for val23 =1 to 9 
+tmp0=!char $val23 of $val8
+
+val24=$(tmp0)
+tmp0=!positionof item $val24 in $val21
+
+val24=$[rint($(tmp0))]
+val20=$val20$(val22[$val24])
+!next
+choicename1=Choisissez
+choicegood1=$val14
+choicebad1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Jo doit recevoir un mot de passe. Il sait que ce mot est choisi parmi les quatre suivants :	<div class="wimscenter">	$val19	</div>	il le reçoit codé : $val20	Peux-tu l'aider à retrouver le mot de passe ?	<ul>	 
+!for m_l=1 to $val13 
+$()	 <li>$(val12[$m_l]) : $(val11[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,19,20
+embedcnt=1

@@ -1,0 +1,131 @@
+!set title=Coefficient niveau 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Denis,Guicheteau
+email=math.42@laposte.net 
+language=fr
+precision=100
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Trouver le coefficient de proportionnalité du tableau.
+val11=Vous donnerez une écriture fractionnaire du coefficient.
+tmp0=!randint 1, 5
+
+tmp1=!randint 1, 9
+
+val12=$[$(tmp0)+$(tmp1)/10]
+tmp0=!randint 2, 20
+
+val13=$[rint($(tmp0))]
+tmp=!nonempty items 1,3,5
+
+tmp0=!randitem $tmp
+val14=$[rint($val13+$(tmp0))]
+tmp0=!randint 2, 20
+
+val15=$[rint($(tmp0))]
+!while $val15==$val14 
+tmp0=!randint 2, 20
+
+val15=$[rint($(tmp0))]
+!endwhile
+tmp=!translate ";': to $     $ in $val15 * $val13 / $val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val16=$(tmp1)
+tmp=!translate ";': to $     $ in $val14/$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+replytype1=numexp
+replyoption1=noreduced 
+replyname1=
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10	<div class="wims_instruction">	$val11	</div>	<table class="wimscenter wimsborder">	  <tr>	    <td> 
+!insmath $val14
+$() </td> <td> 
+!insmath $val15
+$() </td><td rowspan="2">	        <img src="$val1/fleche3.JPG" alt=""><br>	        
+!insmath times
+$() 
+!read oef/embed.phtml r1,4 
+$()<br>	        <img src="$val1/fleche4.JPG" alt=""></td>	  </tr><tr>	    <td> 
+!insmath $val13
+$() </td> <td> 
+!insmath $val16
+$() </td>	  </tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,10,11,13,14,15,16
+embedcnt=1

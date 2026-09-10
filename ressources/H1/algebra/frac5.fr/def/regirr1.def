@@ -1,0 +1,157 @@
+!set title=Simplification (apprentissage)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou;Paul,Byache
+email=paul.byache@ac-aix-marseille.fr
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+!for val7 =0 to 6 
+val8=$[rint($val7)]
+val6=$val6	text blue, $val8,-1, medium,$val8
+!next
+tmp0=!randitem 2,3
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=2
+tmp=!nonempty items 4,6,10
+
+tmp0=!randitem $tmp
+val10=$[rint( $(tmp0))]
+!else
+tmp=!nonempty items 6,9
+
+tmp1=!randitem $tmp
+val10=$[rint($(tmp1))]
+!endif
+
+!ifval $val9=2
+tmp=!nonempty items 2,14,22
+
+tmp0=!randitem $tmp
+val11=$[rint( $(tmp0))]
+!else
+tmp=!nonempty items 3,15,21,33
+
+tmp1=!randitem $tmp
+val11=$[rint($(tmp1))]
+!endif
+t_=!rawmath $val11/$val10
+val8=!exec pari print($t_)
+val12=$[rint($val11/$val9)]
+val13=$[rint($val10/$val9)]
+val14=
+!for val7 =1 to $val12 
+val15=$[($val7-0.5)/$val13]
+val14=$val14	arc $val15,0,1/$val13,2,0,180,red
+!next
+val6=xrange -0.1,6.1	yrange -2,2.2	hline black,0,0	arrow 2.5,0,6.1,0,10,black	parallel 0,-0.3,0,0.3,1/$val10,0, 200, blue	parallel 0,-0.8,0,0.6,1,0, 40, red	$val6	arrow $val8,2,$val8,0, 8, black	
+val16=Voici la droite graduée.	  Le point indiqué par la flèche sur la droite graduée	  a comme abscisse la fraction
+val17=Simplifie cette fraction
+!readproc oef/drawtikz.phtml 600,70 \
+$val6 
+tmp0=$ins_tikz
+val18=$(tmp0)
+replytype1=numeric
+replyname1=numérateur
+replygood1=$[$val12]
+replytype2=numeric
+replyname2=dénominateur
+replygood2=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val16 \(\frac{$val11}{$val10}\). $val17: \LARGE \begin{center} \(\frac{\cdots}{\cdots}\) \end{center} \begin{center} $val18 \end{center} \end{statement}
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val16 
+!insmath ($val11)/($val10)
+$(). $val17:	<table class="wimscenter wimsnoborder">	<tr><td></td><td> 
+!read oef/embed.phtml reply 1,6	autocomplete="off" 
+$()</td></tr>	<tr><td>La fraction simplifiée est :</td><td><hr></td></tr>	<tr><td></td><td> 
+!read oef/embed.phtml reply 2,6	autocomplete="off" 
+$()</td></tr>	</table>	<div class="wimscenter">	 
+!read oef/draw.phtml 600,50 \
+$val6 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()Regrouper par $val9	les intervalles entre deux graduations, comme ceci :	<div class="wimscenter">	 
+!read oef/draw.phtml 600,50 \
+xrange -0.1,6.1	yrange -2,2.2	hline black,0,0	arrow 2.5,0,6.1,0,10,black		parallel 0,-0.3,0,0.3,1/$val10,0, 200, blue		parallel 0,-0.8,0,0.6,1,0, 40, red	$val6	arrow $val8,2,$val8,0, 8, black	$val14	 
+$()	</div>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<b>Solution :</b>	Pour trouver la fraction simplifiée 
+!insmath ($val12)/($val13)
+$(),	on pouvait <b>diviser au numérateur et au dénominateur de 
+!insmath ($val11)/($val10)
+$() par $val9.</b>	<p>	Sur la droite graduée, cela correspond à regrouper par $val9	les intervalles entre deux graduations, comme ceci :	</p>	<div class="wimscenter">	 
+!read oef/draw.phtml 600,50 \
+xrange -0.1,6.1	yrange -2,2.2	hline black,0,0	arrow 2.5,0,6.1,0,10,black		parallel 0,-0.3,0,0.3,1/$val10,0, 200, blue		parallel 0,-0.8,0,0.6,1,0, 40, red	$val6	arrow $val8,2,$val8,0, 8, black	$val14	 
+$()	</div>
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val16 
+!insmath \frac{$val11}{$val10}
+$(). $val17: $m_LARGE $m_begin{center} 
+!insmath \frac{\cdots}{\cdots}
+$() $m_end{center} $m_begin{center} $val18 $m_end{center} $m_end{statement}
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,12,13,14,16,17,18
+embedcnt=2

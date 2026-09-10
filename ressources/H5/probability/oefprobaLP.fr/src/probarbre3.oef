@@ -1,0 +1,125 @@
+type=image
+textarea="data"
+:Étiquettes avec flèches
+Des étiquettes sont placées (leur extrémité intérieure au départ des flèches selon qu'elles sont à droite
+ou à gauche de l'image) et doivent être remplies avec les légendes
+proposées par glisser-déposer ou par clic.
+
+:%%%%%%%%
+
+:\title{Arbre et probabilités 3}
+\author{Norbert,Rey}
+\email{Norbert.Rey@ac-lyon.fr}
+\precision{10000}
+:\credits{}
+:Consigne
+
+\text{En cliquant sur les étiquettes, les mettre à leur place.}
+
+:Nom du fichier image
+\integer{ro = random(2..8)}
+\integer{no = random(2..8)}
+\integer{ri = \ro-1}
+\integer{ni = \no-1}
+\integer{to = (\ro + \no)}
+\integer{ti = \to-1}
+
+\rational{P1 =(\ro*\ri)/(\to*\ti)}
+\rational{P2 =(\ro*\no)/(\to*\ti)}
+\rational{P3 =(\no*\ro)/(\to*\ti)}
+\rational{P4 =(\no*\ni)/(\to*\ti)}
+
+\text{image=arbre1.GIF}
+
+:Nombre de questions (<=10)
+
+\integer{N=10}
+
+:Nombre maximum de pertubateurs
+
+\integer{n=3}
+
+:Taille des étiquettes
+
+\text{eti=70,20}
+
+:Couleur des flèches
+
+\text{color=black}
+
+:Format du type de réponse
+Les types de réponses possibles ici sont <span class="tt">dragfill</span> ou <span class="tt">clickfill</span>.
+\text{format=clickfill}
+
+:Données principales
+La première ligne est la taille de l'image en pixels.
+Les lignes suivantes sont formées de la légende suivie des coordonnées du point à cliquer
+ou de la flèche à tracer en pixels selon les exercices.
+\matrix{data=502,217
+pari(\ro/\to),39,51,65,77
+pari(\no/\to),39,162,65,139
+pari(\ri/\ti),253,18,283,42
+pari(\no/\ti),253,91,283,78
+pari(\ro/\ti),253,121,283,139
+pari(\ni/\ti),253,192,283,179
+\P1,500,29,457,29
+\P2,500,88,457,88
+\P3,500,132,457,132
+\P4,500,188,457,188}
+
+:%%%%%%%%%%%%%%%%%%%%%%%%
+\text{size= \data[1;]}
+\text{coord = \data[2..-1;]}
+\integer{N1=rows(\coord)}
+\matrix{coord=\coord}
+\integer{N=min(\N,\N1)}
+\text{etix=\eti[1]}
+\text{etiy=\eti[2]}
+\text{position=}
+\text{V = shuffle(\N1)}
+\integer{M=max(0,min(\n,\N1-\N))}
+\text{K=\V[1..\N]}
+\text{dessinprelim=copy 0,0,-1,-1,-1,-1,\image}
+\for{k =1 to \N}{
+  \text{dessinprelim=\dessinprelim
+arrow \coord[\K[\k];2],\coord[\K[\k];3],\coord[\K[\k];4],\coord[\K[\k];5],20,\color}
+  \text{co=\coord[\K[\k];2,3]}
+  \text{co=\coord[\K[\k];2] < \coord[\K[\k];4] ? pari([\co] - [\etix,\etiy/2]):
+     pari([\co] - [0,\etiy/2])}
+  \text{position=\position
+r \k,\co[1] x \co[2]}
+}
+\text{figure = draw(\size
+\dessinprelim)}
+
+\text{liste=\M >0? \coord[\V[\N+1..\N+\M];1]:}
+\text{Step=wims(makelist r x for x=1 to \N+1)}
+\steps{\Step}
+\integer{choix = randint(1..4)}
+\text{quest = tirer 2 boules noires de suite, tirer une boule rouge puis une boule noire, tirer deux boules rouges de suite, tirer une boule rouge et une boule noire dans n'importe quel ordre}
+\text{sol = \P4, \P2, \P1, pari(\P2 + \P3) }
+\statement{
+\instruction
+<span class="wims_emph">Problématique : Quelle est la probabilité de \quest[\choix] ? </span>
+<div class="larger">Une urne est composées de \ro boules rouges et de \no boules noires.<br>
+On tire une première boule, on ne la repose pas dans l'urne, on tire une seconde boule. <br>
+Placer les probabilités aux bons endroits. </div>
+<div class="wims_instruction">Toutes les probabilités seront données sous forme de fraction.</div>
+<div class="wimscenter">
+\special{imagefill \figure,\size[1] x \size[2],\etix x \etiy
+\position}
+</div>
+<span class="bold">Conclusion : </span>la probabilité de \quest[\choix] est \embed{reply11,5}.
+}
+
+\answer{}{\coord[\K[1];1]}{type=\format}
+\answer{}{\coord[\K[2];1]}{type=\format}
+\answer{}{\coord[\K[3];1]}{type=\format}
+\answer{}{\coord[\K[4];1]}{type=\format}
+\answer{}{\coord[\K[5];1]}{type=\format}
+\answer{}{\coord[\K[6];1]}{type=\format}
+\answer{}{\coord[\K[7];1]}{type=\format}
+\answer{}{\coord[\K[8];1]}{type=\format}
+\answer{}{\coord[\K[9];1]}{type=\format}
+\answer{}{\coord[\K[10];1]}{type=\format}
+\answer{}{\sol[\choix]}{type=formal}

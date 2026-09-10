@@ -1,0 +1,197 @@
+!set title=Taux moyen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val7=$[rint($(tmp0))]
+
+!ifval ($val7=1)
+val8= augmentation
+!else
+val8=réduction
+!endif
+tmp0=!randint 1, 8
+
+val9=$[5*$(tmp0)]
+val10=$val8 de \($val9 \%\)
+val11=$[(1+$val7*$val9/100)]
+val12=$[$val11]
+val13=\($val11\)
+!for val14 =2 to $val6 
+tmp0=!randitem -1,1
+
+val7=$[rint($(tmp0))]
+
+!ifval ($val7=1)
+val8= augmentation
+!else
+val8=réduction
+!endif
+tmp0=!randint 1, 8
+
+val9=$[5*$(tmp0)]
+val10=$val10, $val8 de \($val9 \%\)
+val15=$[(1+$val7*$val9/100)]
+val12=$[$val12*$val15]
+val13=$val13, \($val15\)
+!next
+val16=$[($val12)^(1/$val6)]
+
+!ifval (floor($val16)=$val16)
+val17=$[rint( 1)]
+!else
+val17=$[rint(0)]
+!endif
+val18=$[round($val16*1000)/1000]
+
+!ifval ($val16>1)
+val19=$[ $val16-1]
+!else
+val19=$[1-$val16]
+!endif
+val19=$[round($val19*1000)/1000]
+val20=$[$val19*100]
+
+!ifval ($val12>1)
+val21=$[rint( 1)]
+!else
+val21=$[rint(2)]
+!endif
+replytype1=menu
+replyname1=
+replygood1=$val21;augmentation,réduction
+replytype2=formal
+replyname2=
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Une valeur subit les évolutions successives suivantes : $val10.	<div class="wims_question">Quel est le taux d'évolution moyen équivalent à ces 
+!insmath $val6
+$() évolutions ?</div>	L'évolution moyenne est une  
+!read oef/embed.phtml r1 
+$() de  
+!read oef/embed.phtml r2,4 
+$()
+!insmath \%
+$().	<div class="wims_instruction">Donner le pourcentage arrondi à 
+!insmath 0.1\%
+$() près. Utiliser le point comme séparateur décimal.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Les coefficients multiplicateurs associées aux évolutions successives sont $val13.	<br>Pour les 
+!insmath $val6
+$() évolutions successives, le coefficient multiplicateur global est 
+!if $val6=2 
+$()
+!insmath $val11 \times $val15=$val12
+$() 
+!else
+$() 
+!insmath $val11 \times \dots \times $val15=$val12
+$() 
+!endif
+$().	<br>Le coefficient multiplicateur moyen est alors 
+!insmath $val12^\frac{1}{$val6}
+$()
+!if $val17=1 
+$()
+!insmath =$val16
+$() 
+!else
+$() 
+!insmath \simeq $val18
+$() 
+!endif
+$().	<br>
+!insmath $val18=1
+$()
+!if $val16>1 
+$()
+!insmath {}+ $val19
+$() 
+!else
+$() 
+!insmath -$val19
+$() 
+!endif
+$() donc l'évolution moyenne est une 
+!if $val16>1 
+$()augmentation 
+!else
+$() réduction 
+!endif
+$() de 
+!insmath $val20 \%
+$() 
+!if $val17=0 
+$()environ 
+!endif
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,12,13,15,16,17,18,19,20
+embedcnt=2

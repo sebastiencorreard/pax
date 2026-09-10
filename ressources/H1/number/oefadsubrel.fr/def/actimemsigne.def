@@ -1,0 +1,197 @@
+!set title=Activité (même signe)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=53
+prevarcnt=51
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle +,-
+
+val6=$(tmp0)
+val7=$(val6[1])
+!if $val7=+ 
+val8=positif,positifs
+val9=\plus
+!else
+val8=négatif,négatifs
+val9=\minus
+!endif
+val10=$val7
+val11=$val9
+val12=$val8
+!if $val10=+ 
+val13=positif,positifs
+val14=\plus
+!else
+val13=négatif,négatifs
+val14=\minus
+!endif
+tmp0=!makelist x for x=1 to 10
+
+val15=$(tmp0)
+!readproc slib/data/random 2,item, $val15 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=$[rint($(val16[1]))]
+val18=$[rint($(val16[2]))]
+val19=$[$val7$val17+$val10$val18]
+!if $val19>0 
+val20=\plus
+!endif
+val21=$[rint(abs($val19))]
+val22=$[rint($val17+$val18)]
+val23=$[rint(abs($val17-$val18))]
+!if $val17>$val18 
+val24=\($val17 - $val18 = $val21 \)
+val11=$val9
+val12=$val8
+val25=<ul><li>On détermine le signe de \(A\) en comparant les distances à zéro des termes de la somme&nbsp;:	<p>Comme \($val17>$val18\) et que \($val9$val17\) est $(val8[1]) alors le signe de \(A\) est $(val12[1]).</p></li>	<li>On effectue la différence des distances à zéro $val24.</li>	</ul>
+!else
+val24=\($val18 - $val17 = $val21 \)
+val11=$val14
+val12=$val13
+val25=<ul><li>On détermine le signe de \(A\) en comparant les distances à zéro des termes de la somme&nbsp;:	<p>Comme \($val18>$val17\) et que \($val14$val18\) est $(val13[1]) alors le signe de \(A\) est $(val12[1]).</p></li>	<li>On effectue la différence des distances à zéro $val24.</li>	</ul>
+!endif
+!if $val7=+ 
+val26=$[rint(-1)]
+val27=$[rint($val17+$val18+2)]
+!endif
+!if $val7=- 
+val27=$[rint(1)]
+val26=$[rint(-$val17-$val18-2)]
+!endif
+val28=$[rint(600)]
+val29=$[rint(40)]
+val30=$[($val28-2*$val29)/($val27-$val26)]
+val31=$[$val26-$val29/$val30]
+val32=$[$val27+$val29/$val30]
+val33=$[rint($val27-$val26+1)]
+val34=$[rint($val27-$val26)]
+val35=$[4/$val30]
+val36=
+!for val37 =0 to $val34 
+val38=$[rint($val26+$val37)]
+val39=$[$val26+$val37-$val35]
+val40=text black,$val39,-0.75,giant,$val38
+tmp0=!append line $val40 to $val36
+
+val36=$(tmp0)
+!next
+val41=range $val31,$val32,-3,3	linewidth 2	arrow $val31,0,$val32,0,$val29/2,black	linewidth 3	parallel $val26,-0.5,$val26,0.5,1,0,$val33,black	$val36
+!readproc oef/draw.phtml 600,150 \
+$val41	arrow 0,1,$val7 $val17,1,10,blue	text blue,($val7 $val17)/2,1,giant,$val7 $val17	arrow 0,1.5,$val10 $val18,1.5,10,red	text red,($val10 $val18)/2,1.5,giant,$val10 $val18	 
+tmp0=$ins_url
+val42=$(tmp0)
+!readproc oef/draw.phtml 600,150 \
+$val41	arrow 0,1,$val7 $val17,1,10,blue	text blue,($val7 $val17)/2,1,giant,$val7 $val17	translate $val7 $val17,0	arrow 0,1.5,$val10 $val18,1.5,10,red	text red,($val10 $val18)/2,1.5,giant,$val10 $val18	killtranslate	 
+tmp0=$ins_url
+val43=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <div style="color:red" class="underline"><b>A retenir&nbsp;:</b></div> La somme de deux nombres relatifs de même signe a ... <ul class="wims_nopuce"> <li>pour signe&nbsp;: le signe commun aux deux nombres.</li> <li>pour distance à zéro&nbsp;: la somme des deux distances à zéro.</li> </ul>
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On désire calculer l'expression&nbsp;:	<span class="nowrap">
+!insmath A=( \textcolor{blue}{$val9 $val17} ) + ( \textcolor{red}{$val14 $val18} )
+$().</span></p>	On illustre cette situation par un dessin.	<p><img src="$val42" alt="droite graduée avec flèches séparées" ></p>	On met une flèche au bout de l'autre.	<p><img src="$val43" alt="droite graduée avec flèches bout à bout" ></p>	On lit le résultat sur la droite graduée&nbsp;:	<div class="wims_instruction">Une réponse avec des parenthèses n'est pas acceptée.	<p>Il n'est pas obligatoire d'écrire le signe + d'un résultat positif.</p></div>	<p>
+!insmath A=( $val9 $val17 ) + ( $val14 $val18 )
+$()</p>	<label for="reply1">
+!insmath A=
+$()</label> 
+!read oef/embed.phtml r1,3 
+$().	
+$()
+!exit
+
+:hint
+$()<div style="color:red" class="underline"><b>A retenir&nbsp;:</b></div> La somme de deux nombres relatifs de même signe a ... <ul class="wims_nopuce"> <li>pour signe&nbsp;: le signe commun aux deux nombres.</li> <li>pour distance à zéro&nbsp;: la somme des deux distances à zéro.</li> </ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<div style="color:red" class="underline"><b>A retenir&nbsp;:</b></div>	La somme de deux nombres relatifs de même signe a ...	<ul>	<li>pour signe&nbsp;: le signe commun aux deux nombres.</li>	<li>pour distance à zéro&nbsp;: la somme des deux distances à zéro.</li>	</ul>	Pour calculer l'expression <span class="nowrap">
+!insmath A=( $val9 $val17 ) + ( $val9 $val18 )
+$().</span>	<ul><li>On détermine le signe de 
+!insmath A
+$()&nbsp;: 
+!insmath A
+$() est $(val8[1]) car les deux termes de la somme sont $(val8[2]).</li>	<li>On additionne les distances à zéro <span class="nowrap">
+!insmath $val17+$val18=$val22
+$().</span></li>	</ul>	On conclut&nbsp;:	<p>
+!insmath A=( $val9 $val17 ) + ( $val9 $val18 )
+$()</p>	<span class="nowrap">
+!insmath A= $val20 $val19
+$().</span>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val23=$[rint(abs($val17-$val18))]
+
+!exit
+
+:feedback
+!ifval ($m_reply1<0 and $val19>0) or ($m_reply1>0 and $val19<0)
+ <div class='oef_feedbacks'><div class="macss">Attention au signe de la somme, le résultat est $(val12[1]).</div>
+$()</div>
+!endif
+!ifval abs($m_reply1)=$val23
+ <div class='oef_feedbacks'><div class="macss">Vous avez soustrait les distances à zéro au lieu de les additionner.</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,12,14,17,18,19,20,22,23,42,43
+embedcnt=1

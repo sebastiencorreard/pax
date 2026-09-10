@@ -1,0 +1,201 @@
+!set title=Utiliser un tableau à double entrée 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+oefcss=<style> .PaleGreen{ background-color:PaleGreen; } .yellow{ background-color:yellow; } </style>
+precision=10000
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=6ème,5ème,4ème,3ème,Total
+val7=externes, demi-pensionnaires, externes, demi-pensionnaires
+val8=filles,garçons
+val9=Nous avons fait une enquête dans le collège sur la qualité des élèves.
+val10=Donner le nombre de
+val11=Notes,Nbre
+tmp0=!randint 30, 70
+
+tmp1=!randint 30, 70
+
+tmp2=!randint 30, 70
+
+tmp3=!randint 30, 70
+
+tmp4=!randint 30, 70
+
+tmp5=!randint 30, 70
+
+tmp6=!randint 30, 70
+
+tmp7=!randint 30, 70
+
+tmp8=!randint 30, 70
+
+tmp9=!randint 30, 70
+
+tmp10=!randint 30, 70
+
+tmp11=!randint 30, 70
+
+tmp12=!randint 30, 70
+
+tmp13=!randint 30, 70
+
+tmp14=!randint 30, 70
+
+tmp15=!randint 30, 70
+
+tmp=!trim $(tmp0),$(tmp1),$(tmp2),$(tmp3)	$(tmp4),$(tmp5),$(tmp6),$(tmp7)	$(tmp8),$(tmp9),$(tmp10),$(tmp11)	$(tmp12),$(tmp13),$(tmp14),$(tmp15)
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=
+val14=
+!for val15 =1 to 4 
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+val14=$val14,$val16
+val17=$[rint($(val16[1])+$(val16[2])+$(val16[3])+$(val16[4]))]
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+!next
+val18=
+!for val15 =1 to 4 
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!column $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+val17=$[rint($(val19[1])+$(val19[2])+$(val19[3])+$(val19[4]))]
+tmp0=!append item $val17 to $val18
+
+val18=$(tmp0)
+!next
+val20=$[rint($(val18[1])+$(val18[2])+$(val18[3])+$(val18[4]))]
+tmp0=!randint 1, 4
+
+val21=$[rint($(tmp0))]
+val22=$val10 $(val8[floor(($val21+1)/2)]) $(val7[$val21])
+val23=$[rint($(val13[$val21]))]
+val24=$[rint(floor(($val21+1)/2))]
+val25=<p>Le nombre de $(val8[$val24]) $(val7[$val21]) est \($(val13[$val21])\).</p>
+replytype1=numeric
+replyname1=
+replygood1=$[$val23]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val9	<table class="wimscenter wimsborder table-scroll">	<tr><th></th>	 
+!for m_m=0 to 4 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr>	 
+!for m_k=1 to 4 
+$()<tr>	   
+!if $m_k=1 or $m_k=3 
+$()<th colspan="1" rowspan="2">$(val8[$m_k/2+1])</th> 
+!endif
+$()	   <th>$(val7[$m_k])</th>	    
+!for m_j=1 to 4 
+$()	   <td>$(val14[$m_j+4*($m_k-1)+1])</td> 
+!next
+$()	   </tr> 
+!next
+$()	</table>	<div class="spacer"><label for="reply1">$val22</label>  
+!read oef/embed.phtml r1,4 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<table class="wimscenter wimsborder">	<tr><th></th>	 
+!for m_m=0 to 4 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr>	 
+!for m_k=1 to 4 
+$()<tr>	   
+!if $m_k=1 or $m_k=3 
+$()<th colspan="1" rowspan="2">$(val8[$m_k/2+1])</th> 
+!endif
+$()	   <th>$(val7[$m_k])</th>	    
+!for m_j=1 to 4 
+$()
+!if $m_k=$val21 
+$()<td class="yellow">$(val14[$m_j+4*($m_k-1)+1])</td> 
+!else
+$()	    <td>$(val14[$m_j+4*($m_k-1)+1])</td> 
+!endif
+$() 
+!next
+$()	   </tr> 
+!next
+$()	</table>	
+!insmath $(val14[1+4*($val21-1)+1])+$(val14[2+4*($val21-1)+1])+$(val14[3+4*($val21-1)+1])+$(val14[4+4*($val21-1)+1])=$(val13[$val21])
+$().	$val25
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,13,14,21,22,25
+embedcnt=1

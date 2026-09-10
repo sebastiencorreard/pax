@@ -1,0 +1,126 @@
+\title{Intervalle de fluctuation : parité à l'embauche}
+\language{fr}
+\author{Khalid, EL HMOUZI}
+\email{khalidhmouzi@gmail.com}
+\format{html}
+\computeanswer{no}
+\precision{100000}
+
+\integer{ph=randint(15..85)}
+\integer{pf=100-\ph}
+\real{cmplus=randint(\ph+1..\ph+10)/100}
+\real{cmmoins=randint(\ph-10..\ph-1)/100}
+\text{cm=\cmplus,\cmmoins}
+\integer{icm=randint(1..2)}
+
+\text{sexe=un homme,une femme}
+\integer{isexe=randint(1..2)}
+
+\integer{n=randint(50..500)}
+
+\if{\isexe=1}{\real{p=\ph/100}}{\real{p=\pf/100}}
+
+
+\real{nh=floor(\n*\cm[\icm])}
+\integer{nf=\n-\nh}
+
+\if{\isexe=1}{\real{fobs=\nh/\n}}{\real{fobs=\nf/\n}}
+\real{fobsarrondi=rint(\fobs*100)/100}
+
+\real{np=\n*\p}
+\real{nq=\n*(1-\p)}
+\text{hyp=\n>=30 and \np>=5 and \nq>=5?1:2}
+
+\real{b1=(\p-1.96*sqrt(\p*(1-\p))/sqrt(\n))*100}
+\real{b2=(\p+1.96*sqrt(\p*(1-\p))/sqrt(\n))*100}
+
+\real{borne1=floor(\b1)/100}
+\real{difference=floor(\b2)-\b2}
+\if{\difference!=0}{\real{borne2=(floor(\b2)+1)/100}}{\real{borne2=floor(\b2)/100}}
+
+\text{paritehf=\fobsarrondi>=\borne1 and \fobsarrondi<=\borne2?2:1}
+
+\if{\paritehf=2}{\text{innotin=\(\in)}}{\text{innotin=\(\notin)}}
+
+
+
+\text{etape=r1,r2,r3,r4,r5}
+\nextstep{\etape}
+
+\statement{
+<div class="enonce">
+Dans un bassin d'emploi, il y a \ph % d'hommes et \pf % de femmes.<br>
+Une entreprise a recruté \nh hommes et \nf femmes.<br>
+Le bassin est suffisamment important pour considérer le recrutement comme un échantillon de taille \n
+ de l'ensemble des demandeurs d'emploi de ce bassin.<br>
+On souhaite savoir si cette entreprise a respecté la parité homme/femme.
+<div class="consigne">
+Les résultats seront arrondis au centième.
+</div>
+</div>
+
+
+\if{\step=1}{
+<div class="question">
+compléter :
+
+<div class="reponse">
+
+<table class="resumestat">
+<tr><th>Population étudiée :</th><td colspan="2"> \embed{r1}</td></tr>
+<tr><th>Caractère étudié :</th><td>être \sexe[\isexe]</td>
+<td> proportion dans la population : p=\embed{r2,5}</td>
+</tr>
+<tr><th>Echantillon :</th> <td>taille n=\embed{r3,5}</td>
+<td> fréquence observée dans l'échantillon : f<sub>obs</sub>=\embed{r4,5}</td>
+</tr>
+</table>
+
+Les conditions n &ge; 30, n.p &ge; 5 et n.(1-p) &ge; 5 sont-elles vérifiées ? \embed{r5}.
+</div>
+</div>}
+
+\if{\step>=2 and \hyp=1}{
+<div class="question">
+Donner un intervalle de fluctuation asymptotique au seuil 0,95 de la fréquence d'hommes dans un
+échantillon de taille \n. Conclure.
+
+
+\if{\sc_reply2=1 and \sc_reply3=1 and \sc_reply4=1 and \sc_reply5=1}{
+<div class="oui">
+On rappelle que n=\n, p=\p, f<sub>obs</sub>=\fobsarrondi et les conditions d'approximation sont respectées.
+</div>}
+
+\if{\sc_reply2!=1 or \sc_reply3!=1 or \sc_reply4!=1 or \sc_reply5!=1}{
+<div class="non">
+On rappelle que n=\n, p=\p, f<sub>obs</sub>=\fobsarrondi et les conditions d'approximation sont respectées.
+</div>}
+
+
+<div class="reponse">
+\(I_{\n})=[\embed{r6,5};\embed{r7,5}]<br><br>
+
+On a f<sub>obs</sub> \embed{r8,50} I<sub>\n</sub>, donc la différence entre
+f<sub>obs</sub> et p \embed{r9}
+statistiquement significative. Au seuil de 95%, \embed{r10} suspecter cette entreprise de ne pas respecter la parité homme-
+femme à l'embauche.
+</div>
+</div>
+}
+}
+
+\answer{}{1;ensemble des demandeurs d'emploi, ensemble des hommes, ensemble des femmes}{type=menu}{option=nonstop}
+\answer{}{\p}{type=numeric}{option=nonstop}
+\answer{}{\n}{type=numeric}{option=nonstop}
+\answer{}{\fobsarrondi}{type=numeric}{option=nonstop}
+\answer{}{\hyp;oui,non}{type=checkbox}{option=nonstop}
+\answer{}{\borne1}{type=numeric}
+\answer{}{\borne2}{type=numeric}
+\answer{}{\innotin;\(\in),\(\notin)}{type=clickfill}
+\answer{}{\paritehf;est,n'est pas}{type=menu}
+\answer{}{\paritehf;on peut, on ne peut pas}{type=menu}
+
+\text{etape=}
+\if{\step=2 and \hyp=1}{\text{etape=r6,r7,r8,r9,r10}}
+\if{\step>=3 and \hyp=1}{\text{etape=}}
+\if{\hyp=2}{\text{etape=}}

@@ -1,0 +1,168 @@
+!set title=Aire latérale du prisme et du cylindre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=area
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 26, 99
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 26, 99
+
+val7=$[rint($(tmp0))]
+tmp0=!randint $val6+10, 129
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 26, 69
+
+val9=$[rint($(tmp0))]
+val9=$[rint($val9*2)]
+tmp0=!randint 41, 119
+
+val10=$[rint($(tmp0))]
+val11=$[($val6+$val8)/5]
+val12=$[($val6+$val8+$val7)/10]
+val13=$[pi*$val9/10]
+val14=$[floor($val13*100)/100]
+val15=$[$val14+0.01]
+!readproc oef/draw.phtml 300,300 \
+rect 30,230,170,130,black	segment 30,130,80,80,black	segment 170,130,220,80,black	segment 170,230,220,180,black	dsegment 30,230,80,180,black	dsegment 80,180,80,80,black	dsegment 80,180,220,180,black	segment 80,80,220,80,black	segment 220,80,220,180,black	 
+tmp0=$ins_url
+val16=$(tmp0)
+!readproc oef/draw.phtml 300,300 \
+rect 30,250,200,110,black	segment 30,110,150,30,black	segment 150,30,200,110,black	dsegment 30,250,150,180,black	dsegment 150,180,200,250,black	dsegment 150,180,150,30,black	 
+tmp0=$ins_url
+val17=$(tmp0)
+!readproc oef/draw.phtml 300,300 \
+ellipse 150,100,200,100,black	arc 150,220,200,100,0,180,black	arc 150,220,200,100,200,220,black	arc 150,220,200,100,240,260,black	arc 150,220,200,100,280,300,black	arc 150,220,200,100,320,340,black	segment 50,100,50,220,black	segment 250,100,250,220,black	 
+tmp0=$ins_url
+val18=$(tmp0)
+val19=\(cm)
+val20=\(cm^2)
+val21=\(cm^3)
+val22=\(\ \pi) &times; diamètre
+val23=\(\ \pi) &times; Longueur &times; largeur
+val24=base &times; hauteur
+val25=Longueur &times; largeur
+val26=(Longueur + Largeur) &times; 2
+val27=Somme des longueurs des 3 côtés
+val28=\(\ \pi) &times; rayon &times; rayon
+val6=$[$val6/10]
+val8=$[$val8/10]
+val7=$[$val7/10]
+val9=$[$val9/10]
+val10=$[$val10/10]
+tmp=!trim $val16,$val11,$val11,$val26,<ul><li>Longueur : $val8 cm </li><li>largeur : $val6 cm </li><li> hauteur : $val10 cm</li></ul>	$val17,$val12,$val12,$val27, <ul><li>Triangle de base : </li><li> côté 1 : $val8 cm   côté 2 : $val6 cm  côté 3 : $val7 cm </li><li> hauteur du prisme : $val10 cm</li></ul>	$val18,$val14,$val15,$val22, <ul><li>diamètre du disque : $val9 cm </li><li> hauteur du cylindre : $val10 cm </li></ul><div class="wims_instruction">Le résultat du périmètre sera accepté au centième de \(cm) près et l'aire au \(cm^2) près.</div>	
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val30=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val29
+
+tmp=!row $val30 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+val32=$[$(val31[2])*$val10]
+!if $val30=3 
+val33=$[rint(floor($val14*$val10))]
+val34=$[rint($val33+1)]
+!else
+val33=$[$val32]
+val34=$[$val32]
+!endif
+replytype1=clickfill
+replyname1=
+replygood1=$(val31[4]);$val23,$val25,$val26,$val24,$val27,$val22,$val28
+replytype2=range
+replyname2=
+replygood2=!rawmath $(val31[2]),$(val31[3])
+replytype3=clickfill
+replyname3=
+replygood3=$val19;$val19,$val20,$val21
+replytype4=range
+replyname4=
+replygood4=!rawmath $val33,$val34
+replytype5=clickfill
+replyname5=
+replygood5=$val20;$val19,$val20,$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"><img src="$(val31[1])" alt=""></div>	Vous devez calculer l'aire latérale du solide suivant en utilisant la calculatrice :	<p>	Nous avons les dimensions suivantes :	</p>	$(val31[5])	<ul>	<li>Choisir la formule pour calculer le périmètre de la base : 
+!read oef/embed.phtml r1,200x40 
+$()	</li><li>Je donne le périmètre de la base :  
+!read oef/embed.phtml r2,6 
+$()	<br>Donner l'unité du résultat : 
+!read oef/embed.phtml r3,200x40 
+$()	</li><li>Je donne l'aire latérale du solide : 
+!read oef/embed.phtml r4,6 
+$()	<br>Donner l'unité du résultat : 
+!read oef/embed.phtml r5,200x40 
+$()	</li></ul>	<div class="wims_instruction">Vous utiliserez le point comme séparateur décimal.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=31
+embedcnt=5

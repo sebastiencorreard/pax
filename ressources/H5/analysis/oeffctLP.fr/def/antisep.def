@@ -1,0 +1,176 @@
+!set title=Action d'un antiseptique (log et exp)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Christian,Meilland
+email=christian69@free.fr
+keywords=exponential,logarithm
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+oefobservation=Exercice demandant d'étudier, à partir de la formule, le nombre de bactéries dans un produit en fonction de la durée d'action d'un antiseptique, puis de déterminer la durée minimale d'action pour que ce nombre passe en dessous d'un certain seuil.
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 30,35,40,45,50,55
+
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 1,1.5,2
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+val8=$[$val6/100]
+val9=$[$val6*400]
+val10=$[$val9*$val7/100]
+val11=0,6,9,12,15,18
+val12=!rawmath round($val9*e^(-$val8*t))
+tmp0=!values $val12 for t in $val11
+
+val13=$(tmp0)
+val14=$[rint(round(ln(100/$val7)/$val8))]
+val15=!rawmath $val14 + i
+tmp0=!values $val15 for i = -4 to -2
+
+tmp1=!values $val15 for i = 2 to 4
+
+val16=$(tmp0),$(tmp1)
+tmp0=!shuffle $val16
+
+val16=$(tmp0)
+val17=round(100*ln(100/$val7)/$val8)/100
+replytype1=numeric
+replyname1=
+replygood1=$[$val9]
+replytype2=numeric
+replyname2=
+replygood2=$[$val10 ]
+replytype3=numeric
+replyname3=
+replygood3=$[$(val13[1])]
+replytype4=numeric
+replyname4=
+replygood4=$[$(val13[2])]
+replytype5=numeric
+replyname5=
+replygood5=$[$(val13[3])]
+replytype6=numeric
+replyname6=
+replygood6=$[$(val13[4])]
+replytype7=numeric
+replyname7=
+replygood7=$[$(val13[5])]
+replytype8=numeric
+replyname8=
+replygood8=$[$(val13[6])]
+replytype9=menu
+replyoption9=shuffle 
+replyname9=
+replygood9=1;$val14,$(val16[1..4])
+replytype10=numeric
+replyname10=
+replygood10=$[$val17]
+replytype11=numeric
+replyname11=
+replygood11=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Sous l’action d’un antiseptique, la population de bactéries contenue dans un produit diminue en fonction du temps. </p>	<p>L’expression <span class="bold"> 
+!insmath P(t)= $val9 \times e^{-$val8 t} 
+$()</span> donne le nombre de bactéries présentes dans le produit en fonction du temps  
+!insmath t 
+$() exprimé en minutes.</p>	<p>A l’état initial ( 
+!insmath t = 0 
+$() ) il y a  
+!read oef/embed.phtml reply1,5 
+$() bactéries. </p>	<p>On estime que l’antiseptique a agi lorsque l'effectif de la population de bactéries est ramené à <span class="bold"> 
+!insmath  $val7 \% 
+$()</span> de sa valeur initiale ( soit  
+!read oef/embed.phtml reply2,5 
+$() bactéries) </p>		<div class="wimscenter"><span style="color:blue; font-weight:bolder">Problématique</span>: quel est le temps nécessaire pour que l'action de l'antiseptique soit considérée comme efficace?</div>		<ol type="I" class="spacer">	  <li> <span  style= "color:blue">Compléter le tableau de valeurs :</span>	                       <table class="wimscenter wimsborder">	                                <tr>	                                    <th>Durée d'action de l'antiseptique</th>	                                    <td>0 min</td>	                                    <td>6 min</td>	                                    <td>9 min</td>	                                    <td>12 min</td>	                                    <td>15 min</td>	                                    <td>18 min</td>	                               </tr>	                               <tr>	                                 <th>Nombre de bactéries <span class="smaller">(arrondi à l'unité)</span></th>	                                 <td> 
+!read oef/embed.phtml reply3,5 
+$()</td>	                                 <td> 
+!read oef/embed.phtml reply4,5 
+$()</td>	                                 <td> 
+!read oef/embed.phtml reply5,5 
+$()</td>	                                 <td> 
+!read oef/embed.phtml reply6,5 
+$()</td>	                                 <td> 
+!read oef/embed.phtml reply7,5 
+$()</td>	                                 <td> 
+!read oef/embed.phtml reply8,5 
+$()</td>	                             </tr>	                         </table>	                </li>	                <li> Analyse du tableau.<br>	               Estimer la durée nécessaire  pour que la population diminue à <span class="bold">
+!insmath $val10 
+$()</span> bactéries	                   <div class="wimscenter">    <span  style= "color:blue">durée estimée (arrondie à l'unité) :</span>  
+!read oef/embed.phtml reply9,5 
+$()  minutes </div></li>	                <li>Résoudre l’équation <strong>
+!insmath $val9 \times e^{-$val8 t}=$val10 
+$()  </strong>.<br>	                   <span  style= "color:blue">la solution est t = </span>   
+!read oef/embed.phtml reply10,5 
+$() <span class="small"  style= "color:green">arrondir au centième </span></li>	                <li> Répondre à la problématique.<br>	           <span  style= "color:blue">la population  atteindra <strong>$val10 </strong> bactéries, soit <strong>
+!insmath  $val7 \% 
+$()</strong> de la population initiale, au bout de  
+!read oef/embed.phtml reply11,5 
+$() minutes</span> <span class="small"  style= "color:green">arrondir au centième </span></li>	       </ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10
+embedcnt=11

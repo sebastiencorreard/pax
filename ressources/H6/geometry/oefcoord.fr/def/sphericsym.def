@@ -1,0 +1,262 @@
+!set title=Symétrie et coordonnées sphériques 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=37
+prevarcnt=28
+postvarcnt=8
+replycnt=6
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oefenv lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=coordonnées cylindriques,coordonnées sphériques
+val8=Dans la symétrie par rapport au plan, les coordonnées cartésiennes	  sont transformées de la manière suivante
+val9=et les coordonnées sphériques sont transformées de la manière suivante
+val10=Écrire theta ou phi pour les angles, pi pour 
+val11=2
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+
+!ifval $val12=1
+val13= theta.gif
+!else
+val13= varphi.gif
+!endif
+
+!ifval $val12=1
+val14= varphi.gif
+!else
+val14=theta.gif
+!endif
+
+!ifval $val12=1 
+val15= \theta
+!else
+val15= \varphi
+!endif
+
+!ifval $val12=1 
+val16= \varphi
+!else
+val16=\theta
+!endif
+
+!ifval $val11=1 
+val17= $(val7[$val11]), r,\theta , z 
+!else
+val17= $(val7[$val11]) , r, $val15, $val16
+!endif
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!item 3 of $val17
+
+val19=$(tmp0)
+tmp=!trim r,\theta , z	 r, $val15, $val16
+val20=!translate internal $	\
+$ to ;; in $tmp
+val21=arrow 0,0,3,0,10,black	arrow 0,0,0,3, 10,black	arrow 0,0,-1.6,-1.6, 10,black	text blue, -1.8,-1.8, medium, x	text blue,0.5,2.9, medium, z	text blue,2.8, 0.5,medium, y	linewidth 2	segment 0,0,2.2,2.2,green	segment 0,0, 2.2,-0.5,green	dsegment 2.2,-0.5,2.2,2.2,black	dsegment 0,2.5,2.2,2.2,black	arrow cos(-pi/16-0.2),sin(-pi/16-0.2),cos(-pi/16),sin(-pi/16),10, red	arc 0, 0, 2, 2, 225,348.75, red	copy 1.3*cos(3*pi/2+0.2),1.3*sin(3*pi/2+0.2),-1,-1,-1,-1,mathfonts/109/$val13	
+
+!ifval $val12=1 
+val22=	arc 0, 0, 2, 2, 0,45, red	arrow cos(pi/4-0.2),sin(pi/4-0.2),cos(pi/4),sin(pi/4),10, red	copy 1.5*cos(pi/8),1.5*sin(pi/8),-1,-1,-1,-1,mathfonts/109/$val14	text black, 0.9,1.8, medium, r
+!else
+val22=	arc 0, 0, 2, 2, 45, 90, red	arrow cos(pi/4+0.2),sin(pi/4+0.2),cos(pi/4),sin(pi/4),10, red	copy 1.5*cos(3*pi/8),1.5*sin(3*pi/8),-1,-1,-1,-1,mathfonts/109/$val14	text black, 1.3, 0.9, medium, r	
+!endif
+val23=xrange -3,3	yrange -3,3	$val21	$val22
+
+!ifval $val12=1 
+tmp=!trim  x O y,x,y,-z,r,theta,-phi	x O z,x,-y,z,r,2*pi-theta,phi	y O z,-x,y,z,r,pi-theta, phi
+val24=!translate internal $	\
+$ to ;; in $tmp
+!endif
+
+!ifval $val12=2 
+val24= x O y,x,y,-z,r,pi-theta,phi	x O z,x,-y,z,r,theta,2*pi-phi	y O z,-x,y,z,r,theta, pi-phi
+!endif
+tmp=!translate internal $	$ to ; in $val24
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val25=$(tmp0)
+tmp0=!item 1 of $val25
+
+val24=$(tmp0)
+tmp0=!item 2 of $val25
+
+val26=$(tmp0)
+tmp0=!item 3 of $val25
+
+val27=$(tmp0)
+tmp0=!item 4 of $val25
+
+val28=$(tmp0)
+tmp0=!item 5 of $val25
+
+val29=$(tmp0)
+tmp0=!item 6 of $val25
+
+val30=$(tmp0)
+tmp0=!item 7 of $val25
+
+val31=$(tmp0)
+replytype1=function
+replyname1=\(x)
+replygood1=!rawmath $val26,x,y,z
+replytype2=function
+replyname2=\(y)
+replygood2=!rawmath $val27,x,y,z
+replytype3=function
+replyname3=\(z)
+replygood3=!rawmath $val28,x,y,z
+replytype4=function
+replyname4=\(r)
+replygood4=!rawmath $val29,theta, phi,r
+replyname5=\(\theta)
+replygood5=?analyze 32
+replyname6=\(varphi)
+replygood6=?analyze 33
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 150,150 \
+$val23 
+$()</div>	 <div class="medium_size text_col">	$(val8[1]) 
+!insmath $val24
+$(), $(val8[2])	<div class="wimscenter"> <label for="reply1">
+!insmath  x \mapsto 
+$()</label>  
+!read oef/embed.phtml reply 1, 5 
+$()</div>	<div class="wimscenter"> <label for="reply2">
+!insmath  y \mapsto 
+$()</label>  
+!read oef/embed.phtml reply 2, 5 
+$()</div>	<div class="wimscenter"> <label for="reply3">
+!insmath  z \mapsto 
+$()</label>  
+!read oef/embed.phtml reply 3, 5 
+$()</div>	$val9 :	<div class="wimscenter"> <label for="reply4">
+!insmath  r \mapsto 
+$()</label>  
+!read oef/embed.phtml reply 4, 5 
+$()</div>	<div class="wimscenter"> <label for="reply5">
+!insmath  \theta \mapsto 
+$()</label>  
+!read oef/embed.phtml reply 5, 5 
+$()</div>	<div class="wimscenter"> <label for="reply6">
+!insmath  \varphi \mapsto 
+$()</label>  
+!read oef/embed.phtml reply 6, 5 
+$()</div>	<div class="wims_instruction">$val10 
+!insmath pi
+$().</div>	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal theta by x in $m_reply5
+
+val34=$(tmp0)
+tmp0=!replace internal theta by x in $val30
+
+val30=$(tmp0)
+tmp0=!replace internal phi by x in $m_reply6
+
+val35=$(tmp0)
+tmp0=!replace internal phi by x in $val31
+
+val31=$(tmp0)
+t_=!replace internal \( by ( in ($val30-($val34))/(2*pi)
+tmp0=!exec pari $t_
+
+val36=$(tmp0)
+val37=$[$val36-floor($val36)]
+t_=!replace internal \( by ( in ($val31-($val35))/(2*pi)
+tmp0=!exec pari $t_
+
+val38=$(tmp0)
+val39=$[$val38-floor($val38)]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval x notin $val36 and $val37=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(\ \theta)
+
+!ifval x notin $val38 and $val39=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(\ \phi)
+
+!exit
+
+:stat
+vsavelist=8,9,10,23,24,30,31,32,33
+embedcnt=6

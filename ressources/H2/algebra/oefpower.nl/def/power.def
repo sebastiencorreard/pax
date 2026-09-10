@@ -1,0 +1,126 @@
+!set title=Machten van een getal
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 2,3,5,4
+
+val7=$[$(tmp0)]
+tmp0=!randitem 2,3,6,5,7,11
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val7*$val8)]
+tmp0=!randint 2, 5
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val8)]
+val12=$[rint($val6*$val10)]
+t_=!replace internal \( by ( in $val7^($val12)
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in $val6+$val10
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+val15=$[rint($val7^($val14))]
+replytype1=numeric
+replyname1=
+replygood1=$[$val11]
+replytype2=numeric
+replyname2=
+replygood2=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Schrijf 
+!insmath \left(\frac{$val9^{$val6}}{$val7^{$val6}}\right)^{$val10}
+$() als een macht van een geheel getal (integer)	:	<center> 
+!insmath \left(\frac{$val9^{$val6}}{$val7^{$val6}}\right)^$val10
+$()=  
+!read oef/embed.phtml reply 1, 4 
+$()<sup><sup>	 
+!read oef/embed.phtml reply 2,4 
+$()</sup></sup></center>	
+$()
+!exit
+
+:hint
+$()vereenvoudig eerst de breuk.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply2<>$val12
+ <p>Heb je de regel  : 
+!insmath (a^n)^m=a^(n*m)
+$() toegepast ?
+$()
+!endif
+!ifval $m_reply2=$val14 and $m_reply2 <> $val12 
+ <p>niet door elkaar halen : 	<center>
+!insmath ($val7^$val6)^$val10= $val7^{$val6  \times $val10}=$val7^{$val12}=$val13 
+$() </center> and	<center>
+!insmath $val7^$val6  \times $val7^$val10=$val7^{$val6+$val10}=$val7^{$val14}=$val15
+$()	</center>
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,12,13,14,15
+embedcnt=2

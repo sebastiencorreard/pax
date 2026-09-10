@@ -1,0 +1,146 @@
+!set title=Porcentaje II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette PERRIN-RIOU
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 90
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$(tmp0)
+tmp0=!item $val7 of una longitud, un volumen, una altura, una masa, un precio
+
+val8=$(tmp0)
+tmp0=!item $val7 of l,v,h,m,p
+
+val9=$(tmp0)
+tmp0=!randitem 1,-1
+
+val10=$(tmp0)
+
+!ifval $val10=1 
+val11= 1
+!else
+val11=2
+!endif
+val12=aumento, reducción
+
+!ifval $val10=1 
+tmp0=!item 1 of $val12
+
+val13= $(tmp0)
+!else
+tmp1=!item 2 of $val12
+
+val13=$(tmp1)
+!endif
+
+!ifval aumento iswordof $val13 
+val14= un 
+!else
+val14= una
+!endif
+val15=$[(100+($val10)*$val6)/100]
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=es $val14
+replygood1=$val11;$val12
+replytype2=numeric
+replytype2=case
+replyname2=Porcentaje en %
+replygood2=$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Se cambia  $val8  
+!if una iswordof $val8 
+$()multiplicándola 
+!else
+$() multiplicándolo 
+!endif
+$() por $val15. 	<p> 
+!if $m_step<=1 
+$()Es un  
+!read oef/embed.phtml reply 1,1 
+$() o una  
+!read oef/embed.phtml reply 1,2 
+$() ? 
+!endif
+$()		<p> 
+!if $m_step=2 
+$()Expresar  
+!if aumento iswordof $val13  
+$()este 
+!else
+$() esta 
+!endif
+$()$val13 en porcentaje.  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,13,15
+embedcnt=2

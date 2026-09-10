@@ -1,0 +1,129 @@
+!set title=Equation avec une fonction puissance 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=9
+postvarcnt=4
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 20
+
+val6=$[$(tmp0)]
+tmp0=!randint 2, 80
+
+tmp=!nonempty items 1,1,1,-1
+
+tmp1=!randitem $tmp
+val7=$[rint($(tmp0)*$(tmp1))]
+val8=x^{$val6}=$val7
+val9=log($val7)/$val6
+val10=10^($val9)
+
+!ifval ($val7<=0)
+val10= aucune
+!else
+val10=$val10
+!endif
+val11=$val7^(1/$val6)
+val12=\(x^{$val6}=$val7) &hArr; \(log(x^{$val6})=log($val7)\) &hArr; \($val6 log(x)=log($val7)\) &hArr; \(log(x)=\frac{log($val7)}{$val6}\) &hArr; \(x=10^{\frac{log($val7)}{$val6}}\).
+
+!ifval ($val7<0)
+val13= \($val7\leq 0\) donc il n'y a pas de solution.
+!else
+val13=Par définition \(x^{$val6}=$val7) &hArr;  \(x=$val7 ^{\frac{1}{$val6}}\).
+!endif
+replytype1=function
+replyname1=Ensemble des solutions
+replygood1=?analyze 14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">Résoudre dans 
+!insmath \mathbb{R}_{{}+{}}
+$() l'équation :	
+!insmath  $val8 
+$()	<br>La solution est 
+!insmath x=
+$() 
+!read oef/embed.phtml reply1,8 
+$().</div>	<div class="wims_instruction">En cas d'absence de solution, écrire : aucune.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val15=$[$val14]
+val16=$[$val15^($val6)]
+val17=$[$val14]
+val16=$[$val17^($val6)]
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'><div class="feedback">$val13</div> 
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval ($val14 issametext $val10) or ($val7>0 and $val14 issametext $val11) or ($val7>0 and abs($val16-$val7)<0.00001)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Solution correcte ?
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,13,14
+embedcnt=1

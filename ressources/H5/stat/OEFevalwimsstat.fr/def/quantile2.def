@@ -1,0 +1,216 @@
+!set title=Résumer: Médiane, écart interquartile 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r,r,r
+varcnt=61
+prevarcnt=60
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le premier décile \(D_1\) et le neuvième décile \(D_9\) se calculent de la	même façon que le premier quartile \(Q_1\) et le troisième quartile \(Q_3\), en substituant	 au partage en 4 parties égales un partage en 10 parties égales.
+val7=On rappelle la définition du premier décile noté \(D_1\) et du neuvième décile noté \(D_9\):<br>	Pour une série statistique ordonnée dans l'ordre croissant, d'effectif total \(n\),<br>	\(D_1\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{n}{10}\),<br>	\(D_9\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{9n}{10}\)
+val8=
+val9=
+val10=
+tmp0=!randint 20, 100
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 0, 20
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem 1,0
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 4, 7
+
+val14=$[rint(2*$(tmp0)+$val13)]
+tmp0=!makelist x for x=$val12 to $val12+$val11
+
+val15=$(tmp0)
+tmp0=!shuffle $val11
+
+val16=$(tmp0)
+tmp0=!item 1 to $val14 of $val16
+
+val16=$(tmp0)
+tmp0=!item $val16 of $val15
+
+val15=$(tmp0)
+tmp0=!sort numeric list $val15
+
+val17=$(tmp0)
+val18=$val17
+val12=$[rint($(val18[1]))]
+
+!ifval $val13=1
+val19=$[$(val17[($val14+1)/2])]
+!else
+val19=$[($(val17[$val14 / 2])+ $(val17[$val14 / 2 +1]))/2]
+!endif
+tmp0=!randitem 100,200,400,500
+
+val20=$[rint($(tmp0))]
+val21=
+val22=$[rint(0)]
+val23=$[rint($val20/100)]
+val24=$[rint(round($val20/($val14-$val23)))]
+!for val25 =1 to $val14-$val23 
+tmp0=!randint 5, $val24
+
+val26=$[rint($(tmp0))]
+val22=$[rint($val22+$val26)]
+tmp0=!append item $val26 to $val21
+
+val21=$(tmp0)
+!next
+!for val25 =1 to $val23-1 
+val26=$[rint(($val20-$val22)/$val23)]
+val22=$[rint($val22+$val26)]
+tmp0=!append item $val26 to $val21
+
+val21=$(tmp0)
+!next
+val26=$[rint($val20-$val22)]
+tmp0=!append item $val26 to $val21
+
+val21=$(tmp0)
+tmp0=!shuffle $val21
+
+val21=$(tmp0)
+val27=<table class="wimsborder"><tr><th>Valeur</th>
+!for val25 =1 to $val14 
+val27=$val27 <td>$(val18[$val25])</td>
+!next
+val27=$val27 </tr><tr><th>Effectif</th>
+!for val25 =1 to $val14 
+val27=$val27 <td>$(val21[$val25])</td>
+!next
+val27=$val27 </tr></table>
+val19=$[rint(-1)]
+val28=$[rint(-1)]
+val29=$[rint(-1)]
+val30=$[rint(-1)]
+val31=$[rint(-1)]
+val32=
+val33=$[rint(0)]
+!for val25 =1 to $val14 
+val33=$[rint($val33+$(val21[$val25]))]
+!if $val33>=$val20/10 and $val30=-1 
+val30=$[rint($(val18[$val25]))]
+val34=$[rint($(val18[$val25+1]))]
+!endif
+!if $val33>=$val20/4 and $val28=-1 
+val28=$[rint($(val18[$val25]))]
+val35=$[rint($(val18[$val25+1]))]
+!endif
+!if $val33>=3*$val20/4 and $val29=-1 
+val29=$[rint($(val18[$val25]))]
+val36=$[rint($(val18[$val25+1]))]
+!endif
+!if $val33>=9*$val20/10 and $val31=-1 
+val31=$[rint($(val18[$val25]))]
+val37=$[rint($(val18[$val25+1]))]
+!endif
+!if $val33>=$val20/2 and $val19=-1 
+
+!ifval $val33=$val20/2
+val19=$[rint(($(val18[$val25])+$(val18[$val25+1]))/2)]
+!else
+val19=$[rint($(val18[$val25]))]
+!endif
+val38=$[rint($(val18[$val25]))]
+val39=$[rint($(val18[$val25+1]))]
+!endif
+!next
+replytype1=numeric
+replyname1=Médiane
+replygood1=$[$val19]
+replytype2=numeric
+replyname2=Q1
+replygood2=$[$val28]
+replytype3=numeric
+replyname3=Q3
+replygood3=$[$val29]
+replytype4=numeric
+replyname4=D1
+replygood4=$[$val30]
+replytype5=numeric
+replyname5=D9
+replygood5=$[$val31]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val6
+
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la série statistique suivante:	$val27		<p>Déterminer les indicateurs suivants de cette série:</p>	<ol>	<li> <label for="reply1">Médiane= </label> 
+!read oef/embed.phtml reply1,3 
+$()</li>	<li> <label for="reply2">Premier quartile: Q1=</label> 
+!read oef/embed.phtml reply2,3 
+$()</li>	<li> <label for="reply3">Troisième quartile: Q3=</label> 
+!read oef/embed.phtml reply3,3 
+$()</li>	<li> <label for="reply4">Premier décile: D1=</label> 
+!read oef/embed.phtml reply4,3 
+$()</li>	<li> <label for="reply5">Neuvième décile: D9=</label> 
+!read oef/embed.phtml reply5,3 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()$val6
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,27
+embedcnt=5

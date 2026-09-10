@@ -1,0 +1,159 @@
+!set title=缺少的 分母
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+author=XIAO, Gang
+email=xiao@unice.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=分母
+tmp0=!randitem 2,4
+
+val7=$(tmp0)
+val8=1,2,3,4,5,6,8,10
+tmp0=!itemcnt $val8
+
+val9=$[rint($(tmp0))]
+val10=1/2,3/2,5/2,1/3,2/3,4/3,5/3,	1/4,3/4,5/4,1/5,2/5,3/5,4/5,6/5,1/6,5/6
+val11=
+!for val12  in $val10 
+tmp0=!translate / to , in $val12
+
+val13=$(tmp0)
+tmp0=!values $(val13[1])*x for x in $val8
+
+val14=$(tmp0)
+tmp0=!values $(val13[2])*x for x in $val8
+
+val15=$(tmp0)
+val16=
+!for val17 =1 to $val9 
+tmp0=!append item $(val14[$val17])/$(val15[$val17]) to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!shuffle $val16
+
+tmp=!trim $val11	$(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!translate internal / to , in $(val10[1])
+
+val18=$(tmp0)
+tmp0=!translate internal / to , in $(val10[2])
+
+val19=$(tmp0)
+tmp0=!item $val7 of $val18,$val19
+
+val20=$(tmp0)
+val21=<HR noshade size=2>
+val22=60
+val23=<font size=+2>
+val24=</font>
+val25=2
+replytype1=numeric
+replyname1=$val6是
+replygood1=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()填充以下的$val6以得到等式:	<p><center><table border=0>	<tr>	<td align=center>$val23	 
+!if $val7=1 
+$() 
+!read oef/embed.phtml reply 1,$val25 
+$() 
+!else
+$() $(val18[1]) 
+!endif
+$()$val24</td>	<td align=center rowspan=3>$val23&nbsp;&nbsp;=&nbsp;&nbsp;$val24</td>	<td align=center>$val23	 
+!if $val7=3 
+$() 
+!read oef/embed.phtml reply 1,$val25 
+$() 
+!else
+$() $(val19[1]) 
+!endif
+$()$val24</td>	</tr><tr>	<td align=center width=$val22>$val21</td>	<td align=center width=$val22>$val21</td>	</tr><tr>	<td align=center>$val23	 
+!if $val7=2 
+$() 
+!read oef/embed.phtml reply 1,$val25 
+$() 
+!else
+$() $(val18[2]) 
+!endif
+$()$val24</td>	<td align=center>$val23	 
+!if $val7=4 
+$() 
+!read oef/embed.phtml reply 1,$val25 
+$() 
+!else
+$() $(val19[2]) 
+!endif
+$()$val24</td>		</tr></table></center>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,18,19,21,22,23,24,25
+embedcnt=4

@@ -1,0 +1,196 @@
+!set title=Produit d'un vecteur par un réel
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=yes
+precision=1000
+oefcss= <style> .disp_columns{ display: flex; flex-wrap: wrap; } </style> 
+
+ansorder=r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 3
+
+tmp1=!randint 4, 5
+
+tmp2=!randint 6, 8
+
+val6=$(tmp0),$(tmp1),$(tmp2)
+tmp0=!randint 0, 3
+
+tmp1=!randint 4, 5
+
+tmp2=!randint 6, 8
+
+val7=$(tmp0),$(tmp1),$(tmp2)
+val8=
+!for val9 =1 to 3 
+val10=$[rint($(val7[$val9])+4)]
+tmp0=!append item $val10 to $val8
+
+val8=$(tmp0)
+!next
+val11=A,B,C
+val12=E,F,G
+tmp0=!shuffle 3
+
+val13=$(tmp0)
+tmp0=!shuffle 3
+
+val14=$(tmp0)
+val15=\overrightarrow{$(val11[$(val13[1])])$(val11[$(val13[2])])}
+val16=\overrightarrow{$(val12[$(val14[1])])$(val12[$(val14[2])])}
+t_=!rawmath ($(val6[$(val13[2])])-$(val6[$(val13[1])]))/($(val8[$(val14[2])])-$(val8[$(val14[1])]))
+val17=!exec pari print($t_)
+t_=!rawmath 1/($val17)
+val18=!exec pari print($t_)
+tmp0=!texmath $val17
+
+val19=$(tmp0)
+tmp0=!texmath $val18
+
+val20=$(tmp0)
+
+!ifval abs($val17)>1
+val21= C'est \($val15) qui a la plus grande norme.
+!endif
+
+!ifval abs($val17)<1
+val21= C'est \($val16) qui a la plus grande norme.
+!endif
+
+!ifval abs($val17)>1
+val22= La valeur absolue du coefficient doit donc être supérieure à 1.
+!endif
+
+!ifval abs($val17)<1
+val22= La valeur absolue du coefficient doit donc être inférieure à 1.
+!endif
+val23=lightblue
+val24=400
+val25=400
+val26=0
+val27=12
+val28=0
+val29=8
+val30=$[rint($val26 + $val29 -($val28))]
+val31=$[rint($val26+4)]
+val32=$[rint($val31+$val29-$val28)]
+val33=linewidth 1	parallel 0,$val28,0,$val29,0.2,0,floor(5*($val27))+1,$val23	parallel 0,$val28,0,$val29,-0.2,0,floor(5*abs($val26))+1,$val23	parallel $val26,0,$val27,0,0,0.2,floor(5*($val29))+1,$val23	parallel $val26,0,$val27,0,0,-0.2,floor(5*abs($val28))+1,$val23	
+val34=linewidth 1	parallel 0,$val28,0,$val29,1,0,floor($val27+1),$val23	parallel 0,$val28,0,$val29,-1,0,floor(abs($val26)+1),$val23	parallel $val26,0,$val27,0,0,1,floor($val29+1),$val23	parallel $val26,0,$val27,0,0,-1,floor(abs($val28)+1),$val23	
+val35=xrange $val26-1,$val27+1	yrange $val28-1,$val29+1	$val34	segment $val26,$val28,$val30,$val29,red	segment $val31,$val28,$val32,$val29,blue	linewidth 5	points red,$(val6[1]),$(val6[1]),$(val6[2]),$(val6[2]),$(val6[3]),$(val6[3])	points blue,$(val8[1]),$(val7[1]),$(val8[2]),$(val7[2]),$(val8[3]),$(val7[3])	text red,$(val6[$(val13[1])])-0.5,$(val6[$(val13[1])]),medium,$(val11[$(val13[1])])	text red,$(val6[$(val13[2])])-0.5,$(val6[$(val13[2])]),medium,$(val11[$(val13[2])])	text red,$(val6[$(val13[3])])-0.5,$(val6[$(val13[3])]),medium,$(val11[$(val13[3])])	text blue,$(val8[$(val14[1])])-0.5,$(val7[$(val14[1])]),medium,$(val12[$(val14[1])])	text blue,$(val8[$(val14[2])])-0.5,$(val7[$(val14[2])]),medium,$(val12[$(val14[2])])	text blue,$(val8[$(val14[3])])-0.5,$(val7[$(val14[3])]),medium,$(val12[$(val14[3])])	
+val36=$val35
+replytype1=numexp
+replyname1=coeff
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="disp_columns">	  <div class="medium_size">	   <div>	    Les droites portant les points	    <span class="nowrap">
+!insmath A
+$(),</span> <span class="nowrap">
+!insmath B
+$(),</span> 
+!insmath C
+$() et <span class="nowrap">
+!insmath E
+$(),</span> <span class="nowrap">
+!insmath F
+$(),</span> 
+!insmath G
+$() sont parallèles.<br>	    Complétez l'égalité vectorielle suivante&nbsp;:	   </div>	   <div class="wimscenter">	      <label for="reply1">
+!insmath  $val15 =
+$()</label>   
+!read oef/embed.phtml r1,4 
+$() 
+!insmath $val16 
+$()	   </div>	  </div>	  <div class="medium_size">	    
+!read oef/draw.phtml $val24,$val25 \
+	   $val36	    
+$()	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1>0 and $val17<0
+ <div class='oef_feedbacks'>Attention : les vecteurs 
+!insmath $val15
+$() et 
+!insmath $val16
+$() sont de sens opposés,	le coefficient doit donc être négatif.
+$()</div>
+!endif
+!ifval $m_reply1<0 and $val17>0
+ <div class='oef_feedbacks'>Attention : les vecteurs 
+!insmath $val15
+$() et 
+!insmath $val16
+$() sont de même sens,	le coefficient doit donc être positif.
+$()</div>
+!endif
+!ifval $m_reply1==$val18 and abs($val17)!=1 
+ <div class='oef_feedbacks'> Attention : on a 
+!insmath $val15= $val19 $val16
+$() et 
+!insmath $val16 =  $val20 $val15
+$().	$val21	$val22
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,16,17,18,19,20,21,22,24,25,36
+embedcnt=1

@@ -1,0 +1,495 @@
+!set title=4. Tableau d'amortissement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=66
+prevarcnt=55
+postvarcnt=10
+replycnt=32
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim reply1, reply2
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 0, 20
+
+val7=$[rint($(tmp0))]
+val8=$[rint(1300+$val7*100)]
+tmp0=!randint 0, 20
+
+val9=$[rint($(tmp0))]
+val10=$[rint((1300+$val9*100)*12)]
+val11=$[rint($val8+$val10/12)]
+val12=$[rint($val11*33)]
+val13=$[$val12/100]
+tmp=!trim A,10,2.88	B,15,3.36	C,20,3.84	D,25,4.32
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val15=!translate internal $	\
+$ to ;; in $tmp
+val16=$[rint()]
+!for val17 =1 to 4 
+val16=$[rint($val13*(1-(1+$(val14[$val17;3])/100/12)^(-$(val14[$val17;2])*12))/($(val14[$val17;3])/100/12)*100)]
+val18=$[$val16/100]
+tmp=!trim $val15	$val18
+val15=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp=!trim A,10,2.88,$(val15[1;1])	B,15,3.36,$(val15[2;1])	C,20,3.84,$(val15[3;1])	D,25,4.32,$(val15[4;1])
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 4
+
+val19=$[rint($(tmp0))]
+val20=$[$(val14[$val19;3])/12/100]
+val21=$[$(val14[$val19;4])]
+val22=$[rint($(val14[$val19;4])*$val20*100)]
+val23=$[$val22/100]
+val24=$[$val13-$val23]
+val25=$[$val21-$val24]
+val26=$[rint($val25*$val20*100)]
+val27=$[$val26/100]
+val28=$[$val13-$val27]
+val29=$[$val25-$val28]
+val30=$[rint($val29*$val20*100)]
+val31=$[$val30/100]
+val32=$[$val13-$val31]
+
+!ifval $val19=1 
+val33=$[rint( 60)]
+!endif
+
+!ifval $val19=2 
+val33=$[rint( 90)]
+!endif
+
+!ifval $val19=3 
+val33=$[rint( 120)]
+!endif
+
+!ifval $val19=4 
+val33=$[rint( 150)]
+!endif
+val34=$[$val13-$(val14[$val19;4])*$val20]
+val35=$[rint($val34*(1+$val20)^($val33-1)*100)]
+val36=$[$val35/100]
+val37=$[$val13-$val36]
+val38=$[rint(($val13-$val34*(1+$val20)^($val33-1))/$val20*100)]
+val39=$[$val38/100]
+val40=$[$(val14[$val19;2])/2]
+val41=$[rint(2*$val33)]
+val42=$[rint($val24*(1+$val20)^($val41-1)*100)]
+val43=$[$val42/100]
+val44=$[$val13-$val43]
+val45=$[rint($val44/$val20*100)]
+val46=$[$val45/100]
+val47=$[rint(-$val24*(1-(1+$val20)^$val41)/$val20)]
+val48=$[$val41*$val13]
+val49=$[$val48-$val21]
+val50=$val21,$val23,$val24,$val13,$val25,$val27,$val28,$val29,$val31,$val32
+tmp0=!replace internal , by ; in $val50
+
+tmp=!trim $(tmp0)
+val51=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal . by , in $val51
+
+tmp=!trim $(tmp0)
+val52=!translate internal $	\
+$ to ;; in $tmp
+val53=Comment connaître sa capacité d'emprunt ?
+val54=Un jeune couple souhaite acheter une maison. Avant de rechercher le bien	 immobilier, mari et femme se rendent chez le banquier pour connaître leur capacité d'emprunt. La banque	 ne peut pas se permettre de réaliser des propositions hasardeuses. En effet  la loi impose les contraintes suivantes :	<ul><li>On ne peut pas emprunter plus de 33 % de ses revenus.</li>	<li>Un tableau d'amortissement doit être fourni pour que l'emprunteur visualise sa	 situation financière future.</li></ul>	Le mari a un salaire de $val8 &#8364; par mois.	<br />	La femme est imposable sur un revenu annuel de $val10 &#8364;.	
+dynsteps=yes
+oefsteps=$val6 
+nextstep=!nosubst $val6 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=Revenu mensuel du couple
+replygood1=$[$val11]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=Mensualité maximum
+replygood2=$[$val13]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=Taux mensuel
+replygood3=$[$val20]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=Montant emprunté le 1er mois
+replygood4=$[$val21]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=Intérêt le 1er mois
+replygood5=$[$val23]
+replytype6=numeric
+replyoption6=nonstop 
+replyname6=Amortissement le 1er mois
+replygood6=$[$val24]
+replytype7=numeric
+replyoption7=nonstop 
+replyname7=Mensualité le 1er mois
+replygood7=$[$val13]
+replytype8=numeric
+replyoption8=nonstop 
+replyname8=Capital restant dû le 2e mois
+replygood8=$[$val25]
+replytype9=numeric
+replyoption9=nonstop 
+replyname9=Intérêt le 2e mois
+replygood9=$[$val27]
+replytype10=numeric
+replyoption10=nonstop 
+replyname10=Amortissement le 2e mois
+replygood10=$[$val28]
+replytype11=numeric
+replyoption11=nonstop 
+replyname11=Mensualité le 2e mois
+replygood11=$[$val13]
+replytype12=numeric
+replyoption12=nonstop 
+replyname12=Capital restant dû le 3e mois
+replygood12=$[$val29]
+replytype13=numeric
+replyoption13=nonstop 
+replyname13=Intérêt le 3e mois
+replygood13=$[$val31]
+replytype14=numeric
+replyoption14=nonstop 
+replyname14=Amortissement le 3e mois
+replygood14=$[$val32]
+replytype15=numeric
+replyoption15=nonstop 
+replyname15=Mensualité le 3e mois
+replygood15=$[$val13]
+replytype16=numeric
+replyoption16=nonstop 
+replyname16=Capital restant dû le $val33 e mois
+replygood16=$[$val39]
+replytype17=numeric
+replyoption17=nonstop 
+replyname17=Intérêt le $val33 e mois
+replygood17=$[$val37]
+replytype18=numeric
+replyoption18=nonstop 
+replyname18=Amortissement le $val33 e mois
+replygood18=$[$val36]
+replytype19=numeric
+replyoption19=nonstop 
+replyname19=Mensualité le $val33 e mois
+replygood19=$[$val13]
+replytype20=radio
+replyoption20=shuffle nonstop 
+replyname20=Offre
+replygood20=2;oui,non
+replytype21=menu
+replyoption21=shuffle nonstop 
+replyname21=
+replygood21=1;intérêts,amortissements
+replytype22=menu
+replyoption22=nonstop 
+replyname22=
+replygood22=2;arithmétique,géométrique,quelconque
+replytype23=numeric
+replyoption23=nonstop 
+replyname23=1er terme \(U_1)
+replygood23=$[$val24]
+replytype24=numeric
+replyoption24=nonstop 
+replyname24=raison: q 
+replygood24=$[1+$val20]
+replytype25=numeric
+replyoption25=nonstop 
+replyname25=Capital restant dû le $val41 e mois
+replygood25=$[$val46]
+replytype26=numeric
+replyoption26=nonstop 
+replyname26=Intérêt le $val41 e mois
+replygood26=$[$val44]
+replytype27=numeric
+replyoption27=nonstop 
+replyname27=Amortissement le $val41 e mois
+replygood27=$[$val43]
+replytype28=numeric
+replyoption28=nonstop 
+replyname28=Mensualité le $val41 e mois
+replygood28=$[$val13]
+replytype29=numeric
+replyoption29=nonstop 
+replyname29=Somme des annuités
+replygood29=$[$val47]
+replytype30=radio
+replyoption30=shuffle nonstop 
+replyname30=
+replygood30=1;montant emprunté, total des intérêts, coût du crédits
+replytype31=numeric
+replyoption31=nonstop 
+replyname31=Total des sommes versées
+replygood31=$[$val48]
+replytype32=numeric
+replyoption32=nonstop 
+replyname32=Coût du crédit
+replygood32=$[$val49]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br />	<div class="encadre">	<div id="boited">	<img src="$val1/maison2.jpg" alt="Maison renversante" />	</div>	<div id="boiteg">	<img src="$val1/maison1.jpg" alt="Maison de luxe" />	</div>	<p class="problematique"> $val53</p>	<div class="enonce">$val54 <br /><br /></div>		
+!if $m_step=1 
+$()	<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 6</div>	Étude des mensualités maximum pour ce couple.	<br />	<ul><li>Calculer les revenus mensuels :   
+!read oef/embed.phtml reply1, 5 
+$() &#8364;</li>	<li>Déterminer la mensualité maximum :  
+!read oef/embed.phtml reply2, 5 
+$() &#8364; </li>	</ul>		</div> 
+!endif
+$()		
+!if $m_step=2 
+$()	<div class="solution">	<ul><li>Le revenu mensuel du couple est de $val11 &#8364;.</li>	<li>La mensualité maximum est de $val13 &#8364;.</li></ul>	</div>	Le banquier réalise l'offre suivante :	<ul><li>OFFRE $(val14[$val19;1]) : Un remboursement sur $(val14[$val19;2]) ans aux taux annuel de $(val14[$val19;3]) % permet d'emprunter	 $(val14[$val19;4]) &#8364;.</li></ul>	Calculer le taux mensuel : tm =  
+!read oef/embed.phtml reply3, 5 
+$()	<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 6</div>	Compléter à 0.01 près le tableau d'amortissement suivant :	<br /><br />	<table class="wimsenter wimsborder">	<tr>	<td><b>Période</b></td>	<td><b>Capital en &#8364;</b></td>	<td><b>Intérêt en &#8364;</b></td>	<td><b>Amortissement en &#8364;</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td><b><img src="$val1/attention.png" alt="Attention" /></b></td>	<td><b>Montant emprunté<br /> ou<br /> Capital restant dû = Capital 
+!insmath -
+$() Amortissement</b></td>	<td><b>Capital $m_times tm</b></td>	<td><b> Mensualité 
+!insmath -
+$() Intérêt</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td>1<sup>er</sup>mois</td>	<td> 
+!read oef/embed.phtml reply4, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply5, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply6, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply7, 7 
+$()</td>	</tr>	</table>	</div> 
+!endif
+$()		
+!if $m_step=3 
+$()	<div class="solution">	<ul><li>Le taux mensuel est : tm =$val20</li></ul>	</div>	Le banquier réalise l'offre suivante :	<ul><li>OFFRE $(val14[$val19;1]) : Un remboursement sur $(val14[$val19;2]) ans aux taux annuel de $(val14[$val19;3]) % permet d'emprunter	 $(val14[$val19;4]) &#8364;.</li></ul>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 6</div>	Compléter à 0.01 près le tableau d'amortissement suivant :	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td><b>Période</b></td>	<td><b>Capital en &#8364;</b></td>	<td><b>Intérêt en &#8364;</b></td>	<td><b>Amortissement en &#8364;</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td><b><img src="$val1/attention.png" alt="Attention" /></b></td>	<td><b>Montant emprunté<br /> ou<br /> Capital restant dû = Capital 
+!insmath -
+$() Amortissement</b></td>	<td><b>Capital $m_times tm</b></td>	<td><b> Mensualité 
+!insmath -
+$() Intérêt</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td>1<sup>er</sup>mois</td>	<td>$(val52[1;])</td>	<td>$(val52[2;])</td>	<td>$(val52[3;])</td>	<td>$(val52[4;])</td>	</tr>	<tr>	<td>2<sup>e</sup>mois</td>	<td> 
+!read oef/embed.phtml reply8, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply9, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply10, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply11, 7 
+$()</td>	</tr>	</table>	</div> 
+!endif
+$()		
+!if $m_step=4 
+$()	<ul><li>Le taux mensuel est : tm =$val20</li></ul>	Le banquier réalise l'offre suivante :	<ul><li>OFFRE $(val14[$val19;1]) : Un remboursement sur $(val14[$val19;2]) ans aux taux annuel de $(val14[$val19;3]) % permet d'emprunter	 $(val14[$val19;4]) &#8364;.</li></ul>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 6</div>	Compléter à 0.01 près le tableau d'amortissement suivant :	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td><b>Période</b></td>	<td><b>Capital en &#8364;</b></td>	<td><b>Intérêt en &#8364;</b></td>	<td><b>Amortissement en &#8364;</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td><b><img src="$val1/attention.png" alt="Attention" /></b></td>	<td><b>Montant emprunté<br /> ou<br /> Capital restant dû = Capital 
+!insmath -
+$() Amortissement</b></td>	<td><b>Capital $m_times tm</b></td>	<td><b> Mensualité 
+!insmath -
+$() Intérêt</b></td>	<td><b>Mensualité en &euro;</b></td>	</tr>	<tr>	<td>1<sup>er</sup>mois</td>	<td>$(val52[1;])</td>	<td>$(val52[2;])</td>	<td>$(val52[3;])</td>	<td>$(val52[4;])</td>	</tr>	<tr>	<td>2<sup>e</sup>mois</td>	<td>$(val52[5;])</td>	<td>$(val52[6;])</td>	<td>$(val52[7;])</td>	<td>$(val52[4;])</td>	</tr>	<tr>	<td>3<sup>e</sup>mois</td>	<td> 
+!read oef/embed.phtml reply12, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply13, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply14, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply15, 7 
+$()</td>	</tr>	</table>	</div> 
+!endif
+$()		
+!if $m_step=5 
+$()	<ul><li>Le taux mensuel est : tm =$val20</li></ul>	Le banquier réalise l'offre suivante :	<ul><li>OFFRE $(val14[$val19;1]) : Un remboursement sur $(val14[$val19;2]) ans aux taux annuel de $(val14[$val19;3]) % permet d'emprunter	 $(val14[$val19;4]) &euro;</li></ul>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 6</div>	Pour compléter à 0.01 près le tableau d'amortissement suivant, vous devez réaliser ce tableau avec un tableur :	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td><b>Période</b></td>	<td><b>Capital en &#8364;</b></td>	<td><b>Intérêt en &#8364;</b></td>	<td><b>Amortissement en &#8364;</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td><b><img src="$val1/attention.png" alt="Attention" /></b></td>	<td><b>Montant emprunté<br /> ou<br /> Capital restant dû = Capital 
+!insmath -
+$() Amortissement</b></td>	<td><b>Capital $m_times tm</b></td>	<td><b> Mensualité 
+!insmath -
+$() Intérêt</b></td>	<td><b>Mensualité en &euro;</b></td>	</tr>	<tr>	<td>1<sup>er</sup>mois</td>	<td>$(val52[1;])</td>	<td>$(val52[2;])</td>	<td>$(val52[3;])</td>	<td>$(val52[4;])</td>	</tr>	<tr>	<td>2<sup>e</sup>mois</td>	<td>$(val52[5;])</td>	<td>$(val52[6;])</td>	<td>$(val52[7;])</td>	<td>$(val52[4;])</td>	</tr>	<tr>	<td>3<sup>e</sup>mois</td>	<td>$(val52[8;])</td>	<td>$(val52[9;])</td>	<td>$(val52[10;])</td>	<td>$(val52[4;])</td>	</tr>	<tr>	<td>...<sup>e</sup>mois</td>	<td>...</td>	<td>...</td>	<td>...</td>	<td>...</td>	</tr>	<tr>	<td>$val33<sup>e</sup>mois</td>	<td> 
+!read oef/embed.phtml reply16, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply17, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply18, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply19, 7 
+$()</td>	</tr>	</table>	<br />	Au bout de $val40 ans, vous percevez la moitié de la somme empruntée.	<br />	Pouvez-vous rembourser votre crédit ?	<ul class="wims_nopuce">	 
+!for m_uuu=1 to 2 
+$()<li> 
+!read oef/embed.phtml reply20,\uuu 
+$()</li> 
+!next
+$()	</ul>	<span class="bold" style="text-decoration:underline">Conclusion :</span><span class="bold"> Au début du crédit, on rembourse essentiellement des  
+!read oef/embed.phtml reply21 
+$().</span>	</div> 
+!endif
+$()		
+!if $m_step=6 
+$()	<ul><li>Le taux mensuel est : tm =$val20</li></ul>	Le banquier réalise l'offre suivante :	<ul><li>OFFRE $(val14[$val19;1]) : Un remboursement sur $(val14[$val19;2]) ans aux taux annuel de $(val14[$val19;3]) % permet d'emprunter	 $(val14[$val19;4]) &#8364;.</li></ul>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 6</div>	Pour compléter à 0.01 près le tableau d'amortissement suivant, trouver la colonne qui se comporte comme une suite :	<br />	<br />	On définit ainsi une suite  
+!read oef/embed.phtml reply22 
+$() de premier terme 
+!insmath U_1
+$()=  
+!read oef/embed.phtml reply23, 5 
+$() et de raison  
+!read oef/embed.phtml reply24, 5 
+$().	<br class="spacer"/>	<b> Les quatre formules sur les suites sont données ci-desous :</b>	<br class="spacer"/>	<table class="wimscenter wimsborder">	<tr>	<td>Pour une <b>suite arithmétique</b>, la relation est donnée par :	<br />	
+!insmath \large{ U_n = U_1 + (n-1) \times r}
+$()	<br />	
+!insmath \large{S_k=U_1+ ... +U_k = k \frac{(U_1 + U_k)}{2}}
+$()	</td>	<td></td>	<td>Pour une <b>suite géométrique</b>, la relation est donnée par :	<br />	
+!insmath \large{ U_n = U_1 \times q^{n-1}}
+$()	<br />	
+!insmath \large{S_k=U_1+ ... +U_k = U_1 \frac{1-q^{k}}{1-q}}
+$()	</td>	</tr>	<tr><td></td><td></td><td></td></tr>	<tr>	<td>	<b>
+!insmath S_k
+$() : Somme des termes de rang 
+!insmath k
+$()</b>	<br />	<b>
+!insmath U_n
+$() : terme de rang 
+!insmath n
+$()</b>	<br />	<b>
+!insmath U_1
+$() : 1<sup>er</sup> terme</b>	<br />	<b>
+!insmath r
+$() : raison de la suite</b>	<br />	<b>
+!insmath n
+$() : rang de la suite</b>	<br />	</td>	<td></td>	<td>	<b>
+!insmath S_k
+$() : Somme des termes de rang 
+!insmath k
+$()</b>	<br />	<b>
+!insmath U_n
+$() : terme de rang 
+!insmath n
+$()</b>	<br />	<b>
+!insmath U_1
+$() : 1<sup>er</sup> terme</b>	<br />	<b>
+!insmath q
+$() : raison de la suite</b>	<br />	<b>
+!insmath n
+$() : rang de la suite</b>	<br />	</td>	</tr>	</table>	<br class="spacer"/>	<table class="wimscenter wimsborder">	<tr>	<td><b>Période</b></td>	<td><b>Capital en &#8364;</b></td>	<td><b>Intérêt en &#8364;</b></td>	<td><b>Amortissement en &#8364;</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td><b><img src="$val1/attention.png" alt="Attention" /></b></td>	<td><b>Montant emprunté<br /> ou<br /> Capital restant dû = Capital 
+!insmath -
+$() Amortissement</b></td>	<td><b>Capital $m_times tm</b></td>	<td><b> Mensualité 
+!insmath -
+$() Intérêt</b></td>	<td><b>Mensualité en &#8364;</b></td>	</tr>	<tr>	<td>1<sup>er</sup>mois</td>	<td>$(val52[1;])</td>	<td>$(val52[2;])</td>	<td>$val24</td>	<td>$val13</td>	</tr>	<tr>	<td>2<sup>e</sup>mois</td>	<td>$val25</td>	<td>$val27</td>	<td>$val28</td>	<td>$val13</td>	</tr>	<tr>	<td>3<sup>e</sup>mois</td>	<td>$val29</td>	<td>$val31</td>	<td>$val32</td>	<td>$val13</td>	</tr>	<tr>	<td>...<sup>e</sup>mois</td>	<td>...</td>	<td>...</td>	<td>...</td>	<td>...</td>	</tr>	<tr>	<td>$val33<sup>e</sup>mois</td>	<td>$val39</td>	<td>$val37</td>	<td>$val36</td>	<td>$val13</td>	</tr>	<tr>	<td>...<sup>e</sup>mois</td>	<td>...</td>	<td>...</td>	<td>...</td>	<td>...</td>	</tr>	<tr>	<td>$val41<sup>e</sup>mois</td>	<td> 
+!read oef/embed.phtml reply25, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply26, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply27, 7 
+$()</td>	<td> 
+!read oef/embed.phtml reply28, 7 
+$()</td>	</tr>	</table>	<br />	Calculer la somme de tous les termes de cette suite géométrique. Arrondir à l'unité.	<br />	<span class="wimscenter bold">U<sub>1</sub>+ ... +U<sub>$val41</sub> =  
+!read oef/embed.phtml reply29, 7 
+$()</span> 	<br />	<span class="bold" style="text-decoration:underline">Conclusion :</span><span class="bold"> Le résultat précédent correspond au </span>	<ul class="wims_nopuce">	 
+!for m_p=1 to 3 
+$()<li> 
+!read oef/embed.phtml reply30,\p 
+$()</li> 
+!next
+$()	</ul>	<span class="bold">	Le total des sommes versées à la banque est de :  
+!read oef/embed.phtml reply31, 7 
+$() &#8364;.	<br /><br />	Le coût d'ensemble du crédit est de :  
+!read oef/embed.phtml reply32, 7 
+$() &#8364;.	</span>	</div> 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!makelist r x for x = 3 to 7
+
+val55=$(tmp0)
+
+!ifval ($m_step=2)
+val6= $val55
+!endif
+tmp0=!makelist r x for x = 8 to 11
+
+val56=$(tmp0)
+
+!ifval ($m_step=3)
+val6= $val56
+!endif
+tmp0=!makelist r x for x = 12 to 15
+
+val57=$(tmp0)
+
+!ifval ($m_step=4)
+val6= $val57
+!endif
+tmp0=!makelist r x for x = 16 to 21
+
+val58=$(tmp0)
+
+!ifval ($m_step=5)
+val6= $val58
+!endif
+tmp0=!makelist r x for x = 22 to 32
+
+val59=$(tmp0)
+
+!ifval ($m_step=6)
+val6= $val59
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,11,13,14,19,20,24,25,27,28,29,31,32,33,36,37,39,40,41,52,53,54
+embedcnt=32

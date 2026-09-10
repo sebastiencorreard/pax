@@ -1,0 +1,126 @@
+!set title=Factorisation d'un polynôme de degré 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+keywords=factorization
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, -1
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 3
+
+val8=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in expand($val8*(x-$val6)*(x-$val7))
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val8*(x-$val6)*(x-$val7)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+val11=strictement croissante,strictement décroissante, ni croissante ni décroissante
+oefsteps=reply 1	reply 2 
+nextstep=!nosubst reply 1	reply 2 
+!readproc oef/steps.proc
+replytype1=fset
+replyname1=rac
+replygood1=$val6,$val7
+replytype2=algexp
+replyname2=fac
+replygood2=$val10
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction 
+!insmath f(x)=$val9
+$().	<div class="spacer">	
+!if $m_step=1 
+$()	Les solutions de l'équation 
+!insmath $val9=0
+$() sont:  
+!read oef/embed.phtml reply 1 
+$().	 
+!endif
+$()	
+!if $m_step=2 
+$()	Le polynôme 
+!insmath $val9
+$() s'écrit sous forme factorisée:  
+!read oef/embed.phtml reply 2 
+$().	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9
+embedcnt=2

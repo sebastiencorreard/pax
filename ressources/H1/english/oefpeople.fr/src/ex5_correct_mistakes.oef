@@ -1,0 +1,195 @@
+%Le source de cet exercice a été créé à l'aide de Quicktool.
+%Le type de l'exercice est SELECTWORD.
+% Vous pouvez le modifier si vous désirez l'adapter.
+
+\title{Correct the mistakes }
+\author{Csilla, Ducrocq}
+\email{csilla.ducrocq@u-psud.fr}
+\language{fr}
+\computeanswer{no}
+\format{html}
+\text{file=ex5_correct_mistakes}
+\text{file0=\file[1]}
+\text{instruction=asis(Find the mistakes and click on them
+(<i>Trouver les erreurs et cliquer dessus</i>).)}
+\text{instruction2=asis( Write the appropriate word to correct
+the mistakes
+ (<i>écrire le bon mot pour corriger les fautes</i>).)}
+\text{choice=}
+\text{audio_file=no}
+\text{reading_file=no}
+\text{image_file=no}
+\css{<style type="text/css">
+.question{background-color: #99ffff;
+margin: 2% 5%;
+padding: 1%;}
+.reponse{background-color: #FFCC99;
+color: black;
+margin: 2% 5%;
+padding: 0%;}
+ol li {list-style: upper-alpha; }
+</style>
+}
+\text{alea=yes}
+\text{size=12}
+\text{partialscore=}
+\text{percent=1}
+\text{instruction=\instruction issametext ? wims(getdef instruction in \file0)}
+\text{instruction2=\instruction2 issametext ? wims(getdef instruction2 in \file0)}
+\text{size=\size issametext ? wims(getdef size in \file0)}
+\text{reading_file=\reading_file issametext ? wims(getdef reading_file in \file0)}
+\text{reading = wims(record 0 of \reading_file)}
+
+\text{audio_file = \audio_file issametext ? wims(getdef audio_file in \file0)}
+\text{audio=\audio_file notsametext  and  \audio_file notsametext no?
+<p class="wimscenter">slib(media/audio \imagedir/\audio_file)</p>}
+
+\text{image_file=\image_file issametext ? wims(getdef image_file in \file0)}
+\text{image=\image_file notsametext  and  \image_file notsametext no?
+wims(makelist <img src="\imagedir/x" alt=""> for x in \image_file)}
+
+\text{video_file=\video_file issametext ? wims(getdef video_file in \file0)}
+\text{video=\video_file notsametext  and  \video_file notsametext no?
+<a wims_target=external href="\imagedir/\video_file">[video] </a></p>}
+
+peut ne servir à rien :
+\text{choix=\choice issametext ? wims(getdef choice in \file0):\choice}
+
+\text{format=case}
+\text{common=}
+\text{pos_rep=inside}
+\text{second_step=yes}
+\text{answer_given=yes}
+\text{try=1}
+\text{try =\try notwordof 1 2 3 4 5 6 7 8 9 10 ? 1}
+
+\integer{cnt_question= wims(recordcnt \file0)}
+\text{MAX=1}
+\text{N=1}
+\text{M=3}
+\integer{N = min(\cnt_question,\N)}
+\integer{MAX=min(\N*\MAX,\cnt_question)}
+
+\text{battage=\alea issametext yes ? shuffle(\cnt_question) :
+wims(makelist x for x = 1 to \cnt_question)}
+     \matrix{question=}
+\matrix{explication=}
+\text{juste=}
+\matrix{numero=}
+\matrix{analyse=}
+\text{cnt=}
+\text{texte=}
+\for{i= 1 to \N}{
+  \text{texte = \texte <br>
+  wims(record \battage[\i] of \file0)}
+}
+
+\text{texte=wims(embraced randitem \texte)}
+\matrix{texte=slib(text/markgroup \texte)}
+\matrix{numero=\texte[1..-4;]}
+\text{traduction=\texte[-2;]}
+\text{cnt_mot = rows(\numero)}
+\text{Numero = wims(rows2lines \numero)}
+\text{Numero = wims(lines2items \Numero)}
+\text{prem_numero=wims(column 1 of \numero)}
+\text{texte = \texte[-3;]}
+ne sert à rien actuellement
+\text{text = wims(replace internal | by , in \texte)}
+\text{cnt = items(\texte)}
+\text{Texte=wims(items2words \texte)}
+
+\text{rep_compose = }
+\for{ i = 1 to \cnt_mot}{
+ \text{nom_compose= \texte[\numero[\i;]]}
+ \text{nom_compose =wims(items2words \nom_compose)}
+\text{rep_compose = \rep_compose,\nom_compose}
+}
+\text{rep_compose= wims(nonempty items \rep_compose)}
+
+\text{STEP = wims(makelist r x for x = 2 to \cnt_mot+1)}
+\text{position=}
+\integer{a=0}
+\for{t = 1 to \cnt}{
+  \if{\t isitemof \prem_numero}{
+    \integer{a =\a+1}
+    \text{position=\position,\a}
+  }{
+    \text{position=\position,0}
+  }
+ }
+\text{position=wims(nonempty items \position)}
+
+\text{STEP1=r1}
+\text{STEP1=\second_step issametext yes ? \STEP1
+\STEP
+}
+
+\steps{\STEP1}
+
+%%%%%%%%%%%
+
+\statement{\instruction
+  \if{\reading notsametext }{\special{help reading,[à lire]}}
+  \if{\image notsametext }{\special{help image,[à regarder]}}
+  \audio\video
+  \if{\step=1}{
+    <div class="question">
+    \for{h=1 to \cnt}{
+      \embed{reply 1,\h}
+    }
+    </div>
+   }
+ \if{\step >=2 }{
+   \if{\pos_rep=outside}{
+     <div class="reponse">
+     \for{s = 1 to \cnt}{
+      \if{\s notitemof \Numero}{\texte[\s]}{
+      \if{\s isitemof \Numero}{
+      <span class="larger" style="color:blue">\texte[\s]</span>}
+      }
+    }
+    </div>
+     <div>\instruction2</div>
+    <div class="question">
+   \for{s= 1 to \cnt_mot}{
+         <br> \rep_compose[\s] : \embed{reply \STEP[\s],\size}
+   }
+   </div>
+ }
+ {
+    <div class="question">
+       <p>\instruction2</p>
+    \for{s = 1 to \cnt}{
+      \if{\s notitemof \Numero}{\texte[\s]}{
+      \if{\s isitemof \prem_numero}{
+      \embed{\STEP[\position[\s]], \size}
+      }
+      <span class="smaller" style="color:red">\texte[\s]</span>}
+    }
+   </div>
+  }
+ }
+}
+
+\answer{}{\Numero;\texte}{type=mark}{option=\partialscore}
+\answer{\rep_compose[1]}{\traduction[1]}{type=\format}
+\answer{\rep_compose[2]}{\traduction[2]}{type=\format}
+\answer{\rep_compose[3]}{\traduction[3]}{type=\format}
+\answer{\rep_compose[4]}{\traduction[4]}{type=\format}
+\answer{\rep_compose[5]}{\traduction[5]}{type=\format}
+\answer{\rep_compose[6]}{\traduction[6]}{type=\format}
+\answer{\rep_compose[7]}{\traduction[7]}{type=\format}
+\answer{\rep_compose[8]}{\traduction[8]}{type=\format}
+\answer{\rep_compose[9]}{\traduction[9]}{type=\format}
+\answer{\rep_compose[10]}{\traduction[10]}{type=\format}
+\answer{\rep_compose[11]}{\traduction[11]}{type=\format}
+\answer{\rep_compose[12]}{\traduction[12]}{type=\format}
+\answer{\rep_compose[13]}{\traduction[13]}{type=\format}
+\answer{\rep_compose[14]}{\traduction[14]}{type=\format}
+\answer{\rep_compose[15]}{\traduction[15]}{type=\format}
+\answer{\rep_compose[16]}{\traduction[16]}{type=\format}
+\answer{\rep_compose[17]}{\traduction[17]}{type=\format}
+\answer{\rep_compose[18]}{\traduction[18]}{type=\format}
+\answer{\rep_compose[19]}{\traduction[19]}{type=\format}
+\answer{\rep_compose[20]}{\traduction[20]}{type=\format}
+

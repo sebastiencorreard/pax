@@ -1,0 +1,139 @@
+target=droite1
+
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\format{html}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+%% couleur des grilles
+\text{gridcolor=lightblue}
+
+%%# cadre générique %%#
+\text{dimh=400}
+\text{dimv=400}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.2,0.7,medium,j
+text black,-0.2,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.2,-0.2,large,x
+text black,-0.2,\ymax-0.2,large,y}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+%% fin du cadre générique %%
+
+%% fabrication d'une droite à dessiner dans le cadre %%
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+}{
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+}
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+}{
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+}
+\text{coeffDir=maxima((\y2-(\y1))/(\x2-(\x1));)}
+\text{f=\y1+(\coeffDir)*(x-(\x1))}
+\text{afRep=texmath(\coeffDir)}
+\integer{xBA=\x2-\x1}
+\integer{yBA=\y2-\y1}
+
+%% dessin de la droite %%
+\text{vari=shuffle(3)}
+\text{couleurs=red,orange,green}
+\text{graph=
+\cadre
+linewidth 2
+plot \couleurs[\vari[1]],\f
+}
+
+%%%%%% enoncé de l'exo %%%%%%
+style="background-color:lightblue"
+\statement{
+<div>
+  \name_enonce \((O,i,j)\).
+  <br>
+  \name_question \NameCoul[\vari[1]]?
+</div>
+<div class="wimscenter">
+  \draw{\dimh,\dimv}{
+	\graph
+	}
+	</div>
+	<span style="background-color:lightblue">
+	<label for="reply1">\name_question2:</label> \embed{reply 1,10}.
+	</span>
+}
+%%%%# collecte de la réponse de l'utilisateur %%%%#
+\reply{}{\coeffDir}
+
+%% Aide ou rappel %%
+\hint{
+  Vous pouvez utiliser le théorème suivant en prenant pour
+  \(A\) et \(B\) deux points appropriés du plan.
+  <p style="background-color:wheat">
+  <b>Théorème:</b> Soient \(A(x_{A},y_{A})\) et
+  \(B(x_{B},y_{B})\) deux points du plan.
+  <br>
+  Si \(x_{A}\neq x_{B}\), alors la droite \((A B)\) a pour coefficient directeur
+  \(m=\frac{y_B-y_A}{x_B-x_A}\).
+  </p>
+}
+%% Une solution rédigée si on n'a pas trouvé la bonne réponse %%
+\solution{
+  Voici un
+  <span class="bold" style="color:darkcyan"">exemple de rédaction</span> de la solution:
+  <br>
+  Pour calculer le coefficient directeur de la droite \(D\), nous allons appliquer le
+  théorème suivant avec les points \(A(\x1,\y1)\) et \(B(\x2,\y2)\) qui sont
+  sur \(D\).
+  <p style="background-color:wheat">
+  <b>Théorème:</b> Soient \(A(x_{A},y_{A})\) et
+  \(B(x_{B},y_{B})\) deux points du plan.
+  <br>
+  Si \(x_{A}\neq x_{B}\), alors la droite \((AB)\) a pour coefficient directeur
+  \(m=\frac{y_B-y_A}{x_B-x_A}\).
+  </p>
+  On trouve \(y_B-y_A=\yBA\), \(x_B-x_A=\xBA\), donc le coefficient directeur de la
+  droite en question est \(m=\afRep\).
+}

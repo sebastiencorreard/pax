@@ -1,0 +1,240 @@
+!set title=Évolutions successives 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Fabien, Sommier
+email=regine@mangeard.fr,fabien.sommier@gmail.com
+precision=100
+
+ansorder=r
+varcnt=49
+prevarcnt=46
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=augmenter,baisser
+val8=hausse,baisse
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1000, 3000
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val11=$[rint($(tmp0))]
+
+!ifval $val9=1
+val12=$[1+$val11/100]
+!else
+val12=$[1-$val11/100]
+!endif
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val14=$[rint($(tmp0))]
+
+!ifval $val13=1
+val15=$[1+$val14/100]
+!else
+val15=$[1-$val14/100]
+!endif
+val16=$[$val12*$val15]
+!if $val16=1 
+val13=$[rint(3-$val13)]
+
+!ifval $val13=1
+t_=!rawmath 1+$val14/100
+val15=!exec pari print($t_)
+!else
+t_=!rawmath 1-$val14/100
+val15=!exec pari print($t_)
+!endif
+t_=!rawmath $val12*$val15
+val16=!exec pari print($t_)
+!endif
+
+!ifval $val16>1
+val17=$[rint(1)]
+!else
+val17=$[rint(2)]
+!endif
+val18=$[($val16-1)*100]
+
+!ifval $val17=1
+val19=$[($val16-1)*100]
+!else
+val19=$[(1-$val16)*100]
+!endif
+t_=!rawmath $val10*$val16
+val20=!exec pari print($t_)
+val21=$[rint($val20)]
+val22=$[round($val20*100)/100]
+!readproc slib/numeration/ecriturenombre $val19,comma tex 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val16,comma tex 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val12,comma tex 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val15,comma tex 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val22,comma tex 
+tmp0=$slib_out
+val27=$(tmp0)
+!if $val22!=$val20 
+val28=euros (valeur arrondie au centime).
+!else
+val28=euros.
+!endif
+
+!ifval $val9=1
+val29=\(CM1= 1+\frac{$val11}{100}\) 
+!else
+val29= \(CM1= 1-\frac{$val11}{100}\) 
+!endif
+
+!ifval $val13=1
+val30=\(CM2= 1+\frac{$val14}{100}\) 
+!else
+val30= \(CM2= 1-\frac{$val14}{100}\) 
+!endif
+val31=<span class="nowrap">\(CM= CM1 \times CM2\).</span><br> <span class="nowrap">\(CM= $val24\).</span>
+val32=<p>Dans le cas d'évolutions successives, on peut calculer les différents coefficients multiplicateurs	associés aux différentes évolutions, puis calculer le coefficient multiplicateur global.</p>	<p>Appelons CM1 le coefficient multiplicateur correspondant à la première évolution et CM2 celui de la deuxième.</p>	<p> $val29 d'où \(CM1 = $val25\) et $val30 d'où <span class="nowrap">\(CM2 = $val26\).</span> </p>	<p> Le coefficient multiplicateur global est $val31</p>
+val15=$[1/ ($val12)]
+val33=$[round($val15*10000)/10000]
+
+!ifval $val9=2
+val14=$[($val15-1)*100]
+!else
+val14=$[(1-$val15)*100]
+!endif
+val34=$[($val15-1)*100]
+val35=$[round($val34*100)/100]
+val36=$[round($val14*100)/100]
+!readproc slib/numeration/ecriturenombre $val33,comma tex 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val36,comma tex 
+tmp0=$slib_out
+val38=$(tmp0)
+!if $val15=$val33 
+val39=<span class="nowrap">\(CM2=$val37\).</span>
+val40=<span class="nowrap">\(t=$val38\) %.</span>
+!else
+val39=\(CM2=$val37\) (valeur arrondie au dix-millième).
+val40=<span class="nowrap">\(t=$val38\) %</span> (valeur arrondie au centième).
+!endif
+
+!ifval $val9=2
+val41=positif car il s'agit d'une hausse 
+!else
+val41= négatif car il s'agit d'une baisse (de <span class="nowrap">\($val38\) %</span>)
+!endif
+val32=<p>Dans le cas d'évolutions successives, on peut calculer les différents coefficients multiplicateurs	associés aux différentes évolutions, puis calculer le coefficient multiplicateur global.</p>	<p>Appelons CM1 le coefficient multiplicateur correspondant à la première évolution, CM2 celui de la deuxième	et CM le coefficient multiplicateur global.</p>	<p>Le bien $(val6[$val9]) de <span class="nowrap">\($val11\) %</span> donc $val29 ce qui donne <span class="nowrap">\(CM1=$val25\).</span>	<br>Au bout des deux évolutions successives, le bien revient à son prix initial donc <span class="nowrap">\(CM=1\)</span>.	<br>On cherche donc à déterminer CM2 tel que <span class="nowrap">\(CM1 \times CM2 = 1\).</span>	<br>On en déduit que \(CM2 = \frac{1}{CM1}\) ce qui donne $val39</p>
+val32=$val32 <p>	  Soit \(t\) l'évolution en pourcentage correspondante.<br> \(t=(CM2-1)\times 100\) ce qui donne $val40	<br>	<i>Remarque</i> : le taux est $val41.</p>	
+replytype1=numexp
+replyname1=
+replygood1=?analyze 42
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	  Si un bien $(val6[$val9]) de <span class="nowrap">
+!insmath $val11
+$() %,</span> de combien doit-il $(val7[3-$val9]) pour	  revenir à son prix initial&nbsp;?	</p>	<div class="wimscenter"><label for="reply1">Il doit $(val7[3-$val9]) de</label> <span class="nowrap"> 
+!read oef/embed.phtml reply1,6 
+$() %.</span></div>	<div class="wims_instruction">Arrondir à 0.01&nbsp;%.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$m_sol2 $val32
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val43=$[abs($val42-$val36)]
+
+!ifval $val43 >=0.01
+val44= 1
+!else
+val44=0
+!endif
+
+!exit
+
+:feedback
+!ifval $val43<=1 and $val43!=0
+ <div class='oef_feedbacks'>Vous avez sans doute effectué le bon calcul mais vous avez mal arrondi le résultat.
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=19 
+
+!ifval $val43<=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Le raisonnement semble correct&nbsp;
+condweight2=1 
+
+!ifval $val43=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=La réponse est correctement arrondie au centième&nbsp;
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,32,36,42
+embedcnt=1

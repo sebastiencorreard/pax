@@ -1,0 +1,153 @@
+target=canon8,canoniq
+\language{fr}
+\range{-5..5}
+\author{Rémi, Belloeil}
+\email{remi.belloeil@orange.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+#if defined TARGET_canon8
+\title{Forme canonique avec choix de la méthode}
+#define TYPE 2
+%%Plusieurs méthodes sont proposées et peuvent être consultées sans réponses intermédiaires%%
+#endif
+
+#if defined TARGET_canoniq
+\title{Forme canonique avec choix de la méthode et réponses}
+#define TYPE 1
+%%Plusieurs méthodes sont proposées et l'une peut être développée avec des réponses intermédiaires%%
+#endif
+
+%% Liste des méthodes et icones %%
+\text{\list=1,6,5,7,8}
+\text{\list2=1,6,7,8,9}
+#include "methode.inc"
+
+\integer{a=random(-1,1)*randint(2..7)}
+\integer{xS=randint(-10..-1,1..10)}
+\integer{yS=randint(-50..50)}
+
+\integer{b1=-2*\xS}
+\integer{b=\a*\b1}
+\integer{c1=(\xS)^2}
+\integer{c2=\a*\c1}
+\integer{c=\c2+\yS}
+\if{\c<0}{\text{t=&nbsp;}}{\text{t=+}}
+\function{fc=\a*(x-\xS)^2+\yS}
+\function{fd=\a*x^2+\b*x+\c}
+\function{f1=x^2+\b1*x}
+
+\function{g=a*(x-x_S)^2+y_S}
+\function{gd=a*x^2-2*a*x_S*x+a*x_S^2+y_S}
+\function{gc=x^2-2*x_S*x+x_S^2}
+\function{g0=a*x_S^2+y_S}
+\function{g1=-2*a*x_S}
+
+\integer{M1=0}
+\integer{M2=0}
+\integer{M3=0}
+\integer{M4=0}
+
+\text{W=}
+\text{ETAPE = r1}
+\text{COND = 1}
+\nextstep{\ETAPE}
+\conditions{\COND}
+
+\statement{
+<p> On veut déterminer la forme canonique \(\g) de \(\fd).</p>
+\if{\step=1}{
+#include "listmeth.inc"
+}
+\if{\step>1}{
+  \if{\W != répondre}{
+    <p>Voir ci-dessous l'aide pour la méthode "\W" choisie.</p>
+  }
+ \if{\W=courbe}{<ul>
+    <li>Réaliser la courbe de la fonction \(f) définie par \(f(x)=\fd) sur papier ou l'afficher avec sa calculatrice.</li>
+    <li>Repérer le sommet de la parabole.</li>
+    <li>Noter son abscisse \(x_S) et son ordonnée \(y_S).</li>
+    <li>Noter l'ordonnée \(y_T) du point d'abscisse \(x_S+1)</li>
+    <li>La différence \(y_T-y_S) donne le coefficient \(a) que l'on retrouve aussi dans la forme développée.</li>
+    <li>Noter la forme canonique \(a*(x-x_S)^2+y_S) en remplaçant \(a), \(x_S) et \(y_S) par les valeurs trouvées.</li>
+    </ul>
+  }
+ \if{\W=résoudre}{
+    <p>La forme canonique est : \(\g=\gd)</p>
+    <p>Pour que \(\gd= \fd) pour tout réel \(x) de \(\ \RR), il faut et il suffit que :</p>
+    <div class="wimscenter">
+    \(\begin{cases}
+      a&=\a\\\
+      -2a x_S&=\b \\\
+      a x_S^2+y_S&=\c
+      \end{cases}\)
+    </div>
+    <p>En déduire les valeurs de \(a), \(x_S) et \(y_S).</p>
+    <p>Puis la forme canonique de \(\fd).</p>
+  }
+  \if{\W=factoriser}{<ul>
+    <li>On remarque que :
+    \(\fd=\a*(\f1)+\c)</li>
+    <li>Et que \(\f1) est le début du développement d'un carré \((x-x_S)^2=\gc) ; ce qui donne \(x_S).</li>
+    <li>En ajoutant et en retranchant le terme manquant de \((x-x_S)^2) multiplié par \a, on peut faire apparaître \(a(x-x_S)^2).</li>
+    <li>Il reste un terme égal à \(-\a*x_S^2+\c) qui est aussi \(y_S=f(x_S)).</li>
+    <li>Le coefficient \(a) du carré est le même dans l'expression développée et dans l'expression factorisée.</li>
+    <li>On détermine ainsi la forme canonique \(\g).</li>
+    </ul>
+  }
+  \if{\W=formules}{<ul>
+    <li>La forme canonique est : \(\g=\gd).</li>
+    <li>Pour qu'elle soit égale à \(a'*x^2+b*x+c), il faut et il suffit que :
+    <div class="wimscenter">
+    \(\begin{cases}
+      a&=a'\\\
+      -2a x_S&=b \\\
+      a x_S^2+y_S&=c
+      \end{cases}\)
+    </div></li>
+    <li>On en déduit que \(x_S=-\frac{b}{2a}).</li>
+    <li>Mais en fait \(x_S) l'abscisse du sommet de la parabole et \(y_S) son ordonnée.</li>
+    <li>Ainsi \(y_S=f(x_S)=a*x_S^2+b*x_S+c).</li>
+    <li>Calculer les valeurs de \(a), \(x_S) et \(y_S) et noter la forme canonique \(\g) pour
+    répondre à la question.</li>
+    </ul>
+  }
+#if defined TARGET_canon8
+\if{\W != répondre}{
+  <p>Choisir ensuite soit <b>une autre aide</b> soit de <b>répondre aux questions</b>.</p>
+  <ul class="wims_nopuce">
+  <li>\embed{reply1,1,<img src="\imagedir/\ListImage[1]" alt="\Listdesc[1]">} \bch1</li>
+  \if{\M1<1}{<li>\embed{reply1,2,<img src="\imagedir/\ListImage[2]" alt="\Listdesc[2]">} \bch2</li>}
+  \if{\M2<1}{<li>\embed{reply1,3,<img src="\imagedir/\ListImage[3]" alt="\Listdesc[3]">} \bch3</li>}
+  \if{\M3<1}{<li>\embed{reply1,4,<img src="\imagedir/\ListImage[4]" alt="\Listdesc[4]">} \bch4</li>}
+  \if{\M4<1}{<li>\embed{reply1,5,<img src="\imagedir/\ListImage[5]" alt="\Listdesc[5]">} \bch5</li>}
+  </ul>
+}
+#endif
+#if defined TARGET_canoniq
+\if{\W != répondre}{
+  <div class="wims_question"><label for="reply3">\(a\)=</label>\embed{reply 3,8}
+  <label for="reply4">\(x_S\)=</label>\embed{reply 4,8}
+  <label for="reply5">\(y_S\)=</label>\embed{reply 5,8}</div>
+  }
+  <div class="wims_question"><label for="reply2">La forme canonique de \(\fd) est </label>
+  \embed{reply2,15}.</div>
+#endif
+#if defined TARGET_canon8
+  \if{\W = répondre}{
+  <div class="wims_question"><label for="reply3">La forme canonique de \(\fd) est</label>
+  \embed{reply2,15}.</div>
+  }
+#endif
+ }
+}
+
+#include "reponses.inc"
+
+\solution{
+<ul>
+<li>Le sommet de la parabole a pour coordonnées \(x_S=\xS) et \(y_S=\yS).</li>
+<li>Le coefficient du carré est \(a=\a).</li>
+<li>La forme canonique est \(\fc).</li>
+</ul>
+}

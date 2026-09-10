@@ -1,0 +1,34 @@
+target=Intersectiondr
+\language{fr}
+\range{-5..5}
+\author{XIAO,Gang}
+\email{xiao@unice.fr}
+\computeanswer{no}
+\format{html}
+\precision{100000}
+#include "lang_titles.inc"
+#include "lang.inc"
+\integer{a1=random(-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7)*3}
+\integer{b1=3*random(1..6)+random(1,2)}
+\integer{a2=3*random(-7,-6,-5,-4,-3,-2,1,2,3,4,5,6)+random(1,2)}
+\integer{b2=random(2..20)}
+\integer{c1=random(-10..10)}
+\integer{c2=random(-10..10)}
+\text{s1=random(+,-)}
+\text{s2=random(+,-)}
+\integer{sb1=\s1\b1}
+\integer{sb2=\s2\b2}
+\real{det=(\a1)*(\sb2)-(\sb1)*(\a2)}
+\real{x=((\c1)*(\sb2)-(\c2)*(\sb1))/(\det)}
+\real{y=((\c2)*(\a1)-(\c1)*(\a2))/(\det)}
+
+\statement{\name_instruction
+<div class="wimscenter">
+\(\left\lbrace \begin{align*}
+\a1 x \s1 \b1 y &= \c1 \\\ \a2 x \s2 \b2 y &= \c2
+\end{align*}\right.\)
+</div>
+\name_question}
+
+\answer{x}{\x}
+\answer{y}{\y}

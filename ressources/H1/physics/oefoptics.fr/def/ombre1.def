@@ -1,0 +1,173 @@
+!set title=Ombre 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+
+ansorder=r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oui,non
+val7=aucune
+val8=Pour s'aider, il est possible de tracer un segment.	  Il n'en sera pas tenu compte dans la notation.
+val9=On éclaire une sphère avec une source lumineuse ponctuelle
+val10=Quelle est la source lumineuse qui permet d'obtenir	  l'ombre portée à l'endroit repéré sur l'écran&nbsp;
+val11=Source lumineuse
+tmp0=!randint 2, 3
+
+val12=$(tmp0)
+tmp0=!shuffle 4
+
+val13=$(tmp0)
+tmp0=!shuffle A,B,C,D,E,F
+
+val14=$(tmp0)
+val14=$(val14[1..$val12+1])
+tmp0=!randint 100, 140
+
+val15=$(tmp0)
+tmp=!nonempty items 140,160,170
+
+tmp0=!randitem $tmp
+val16=$[$val15+$(tmp0)]
+val15=$[pi/180*$val15]
+val16=$[pi/180*$val16]
+t_=!replace internal \( by ( in [cos($val15),sin($val15)]
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+t_=!replace internal \( by ( in [cos($val16),sin($val16)]
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in [$(val18[2])-($(val17[2])),$(val17[1])-($(val18[1]))]/sin($val16-($val15))
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+val20=$[$(val19[1])-2]
+val21=10
+val22=$val19
+!for val23 =1 to $val12 
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val24=$(tmp0)
+val25=$[$(val19[2])+2*$val24*$(val13[$val23])]
+val22=$val22,$(val19[1]),$val25
+val21=$[max($val21,$val25)]
+val20=$[min($val20,$val25)]
+!next
+t_=!replace internal \( by ( in [floor($val20),ceil($val21)]
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+val27=$[$(val26[2])-1]
+t_=!replace internal \( by ( in floor([$val27,(1-($(val17[1]))*$val27)/($(val17[2]))]*1000)/1000.
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in floor([$val27,(1-($(val18[1]))*$val27)/($(val18[2]))]*1000)/1000.
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+val20=$[min($(val26[1]),min($(val28[2]),$(val29[2])))]
+val21=$[max($(val26[2]),max($(val28[2]),$(val29[2])))]
+t_=!replace internal \( by ( in [floor($val20),ceil($val21)]
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+val30=
+val31=
+!for val23 =1 to $val12+1 
+val30=$val30	string black,$(val22[2*$val23-1])-1,$(val22[2*$val23]),$(val14[$val23])
+!next
+!for val23 =1 to $val12+1 
+val31=$val31	text black,$(val22[2*$val23-1])-1,$(val22[2*$val23]),medium,$(val14[$val23])
+!next
+val32=linewidth 4	segments black,$val28,$val29
+val33=linewidth 1	arrow $val19,$val28,10,black,	arrow $val19,$val29,10,black
+t_=!replace internal \( by ( in ([$val17]+[$val18]+[$val28]+[$val29])/4
+tmp0=!exec pari $t_
+
+val34=linewidth 1	segments black,$val17,$val28,$val18,$val29	fill $(tmp0),lightgrey	
+val35=xrange $val26	yrange $val26	vline $val27,0,black	textup black,$val27,$(val26[1]),large,Ecran	linewidth 1	crosshairs black,$val22	filled	circles black,0,0,1
+val35=$val35	$val32
+val36=$[rint(1)]
+replytype1=radio
+replyoption1=shuffle 
+replyname1=$val11
+replygood1=$val36;$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val9.	   
+!read oef/canvasdraw.phtml 400,400 \
+$val35	  $val30	linewidth 1	userdraw segment, blue 
+$()	  $val10?	  <div class="wims_instruction">$val8</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><div class="wimscenter">	   
+!read oef/draw.phtml 400,400 \
+$val35	$val34	$val33	$val31 
+$()</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,30,31,33,34,35
+embedcnt=0

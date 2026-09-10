@@ -1,0 +1,188 @@
+!set title=Règle et fractions 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_es=Regla y fracciones 1
+title_nl=Getallenlijn en breuken 1
+
+ansorder=r,r
+varcnt=39
+prevarcnt=37
+postvarcnt=1
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=La flèche pointe sur une graduation ou une demi-graduation.
+val8=Voici la droite graduée. Le point indiqué par la flèche sur la droite graduée	  a comme abscisse le quotient de deux entiers. Il s'agit de
+val9=Numérateur,dénominateur
+val10=Vous n'avez pas simplifié la fraction.
+val11=Une solution est
+val12=Consigne
+!if $val6=es 
+val7=La flèche pointe sur une graduation ou une demi-graduation.
+val8=Aquí tiene una recta graduada. El punto indicado por la flecha sobre la recta graduada	  tiene como abscisa al cociente de dos enteros. Se trata de 
+val9=numerador,denominador
+val10=No ha simplificado la fracción..
+val11=Una solución es
+val12=Instrucciones
+!endif
+!if $val6=nl 
+val7=Het pijltje op de schaalverdeling of onderverdeling.
+val8=Zie de getallenlijn. Het punt -aangegeven met een pijl- 	heeft de quoti&euml;nt van twee gehele getallen. Het zijn : 
+val9=Teller,noemer
+val10=Je hebt de breuk niet vereenvoudigd.
+val11=De oplossing is
+val12=Volgorde
+!endif
+val13=$[rint(6)]
+val14=$[rint(0)]
+val15=$[rint(1)]
+val16=0
+val17=
+!for val18 =$val14 to $val13 
+val16=$[rint($val18*1)]
+val19=$[rint($val18)]
+val17=$val17	  text blue, $val19,-1, medium,$val16
+!next
+tmp=!nonempty items 2,4,5
+
+tmp0=!randitem $tmp
+val20=$(tmp0)
+tmp0=!randint 1, 10
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in divrem($val21,$val20)~[2]
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+!while $val22=0 
+val20=$[rint($val20*$val20)]
+t_=!replace internal \( by ( in divrem($val21,$val20)~[2]
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+!endwhile
+t_=!rawmath $val15*$val21/$val20
+val16=!exec pari print($t_)
+t_=!replace internal \( by ( in [numerator($val16),denominator($val16)]
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+val17=xrange $val14-0.1,$val13+0.1	  yrange -2,2.2	  hline black,0,0	  arrow 2.5,0,$val13,0,10,black	  parallel $val14,-0.8,$val14,0.4,1/2,0, 40, blue	  parallel $val14,-0.3,$val14,0.3,1/10,0, 200, blue	  parallel $val14,-0.8,$val14,0.6,1,0, 40, red	  $val17	  arrow $val16,2,$val16,0, 8, black	
+!readproc oef/drawtikz.phtml 600,50 \
+$val17 
+tmp0=$ins_tikz
+val24=$(tmp0)
+replytype1=numeric
+replyoption1=noanalyzeprint 
+replyname1=$(val9[1])
+replygood1=?analyze 25
+replytype2=numeric
+replyoption2=noanalyzeprint 
+replyname2=$(val9[2])
+replygood2=?analyze 26
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val8 \begin{center} $val24 \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val8	  <table class="wimscenter wimsnoborder">	  <tr><td> 
+!read oef/embed.phtml reply 1,6 
+$()</td></tr>	  <tr><td><hr></td></tr>	  <tr><td> 
+!read oef/embed.phtml reply 2,6 
+$()</td></tr>	  </table>	  <div class="wimscenter"> 
+!read oef/draw.phtml 600,50 \
+$val17 
+$()	  </div>	  
+!if $val7!= 
+$()	    <div class="wims_instruction">	    <span style="font-weight:bold;">$val12</span>.	    $val7	    </div>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val8 $m_begin{center} $val24 $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:postdef
+
+!ifval round($m_reply1)=$m_reply1 
+val27= 1
+!else
+val27=0
+!endif
+
+!exit
+
+:feedback
+!ifval $m_reply1/$m_reply2!=$val16 or $val27=0
+ <div class='oef_feedbacks'>$val11 
+!insmath \frac{$(val23[1])}{$(val23[2])}
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val27=1 and $m_reply1/$m_reply2=$val16
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonne réponse ?
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,16,17,23,24,25,26
+embedcnt=2

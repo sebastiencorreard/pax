@@ -1,0 +1,70 @@
+\title{QCM 2: choix à 1 operation}
+\author{Jean-Philippe, Colpin}
+\email{jp.colpin@laposte.net}
+
+\integer{tot=5}
+\precision{10000}
+\real{prix_litre=randint(160..175)/100}
+\integer{nbr_litres=randint(5..10)}
+\text{explain=<p>Dans une station service, un litre d'essence coûte \prix_litre &euro;.
+ Paul met \nbr_litres L dans le réservoir de son scooter.</p>
+ Choisir l'opération qui donne la somme qu'il a dépensée.
+}
+
+\integer{givetrue=1}
+\integer{minfalse=2}
+\matrix{datatrue=\nbr_litres &times; \prix_litre}
+\matrix{datafalse=
+\nbr_litres &minus; \prix_litre
+\prix_litre &minus; \nbr_litres
+\nbr_litres + \prix_litre
+\nbr_litres : \prix_litre
+\prix_litre : \nbr_litres }
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\text{datatrue=wims(nonempty rows \datatrue)}
+\text{datafalse=wims(nonempty rows \datafalse)}
+\integer{truecnt=rows(\datatrue)}
+\integer{falsecnt=rows(\datafalse)}
+\integer{givetrue=\givetrue<1?1}
+\integer{givetrue=\givetrue>\truecnt?\truecnt}
+\integer{tot=\tot > \falsecnt+\givetrue?\falsecnt+\givetrue}
+\integer{givetrue=\givetrue>\tot-1?\tot-1}
+\integer{minfalse=\minfalse>\tot-\givetrue?\tot-\givetrue}
+\text{tsh=shuffle(\truecnt)}
+\text{true=row(\tsh,\datatrue)}
+\if{\minfalse>0}{
+ \text{false1=row(1..\minfalse,\datafalse);}
+ \text{false2=row(\minfalse+1..\falsecnt,\datafalse)}
+}{
+ \integer{minfalse=0}
+ \text{false1=}
+ \text{false2=\datafalse}
+}
+\text{fsh=shuffle(\falsecnt)}
+\text{false2=row(\fsh,\false2)}
+\text{pick=row(1..\givetrue,\true);\false1 row(1..\tot-\givetrue-\minfalse,\false2)}
+\text{ind=wims(makelist 1 for x=1 to \givetrue),wims(makelist 0 for x=1 to \tot-\givetrue)}
+
+\text{sh=shuffle(\tot)}
+\text{ind=item(\sh,\ind)}
+\text{pick=row(\sh,\pick)}
+\text{pick=wims(embraced randitem \pick)}
+\text{explain=wims(embraced randitem \explain)}
+\text{ans=positionof(1,\ind)}
+\text{list=item(1..\tot,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z)}
+\text{anstype=checkbox iswordof \option?checkbox:radio}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement{
+\explain
+\for{i=1 to \tot}{
+<div class="oefreply">\embed{reply 1,\i}: \pick[\i;]</div>
+}}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{La réponse}{\ans;\list}{type=\anstype}{option=\option}

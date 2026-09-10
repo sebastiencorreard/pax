@@ -1,0 +1,135 @@
+!set title=Propriété de conservation 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+oefcss= <style> .ggb{ margin-bottom:1em; } div.ggb div.inline{ display:block; } </style> 
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G,H,L,M,N,P,Q,R,S,T
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+val9=$(val6[3])
+val10=$(val6[4])
+val11=$(val6[5])
+val12=$(val6[6])
+val13=$(val6[7])
+tmp0=!randint 2, 9
+
+tmp1=!randint 2, 9
+
+tmp2=!randint -9, -2
+
+tmp3=!randint -9, -2
+
+val14=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+tmp0=!randint 2, 9
+
+tmp1=!randint -9, -2
+
+tmp2=!randint -9, -2
+
+tmp3=!randint 2, 9
+
+val15=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+tmp0=!shuffle 1,2,3,4
+
+val16=$(tmp0)
+val17=$val7 = ($(val14[$(val16[1])]),$(val15[$(val16[1])]));	setFixed('$val7',true);	setLabelVisible('$val7',true);	$val9 = ($(val14[$(val16[2])]),$(val15[$(val16[2])]));	setFixed('$val9',true);	setLabelVisible('$val9',true);	$val10 = ($(val14[$(val16[3])]),$(val15[$(val16[3])]));	setFixed('$val10',true);	setLabelVisible('$val10',true);	$val8 = ($(val14[$(val16[4])]),$(val15[$(val16[4])]));	setFixed('$val8',true);	setLabelVisible('$val8',true);	Segment[$val7,$val9];Segment[$val7,$val10];	Segment[$val9,$val10];
+tmp0=!random pi/3, 3*pi/2
+
+val18=$[$(tmp0)]
+val19=$[cos($val18)]
+val20=$[sin($val18)]
+val21=$[$(val14[$(val16[1])])*cos($val18)+$(val15[$(val16[1])])*sin($val18)]
+val22=$[-$(val14[$(val16[1])])*sin($val18)+$(val15[$(val16[1])])*cos($val18)]
+val23=$[$(val14[$(val16[2])])*cos($val18)+$(val15[$(val16[2])])*sin($val18)]
+val24=$[-$(val14[$(val16[2])])*sin($val18)+$(val15[$(val16[2])])*cos($val18)]
+val25=$[$(val14[$(val16[3])])*cos($val18)+$(val15[$(val16[3])])*sin($val18)]
+val26=$[-$(val14[$(val16[3])])*sin($val18)+$(val15[$(val16[3])])*cos($val18)]
+val27=$val11 = ($val21,$val22);	setFixed('$val11',true);	setLabelVisible('$val11',true);	$val12 = ($val23,$val24);	setFixed('$val12',true);	setLabelVisible('$val12',true);	W =($val25,$val26);	setFixed('W',true);	SetVisibleInView(W,1,false);	f=Line[$val11,W];	test=Slider(0,1,1)	setVisible('test',false)	
+val28=$[rint(sqrt(($(val14[$(val16[1])])-$(val14[$(val16[3])]))^2+($(val15[$(val16[1])])-$(val15[$(val16[3])]))^2)*100)/100]
+val29=$[rint(sqrt(($(val14[$(val16[2])])-$(val14[$(val16[3])]))^2+($(val15[$(val16[2])])-$(val15[$(val16[3])]))^2)*100)/100]
+val30=height=550;	width=490;	showToolBar=true;	enableRightClick=true;	showAlgebraInput=false;	setCoordSystem(-10,10,-10,10);	customToolBar=0|40|2|10|38;	file=vierge.ggb	$val17
+val31=height=550	width=490	showToolBar=true	enableRightClick=true	showAlgebraInput=false	setCoordSystem(-10,10,-10,10)	customToolBar=0|40|6|2|10|15|5|34	file=vierge.ggb	$val27
+!readproc slib/geo2D/geogebra number=2;$val30 
+tmp0=$slib_out
+val32=$(tmp0)
+!readproc slib/lang/fname boy,fr 
+tmp0=$slib_out
+val33=$(tmp0)
+replytype1=geogebra
+
+replyoption1=extra=yes output=formal max=15 precision=2 
+replyname1=
+replygood1=n,v_test==1,Image de $val10 correctement construite;	n,(($val25-(x_$val13))^2+($val26-(y_$val13))^2)<0.1,Image de $val10 correctement nommée	
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<script>	function listener(obj){	var g=ggbApplet0;	if (g.getObjectType(obj)=="point"){	var n=g.getObjectNumber();	var li=[];	var ind=0;	var x_0=$val25;	var y_0=$val26;	for (k=0;k<n;k++){	 if (g.getObjectType(g.getObjectName(k))=="point")	  {li[ind]=g.getObjectName(k);	   ind+=1;	   if((Math.abs(g.getXcoord(g.getObjectName(k))-(x_0))<0.001)&&(Math.abs(g.getYcoord(g.getObjectName(k))-(y_0))<0.001))	     {g.evalCommand("test="+1);}	  }	}	l='{';	for (k=0;k<ind-1;k++){l=l+li[k]+','};	l=l+li[ind-1]+'}';	g.evalCommand("ListePts="+l);	}}		function ggbUpdate() {	  ggbApplet0.registerAddListener("listener");	}	</script>		$val33 a commencé à construire le symétrique par rapport au point $val8 du	triangle $val7$val9$val10 mais sa feuille s'est déchirée.	Les deux morceaux de la feuille sont ci-dessous.<br>	Il a déjà construit $val11 et $val12 les images respectives de $val7 et $val9 ainsi que l'image de la droite ($val7$val10).<br>	Pouvez-vous construire tout de même l'image, nommée $val13, du point $val10 par la	symétrie de centre $val8 sur le morceau de gauche ?	<div class="flex_box">	<div  class="ggb" onclick="ggbUpdate();" ontouchstart="ggbUpdate();"> 
+!read oef/embed.phtml r1, 490 x 550	$val31 
+$()</div>	<div class="ggb">$val32</div>	</div>	<div class="wims_instruction">Attention vous devez donner le bon nom aux objets !!</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,25,26,31,32,33
+embedcnt=1

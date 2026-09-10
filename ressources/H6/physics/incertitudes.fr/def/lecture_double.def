@@ -1,0 +1,214 @@
+!set title=Incertitude de lecture double
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!random 0, 10
+
+val6=$[$(tmp0)]
+tmp0=!random 20, 65
+
+val7=$[$(tmp0)]
+tmp0=!randitem 0.1,0.5,1,2
+
+val8=$[$(tmp0)]
+!if $val8=0.1 
+val9=$[rint(2)]
+!readproc slib/text/sigunits 0.1,1 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!random 20, 70
+
+val11=$[$(tmp0)]
+!endif
+!if $val8=0.5 
+val9=$[rint(3)]
+!readproc slib/text/sigunits 0.5,1 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!random 20, 70
+
+val11=$[$(tmp0)]
+!endif
+!if $val8=1 
+val9=$[rint(2)]
+!readproc slib/text/sigunits 1,1 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!random 20, 70
+
+val11=$[$(tmp0)]
+!endif
+!if $val8=2 
+val9=$[rint(2)]
+!readproc slib/text/sigunits 2,1 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!random 20, 70
+
+val11=$[$(tmp0)]
+!endif
+val12=$val10
+val13=$val10
+val14=$[$val7*$val8+]
+!readproc slib/text/sigunits $val14,$val9 
+tmp0=$slib_out
+val15=$(tmp0)
+!if $val8=0.5 
+val16=$[$val15-floor($val14)]
+val17=$[floor($val14)]
+val18=$[$val17+0.5]
+val19=$[$val17+1]
+!if $val16<0.35 
+!readproc slib/text/sigunits $val17,$val9 
+tmp0=$slib_out
+val15=$(tmp0)
+!endif
+!if $val16>0.35 and $val16<0.75 
+!readproc slib/text/sigunits $val18,$val9 
+tmp0=$slib_out
+val15=$(tmp0)
+!endif
+!if $val16>0.75 
+!readproc slib/text/sigunits $val19,$val9 
+tmp0=$slib_out
+val15=$(tmp0)
+!endif
+!endif
+!if $val8=2 
+val17=$[floor($val14)]
+val16=$[$val17%2]
+val19=$[$val17+1]
+!if $val16=0 
+!readproc slib/text/sigunits $val17,$val9 
+tmp0=$slib_out
+val15=$(tmp0)
+!else
+!readproc slib/text/sigunits $val19,$val9 
+tmp0=$slib_out
+val15=$(tmp0)
+!endif
+!endif
+val20=$val15
+val21=$[rint(10*$val8)]
+tmp=!trim $val21
+val22=!translate internal $	\
+$ to ;; in $tmp
+val23=$[rint(-0.5)]
+val24=textup black,35,0,small,0	
+!for val25 =1 to 8 
+val26=$[rint((10*$val8)*$val25)]
+val23=$[rint($val23+10)]
+tmp=!trim $val22,$val26
+val22=!translate internal $	\
+$ to ;; in $tmp
+val24=$val24	textup black,35,$val23,small,$(val22[$val25+1])
+!next
+!readproc oef/draw.phtml 350,500 \
+xrange -0.5, 10*4-0.5	yrange -0.5, 10*8	fill 1,1,grey	frect 31,$val6,8,$val6+$val7,blue	rect 28,0,37,82,255,220,180	linewidth 1	parallel 29, 0, 33, 0, 0, 1, 10*8+1, 255,220,180	linewidth 3	parallel 29, 0, 33, 0, 0, 10, 10*8+1, 255,220,180	linewidth 2	text green,20,$val6+$val7+3,huge,l	text green,4,$val6+$val7/2,huge,L	$val24	 
+tmp0=$ins_url
+val27=$(tmp0)
+val10=$[sqrt(2)*2*$val8/sqrt(12)]
+val28=t=$val7<br>L=$val15<br>n=$val8<br>U=$val10<br>
+replytype1=sigunits
+replyname1=L
+replygood1=$val15
+replytype2=numeric
+replyname2=U(L)
+replygood2=$[$val10]
+replytype3=sigunits
+replyname3=U(L)
+replygood3=$val12
+replytype4=sigunits
+replyname4=L
+replygood4=$val20
+replytype5=sigunits
+replyname5=U(L)
+replygood5=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<table>	<tr><th><img src="$val27"></th>	<td>	Un élève utilise un microscope possédant un objectif gradué en µm pour mesurer 	une particule assimilée au rectangle bleu ci-contre. Il souhaite mesurer le coté L.	<ul>	<li>Relever la valeur de L en tenant compte des chiffres significatifs 	(voir <i>indication</i>):	<br> L=  
+!read oef/embed.phtml reply1,8 
+$()µm</li>	<li>Calculer l'incertitude U(L) de lecture sans tenir compte des chiffres significatifs. 	<br>U(L)= 
+!read oef/embed.phtml reply2,8 
+$()µm	puis en ne gardant qu'un seul chiffre significatif: <br>U(L)= 
+!read oef/embed.phtml reply3,8 
+$()µm</li>	<li>Ecrire L sous la forme L=L &plusmn; U(L): 	L=( 
+!read oef/embed.phtml reply4,8 
+$()
+!insmath \pm
+$() 
+!read oef/embed.phtml reply5,8 
+$())µm</li>	</ul>	</td></tr></table>	
+$()
+!exit
+
+:hint
+$()<h2>RAPPELS:</h2>	<ul>	<li>Pour déterminer le nombre de chiffres significatifs, il faut se poser la question suivante: avec	quelle précision (et donc combien de chiffres) arrive-ton à effectuer la mesure.<br>	Il ne faut pas se fier au nombre de chiffres proposés par l'échelle </li>	<li>Lecture d’une valeur sur un système gradué : 
+!insmath U_{lecture} = \frac{2\times "graduation"}{\sqrt{12}}
+$()	 ou « graduation » représente la plus petite graduation de l’appareil.<br>	Pour une double lecture (distance sur une règle..), 	
+!insmath U_{double lecture} =  \sqrt{2}\times U_{lecture}
+$()	<li>L'incertitude est toujours arrondie à la valeur supérieure</li>		</ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=27
+embedcnt=5

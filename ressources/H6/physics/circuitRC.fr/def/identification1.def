@@ -1,0 +1,169 @@
+!set title=identification graphiques1 (circuit RC)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+author=M.Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=10
+
+ansorder=c,c,c
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=0
+choicecnt=3
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 6
+
+val6=$[rint($(tmp0))]
+val7=1e5,5e5
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+val9=2e-6,4e-6
+tmp0=!shuffle $val9
+
+val10=$(tmp0)
+val11=$[$(val8[1])*$(val10[1])]
+val12=$[$val6/5]
+val13=$[$val6/$(val8[1])]
+val14=$[$val13/5]
+val15=$[2*$val11]
+val16=$[$(val8[1])*$(val10[2])]
+val17=$[$(val8[2])*$(val10[2])]
+val18=$[$(val8[2])*$(val10[1])]
+val19=$[2*$val15]
+val20=$[3*$val15]
+val21=$[4*$val15]
+val22=!rawmath $val6*(1-exp(-x/$val11))
+val23=!rawmath $val6*exp(-x/$val11)
+val24=!rawmath $val13*exp(-x/$val11)
+val25=!rawmath -$val13*exp(-x/$val11)
+val26=$val22,$val23
+tmp0=!randint 1, 2
+
+val27=$[rint($(tmp0))]
+val28=!rawmath $(val26[$val27])
+
+!ifval $val27=1
+val29=charge
+!else
+val29=décharge
+!endif
+
+!ifval $val27=1
+val30=décharge
+!else
+val30=charge
+!endif
+val31=$val24,$val25
+tmp0=!randint 1, 2
+
+val32=$[rint($(tmp0))]
+val33=!rawmath $(val31[$val32])
+
+!ifval $val32=1
+val34=charge
+!else
+val34=décharge
+!endif
+
+!ifval $val32=1
+val35=décharge
+!else
+val35=charge
+!endif
+
+!ifval $val32=1
+val36=$[$val13]
+!else
+val36=$[-$val13]
+!endif
+
+!ifval $val32=1
+val37=0,1.1*$val13
+!else
+val37=-1.1*$val13,0
+!endif
+
+!ifval $val32=1
+val38=$val11/50,0,$val11/50,1.1*$val36,10,black
+!else
+val38=$val11/50,1.1*$val36,$val11/50,0,10,black
+!endif
+choicename1=la courbe rouge est celle de la 
+choicegood1=$val29 du condensateur
+choicebad1=$val30 du condensateur
+choicename2=la courbe violette est celle de la 
+choicegood2=$val34 du condensateur
+choicebad2=$val35 du condensateur
+choicename3=La constante de temps de la courbe rouge
+choicegood3=$val11 s
+choicebad3=$val16 s,$val17 s,$val18 s
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		A l'aide d'un logiciel adapté, un élève simule la charge et la décharge d'un condensateur de capacité C. 	Il trace et imprime un ensemble de courbes, mais il a oublié de préciser sur ses courbes s'il s'agissait de 	la charge ou de la décharge du condensateur. Pour les deux courbes ci-dessous, aidez le à annoter ses courbes.<br>	ATTENTION: les deux courbes ne correspondent pas forcément au même phénomène. Par ailleurs la courbe rouge est 	l'évolution de la tension uc en fonction du temps et la courbe violette correspond à l'évolution du courant dans 	le circuit en fonction du temps, mais dans tous les cas il s'agit du même condensateur<p>	<center>	<table border=2>	<tr><th>	 
+!read oef/draw.phtml 250,250 \
+xrange -$val11/10,10*$val11	yrange 0,1.1*$val6	parallel 0,0,0,1.1*$val6,10*$val11/10,0,11,blue	parallel 0,0,10*$val11,0,0,0.1*$val6,11,blue	arrow 0,$val6/100,10*$val11,$val6/100,10,black	arrow $val11/50,0,$val11/50,1.1*$val6,10,black	text green,9*$val11,($val6/10),small,t(s)	text green, $val11/10,$val6,small, uc(V)	text black, $val11/10,$val6/4,small,$val6	text black, 2*$val11,$val6/15,small,$val15	text black, 4*$val11,$val6/15,small,$val19	text black, 6*$val11,$val6/15,small,$val20	text black, 8*$val11,$val6/15,small,$val21	text black, $val11/10,$val6/15,small,0	plot red,$val28	 
+$()	</th>	<th>	 
+!read oef/draw.phtml 250,250 \
+xrange -$val11/10,10*$val11	yrange $val37	parallel 0,0,0,1.1*$val36,10*$val11/10,0,11,blue	parallel 0,0,10*$val11,0,0,0.1*$val36,11,blue	arrow 0,$val36/100,10*$val11,$val36/100,10,black	arrow $val38	text green,9*$val11,($val36/10),small,t(s)	text green, $val11/10,$val36,small, i(A)	text black, $val11/10,$val36/4,small,$val36	text black, 2*$val11,$val36/15,small,$val15	text black, 4*$val11,$val36/15,small,$val19	text black, 6*$val11,$val36/15,small,$val20	text black, 8*$val11,$val36/15,small,$val21	text black, $val11/10,$val36/15,small,0	plot purple,$val33	 
+$()		</th>	</td>	</table>	</center>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,15,19,20,21,28,33,36,37,38
+embedcnt=0

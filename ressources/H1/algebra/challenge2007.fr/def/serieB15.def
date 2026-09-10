@@ -1,0 +1,137 @@
+!set title=Série B 15
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+language=fr
+
+ansorder=c
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 8, 11
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 6, 9
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val6+$val7-3)]
+val9=$[$val6*$val7-3*($val6+$val7)+4.5]
+tmp=!translate ";': to $     $ in $val6*$val7 - 4.5
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val6*$val7-3*$val6
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val6+$val7+9
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in 2*$val6*$val7-6*($val6+$val7)+9
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val10=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+tmp0=!listcomplement $val9 in $val10
+
+val10=$(tmp0)
+tmp0=!shuffle $val9,$val10
+
+val11=$(tmp0)
+val12=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val11
+
+val13=$[rint($(tmp0))]
+val14=
+val15=
+!for val16 =1 to $val13 
+tmp0=!item $val16 of $val11
+
+val17=$(tmp0)
+val18=Réponse $(val12[$val16])
+!if $val17 isitemof $val9 
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+!else
+tmp0=!append item $val18 to $val15
+
+val15=$(tmp0)
+!endif
+!next
+choicename1=Choisissez
+choicegood1=$val14
+choicebad1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Un triangle ABC a pour côtés AB = $val6 ; BC = $val7 ; CA = $val8	<p>	Calculez le produit scalaire suivant :	
+!insmath \overrightarrow{AB}.\overrightarrow{BC}
+$()	</p>	<ul>	 
+!for m_l=1 to $val13 
+$()	 <li>$(val12[$m_l]) : $(val11[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,12,13
+embedcnt=1

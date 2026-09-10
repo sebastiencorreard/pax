@@ -1,0 +1,184 @@
+!set title=Pourcentage II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_es=Porcentaje II
+title_nl=Percentage II
+
+ansorder=r,r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=une longueur,une hauteur,une masse,un prix,un volume,un poids
+val8=1,1,1,2,2,2
+val9=une augmentation, une réduction
+val10=cette augmentation, cette réduction
+val11=Augmentation en, Réduction en
+val12=la multipliant par,le multiplant par
+val13=On change, en
+val14=C'est
+val15=Exprimer, en pourcentage.
+val16=C'est ,ou 
+!if $val6=es 
+val7=una longitud, una altura, una masa,un volumen, un precio
+val9=un aumento, una reducción
+val10=este aumento , esta reducción 
+val11=Aumento en, Reducción en
+val12=multiplicándola,multiplicándolo
+val13=Se cambia,
+val14=Es ,Porcentaje en
+val15=Expresar, en porcentaje.
+val16=Es, o
+!endif
+!if $val6=nl 
+val7=een lengte, een volume,een hoogte,een gewicht,een prijs
+val8=1,1,1,2,2,2
+val9=verhoging, verlaging
+val10=$val9
+val11=verhoging en, verlaging en
+val12=te vermenigvuldigen met,te vermenigvuldigen met
+val13=Men verandert, en
+val14=Het is een,Percentage
+val15=Druk deze, uit in een percentage.
+val16=Het is een ,of een 
+!endif
+tmp0=!randint 10, 90
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val18=$(tmp0)
+tmp0=!item $val18 of $val7
+
+val19=$(tmp0)
+val20=$(val8[$val18])
+tmp0=!item $val18 of l,v,h,m,p
+
+val21=$(tmp0)
+tmp0=!randitem 1,-1
+
+val22=$(tmp0)
+
+!ifval $val22=1 
+val23= 1
+!else
+val23=2
+!endif
+val24=$val9
+
+!ifval $val22=1 
+tmp0=!item 1 of $val24
+
+val25= $(tmp0)
+!else
+tmp1=!item 2 of $val24
+
+val25=$(tmp1)
+!endif
+
+!ifval $val22=1 
+val26= $(val10[1])
+!else
+val26= $(val10[2])
+!endif
+val27=$(val12[$val20])
+val28=$[(100+($val22)*$val17)/100]
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=$(val14[1])
+replygood1=$val23;$val24
+replytype2=numeric
+replyname2=$(val11[$val23]) %
+replygood2=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val13[1]) $val19 $(val13[2])	  $val27	 $(val13[3]) $val28.	
+!if $m_step<=1 
+$()	  $(val16[1])  
+!read oef/embed.phtml reply 1,1 
+$() $(val16[2])  
+!read oef/embed.phtml reply 1,2 
+$() ?	 
+!endif
+$()	
+!if $m_step=2 
+$()<p>$(val15[1]) $val26 $(val15[2])</p> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15,16,19,26,27,28
+embedcnt=2

@@ -1,0 +1,302 @@
+!set title=一步步做加法
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+author=XIAO, Gang
+email=xiao@unice.fr
+computeanswer=no
+precision=10000
+computeanswer=no
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=30
+prevarcnt=24
+postvarcnt=5
+replycnt=12
+choicecnt=0
+conditioncnt=2
+feedbackcnt=8
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 8,9,10,12,14,15,16
+
+val6=$[rint($(tmp0))]
+tmp0=!randint $val6/2+1, $val6-1
+
+tmp1=!randint $val6+1, 2*$val6-1
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val7=$[rint($(tmp2))]
+tmp0=!randint 2, 1.5*$val6
+
+val8=$[rint($(tmp0))]
+
+!ifval gcd($val8,$val6)>1
+val8=$[rint($val8+1)]
+!endif
+tmp0=!randint 2, 1.5*$val7
+
+val9=$[rint($(tmp0))]
+
+!ifval gcd($val9,$val7)>1
+val9=$[rint($val9+1)]
+!endif
+val10=<HR noshade size=2>
+val11=
+val12=$[rint(0)]
+val13=<font size=+2>
+val14=</font>
+val15=只对分子, 只对分母,	分子与分母
+tmp0=!randitem 把两个分数改写成有相同分母,	    使两个分数有相同分母	
+
+val16=$(tmp0)
+val17=$val16,	    把两个分数改写成有相同分子,	    先加分子,	    先加分母,	    把分子相加分母相乘,	    乘分子	
+tmp0=!itemcnt $val17
+
+val18=$[rint($(tmp0))]
+tmp0=!shuffle $val18
+
+val19=$(tmp0)
+tmp0=!positionof item 1 in $val19
+
+val20=$[rint($(tmp0))]
+tmp0=!item $val19 of $val17
+
+val17=$(tmp0)
+val21=把分子相加且保持分母不变,	 分子与分母各自相加	
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+tmp0=!shuffle $val22
+
+val23=$(tmp0)
+tmp0=!positionof item 1 in $val23
+
+val24=$[rint($(tmp0))]
+tmp0=!item $val23 of $val21
+
+val21=$(tmp0)
+val25=r1
+dynsteps=yes
+oefsteps=$val25 
+nextstep=!nosubst $val25 
+!readproc oef/steps.proc
+replytype1=click
+replyname1=第 1 步的方法
+replygood1=$val20;$val17
+replytype2=menu
+replyname2=相乘的对象 1
+replygood2=3;$val15
+replytype3=numeric
+replyname3=乘数 1
+replygood3=?analyze 26
+replytype4=menu
+replyname4=相乘的对象 2
+replygood4=3;$val15
+replytype5=numeric
+replyname5=乘数 2
+replygood5=?analyze 27
+replytype6=numeric
+replyname6=新分子 1
+replygood6=?analyze 28
+replytype7=numeric
+replyname7=新分母 1
+replygood7=?analyze 29
+replytype8=numeric
+replyname8=新分子 2
+replygood8=?analyze 30
+replytype9=numeric
+replyname9=新分母 2
+replygood9=?analyze 31
+replytype10=click
+replyname10=第 2 步的方法
+replygood10=$val24;$val21
+replytype11=numeric
+replyname11=和的分子
+replygood11=?analyze 32
+replytype12=numeric
+replyname12=和的分母
+replygood12=?analyze 33
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()计算以下加法.	<p><center>	
+!insmath $val8/($val6) + $val9/($val7)
+$()	</center> <p>	 
+!if $m_step=1 
+$()	 选择起始方法: <ul>	  
+!for m_k=1 to $val18 
+$() <li> 
+!read oef/embed.phtml r1,\k 
+$()  
+!next
+$()	 </ul>	 
+!exit
+{}	 
+!endif
+$()	 
+!if $m_step=2 or $val12<1 
+$()	 第 1 步. 把分数化成有相同分母.	 <p>	 用  
+!read oef/embed.phtml r3,3 
+$() 乘 
+!insmath $val8/($val6)
+$() 的  
+!read oef/embed.phtml r2 
+$(), 得到	 <p><center><table border=0 cellpadding=3>	  <tr>	  <td align=center>$val8<td rowspan=3>&nbsp;$val13=$val14&nbsp;	  <td align=center> 
+!read oef/embed.phtml r6,3 
+$()	  <tr><td>$val10<td>$val10	  <tr><td align=center>$val6	  <td align=center> 
+!read oef/embed.phtml r7,3 
+$()	 </table></center> <p>	 用  
+!read oef/embed.phtml r5,3 
+$() 乘 
+!insmath $val9/($val7)
+$() 的  
+!read oef/embed.phtml r4 
+$(), 得到	 <p><center><table border=0 cellpadding=3>	  <tr>	  <td align=center>$val9<td rowspan=3>&nbsp;$val13=$val14&nbsp;	  <td align=center> 
+!read oef/embed.phtml r8,3 
+$()	  <tr><td>$val10<td>$val10	  <tr><td align=center>$val7	  <td align=center> 
+!read oef/embed.phtml r9,3 
+$()	 </table></center> <p>	 
+!exit
+{}	 
+!endif
+$()	 第 1 步. 我们有 
+!insmath $val8/($val6) = $(val11[1])/($(val11[2]))
+$() 以及	 
+!insmath $val9/($val7) = $(val11[3])/($(val11[4]))
+$(), 所以和式成为	 <p><center>	  
+!insmath $(val11[1])/($(val11[2])) + $(val11[3])/($(val11[4]))
+$() .	 </center> <p>	  
+!if $m_step=3 
+$()	  下一步是什么? <ul>	   
+!for m_k=1 to $val22 
+$() <li> 
+!read oef/embed.phtml r10,\k 
+$()  
+!next
+$()	  </ul>	  
+!exit
+{}	  
+!endif
+$()	 第 2 步. 我们把分子相加且保持分母不变, 所以和是	 <p><center>	 <table border=0 cellpadding=2>	 <tr><td align=center>$val8	 <td rowspan=3>&nbsp;&nbsp;$val13+$val14&nbsp;&nbsp;</td>	 <td align=center>$val9	 <td rowspan=3>&nbsp;&nbsp;&nbsp;$val13=$val14&nbsp;&nbsp;&nbsp;</td>	 <td align=center>$(val11[1])	 <td rowspan=3>&nbsp;&nbsp;$val13+$val14&nbsp;&nbsp;</td>	 <td align=center>$(val11[3])	 <td rowspan=3>&nbsp;&nbsp;&nbsp;$val13=$val14&nbsp;&nbsp;&nbsp;</td>	 <td align=center> 
+!read oef/embed.phtml r11,4 
+$()	 <tr><td>$val10<td>$val10<td>$val10<td>$val10<td>$val10	 <tr><td align=center>$val6	 <td align=center>$val7	 <td align=center>$(val11[2])	 <td align=center>$(val11[4])	 <td align=center> 
+!read oef/embed.phtml r12,4 
+$()	 </table>	 </center> <p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 
+val25=r2,r3,r4,r5,r6,r7,r8,r9
+!endif
+
+!ifval $val12<1 and $val26>0 and $val26=floor($val26) and $val27>0 and $val27=floor($val27)	    and $val28=$val8*$val26 and $val29=$val6*$val26	    and $val30=$val9*$val27 and $val31=$val7*$val27	    and $val29=$val31
+val12=1
+!endif
+!if $val12>0 
+val11=$val28,$val29,$val30,$val31
+!endif
+!if $m_step=3 and $val12>0 
+val25=r10
+!endif
+!if $m_step=4 
+val25=r11,r12
+!endif
+
+!exit
+
+:feedback
+!ifval $m_step=1 and $m_reply1 notsametext ~$val20
+ <p>	 两个分数有不同的分母. 不能直接相加;	 我们首先要把它们化成有相同分母的形式.	
+$()
+!endif
+!ifval $m_step=2 and ($m_reply2 notsametext ~3 or $m_reply4 notsametext ~3)
+ <p>	 为了使分数的值保持不变, 必须对分子和分母乘以同一个数.	
+$()
+!endif
+!ifval $m_step=3 and ($val26=0 or $val27=0)
+ <p>	 你不能对分数的分子和分母乘 0 !	 <p>	 这样你会得到一个``分数'' 
+!insmath 0/(0)
+$(), 这是无意义的.	
+$()
+!endif
+!ifval $m_step=3 and ($val26<0 or $val27<0)
+ <p>	 抱歉, 这个练习不允许你用复数相乘.	
+$()
+!endif
+!ifval $m_step=3 and $val26>0 and $val27>0 and (\floor($val26)!=$val26 or \floor($val27)!=$val27)
+ <p>	 你可以用一个整数乘分数的分子和分母.	
+$()
+!endif
+!ifval $m_step=3 and $val29=$val6*$val26 and $val31=$val7*$val27 and $val29!=$val31
+ <p>	 你的目的是把分数化成有相同的分母. 你的乘法没有达到此目的.	 因为得到的新分数有不同的分母.	 错误的乘法.	
+$()
+!endif
+!ifval $m_step=3 and ($val29!=$val6*$val26 or $val28!=$val8*$val26 or	    $val31!=$val7*$val27 or $val30!=$val9*$val27)
+ <p>	  乘法内有计算错误.	
+$()
+!endif
+!ifval $m_step=3 and $m_reply10 notsametext ~$val24
+ <p>	 为把有相同分母的分式相加,	 只要把分子相加, 且保持公分母不变.	
+$()
+!endif
+
+!exit
+
+:test
+
+!ifval $val12>0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=乘法是对的
+
+!ifval $val12>0 and $val32=$val28+$val30 and $val33=$val29
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=和是对的
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,18,20,22,24,26,27,28,29,30,31,32,33
+embedcnt=12

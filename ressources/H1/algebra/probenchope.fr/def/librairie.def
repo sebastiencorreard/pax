@@ -1,0 +1,487 @@
+!set title=Librairie
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+oefcss=<style> .feed{background-color: #fefbd8} </style>
+
+ansorder=r,r,r
+varcnt=122
+prevarcnt=85
+postvarcnt=36
+replycnt=3
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Vous avez répondu&nbsp;:
+val8=Cette réponse est exacte.
+val9=Cette réponse est fausse.
+val10=Vous devez utiliser les étiquettes proposées.
+val11=Expression correcte
+val12=Choix des propositions
+val13=Calcul correct
+val14=Expression correcte&nbsp;?
+val15=ou
+val16=Il y a plusieurs expressions possibles.
+val17=PPP part à la librairie avec en poche NNN3 €.<p> QQQ achète un livre à NNN1 € et une gomme à NNN2 €.</p>
+val18=Écrire en une seule expression&#44; la somme d'argent qu'il lui reste.
+val19=Calculer la somme d'argent qu'il lui reste.
+val20=Il va lui rester
+val21=€.
+val12=la somme d'argent qu'il lui reste
+val22=Choisir toutes les expressions qui permettent de calculer la somme d'argent qu'il reste.
+!if $val2= 
+val2=1
+!endif
+tmp0=!randint 2
+
+val23=$[rint($(tmp0))]
+!if $val23=1 
+!readproc slib/lang/fname fr, boy 
+tmp0=$slib_out
+val24=$(tmp0)
+tmp0=!replace internal word QQQ by Il in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word qqq by il in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word QQQ by Il in \name_ans
+
+val25=$(tmp0)
+!else
+!readproc slib/lang/fname fr, girl 
+tmp0=$slib_out
+val24=$(tmp0)
+tmp0=!replace internal word QQQ by Elle in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word qqq by elle in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word QQQ by elle in $val25
+
+val25=$(tmp0)
+!endif
+tmp0=!replace internal word PPP by $val24 in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word PPP. by $val24. in $val18
+
+val18=$(tmp0)
+tmp0=!replace internal word PPP. by $val24. in $val19
+
+val19=$(tmp0)
+tmp0=!replace internal word QQQ by $val24 in $val20
+
+val20=$(tmp0)
+tmp0=!record 4 of donnees
+
+tmp=!trim $(tmp0)
+val26=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val26
+
+tmp0=!rowcnt $tmp
+val27=$[rint($(tmp0))]
+val28=
+!for val29 =1 to $val27 
+tmp0=!itemcnt $(val26[$val29;])
+
+val30=$[rint($(tmp0))]
+!if $val30=2 
+tmp0=!randint $(val26[$val29;1]) ,  $(val26[$val29;2])
+
+val31=$(tmp0)
+!endif
+!if $val30>2 
+tmp0=!shuffle $(val26[$val29;])
+
+val31=$(tmp0)
+val31=$(val31[1])
+!endif
+!if $val30=1 
+val31=$(val26[$val29;1])
+!endif
+tmp0=!append item $val31 to $val28
+
+val28=$(tmp0)
+!next
+!readproc slib/numeration/ecriturenombre $(val28[1]),comma 
+tmp0=$slib_out
+val32=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[2]),comma 
+tmp0=$slib_out
+val33=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[3]),comma 
+tmp0=$slib_out
+val34=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[4]),comma 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[5]),comma 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[6]),comma 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[7]),comma 
+tmp0=$slib_out
+val38=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[3])-($(val28[1])+$(val28[2]))
+
+val39=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[3]) \minus $(val28[1]) \minus $(val28[2])
+
+val40=$(tmp0)
+val41=$val39,$val40
+tmp0=!replace internal . by &#44; in $(val28[1])+$(val28[2])
+
+val42=$(tmp0)
+tmp0=!replace internal . by &#44; in ($(val28[1])+$(val28[2])) \minus $(val28[3])
+
+val43=$(tmp0)
+val44=$val42,$val43
+val45=1,2
+val46=$[rint(7)]
+val47=$[$(val28[1])+$(val28[2])]
+!readproc slib/numeration/ecriturenombre $val47,comma 
+tmp0=$slib_out
+val48=$(tmp0)
+val49=$[$(val28[3])-$val47]
+!readproc slib/numeration/ecriturenombre $val49,comma 
+tmp0=$slib_out
+val50=$(tmp0)
+val51=
+!for val29 =1 to $val27 
+!if NNN$val29 iswordof $val17 or NNN$val29 iswordof $val18 or NNN$val29 iswordof $val22 
+val47=$(val28[$val29])
+!readproc slib/numeration/ecriturenombre $val47,comma 
+tmp0=$slib_out
+val48=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[$val29])
+
+val52=$(tmp0)
+tmp0=!replace internal word NNN$val29 by \($val48\) in $val17
+
+val17=$(tmp0)
+tmp0=!append item $val52 to $val51
+
+val51=$(tmp0)
+!endif
+!next
+!if 1 isitemof $val2 and 2 isitemof $val2 
+tmp0=!randint 2
+
+val2=$(tmp0)
+!endif
+val53=$val51,+,-,\(\times\),\(\div\),&#40;,&#41;
+val54=$val41,$val44
+tmp0=!nonempty item $val54
+
+val54=$(tmp0)
+tmp0=!itemcnt $val54
+
+val55=$[rint($(tmp0))]
+tmp0=!shuffle $val55
+
+val56=$(tmp0)
+val57=$(val54[$val56])
+tmp0=!positionof item 1 in $val56
+
+tmp1=!positionof item 2 in $val56
+
+val58=$(tmp0),$(tmp1)
+
+!ifval $val2=1
+val59=r1,r3
+!else
+val59=r2,r3
+!endif
+tmp0=!itemcnt $val41
+
+val60=$[rint($(tmp0))]
+tmp0=!makelist 1 for x=1 to $val60
+
+tmp1=!makelist 0 for x=1 to $val55-$val60
+
+val61=$(tmp0),$(tmp1)
+val61=$(val61[$val56])
+tmp=!trim 
+val62=!translate internal $	\
+$ to ;; in $tmp
+val63=
+val64=
+val65=
+val66=$[rint(0)]
+oefsteps=$val59 
+nextstep=!nosubst $val59 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=$val11
+replygood1=?analyze 67;$val53
+replytype2=checkbox
+replyoption2=split 
+replyname2=$val12
+replygood2=$val58;$val57
+replytype3=numeric
+replyoption3=comma 
+replyname3=$val13
+replygood3=$[$val49]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest">$val17</div>	
+!if $val2=1 
+$()1. $val18	                  <div class="
+!if $val66=0 
+$()euler_answer 
+!endif
+$()
+!if $val66=1 
+$()euler_rep_good_nobg 
+!endif
+$()
+!if $val66=2 
+$()euler_rep_bad_nobg 
+!endif
+$()">	                       <div class="wims_instruction">$val10</div>	                        
+!read oef/embed.phtml r1,50x40x$val46 
+$()	                  </div>	                  
+!endif
+$()	
+!if $val2=2 
+$()1. $val22	                  <fieldset class="euler_field">	                    <div class="
+!if $m_sc_reply2= 
+$()euler_answer 
+!endif
+$()
+!if $m_sc_reply2=1 
+$()euler_rep_good_nobg 
+!endif
+$()
+!if $m_sc_reply2=0 
+$()euler_rep_bad_nobg 
+!endif
+$()
+!if $m_sc_reply2=0.5 
+$()euler_rep_prec_nobg 
+!endif
+$()">	                       <legend>
+!if $m_sc_reply2= 
+$() 
+!else
+$() $val7 
+!endif
+$()</legend>	                       <ul class="wims_nopuce euler_ul_check">	                          
+!for m_h=1 to $val55 
+$()	                           <li 
+!if $m_sc_reply2!= 
+$()
+!if $(val62[$m_h])=1 
+$()class="euler_box_checked" 
+!else
+$() class="euler_box_nochecked" 
+!endif
+$() 
+!endif
+$()>	                                
+!read oef/embed.phtml r2,\h,\($(val57[$m_h])\) 
+$()	                               
+!if $m_sc_reply2!= 
+$()<span class="$(val65[$m_h])"></span> 
+!endif
+$()	                           </li>	                                              
+!next
+$()	                      </ul>	                   </div>	                 </fieldset>	     
+!endif
+$()	2. $val19	<div class="
+!if $m_sc_reply3= 
+$()euler_answer 
+!endif
+$()
+!if $m_sc_reply3=1 
+$()euler_rep_good_nobg 
+!endif
+$()
+!if $m_sc_reply3=0 
+$()euler_rep_bad_nobg 
+!endif
+$()
+!if $m_sc_reply3=0.5 
+$()euler_rep_prec_nobg 
+!endif
+$()">	    <label for="reply3">$val20</label>	     
+!read oef/embed.phtml r3,5 
+$() $val21	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()1. $val16 <li class="wims_nopuce"><span class="nowrap">
+!insmath R=$val39
+$()</li> $val15 <li class="wims_nopuce"><span class="nowrap">
+!insmath R=$val40
+$().</span></li>	<p>2. 
+!insmath R=$val34-($val32+$val33)
+$()</p>	
+!insmath R=$val34-$val48
+$()	<p>
+!insmath R=$val50
+$()</p>	$val20 <span class="nowrap">
+!insmath $val50
+$() $val21</span>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val64=$m_sc_reply2
+val63=$m_reply2
+val62=
+val65=
+!for val68 =1 to $val55 
+!if $(val57[$val68]) isitemof $val63 
+val69=1
+!if $(val61[$val68])=1 
+val70=oef_indgood tick
+!else
+val70=oef_indbad cross
+!endif
+!else
+val69=0
+!if $(val61[$val68])=1 
+val70=oef_indforget forget
+!else
+val70=oef_indneutral
+!endif
+!endif
+tmp0=!append item $val69 to $val62
+
+val62=$(tmp0)
+tmp0=!append item $val70 to $val65
+
+val65=$(tmp0)
+!next
+!if $val2=1 
+tmp0=!itemcnt $val67
+
+val71=$[rint($(tmp0))]
+val72=$[rint($val71-$val46/2)]
+val73=
+!for val23 =1 to $val71 
+tmp0=!replace &#44; by . in $(val67[$val23])
+
+val74=$(tmp0)
+tmp0=!append item $val74 to $val73
+
+val73=$(tmp0)
+!next
+val75=()
+tmp0=!char 1 of $val75
+
+val76=$(tmp0)
+tmp0=!char 2 of $val75
+
+val77=$(tmp0)
+tmp0=!replace internal &#41; by $val77 in $val73
+
+val73=$(tmp0)
+tmp0=!replace internal &#40; by $val76 in $val73
+
+val73=$(tmp0)
+tmp0=!replace internal , by in $val73
+
+val73=$(tmp0)
+tmp0=!replace internal \(\times\) by * in $val73
+
+val73=$(tmp0)
+tmp0=!replace internal \(\div\) by / in $val73
+
+val73=$(tmp0)
+tmp0=!rawmath $val73
+
+val73=$(tmp0)
+t_=!replace internal \( by ( in $val73
+tmp0=!exec pari $t_
+
+val78=$[$(tmp0)]
+val79=$[$val78-$val49]
+val80=$[rint(2)]
+!if $val79=0 
+val66=$[rint(1)]
+!else
+val66=$[rint(2)]
+!endif
+!endif
+!if $val2=2 
+val80=$[rint(0)]
+val81=hide
+!endif
+val82=Votre expression n'est pas assez longue,vous devez utiliser plus d'étiquettes.
+
+!exit
+
+:feedback
+!ifval $val72<0
+ <div class='oef_feedbacks'><p class="oef_condbad">$val82</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=$val80 
+condoption1=$val81 
+
+!ifval $val79=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val14
+
+!exit
+
+:stat
+vsavelist=2,7,10,14,15,16,17,18,19,20,21,22,23,32,33,34,39,40,46,48,49,50,55,57,61,62,63,65,66,67
+embedcnt=3

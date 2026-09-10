@@ -1,0 +1,267 @@
+!set title=Calcul de dérivée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+
+ansorder=r
+varcnt=54
+prevarcnt=52
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=x
+!if $val2= 
+val7=7,8,10,11
+!else
+val7=$val2
+!endif
+tmp=!nonempty items $val7,$val7
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+!if $val3= 
+val9=1
+!else
+val9=$val3
+!endif
+tmp=!nonempty items $val9,$val9
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+!if $val4= 
+val11=1
+!else
+val11=$val4
+!endif
+tmp=!nonempty items $val11,$val11
+
+tmp0=!randitem $tmp
+val12=$[rint($(tmp0))]
+!if $val5= 
+val13=0
+!else
+val13=$val5
+!endif
+tmp=!nonempty items $val13,$val13
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+val15=1,7,10,11,13,14,18
+!if $val8 isitemof $val15 
+val16=qui est définie et dérivable sur \({\mathbb{R}}\) tout entier
+val17=\mathbb{R}
+!else
+val16=sur un domaine \(I\) où elle est définie et dérivable
+val17=I
+!endif
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp=!trim 1	$val6	$val6^2	$val6^3	$val18	$val18*$val6	$val18*$val6^2	$val18*$val6^3	($val18*$val6+$val19)	($val18*$val6^2+$val19)	($val18*$val6^3+$val19)	($val18*$val6^2+$val19*$val6)	($val18*$val6^3+$val19*$val6)	($val18*$val6^3+$val19*$val6^2)
+val20=!translate internal $	\
+$ to ;; in $tmp
+val21=$(val20[$val12;1])
+!if $val14<>0 
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp=!trim 1	$val6	$val6^2	$val6^3	$val18	$val18*$val6	$val18*$val6^2	$val18*$val6^3	$val18*$val6+$val19	$val18*$val6^2+$val19	$val18*$val6^3+$val19	$val18*$val6^2+$val19*$val6	$val18*$val6^3+$val19*$val6	$val18*$val6^3+$val19*$val6^2
+val20=!translate internal $	\
+$ to ;; in $tmp
+val22=$(val20[$val14;1])
+!endif
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 4
+
+val23=$[rint($(tmp0))]
+val24=4,5,6,8,9
+val25=16,17
+!if ($val8 isitemof $val24) or ($val8 isitemof $val25) 
+tmp0=!randint 1, 4
+
+val26=$(tmp0)
+!if $val8 isitemof $val24 
+val27=$val18
+t_=!replace internal \( by ( in abs($val19)
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+val27=
+!else
+val27=$val18
+t_=!replace internal \( by ( in sgn(-$val18)*abs($val19)
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+!endif
+!else
+val26=$val18
+val27=$val18
+val28=$val19
+!endif
+tmp=!trim $val6	$val6^2	$val6^3	$val18*$val6	$val26*$val6^2	$val18*$val6^3	$val18*$val6+$val19	$val27*$val6^2+$val28	$val18*$val6^3+$val19	$val18*$val6^2+$val19*$val6	$val18*$val6^3+$val19*$val6	$val18*$val6^3+$val19*$val6^2
+val29=!translate internal $	\
+$ to ;; in $tmp
+val30=$(val29[$val10;1])
+tmp0=!randint 4, 8
+
+val31=$(tmp0)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1/2,3/2,5/2,2/3,4/3,1/4,3/4,5/4,1/5,2/5,3/5
+
+tmp1=!randitem $tmp
+t_=!rawmath $(tmp0)*$(tmp1)
+val32=!exec pari print($t_)
+tmp=!trim $val21*($val30)^$val31	$val21*1/($val30)^$val31	$val21*($val30)^(-$val31)	$val21*sqrt($val30)	$val21*1/sqrt($val30)	$val21*($val30)^($val32)	$val21*exp($val30)	$val21*ln($val30)	$val21*$val23^($val30)	$val21*sin($val30)	$val21*cos($val30)	$val21*tan($val30)	$val21*sh($val30)	$val21*ch($val30)	$val21*th($val30)	$val21*arcsin($val30)	$val21*arccos($val30)	$val21*arctan($val30)
+val33=!translate internal $	\
+$ to ;; in $tmp
+!if $val14=0 
+val34=$(val33[$val8;1])
+!else
+tmp=!nonempty items $(val33[$val8;1])+$val22,$val22+$(val33[$val8;1])
+
+tmp0=!randitem $tmp
+val34=$(tmp0)
+!endif
+tmp0=!texmath $val34
+
+val35=$(tmp0)
+tmp=!translate ;";': to $     $ in $val34,$val6
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+t_=!replace internal \( by ( in trigsimp($(tmp0))
+tmp1=!exec maxima $t_
+
+val36=$(tmp1)
+tmp0=!texmath $val36
+
+val37=$(tmp0)
+tmp0=!replace internal log by ln in $val37
+
+val37=$(tmp0)
+tmp0=!replace internal arctg by arctan in $val37
+
+val37=$(tmp0)
+replytype1=formal
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$val36,x
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la fonction 	<div class="wimscenter">
+!insmath f:$val6 \mapsto $val35
+$()</div>	<br>$val16. 	<p>Calculer la dérivée de 
+!insmath f
+$().</p>	<label for="reply1">
+!insmath \forall $val6 \in $val17,\, f'(x)=
+$() 
+!read oef/embed.phtml reply1,50 
+$()</label>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Soit la fonction 
+!insmath f:$val6 \mapsto $val35
+$() $val16.<br>	
+!insmath \forall $val6 \in $val17,\, f'(x)=$val37
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!texmath $m_reply1
+
+val38=$(tmp0)
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><p>Vous avez répondu 
+!insmath f'(x)=$val38
+$().</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,16,17,35,37
+embedcnt=1

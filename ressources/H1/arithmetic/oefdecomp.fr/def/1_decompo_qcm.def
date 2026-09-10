@@ -1,0 +1,460 @@
+!set title=1- Retrouver la décomposition en facteurs premiers d'un entier (QCM)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Euler,Versailles
+email=euler.wims@ac-versailles.fr
+keywords=
+language=fr
+oefdescription=Dans ce QCM, vous devez retrouver, parmi quatre propositions, la décomposition en produit de facteurs premiers d'un nombre entier non premier généré par le serveur.
+oefobservation=Dans ce QCM, il est demandé de retrouver, parmi quatre propositions, la décomposition en produit de facteurs premiers d'un nombre entier non premier généré aléatoirement par le serveur. Le nombre entier non premier généré est inférieur ou égal à 200 et sa décomposition en produit de facteurs premiers ne fait intervenir que des nombres parmi 2, 3, 5 et 7. L'écriture demandée ne fait intervenir aucun exposant.
+computeanswer=no
+
+ansorder=r
+varcnt=80
+prevarcnt=78
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=8,12,16,18,20,21,24,27,28,30,32,35,36,40,42,45,48,50,54,56,60,63,64,70,72,75,80,81,84,90,96,98,100,105,108,112,120,125,126,128,135,140,144,147,150,160,162,168,175,180,189,192,196,200
+tmp0=!itemcnt $val6
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, $val7-1
+
+val8=$[rint($(tmp0))]
+tmp0=!item $val8 of $val6
+
+val9=$[rint($(tmp0))]
+tmp0=!item $val8-1 of $val6
+
+val10=$[rint($(tmp0))]
+tmp0=!item $val8+1 of $val6
+
+val11=$[rint($(tmp0))]
+t_=!replace internal \( by ( in omega($val9)
+tmp0=!exec pari $t_
+
+val12=$[rint($(tmp0))]
+t_=!replace internal \( by ( in bigomega($val9)
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in factor($val9)
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+val15=$(val14[;1])
+val16=$(val14[;2])
+t_=!replace internal \( by ( in omega($val10)
+tmp0=!exec pari $t_
+
+val17=$[rint($(tmp0))]
+t_=!replace internal \( by ( in bigomega($val10)
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in factor($val10)
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+val20=$(val19[;1])
+val21=$(val19[;2])
+t_=!replace internal \( by ( in omega($val11)
+tmp0=!exec pari $t_
+
+val22=$[rint($(tmp0))]
+t_=!replace internal \( by ( in bigomega($val11)
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in factor($val11)
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+val25=$(val24[;1])
+val26=$(val24[;2])
+!readproc slib/numeration/ecriturenombre $val9,tex 
+tmp0=$slib_out
+val27=$(tmp0)
+val28=
+!for val29 =1 to $val12 
+!for val30 =1 to $(val16[$val29]) 
+tmp0=!append item $(val15[$val29]) to $val28
+
+val28=$(tmp0)
+!next
+!next
+tmp0=!replace internal , by \times in $val28
+
+val31=$(tmp0)
+val32=
+!for val29 =1 to $val17 
+!for val30 =1 to $(val21[$val29]) 
+tmp0=!append item $(val20[$val29]) to $val32
+
+val32=$(tmp0)
+!next
+!next
+tmp0=!replace internal , by \times in $val32
+
+val32=$(tmp0)
+val33=
+!for val29 =1 to $val22 
+!for val30 =1 to $(val26[$val29]) 
+tmp0=!append item $(val25[$val29]) to $val33
+
+val33=$(tmp0)
+!next
+!next
+tmp0=!replace internal , by \times in $val33
+
+val33=$(tmp0)
+tmp0=!makelist x for x=1 to $val13
+
+val34=$(tmp0)
+!readproc slib/data/random 2,item, $val34 
+tmp0=$slib_out
+val35=$(tmp0)
+val36=$val28
+!for val37 =1 to 2 
+!if $(val35[$val37])!=1 
+tmp0=!replace item number $(val35[$val37]) by (-$(val28[$(val35[$val37])])) in $val36 
+
+val36=$(tmp0)
+!else
+tmp0=!replace item number $(val35[$val37]) by -$(val28[$(val35[$val37])]) in $val36 
+
+val36=$(tmp0)
+!endif
+!next
+tmp0=!replace internal , by \times in $val36
+
+val36=$(tmp0)
+t_=!replace internal \( by ( in 	facteurs=[$val15];	puissances=[$val16];	sumpuis=$val13;	nb=$val9;	v=vector(sumpuis);	k=0;	for(j=1,#facteurs,for(i=1,puissances[j],v[i+k]=facteurs[j]);k=k+puissances[j]);	sol=vector(sumpuis,i,m=v[1..i];concat(m,nb/prod(t=1,#m,m[t])))	
+tmp0=!exec pari $t_
+
+val38=$(tmp0)
+tmp0=!declosing $(val38[-3])
+
+val39=$(tmp0)
+tmp0=!replace internal , by \times in $val39
+
+val39=$(tmp0)
+tmp0=!declosing $(val38[-3])
+
+val40=$(tmp0)
+val40=$[rint($(val40[-1]))]
+t_=!replace internal \( by ( in numdiv($val40)
+tmp0=!exec pari $t_
+
+val41=$(tmp0)
+t_=!replace internal \( by ( in divisors($val40)
+tmp0=!exec pari $t_
+
+val42=$(tmp0)
+val43=$(val42[1..-2])
+tmp0=!randint 0, 1
+
+val44=$[rint($(tmp0))]
+!if alea=0 
+val45=$val32
+!else
+val45=$val33
+!endif
+!if $val13>2 
+tmp=!trim \($val31\),\($val36\),\($val39\),\($val45\),1
+val46=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim \($val31\),\($val36\),\($val32\),\($val33\),1
+val46=!translate internal $	\
+$ to ;; in $tmp
+!endif
+val47=Parmi les quatre propositions suivantes, une seule est la décomposition en produit de facteurs premiers du nombre \($val27\). Laquelle&nbsp;?
+val48=2,3,5,7
+tmp0=!randitem $val48
+
+val49=$[rint($(tmp0))]
+tmp0=!replace item number $val8 by  in $val6
+
+val50=$(tmp0)
+tmp0=!replace item number $val8-1 by  in $val6
+
+val50=$(tmp0)
+tmp0=!replace item number $val8+1 by  in $val6
+
+val50=$(tmp0)
+tmp0=!nonempty item $val50
+
+val50=$(tmp0)
+tmp0=!randitem $val50
+
+val51=$[rint($(tmp0))]
+t_=!replace internal \( by ( in divisors($val51)
+tmp0=!exec pari $t_
+
+val52=$(tmp0)
+val53=$(val52[1..-2])
+t_=!replace internal \( by ( in numdiv($val51)
+tmp0=!exec pari $t_
+
+val54=$(tmp0)
+t_=!replace internal \( by ( in omega($val51)
+tmp0=!exec pari $t_
+
+val55=$[rint($(tmp0))]
+t_=!replace internal \( by ( in bigomega($val51)
+tmp0=!exec pari $t_
+
+val56=$(tmp0)
+t_=!replace internal \( by ( in factor($val51)
+tmp0=!exec pari $t_
+
+val57=$(tmp0)
+val58=$(val57[;1])
+val59=$(val57[;2])
+val60=
+!for val29 =1 to $val55 
+!for val30 =1 to $(val59[$val29]) 
+tmp0=!append item $(val58[$val29]) to $val60
+
+val60=$(tmp0)
+!next
+!next
+tmp0=!replace internal , by \times in $val60
+
+val61=$(tmp0)
+replytype1=radio
+replyoption1=shuffle 
+replyname1=
+replygood1=$(val46[;-1]);$(val46[;1..-2])
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<div class="euler_quest">	  $val47	</div>	<div class =
+!if $m_sc_reply1= 
+$()"euler_answer" 
+!else
+$() 
+!if $m_sc_reply1=0 
+$()"euler_rep_bad" 
+!else
+$() "euler_rep_good" 
+!endif
+$() 
+!endif
+$()>	  
+!if $m_sc_reply1= 
+$()Cliquez sur la puce correspondante. 
+!else
+$() Vous avez répondu : 
+!endif
+$()	   <div class="unbreakable">	    <ul style="padding-left:1em;" 
+!if $m_sc_reply1= 
+$()class="wims_nopuce" 
+!endif
+$()>	      <li> 
+!read oef/embed.phtml reply1,1 
+$()</li>	      <li> 
+!read oef/embed.phtml reply1,2 
+$()</li>	      <li> 
+!read oef/embed.phtml reply1,3 
+$()</li>	      <li> 
+!read oef/embed.phtml reply1,4 
+$()</li>	    </ul>	   </div>	</div>	
+$()
+!exit
+
+:hint
+$()		<div class="wims_defn">	  <h4>Définition</h4>	  On appelle nombre premier tout entier positif qui admet exactement deux diviseurs positifs&nbsp;:&nbsp;
+!insmath 1
+$() et lui-même.	</div>		<div class="wims_thm">	  <h4>Théorème</h4>	  Tout nombre entier strictement supérieur à 
+!insmath 1
+$() est premier ou se décompose de façon unique en produit de facteurs premiers, à l'ordre des facteurs près.	</div>		<div>	  <h4>Exemple</h4>	  <ul style="padding-left:1em;">	    <li>
+!insmath $val49
+$() admet deux diviseurs positifs&nbsp;:
+!insmath 1
+$() et 
+!insmath $val49
+$(). 	        <br>
+!insmath $val49
+$() est un nombre premier.	    </li>	    <li>
+!insmath $val51
+$() admet 
+!insmath $val54
+$() diviseurs positifs&nbsp;:&nbsp;
+!insmath $val53
+$() et 
+!insmath $(val52[-1])
+$().	        <br>
+!insmath $val51
+$() n'est pas un nombre premier.	        <br>
+!insmath $val51
+$() se décompose de façon unique en produit de facteurs premiers, à l'ordre des facteurs près&nbsp;:&nbsp;	     <span class="unbreakable">
+!insmath $val51 = $val61
+$().</span>	    </li>	  </ul>	  	</div>		
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()		<div class="euler_quest_nobg">	  $val47	  <div class="unbreakable">	    <ul style="padding-left:1em;">	        <li>$(val46[;1])</li>	        <li>$(val46[;2])</li>	        <li>$(val46[;3])</li>	        <li>$(val46[;4])</li>	    </ul>	  </div>	</div>	<div class="euler_rep_good_nobg " > 	 	  <ul style="padding-left:1em;">	      <li>
+!insmath $val31
+$() est un produit qui ne fait intervenir que des nombres premiers et 
+!insmath $val31 = $val27
+$().	      <br> <span class="oef_indgood">
+!insmath $val31 \;
+$()</span> est la bonne réponse.</li>	      <li>
+!insmath $val36 = $val27
+$() mais un nombre entier négatif n'est pas un nombre premier.	      <br><span class="oef_indbad">
+!insmath $val36 \;
+$()</span> n'est donc pas une bonne réponse.</li>	      
+!if $val13>2 
+$()<li>
+!insmath $val39 = $val27
+$() mais un nombre entier est un nombre premier si et seulement si il admet exactement deux diviseurs positifs (1 et lui-même).	       
+!insmath $val40
+$() admet
+!insmath $val41
+$() diviseurs positifs&nbsp;: 
+!insmath $val43
+$() et 
+!insmath $(val42[-1])
+$(). Il n'est pas premier.	       <br><span class="oef_indbad">
+!insmath $val39 \;
+$()</span> n'est donc pas une bonne réponse.</li>	      <li>
+!insmath $val45
+$() est la décomposition en facteurs premiers du nombre 
+!if alea=0 
+$()
+!insmath $val10
+$() 
+!else
+$() 
+!insmath $val11
+$().<br> <span class="oef_indbad">
+!insmath $val45 \;
+$()</span> n'est donc pas une bonne réponse. 
+!endif
+$()</li> 
+!else
+$()	       <li>
+!insmath $val32
+$() est la décomposition en facteurs premiers du nombre 
+!insmath $val10
+$().<br><span class="oef_indbad">
+!insmath $val32 \;
+$()</span> n'est donc pas une bonne réponse.</li>	      <li>
+!insmath $val33
+$() est la décomposition en facteurs premiers du nombre 
+!insmath $val11
+$().<br><span class="oef_indbad">
+!insmath $val33 \;
+$()</span> n'est donc pas une bonne réponse.</li> 
+!endif
+$()	  </ul>	 	</div>		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!positionof item $m_reply1 in $val46
+
+val62=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+!ifval $val62=2
+ <div class='oef_feedbacks'><div class="wims_msg warning">  Un nombre entier négatif n'est pas un nombre premier.</div>
+$()</div>
+!endif
+!ifval $val62=3
+ <div class='oef_feedbacks'>
+!if $val13>2 
+$()<div class="wims_msg warning">Un nombre entier qui n'admet pas exactement deux diviseurs positifs (1 et lui-même) n'est pas un nombre premier.	  <br> Le nombre $val40 n'est pas un nombre premier car il admet 
+!insmath $val41
+$() diviseurs positifs&nbsp;:
+!insmath $val43
+$() et 
+!insmath $(val42[-1])
+$().</div>  
+!else
+$()	     <div class="wims_msg warning">
+!insmath $val32
+$() est la décomposition en facteurs premiers du nombre 
+!insmath $val10
+$()</div>  
+!endif
+$()	  
+$()</div>
+!endif
+!ifval $val62=4
+ <div class='oef_feedbacks'>
+!if $val13>2 
+$()<div class="wims_msg warning">
+!insmath $val45
+$() est la décomposition en facteurs premiers du nombre 
+!if alea=0 
+$()
+!insmath $val10
+$() 
+!else
+$() 
+!insmath $val11
+$() 
+!endif
+$().</div> 
+!else
+$()	       <div class="wims_msg warning">
+!insmath $val33
+$() est la décomposition en facteurs premiers du nombre 
+!insmath $val11
+$()</div> 
+!endif
+$()	  
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,13,27,31,32,33,36,39,40,41,42,43,45,46,47,49,51,52,53,54,61
+embedcnt=4

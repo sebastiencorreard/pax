@@ -1,0 +1,107 @@
+!set title=Effet de structure 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 100,150,200
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 10,15,20
+
+val7=$[rint($(tmp0)/100*$val6)]
+val8=$[rint($val6-$val7)]
+tmp0=!randint 3, 8
+
+val9=$[rint($(tmp0)*1000)]
+tmp0=!randint 10, 15
+
+val10=$[rint($(tmp0)*100)]
+val11=$[rint(floor(($val7*$val9+$val8*$val10-$val6*$val10*1.05)/($val9*1.05-$val10*1.05)))]
+val12=$[rint($val7-$val11)]
+oefsteps=r1	r2 
+nextstep=!nosubst r1	r2 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=
+replygood1=2;Oui,Non
+replytype2=numeric
+replyname2=
+replygood2=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	En 2000, le personnel d'une petite entreprise est constitué de $val7	cadres dont le salaire moyen est de $val9 euros et de $val8 ouvriers	dont le salaire moyen est de $val10 euros.	</p><p>	En 2001, la composition du personnel a changé mais le nombre d'employés est resté constant et tous	les salariés sont augmentés de 5%.	</p>	
+!if $m_step=1 
+$()	  Peut-on en conclure que la masse salariale a augmenté en 2001&nbsp;?	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	  
+!else
+$() 	<label for="reply2">Combien au minimum de cadres ont dû être remplacés par des ouvriers pour	obtenir une masse salariale inférieure en 2001 à celle de 2000&nbsp;?</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2,4 
+$()</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10
+embedcnt=2

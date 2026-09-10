@@ -1,0 +1,43 @@
+target=fracx2
+# define NUM II
+#include "header.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\language{fr}
+\options{nofloat}
+\methods{ineq/addterm, ineq/mulexp, ineq/divexp, ineq/exsides
+ineq/trans, ineq/addineq, ineq/mulineq}
+\minsteps{4}
+
+\text{x=randitem(a,b,c,d,p,q,r,s,t,u,v,x,y,z)}
+
+\text{sh=shuffle(15)}
+\integer{a=(item(1,\sh)+1)*randitem(-1,1)}
+\integer{b=(item(2,\sh)+1)*randitem(-1,1)}
+\integer{c=(item(3,\sh)+1)}
+
+\matrix{data=>,<,1
+<,>,-1
+}
+\text{data=randomrow(\data)}
+\text{s1=item(1,\data)random(,=)}
+\text{s2=item(2,\data)}
+\integer{it=item(3,\data)}
+
+\integer{d=-(\b)+(\it)*random(1..10)}
+\function{left=(\x + \a)/(\x + \b)}
+\real{tester=(\d+(\a))/(\d+(\b))}
+\integer{c=\tester>1?1-\c:1+\c}
+\text{s2=\tester>1?<:>}
+\text{eqr=randitem(,=)}
+\text{sign=\s2\eqr}
+\text{ctx1=\x \s1 \d}
+\text{ctx2=\left \sign \c}
+\context{\ctx1
+\ctx2}
+\goal{contradiction}
+\statement{
+\name_enonce[1] \(\left \sign \c\) \name_enonce[2] \(\x \s1 \d\).
+}
+
+

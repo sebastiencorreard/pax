@@ -1,0 +1,186 @@
+\title{Calcul de dérivée}
+\language{fr}
+
+\text{x=x}
+
+% Tirage aléatoire des types d'expression pour les fonctions f, g et h
+% en fonction des paramètres choisis par l'utilisateur
+
+\if{\confparm1=}{
+\text{\ltypef=7,8,10,11}
+}{
+\text{\ltypef=\confparm1}
+}
+\text{typef=randitem(\ltypef,\ltypef)}
+\if{\confparm2=}{
+\text{\ltypeg=1}
+}{
+\text{\ltypeg=\confparm2}
+}
+\text{typeg=randitem(\ltypeg,\ltypeg)}
+\if{\confparm3=}{
+\text{\ltypeh1=1}
+}{
+\text{\ltypeh1=\confparm3}
+}
+\integer{typeh1=randitem(\ltypeh1,\ltypeh1)}
+\if{\confparm4=}{
+\text{\ltypeh2=0}
+}{
+\text{\ltypeh2=\confparm4}
+}
+\integer{typeh2=randitem(\ltypeh2,\ltypeh2)}
+
+% Phrase précisant le domaine de définition et de dérivabilité
+
+\text{domR=1,7,10,11,13,14,18}
+\if{\typef isitemof \domR}{
+\text{domaine=qui est définie et dérivable sur \({\mathbb{R}}\) tout entier}
+\text{I=\mathbb{R}}
+}{
+\text{domaine=sur un domaine \(I\) où elle est définie et dérivable}
+\text{I=I}
+}
+
+% Création de l'expression de h1
+
+\integer{a=randitem(-1,1)*randint(1..4)}
+\integer{b=randitem(-1,1)*randint(1..4)}
+\matrix{mh=1
+\x
+\x^2
+\x^3
+\a
+\a*\x
+\a*\x^2
+\a*\x^3
+(\a*\x+\b)
+(\a*\x^2+\b)
+(\a*\x^3+\b)
+(\a*\x^2+\b*\x)
+(\a*\x^3+\b*\x)
+(\a*\x^3+\b*\x^2)}
+\text{h1x=\mh[\typeh1;1]}
+
+
+% Création de l'expression de h2
+\if{\typeh2<>0}{
+\integer{a=randitem(-1,1)*randint(1..4)}
+\integer{b=randitem(-1,1)*randint(1..4)}
+\matrix{mh=1
+\x
+\x^2
+\x^3
+\a
+\a*\x
+\a*\x^2
+\a*\x^3
+\a*\x+\b
+\a*\x^2+\b
+\a*\x^3+\b
+\a*\x^2+\b*\x
+\a*\x^3+\b*\x
+\a*\x^3+\b*\x^2}
+\text{h2x=\mh[\typeh2;1]}
+}
+
+% Création de l'expression de g
+
+\integer{a=randitem(-1,1)*randint(1..4)}
+\integer{b=randitem(-1,1)*randint(1..4)}
+\integer{c=randint(2..4)}
+
+% Modification des coefficients de la fonction g pour éviter que la fonction finale ne soit définie nulle part (ex : sqrt(-x^2-1)).
+
+\text{dompos=4,5,6,8,9}
+\text{dom1=16,17}
+\if{(\typef isitemof \dompos) or (\typef isitemof \dom1)}{
+\text{a2=randint(1..4)}
+\if{\typef isitemof \dompos}{
+\text{a3=\a}
+\text{b3=pari(abs(\b))}
+\text{a3=}
+}{
+\text{a3=\a}
+\text{b3=pari(sgn(-\a)*abs(\b))}
+}
+}{
+\text{a2=\a}
+\text{a3=\a}
+\text{b3=\b}
+}
+
+\matrix{mg=\x
+\x^2
+\x^3
+\a*\x
+\a2*\x^2
+\a*\x^3
+\a*\x+\b
+\a3*\x^2+\b3
+\a*\x^3+\b
+\a*\x^2+\b*\x
+\a*\x^3+\b*\x
+\a*\x^3+\b*\x^2}
+\text{gx=\mg[\typeg;1]}
+
+% Création de la fonction finale
+
+\text{n=randint(4..8)}
+\rational{r=randitem(-1,1)*randitem(1/2,3/2,5/2,2/3,4/3,1/4,3/4,5/4,1/5,2/5,3/5)}
+\matrix{mf=\h1x*(\gx)^\n
+\h1x*1/(\gx)^\n
+\h1x*(\gx)^(-\n)
+\h1x*sqrt(\gx)
+\h1x*1/sqrt(\gx)
+\h1x*(\gx)^(\r)
+\h1x*exp(\gx)
+\h1x*ln(\gx)
+\h1x*\c^(\gx)
+\h1x*sin(\gx)
+\h1x*cos(\gx)
+\h1x*tan(\gx)
+\h1x*sh(\gx)
+\h1x*ch(\gx)
+\h1x*th(\gx)
+\h1x*arcsin(\gx)
+\h1x*arccos(\gx)
+\h1x*arctan(\gx)}
+
+\if{\typeh2=0}{
+\text{fx=\mf[\typef;1]}
+}{
+\text{fx=randitem(\mf[\typef;1]+\h2x,\h2x+\mf[\typef;1])}
+}
+\text{ffx=texmath(\fx)}
+
+% Calcul de la dérivée
+
+\text{dfx=maxima(trigsimp(diff(\fx,\x)))}
+\text{ddfx=texmath(\dfx)}
+\text{ddfx=wims(replace internal log by ln in \ddfx)}
+\text{ddfx=wims(replace internal arctg by arctan in \ddfx)}
+
+% Enoncé
+
+\statement{
+On considère la fonction 
+<div class="wimscenter">\(f:\x \mapsto \ffx\)</div>
+<br>\domaine. 
+<p>Calculer la dérivée de \(f\).</p>
+<label for="reply1">\(\forall \x \in \I,\, f'(x)=\)\embed{reply1,50}</label>
+}
+
+% Analyse de la réponse
+\answer{}{\dfx,x}{type=formal}{option=noanalyzeprint}
+
+
+% Correction
+
+\text{rrep=texmath(\reply1)}
+\feedback{1=1}{<p>Vous avez répondu \(f'(x)=\rrep\).</p>}
+
+\solution{
+Soit la fonction \(f:\x \mapsto \ffx\) \domaine.<br>
+\(\forall \x \in \I,\, f'(x)=\ddfx\).
+}

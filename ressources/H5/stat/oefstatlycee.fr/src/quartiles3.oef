@@ -1,0 +1,143 @@
+\title{Médiane et quartiles avec des classes}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+
+
+\integer{n=randint(20..50)}
+\text{listval=}
+\integer{valmin=20}
+\integer{xmax=\valmin}
+\integer{valmax=50}
+\integer{xmin=\valmax}
+\integer{nbval=randint(5..10)}
+\text{valposs=shuffle(\valmax-\valmin)}
+## on ne veut pas topujours un mode prépondérant
+\integer{imode=randint(1..\nbval*2)}
+\text{listeff=}
+\integer{efftotal=0}
+\text{xlistval=}
+\for{i=1 to \nbval}
+{
+ \integer{valc=\valposs[\i]*10}
+ \text{xlistval=wims(append item \valc to \xlistval)}}
+\text{xlistval=wims(sort numeric list \xlistval)}
+\for{i=1 to \nbval}
+  {
+   \if{\i=\imode}{\integer{eff=random(80..100)}
+                   \integer{valmode=\xlistval[\i]}
+                  }
+      {\integer{eff=random(1..80)}}
+   \integer{efftotal=\efftotal+\eff}
+   \text{listeff=wims(append item \eff to \listeff)}
+   \integer{val=\xlistval[\i]}
+   \integer{\xmin=\val<\xmin?\val}
+   \integer{\xmax=\val>\xmax?\val}
+  }
+\integer{bornesup=\xlistval[\nbval]+10}
+\text{xlistval=wims(append item \bornesup to \xlistval)}
+## Calcul des indicateurs
+\integer{ecc=0}
+\integer{Q1g=-1}
+\integer{Q3g=-1}
+\integer{Medg=-1}
+\real{effMed=\efftotal/2}
+\real{effQ1=\efftotal/4}
+\real{effQ3=3*\efftotal/4}
+\integer{rangMed=ceil(\effMed)}
+\integer{rangQ1=ceil(\effQ1)}
+\integer{rangQ3=ceil(\effQ3)}
+
+\for{i=1 to \nbval}
+ {
+ \integer{ecc=\ecc+\listeff[\i]}
+ \if{\ecc>\effQ1 and \Q1g<0}
+   {
+    \integer{Q1g=\xlistval[\i]}
+    \integer{Q1d=\xlistval[\i+1]}
+   }
+ \if{\ecc>\effMed and \Medg<0}
+   {
+   \integer{Medg=\xlistval[\i]}
+   \integer{Medd=\xlistval[\i+1]}
+   }
+ \if{\ecc>\effQ3 and \Q3g<0}
+   {
+   \integer{Q3g=\xlistval[\i]}
+   \integer{Q3d=\xlistval[\i+1]}
+   }
+ }
+
+\text{slistval=shuffle(\listval)}
+\integer{rangeval=\xmax - \xmin}
+\text{table=<table class="wimsborder wimscenter" style="background-color:skyblue">
+	 <tr>}
+
+\integer{nn=ceil(\efftotal/10)}
+\for{i=0 to \nn-1}
+ {\text{table=\table <tr>}
+ \for{j=1 to 10}
+ {\text{a=item(\i*10+\j,\slistval)}
+\text{table=\table <td> \a </td>}
+ }
+\text{table=\table </tr>}
+}
+\text{table=\table </table>}
+\text{crochg=&#91;}
+\text{crochd=&#93;}
+\text{ptvirg=&#59;}
+
+\text{tableau=<table class="wimsborder wimscenter">}
+\text{tableau=\tableau<tr><th> Valeurs </th>}
+\for{j=1 to \nbval}
+{
+ \text{tableau=\tableau<td> \crochg \xlistval[\j] \ptvirg \xlistval[\j+1] \crochg
+ </td>}
+}
+\text{tableau=\tableau</tr><tr><th>Effectif</th>}
+\for{j=1 to \nbval}
+{
+ \text{tableau=\tableau<td> \listeff[\j] </td>}
+}
+\text{tablefeed=\tableau</tr><tr><td>E.C.C</td>}
+\integer{effcum=0}
+\for{j=1 to \nbval}
+{
+ \integer{effcum=\effcum+\listeff[\j]}
+ \text{tablefeed=\tablefeed<td> \effcum </td>}
+}
+\text{tablefeed=\tablefeed</tr></table>}
+\text{tableau=\tableau</tr></table>}
+
+
+\statement{
+Voici les données d'une série statistique:
+
+\tableau
+
+<ol><li> Dans quelle classe se situe la médiane de cette série: \crochg \embed{reply1,3};\embed{reply2,3} \crochg</li>
+<li> Dans quelle classe se situe Q1:\crochg \embed{reply3,3};\embed{reply4,3} \crochg</li>
+<li> Dans quelle classe se situe Q3:\crochg \embed{reply5,3};\embed{reply6,3} \crochg</li>
+</ol>
+}
+
+\answer{Médiane borne gauche}{\Medg}{type=numeric}
+\answer{Médiane borne droite}{\Medd}{type=numeric}
+\answer{Q1 borne gauche}{\Q1g}{type=numeric}
+\answer{Q1 borne droite}{\Q1d}{type=numeric}
+\answer{Q3 borne gauche}{\Q3g}{type=numeric}
+\answer{Q3 borne droite}{\Q3d}{type=numeric}
+\feedback{1=1}
+{ <p>On commence par calculer les effectifs cumulés croissants:</p>
+\tablefeed
+<p>
+L'effectif total de cette série est de \efftotal<br>
+Le rang de la médiane est donc \rangMed, la médiane est donc dans la classe &#91; \Medg ; \Medd &#91;<br>
+Le rang de Q1 est  \rangQ1, Q1 est donc dans la classe &#91; \Q1g ; \Q1d &#91;<br>
+Le rang de Q3 est  \rangQ3, Q3 est donc dans la classe &#91; \Q3g ; \Q3d &#91;
+</p>
+}

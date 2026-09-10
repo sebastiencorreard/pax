@@ -1,0 +1,351 @@
+!set title=Le compte est bon Ia
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+oefcss=<style> table.lceb th {background-color:lightgreen; padding:10px;width:60px;border:3px solid;} table.lceb td {border:3px solid;padding:10px;font-size:130%;} td.goal {border:3px solid;padding:10px;background-color:#CCFFCC; font-weight:bold;font-size:130%;} td.answer {border:3px solid;padding:10px;background-color:orange;} pre { left:100px; right:100px; width:200px; padding:20px; text-align:left; border:1px solid } .wims_oef_input {font-size:120%;} </style> 
+title_en=Countdown Ia
+title_it=Il conto è giusto Ia
+
+ansorder=r,r,r,r,r,r
+varcnt=72
+prevarcnt=44
+postvarcnt=27
+replycnt=6
+choicecnt=0
+conditioncnt=3
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2=1 
+val6=4
+tmp0=!randint 20, 50
+
+val7=$(tmp0)
+tmp0=!shuffle 3,3,4,5,6,2,2,6,4
+
+val8=$(tmp0)
+val8=$(val8[1..4]),0,0
+val6=4
+!else
+val6=6
+tmp0=!shuffle 1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,25,50,75,100
+
+val8=$(tmp0)
+tmp0=!randint 100, 999
+
+val7=$(tmp0)
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val9=$(tmp0)
+val10=Avec les nombres de la première ligne du tableau et les 4 opérations,	vous devez obtenir le nombre $val7 ; écrivez votre première opération et son résultat,	par exemple
+val11=envoyez le résultat, puis continuez.
+tmp=!trim Vous avez utilisé les nombres donnés	Les opérations sont justes	Vous avez trouvé le résultat ou le résultat le plus proche	Votre nombre est compris entre \M1 et \M2
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Choisissez un nombre entre \M1 et \M2.	Vous n'avez pas joué le jeu ... 
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Votre réponse	 Une réponse possible
+val14=!translate internal $	\
+$ to ;; in $tmp
+!if $val9=en 
+val10=Using numbers from the first row and the four arithmetic operations,	you must arrive to $val7 ; write your first operation and its result,	for example
+val11=send the result, then continue.
+tmp=!trim You used the given numbers	Te calculations are correct	You found the target number or the nearest result	Your number lies between \M1 and \M2
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Choose a number between \M1 and \M2.	You didn't play the game ... 
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Your answer	 One possible answer
+val14=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val9=it 
+val10=Con i numeri della prima riga e le 4 operazioni	dovete ottenere il numero $val7 ; scrivi la tua prima operazione e il corrispondente risultato,	per esempio
+val11=invia la risposta, quindi continua.
+tmp=!trim Hai utilizzato i numeri dati	Le operazioni sono corertte	Hai trovato il risultato o il risultato più vicino	Il numero inserito è compreso tra \M1 e \M2
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Scegli un numero tra \M1 e \M2.	Non avete giocato ... 
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim La tua risposta	 Una risposta possibile
+val14=!translate internal $	\
+$ to ;; in $tmp
+!endif
+val15=$(val8[1..6])
+tmp0=!items2words $val15
+
+val16=$(tmp0)
+tmp0=!nospace $val15
+
+val15=$(tmp0)
+tmp0=!replace internal ,0 by in $val15
+
+val15=$(tmp0)
+tmp0=!nonempty items $val15
+
+val15=$(tmp0)
+val17=$val15
+tmp0=!exec lceb $val7 $val16
+
+val18=$(tmp0)
+val19=$val18
+tmp0=!line 3 to -1 of $val18
+
+val18=$(tmp0)
+
+!ifval NOTFOUND isin $val19
+tmp0=!line 2 of $val19
+
+tmp1=!word 2 of $(tmp0)
+
+val20= $(tmp1) 
+!else
+val20= $val7
+!endif
+val21=$[rint($(val17[1]) + $(val17[2]))]
+val22=r1
+val23=
+val24=
+val25=
+val26=$val6
+val27=
+val28=
+val29=
+val30=
+dynsteps=yes
+oefsteps=$val22 
+nextstep=!nosubst $val22 
+!readproc oef/steps.proc
+replytype1=raw
+replyname1=
+replygood1=?analyze 31
+replytype2=raw
+replyname2=
+replygood2=?analyze 32
+replytype3=raw
+replyname3=
+replygood3=?analyze 33
+replytype4=raw
+replyname4=
+replygood4=?analyze 34
+replytype5=raw
+replyname5=
+replygood5=?analyze 35
+replytype6=raw
+replyname6=
+replygood6=?analyze 36
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	$val10 <span class="tt">$(val17[1]) + $(val17[2]) = $val21</span>,	$val11	</p>	
+!if $val22= 
+$()	<table class="wimscenter lceb">	<tr> 
+!for m_u=1 to $val6 
+$()<th>$(val17[$m_u])</th> 
+!next
+$()</tr>	</table>	 
+!endif
+$()	<table class="wimscenter lceb">	<tr> 
+!for m_u=1 to $val26 
+$()<th>$(val15[$m_u])</th> 
+!next
+$()	</tr>	<tr><td class="goal" colspan="$val6">$val7</td></tr>	<tr>	<td class="answer" colspan="$val6">	
+!if $val22= 
+$()$(val28[3]) 
+!else
+$()  
+!read oef/embed.phtml r \step,150	default 
+$()	 
+!endif
+$()	</td></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val37=$val15
+tmp=!translate internal $	$ to ; in $m_reply1
+
+tmp0=!rowcnt $tmp
+val38=$[rint($(tmp0))]
+tmp=!trim $val31	$val32	$val33	$val34	$val35	$val36
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal <pre> by in $val23
+
+val23=$(tmp0)
+tmp0=!replace internal </pre> by in $val23
+
+val23=$(tmp0)
+val27=$(val23[$m_step-1;])
+tmp0=!replace internal = by == in $val27
+
+val29=$(tmp0)
+t_=!replace internal \( by ( in $val29
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+tmp0=!append item $val29 to $val25
+
+val25=$(tmp0)
+tmp0=!replace internal = by , in $val27
+
+val28=$(tmp0)
+tmp0=!append item $(val28[2]) to $val15
+
+val15=$(tmp0)
+tmp0=!translate internal +=-*/ to ,,,,, in $val27
+
+val28=$(tmp0)
+tmp0=!nonempty items $val28
+
+val28=$(tmp0)
+tmp0=!positionof item $(val28[1]) in $val15
+
+val39=$(tmp0)
+tmp0=!positionof item $(val28[2]) in $val15
+
+val40=$(tmp0)
+val39=$[rint($(val39[1]))]
+
+!ifval $(val28[1]) notsametext $(val28[2])
+val40=$[rint( $(val40[1]))]
+!else
+val40=$[rint($(val40[2]))]
+!endif
+
+!ifval $val39 notwordof 1 2 3 4 5 6 or $val40 notwordof 1 2 3 4 5 6 
+tmp0=!append item 0 to $val24
+
+val24= $(tmp0)
+!else
+tmp1=!append item 1 to $val24
+
+val24=$(tmp1)
+!endif
+!if 0 notin $val24 
+tmp0=!replace internal item number $val39 by in $val15
+
+val15=$(tmp0)
+tmp0=!replace internal item number $val40 by in $val15
+
+val15=$(tmp0)
+tmp0=!nonempty items $val15
+
+val15=$(tmp0)
+val26=$[rint($val26-1)]
+!endif
+val22=
+
+!ifval $m_step<$val6 and  $val7 notitemof $val15 and abs($val20 - $val7) < abs($val7 - $(val28[3])) and 0 notin $val24 and 0 notin $val25 
+val22= r $m_step
+!endif
+
+!ifval $val29=1
+val30=$val30	$val27
+!else
+val30=$val30	<span class="oefindbad">$val27</font>
+!endif
+
+!ifval $val7 isitemof $val37 
+val41= 1
+!else
+val41=0
+!endif
+
+!ifval $val41=0 and abs($val20 - $val7) >= abs($val7 - $(val28[3])) 
+val41= 1
+!endif
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	$(val14[1;])	<div class="wimscenter">	 
+!read oef/special.phtml expandlines	$val30	 
+$()	</div>	
+$()</div>
+!endif
+!ifval 0 isin $val25,$val24 or $val41!=1
+ <div class='oef_feedbacks'>	$(val14[2;])	<div class="wimscenter">	 
+!read oef/special.phtml expandlines	$val18	 
+$()	</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=1 
+
+!ifval 0 notin $val24
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val12[1;])
+condweight2=3 
+
+!ifval 0 notin $val25
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val12[2;])
+condweight3=8 
+
+!ifval 0 notin $val25,$val24 and $val41=1
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$(val12[3;])
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,14,15,17,18,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
+embedcnt=3

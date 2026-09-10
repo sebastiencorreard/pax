@@ -1,0 +1,210 @@
+!set title=Opérations et conjugués 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+
+ansorder=r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+
+!ifval $val6=0
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+!else
+tmp2=!randint -5, 5
+
+val7=$[rint($(tmp2))]
+!endif
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+
+!ifval $val8=0
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+!else
+tmp2=!randint -5, 5
+
+val9=$[rint($(tmp2))]
+!endif
+t_=!rawmath $val6+$val7*i
+t_=!exec pari print($t_)
+val10=!mathsubst I=i in $t_
+t_=!rawmath $val8+$val9*i
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+tmp0=!randint 1, 4
+
+val12=$[rint($(tmp0))]
+!if $val12=1 
+t_=!rawmath ($val6-$val7*i)/($val8+$val9*i)
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+val14=\overline{z_1}
+val15=z_2
+tmp0=!texmath (u)/(vv)
+
+val16=$(tmp0)
+tmp0=!replace internal vv by $val15 in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal u by $val14 in $val16
+
+val16=$(tmp0)
+!endif
+!if $val12=2 
+t_=!rawmath ($val6+$val7*i)/($val8-$val9*i)
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+val15=\overline{z_2}
+val14=z_1
+tmp0=!texmath (u)/(vv)
+
+val16=$(tmp0)
+tmp0=!replace internal u by $val14 in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal vv by $val15 in $val16
+
+val16=$(tmp0)
+!endif
+!if $val12=3 
+t_=!rawmath ($val6-$val7*i)/($val8-$val9*i)
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+val14=z_1
+val15=z_2
+tmp0=!texmath (u)/(vv)
+
+val16=$(tmp0)
+tmp0=!replace internal u by $val14 in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal vv by $val15 in $val16
+
+val16=$(tmp0)
+val16=\overline{($val16)}
+!endif
+!if $val12=4 
+t_=!rawmath ($val6-$val7*i)/($val8+$val9*i)
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+val15=\overline{z_2}
+val14=z_1
+tmp0=!texmath (u)/(vv)
+
+val16=$(tmp0)
+tmp0=!replace internal vv by $val15 in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal u by $val14 in $val16
+
+val16=$(tmp0)
+val16=\overline{($val16)}
+!endif
+!if $val12<3 
+t_=!rawmath 1/($val6-$val7*i)
+t_=!exec pari print($t_)
+val17=!mathsubst I=i in $t_
+val18=\frac{1}{\overline{z_1}}
+!else
+t_=!rawmath 1/($val6+$val7*i)
+t_=!exec pari print($t_)
+val17=!mathsubst I=i in $t_
+val18=\overline{(\frac{1}{\overline{z_1}})}
+!endif
+replytype1=complex
+
+replyname1=\($val18)
+replygood1=$val17
+replytype2=complex
+
+replyname2=\($val16)
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Soient les nombres complexes 
+!insmath z_1=$val10
+$() et 
+!insmath z_2=$val11
+$().</p>	Calculer sous forme algébrique:	<ol>	<li><label for="reply1">
+!insmath $val18
+$()=</label> 
+!read oef/embed.phtml reply1 
+$()</li>	<li><label for="reply2">
+!insmath $val16
+$()=</label> 
+!read oef/embed.phtml reply2 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,16,18
+embedcnt=2

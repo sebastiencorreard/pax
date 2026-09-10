@@ -1,0 +1,241 @@
+!set title=Trouver les opérateurs et résoudre une équation 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 9
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=$val7 
+val8=$[rint( 1+ $val7)]
+!else
+val8=$[rint( $val7)]
+!endif
+tmp0=!randitem -1,1
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9*$val6)]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val11*$val8)]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 9
+
+val13=$[rint($(tmp0)*$(tmp1))]
+val14=$[rint($val10*$val13-$val12)]
+val15=\($val10)
+val16=\($val8)
+
+!ifval $val11>0
+val17=+
+!else
+val17=&#0151
+!endif
+
+!ifval $val11>0
+val18=&#0151
+!else
+val18=+
+!endif
+
+!ifval $val9>0
+val19=+
+!else
+val19=&#0151
+!endif
+
+!ifval $val9>0
+val20=&#0151
+!else
+val20=+
+!endif
+val21=\(\times) ($val10)
+val22=\($val10 x)
+val23=$val17 ($val8)
+val24=\(x + $val12)
+val25=$val18 ($val8)
+val26=\(\div) ($val10)
+val27=\(\div) ($val12)
+val28=$val19 ($val6)
+val29=\(\times) ($val12)
+val30=$val20 ($val6)
+val31=$[rint($val14+$val12)]
+
+!ifval $val11=1
+val32= \(\frac{x + $val8}{$val10})
+!else
+val32= \(\frac{x - $val8}{$val10})
+!endif
+tmp0=!shuffle $val21,$val23,$val25,$val26,$val27,$val28,$val29,$val30
+
+val33=$(tmp0)
+val34=flèche de gauche à droite
+!readproc oef/draw.phtml 80,16 \
+segment 0,0,0,16,black	arrow 0,8,80,8,20,black 
+tmp0=$ins_url
+val35=$(tmp0)
+val36=flèche de droite à gauche
+!readproc oef/draw.phtml 80,16 \
+segment 79,0,79,16,black	arrow 80,8,0,8,20,black 
+tmp0=$ins_url
+val37=$(tmp0)
+val38=50x30x1
+oefsteps=reply1,reply2	reply3,reply4	reply5,reply6,reply7,reply8 
+nextstep=!nosubst reply1,reply2	reply3,reply4	reply5,reply6,reply7,reply8 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=
+replygood1=$val23;$val33
+replytype2=clickfill
+replyname2=
+replygood2=$val26;$val33
+replytype3=clickfill
+replyname3=
+replygood3=$val21;$val33
+replytype4=clickfill
+replyname4=
+replygood4=$val25;$val33
+replytype5=numeric
+replyname5=
+replygood5=$[$val31]
+replytype6=numeric
+replyname6=
+replygood6=$[$val14]
+replytype7=numeric
+replyname7=
+replygood7=$[$val31]
+replytype8=numeric
+replyname8=
+replygood8=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  
+!if $m_step=1 
+$()	  Placer les opérations dans les cases :	<table class="wimscenter">	  <tr>	  <td></td><td> 
+!read oef/embed.phtml reply1,$val38 
+$()</td><td></td><td> 
+!read oef/embed.phtml reply2,$val38 
+$()</td><td></td>	 </tr>	  <tr>	  <td>
+!insmath x
+$()</td><td><img src="$val35" alt="$val34"></td><td>$val24</td><td><img src="$val35" alt="$val34"></td>	  <td>$val32</td>	 </tr>	</table>	 
+!endif
+$()	  
+!if $m_step=2 
+$()	  Trouver les opérations réciproques :	<table class="wimscenter">	  <tr>	  <td></td><td>$val23</td><td></td><td>$val26</td><td></td>	 </tr>	  <tr>	  <td>
+!insmath x
+$()</td><td><img src="$val35" alt="$val34"></td><td>$val24</td><td><img src="$val35" alt="$val34"></td><td>$val32</td>	 </tr>	  <tr>	  <td>
+!insmath x
+$()</td><td><img src="$val37" alt=""></td><td>$val24</td><td><img src="$val37" alt=""></td><td>$val32</td>	 </tr>	  <tr>	  <td></td><td> 
+!read oef/embed.phtml reply4,$val38 
+$()</td><td></td><td> 
+!read oef/embed.phtml reply3,$val38 
+$()</td><td></td>	 </tr>	</table>	 
+!endif
+$()	  
+!if $m_step=3 
+$()	  On veut résoudre l'équation $val32 = $val13 c'est-à-dire retrouver l'antécédent de $val13.	<table class="wimscenter">	  <tr>	  <td></td><td>$val23</td><td></td><td>$val26</td><td></td>	 </tr>	  <tr>	  <td>
+!insmath x
+$()</td><td><img src="$val35" alt=""></td><td>$val24</td><td><img src="$val35" alt=""></td><td>$val32</td>	 </tr>	   <tr>	  <td>=</td><td></td><td>=</td><td></td><td>=</td>	 </tr>	 <tr>	  <td> 
+!read oef/embed.phtml reply6,5 
+$()</td><td><img src="$val37" alt="$val36"></td><td> 
+!read oef/embed.phtml reply5,5 
+$()</td>	  <td><img src="$val37" alt="$val36"></td><td>$val13</td>	 </tr>	  <tr>	  <td></td><td>$val25</td><td></td><td>$val21</td><td></td>	 </tr>	</table>		Autrement dit :	L'équation  $val32 = $val13 équivaut à :	<ul><li>	$val24 =  
+!read oef/embed.phtml reply7,3 
+$()	</li><li>	
+!insmath x
+$() =  
+!read oef/embed.phtml reply8,3 
+$()	</li></ul>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	
+!if $m_step=1 
+$()	Prendre une opération en bas et la placer au dessus de chaque flèche parmi :<br>	$val33<br>	Quelle opération faut-il effectuer pour passer de 
+!insmath x
+$() à $val24 ?	puis de $val24 à $val32 ?	 
+!endif
+$()	
+!if $m_step=2 
+$()	On lit ici le schéma en commençant par $val32.<br>	Prendre une opération en bas et la placer en dessous de chaque flèche parmi :<br>	$val33<br>	Quelle opération faut-il effectuer pour passer de $val32 à $val24 ? <br>	L'opération choisie doit être l'opération réciproque de $val26.<br><br>	Quelle opération faut-il effectuer pour passer de $val24 à 
+!insmath x
+$() ? <br>	L'opération choisie doit être l'opération réciproque de $val23.<br>	 
+!endif
+$()	
+!if $m_step=3 
+$()	Effectuer les opérations $val21 et $val25 en partant de $val13 à droite.<br>	Vous trouverez ainsi la valeur de $val24 puis de 
+!insmath x
+$().<br>	Écrire les mêmes nombres dans la rédaction classique.	 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,21,23,24,25,26,32,33,34,35,36,37,38
+embedcnt=8

@@ -1,0 +1,160 @@
+!set title=Rencontre de trains 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 4
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val8=$[rint($(tmp0))]
+!if $val8=$val7 
+val8=$[rint($val8+1)]
+!else
+!endif
+val9=$[rint($val7+$val8)]
+val10=$[rint(floor(30 / $val9))]
+tmp0=!randint 0, 4
+
+val11=$[rint(($val10 + $(tmp0))*$val9)]
+val12=$[rint(5*$val11)]
+val13=$[rint(0)]
+val14=$[rint(5*$val13)]
+val15=$[rint(0)]
+val16=$[rint(5*$val15)]
+val17=$[rint(30*$val7)]
+val18=$[rint(30*$val8)]
+val19=$[rint(5*(2*$val11+$val7*$val13 + $val8*$val15)/($val7 + $val8))]
+val20=$[rint($val14 + $val12/$val17*60)]
+val21=$[rint($val16 + $val12/$val18*60)]
+val22=$[rint($val16 - 60*floor($val16/60))]
+val23=$[rint($val6 + floor($val16/60))]
+val24=$[rint($val20 - 60*floor($val20/60))]
+val25=$[rint($val6 + floor($val20/60))]
+val26=$[rint($val21 - 60*floor($val21/60))]
+val27=$[rint($val6 + floor($val21/60))]
+val28=$[rint($val19 - 60*floor($val19/60))]
+val29=$[rint($val6 + floor($val19/60))]
+val30=$[$val7 * 0.5]
+val31=$[$val8 * 0.5]
+val32=$val30 x
+val33=!rawmath $val32
+val34=- $val31 x + $val12
+val35=!rawmath $val34
+tmp=!trim La vitesse du train N°1 est $val17 km/h soit $val30 km/min.	Il part de Arnes vers Buluc donc \(x) minutes après $val6 h il est à \($val30 x) km de Arnes.	Ainsi \(f1(x) = $val30 x).	La vitesse du train N°2 est $val18 km/h soit $val31 km/min.	Il part à $val23 h donc \(x) minutes après $val6 h il a parcouru \($val31 x) km depuis Buluc vers Arnes.	Buluc étant à $val12 km de Arnes, il est alors à \($val12 - $val31 x) km de Arnes.	Ainsi \(f2(x) = $val12 - $val31 x).	Pour trouver l'heure où les trains se croisent, il ne reste qu'à résoudre \($val32 = $val34).	Ce qui conduit à \(x = $val19) soit à $val29 h $val28 min.	
+val36=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!itemcnt $(val36[;1])
+
+val37=$[rint($(tmp0))]
+val38=Si le train 1 parcourt $val17 km en 60 minutes, alors	  il parcourt ... km en 1 minute.	  Calculer de la même façon la vitesse en km/min pour le 2ème train.	  Attention, le 2ème train part de Buluc, donc la distance à Arnes est	  $val12 km moins la distance parcourue.
+replytype1=function
+replyname1=\(f1(x)) 
+replygood1=!rawmath $val33
+replytype2=function
+replyname2=\(f2(x)) 
+replygood2=!rawmath $val35
+replytype3=default
+replyname3=Heure du croisement
+replygood3=$val29
+replytype4=default
+replyname4=Minutes du croisement
+replygood4=$val28
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val38
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<ul><li>	Les villes Arnes et Buluc sont distantes de $val12 km.	</li><li>	Le train N°1 part de Arnes vers Buluc à $val6 h à la vitesse de $val17 km/h.	</li><li>	Le train N°2 part de Buluc vers Arnes à $val23 h à la vitesse de $val18 km/h.	</li></ul>		Donner l'expression de la distance en km de chaque train par rapport à Arnes,	en fonction du nombre 
+!insmath x
+$() de minutes écoulées depuis $val6 h.	<div class="wims_question">	<ul><li>	<label for="reply1">
+!insmath f1(x)
+$() = </label> 
+!read oef/embed.phtml reply1,10 
+$() pour le train 1.	</li><li>	<label for="reply2">
+!insmath f2(x)
+$() = </label> 
+!read oef/embed.phtml reply2,10 
+$() pour le train 2.	</li></ul>		A quel instant les deux trains se croiseront-ils ?	<label for="reply3">Ils se croiseront à</label>	 
+!read oef/embed.phtml reply3,3 
+$() h  
+!read oef/embed.phtml reply4,3 
+$() <label for="reply3">min.</label>	</div>	
+$()
+!exit
+
+:hint
+$()$val38
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ul>	 
+!for m_j=1 to $val37 
+$()<li>$(val36[$m_j;])</li> 
+!next
+$()	</ul>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,17,18,23,36,37,38
+embedcnt=4

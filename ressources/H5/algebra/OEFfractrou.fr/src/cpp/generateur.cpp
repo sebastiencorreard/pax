@@ -1,0 +1,136 @@
+target = sominverse,diffinverse,somfraction,difffraction,poletfrac,entieretfrac,inversefrac,fracdefrac,divers1,divers2,divers3
+\language{fr}
+\range{-5..5}
+\author{Fabrice,Guerimand}
+\email{fwguerima@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{confparm1=wims(listintersect \confparm1 and 1,2)}
+\text{confparm1=\confparm1=?2:\confparm1}
+\integer{confparm1=randitem(\confparm1)}
+\integer{sconfparm1=\confparm1}
+\text{tenonce=}
+
+\text{l=shuffle(2,3,4,5,6,7,8,9)}
+\text{sign1=randitem(+,-)}
+\text{sign3=randitem(+,-)}
+\text{sign2=randitem(+,-)}
+\text{sign4=randitem(+,-)}
+
+#if defined TARGET_sominverse
+ \title{Somme d'inverses}
+ \text{enonce=1/(x\sign1 \l[1]) + 1/(x\sign2 \l[2])}
+#endif
+
+#if defined TARGET_diffinverse
+ \title{Différence d'inverses}
+ \text{enonce=1/(x\sign1 \l[1]) - 1/(x\sign2 \l[2])}
+#endif
+
+#if defined TARGET_somfraction
+ \title{Somme de fractions}
+ \text{enonce=(x\sign3 \l[3])/(x\sign1 \l[1]) + (x\sign4 \l[4])/(x\sign2 \l[2])}
+#endif
+
+#if defined TARGET_difffraction
+ \title{Différence de fractions}
+ \text{enonce=(x\sign3 \l[3])/(x\sign1 \l[1]) - (x\sign4 \l[4])/(x\sign2 \l[2])}
+#endif
+
+#if defined TARGET_poletfrac
+ \title{Polynômes et fraction}
+ \text{enonce=randitem(x\sign1 \l[1] \sign3 (x\sign4 \l[4])/(x\sign2 \l[2]),(x\sign4 \l[4])/(x\sign2 \l[2])\sign3 (x\sign1 \l[1]))}
+#endif
+
+#if defined TARGET_entieretfrac
+ \title{Entier et fraction}
+ \text{enonce=randitem(\l[1] \sign3 (x\sign4 \l[4])/(x\sign2 \l[2]),(x\sign4 \l[4])/(x\sign2 \l[2]) \sign3 \l[1])}
+#endif
+
+#if defined TARGET_inversefrac
+ \title{Inverse de fraction}
+ \text{enonce=1/((x \sign4 \l[4])/(x\sign2 \l[2]))}
+ \text{tenonce=\frac{1}{\frac{x \sign4 \l[4]}{x\sign2 \l[2]}}}
+#endif
+
+#if defined TARGET_fracdefrac
+ \title{Fraction de fractions}
+ \text{enonce=((x \sign1 \l[1])/(x\sign3 \l[3]))/((x \sign4 \l[4])/(x\sign2 \l[2]))}
+ \text{tenonce=\frac{\frac{x \sign1 \l[1]}{x\sign3 \l[3]}}{\frac{x \sign4 \l[4]}{x\sign2 \l[2]}}}
+#endif
+
+#if defined TARGET_divers1
+ \title{Divers 1}
+ \text{enonce=1/((x \sign4 \l[4])/(x\sign2 \l[2])\sign1\l[1])}
+ \text{tenonce=\frac{1}{\frac{x \sign4 \l[4]}{x\sign2 \l[2]}\sign1\l[1]}}
+#endif
+
+#if defined TARGET_divers2
+ \title{Divers 2}
+ \text{enonce=1/((x \sign4 \l[4])/(x\sign2 \l[2])\sign1 (x \sign3 \l[1]))}
+ \text{tenonce=\frac{1}{\frac{x \sign4 \l[4]}{x\sign2 \l[2]}\sign1 (x \sign3 \l[1])}}
+#endif
+
+#if defined TARGET_divers3
+ \title{Divers 3}
+ \text{enonce=(x \sign1 \l[3])/((x \sign4 \l[4])/(x\sign2 \l[2])\sign1 (x \sign3 \l[1]))}
+ \text{tenonce=\frac{x \sign1 \l[3]}{\frac{x \sign4 \l[4]}{x\sign2 \l[2]}\sign1 (x \sign3 \l[1])}}
+#endif
+
+\if{\confparm1=1}{
+  \text{tmp=r1}
+}{
+  \text{tmp=r2}
+}
+\steps{\tmp}
+
+\integer{ch=wims(charcnt \tenonce)}
+\text{tenonce=\ch=0?texmath(\enonce):\tenonce}
+\text{enonce=simplify(\enonce)}
+\text{denom=maxima(DENOM(\enonce);)}
+\text{num=maxima(NUM(\enonce);)}
+
+\text{x=randitem(x,y,z,a,b,c)}
+\text{listvar=\x,e^\x,cos(\x),sin(\x),sqrt(\x),ln(\x)}
+\text{listtex=\x,e^\x,\cos(\x),\sin(\x),\sqrt{\x},\ln(\x)}
+\text{confparm2=wims(listintersect \confparm2 and 1,2,3,4,5,6)}
+\text{confparm2=\confparm2=?1:\confparm2}
+\integer{confparm2=randitem(\confparm2)}
+
+\text{var=\listvar[\confparm2]}
+
+\text{tenonce=wims(replace internal x by \listtex[\confparm2] in \tenonce)}
+\text{denom=wims(replace internal x by \var in \denom)}
+\text{num=wims(replace internal x by \var in \num)}
+\text{tdenom=texmath(\denom)}
+\text{tnum=texmath(\num)}
+
+\statement{Compléter (sans utiliser le symbole divisé) :<br/>
+ \if{\confparm1=1}{
+   \special{mathmlinput [\tenonce = \frac{\quad reply1 \quad }{\tdenom}],10,noanswer
+ reply 1 
+ }
+ }{
+ \special{mathmlinput [\tenonce = \frac{\tnum}{\quad reply2 \quad}],10,noanswer
+ reply 2 
+ }
+ } 
+} 
+
+\answer{Numérateur}{\repnum}
+\answer{Dénominateur}{\repdenom}
+
+\if{\sconfparm1=1}{
+  \text{test=simplify(\repnum-(\num))}
+  \integer{a=/ isin \repnum?1:0}
+  \text{goodrep=\tnum}
+}{
+  \text{test=simplify(\repdenom-(\denom))}
+  \integer{a=/ isin \repdenom?1:0}
+  \text{goodrep=\tdenom}
+}
+\condition{Bonne réponse}{\test=0 and \a=0}{}
+\feedback{\a=1}{Vous avez utilisé le symbole divisé !}
+\feedback{\test!=0}{La bonne réponse est \(\goodrep).}

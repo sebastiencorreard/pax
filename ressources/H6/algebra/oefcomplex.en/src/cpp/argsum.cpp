@@ -1,0 +1,28 @@
+target=argsum
+
+#include "common.inc"
+#include "lang_titles.inc"
+
+\integer{a1=random(-20..20)}
+\integer{b1=random(2..20)*random(-1,1)}
+\integer{a2=random(-20..20)}
+\integer{b2=random(2..20)*random(-1,1)}
+\integer{b2=\b1+(\b2)=0?\b1}
+\integer{a=\a1+(\a2)}
+\integer{b=\b1+(\b2)}
+\complex{z1=\a1+\b1*i}
+\complex{z2=\a2+\b2*i}
+\real{mod=sqrt((\a)^2+(\b)^2)}
+\real{ar=\b>0?pi/2:-pi/2}
+\real{at=\a=0?\ar:arctan(\b/(\a))}
+\real{Arg=\a<0?\at+pi:\at}
+
+#include "lang.inc"
+
+\statement{\name_statement[1] \(z_1=\z1\), \(z_2=\z2\).
+\name_statement[2] \(z=z_1+z_2\).}
+
+\answer{\(|z|\)}{\mod}
+\answer{\(Arg(z)\)}{\arg}
+\condition{\arg \name_condition \(z\)}
+	{abs((\arg-\Arg)/(2*pi)-round((\arg-\Arg)/(2*pi)))<0.0001}

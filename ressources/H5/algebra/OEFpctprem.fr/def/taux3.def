@@ -1,0 +1,166 @@
+!set title=Taux d'évolution 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=19
+prevarcnt=15
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=hausse,baisse
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1000, 3000
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val10=$[rint($(tmp0))]
+
+!ifval $val8=1
+t_=!rawmath 1+$val10/100
+val11=!exec pari print($t_)
+!else
+t_=!rawmath 1-$val10/100
+val11=!exec pari print($t_)
+!endif
+
+!ifval $val8=1
+val12=1+\frac{$val10}{100}
+!else
+val12=1-\frac{$val10}{100}
+!endif
+t_=!rawmath $val9*$val11
+val13=!exec pari print($t_)
+val14=$[$val13]
+val15=$[round(10*$val13)/10]
+val16=$[rint(round($val13))]
+!readproc slib/numeration/ecriturenombre $val9,tex 
+tmp0=$slib_out
+val17=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val14,comma tex 
+tmp0=$slib_out
+val18=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val15,comma tex 
+tmp0=$slib_out
+val19=$(tmp0)
+val20=On peut diviser la nouvelle valeur \($val19\) par le coefficient multiplicateur \($val12\)	  qui correspond à la $(val7[$val8]) de <span class="nowrap">\($val10\) %.</span>	    <br>	    Le prix initial est \(\dfrac{$val19}{$val12}\) ce qui donne \($val17\) euros.
+replytype1=numeric
+replyname1=Réponse :
+replygood1=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val20
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	    Un bien coûte 
+!insmath $val19
+$() euros, après avoir subi une $(val7[$val8]) de <span class="nowrap">
+!insmath $val10
+$() %.</span>	  </p><p>	    <label for="reply1">Quel était son prix initial&nbsp;?</label>	  </p>	  <div class="wimscenter"> 
+!read oef/embed.phtml reply1,10 
+$() euros.</div>	  <div class="wims_instruction">Arrondir à l'euro.</div>	  
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val20
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val21=round($val21) 
+val22= 1
+!else
+val22=0
+!endif
+val23=$[abs($val21-$val9)]
+
+!ifval $val23<=1 and $val23<>0 
+val24= 1
+!else
+val24=0
+!endif
+
+!exit
+
+:feedback
+!ifval $val22=0
+ <div class='oef_feedbacks'>Attention : la réponse doit être un nombre entier. 
+$()</div>
+!endif
+!ifval $val24=1
+ <div class='oef_feedbacks'>Vous avez sans doute effectué le bon calcul mais vous avez mal arrondi le résultat.
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=19 
+
+!ifval $val23<=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonne réponse&nbsp;
+condweight2=1 
+
+!ifval $val23=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Arrondi demandé respecté&nbsp;
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,19,20,21
+embedcnt=1

@@ -1,0 +1,339 @@
+target= bouclecondchoix bouclecondassocier
+
+#if defined TARGET_bouclecondchoix
+\text{confparm1= items(\confparm1)=0 ? randitem(1,2):randitem(\confparm1)}
+:\title{Boucle conditionnelle : Lequel convient ?}
+
+#endif
+#if defined TARGET_bouclecondassocier
+\title{Boucle conditionnelle : Associer chaque script à la figure qui lui correspond}
+#endif
+
+:\author{Bruno, Mifsud}
+:\email{bruno.mifsud@laposte.net}
+
+\help{
+#include "lang_help_boucle_fr.inc"
+}
+
+\text{name_instruction=Aucun logiciel n'est autorisé pour répondre à cet exercice,
+ sans quoi il ne sert pas à grand chose pour progresser.}
+:%%%%%%%%%% pour les solutions générales  %%%%%%%%%%%%%%%
+
+
+:%%%%%%%%%%%%%%%%%%%%% fin sol %%%%%%
+
+#if defined TARGET_bouclecondchoix
+\if{\confparm1=1}{\text{data=bcond_script1.png, bcond_fig1.png
+bcond_script2.png,bcond_fig2.png
+bcond_script3.png,bcond_fig3.png
+bcond_script4.png,bcond_fig4.png
+bcond_script5.png,bcond_fig5.png
+bcond_script6.png,bcond_fig6.png
+bcond_script7.png,bcond_fig7.png
+bcond_script8.png,bcond_fig8.png
+
+}}
+\if{\confparm1=2}{\text{data=bcond_fig1.png, bcond_script1.png
+bcond_fig2.png,bcond_script2.png
+bcond_fig3.png,bcond_script3.png
+bcond_fig4.png,bcond_script4.png
+bcond_fig5.png,bcond_script5.png
+bcond_fig6.png,bcond_script6.png
+bcond_fig7.png,bcond_script7.png
+bcond_fig8.png,bcond_script8.png}}
+
+
+:Nombre d'images présentées.
+
+\integer{cnt=3}
+
+:La taille verticale des images en pixels
+\if{\confparm1=1}{\text{sizev=200}}{\text{sizev=100}}
+
+:%%%%%%%%%%%%%%
+ne pas mettre de ; dans sizev
+\if{\sizev notsametext }{
+  \text{sizev= style="height:wims(nospace \sizev px)"}
+}
+\text{data=wims(embraced randitem \data)}
+\text{tot=rows(\data)}
+\text{imagenonce=}
+\while{\imagenonce issametext }{
+ \text{mot = randrow(\data)}
+ \text{imagenonce=\mot[2]}
+}
+\text{image=\mot[1]}
+\text{ext=item(2,wims(replace internal . by , in wims(lowercase \image)))}
+
+
+:Consigne
+Ici <span class="wims_emph">\imagenonce</span> représente le nom de l'image qui sera à cliquer
+(à placer en 2e item dans les données).
+
+%%%%%%%%%%%%%
+\if{\confparm1=1}{
+\text{instruction=Clique sur le seul script qui permet à la balle WIMS de sortir du couloir :
+}}{\text{instruction=Clique sur la seule figure dont le script suivant permet de faire sortir la balle WIMS du couloir :
+}}
+
+:%%%%%%%%%%%%%%
+\css{<style>
+.ans_multipleclick {margin-left:auto;margin-right:auto}
+</style>
+}
+\text{liste=column(1,\data)}
+\text{listeimagenonce=column(2,\data)}
+\text{rep=position(\imagenonce,\listeimagenonce)}
+\text{perturb=wims(makelist x for x=1 to \tot)}
+\text{perturb=shuffle(\perturb)}
+\text{perturb=\perturb[1..\cnt]}
+\text{inter=wims(listintersection \rep and \perturb)}
+\if{\inter=}{
+  \integer{repcnt=items(\rep)}
+  \text{rep= \repcnt >1 ? randitem(\rep)}
+  \text{perturb=\rep,\perturb[1..\cnt-1]}
+  \text{perturb=shuffle(\perturb)}
+}
+\matrix{data=\data}
+\text{liste=\data[\perturb;1]}
+\text{listeimagenonce=\data[\perturb;2]}
+\text{cnt=items(\liste)}
+\text{Image=}
+\for{j=1 to \cnt}{
+  \text{Image=/ isin \liste[\j] ? wims(append item \liste[\j] to \Image):
+  wims(append item \imagedir/\liste[\j] to \Image)}
+}
+\text{liste=wims(makelist imgrename(x \sizev) for x in \Image)}
+\text{rep=position(\imagenonce,\listeimagenonce)}
+
+\statement{
+<div>Voici la balle WIMS : \img{\imagedir/balle_wims.png}
+elle doit sortir du couloir blanc sans passer à travers les murs noirs.</div>
+  <div class="instruction">\instruction</div>
+  <div class="wimscenter"> \img{\imagedir/\imagenonce}</div>
+  <div class="wimscenter">\embed{r1}</div>
+  <div class="wims_instruction">
+  \name_instruction
+  </div>
+}
+
+\answer{}{\rep;\liste}{type=click}{option=shuffle}
+#endif
+
+%%%% Fin scriptfigure
+
+%%%%%%%%%%%%% Boucle conditionnelle associer
+#if defined TARGET_bouclecondassocier
+
+\text{file=donnee_bouclecond}
+\text{notepad=slib(utilities/notepad Notepad,small)}
+
+\text{instruction=asis(Chacun des scripts suivants permet de faire sortir la balle WIMS d'un des labyrinthes.
+Associez à chaque labyrinthe le script qui permet à la balle WIMS de sortir.)}
+\text{instruction2=asis()}
+\text{choice=}
+\text{common=}
+\text{audio_file=no}
+\text{reading_file=no}
+\text{image_file=no}
+\text{video_file=no}
+\text{alea=yes}
+\text{size=250x200x200}
+\text{partialscore=split}
+\text{percent=1}
+\text{aucune=aucune de ces possibilités}
+\text{format=clickfill}
+\text{format0=mark}
+\text{specialhelp1=}
+\text{specialhelp2=}
+\text{specialhelp3=}
+\text{specialhelp4=}
+\text{helpprompt=}
+\text{reaccent=}
+\text{paste=yes}
+\text{pos_rep=inside}
+\text{second_step=yes}
+\text{first_step=1}
+\text{answer_given=}
+\text{try=}
+\text{packs=}
+\text{player=}
+\text{player_option=}
+#####################
+\text{givegood=slib(oef/env givegood)}
+\text{givegood=\givegood issametext ? 1}
+\text{answer_given=\givegood>0? yes}
+\text{file0=randitem(\file)}
+\integer{cnt_question= wims(recordcnt \file0)}
+
+################
+\text{MAX=1}
+\text{N=1}
+\text{M=3}
+################
+\text{option=\format0 iswordof flashcard?show}
+\text{ff=\format0 iswordof flashcard ?s;&nbsp;}
+\text{autocompletion=\format iswordof case nocase ? autocomplete="off"}
+\text{player=wims(replace internal - by in \player)}
+\text{specialhelp=\specialhelp1,\specialhelp2,\specialhelp3,\specialhelp4}
+\text{helpprompt=\helpprompt = ?++>}
+\integer{first_step=\first_step notwordof 0 ? 1}
+\text{option_reaccent=\reaccent!=yes ? noreaccent:}
+\text{nopaste=\paste issametext no ? slib(utilities/nopaste )}
+
+\text{instruction=\instruction issametext ? wims(getdef instruction in \file0)}
+\text{instruction=wims(\instruction)}
+\text{instruction2=\instruction2 issametext ? wims(getdef instruction2 in \file0)}
+\text{instruction2=wims(\instruction2)}
+\text{size=\size issametext ? wims(getdef size in \file0)}
+\text{reading_file=\reading_file issametext ? wims(getdef reading_file in \file0)}
+\text{reading = wims(record 0 of \reading_file)}
+\text{reading=wims(\reading)}
+\text{audio_file = \audio_file issametext ? wims(getdef audio_file in \file0)}
+\text{audio=\audio_file notsametext and \audio_file notsametext no?
+<div class="wimscenter">slib(media/audio \imagedir/\audio_file,\player_option,player=\player)</div>}
+
+\text{image_file=\image_file issametext ? wims(getdef image_file in \file0)}
+\text{image=\image_file notsametext and \image_file notsametext no?
+wims(makelist <img src="\imagedir/x " alt="" /> for x in \image_file)}
+
+\text{video_file=\video_file issametext ? wims(getdef video_file in \file0)}
+\if{\video_file notsametext and \video_file notsametext no}{
+  \text{video_file=http notin \video_file ? \imagedir/\video_file}
+\text{video=\video_file notsametext ? <div><a target="wims_external" href="\video_file">[video]</a></div>}
+}
+\text{choix=\choice issametext ? wims(getdef choice in \file0):\choice}
+
+\text{try =\try notwordof 1 2 3 4 5 6 7 8 9 10 ? 1}
+\text{size=\format iswordof dragfill clickfill ? \size x 1}
+\integer{N = min(\cnt_question,\N)}
+\integer{MAX=min(\N*\MAX,\cnt_question)}
+\text{battage=\alea issametext yes ? shuffle(\cnt_question) :
+wims(makelist x for x = 1 to \cnt_question)}
+      \text{QUEST=wims(randrecord \file)}
+\text{QUEST=wims(embraced randitem \QUEST)}
+\text{preliminaire_test=\QUEST}
+\text{preliminaire_test=row(1,\preliminaire_test)}
+\if{\preliminaire_test notsametext }{
+ \text{inst_audio=wims(getopt audio in \preliminaire_test)}
+ \text{inst_image=wims(getopt image in \preliminaire_test)}
+ \text{inst_title=wims(getopt title in \preliminaire_test)}
+ \text{inst_intro=wims(getopt intro in \preliminaire_test)}
+ \integer{test_inst=\inst_audio\inst_image\inst_title\inst_intro notsametext ? 1 : 0}
+ \text{rab_inst=}
+ \text{rab_inst=\inst_title notsametext ?\rab_inst<div class="wimscenter">\inst_title</div>}
+ \text{rab_inst=\inst_intro notsametext ?\rab_inst \inst_intro}
+ \text{rab_inst=\inst_image notsametext ? \rab_inst <div class="wimscenter"><img src="\imagedir/\inst_image" alt="" /></div>}
+ \if{\inst_audio notsametext }{
+     \text{rab_inst1= . isin \inst_audio or \packs= ?
+       slib(media/audio \imagedir/\inst_audio,\player_option,player=\player):slib(lang/swac \inst_audio,\packs,player=\player,\player_option)}
+     \text{rab_inst=\rab_inst <div class="wimscenter">\rab_inst1[1;1]</div>}
+ }
+ \text{preliminaire=\test_inst=1 ? \rab_inst:&nbsp;}
+}{\integer{test_inst=2}}
+
+ \matrix{QUEST=\test_inst=1 or \test_inst=2 ? wims(line 2 to -1 of \QUEST):\QUEST}
+\integer{cnt_QUEST = rows(\QUEST)}
+\integer{M=\M issametext all ? \cnt_QUEST:min(\cnt_QUEST,\M)}
+\text{choix=shuffle(\cnt_QUEST)}
+\matrix{QUEST=\QUEST[\choix[1..\M];]}
+matrix{QUEST = wims(replace internal _imagedir by \imagedir in \QUEST)}
+\text{gauche=}
+\text{droite=}
+\for{ im = 1 to \M}{
+    \if{.mp3 isin \QUEST[\im;2] or .jpg isin \QUEST[\im;2] or .gif isin \QUEST[\im;2] or .png isin \QUEST[\im;2]}{
+     \if{.mp3 isin \QUEST[\im;2]}{
+      \text{Image=wims(nospace \QUEST[\im;2])}
+      \text{Image=slib(media/audio \imagedir/\QUEST[\im;2],\player_option,player=\player)}
+      }
+      \if{.jpg isin \QUEST[\im;2] or .gif isin \QUEST[\im;2] or .png isin \QUEST[\im;2]}{
+        \text{Image=wims(nospace \QUEST[\im;2])}
+        \text{Image=wims(replace internal image= by in \Image)}
+        \text{Image=wims(replace internal imag= by in \Image)}
+        \text{Image=imgrename(\imagedir/\Image )}
+      }
+   }
+   {##recherche dans swac -- rajouter ensuite les images
+   \text{ audiocorr=wims(getopt audio in \QUEST[\im;2])}
+    \if{\audiocorr notsametext }{
+      \text{Image=slib(lang/swac \audiocorr,\packs,player=\player,\player_option)}
+      \text{Image=\Image[1;1]}
+    }{\text{Image= \QUEST[\im;2]}}
+   }
+   \text{droite = wims(append item \Image to \droite)}
+}
+\for{ im = 1 to \M}{
+  \if{.mp3 isin \QUEST[\im;1] or .jpg isin \QUEST[\im;1] or .gif isin \QUEST[\im;1] or .png isin \QUEST[\im;1]}{
+    \if{.mp3 isin \QUEST[\im;1]}{
+      \text{Image=wims(nospace \QUEST[\im;1])}
+      \text{Image=slib(media/audio \imagedir/\QUEST[\im;1],\player_option,player=\player)}
+    }
+    \if{.jpg isin \QUEST[\im;1] or .gif isin \QUEST[\im;1] or .png isin \QUEST[\im;1]}{
+      \text{Image=wims(nospace \QUEST[\im;1])}
+      \text{Image=wims(replace internal image= by in \Image)}
+      \text{Image=wims(replace internal imag= by in \Image)}
+      \text{Image=imgrename(\imagedir/\Image )}
+    }
+  }
+  {##recherche dans swac -- rajouter ensuite les images
+   \text{ audiocorr=wims(getopt audio in \QUEST[\im;1])}
+    \if{\audiocorr notsametext }{
+      \text{Image=slib(lang/swac \audiocorr,\packs,player=\player,\player_option)}
+      \text{Image=\Image[1;1]}
+    }{\text{Image= \QUEST[\im;1]}}
+  }
+    \text{gauche = wims(append item \Image to \gauche)}
+}
+#include "size.inc"
+\statement{\nopaste
+Voici la balle WIMS : \img{\imagedir/balle_wims.png}
+elle doit sortir du couloir blanc sans passer à travers les murs noirs.
+<div class="instruction">\instruction</div> \preliminaire
+  \if{\reading notsametext }{\special{help reading,[à lire]}}
+  \if{\image notsametext }{\special{help image,[à regarder]}}
+  \audio\video
+  <div class="wimscenter question">\embed{reply1,\size}</div>
+  <div class="wims_instruction">
+  \name_instruction
+  </div>
+}
+
+\answer{}{\gauche; \droite}{type=correspond}{option=\partialscore}
+#endif
+:%%%%%%%%%%%%% Fin associer
+
+:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\solution{
+#if defined TARGET_bouclecondchoix
+<div class="spacer">
+\if{\confparm1=1}{
+Script \img{\imagedir/\image}
+permettant de tracer la figure
+\img{\imagedir/\imagenonce}.
+}{
+Figure \img{\imagedir/\image} obtenue par le script \img{\imagedir/\imagenonce}.
+}
+</div>
+#endif
+
+<div>
+  Remarque : l'instruction "Avancer de -10" est nécessaire
+  pour se décoller du mur. Cela signifie "reculer de 10".
+</div>
+<div class="spacer">
+#include "lang_help_boucle_fr.inc"
+</div>
+#if defined TARGET_bouclecondassocier
+<b>Bonnes réponses :</b>
+<table class="wimscenter wimsnoborder">
+\for{ k = 1 to 3}{
+<tr>
+<td>\img{\imagedir/\QUEST[\k;1]}</td>
+<td> \(\leftrightarrow\)</td>
+<td>\img{\imagedir/\QUEST[\k;2]}</td>
+</tr>}
+</table>
+
+#endif
+}

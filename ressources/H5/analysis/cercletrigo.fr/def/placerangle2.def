@@ -1,0 +1,183 @@
+!set title=Placer un angle 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+tmp=!nonempty items 1,2,3,4
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+!else
+tmp=!nonempty items $val2,$val2
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+!endif
+tmp=!nonempty items 1/2,1,3/2,1/4,3/4,5/4,7/4,1/3,2/3,4/3,5/3,1/6,5/6,7/6,11/6
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp0)*$val7*pi
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val8=$(tmp1)
+val9=$[cos($val8)]
+val10=$[sin($val8)]
+!if $val6=1 
+tmp=!nonempty items 1/2,1,3/2
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+!if $val6=2 
+tmp=!nonempty items 1/4,3/4,5/4,7/4
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+!if $val6=3 
+tmp=!nonempty items 1/3,2/3,4/3,5/3
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+!if $val6=4 
+tmp=!nonempty items 1/6,5/6,7/6,11/6
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+!endif
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp0)*$val7*pi
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val11=$(tmp1)
+val12=$[cos($val11+$val8)]
+val13=$[sin($val11+$val8)]
+val14=1.3
+val15=0.07
+val16=400
+val17=trange 0,2*pi	plot blue,cos(t),sin(t)
+val18=
+!for val19 =-6 to 6 
+val20=$[cos($val19*pi/12)]
+val21=$[sin($val19*pi/12)]
+val18=$val18	line -$val20,-$val21,$val20,$val21,gray
+!next
+val22=
+!for val19 =-4 to 4 
+val22=$val22	line -1,$val19/4, 1,$val19/4,gray
+!next
+!for val19 =-4 to 4 
+val22=$val22	line $val19/4,-1, $val19/4,1,gray
+!next
+val23=disk $val9,$val10,10,black	text black,$val9+$val15,$val10+2*$val15,giant,A	
+val24=hline 0,0,black	arrow 0,0,$val14,0,10,black	arrow 0,0,0,$val14,10,black	vline 0,0,black	disk 0,0,10,black	text black,-2*$val15,-$val15,giant,O	
+!if ($val3=) or ($val3=1) 
+val25=$val22
+!else
+val25=$val18
+!endif
+!readproc oef/draw.phtml $val16,$val16 \
+xrange -$val14,$val14	yrange -$val14,$val14	$val25	$val24	$val17	$val23 
+tmp0=$ins_url
+val26=$(tmp0)
+val27=$[($val16*$val12/$val14+$val16)/2]
+val28=$[(-$val16*$val13/$val14+$val16)/2]
+val29=(\overrightarrow{OA},\overrightarrow{OM})
+val30=(\overrightarrow{OA},\overrightarrow{OB})
+replytype1=coord
+replyname1=
+replygood1=$val26;point,$val27,$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Placer sur le cercle unité ci-dessous le point 
+!insmath M
+$() de sorte que l'angle 
+!insmath $val29
+$() ait une mesure égale à 
+!insmath $val11
+$().	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_result1=-1
+ <div class='oef_feedbacks'><br /> Voici la bonne réponse :	<div class="wimscenter"> 
+!read oef/draw.phtml $val16,$val16 \
+	xrange -$val14,$val14	yrange -$val14,$val14	$val25	$val24	$val17	$val23	disk $val12,$val13,10,green	text black,$val12-$val15,$val13-$val15,giant,M 
+$()	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,14,15,16,17,23,24,25,29
+embedcnt=1

@@ -1,0 +1,305 @@
+!set title=Distance entre droites non coplanaires
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r,r,r,r
+varcnt=58
+prevarcnt=55
+postvarcnt=2
+replycnt=6
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[1;])
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[2;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[3;])
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=$[rint($(val6[1;1]))]
+val11=$[rint($(val6[1;2]))]
+val12=$[rint($(val6[1;3]))]
+val13=$[rint($(val6[2;1]))]
+val14=$[rint($(val6[2;2]))]
+val15=$[rint($(val6[2;3]))]
+val16=$[rint($(val6[3;1]))]
+val17=$[rint($(val6[3;2]))]
+val18=$[rint($(val6[3;3]))]
+tmp0=!randint -9, 9
+
+val19=$[rint($(tmp0))]
+tmp0=!randint -9, 9
+
+val20=$[rint($(tmp0))]
+tmp0=!randint -9, 9
+
+val21=$[rint($(tmp0))]
+val22=$[rint($val19+$val16)]
+val23=$[rint($val20+$val17)]
+val24=$[rint($val21+$val18)]
+tmp=!translate ";': to $     $ in $val10*t+($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=x=$(tmp0)
+tmp=!translate ";': to $     $ in $val11*t+($val20)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=y=$(tmp0)
+tmp=!translate ";': to $     $ in $val12*t+($val21)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=z=$(tmp0)
+tmp0=!texmath $val25
+
+val28=$(tmp0)
+tmp0=!texmath $val26
+
+val29=$(tmp0)
+tmp0=!texmath $val27
+
+val30=$(tmp0)
+tmp=!translate ";': to $     $ in $val13*t+($val22)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=x=$(tmp0)
+tmp=!translate ";': to $     $ in $val14*t+($val23)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val32=y=$(tmp0)
+tmp=!translate ";': to $     $ in $val15*t+($val24)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=z=$(tmp0)
+tmp0=!texmath $val31
+
+val34=$(tmp0)
+tmp0=!texmath $val32
+
+val35=$(tmp0)
+tmp0=!texmath $val33
+
+val36=$(tmp0)
+val37=$[rint($val11*($val15) - ($val12)*($val14))]
+val38=$[rint($val12*($val13) - ($val10)*($val15))]
+val39=$[rint($val10*($val14) - ($val11)*($val13))]
+val40=$[rint(($val11)*($val39) - ($val12)*($val38))]
+val41=$[rint(($val12)*($val37) - ($val10)*($val39))]
+val42=$[rint(($val10)*($val38) - ($val11)*($val37))]
+val43=$[rint(($val40)*($val19)+($val41)*($val20)+($val42)*($val21))]
+tmp=!translate ";': to $     $ in ($val40)*x+($val41)*y+($val42)*z -($val43)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val44=$(tmp0)=0
+t_=!rawmath (($val43) - ($val40)*($val22)-($val41)*($val23)-($val42)*($val24))/(($val40)*($val13)+($val41)*($val14)+($val42)*($val15))
+val45=!exec pari print($t_)
+t_=!rawmath ($val13)*($val45)+($val22)
+val46=!exec pari print($t_)
+t_=!rawmath $val14*($val45)+($val23)
+val47=!exec pari print($t_)
+t_=!rawmath $val15*($val45)+($val24)
+val48=!exec pari print($t_)
+tmp=!trim $val46,$val47,$val48
+val49=!translate internal $	\
+$ to ;; in $tmp
+val50=$[rint($val38*($val15) - ($val39)*($val14))]
+val51=$[rint($val39*($val13) - ($val37)*($val15))]
+val52=$[rint($val37*($val14) - ($val38)*($val13))]
+val53=$[rint($val50*($val22)+($val51)*($val23)+($val52)*($val24))]
+tmp=!translate ";': to $     $ in ($val50)*x+($val51)*y+($val52)*z -($val53)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val54=$(tmp0)=0
+t_=!rawmath ($val53 - ($val50)*($val19)-($val51)*($val20)-($val52)*($val21))/(($val50)*($val10)+($val51)*($val11)+($val52)*($val12))
+val55=!exec pari print($t_)
+t_=!rawmath $val10*($val55)+($val19)
+val56=!exec pari print($t_)
+t_=!rawmath $val11*($val55)+($val20)
+val57=!exec pari print($t_)
+t_=!rawmath $val12*($val55)+($val21)
+val58=!exec pari print($t_)
+tmp=!trim $val56,$val57,$val58
+val59=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in sqrt(($val56-($val46))^2+($val57-($val47))^2+($val58-($val48))^2)
+tmp0=!exec pari $t_
+
+val60=$[$(tmp0)]
+replytype1=vector
+replyname1=\(\vec{n}\)
+replygood1=?analyze 61
+replytype2=equation
+replyname2=Équation de \(P_1\)
+replygood2=!rawmath $val44
+replytype3=vector
+replyname3=Coordonnées de \(H\)
+replygood3=$val49
+replytype4=equation
+replyname4=Équation de \(P_2\)
+replygood4=!rawmath $val54
+replytype5=vector
+replyname5=Coordonnées de \(K\)
+replygood5=$val59
+replytype6=numeric
+replyname6=distance
+replygood6=$[$val60]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère deux droites 
+!insmath D_1
+$() et 
+!insmath D_2
+$() de l'espace définies par des	équations paramétriques	<div class="wimscenter">	
+!insmath D1
+$() :	
+!insmath \left \lbrace	\begin{array}{l}	$val28\\	$val29\\	$val30	\end{array} 
+$()		&nbsp;&nbsp;		
+!insmath D2
+$() :	
+!insmath \left \lbrace	\begin{array}{l}	$val34\\	$val35\\	$val36	\end{array} 
+$()	</div>	On veut calculer la distance entre ces deux droites.	<ol>	<li> Déterminer un vecteur directeur 
+!insmath \vec{n}
+$() orthogonal à 
+!insmath D_1
+$() et à 
+!insmath D_2
+$() :	<div class="wimscenter"> 
+!insmath \vec{n}
+$()= 
+!read oef/embed.phtml reply1 
+$()</div>	</li><li>	Déterminer l'équation cartésienne du plan 
+!insmath P_1
+$() passant par 
+!insmath D_1
+$() et contenant une droite dirigée par 
+!insmath \vec{n}
+$() :	<div class="wimscenter"> Équation de 
+!insmath P_1
+$() :  
+!read oef/embed.phtml reply2 
+$()</div>	</li><li>	Déterminer les coordonnées du point 
+!insmath H
+$() intersection de 
+!insmath P_1
+$() et 
+!insmath D_2
+$() :	<div class="wimscenter"> 
+!insmath H
+$()= 
+!read oef/embed.phtml reply3 
+$()</div>	</li><li>	Déterminer l'équation cartésienne du plan 
+!insmath P_2
+$() passant par 
+!insmath D_2
+$() et contenant une droite dirigée par 
+!insmath \vec{n}
+$() :	<div class="wimscenter"> Équation de 
+!insmath P_2
+$() :  
+!read oef/embed.phtml reply4 
+$()</div>	</li><li>	Déterminer les coordonnées du point 
+!insmath K
+$() intersection de 
+!insmath P_2
+$() et 
+!insmath D_1
+$() :	<div class="wimscenter"> 
+!insmath K
+$() =  
+!read oef/embed.phtml reply5 
+$()</div>	</li><li>	La distance cherchée est donc la distance 
+!insmath H K
+$() :	<div class="wimscenter"> 
+!insmath H K
+$()= 
+!read oef/embed.phtml reply6 
+$()</div>	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!rawmath $(val61[1])*$val10+$(val61[2])*$val11+$(val61[3])*$val12
+val62=!exec pari print($t_)
+t_=!rawmath $(val61[1])*$val13+$(val61[2])*$val14+$(val61[3])*$val15
+val63=!exec pari print($t_)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val62=0 and $val63=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=vecteur normal
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,14,15,28,29,30,34,35,36,61
+embedcnt=6

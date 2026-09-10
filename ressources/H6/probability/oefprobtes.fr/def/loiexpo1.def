@@ -1,0 +1,166 @@
+!set title=Loi exponentielle : calcul I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, MIFSUD
+email=bmifsud@bmifsud@ac-aix-marseille.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 20
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 2, 20
+
+val7=$[$(tmp0)/10]
+tmp0=!randint 1, 100
+
+val8=$[$val7+$(tmp0)/10]
+val9=!rawmath e^(-$val6*x)
+val10=!rawmath $val6* $val9
+val11=l'espérance de \(X)
+val12=\(E(X))
+tmp=!translate ;";': to $     $ in x*$val10,x,0, INF 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val13=$[$(tmp0)]
+tmp0=!randint 1, 3
+
+val14=$[rint($(tmp0))]
+tmp=!translate ;";': to $     $ in $val10,x,0, \deb 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val15=$[$(tmp0)]
+!if $val14=1 
+val16=X < $val7
+tmp=!translate ;";': to $     $ in $val10,x,0, $val7 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val17=$[$(tmp0)]
+!endif
+!if $val14=2 
+val16=X > $val7
+tmp=!translate ;";': to $     $ in $val10,x,0, $val7 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val17=$[1 - $(tmp0)]
+!endif
+!if $val14=3 
+val16=$val7 < X < $val8
+tmp=!translate ;";': to $     $ in $val10,x,$val7, $val8 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val17=$[$(tmp0)]
+!endif
+val18=Garder au moins 4 chiffres significatifs.
+replytype1=numeric
+replyname1=\(P( $val16 ))
+replygood1=$[$val17]
+replytype2=numeric
+replyname2=$val11
+replygood2=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	Soit 
+!insmath X
+$() une variable aléatoire de densité 
+!insmath f
+$(), où la fonction 
+!insmath f
+$() est définie par : <br>	
+!insmath f(x)=$val10
+$() si 
+!insmath x>0
+$() et 
+!insmath f(x)=0
+$()  sinon.		 <div class="consigne">$val18</div>	</div>		<div class="question">	 Calculer la probabilité que l'événement  
+!insmath $val16
+$()  se réalise.	 <div class="reponse">	
+!insmath P( $val16 ) =
+$()  
+!read oef/embed.phtml reply1,20 
+$()	</div>	</div>		<div class="question"> Déterminer $val11.	<div class="reponse">$val12 =  
+!read oef/embed.phtml reply2 
+$()	</div>	</div>				
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()		Pour une loi exponentielle de paramètre 
+!insmath $val6
+$() sur 
+!insmath \RR^{+}
+$() on sait que :	<ul><li>	$val12 = 
+!insmath 1/$val6
+$() </li>	<li>
+!insmath P( $val7 < X < $val8 )= e^{-$val6 \times $val7}-e^{-$val6 \times $val8}
+$()</li>	<li>
+!insmath P(  X < $val7 )= 1-e^{-$val6 \times $val7}
+$()</li>	<li>
+!insmath P(  $val7 < X )= e^{-$val6 \times $val7}
+$()</li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,12,16,18
+embedcnt=2

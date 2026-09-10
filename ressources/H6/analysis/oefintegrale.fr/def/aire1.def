@@ -1,0 +1,251 @@
+!set title=Aire entre une courbe et l'axe des x
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal,Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+val7=$[rint(0)]
+val8=$[rint(0)]
+
+!ifval $val6>3
+tmp0=!randint 1, 4
+
+val9=$[rint( $(tmp0) )]
+!else
+tmp1=!randint -2, 2
+
+val9=$[rint( $(tmp1))]
+!endif
+tmp0=!randint 1, 3
+
+val10=$[rint($val9+ $(tmp0))]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -3, 3
+
+val14=$[rint($(tmp0))]
+tmp0=!randint -3, 3
+
+val15=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val16=$[rint($(tmp0))]
+tmp0=!item $val6 of 	$val12*x^2 + $val14*x,	$val12*x^3 + $val14*x,	$val12*x^3 + $val14*x^2+$val16*x,	$val12*x,	$val12*x^2		
+
+val17=!rawmath $(tmp0)
+!readproc slib/function/bounds $val17, x,$val9,$val10 
+tmp0=$slib_out
+val18=$(tmp0)
+val19=$[rint(round($(val18[1])) - 1)]
+val17=!rawmath $val17 - $val19 
+tmp0=!texmath $val17
+
+val20=$(tmp0)
+t_=!replace internal \( by ( in expand(($val17)*$val11)
+tmp0=!exec maxima $t_
+
+val21=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val7*x+$val8
+tmp0=!exec pari $t_
+
+val22=!rawmath $(tmp0)
+tmp0=!texmath $val22
+
+val23=$(tmp0)
+tmp=!translate ";': to $     $ in ($val21) + ($val22)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+tmp0=!texmath $val24
+
+val25=$(tmp0)
+tmp=!translate ;";': to $     $ in $val17,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val26=!rawmath $(tmp0)
+t_=!replace internal \( by ( in subst(x=$val9,$val26)
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+t_=!replace internal \( by ( in subst(x=$val10,$val26)
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val28=!exec pari print($t_)
+tmp0=!texmath $val26
+
+val29=$(tmp0)
+val30=$[($val9 + $val10)/2]
+t_=!replace internal \( by ( in subst(x=$val30,$val24)
+tmp0=!exec maxima $t_
+
+t_=!replace internal \( by ( in subst(x=$val30,$val22)
+tmp1=!exec maxima $t_
+
+val31=$[($(tmp0)+$(tmp1))/2]
+val32=$[$val9-0.3]
+val33=$[$val10+0.3]
+!readproc slib/function/bounds $val24, x,$val32,$val33 
+tmp0=$slib_out
+val34=$(tmp0)
+!readproc slib/function/bounds $val22, x,$val32,$val33 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/function/integrate $val17,x,$val9,$val10,fast 
+tmp0=$slib_out
+val36=$(tmp0)
+val37=$[min($(val34[1]),$(val35[1]))-1]
+val38=$[max($(val34[2]),$(val35[2]))+1]
+
+!ifval $val11 = 1
+val39=au dessus
+!else
+val39=en dessous
+!endif
+
+!ifval $val11 = 1
+val40= ($val24) - ($val22) 
+!else
+val40= ($val22) - ($val24)
+!endif
+replytype1=formal
+replyname1=Valeur de l'aire (en unités d'aire)
+replygood1=$val36
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Déterminer la valeur exacte de l'aire du domaine compris entre <span style="color:blue">	la courbe représentative</span> de la fonction 
+!insmath f
+$() définie par :		
+!insmath f(x)=$val25
+$(), <span style="color:red">l'axe des abscisses </span>,	et les <span style="color:green">droites verticales</span> d'équations 
+!insmath x=$val9
+$() et 
+!insmath x=$val10
+$().	<p>	L'allure de la courbe représentative de 
+!insmath f
+$() est donnée ci-dessous ; le domaine est	colorié en jaune.	<br>	Le rectangle noir indique l'unité d'aire.	</p>	<div class="wimscenter">	 
+!read oef/draw.phtml 500,300 \
+	xrange $val32,$val33	yrange $val37,$val38		linewidth 2	segment $val10,$val37,$val10,$val38,green	segment $val9,$val37,$val9,$val38,green	plot blue,$val24	plot red,$val22	linewidth 1		fill $val30,$val31,yellow	textup green,$val10,$val37,medium,x = $val10	textup green,$val9,$val37,medium,x = $val9		rect $val9,$val38-1,$val9 +1,$val38,black		 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()La courbe de la fonction 
+!insmath f
+$() est $val39 de l'axe des abscisses	sur l'intervalle [$val9,$val10], donc l'aire cherchée est donnée en unités d'aires par :		<div class="wimscenter">	
+!if $val11 = 1 
+$()
+!insmath A= integrate($val25,x=$val9, $val10)
+$()	 
+!else
+$() 
+!insmath A=-integrate($val24,x=$val9, $val10)=integrate(-($val24),x=$val9, $val10)
+$() 
+!endif
+$().	</div>	Il faut commencer par chercher une primitive de 
+!insmath f
+$() pour enfin calculer l'intégrale.	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La courbe de la fonction 
+!insmath f
+$() est $val39 de l'axe des abscisses sur [$val9,$val10],	donc l'aire cherchée est donnée en unités d'aires par :	<div class="wimscenter">	
+!insmath A= integrate($val17,x=$val9, $val10)
+$()	</div>	 Une primitive de 
+!insmath x \mapsto f(x) = $val20
+$() est 
+!insmath F
+$() définie par 
+!insmath F(x) = $val29
+$().	<br>	On a  : 
+!insmath F($val9) = $val27
+$() et 
+!insmath F($val10) = $val28
+$() et on en déduit	
+!insmath A= integrate($val40,x=$val9, $val10)=F($val10) - F($val9) = $val28 - ($val27) = $val36
+$().		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1<0
+ <div class='oef_feedbacks'>Attention, une aire ne peut pas être négative ! 
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,17,20,22,24,25,27,28,29,30,31,32,33,36,37,38,39,40
+embedcnt=0

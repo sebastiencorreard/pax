@@ -1,0 +1,131 @@
+\title{ Coordonnées de vecteurs dans une base}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{100}
+\css{
+<style>
+.disp_columns{
+  display: flex;
+  flex-wrap: wrap;
+}
+</style>
+
+}
+
+\integer{mid=4}
+\integer{range=\mid*2}
+\rational{pente=0}
+\text{cadre=
+  xrange -10,10
+  yrange -10,10
+  parallel -10-\pente/2,-10,-10+\pente/2,10,1,0,21,gray
+  parallel -10,-10,10,-10,0,1,21,gray
+}
+
+
+\integer{xu=random(1..3)*random(1,-1)}
+\integer{yu=random(1..3)*random(1,-1)}
+\integer{xv=random(1..3)*random(1,-1)}
+\integer{yv=random(1..3)*random(1,-1)}
+\integer{colin=\xu*(\yv)-(\yu)*(\xv)}
+\if{\colin=0}{\integer{xv=\xv*(-1)}}
+\integer{x=random(1..4)*random(1,-1)}
+\integer{y=random(1..4)*random(1,-1)}
+\integer{xw=\x*(\xu)+(\y)*(\xv)}
+\integer{yw=\x*(\yu)+(\y)*(\yv)}
+\if{\xw>0}{
+  \integer{xa=random(-\range..\range-\xw)}
+ }{
+   \integer{xa=random(-\range-(\xw)..\range)}
+ }
+\if{\yw>0}
+ {
+   \integer{ya=random(-\range..\range-\yw)}
+ }{
+   \integer{ya=random(-\range-(\yw)..\range)}
+ }
+\text{cadre=\cadre
+ linewidth 2
+ arrow 0,0,\xu,\yu,10,red
+ arrow 0,0,\xv,\yv,10,blue
+ arrow \xa,\ya,\xa+\xw,\ya+\yw,10,green
+ text red,\xu-0.5,\yu-0.5,large,u
+ text blue,\xv-0.5,\yv-0.5,large,v
+ text green,\xa+\xw-0.5,\ya+\yw-0.5,large,w
+ }
+\text{cadrerep=\cadre
+ arrow \xa,\ya,\xa+\x*\xu,\ya+\x*\yu,10,red
+ arrow \xa+\x*\xu,\ya+\x*\yu,\xa+\xw,\ya+\yw,10,blue
+ linewidth 3
+ arrow \xa,\ya,\xa+\xw,\ya+\yw,10,green
+ text green,\xa+\xw-0.5,\ya+\yw-0.5,large,w
+}
+\statement{
+<div class="disp_columns">
+  <div class="medium_size">
+    <p>Dans le plan muni d'une base \((\overrightarrow{u},\overrightarrow{v})) on a placé un vecteur <span class="nowrap">\(\overrightarrow{w}).</span><br>
+      L'objectif est d'exprimer le vecteur \(\overrightarrow{w}) en fonction des vecteurs \(\overrightarrow{u}) et <span class="nowrap">\(\overrightarrow{v}).</span></p>
+    <p>Déterminer les nombres \(a\) et \(b\) tels que <span class="nowrap">\(\overrightarrow{w} = a \overrightarrow{u} + b \overrightarrow{v}\).</span></p>
+    <div><label for="reply1">\(a\)</label> = \embed{reply1,3}</div>
+    <div class="spacer"><label for="reply2">\(b\)</label> = \embed{reply2,3}</div>
+  </div>
+  <div class="medium_size">
+    \draw{400,400}{\cadre}
+  </div>
+</div>
+
+
+
+}
+\answer{Première coordonnée}{\x}{type=numeric}
+\answer{Deuxième coordonnée}{\y}{type=numeric}
+
+\if{\reply1=1}
+  {\text{c1=}}
+  {\if{\reply1=-1}
+    {\text{c1=-}}
+    {\text{c1=texmath(\reply1)}}
+  }
+
+\if{\reply2>0}{\text{op=+}}{\text{op=-}}
+
+\if{\reply2=1 or \reply2=-1}
+  {\text{c2=}}
+  {\rational{cc2=abs(\reply2)}
+   \text{c2= texmath(\cc2)}
+  }
+
+\if{\x=1}
+  {\text{a1=}}
+  {\if{\x=-1}
+    {\text{a1=-}}
+    {\text{a1=texmath(\x)}}
+  }
+
+\if{\y>0}{\text{op1=+}}{\text{op1=-}}
+
+\if{\y=1 or \y=-1}
+  {\text{a2=}}
+  {\rational{aa2=abs(\y)}
+   \text{a2= texmath(\aa2)}
+  }
+
+
+\text{cadrebrep=\cadre
+ linewidth 2
+ arrow \xa,\ya,\xa+\reply1*\xu,\ya+\reply1*\yu,10,red
+ arrow \xa+\reply1*\xu,\ya+\reply1*\yu,\xa+\reply1*\xu+\reply2*\xv,\ya+\reply1*\yu+\reply2*\yv,10,blue
+ arrow \xa,\ya,\xa+\reply1*\xu+\reply2*\xv,\ya+\reply1*\yu+\reply2*\yv,10,black
+ linewidth 3
+ arrow \xa,\ya,\xa+\xw,\ya+\yw,10,green
+ text green,\xa+\xw-0.5,\ya+\yw-0.5,large,w
+}
+\feedback{\x <>\reply1 or \y<>\reply2}{
+Voici, construit <strong>en noir</strong>, un représentant du vecteur \(\color{red}\c1\overrightarrow{u} \color{blue}\op \c2 \overrightarrow{v}\) correspondant à votre réponse&nbsp;:
+<div class="wimscenter">\draw{400,400}{\cadrebrep}</div>
+}
+\feedback{1=1}{
+\if{\sc_reply1 = 1 and \sc_reply2=1}{Effectivement, la }{La } réponse exacte est <span class="nowrap">\(\color{green}\overrightarrow{w} = \color{red}\a1\overrightarrow{u} \color{blue}\op1 \a2 \overrightarrow{v}\)&nbsp;:</span>
+<div class="wimscenter">\draw{400,400}{\cadrerep}</div>
+}

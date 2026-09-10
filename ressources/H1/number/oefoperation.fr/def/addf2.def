@@ -1,0 +1,357 @@
+!set title=Table d'addition avec fractions 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=16
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<div class="wims_instruction">L'usage de la calculatrice <b>n'est pas autorisé</b>.</div>
+tmp=!trim 2,1,1,3,3,5,7	3,1,2,1,2,4,5	4,1,1,3,3,5,7	5,1,2,3,4,6,8	8,1,3,3,5,7,9	9,2,4,5,7,8,10	10,1,1,3,7,9,11
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 1,2,3,4,5,6,7
+
+val8=$(tmp0)
+val9=
+!for val10 =1 to 3 
+tmp0=!randint 2, 7
+
+val11=$[rint($(tmp0))]
+t_=!rawmath $(val7[$(val8[$val10]);$val11])/$(val7[$(val8[$val10]);1])
+val12=!exec pari print($t_)
+val9=$val9,$val12
+!next
+val9=$(val9[2..4])
+val13=
+tmp0=!randint 1, 3
+
+val14=$[rint($(tmp0))]
+tmp0=!shuffle $(val8[$val14]),$(val8[4..7])
+
+val8=$(tmp0)
+!for val10 =1 to 3 
+tmp0=!randint 2, 7
+
+val11=$[rint($(tmp0))]
+t_=!rawmath $(val7[$(val8[$val10]);$val11])/$(val7[$(val8[$val10]);1])
+val12=!exec pari print($t_)
+val13=$val13,$val12
+!next
+val13=$(val13[2..4])
+val15=somme des
+val16=additions
+val17=d'addition
+val18=+
+val19=
+!for val10 =1 to 3 
+!for val20 =1 to 3 
+t_=!rawmath $(val9[$val10])+$(val13[$val20])
+val12=!exec pari print($t_)
+val19=$val19,$val12
+!next
+!next
+val21=Chaque case intérieure du tableau est la $val15 des nombres rationnels (fractions) en gras contenus dans les cases situées à gauche et en haut.
+tmp=!trim ,$val13	$(val9[1]),$(val19[2..4])	$(val9[2]),$(val19[5..7])	$(val9[3]),$(val19[8..10])
+val22=!translate internal $	\
+$ to ;; in $tmp
+val23=r3,r5,r7,r8,r10,r12,r13,r15,r16
+val24=Compléter cette table $val17 sans utiliser de calculatrice.
+tmp=!trim ,1,0,1	0,1,0,0	1,0,1,0	0,1,0,0
+val25=!translate internal $	\
+$ to ;; in $tmp
+dynsteps=yes
+oefsteps=$val23 
+nextstep=!nosubst $val23 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=comma 
+replyname1=
+replygood1=0
+replytype2=numexp
+replyoption2=comma 
+replyname2=
+replygood2=$(val22[1;2])
+replytype3=numexp
+replyoption3=comma 
+replyname3=
+replygood3=$(val22[1;3])
+replytype4=numexp
+replyoption4=comma 
+replyname4=
+replygood4=$(val22[1;4])
+replytype5=numexp
+replyoption5=comma 
+replyname5=
+replygood5=$(val22[2;1])
+replytype6=numexp
+replyoption6=comma 
+replyname6=
+replygood6=$(val22[2;2])
+replytype7=numexp
+replyoption7=comma 
+replyname7=
+replygood7=$(val22[2;3])
+replytype8=numexp
+replyoption8=comma 
+replyname8=
+replygood8=$(val22[2;4])
+replytype9=numexp
+replyoption9=comma 
+replyname9=
+replygood9=$(val22[3;1])
+replytype10=numexp
+replyoption10=comma 
+replyname10=
+replygood10=$(val22[3;2])
+replytype11=numexp
+replyoption11=comma 
+replyname11=
+replygood11=$(val22[3;3])
+replytype12=numexp
+replyoption12=comma 
+replyname12=
+replygood12=$(val22[3;4])
+replytype13=numexp
+replyoption13=comma 
+replyname13=
+replygood13=$(val22[4;1])
+replytype14=numexp
+replyoption14=comma 
+replyname14=
+replygood14=$(val22[4;2])
+replytype15=numexp
+replyoption15=comma 
+replyname15=
+replygood15=$(val22[4;3])
+replytype16=numexp
+replyoption16=comma 
+replyname16=
+replygood16=$(val22[4;4])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val21
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val24 <p>$m_Cpltenonce</p>	<div class="wims_instruction">	On donnera les réponses sous la forme d'une fraction irréductible ou d'un entier.	</div>	<table class="wimscenter wimsborder">	<tr><th>
+!insmath {}$val18{}
+$()</th>	<th>
+!if $(val25[1;2])=1 
+$()
+!insmath $(val22[1;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r2,3 
+$() 
+!endif
+$()</th>	<th>
+!if $(val25[1;3])=1 
+$()
+!insmath $(val22[1;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r3,3 
+$() 
+!endif
+$()</th>	<th>
+!if $(val25[1;4])=1 
+$()
+!insmath $(val22[1;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r4,3 
+$() 
+!endif
+$()</th>	</tr>	<tr><th>
+!if $(val25[2;1])=1 
+$()
+!insmath $(val22[2;1])
+$() 
+!else
+$()  
+!read oef/embed.phtml r5,3 
+$() 
+!endif
+$()</th>	<td>
+!if $(val25[2;2])=1 
+$()
+!insmath $(val22[2;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r6,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val25[2;3])=1 
+$()
+!insmath $(val22[2;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r7,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val25[2;4])=1 
+$()
+!insmath $(val22[2;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r8,3 
+$() 
+!endif
+$()</td>	</tr>	<tr><th>
+!if $(val25[3;1])=1 
+$()
+!insmath $(val22[3;1])
+$() 
+!else
+$()  
+!read oef/embed.phtml r9,3 
+$() 
+!endif
+$()</th>	<td>
+!if $(val25[3;2])=1 
+$()
+!insmath $(val22[3;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r10,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val25[3;3])=1 
+$()
+!insmath $(val22[3;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r11,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val25[3;4])=1 
+$()
+!insmath $(val22[3;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r12,3 
+$() 
+!endif
+$()</td>	</tr>	<tr><th>
+!if $(val25[4;1])=1 
+$()
+!insmath $(val22[4;1])
+$() 
+!else
+$()  
+!read oef/embed.phtml r13,3 
+$() 
+!endif
+$()</th>	<td>
+!if $(val25[4;2])=1 
+$()
+!insmath $(val22[4;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r14,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val25[4;3])=1 
+$()
+!insmath $(val22[4;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r15,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val25[4;4])=1 
+$()
+!insmath $(val22[4;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r16,3 
+$() 
+!endif
+$()</td>	</tr>	</table>	$val6	
+$()
+!exit
+
+:hint
+$()$val21
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Voici le tableau complet:	<table class="wimscenter wimsborder">	<tr><th>
+!insmath $val18
+$()</th><th>$(val22[1;2])</th><th>$(val22[1;3])</th><th>$(val22[1;4])</th></tr>	<tr><th>$(val22[2;1])</th><td>$(val22[2;2])</td><td>$(val22[2;3])</td><td>$(val22[2;4])</td></tr>	<tr><th>$(val22[3;1])</th><td>$(val22[3;2])</td><td>$(val22[3;3])</td><td>$(val22[3;4])</td></tr>	<tr><th>$(val22[4;1])</th><td>$(val22[4;2])</td><td>$(val22[4;3])</td><td>$(val22[4;4])</td></tr>	</table>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,18,21,22,24,25
+embedcnt=15

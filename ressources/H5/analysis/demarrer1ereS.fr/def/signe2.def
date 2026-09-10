@@ -1,0 +1,681 @@
+!set title=Étude de signe 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r
+varcnt=81
+prevarcnt=80
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Compléter le tableau de signes de
+tmp0=!randitem 8,10,12
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 8,10,12
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val10=$[rint($(tmp0))]
+tmp0=!random 1, 0.5*$val8
+
+val11=$[$(tmp0)]
+tmp0=!randitem -1,1
+
+val12=$[rint($(tmp0))]
+
+!ifval ($val9!=4)
+tmp0=!randint 2, $val7-3
+
+val13=$[rint($val12*$(tmp0))]
+!else
+tmp1=!randint -6, -3
+
+val13=$[rint($(tmp1))]
+!endif
+
+!ifval ($val9!=4)
+tmp0=!randitem 0,1
+
+tmp1=!randint 2, $val7-1
+
+val14=$[rint($(tmp0)*(-$val12)*$(tmp1))]
+!else
+tmp2=!randint -1, 2
+
+val14=$[rint($(tmp2))]
+!endif
+
+!ifval ($val9==4)
+tmp0=!randint 4, 6
+
+val15=$[rint($(tmp0))]
+!endif
+
+!ifval ($val9>4)
+tmp0=!randint -0.5*$val8, 0.5*$val8
+
+val16=$[rint($(tmp0))]
+!endif
+
+!ifval ($val9==1)
+val17=!rawmath ($val10/$val11)*(x-$val13)
+!endif
+
+!ifval ($val9==2)
+val17=!rawmath ($val10/$val11)*(x-$val13)*(x-$val14)
+!endif
+
+!ifval ($val9==3)
+tmp0=!random 1, 4
+
+val17=!rawmath ($val10/$val11)*((x-$val13)^2+$(tmp0))
+!endif
+
+!ifval ($val9==4)
+val17=!rawmath ($val10/$val11^3)*(x-$val13)*(x-$val14)*(x-$val15)
+!endif
+
+!ifval ($val9==5)
+val17=!rawmath $val10*($val11/(x-$val13)+$val16)
+!endif
+
+!ifval ($val9==6)
+val17=!rawmath $val10*($val11/((x-$val13)^2+0.5)+$val16)
+!endif
+val18=none
+
+!ifval ($val9==1)
+val18=$val13 
+!endif
+
+!ifval ($val9==2 and $val13==$val14)
+val18=$val13
+!endif
+
+!ifval ($val9==2 and $val13<$val14)
+val18=$val13,$val14
+!endif
+
+!ifval ($val9==2 and $val14<$val13)
+val18=$val14,$val13
+!endif
+
+!ifval ($val9==4 and $val13==$val14)
+val18= $val13,$val15
+!endif
+
+!ifval ($val9==4 and $val13!=$val14 and $val15!=$val14)
+val18= $val13,$val14,$val15
+!endif
+
+!ifval ($val9==4 and $val13!=$val14 and $val15==$val14)
+val18= $val13,$val14
+!endif
+
+!ifval ($val9==5 and $val16!=0)
+tmp=!translate ";': to $     $ in $val13-($val11/$val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath  $(tmp0)
+val19=!exec pari print($t_)
+!endif
+
+!ifval ($val9==5 and $val16!=0 and $val19 <= $val7 and $val19 >= -$val7)
+val18= $val19
+!endif
+
+!ifval $val16!=0
+tmp=!translate ";': to $     $ in (-$val11/$val16)-0.5
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+!endif
+
+!ifval ($val9==6 and $val16!=0 and $val20>=0 )
+tmp=!translate ";': to $     $ in $val13-sqrt($val20)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val13+sqrt($val20)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val18= $(tmp0),$(tmp1) 
+!endif
+
+!ifval (none isitemof $val18)
+val21=0
+!else
+tmp0=!itemcnt $val18
+
+val21=$(tmp0)
+!endif
+evaltmp=$val17
+
+evaltmp=!mathsubst x=(-$val7) in $evaltmp
+tmp0=($evaltmp)
+val22=$[min(max($(tmp0),-20),20)]
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val7) in $evaltmp
+tmp0=($evaltmp)
+val23=$[max(min($(tmp0), 20),-20)]
+
+!ifval ($val21>1 and $val9!=6) 
+evaltmp=$val17
+
+evaltmp=!mathsubst x=(0.5*($(val18[1])+$(val18[2]))) in $evaltmp
+tmp0=($evaltmp)
+val24=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val9==6) 
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val13) in $evaltmp
+tmp0=($evaltmp)
+val24=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val9==5) 
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val13-0.5) in $evaltmp
+tmp0=($evaltmp)
+val24=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val21==3)
+evaltmp=$val17
+
+evaltmp=!mathsubst x=(0.5*($(val18[2])+$(val18[3]))) in $evaltmp
+tmp0=($evaltmp)
+val25=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval ($val9==5) 
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val13+0.5) in $evaltmp
+tmp0=($evaltmp)
+val25=$[max(min($(tmp0),20),-20)]
+!endif
+
+!ifval (($val21==1 and $val9!=5) or ($val21==0 and $val9!=6))
+val26=0,$val22,$val23
+!endif
+
+!ifval ($val21==2 or $val9==6)
+val26=$val24,$val22,$val23
+!endif
+
+!ifval ($val21==3 or $val9==5)
+val26=$val24,$val25,$val22,$val23
+!endif
+tmp0=!sort numeric items $val26
+
+val26=$(tmp0)
+val27=$[rint($(val26[1]))]
+val28=$[rint($(val26[-1])+1)]
+
+!ifval ($val27>0)
+val29=$[rint(-1)]
+!else
+val29=$[rint($val27-1)]
+!endif
+
+!ifval ($val28<0)
+val30=$[rint(1)]
+!else
+val30=$[rint($val28+1)]
+!endif
+val31=text black,-1, -20,small,-20	text black,-1,-15,small,-15	text black,-1,-10,small,-10	text black,-1,-5,small,-5	text black,-1,5,small,5	text black,-1,10,small,10	text black,-1,15,small,15	text black,-1,20,small,20	text black,-10,-0.2,small,-10	text black,-5,-0.2,small,-5	text black,5,-0.2,small,5	text black,10,-0.2,small,10	linewidth 3	point -10,0,black	point -5,0,black	point 5,0,black	point 10,0,black	point 0,-20,black	point 0,-15,black	point 0,-10,black	point 0,-5,black	point 0,5,black	point 0,10,black	point 0,15,black	point 0,20,black	
+
+!ifval ($val21!=0 and $val9<5)
+val32=$[$(val18[1])]
+!endif
+
+!ifval ($val21!=0 and $val9>4)
+t_=!replace internal \( by ( in 0.1*floor(10*$(val18[1]))
+tmp0=!exec pari $t_
+
+val32=$[$(tmp0)]
+!endif
+
+!ifval ($val21>1 and $val9<5)
+val33=$[$(val18[2])]
+!endif
+t_=!replace internal \( by ( in L=List([$val18]); listsort(L) ;Vec(L)
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+
+!ifval ($val21>1 and $val9>4)
+t_=!replace internal \( by ( in 0.1*floor(10*$(val26[2]))
+tmp0=!exec pari $t_
+
+val33=$[$(tmp0)]
+!endif
+
+!ifval ($val21==3)
+val34=$[$val15]
+!endif
+val35=+,-
+
+!ifval ($val21!=0 or $val9==5 )
+val36=+,-
+!endif
+
+!ifval ($val21>1 or $val9==5 )
+val37=+,-
+!endif
+
+!ifval ($val21>2)
+val38=+,-
+!endif
+
+!ifval ($val22>0)
+val39=1
+!else
+val39=2
+!endif
+
+!ifval (($val21==1 or ($val9==5 and $val21==0)) and $val23>0)
+val40=1
+!endif
+
+!ifval (($val21==1 or ($val9==5 and $val21==0)) and $val23<0)
+val40=2
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val32<$val13 and $val24>0)
+val40=1
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val32<$val13 and $val24<0)
+val40=2
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val32>$val13 and $val25>0)
+val40=1
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val32>$val13 and $val25<0)
+val40=2
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val10*$val16>0)
+val40=2
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val10*$val16<0)
+val40=1
+!endif
+
+!ifval ($val21>1 and $val24>0)
+val40=1
+!endif
+
+!ifval ($val21>1 and $val24<0)
+val40=2
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val23>0)
+val41=1
+!endif
+
+!ifval ($val9==5 and $val21==1 and $val23<0)
+val41=2
+!endif
+
+!ifval ($val21==2 and $val23>0)
+val41=1
+!endif
+
+!ifval ($val21==2 and $val23<0)
+val41=2
+!endif
+
+!ifval ($val21==3 and $val25>0)
+val41=1
+!endif
+
+!ifval ($val21==3 and $val25<0)
+val41=2
+!endif
+
+!ifval ($val21==3 and $val23>0)
+val42=1
+!endif
+
+!ifval ($val21==3 and $val23<0)
+val42=2
+!endif
+
+!ifval $val9==5
+val43=reply2,reply3
+!else
+val43=reply2
+!endif
+
+!ifval ($val9==5 and $val21==1) 
+val43=$val43,reply4
+!endif
+
+!ifval ($val9!=5 and $val21!=0)
+val43=$val43,reply3
+!endif
+
+!ifval ($val21>1 )
+val43=$val43,reply4
+!endif
+
+!ifval ($val21>2 )
+val43=$val43,reply5
+!endif
+oefsteps=reply1	$val43 
+nextstep=!nosubst reply1	$val43 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Nombre de zéro(s)
+replygood1=$[$val21]
+replytype2=menu
+replyname2=
+replygood2=$val39 ; $val35
+replytype3=menu
+replyname3=
+replygood3=$val40 ; $val36
+replytype4=menu
+replyname4=
+replygood4=$val41 ; $val37
+replytype5=menu
+replyname5=
+replygood5=$val42 ; $val38
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="monenonce">	La représentation graphique d'une fonction 
+!insmath f
+$(),définie sur	
+!insmath \mathcal{D}
+$() = 
+!if $val9!=5 
+$()[-$val7, $val7] 
+!else
+$() &#91;-$val7,$val13&#91; $m_cup &#93; $val13,$val7 &#93; 
+!endif
+$(),	est donnée dans le repère (O ; I, J) ci-contre. On admet que la fonction 
+!insmath f
+$() ne change pas de sens de variation	en dehors du graphique.	</div>	<div class="wims_instruction">	Répondre aux questions suivantes par lecture graphique.	</div>	<div class="wims_columns">	<div class="medium_size img_col">	<!-- début de la colonne gauche : liste des questions -->	<ol>	
+!if $m_step==1 
+$()	<li>	<label for="reply1">	Combien l'équation 
+!insmath f(x) = 0
+$() a-t-elle de solutions dans 
+!insmath \mathcal{D}
+$() ?</label>	 
+!read oef/embed.phtml reply1, 5 
+$()</li> 
+!endif
+$()	
+!if $m_step==2 and $val9!=5 and $val21==0 
+$()	<li>	L'équation 
+!insmath f(x) = 0
+$() n'a aucune solution dans 
+!insmath \mathcal{D}
+$().	</li>	<li>$val6 
+!insmath f
+$():	<table border="1" >	<tr>	<td width="5%" > 
+!insmath x
+$()</td><td align="left" width="40%" >-$val7</td><td align="right" width="40%" >$val7</td>	</tr><tr>	<td width="5%" >
+!insmath f(x)
+$()</td><td colspan=2 align="center">  
+!read oef/embed.phtml reply2 
+$()</td>	</tr>	</table>	</li>	 
+!endif
+$()	
+!if $m_step==2 and $val9==5 and $val21==0  
+$()<li>	L'équation 
+!insmath f(x) = 0
+$() n'admet aucune solution dans 
+!insmath \mathcal{D}
+$().	<br>La fonction 
+!insmath f
+$() n'est pas définie en $val13.	</li>	<li>$val6 
+!insmath f
+$():	<table border="1" >	<tr>	<td width="5%" > 
+!insmath x
+$()</td><td width="40%" align="left">-$val7</td><td align="center">$val13</td><td width="40%" align="right">$val7</td>	</tr>	<tr>	<td width="5%" > 
+!insmath f(x)
+$()</td><td width="40%" align="center">  
+!read oef/embed.phtml reply2 
+$()</td><td align="center">||</td><td width="40%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td>	</tr>	</table></li>	 
+!endif
+$()	
+!if $m_step==2 and $val9!=5 and $val21==1  
+$()<li>	L'équation 
+!insmath f(x) = 0
+$() a une unique solution 
+!insmath x_1
+$() dans 
+!insmath \mathcal{D}
+$().	<br>La valeur arrondie au dixième de 
+!insmath x_1
+$() est $val32.	</li>	<li>$val6 
+!insmath f
+$():</li>	<table border=1 border="solid">	<tr>	<td width="5%" > 
+!insmath x
+$()</td><td width="40%" align="left">-$val7</td><td align="center">$val32</td><td width="40%" align="right">$val7</td>	</tr><tr>	<td width="5%" > 
+!insmath f(x)
+$()</td><td width="40%" align="center">  
+!read oef/embed.phtml reply2 
+$()</td><td align="center">0</td><td width="40%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td>	</tr>	</table>	</li>	 
+!endif
+$()	
+!if $m_step==2 and $val9==5 and $val21==1 and $val32 < $val13  
+$()<li>	L'équation 
+!insmath f(x) = 0
+$() a une unique solution 
+!insmath x_1
+$() dans 
+!insmath \mathcal{D}
+$().	La fonction 
+!insmath f
+$() n'est pas définie en $val13.	<br>La valeur arrondie au dizième de 
+!insmath x_1
+$() est : $val32.	</li>	<li>$val6 
+!insmath f
+$():	<table border="1">	<tr>	<td width="5%"> 
+!insmath x
+$()</td><td width="25%" align="left">-$val7</td>	<td width="5%" align="center"> $val32</td><td width="25%" > &nbsp;</td><td align="center" width="5%"> $val13</td><td width="25%" align="right">$val7</td>	</tr>	<tr>	<td width="5%" >
+!insmath f(x)
+$()</td><td width="25%" align="center">  
+!read oef/embed.phtml reply2 
+$()</td><td width="5%" align="center">0</td><td width="25%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td><td align="center" width="5%">||</td>	<td width="25%" align="center">  
+!read oef/embed.phtml reply4 
+$()</td>	</tr>	</table>	</li>	 
+!endif
+$()	
+!if $m_step==2 and $val9==5 and $val21==1 and $val13 < $val32  
+$()<li>	L'équation 
+!insmath f(x) = 0
+$() a une unique solution 
+!insmath x_1
+$() dans 
+!insmath \mathcal{D}
+$().	La fonction 
+!insmath f
+$() n'est pas définie en $val13.	<br>La valeur arrondie au dizième de 
+!insmath x_1
+$() est : $val32.	</li>	<li>$val6 
+!insmath f
+$():	<table border="1">	<tr>	<td width="5%"> 
+!insmath x
+$()</td><td width="20%" align="left">-$val7</td>	<td align="center" width="5%"> $val13</td><td width="20%" > &nbsp;</td><td align="center" width="5%">$val32</td><td width="20%" align="right">$val7</td>	</tr>	<tr>	<td width="5%">
+!insmath f(x)
+$()</td><td width="20%" align="center">  
+!read oef/embed.phtml reply2 
+$()</td><td align="center" width="5%">||</td><td width="20%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td><td align="center" width="5%">0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply4 
+$()</td>	</tr>	</table>	</li>	 
+!endif
+$()	
+!if $m_step==2 and $val21==2 
+$()	<li>	L'équation 
+!insmath f(x) = 0
+$() a deux solutions 
+!insmath x_1
+$() et 
+!insmath x_2
+$() dans 
+!insmath \mathcal{D}
+$().	<br>Les valeurs arrondies de 
+!insmath x_1
+$() et 
+!insmath x_2
+$() sont respectivement : $val32 et $val33.	</li>	<li>$val6 
+!insmath f
+$():	<table border="1" >	<tr>	<td width="5%"> 
+!insmath x
+$()</td><td width="25%" align="left">-$val7</td>	<td align="center" width="5%"> $val32</td><td width="25%" > &nbsp;</td>	<td align="center" width="5%"> $val33</td><td width="25%" align="right">$val7</td>	</tr>	<tr>	<td width="5%">
+!insmath f(x)
+$()</td><td width="25%" align="center">  
+!read oef/embed.phtml reply2 
+$()</td>	<td align="center" width="5%">0</td><td width="25%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td><td align="center" width="5%"> 0</td>	<td width="25%" align="center">  
+!read oef/embed.phtml reply4 
+$()</td>	</tr>	</table></li>	 
+!endif
+$()	
+!if $m_step==2 and $val21==3 
+$()<li>	L'équation 
+!insmath f(x) = 0
+$() a trois solutions 
+!insmath x_1
+$(), 
+!insmath x_2
+$() et 
+!insmath x_3
+$() dans 
+!insmath \mathcal{D}
+$().	<br>Les valeurs arrondies au dixième de 
+!insmath x_1
+$(), 
+!insmath x_2
+$() et 
+!insmath x_3
+$() sont respectivement : $val32, $val33 et $val34.	</li>	<li>$val6 
+!insmath f
+$():	<table border="1">	<tr><td> 
+!insmath x
+$()</td>	<td align="left" width="20%" >-$val7</td>	<td align ="center">$val32</td>	<td width="20%" > &nbsp;</td>	<td align="center">$val33</td>	<td width="20%" > &nbsp;</td>	<td align="center">$val34</td>	<td width="20%" align="right"> $val7</td></tr>	<tr>	<td >
+!insmath f(x)
+$()</td>	<td width="20%" align="left">  
+!read oef/embed.phtml reply2 
+$()</td>	<td align="center"> 0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply3 
+$()</td>	<td align="center">0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply4 
+$()</td>	<td align="center">0</td>	<td width="20%" align="center">  
+!read oef/embed.phtml reply5 
+$()</td>	</tr>	</table></li>	 
+!endif
+$()	</ol>	<!-- fin de la colonne gauche : les questions -->	</div>	<!-- colonne droite : le graphique -->	<div class="medium_size text_col">	<div class="wimscenter">	 
+!read oef/draw.phtml 350,350 \
+	xrange -$val7,$val7	yrange $val29,$val30	parallel -$val7,$val29,-$val7,$val30,1,0, 2*$val7+1, grey	parallel -$val7,$val29,$val7,$val29,0,1, (-$val29)+$val30+1, grey	hline 0,0,black	vline 0,0,black	arrow 0,0,1,0,8, black	arrow 0,0,0,1,8, black	text black,-0.5,-0.2,small,O	text black,1,-0.3,small,I	text black,-0.5,1,small,J	$val31	linewidth 1.5	plot blue, $val17	 
+$()	</div>	</div>	</div>	
+$()
+!exit
+
+:hint
+$()Le nombre 
+!insmath f(x)
+$() est strictement positif (resp. strictement négatif) pour tout réel	
+!insmath x
+$() de l'intervalle 
+!insmath I
+$() si et seulement, sur cet intervalle,	la courbe représentative de 
+!insmath f
+$() est située au-dessus (resp. en-dessous)	de l'axe des abscisses.	<br>	
+!insmath f(x)
+$() est nul si et seulement si 
+!insmath x
+$() est l'abscisse	d'un point d'intersection de la courbe représentative de 
+!insmath f
+$() avec l'axe des abscisses.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,13,17,21,29,30,31,32,33,34
+embedcnt=19

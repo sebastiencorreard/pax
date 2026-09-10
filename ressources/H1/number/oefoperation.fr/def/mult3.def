@@ -1,0 +1,396 @@
+!set title=Table de multiplication 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000000
+oefobservation=Suivant la configuration de l'exercice sur le module, il est possible d'exclure certaines tables.
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=16
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<div class="wims_instruction">L'usage de la calculatrice <b>n'est pas autorisé</b>.</div>
+tmp0=!itemcnt $val2
+
+!if $(tmp0)>0 
+val7=2,3,4,5
+!for val8 =6 to 9 
+tmp0=!positionof item $val8 in $val7
+
+
+!ifval $(tmp0) issametext 
+val7= $val7
+!else
+val7=$val7,$val8
+!endif
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+!next
+tmp0=!item 1 to 3 of $val7
+
+val9=$(tmp0)
+val10=
+!for val8 =2 to 9 
+tmp0=!positionof item $val8 in $val9
+
+
+!ifval $(tmp0) issametext 
+tmp1=!append item $val8 to $val10
+
+val11= $(tmp1)
+!endif
+!next
+val9=$val7,$val11
+!else
+tmp0=!shuffle 2,3,4,5,6,7,8,9
+
+val9=$(tmp0)
+!endif
+tmp0=!sort numeric list $(val9[1..3])
+
+val12=$(tmp0)
+tmp0=!randint 1, 3
+
+val13=$[rint($(tmp0))]
+tmp0=!sort numeric list $(val12[$val13]),$(val9[4..6])
+
+val14=$(tmp0)
+val15=
+!for val16 =1 to 3 
+!for val17 =1 to 3 
+val18=$[rint($(val12[$val16])*$(val14[$val17]))]
+val15=$val15,$val18
+!next
+!next
+tmp=!trim ,$val14	$(val12[1]),$(val15[2..4])	$(val12[2]),$(val15[5..7])	$(val12[3]),$(val15[8..10])
+val19=!translate internal $	\
+$ to ;; in $tmp
+val20=r2,r3,r4,r5,r7,r9,r10,r12,r13,r14
+tmp=!trim ,0,0,0	0,1,0,1	0,0,1,0	0,0,1,1
+val21=!translate internal $	\
+$ to ;; in $tmp
+val22=Chaque case intérieure du tableau est le produit des entiers (différents de 1) contenus dans les cases situées en haut et à gauche.<br/>	Les entiers de la première colonne sont tous différents et ceux de la première ligne sont tous différents.
+dynsteps=yes
+oefsteps=$val20 
+nextstep=!nosubst $val20 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=comma 
+replyname1=
+replygood1=0
+replytype2=numexp
+replyoption2=comma 
+replyname2=
+replygood2=$(val19[1;2])
+replytype3=numexp
+replyoption3=comma 
+replyname3=
+replygood3=$(val19[1;3])
+replytype4=numexp
+replyoption4=comma 
+replyname4=
+replygood4=$(val19[1;4])
+replytype5=numexp
+replyoption5=comma 
+replyname5=
+replygood5=$(val19[2;1])
+replytype6=numexp
+replyoption6=comma 
+replyname6=
+replygood6=$(val19[2;2])
+replytype7=numexp
+replyoption7=comma 
+replyname7=
+replygood7=$(val19[2;3])
+replytype8=numexp
+replyoption8=comma 
+replyname8=
+replygood8=$(val19[2;4])
+replytype9=numexp
+replyoption9=comma 
+replyname9=
+replygood9=$(val19[3;1])
+replytype10=numexp
+replyoption10=comma 
+replyname10=
+replygood10=$(val19[3;2])
+replytype11=numexp
+replyoption11=comma 
+replyname11=
+replygood11=$(val19[3;3])
+replytype12=numexp
+replyoption12=comma 
+replyname12=
+replygood12=$(val19[3;4])
+replytype13=numexp
+replyoption13=comma 
+replyname13=
+replygood13=$(val19[4;1])
+replytype14=numexp
+replyoption14=comma 
+replyname14=
+replygood14=$(val19[4;2])
+replytype15=numexp
+replyoption15=comma 
+replyname15=
+replygood15=$(val19[4;3])
+replytype16=numexp
+replyoption16=comma 
+replyname16=
+replygood16=$(val19[4;4])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val22
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Compléter le tableau de multiplication suivant sans utiliser de calculatrice.	<table class="wimscenter wimsborder">	<tr><th>
+!insmath {}\times{}
+$()</th>	<th>
+!if $(val21[1;2])=1 
+$()
+!insmath $(val19[1;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r2,3 
+$() 
+!endif
+$()</th>	<th>
+!if $(val21[1;3])=1 
+$()
+!insmath $(val19[1;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r3,3 
+$() 
+!endif
+$()</th>	<th>
+!if $(val21[1;4])=1 
+$()
+!insmath $(val19[1;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r4,3 
+$() 
+!endif
+$()</th>	</tr>	<tr><th>
+!if $(val21[2;1])=1 
+$()
+!insmath $(val19[2;1])
+$() 
+!else
+$()  
+!read oef/embed.phtml r5,3 
+$() 
+!endif
+$()</th>	<td>
+!if $(val21[2;2])=1 
+$()
+!insmath $(val19[2;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r6,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val21[2;3])=1 
+$()
+!insmath $(val19[2;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r7,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val21[2;4])=1 
+$()
+!insmath $(val19[2;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r8,3 
+$() 
+!endif
+$()</td>	</tr>	<tr><th>
+!if $(val21[3;1])=1 
+$()
+!insmath $(val19[3;1])
+$() 
+!else
+$()  
+!read oef/embed.phtml r9,3 
+$() 
+!endif
+$()</th>	<td>
+!if $(val21[3;2])=1 
+$()
+!insmath $(val19[3;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r10,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val21[3;3])=1 
+$()
+!insmath $(val19[3;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r11,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val21[3;4])=1 
+$()
+!insmath $(val19[3;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r12,3 
+$() 
+!endif
+$()</td>	</tr>	<tr><th>
+!if $(val21[4;1])=1 
+$()
+!insmath $(val19[4;1])
+$() 
+!else
+$()  
+!read oef/embed.phtml r13,3 
+$() 
+!endif
+$()</th>	<td>
+!if $(val21[4;2])=1 
+$()
+!insmath $(val19[4;2])
+$() 
+!else
+$()  
+!read oef/embed.phtml r14,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val21[4;3])=1 
+$()
+!insmath $(val19[4;3])
+$() 
+!else
+$()  
+!read oef/embed.phtml r15,3 
+$() 
+!endif
+$()</td>	<td>
+!if $(val21[4;4])=1 
+$()
+!insmath $(val19[4;4])
+$() 
+!else
+$()  
+!read oef/embed.phtml r16,3 
+$() 
+!endif
+$()</td></tr>	</table>	$val6	
+$()
+!exit
+
+:hint
+$()$val22
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Voici le tableau complet:	<table class="wimscenter wimsborder">	<tr><th>
+!insmath {}\times{}
+$()</th><th>
+!insmath $(val19[1;2])
+$()</th><th>
+!insmath $(val19[1;3])
+$()</th><th>
+!insmath $(val19[1;4])
+$()</th></tr>	<tr><th>
+!insmath $(val19[2;1])
+$()</th><td>
+!insmath $(val19[2;2])
+$()</td><td>
+!insmath $(val19[2;3])
+$()</td><td>
+!insmath $(val19[2;4])
+$()</td></tr>	<tr><th>
+!insmath $(val19[3;1])
+$()</th><td>
+!insmath $(val19[3;2])
+$()</td><td>
+!insmath $(val19[3;3])
+$()</td><td>
+!insmath $(val19[3;4])
+$()</td></tr>	<tr><th>
+!insmath $(val19[4;1])
+$()</th><td>
+!insmath $(val19[4;2])
+$()</td><td>
+!insmath $(val19[4;3])
+$()</td><td>
+!insmath $(val19[4;4])
+$()</td></tr>	</table>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,19,21,22
+embedcnt=15

@@ -1,0 +1,213 @@
+!set title=Dépouillement d'un vote II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+keywords=conditional_probability
+language=fr
+computeanswer=yes
+precision=10000
+oefdescription=exercice comportant deux questions
+
+ansorder=r,r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 50
+
+val7=$[rint($(tmp0))]
+val8=$[1/($val6+1)]
+tmp0=!values $val8 for x=1 to $val6
+
+val9=$(tmp0)
+val10=$[1-$val6*$val8]
+val9=$val9,$val10
+!readproc slib/stat/multinomial $val6,$val7,[$val9] 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+!if $(val11[1;1])>=1 
+val12=<ul><li>$(val11[1;1]) voix pour la première liste,</li>
+!else
+val12=<ul><li>aucune voix pour la première liste,</li>
+!endif
+tmp0=!values 1 for x=1 to $(val11[1;1])
+
+val13=$(tmp0)
+!for val14 =2 to $val6 
+!if $(val11[1;$val14])>=1 
+val12=$val12 <li> $(val11[1;$val14]) voix pour la liste $val14,</li>
+tmp0=!values $val14 for x=1 to $(val11[1;$val14])
+
+val13=$val13, $(tmp0)
+!else
+val12=$val12 <li>aucune voix pour la liste $val14,</li>
+!endif
+!next
+!if $(val11[1;$val6+1])>1 
+val12=$val12 <li> $(val11[1;$val6+1]) votes blancs.</li></ul>
+!else
+val12=$val12 <li> $(val11[1;$val6+1]) vote blanc.</li></ul>
+!endif
+tmp0=!values 0 for x=1 to $(val11[1;$val6+1])
+
+val13=$val13, $(tmp0)
+tmp0=!randint 3, 5
+
+val15=$[rint($(tmp0))]
+!readproc slib/data/random $val15,item, $val13  
+tmp0=$slib_out
+val16=$(tmp0)
+tmp0=!replace 0 by blanc in $val16
+
+val17=$(tmp0)
+!for val14 =1 to $val6 
+tmp0=!replace $val14 by liste $val14 in $val17
+
+val17=$(tmp0)
+!next
+t_=!replace internal \( by ( in k=Mat([$val11]);nb=$val7 ;dep=Mat([$val16]);s=1;for(i=1,$val15,if(dep[1,i],j=dep[1,i],j=$val6+1);s=s*k[1,j]/nb	;nb=nb-1;k[1,j]=k[1,j]-1);print(s)
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+val18=$[$val10]
+t_=!replace internal \( by ( in k=Mat([$val11]);dep=Mat([$val16]);v=vector($val6+1,i,0);	for(i=1,$val15,if(dep[1,i],j=dep[1,i],j=$val6+1);v[j]=v[j]+1);print(v)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+val20=$[rint(1)]
+val21=$[rint($val15)]
+!for val14 =1 to $val6 
+val20=$[rint($val20*binomial($val21,$(val19[1;$val14])))]
+val21=$[rint($val21-$(val19[1;$val14]))]
+!next
+t_=!rawmath $val20*$val10
+val22=!exec pari print($t_)
+val23=$[$val22]
+val24=Quelle est la probabilité pour que les $val15 premiers bulletins dépouillés soient dans l'ordre 
+val25=<ul>
+!if $(val19[1;1])=1 
+val25=$val25 <li> un bulletin pour la liste 1</li>
+!endif
+!if $(val19[1;1])>1 
+val25=$val25 <li> $(val19[1;1]) bulletins pour la liste 1</li>
+!endif
+!for val14 =2 to $val6 
+!if $(val19[1;$val14])>=2 
+val25=$val25 <li> $(val19[1;$val14]) bulletins pour la liste $val14</li>
+!endif
+!if $(val19[1;$val14])=1 
+val25=$val25 <li> un bulletin pour la liste $val14</li>
+!endif
+!next
+!if $(val19[1;$val6+1])>1 
+val25=$val25 <li> $(val19[1;$val6+1]) bulletins blancs</li>
+!endif
+!if $(val19[1;$val6+1])=1 
+val25=$val25 <li> un bulletin blanc</li>
+!endif
+val25=$val25 </ul>
+val26=Donner votre réponse sous forme d'une fraction rationnelle.
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=Question 1 (sous forme d'une fraction)
+replygood1=$val10
+replytype2=formal
+replyname2=Question 2 (sous forme d'une fraction)
+replygood2=$val22
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Lors d'un vote dans une entreprise, les électeurs devaient choisir entre $val6 listes.	 Sur les $val7 bulletins, il y a : $val12	
+!if $m_step>=1 
+$()	<div class="wims_question">	 1- $val24	<div class="wimscenter"><span style="color:#000080;">$val17</span> ?</div>	 
+!endif
+$()	
+!if $m_step>=2 
+$()<p class="oef_indgood">Bonne réponse ! La probabilité d'obtenir ce	 dépouillement est $val10
+!insmath \simeq
+$()$val18.</p>	 2- Déterminer la probabilité pour que parmi les $val15 premiers bulletins dépouillés, il y ait en tout $val25	 
+!endif
+$()	</div>	<div class="wims_instruction">$val26</div>	
+$()
+!exit
+
+:hint
+$()
+!if $m_step=1 
+$()Il n'y a pas d'indication pour la question 1 de l'exercice 
+!endif
+$()	
+!if $m_step=2 
+$()Commencer par regarder si la probabilité que les $val15 premiers bulletins soient	<span style="color:#000080;"> $val17</span> dépend de l'ordre dans lequel ces bulletins	 sont apparus. 
+!endif
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_step>=2
+ <div class='oef_feedbacks'><div class="oef_indgood">La probabilité pour que parmi les $val15 premiers bulletins	 dépouillés, il y ait $val25 est égale à $val22
+!insmath \simeq
+$()$val23</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,12,15,17,18,22,23,24,25,26
+embedcnt=0

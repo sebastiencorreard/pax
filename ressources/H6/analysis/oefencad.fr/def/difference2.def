@@ -1,0 +1,273 @@
+!set title=Encadrement d'une différence 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Noémie,Cochi; Olivier,Dupuy; Gérard,Lauton
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=48
+prevarcnt=47
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=et
+val7=Le type d'inégalités est imposé, on ne cherche pas à savoir si les bornes	  sont atteintes.
+val8=Trouvez le meilleur encadrement de
+val9=Pour encadrer la différence \(x -y\), commencez par encadrer \(-y\).
+val10=Votre réponse n'a pas de sens car
+val11=Vous avez soustrait les inégalités membre à membre.	  Ce n'est pas la règle pour encadrer une différence.
+val12=Vous avez encadré la somme, et non la différence.
+val13=Votre encadrement est juste, mais n'est pas le meilleur possible.
+val14=Les valeurs possibles de \(x\) et \(y\) sont figurées ci-dessous	  en <span style="color:red">rouge</span> pour \(x\) et	  <span style="color:green">en vert</span> pour \(y\).
+tmp0=!randint 0, 9
+
+tmp1=!randitem -1,1
+
+val15=$[$(tmp0)*$(tmp1)]
+tmp0=!randint $val15+1, 10
+
+val16=$[$(tmp0)]
+tmp0=!randint 0, 9
+
+tmp1=!randitem -1,1
+
+val17=$[$(tmp0)*$(tmp1)]
+tmp0=!randint $val17+1, 10
+
+val18=$[$(tmp0)]
+val19=$[$val15-$val18]
+val20=$[$val16-$val17]
+val21=$[$val15+$val17]
+val22=$[$val16+$val18]
+val23=$[abs($val17)]
+val24=$[abs($val18)]
+
+!ifval $val17>0
+val25=-
+!else
+val25=+
+!endif
+
+!ifval $val18>0
+val26=-
+!else
+val26=+
+!endif
+
+!ifval $val17=0
+val25= 
+!endif
+
+!ifval $val18=0
+val26= 
+!endif
+t_=!rawmath -$val17
+val27=!exec pari print($t_)
+t_=!rawmath -$val18
+val28=!exec pari print($t_)
+t_=!replace internal \( by ( in vecmin([$val19,0,$val15,$val16,$val17,$val18])-2
+tmp0=!exec pari $t_
+
+val29=$[rint($(tmp0))]
+t_=!replace internal \( by ( in vecmax([$val20,0,$val15,$val16,$val17,$val18])+2
+tmp0=!exec pari $t_
+
+val30=$[rint($(tmp0))]
+val31=x-$val19,x-$val20
+val32=17
+val33=12
+val34=0.18
+val35=0
+val36=3
+val37=text blue,-10-0.25,-1.5,medium,-10
+!for val38 = -9 to -1 
+val37=$val37	text blue,$val38-0.25,-1.5,medium,$val38
+!next
+val39=text blue,0,-1.5,medium,0
+!for val38 = 1 to 10 
+val39=$val39	text black,$val38,-1.5,medium,$val38
+!next
+val40=range -12,12,-8,8	linewidth 1	parallel -12,-1,-12,1,1,0,25,red	parallel -12,-0.5,-12,0.5,0.5,0,48,red	linewidth 3	arrow -12.0,0,12.0,0,20,blue	fcircle 0,0,$val32,blue	$val37	$val39	hline 0,0,black
+
+!ifval $val15>0
+val41=$[$val15]
+!else
+val41=$[$val15-0.25]
+!endif
+
+!ifval $val16>0
+val42=$[$val16]
+!else
+val42=$[$val16-0.25]
+!endif
+
+!ifval $val17>0
+val43=$[$val17]
+!else
+val43=$[$val17-0.25]
+!endif
+
+!ifval $val18>0
+val44=$[$val18]
+!else
+val44=$[$val18-0.25]
+!endif
+val45=$val40	fcircle 0,0,$val33,blue	fcircle $val15,$val35,$val33,red	fcircle $val16,$val35,$val33,red	fcircle $val17,-0.5,$val33,green	fcircle $val18,-0.5,$val33,green	linewidth 4	segment $val15,$val34,$val16,$val34,red	segment $val17,-0.5,$val18,-0.5,green	text red,$val41,$val36,medium,$val15	text red,$val42,$val36,medium,$val16	text green,$val43,5,medium,$val17	text green,$val44,5,medium,$val18	
+val46=$[rint($val30-$val29+1)]
+val47=xrange $val29,$val30	   yrange $val29,$val30	   parallel $val29,$val29,$val30,$val29,0,1,$val46, grey	   parallel $val29,$val29,$val29,$val30,1,0,$val46, grey	   fpoly red,$val15,$val17,$val16,$val17,$val16,$val18,$val15,$val18	   arrow $val29,0,$val30,0,8,black	   arrow 0,$val29,0,$val30,8,black	   arrow 0,0,1,0,8, black	   arrow 0,0,0,1,8, black	   plot green, $(val31[1])	   plot green, $(val31[2])	   fcircle 0,0,10,black	   fcircle $val19,0,10,green	   fcircle $val20,0,10,green	   text black,-0.3,-0.5,times, O	   text black,$val30-0.5,1,times, x	   text black,0.5,$val30-0.25,times, y	   text black,$val19 -0.3,-0.5,times,$val19	   text black,$val20 -0.3,-0.5,times,$val20	
+replytype1=numexp
+replyname1=
+replygood1=$val19
+replytype2=numexp
+replyname2=
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val7
+
+help=!nosubst $val9
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<p>$val14</p>	  <p class="wimscenter"> 
+!read oef/draw.phtml 900,100 \
+$val45 
+$()</p>		<label for="reply1">$val8 
+!insmath x - y
+$()&nbsp;:</label>	<div class="wimscenter">	   
+!read oef/embed.phtml r1,3 
+$()<label for="reply2">
+!insmath \;\leq \; x \;- \;y \; \leq \;
+$()</label>  
+!read oef/embed.phtml r2,3 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()$val7
+$()
+!exit
+
+:help
+$()$val9
+$()
+!exit
+
+:solution
+$()<p>Le réel 
+!insmath y
+$() est encadré par	les bornes 
+!insmath $val17
+$() et 
+!insmath $val18
+$(),	son opposé 
+!insmath -y
+$() entre leurs opposées : 
+!insmath {$val26 $val24 < -y < $val25 $val23}
+$().</p>	<p>En additionnant terme à terme l'encadrement 
+!insmath {$val15 < x < $val16}
+$() de 
+!insmath x
+$() et de celui de 
+!insmath -y
+$(), on obtient :	<p class="wimscenter">
+!insmath {$val15 $val26 $val24 < x - y < $val16 $val25 $val23}
+$() c'est-à-dire 
+!insmath {$val19 < x - y < $val20}
+$().</p>	<p><em>On peut visualiser cet encadrement de la différence 
+!insmath x - y
+$() par la figure ci-dessous.</em></p>	Dans le plan muni d'un repère 
+!insmath ( O \overrightarrow{x}\textrm{,} O \overrightarrow{y} )
+$(), l'ensemble des points de coordonnées 
+!insmath (x,y)
+$()	vérifiant les inégalités 
+!insmath {$val15 < x < $val16}
+$() et 
+!insmath {$val17 < y <$val18}
+$() est le rectangle <span style="color:red";>rouge</span>	situé dans la bande délimitée par les deux droites vertes d'équations 
+!insmath x - y = $val19
+$() et 
+!insmath x - y = $val20
+$().<br>	<em>Ces droites sont parallèles à la droite d'équation 
+!insmath x - y = 0
+$(), première bissectrice de l'angle	
+!insmath ( O \overrightarrow{x}\textrm{,} O \overrightarrow{y} )
+$(). Leurs ordonnées 
+!insmath $val19
+$() et 
+!insmath $val20
+$() en 
+!insmath 0
+$()	encadrent la différence 
+!insmath x-y
+$() pour tous les points 
+!insmath (x,y)
+$() du rectangle rouge.</em>	<p class="wimscenter"> 
+!read oef/draw.phtml 400,400  \
+$val47 
+$()</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1>$m_reply2
+ <div class='oef_feedbacks'>$val10 
+!insmath $m_reply1 > $m_reply2
+$().
+$()</div>
+!endif
+!ifval $m_reply1=$val15-$val17 and $m_reply2=$val16-$val18
+ <div class='oef_feedbacks'>$val11
+$()</div>
+!endif
+!ifval $m_reply1=$val15+$val17 and $m_reply2=$val16+$val18
+ <div class='oef_feedbacks'>$val12
+$()</div>
+!endif
+!ifval $m_reply1<$val19 and $m_reply2>$val20
+ <div class='oef_feedbacks'>$val13
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15,16,17,18,19,20,23,24,25,26,45,47
+embedcnt=2

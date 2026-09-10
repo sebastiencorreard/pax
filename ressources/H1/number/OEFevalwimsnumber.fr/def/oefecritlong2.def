@@ -1,0 +1,113 @@
+!set title=Mesure de longueur 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000000
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Donner l'écriture décimale de la longueur suivante sans zéro inutile&nbsp;
+val7=km,hm,dam,m,dm,cm,mm
+tmp0=!randint 1, 9
+
+val8=$(tmp0)
+tmp0=!randint 0, 1
+
+val9=$[rint($(tmp0))]
+!if $val9=0 
+tmp0=!randint 1, 9
+
+tmp1=!randint 0, 9
+
+val8=$val8 ,0 ,$(tmp0),$(tmp1)
+!else
+tmp0=!randint 1, 9
+
+tmp1=!randint 1, 9
+
+val8=$val8 , $(tmp0), 0, $(tmp1)
+!endif
+val10=$[$(val8[1])+$(val8[2])/10+$(val8[3])/100+$(val8[4])/1000]
+val11=$[rint($val10*1000-$(val8[1])*1000)]
+val12=$val6
+val13=$(val8[1]) $(val7[4]) + $val11 $(val7[7])
+val14=$[rint(4)]
+val15=$[rint(8)]
+replytype1=atext
+replyname1=
+replygood1=$val10
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val12 \begin{center}$val13 = \(\dots\dots\) $(val7[$val14])\end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12: <div class="wimscenter">$val13 =  
+!read oef/embed.phtml r1,$val15 
+$() $(val7[$val14])</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val12 $m_begin{center}$val13 = 
+!insmath \dots\dots
+$() $(val7[$val14])$m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,12,13,14,15
+embedcnt=1

@@ -1,0 +1,604 @@
+!set title=suite arithmético-géométrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=38
+prevarcnt=31
+postvarcnt=6
+replycnt=17
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 1
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6+1)]
+val8=$[rint($val6+2)]
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+!if $val9 issametext + 
+val11=+
+!else
+val11=-
+!endif
+!if $val10 issametext + 
+val12=+
+!else
+val12=-
+!endif
+!if $val10 issametext - 
+val13=+
+!else
+val13=-
+!endif
+tmp0=!randint 2, 10
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val11$val14)]
+tmp0=!randint 1, 10
+
+val16=$[rint($(tmp0))]
+val17=$[rint($val12$val16)]
+val18=$[rint($val17-($val15)*($val17))]
+!if $val18>0 
+val19=$[rint($val18)]
+!else
+val19=$[rint(-$val18)]
+!endif
+!if $val18>0 
+val20=+
+!else
+val20=-
+!endif
+val21=$val20$val19
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val22=$(tmp0)
+val23=$[0]
+!while $val23=0 
+tmp0=!randint 1, 10
+
+val24=$[rint($val22 $(tmp0))]
+!if $val24=$val17 
+val24=$[$val17+1]
+!endif
+!if $val24=$val17 and $val17=-1 
+val24=$[1]
+!endif
+val23=$[$val15*$val24$val21]
+!endwhile
+val25=$[$val24$val13$val16]
+val26=$[$val15*$val23$val21]
+val27=\(\frac{U_{$val8}}{U_{$val7}}\neq \frac{U_{$val7}}{U_{$val6}}),	\(\frac{U_{$val8}}{U_{$val7}}=\frac{U_{$val7}}{U_{$val6}}),	\(U_{$val8}-U_{$val7}\neq U_{$val7}-U_{$val6}),	\(U_{$val8}-U_{$val7}=U_{$val7}-U_{$val6})	
+val28=r1,r2,r3
+dynsteps=yes
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=u$val6
+replygood1=$[$val24]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=u$val7
+replygood2=$[$val23]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=u$val8
+replygood3=$[$val26]
+replytype4=menu
+replyoption4=nonstop 
+replyname4=nature 1
+replygood4=1;n'est pas arithmétique,est arithmétique
+replytype5=clickfill
+replyoption5=nonstop 
+replyname5=car
+replygood5=\(U_{$val8}-U_{$val7}\neq U_{$val7}-U_{$val6});$val27
+replytype6=menu
+replyoption6=nonstop 
+replyname6=nature 2
+replygood6=1;n'est pas géométrique,est géométrique
+replytype7=clickfill
+replyoption7=nonstop 
+replyname7=car
+replygood7=\(\frac{U_{$val8}}{U_{$val7}}\neq \frac{U_{$val7}}{U_{$val6}});$val27
+replytype8=numeric
+replyoption8=nonstop 
+replyname8=x
+replygood8=$[$val17]
+replytype9=numeric
+replyoption9=nonstop 
+replyname9=calcul 1
+replygood9=$[$val15]
+replytype10=numeric
+replyoption10=nonstop 
+replyname10=calcul 2
+replygood10=$[-($val15)*$val17]
+replytype11=numeric
+replyoption11=nonstop 
+replyname11=calcul 3
+replygood11=$[$val15]
+replytype12=numeric
+replyoption12=nonstop 
+replyname12=calcul 4
+replygood12=$[$val15]
+replytype13=menu
+replyoption13=nonstop 
+replyname13=nature de \(V_n)
+replygood13=1;géométrique, arithmétique
+replytype14=numeric
+replyoption14=nonstop 
+replyname14=q
+replygood14=$[$val15]
+replytype15=numeric
+replyoption15=nonstop 
+replyname15=\(V_{$val6})
+replygood15=$[$val25]
+replytype16=formal
+replyoption16=nonstop 
+replyname16=\(V_n)
+replygood16=$val25*($val15)^(n-$val6)
+replytype17=formal
+replyoption17=nonstop 
+replyname17=\(U_n)
+replygood17=$val25*($val15)^(n-$val6)$val12$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()			<div id="enonce">	Le  but de cet exercice est d'étudier, à l'aide d'une suite auxiliaire,	la suite 
+!insmath (U_n)
+$() définie par 
+!insmath U_{$val6}=$val24
+$() et	
+!insmath U_{n+1}=$val15 U_n$val21
+$()	 pour tout entier naturel 
+!if $val6>0 
+$()n &ge;1 
+!else
+$() n 
+!endif
+$().<br>	<p class="consigne">L'exercice est un peu long, il comporte 6 questions et 17 réponses. Ne vous découragez pas !</p>	</div>		
+!if $m_step=1 
+$()	<div class="question">	<span class=numero>Question $m_step/6 </span> <br>	Calculer les premiers termes de la suite.	<div class="reponse">	
+!insmath U_{$val6}
+$()= 
+!read oef/embed.phtml r1,2 
+$()<br>	
+!insmath U_{$val7}
+$()= 
+!read oef/embed.phtml r2,2 
+$()<br>	
+!insmath U_{$val8}
+$()= 
+!read oef/embed.phtml r3,2 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and $m_sc_reply1=1 and $m_sc_reply2=1 and $m_sc_reply3=1 
+$()	<div class="question">	<div class="oui"> Effectivement,<br>	
+!insmath U_{$val6}
+$()=$val24<br>	
+!insmath U_{$val7}
+$()=$val23<br>	
+!insmath U_{$val8}
+$()=$val26	</div>	<span class="numero">Question $m_step/6</span><br>	Etudier la nature de la suite 
+!insmath (U_n)
+$().		<div class="reponse">	La suite  
+!read oef/embed.phtml r4 
+$() car  
+!read oef/embed.phtml r5,200x60 
+$()<br>	La suite  
+!read oef/embed.phtml r6 
+$() car  
+!read oef/embed.phtml r7,200x60 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and ($m_sc_reply1!=1 or $m_sc_reply2!=1 or $m_sc_reply3!=1) 
+$()	<div class="question">	<div class="non">	
+!insmath U_{$val6}=$val24
+$() 
+!if $m_sc_reply1!=1 
+$()<font color="red">et non $m_reply1</font> 
+!else
+$() <font color="green">exact</font> 
+!endif
+$()<br>	
+!insmath U_{$val7}=$val23
+$() 
+!if $m_sc_reply2!=1 
+$()<font color="red">et non $m_reply2</font> 
+!else
+$() <font color="green">exact</font> 
+!endif
+$()<br>	
+!insmath U_{$val8}=$val26
+$() 
+!if $m_sc_reply3!=1 
+$()<font color="red">et non $m_reply3</font> 
+!else
+$() <font color="green">exact</font> 
+!endif
+$()<br>	Poursuivez l'exercice avec les valeurs correctes.	</div>		<span class="numero">Question $m_step/6 </span><br>	Etudier la nature de la suite 
+!insmath (U_n)
+$().		<div class="reponse">	La suite  
+!read oef/embed.phtml r4 
+$() car  
+!read oef/embed.phtml r5,200x60 
+$()<br>	La suite  
+!read oef/embed.phtml r6 
+$() car  
+!read oef/embed.phtml r7,200x60 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $m_step=3 and $m_sc_reply4=1 and $m_sc_reply6=1 
+$()	<div class="question">	<span class="numero">Question $m_step/6</span><br>	Résoudre l'équation 
+!insmath x=$val15 x$val21
+$().	<div class="reponse">	
+!insmath x
+$()= 
+!read oef/embed.phtml r8,5 
+$()<br>	</div>	</div>	 
+!endif
+$()		
+!if $m_step=3 and ($m_sc_reply4!=1 or $m_sc_reply6!=1) 
+$()	<div class="question">	<div class="non">	La suite n'est ni arithmétique, ni géométrique !	</div>		<span class="numero">Question $m_step/6</span><br>	Résoudre l'équation 
+!insmath x=$val15 x$val21
+$().	<div class="reponse">	
+!insmath x
+$()= 
+!read oef/embed.phtml r8,5 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $m_step=4 and $m_sc_reply8=1 
+$()	<div class="question">	<div class="oui">	Effectivement x=$val17	</div>	<span class="numero">Question $m_step</span><br>	Montrons que la suite auxiliaire 
+!insmath (V_n)
+$() définie par	
+!insmath V_n=U_n$val13$val16
+$() est géométrique.		<div class="reponse">	On a :		<table>	<tr>	     <td>
+!insmath V_{n+1}
+$()</td>	     <td>=
+!insmath U_{n+1}$val13$val16
+$()</td>	</tr>	<tr>	     <td></td>	     <td>= 
+!read oef/embed.phtml r9,1 
+$()
+!insmath \times U_n+
+$() 
+!read oef/embed.phtml r10,1 
+$()</td>	</tr>	<tr>	     <td></td>	     <td>= 
+!read oef/embed.phtml r11,1 
+$()
+!insmath \times (U_n$val13$val16)
+$()</td>	</tr>	<tr>	     <td></td>	     <td>= 
+!read oef/embed.phtml r12,1 
+$()
+!insmath \times V_n
+$()<br></td>	</tr>	</table>	</div>	</div>	 
+!endif
+$()		
+!if $m_step=4 and $m_sc_reply8!=1 
+$()	<div class="question">	<div class="non">	
+!insmath x=$val17
+$() et non $m_reply8. <br> Continuez l'exercice.	</div>	<span class="numero">Question $m_step</span><br>	Montrons que la suite auxiliaire 
+!insmath (V_n)
+$() définie par	
+!insmath V_n=U_n$val13$val16
+$() est géométrique.		<div class="reponse">	On a :		<table>	<tr>	     <td>
+!insmath V_{n+1}
+$()</td>	     <td>=
+!insmath U_{n+1}$val13$val16
+$()</td>	</tr>	<tr>	     <td></td>	     <td>= 
+!read oef/embed.phtml r9,1 
+$()
+!insmath \times U_n+
+$() 
+!read oef/embed.phtml r10,1 
+$()</td>	</tr>	<tr>	     <td></td>	     <td>= 
+!read oef/embed.phtml r11,1 
+$()
+!insmath \times (U_n$val13$val16)
+$()</td>	</tr>	<tr>	     <td></td>	     <td>= 
+!read oef/embed.phtml r12,1 
+$()
+!insmath \times V_n
+$()<br></td>	</tr>	</table>	</div>	</div>	 
+!endif
+$()			
+!if $m_step=5 and $m_sc_reply12=1 
+$()	<div class="question">	<span class="numero">Question $m_step/6</span><br>	Exprimer 
+!insmath V_n
+$() en fonction de 
+!insmath n
+$().	<p class="consigne">On rappelle que 
+!insmath V_n=U_n$val13$val16
+$().</p>	<div class="reponse">	La relation 
+!insmath V_{n+1}=$val15 V_n
+$() prouve que la suite 
+!insmath (V_n)
+$() est  
+!read oef/embed.phtml r13 
+$() de raison	q= 
+!read oef/embed.phtml r14,1 
+$() et de premier terme 
+!insmath V_{$val6}
+$()= 
+!read oef/embed.phtml r15,1 
+$().<br>		L'expression de 
+!insmath V_n
+$() en fonction de 
+!insmath n
+$() est donc : 
+!insmath V_n
+$()= 
+!read oef/embed.phtml r16,15 
+$().	</div>	</div>	 
+!endif
+$()		
+!if $m_step=5 and $m_sc_reply12!=1 
+$()	<div class="question">	<div class="non">	
+!insmath V_{n+1}
+$()
+!insmath \neq
+$() $m_reply12 
+!insmath V_n
+$() mais 
+!insmath V_{n+1}=$val15 V_n
+$().	</div>		<span class="numero">Question $m_step/6</span><br>	Exprimer 
+!insmath V_n
+$() en fonction de 
+!insmath n
+$().<br>	<p class="consigne">On rappelle que 
+!insmath V_n=U_n$val13$val16
+$().</p>		<div class="reponse">	La relation 
+!insmath V_{n+1}=$val15 V_n
+$() prouve que la suite 
+!insmath (V_n)
+$() est  
+!read oef/embed.phtml r13 
+$() de raison	q= 
+!read oef/embed.phtml r14,1 
+$() et de premier terme 
+!insmath V_{$val6}
+$()= 
+!read oef/embed.phtml r15,1 
+$().<br>		L'expression de 
+!insmath V_n
+$() en fonction de 
+!insmath n
+$() est donc : 
+!insmath V_n
+$()= 
+!read oef/embed.phtml r16,15 
+$().	</div>	</div>	 
+!endif
+$()				
+!if $m_step=6 and $m_sc_reply16=1 
+$()	<div class="question">	<span class="numero">Question $m_step/6</span><br>	Exprimer 
+!insmath U_n
+$() en fonction de 
+!insmath n
+$().	<div class="reponse">	Puisque 
+!insmath V_n
+$()=
+!if $val6=0 
+$()
+!if $val15>0 
+$()
+!insmath $val25\times$val15^n
+$() 
+!else
+$() 
+!insmath $val25\times($val15)^n
+$() 
+!endif
+$() 
+!else
+$()	 
+!if $val15>0 
+$()
+!insmath $val25\times$val15^{n-1}
+$() 
+!else
+$() 
+!insmath $val25\times($val15)^{n-1}
+$() 
+!endif
+$() 
+!endif
+$()	et  
+!insmath V_n=U_n$val13$val16
+$(), alors l'expression de 
+!insmath U_n
+$() en fonction de 
+!insmath n
+$() est  :<br> 
+!insmath U_n
+$()= 
+!read oef/embed.phtml r17,13 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $m_step=6 and $m_sc_reply16!=1 
+$()	<div class="question">	<div class="non">	
+!insmath V_n\neq
+$() $m_reply16 mais 
+!insmath V_n
+$()=
+!if $val6=0 
+$()
+!if $val15>0 
+$()
+!insmath $val25\times$val15^n
+$() 
+!else
+$() 
+!insmath $val25\times($val15)^n
+$() 
+!endif
+$() 
+!else
+$()	 
+!if $val15>0 
+$()
+!insmath $val25\times$val15^{n-1}
+$() 
+!else
+$() 
+!insmath $val25\times($val15)^{n-1}
+$() 
+!endif
+$() 
+!endif
+$().	</div>	<span class="numero">Question $m_step/6</span><br>	Exprimer 
+!insmath U_n
+$() en fonction de 
+!insmath n
+$().	<div class="reponse">	Puisque 
+!insmath V_n
+$()=
+!if $val6=0 
+$()
+!if $val15>0 
+$()
+!insmath $val25\times$val15^n
+$() 
+!else
+$() 
+!insmath $val25\times($val15)^n
+$() 
+!endif
+$() 
+!else
+$()	 
+!if $val15>0 
+$()
+!insmath $val25\times$val15^{n-1}
+$() 
+!else
+$() 
+!insmath $val25\times($val15)^{n-1}
+$() 
+!endif
+$() 
+!endif
+$()	et  
+!insmath V_n=U_n$val13$val16
+$(), alors l'expression de 
+!insmath U_n
+$() en fonction de 
+!insmath n
+$() est :<br> 
+!insmath U_n
+$()= 
+!read oef/embed.phtml r17,13 
+$()	</div>	</div>	 
+!endif
+$()			
+$()
+!exit
+
+:hint
+$()
+!if $m_step=3 
+$()<p class="consigne">Regrouper les 
+!insmath x
+$() en écrivant : 
+!insmath x-($val15 x)=$val21
+$()</p> 
+!endif
+$()	
+!if $m_step=4 
+$()<p class="consigne">Remplacer 
+!insmath U_{n+1}
+$() par 
+!insmath $val15 U_n$val21
+$()</p> 
+!endif
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val28=
+!if $m_step=2 
+val28=r4,r5,r6,r7
+!endif
+!if $m_step=3 
+val28=r8
+!endif
+!if $m_step=4 
+val28=r9,r10,r11,r12
+!endif
+!if $m_step=5 
+val28=r13,r14,r15,r16
+!endif
+!if $m_step=6 
+val28=r17
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,13,15,16,17,21,23,24,25,26
+embedcnt=31

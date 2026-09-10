@@ -1,0 +1,364 @@
+!set title=Fonctions avec logarithme
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, ROYER
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 5
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 5
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 8
+
+val11=$[rint($(tmp0))]
+t_=!rawmath ($val7)/($val6)
+val12=!exec pari print($t_)
+t_=!rawmath ($val12/2)
+val13=!exec pari print($t_)
+t_=!rawmath $val13*$val8
+val14=!exec pari print($t_)
+val15=!rawmath $val6*x+$val8
+val16=!rawmath $val6*x^2+$val8*x+$val9
+val17=$[rint(2*$val6)]
+val18=!rawmath $val17*x+$val8
+val19=!rawmath $val7*x+$val14
+tmp0=!texmath $val19
+
+val20=$(tmp0)
+tmp0=!texmath $val6*x+$val8
+
+val21=$(tmp0)
+tmp0=!texmath $val6*x^2+$val8*x+$val9
+
+val22=$(tmp0)
+tmp0=!texmath $val18
+
+val23=$(tmp0)
+
+!ifval ($val11>4)
+val24=$[rint(1)]
+!else
+tmp0=!randitem -1,1
+
+val24=$[rint($(tmp0))]
+!endif
+
+!ifval $val24==1
+val25=positive
+!else
+val25=négative
+!endif
+
+!ifval $val24==1
+val26=
+!else
+val26=-
+!endif
+
+!ifval $val24==1
+val27=!rawmath $val15
+!else
+val27=!rawmath -$val6*x-$val8
+!endif
+
+!ifval $val24==1
+val28=!rawmath $val16
+!else
+val28=!rawmath -$val6*x^2-$val8*x-$val9
+!endif
+val29=!rawmath $val7/($val15),($val19)/($val16),	$val7 cos($val15)/sin($val15),$val7 sin($val15)/cos($val15),	$val7 ln($val15)/($val15),$val7/(($val15)ln($val15)),	\frac{$val7 e^{$val21}}{e^{$val21}+$val10},\frac{($val20) e^{$val22}}{e^{$val22}+$val10}
+val30=!rawmath $val12 ln($val27),$val13 ln($val28),	$val12 ln($val26 sin($val15)), -$val12 ln($val26 cos($val15)),	$val13 ln($val15)^2,$val12 ln($val26 ln($val15)),	$val12 ln(e^($val15)+$val10),$val13 ln(e^($val16)+$val10)
+tmp0=!item $val11 of $val29
+
+val31=!rawmath $(tmp0)
+tmp0=!item $val11 of $val30
+
+val32=!rawmath $(tmp0)
+
+!ifval $val11<7
+tmp0=!item $val11 of $val21,$val22,\sin($val21),\cos($val21),$val21,$val21
+
+val33=$(tmp0)
+!endif
+tmp0=!texmath $val31
+
+val34=$(tmp0)
+tmp0=!texmath $val32
+
+val35=$(tmp0)
+replytype1=formal
+replyname1=Valeur de F(x)
+replygood1=$val32
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Soit la fonction 
+!insmath f
+$() définie sur un intervalle 
+!insmath I
+$() par  :</p>	<div class="wimscenter">	
+!insmath f(x) =  $val34 
+$() 	
+!if $val11>6 
+$(). 
+!else
+$() , 
+!endif
+$()	 
+!if $val11<6 
+$()	où la fonction 
+!insmath  x \mapsto $val33
+$() est strictement $val25 	sur 
+!insmath I
+$(). 
+!endif
+$()	
+!if $val11==6 
+$()	où pour tout élément 
+!insmath x
+$() de 
+!insmath I
+$()  on a 	
+!if $val24==1 
+$()
+!insmath  $val33 > 1
+$() 
+!else
+$() 
+!insmath 0 < $val33 < 1
+$()  
+!endif
+$(). 
+!endif
+$()	</div>	<p>	Les primitives 
+!insmath F
+$() de  
+!insmath f
+$() sur  
+!insmath I
+$() sont de la forme  :</p>	<div  class="wimscenter">	<label for="reply1">
+!insmath F : x \mapsto 
+$()</label>  
+!read oef/embed.phtml reply1 , 20 
+$() + 
+!insmath c
+$(), où 
+!insmath c
+$() est une constante réelle.	</div>	
+$()
+!exit
+
+:hint
+$()	<span style="color:blue;">On réécrira 
+!insmath f
+$() sous la forme 
+!if cas!=3 
+$() 
+!insmath k \frac{u'}{u}
+$()  
+!else
+$()  
+!insmath k u' u
+$() 
+!endif
+$()	avec 
+!insmath k
+$() une constante multiplicative réelle.</span>	<p>	On rappelle les formules d'intégration suivantes, où 	
+!insmath f
+$() désigne une fonction continue et non nulle sur un intervalle 
+!insmath I
+$() et  
+!insmath F
+$() est une  primitive de 
+!insmath f
+$() sur 
+!insmath I
+$()  : </p>	<ul><li>Pour 
+!insmath  u > 0 
+$() sur 
+!insmath I
+$() et 
+!insmath  f = \frac{u'}{u} 
+$(), on a : 
+!insmath F = \ln u 
+$() 	</li><li>Pour 
+!insmath  u < 0 
+$() sur 
+!insmath I
+$() et 
+!insmath  f = \frac{u'}{u} 
+$(), on a : 
+!insmath F = \ln(-u) 
+$() 	</li></ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!if $val11==1 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath u'\times u 
+$()	avec 
+!insmath u(x) = $val21
+$() et  
+!insmath  u'(x) = $val6
+$().</p> 
+!endif
+$()			
+!if $val11==2 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath u'\times u 
+$()	avec 
+!insmath u(x) = $val22
+$() et  
+!insmath  u'(x) = $val23
+$().</p> 
+!endif
+$()		
+!if $val11==3 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath u'\times u 
+$()	avec 
+!insmath u(x) = \sin($val21)
+$() et 
+!insmath  u'(x) = $val6\cos($val21)
+$().</p> 
+!endif
+$()		
+!if $val11==4 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath u'\times u 
+$()	avec 
+!insmath u(x) = \cos($val21)
+$() et  
+!insmath  u'(x) = $val6(-\sin($val21))
+$().</p> 
+!endif
+$()		
+!if $val11==5 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath u'\times u 
+$()	avec 
+!insmath u(x) = \ln($val21)
+$() et  
+!insmath  u'(x) = \frac{$val6}{$val21}
+$().</p> 
+!endif
+$()		
+!if $val11==6 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath \frac{u'}{u} 
+$()	avec 
+!insmath u(x) = \ln($val21)
+$() et  
+!insmath  u'(x) = \frac{$val6}{$val21}
+$().</p> 
+!endif
+$()		
+!if $val11==7 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath \frac{u'}{u} 
+$()	avec 
+!insmath u(x) = e^{$val21}+$val10
+$() et  
+!insmath  u'(x) = $val6*e^{$val21}
+$().</p> 
+!endif
+$()			
+!if $val11==8 
+$()<p>On reconnaît un schéma de dérivée 
+!insmath \frac{u'}{u} 
+$()	avec 
+!insmath u(x)=e^{$val22}+$val10
+$() et 
+!insmath  u'(x)= ($val23)\times e^{$val22} 
+$().</p> 
+!endif
+$()		Toute primitive sur 
+!insmath I
+$() de la fonction 	
+!insmath f 
+$()	est de la forme 
+!insmath F : x \mapsto $val35 + c
+$() où 
+!insmath c
+$() est une constante	réelle quelconque.	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,21,22,23,24,25,33,34,35
+embedcnt=1

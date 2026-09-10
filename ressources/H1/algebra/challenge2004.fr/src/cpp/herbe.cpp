@@ -1,0 +1,26 @@
+target=herbe
+
+#include "header.inc"
+
+\title{Herbe et foin}
+
+\integer{p=random(55..80)}
+\integer{q=random(8..18)}
+\real{rr=1000*(100-\p)/(100-\q)}
+\integer{r1=floor(\rr)}
+\integer{r2=ceil(\rr)}
+\integer{r3=rint(\rr)}
+
+\statement{
+  L'herbe fraiche contient une partie sèche et de l'eau ;
+  dans l'herbe fraiche, le pourcentage d'eau est \p%.
+  après plusieurs jours de séchage, on a du foin, et le pourcentage d'eau est
+  tombé à \q%.
+<p>
+  Quel poids de foin a-t-on avec une tonne d'herbe fraiche ?
+</p><div class="wimscenter">
+\embed{r1,6} kg (arrondis au kg près).
+</div>
+}
+
+\reply{Poids de foin}{\r1,\r2,\r3}{type=range}

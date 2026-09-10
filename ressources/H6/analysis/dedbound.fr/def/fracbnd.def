@@ -1,0 +1,171 @@
+!set title=Borner une fraction I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang Xiao
+email=xiao@unice.fr
+language=fr
+
+varcnt=24
+prevarcnt=13
+postvarcnt=10
+replycnt=0
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim Majorer,Minorer	  majorant,minorant
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim la fonction	  par un entier, pour
+val8=!translate internal $	\
+$ to ;; in $tmp
+m_options=nofloat
+tmp=!nonempty items ineq/trans,ineq/addineq
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+m_methods=ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/divexp,	  ineq/obvineq, $val9, ineq/mulineq,	  ineq/sqrpos,exp/rewrite
+m_minsteps=5
+m_variables=x
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+tmp1=!randitem -1,1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=!rawmath ($val12*x+$val10)/(x^2+$val11)
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+tmp0=!item $val14 of <,>
+
+val15=$(tmp0)
+tmp0=!item $val14 of >,<
+
+val16=$(tmp0)
+tmp0=!item $val14 of $(val7[1;])
+
+val17=$(tmp0)
+tmp0=!item $val14 of $(val7[2;])
+
+val18=$(tmp0)
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val17 $(val8[1;]) 
+!insmath f(x) = $val13
+$() $(val8[2;]) 
+!insmath x in RR
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!exec mathexp cut inequality\
+$m_newobject
+
+val19=$(tmp0)
+tmp0=!itemcnt $val19
+
+val20=$[rint($(tmp0))]
+!if $val20=3 
+val21==
+tmp0=!item 2 of $val19
+
+val22=$(tmp0)
+!if $val22 iswordof $val15 $val15$val21 
+tmp0=!item 1 of $val19
+
+val23=$(tmp0)
+tmp0=!item 3 of $val19
+
+val24=$(tmp0)
+!endif
+!if $val22 iswordof $val16 $val16$val21 
+tmp0=!item 3 of $val19
+
+val23=$(tmp0)
+tmp0=!item 1 of $val19
+
+val24=$(tmp0)
+!endif
+t_=!replace internal \( by ( in IsInteger($val24)
+tmp0=!exec yacas $t_
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in Simplify(($val13)-($val23))
+tmp0=!exec yacas $t_
+
+val26=$(tmp0)
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val26 issametext 0 and $val25 issametext true
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=8,13,15,16,17
+embedcnt=0

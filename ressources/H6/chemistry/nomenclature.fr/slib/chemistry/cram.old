@@ -1,0 +1,255 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Yves, Noël
+slib_comment=crée une projection de Newman
+!!exemple à changer ensuite mais sert de test.
+slib_example=slib(chemistry/cram,CH<sub>3</sub>,H<sub>2</sub>N,COOH,Cl,C<sub>2</sub>H<sub>5</sub>,Br,280,2,16)
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_text1,slib_text2,slib_text3,slib_text4,slib_text5,slib_text6,slib_size,slib_linewidth,slib_fontsize
+
+!default slib_size=280
+!default slib_linewidth=2
+!default slib_fontsize=16
+
+!default slib_text1=CH<sub>3</sub>
+!default slib_text2=H<sub>2</sub>N
+!default slib_text3=COOH
+!default slib_text4=Cl
+!default slib_text5=C<sub>2</sub>H<sub>5</sub>
+!default slib_text6=Br
+
+!set tlarg= !eval 100
+!set thaut= !eval 50
+
+!set hachureH_larg=!eval 2*$slib_linewidth
+!set hachureH_esp=!eval 4*$slib_linewidth
+!set tri_taille=!eval $slib_size/4
+!set tri_larg=!eval $slib_size/12
+
+!set largeur= !eval $slib_size
+!set hauteur= !eval $slib_size
+
+!set tri_bas= !eval 0.91*$tri_taille
+!set tri_taille2= !eval $tri_taille/2
+!set tri_gauche= !eval $tri_taille2-$tri_larg/2
+!set tri_droite= !eval $tri_taille2+$tri_larg/2
+!set hachureH_haut= !eval $hachureH_esp+$hachureH_larg
+!set hachureH_haut2= !eval $hachureH_esp+$hachureH_larg/2
+
+!set ang_tri_proch=-20
+!set ang_tri_ecart=-30
+
+!set centre_g_x=!eval $slib_size/2-$tri_taille/3
+!set centre_g_y=!eval $slib_size/2
+!set centre_d_x=!eval $slib_size/2+$tri_taille/3
+!set centre_d_y=!eval $slib_size/2
+!set centre_g_x2=!eval $centre_g_x+$tri_taille2
+!set centre_d_x2=!eval $centre_d_x+$tri_taille2
+!set ang_dev_bd=  $ang_tri_proch
+!set ang_der_bd= !eval $ang_tri_proch + $ang_tri_ecart 
+!set ang_der_hd= !eval -150
+!set ang_dev_hd= !eval -120
+!set ang_der_hg= !eval 180+$ang_der_bd
+!set ang_dev_hg= !eval 180+$ang_dev_bd
+!set ang_dev_bg= !eval 180+$ang_der_hd
+!set ang_der_bg= !eval 180+$ang_dev_hd
+!set ang_in_bg= !eval ($ang_dev_bg+$ang_der_bg)/2
+!set ang_in_bd= !eval ($ang_dev_bd+$ang_der_bd)/2
+!set ang_in_hg= !eval ($ang_dev_hg+$ang_der_hg)/2
+!set ang_in_hd= !eval ($ang_dev_hd+$ang_der_hd)/2
+!set ang_bc= !eval -50
+###################################################################
+!set c_in_hg= !eval cos($ang_in_hg/180*pi)
+!set s_in_hg= !eval sin($ang_in_hg/180*pi)
+
+!set c_in_bd= !eval cos($ang_in_bd/180*pi)
+!set s_in_bd= !eval sin($ang_in_bd/180*pi)
+!set c_dev_hd= !eval cos($ang_dev_hd/180*pi)
+!set s_dev_hd= !eval sin($ang_dev_hd/180*pi)
+!set c_der_hd= !eval cos($ang_der_hd/180*pi)
+!set s_der_hd= !eval sin($ang_der_hd/180*pi)
+!set c_in_hd= !eval cos($ang_in_hd/180*pi)
+!set s_in_hd= !eval sin($ang_in_hd/180*pi)
+!set c_dev_bd= !eval cos($ang_dev_bd/180*pi)
+!set s_dev_bd= !eval sin($ang_dev_bd/180*pi)
+!set c_der_bd= !eval cos($ang_der_bd/180*pi)
+!set s_der_bd= !eval sin($ang_der_bd/180*pi)
+!set c_in_bg= !eval cos($ang_in_bg/180*pi)
+!set s_in_bg= !eval sin($ang_in_bg/180*pi)
+!set c_dev_hg= !eval cos($ang_dev_hg/180*pi)
+!set s_dev_hg= !eval sin($ang_dev_hg/180*pi)
+!set c_der_hg= !eval cos($ang_der_hg/180*pi)
+!set s_der_hg= !eval sin($ang_der_hg/180*pi)
+!set c_in_hg= !eval cos($ang_in_hg/180*pi)
+!set s_in_hg= !eval sin($ang_in_hg/180*pi)
+!set c_dev_bg= !eval cos($ang_dev_bg/180*pi)
+!set s_dev_bg= !eval sin($ang_dev_bg/180*pi)
+!set c_der_bg= !eval cos($ang_der_bg/180*pi)
+!set s_der_bg= !eval sin($ang_der_bg/180*pi)
+
+
+
+
+!set in_hg_x= !eval $centre_g_x+$tri_taille2-$s_in_hg*$tri_bas-$tlarg
+!set in_hg_y= !eval $centre_g_y+             $c_in_hg*$tri_bas-$slib_fontsize/2
+!set dev_bg_x= !eval $centre_g_x+$tri_taille2-$s_dev_bg*$tri_bas-$tlarg
+!set dev_bg_y= !eval $centre_g_y+$c_dev_bg*$tri_bas-$slib_fontsize/2
+!set der_bg_x= !eval $centre_g_x+$tri_taille2-$s_der_bg*$tri_bas-$tlarg
+!set der_bg_y= !eval $centre_g_y+$c_der_bg*$tri_bas-$slib_fontsize/2
+!set in_bg_x= !eval $centre_g_x+$tri_taille2-$s_in_bg*$tri_bas-$tlarg
+!set in_bg_y= !eval $centre_g_y+$c_in_bg*$tri_bas-$slib_fontsize/2
+!set dev_hg_x= !eval $centre_g_x+$tri_taille2-$s_dev_hg*$tri_bas-$tlarg
+!set dev_hg_y= !eval $centre_g_y+$c_dev_hg*$tri_bas-$slib_fontsize/2
+!set der_hg_x= !eval $centre_g_x+$tri_taille2-$s_der_hg*$tri_bas-$tlarg
+!set der_hg_y= !eval $centre_g_y+$c_der_hg*$tri_bas-$slib_fontsize/2
+
+!set in_bd_x= !eval $centre_d_x+$tri_taille2-$s_in_bd*$tri_bas
+!set in_bd_y= !eval $centre_d_y+$c_in_bd*$tri_bas
+!set dev_hd_x= !eval $centre_d_x+$tri_taille2-$s_dev_hd*$tri_bas
+!set dev_hd_y= !eval $centre_d_y+$c_dev_hd*$tri_bas-$slib_fontsize/2
+!set der_hd_x= !eval $centre_d_x+$tri_taille2-$s_der_hd*$tri_bas
+!set der_hd_y= !eval $centre_d_y+$c_der_hd*$tri_bas-$slib_fontsize/2
+!set in_hd_x= !eval $centre_d_x+$tri_taille2-$s_in_hd*$tri_bas
+!set in_hd_y= !eval $centre_d_y+$c_in_hd*$tri_bas
+!set dev_bd_x= !eval $centre_d_x+$tri_taille2-$s_dev_bd*$tri_bas
+!set dev_bd_y= !eval $centre_d_y+$c_dev_bd*$tri_bas-$slib_fontsize/2
+!set der_bd_x= !eval $centre_d_x+$tri_taille2-$s_der_bd*$tri_bas
+!set der_bd_y= !eval $centre_d_y+$c_der_bd*$tri_bas-$slib_fontsize/2
+
+
+!set px=px
+
+!set slib_out=\
+<style type="text/css">\
+ .gauche { \
+text-align : right;\
+width : $tlarg;\
+height : $thaut;\
+font-size: $slib_fontsize$px;\
+margin-right : 5px;\
+float : right;\
+ }\
+ .droite { \
+text-align : left;\
+width : $tlarg;\
+height : $thaut;\
+font-size: $slib_fontsize$px;\
+margin-left : 5px;\
+float : left;\
+ }\
+ .haut { \
+text-align : left;\
+width : $tlarg;\
+height : $thaut;\
+font-size: $slib_fontsize$px;\
+float : left;\
+margin-bottom : 5px;\
+ }\
+ .bas { \
+text-align : left;\
+width : $tlarg;\
+height : $thaut;\
+font-size: $slib_fontsize$px;\
+float : left;\
+ }\
+ .liaison {\
+  fill:none;\
+  stroke:black;\
+  stroke-width:$slib_linewidth;\
+ }\
+ .plein {\
+ fill:black; \
+ fill-opacity:1;\
+ stroke:none;\
+}\
+ .hachure {\
+ fill:url(#motifhachureH); \
+ fill-opacity:1;\
+ stroke:none;\
+}\
+</style>\
+ <svg id="cram" width="$largeur" height="$hauteur" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" >\
+  <defs>\
+   <pattern id="motifhachureH" patternUnits="userSpaceOnUse"\
+     x="0" y="0" width="100" height="$hachureH_haut">\
+     <line style="stroke:white;stroke-width:1$px; "  x1="0" y1="0" x2="100" y2="0" />\
+     <line style="stroke:black;stroke-width:$hachureH_larg$px;"\
+          x1="0" y1="$hachureH_haut2" x2="100" y2="$hachureH_haut2" />\
+   </pattern> \
+   <line id="inplane" x1="$tri_taille2" y1="1" x2="$tri_taille2" y2="$tri_bas"/>\
+   <polygon id="tri" points="$tri_taille2,1,$tri_gauche,$tri_bas,$tri_droite,$tri_bas"/>\
+   <use id="devbc" xlink:href="#tri"/>\
+   <use id="derbc" xlink:href="#tri"/>\
+\
+   <use id="devbd" xlink:href="#tri" transform="rotate($ang_dev_bd,$tri_taille2,1)" class="plein" />\
+   <use id="devhd" xlink:href="#tri" transform="rotate($ang_dev_hd,$tri_taille2,1)" class="plein" />\
+   <use id="derbd" xlink:href="#tri" transform="rotate($ang_der_bd,$tri_taille2,1)" class="hachure" />\
+   <use id="derhd" xlink:href="#tri" transform="rotate($ang_der_hd,$tri_taille2,1)" class="hachure" />\
+\
+   <use id="devbg" xlink:href="#tri" transform="rotate($ang_dev_bg,$tri_taille2,1)" class="plein" />\
+   <use id="devhg" xlink:href="#tri" transform="rotate($ang_dev_hg,$tri_taille2,1)" class="plein" />\
+   <use id="derbg" xlink:href="#tri" transform="rotate($ang_der_bg,$tri_taille2,1)" class="hachure" />\
+   <use id="derhg" xlink:href="#tri" transform="rotate($ang_der_hg,$tri_taille2,1)" class="hachure" />\
+\
+   <use id="inbd" xlink:href="#inplane" transform="rotate($ang_in_bd,$tri_taille2,1)" class="liaison" />\
+   <use id="inbg" xlink:href="#inplane" transform="rotate($ang_in_bg,$tri_taille2,1)" class="liaison" />\
+   <use id="inhd" xlink:href="#inplane" transform="rotate($ang_in_hd,$tri_taille2,1)" class="liaison" />\
+   <use id="inhg" xlink:href="#inplane" transform="rotate($ang_in_hg,$tri_taille2,1)" class="liaison" />\
+  </defs>\
+\
+<g id="cram_tot" transform="translate(-$tri_taille2,0)">\
+   <use xlink:href="#derhd" x="$centre_d_x" y="$centre_d_y" />\
+   <use xlink:href="#devhd" x="$centre_d_x" y="$centre_d_y" />\
+   <use xlink:href="#inbd" x="$centre_d_x" y="$centre_d_y" />\
+   <use xlink:href="#derbg" x="$centre_g_x" y="$centre_g_y" />\
+   <use xlink:href="#devbg" x="$centre_g_x" y="$centre_g_y" />\
+   <use xlink:href="#inhg" x="$centre_g_x" y="$centre_g_y" />\
+   <use xlink:href="#inmid" x="$centre_g_x" y="$centre_g_y" />\
+<!--\
+   <use xlink:href="#derbd" x="$centre_d_x" y="$centre_d_y" />\
+   <use xlink:href="#devbd" x="$centre_d_x" y="$centre_d_y" />\
+   <use xlink:href="#derhg" x="$centre_g_x" y="$centre_g_y" />\
+   <use xlink:href="#devhg" x="$centre_g_x" y="$centre_g_y" />\
+   <use xlink:href="#inhd" x="$centre_d_x" y="$centre_d_y" />\
+   <use xlink:href="#inbg" x="$centre_g_x" y="$centre_g_y" />\
+-->\
+   <line x1="$centre_g_x2" y1="$centre_g_y" x2="$centre_d_x2" y2="$centre_d_y" class="liaison"/>\
+ \
+   <foreignObject class="node" x="$in_hg_x" y="$in_hg_y" width="$tlarg$px" height="$thaut$px">\
+    <body xmlns="http://www.w3.org/1999/xhtml">\
+     <div id="tc1" class="gauche">$slib_text4</div>\
+    </body>\
+   </foreignObject>\
+   <foreignObject class="node" x="$dev_bg_x" y="$dev_bg_y" width="$tlarg$px" height="$thaut$px">\
+    <body xmlns="http://www.w3.org/1999/xhtml">\
+     <div id="tc2" class="gauche">$slib_text6</div>\
+    </body>\
+   </foreignObject>\
+   <foreignObject class="node" x="$der_bg_x" y="$der_bg_y" width="$tlarg$px" height="$thaut$px">\
+    <body xmlns="http://www.w3.org/1999/xhtml">\
+     <div id="tc3" class="gauche">$slib_text5</div>\
+    </body>\
+   </foreignObject>\
+\
+\
+   <foreignObject class="node" x="$in_bd_x" y="$in_bd_y" width="$tlarg$px" height="$thaut$px">\
+    <body xmlns="http://www.w3.org/1999/xhtml">\
+     <div id="tc4" class="droite">$slib_text1</div>\
+    </body>\
+   </foreignObject>\
+   <foreignObject class="node" x="$dev_hd_x" y="$dev_hd_y" width="$tlarg$px" height="$thaut$px">\
+    <body xmlns="http://www.w3.org/1999/xhtml">\
+     <div id="tc5" class="droite">$slib_text2</div>\
+    </body>\
+   </foreignObject>\
+   <foreignObject class="node" x="$der_hd_x" y="$der_hd_y" width="$tlarg$px" height="$thaut$px">\
+    <body xmlns="http://www.w3.org/1999/xhtml">\
+     <div id="tc6" class="droite">$slib_text3</div>\
+    </body>\
+   </foreignObject>\
+</g>\
+ </svg>

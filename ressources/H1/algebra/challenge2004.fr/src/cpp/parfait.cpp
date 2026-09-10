@@ -1,0 +1,26 @@
+target=parfait
+
+#include "header.inc"
+
+\title{Nombres parfaits}
+
+\integer{n=random(2,4,6,12)}
+\integer{N=2^\n*(2^(\n+1)-1)}
+
+\statement{
+  Un nombre naturel parfait est un nombre égal à la somme de ses diviseurs
+  autres que lui-même.
+<p>
+  Donnez la liste des nombres parfaits inférieur à 10.
+\embed{r1,6}
+</p><p>
+  On ne connaît que les 30 premiers nombres parfaits : ils s'écrivent tous
+  sous la forme \(2^n*( 2^(n+1) - 1 )), où \(n) est un entier naturel.
+</p><p>
+  Trouvez la valeur de \(n) correspondant au nombre parfait \N.
+</p>
+}
+
+\reply{Liste de nombres parfaits}{6}{type=set}
+\reply{\(n)}{\n}
+

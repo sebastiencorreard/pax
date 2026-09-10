@@ -1,0 +1,128 @@
+!set title=Conversions de contenances 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Convertir&nbsp;
+val8=\(\textrm{hL}),\(\textrm{daL}),\(\textrm{L}),\(\textrm{dL}),\(\textrm{cL}),\(\textrm{mL})
+tmp0=!randint 1, 3
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 4-$val9
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1111, 9999
+
+val11=$[rint($(tmp0))]
+val11=$[floor($val11/10^($val9-1))/10^$val10]
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val13=$[rint($(tmp0))]
+!if $val12+$val13>6 
+val13=$[rint(1)]
+!endif
+tmp0=!randint 1, 3
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 4-$val14
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 1111, 9999
+
+val16=$[rint($(tmp0))]
+val16=$[floor($val16/10^($val14-1))/10^$val15]
+tmp0=!randint 1, 5
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val18=$[rint($(tmp0))]
+!if $val17+$val18>6 
+val18=$[rint(1)]
+!endif
+val19=$[$val11*10^$val13]
+val20=$[$val16*10^$val18]
+replytype1=numeric
+replyname1=
+replygood1=$[$val19]
+replytype2=numeric
+replyname2=
+replygood2=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<ul><li>	<label for="reply1">$val11 $(val8[$val12]) =</label>  
+!read oef/embed.phtml r1,10 
+$() $(val8[$val12+$val13])	</li><li><label for="reply2">$val16 $(val8[$val17]) = </label>  
+!read oef/embed.phtml r2,10 
+$() $(val8[$val17+$val18])	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,13,16,17,18
+embedcnt=2

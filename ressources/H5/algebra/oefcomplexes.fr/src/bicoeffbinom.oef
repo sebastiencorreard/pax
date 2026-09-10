@@ -1,0 +1,111 @@
+\title{Domino des coefficients binomiaux}
+\author{Bruno, Mifsud}
+\email{communaute.mutuwims@laposte.net}
+\keywords{polynomials,binomial_distribution}
+%%%%%%% Nombre de dominos
+\text{confparm1= items(\confparm1)=0 ? random(3..4):\confparm1}
+
+\integer{tot=\confparm1} %%%%% Nombres de dominos %%%%%%
+\text{size=200x70x1x1}
+\text{explain=
+Placez les dominos suivants en mettant côte à côte des faces qui représentent le même nombre.
+}
+%%%%%
+
+\integer{ninit=randint(3..13)}
+\text{quest=}
+%%% on prend un n et on calcule pour cette valeur, la suivante et encore la suivante
+\for{n=\ninit to \ninit+3}{
+  \text{list=shuffle(\n/3)}
+  \integer{p=\list[1]}
+  \integer{q=\n-\p}
+  \integer{nav=\n-1} %%% n-1
+  \integer{pav=\p-1} %%% p-1
+  \integer{valcnp=binomial(\n,\p)}
+  \text{temp=shuffle(\binom{\n}{\p},\binom{\nav}{\pav}+\binom{\nav}{\p},\binom{\n}{\q},\valcnp)}
+  \text{quest=\quest=?\temp:\quest,\temp}
+  
+  \integer{n=\n+1}
+}
+
+\text{data=<table class="wimsborder"><th>\(\quest[4]) </th><th> \(\quest[5])</th></table>}
+\for{i1=3 to 4}{
+  \text{data=\data,<table class="wimsborder"><th>\(\quest[2*\i1]) </th><th> \(\quest[2*\i1+1])</th></table>}
+  }
+  %%%%% feedback
+\text{form1=shuffle(\binom{n}{p},\binom{n-1}{p-1}+\binom{n-1}{p})}
+\text{form1=\(\form1[1]=\form1[2]\)} 
+\text{form2=shuffle(\binom{n}{p},\binom{n}{n-p})}
+\text{form2=\(\form2[1]=\form2[2]\)}
+
+
+%% exemples
+\integer{n0=randint(5..15)}
+\integer{p0=randint(1..\n0/3)}
+\integer{n0av=\n0-1}
+\integer{p0av=\p0-1}
+\integer{q0=\n0-\p0}
+ 
+\text{form10=\binom{\n0}{\p0},\binom{\n0-1}{\p0-1}+\binom{\n0-1}{\p0},\binom{\n0av}{\p0av}+\binom{\n0av}{\p0}}
+\text{form10=\(\form10[1]=\form10[2]=\form10[3]\)}
+\text{form20=\binom{\n0}{\p0},\binom{\n0}{\n0-\p0},\binom{\n0}{\q0}}
+\text{form20=\(\form20[1]=\form20[2]=\form20[3]\)} 
+  
+  %%%%%
+\integer{datacnt=items(\data)}
+\integer{tot=min(20,min(\tot,\datacnt))}
+\if{\tot<\datacnt}{
+ \text{sh=shuffle(\datacnt)}
+ \text{sh=wims(sort numeric items \sh[1..\tot])}
+ \text{data=item(\sh,\data)}
+}
+\text{st=wims(makelist r x for x=1 to \tot)}
+\text{datatext = slib(data/random \tot, item, \data)}
+\steps{\st}
+\hint{Le premier domino de la liste est : <table class="wimsborder"><th>\data[1]</th></table>}
+\statement{
+  <div>\explain</div>
+\embed{r1,\size}
+\embed{r2,\size}
+\embed{r3,\size}
+\embed{r4,\size}
+\embed{r5,\size}
+\embed{r6,\size}
+}
+\answer{1}{\data[1]}{type=dragfill}
+\answer{2}{\data[2]}{type=dragfill}
+\answer{3}{\data[3]}{type=dragfill}
+\answer{4}{\data[4]}{type=dragfill}
+\answer{5}{\data[5]}{type=dragfill}
+\answer{6}{\data[6]}{type=dragfill}
+\latex{
+\begin{statement}
+\explain \newline
+\listchoice{\datatext}
+\end{statement}
+\begin{solution}
+\data
+\end{solution}
+}
+\solution{
+<table class="wimsborder">
+\for{t=1 to \tot-1}{
+<th>
+\data[\t]</th><th>\({}={})</th>
+}
+<th>
+\data[\tot]</th>
+</table>
+<p> On utilise les propriétés suivantes : </p>
+<p>Pour \(n, p\) entiers, \(n\) plus grand que \(p). </p>
+<ul>
+<li>\form1</li>
+<li>\form2</li>
+</ul>
+<p>Par exemple avec \(n=\n0\) et \(p=\p0\)
+<ul>
+<li>\form10</li>
+<li>\form20</li>
+</ul>
+</p>
+}

@@ -1,0 +1,231 @@
+!set title=Factorisation de trinôme
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+email=xiao@localhost
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Scomposizione di un trinomio
+title_en=factorization of trinomial
+
+ansorder=r,r,r,r,r,r
+varcnt=50
+prevarcnt=49
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!shuffle 25
+
+val7=$(tmp0)
+tmp0=!randitem 1,-1,0,0
+
+val8=$[rint($(tmp0))]
+tmp0=!item 1 of $val7
+
+tmp1=!randitem 2,-2
+
+val9=$[rint((1+$(tmp0))*$(tmp1)+$val8)]
+tmp0=!item 2 of $val7
+
+tmp1=!randitem 2,-2
+
+val10=$[rint((1+$(tmp0))*$(tmp1)+$val8)]
+val11=$[rint($val9+$val10)]
+val12=$[rint($val11/2)]
+val13=$[rint($val9*($val10))]
+val14=!rawmath x^2 + $val11*x + $val13
+val15=$[rint(($val12)^2)]
+val16=$[rint(abs($val13-$val15))]
+val17=$[rint(sqrt($val16))]
+val18=$[rint($val12+$val17)]
+val19=$[rint($val12-$val17)]
+val20=!rawmath x+$val18
+val21=!rawmath x+$val19
+val22=Etape
+val23=Factoriser
+val24=Mettons les termes de \(x\) en un carré complet
+val25=Nous avons
+val26=Donc
+val27=Maintenant on applique la formule
+val28=Résultat&nbsp;
+val29=Il faut entrer les expressions simplifiées.
+val30=Terme constant du développement du carré
+val31=Terme constant dans le carré
+val32=Terme compensateur
+!if $val6=it 
+val22=Passo
+val23=Scomponiamo
+val24=Mettiamo i termini contenenti la \(x\) a formare un quadrato perfetto
+val25=Abbiamo
+val26=Quindi
+val27=Ora applichiamo la formula
+val28=Risultato
+val29=È necessario inserire le espressioni semplificate.
+val30=Termine noto nello sviluppo del quadrato
+val31=Termine costante nel quadrato
+val32=Termine per compensare
+!endif
+!if $val6=en 
+val22=Step
+val23=Factor
+val24=We put the terms of \(x\) into a complete square
+val25=We have
+val26=Therefore
+val27=Now we apply the formula
+val28=Result
+val29=You should enter the simplified expressions.
+val30=Constant term of development of square
+val31=Constant term in the square
+val32=Compensation term
+!endif
+oefsteps=reply 1,reply 2	reply 3,reply 4	reply 5,reply 6 
+nextstep=!nosubst reply 1,reply 2	reply 3,reply 4	reply 5,reply 6 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$val30
+replygood1=$[$val15]
+replytype2=numeric
+replyname2=$val31
+replygood2=$[$val12]
+replytype3=numeric
+replyname3=$val32
+replygood3=$[$val16]
+replytype4=numeric
+replyname4=B
+replygood4=$[$val17]
+replytype5=litexp
+replyname5=A+B
+replygood5=$val20
+replytype6=litexp
+replyname6=A-B
+replygood6=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>$val23 
+!insmath $val14
+$().</p>	
+!if $m_step=1 
+$()	$val22 1. $val24&nbsp;:	<div class="wimscenter">	 <label for="reply1">
+!insmath x^2 + $val11*x + 
+$()</label>  
+!read oef/embed.phtml reply 1,5 
+$() =	 <label for="reply2">(
+!insmath x +
+$()</label>  
+!read oef/embed.phtml reply 2,4 
+$())<sup>2</sup>.	</div>	 
+!else
+$() 	$val25 
+!insmath x^2+ $val11*x + $val15 = (x + $val12)^2
+$().	
+!if $m_step=2 
+$()	<p> $val22 2. $val26	<table class="wimscenter wimsnoborder">	<tr><td style="text-align:right">
+!insmath $val14 =
+$()<td>
+!insmath x^2 + $val11*x + $val15
+$()</td><td>	-  
+!read oef/embed.phtml reply 3,5 
+$()</td></tr>	<tr><td style="text-align:right">=</td><td>
+!insmath (x + $val12)^2
+$()</td><td>	-  
+!read oef/embed.phtml reply 4,4 
+$()<sup>2</sup> .</td></tr>	</table>	 
+!else
+$() 	$val26	<table class="wimscenter wimsnoborder">	<tr><td style="text-align:right"style="text-align:right">
+!insmath $val14 =
+$()</td><td>
+!insmath x^2 + $val11*x + $val15
+$()<td> - $val16</td></tr>	<tr><td style="text-align:right">=</td><td>
+!insmath (x + $val12)^2
+$()<td>
+!insmath  - $val17^2
+$()</td></tr>	</table>	<p> 
+!if $m_status notsametext end 
+$()$val22 3. 
+!endif
+$()	$val27 
+!insmath A^2-B^2 = (A+B)(A-B)
+$() :	</p>	<div class="wimscenter">	  <label for="reply5">
+!insmath (x + $val12)^2 - $val17^2 =
+$()</label> ( 
+!read oef/embed.phtml reply 5,10 
+$())( 
+!read oef/embed.phtml reply 6,10 
+$()).	</div>	 
+!endif
+$()	
+!if $m_status issametext end 
+$()	$val28: 
+!insmath $val14 = ($val20)($val21)
+$(). 
+!else
+$() 	<div class="wims_instruction">$val29</div>	 
+!endif
+$() 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14,15,16,17,20,21,22,23,24,25,26,27,28,29
+embedcnt=6

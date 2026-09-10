@@ -1,0 +1,141 @@
+!set title=Inéquation avec une exponentielle de base a 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+
+ansorder=r,r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+tmp1=!randint 1, 9
+
+tmp=!nonempty items $(tmp0),$(tmp1)/10
+
+tmp2=!randitem $tmp
+val6=$[$(tmp2)]
+tmp0=!randint 2, 50
+
+val7=$[rint($(tmp0))]
+val8=>,\geq,\leq,<
+val9=>,>=,<=,<
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+
+!ifval ($val6>1)
+val11=$[rint( $val10)]
+!else
+val11=$[rint(5-$val10)]
+!endif
+val12=$[log($val7)/log($val6)]
+replytype1=menu
+replyname1=Inégalité
+replygood1=$val11;$val9
+replytype2=raw
+replyname2=
+replygood2=?analyze 13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Les solutions de l'inéquation :	
+!insmath  $val6^x $(val8[$val10]) $val7 
+$() sont les réels 
+!insmath x
+$() vérifiant <br>	
+!insmath x
+$()  
+!read oef/embed.phtml reply1,2 
+$() 
+!read oef/embed.phtml reply2,12 
+$().	<div class="wims_instruction">Choisir le symbole d'inégalite (>= pour &ge; ; <= pour &le;) dans la première case et écrire la valeur dans la seconde case (ne pas simplifier).</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val6^x $(val8[$val10]) $val7 
+$() &hArr; 
+!insmath log($val6^{x})$(val8[$val10]) log($val7)
+$() &hArr; 
+!insmath x log($val6)$(val8[$val10]) log($val7)
+$() &hArr; 
+!insmath x$(val8[$val11])\frac{log($val7)}{log($val6)}
+$()	 car 
+!if $val6<1 
+$()
+!insmath log($val6)<0
+$() 
+!else
+$() 
+!insmath log($val6)>0
+$() 
+!endif
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val13==$val12) or ((log isin $val13) and $val6^($val13)==$val7)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Réponse correcte ?
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,12,13
+embedcnt=2

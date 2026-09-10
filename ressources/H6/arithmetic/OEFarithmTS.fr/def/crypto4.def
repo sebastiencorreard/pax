@@ -1,0 +1,230 @@
+!set title=Chiffrement à clé publique RSA
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.Fr
+
+ansorder=r,r,r,r
+varcnt=12
+prevarcnt=8
+postvarcnt=3
+replycnt=4
+choicecnt=0
+conditioncnt=4
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+val7=2,3,5,7,11,13,17,19,23,29,31,37,41,43
+tmp0=!randint 2, 5
+
+val8=$[rint($(val7[$(tmp0)]))]
+tmp0=!randint 6, 14
+
+val9=$[rint($(val7[$(tmp0)]))]
+val10=$[rint($val8*$val9)]
+val11=$[rint(($val8-1)*($val9-1))]
+tmp0=!randint 0, 25
+
+val12=$[rint($(tmp0))]
+val13=r1,r2	r3,r4
+oefsteps=$val13 
+nextstep=!nosubst $val13 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=e
+replygood1=?analyze 14
+replytype2=numeric
+replyname2=d
+replygood2=?analyze 15
+replytype3=numeric
+replyname3=c
+replygood3=?analyze 16
+replytype4=numeric
+replyname4=y
+replygood4=?analyze 17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère les nombres premiers 
+!insmath p = $val8
+$() et 
+!insmath q = $val9
+$(), ainsi que le nombre 
+!insmath n=p\times q =$val10
+$().	
+!if $m_step=1 
+$()	<ol>	<li> Déterminer un entier 
+!insmath e
+$() inférieur à 15, premier avec 
+!insmath (p-1)(q-1)
+$():	<div class="wimscenter"> 
+!insmath e=
+$()  
+!read oef/embed.phtml reply1 
+$()</div></li>	<li> Déterminer un entier naturel 
+!insmath d
+$() tel que 
+!insmath e \times d -1
+$() soit divisible par 
+!insmath (p-1)(q-1)
+$():	<div class="wimscenter"> 
+!insmath d=
+$()  
+!read oef/embed.phtml reply2 
+$()</div></li>	</ol>	  
+!else
+$()	  <p>	  On a choisi les entiers 
+!insmath e=$val14
+$() et 
+!insmath d = $val15
+$().<br>	  On veut coder la lettre $(val6[$val12+1]) correspondant au nombre 
+!insmath x=$val12
+$().	</p><ol>	<li> Calculer le reste 
+!insmath c
+$() de la division de 
+!insmath x^e
+$() par 
+!insmath n
+$(): 
+!insmath c=
+$() 
+!read oef/embed.phtml reply3,4 
+$()</li>	<li> Calculer le reste 
+!insmath y
+$() de la division de 
+!insmath c^d
+$() par 
+!insmath n
+$(): 
+!insmath y=
+$() 
+!read oef/embed.phtml reply4,4 
+$()</li>	</ol>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in lift(Mod($val14*$val15-1,$val11))
+tmp0=!exec pari $t_
+
+val18=$[rint($(tmp0))]
+t_=!replace internal \( by ( in lift(Mod($val12^$val14,$val10))
+tmp0=!exec pari $t_
+
+val19=$[rint($(tmp0))]
+t_=!replace internal \( by ( in lift(Mod($val16^$val15,$val10))
+tmp0=!exec pari $t_
+
+val20=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+!ifval gcd($val14,$val11)!=1
+ <div class='oef_feedbacks'>Utiliser la décomposition en facteurs premiers de 
+!insmath (p-1)(q-1)=$val11
+$()	  et choisir un entier 
+!insmath e
+$() n'apparaissant pas dans cette décomposition!
+$()</div>
+!endif
+!ifval rnul<>0
+ <div class='oef_feedbacks'>Il faut calculer les coefficients de la relation de bezout liant 
+!insmath e
+$() et 
+!insmath (p-1)(q-1) = $val11
+$().
+$()</div>
+!endif
+!ifval gcd($val14,$val11)!=1 and $val18=0 and $val16<>$val19
+ <div class='oef_feedbacks'>On trouve 
+!insmath c = $val19
+$()
+$()</div>
+!endif
+!ifval gcd($val14,$val11)!=1 and $val18=0 and $val16=$val19 and $val17<>$val20
+ <div class='oef_feedbacks'>On doit retrouvert 
+!insmath y = x
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval gcd($val14,$val11)=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=entier e
+
+!ifval $val18=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=entier d
+
+!ifval $val16=$val19
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=entier c
+
+!ifval $val17=$val20
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=entier y
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,12,14,15,16,17
+embedcnt=4

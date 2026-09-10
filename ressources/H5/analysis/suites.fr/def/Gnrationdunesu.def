@@ -1,0 +1,185 @@
+!set title=Suites récurrentes et suites explicites	
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 4, 8
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=!rawmath $val6*x+$val8
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+val11=$val10
+val12=$[rint(5)]
+!for val13 =1 to $val12 
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($(val11[$val13])) in $evaltmp
+tmp0=($evaltmp)
+val14=$[rint($(tmp0))]
+val11=$val11,$val14
+!next
+tmp0=!randint 1, 2
+
+val15=$[rint($(tmp0))]
+!if $val15=1 
+tmp0=!randint 2, 5
+
+val12=$[rint($(tmp0))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val10=$[rint($(tmp0))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val16=$[rint($(tmp0))]
+val17=$[rint($(val11[$val12+1]))]
+val18=Etes-vous sûr de bien avoir lu l'énoncé? Il ne s'agit pas d'une suite récurrente.
+!else
+
+!ifval $val2= 
+val19=$[rint( 2)]
+!else
+val19=$[rint($val2)]
+!endif
+tmp0=!randint 2, $val19
+
+val12=$[rint($(tmp0))]
+val16=$[rint($(val11[$val12+1]))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val20=$[rint($(tmp0))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val17=$[rint($(tmp0))]
+val21=Il s'agit d'une suite définie par récurrence. 	Pour calculer \(u_n\) commencer par calculer \(u_1\) puis \(u_2\)...
+val18=Etes-vous sûr de bien avoir lu l'énoncé? Il s'agit d'une suite récurrente.
+!endif
+replytype1=default
+replyname1=Réponse
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val21
+
+
+!goto stat
+
+!exit
+
+:question
+$()Déterminer le terme de rang $val12 de la suite 
+!insmath (u_n)_{n \in \mathbb{N}}
+$() définie par:<br/>	
+!if $val15=1 
+$()	<ul>	<li>
+!insmath u_0=$val10
+$()</li>	<li>
+!insmath u_n=f(n)
+$() pour 
+!insmath n >= 0
+$()</li>	</ul>		 
+!else
+$()	 	<ul>	<li>
+!insmath u_0=$val10
+$()</li>	<li>
+!insmath u_{n+1}=f(u_n)
+$() pour 
+!insmath n >= 0
+$()</li>	</ul>		 
+!endif
+$()	avec 
+!insmath f(x)=$val9
+$().<br>	<p class="wimscenter">	Le terme 
+!insmath u_$val12
+$()  vaut 
+!insmath \;\;
+$()  
+!read oef/embed.phtml reply 1,10 
+$()	</p>	
+$()
+!exit
+
+:hint
+$()$val21
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($val15=1 and $m_reply1=$val17) or ($val15=2 and $m_reply1=$val17)
+ <div class='oef_feedbacks'>$val18
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,12,15,17,18,21
+embedcnt=1

@@ -1,0 +1,82 @@
+\title{Sum and product of 3 II bis}
+\author{Gang Xiao}
+\email{xiao@unice.fr}
+\language{en}
+\options{nofloat fixedgoal}
+\text{methcst=random(constineq,obvineq)}
+\text{methtra=random(trans,addineq)}
+\methods{ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/lincomb,
+ineq/\methcst, ineq/\methtra, ineq/mulineq, ineq/sqrpos}
+\minsteps{8}
+
+\matrix{vars=x,y,z
+a,b,c
+r,s,t
+l,m,n
+u,v,w
+}
+\text{vars=randomrow(\vars)}
+\text{x=item(1,\vars)}
+\text{y=item(2,\vars)}
+\text{z=item(3,\vars)}
+
+\text{eqr=random(,=)}
+\text{less=random(<,<=)}
+\text{less2=random(<,<=)}
+\text{more2=random(>,>=)}
+\integer{n=random(20..100)}
+\integer{N=\n^2/3+random(10..200)}
+\text{range=random(integers, rational numbers, real numbers)}
+
+\matrix{signs=
+	+,+, ,+,+,\less2,\N
+	+,-, ,-,-,\less2,\N
+	-,+, ,-,+,\more2,-\N
+	-,-, ,+,-,\more2,-\N
+	+,-,-,+,+,\more2,-\N
+	-,+,-,+,-,\less2,\N
+	-,-,-,-,+,\less2,\N
+}
+\text{signs=randomrow(\signs)}
+\text{sign1=item(1,\signs)}
+\text{sign2=item(2,\signs)}
+\text{sign3=item(3,\signs)}
+\text{sign4=item(4,\signs)}
+\text{sign5=item(5,\signs)}
+\text{sign6=item(6,\signs)}
+\text{sign7=item(7,\signs)}
+
+\text{ctx1=\x \sign1 \y \sign2 \z \less \n}
+\text{ctx2=0 \less \x \sign1 \y \sign2 \z}
+\text{prv1=\sign3\x*\y \sign4 \x*\z \sign5 \y*\z}
+\text{prv=\prv1 \sign6 \sign7}
+
+\context{\ctx2
+\ctx1
+}
+\goal{\prv}
+
+\statement{Let \(\x, \y, \z) be three \range such that \( 0 \less \ctx1 ).
+Prove
+<div class="wimscenter">
+\(\prv).
+</div>
+}
+
+\if{\newobject != $empty}{
+ \text{cut=wims(exec mathexp cut inequality
+\newobject)}
+ \text{left=item(1,\cut)}
+ \text{sign=item(2,\cut)}
+ \text{right=item(3,\cut)}
+ \if{\sign issametext \sign6}{
+  \text{test1=simplify(\left-(\prv1))}
+  \text{test2=simplify(\right-(\sign7))}
+ }{
+  \text{test1=simplify(\right-(\prv1))}
+  \text{test2=simplify(\left-(\sign7))}
+  \text{sign=wims(translate internal <> to >< in \sign)}
+ }
+}
+
+\condition{\test1 issametext 0 and \test2 issametext 0 and \sign issametext \sign6}

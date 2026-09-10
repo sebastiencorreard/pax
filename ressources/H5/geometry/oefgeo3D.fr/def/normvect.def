@@ -1,0 +1,147 @@
+!set title=Norme d'un vecteur dans l'espace
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Solène, Charneau
+email=solene.charneau@ac-creteil.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+oefdescription=Calcul de la norme d'un vecteur à partir des coordonnées de ses extrémités.
+
+ansorder=r
+varcnt=13
+prevarcnt=11
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -15, 15
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val10=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val7-$val6)]
+val13=$[rint($val9-$val8)]
+val14=$[rint($val11-$val10)]
+val15=$[rint(($val12)^2+($val13)^2+($val14)^2)]
+tmp=!translate ";': to $     $ in sqrt($val15)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+replytype1=formal
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Dans l'espace muni d'un repère, on considère les points 
+!insmath A
+$() et 
+!insmath B
+$()	  de coordonnées respectives 
+!insmath  \left( $val6, $val8, $val10\right) 
+$() et 
+!insmath  \left( $val7, $val9, $val11 \right) 
+$().	<div>	  La norme du vecteur 
+!insmath  \overrightarrow{A B} 
+$() vaut  
+!read oef/embed.phtml reply1,5 
+$().	</div>	<div class="wims_instruction">	  Pour entrer la racine carrée de 
+!insmath x
+$(), écrire	<span class="tt">sqrt(x)</span>.</div>	
+$()
+!exit
+
+:hint
+$()La formule pour le calcul de la norme d'un vecteur est :	<div class="wimscenter">	
+!insmath A B =\sqrt{(x_B-x_A)^2+(y_B-y_A)^2+(z_B-z_A)^2}
+$()	</div>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La norme du vecteur 
+!insmath  \overrightarrow{A B} 
+$() vaut 
+!insmath $val15
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in imag($m_reply1)
+tmp0=!exec pari $t_
+
+val17=$[$(tmp0)]
+
+!exit
+
+:feedback
+!ifval $m_reply1<0
+ <div class='oef_feedbacks'>Attention, une longueur ne peut pas être négative.
+$()</div>
+!endif
+!ifval $val17!=0
+ <div class='oef_feedbacks'>Attention, on ne peut pas mettre de nombres négatifs sous une racine !!!
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,15
+embedcnt=1

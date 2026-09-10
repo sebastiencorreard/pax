@@ -1,0 +1,301 @@
+!set title=Taux d'avancement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît,MARKEY
+email=benoit.markey@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+oefcss=<style> table.tableau {margin-left:auto;margin-right:auto; border:solid 2px black;} table.tableau tr, table.tableau td, table.tableau th { text-align:center; min-width:10pt;border:solid 1px black} </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=13
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=CH3COOH + H2O -> CH3COO- + H3O+,2,2,CH_3COOH,H_2O,CH_3COO^-,H_3O^+,1,1,1,1,4.75,éthanoïque;	C6H5COOH + H2O -> C6H5COO- + H3O+,2,2,C_6H_5COOH,H_2O,C_6H_5COO^-,H_3O^+,1,1,1,1,4.20,benzoïque;	HCOOH + H2O -> HCOO- + H3O+,2,2,HCOOH,H_2O,HCOO^-,H_3O^+,1,1,1,1,3.75,méthanoïque;	HClO + H2O -> HClO- + H3O+,2,2,HClO,H_2O,HClO^-,H_3O^+,1,1,1,1,7.30,hypochloreux;	HF + H2O -> F- + H3O+,2,2,HF,H_2O,F^-,H_3O^+,1,1,1,1,3.2,fluorhydrique;		
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+val8=$[rint($(val7[2]))]
+val9=$[rint($(val7[3]))]
+val10=$[rint($val8 + $val9)]
+tmp0=!randitem 50,100,125,150,200
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+val12=$[rint($(tmp0))]
+val13=$[$val11*$val12*1e-6]
+val14=$[rint(9)]
+tmp0=!randint 1, 9
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val16=$[rint($(tmp0))]
+val17=$[rint(0)]
+val18=$[rint(0)]
+val19=$[rint(0)]
+val20=$[rint(0)]
+val21=$val13,$val14,$val15,$val16
+val22=$val17,$val18,$val19,$val20
+val23=$[rint(3+2*$val8+2*$val9)]
+val24=$[rint(1+ $val23-$val8-$val9)]
+val25=$[rint($val23-$val9+1)]
+tmp=!translate ";': to $     $ in $(val21[1])-$(val7[$val24+1-1])*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val26=$(tmp1)
+!for val27 =2 to $val8 
+tmp=!translate ";': to $     $ in $(val21[$val27])-$(val7[$val24+$val27-1])*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val26=$val26,$(tmp1)
+!next
+tmp=!translate ";': to $     $ in $(val22[1])+$(val7[$val25+1-1])*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val28=$(tmp1)
+!for val29 =2 to $val9 
+tmp=!translate ";': to $     $ in $(val22[$val29])+$(val7[$val25+$val29-1])*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=$(tmp0)
+
+val28=$val28,$(tmp1)
+!next
+val30=$[$val13]
+val31=$[0.1]
+!while $val12*(1e-3)<10^(-$val31) 
+val31=$[$val31+0.1]
+!endwhile
+val32=$[0]
+!while 2*$val31+lg($val12*(1e-3)-(10^(-$val31)))<$(val7[12]) 
+val32=$[$val31]
+val31=$[$val31+0.01]
+!endwhile
+val33=$[$val11*1e-3*10^(-$val32)]
+val34=$[10^(-$val32)/($val12*1e-3)]
+val35=$(val26[1])
+!for val36 =1 to $val9 
+val35=$val35,$(val28[$val36])
+!next
+val35=$val35,$val30
+tmp0=!replace x by $val30 in $(val26[1])
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp2=$(tmp1)
+
+val35=$val35,$(tmp2)
+!for val37 =1 to $val9 
+tmp0=!replace x by $val30 in $(val28[$val37])
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp2=$(tmp1)
+
+val35=$val35,$(tmp2)
+!next
+val35=$val35,$val33,$val30-$val33,$val33,$val33,$val34
+val38=reply 1
+!for val39 =2 to 2*$val10+4 
+val38=$val38,reply $val39
+!next
+oefsteps=$val38 
+nextstep=!nosubst $val38 
+!readproc oef/steps.proc
+replytype1=function
+replyname1=\Name 1
+replygood1=!rawmath $(val35[1])
+replytype2=function
+replyname2=\Name 2
+replygood2=!rawmath $(val35[2])
+replytype3=function
+replyname3=\Name 3
+replygood3=!rawmath $(val35[3])
+replytype4=numeric
+replyname4=\Name 4
+replygood4=$[$(val35[4])]
+replytype5=numeric
+replyname5=\Name 5
+replygood5=$[$(val35[5])]
+replytype6=numeric
+replyname6=\Name 6
+replygood6=$[$(val35[6])]
+replytype7=numeric
+replyname7=\Name 7
+replygood7=$[$(val35[7])]
+replytype8=numeric
+replyname8=\Name 8
+replygood8=$[$(val35[8])]
+replytype9=numeric
+replyname9=\Name 9
+replygood9=$[$(val35[9])]
+replytype10=numeric
+replyname10=\Name 10
+replygood10=$[$(val35[10])]
+replytype11=numeric
+replyname11=\Name 11
+replygood11=$[$(val35[11])]
+replytype12=numeric
+replyname12=\Name 12
+replygood12=$[$(val35[12])]
+replytype13=function
+replyname13=\Name 13
+replygood13=!rawmath $(val35[13])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Pour remplir la dernière ligne du tableau, commencez par la case la plus à droite...
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>On mélange $val11 mL d'acide $(val7[13]) (
+!insmath $(val7[4])
+$()) avec l'eau. On obtient alors une 	concentration de 
+!insmath $val12
+$() 
+!insmath mmol \times \mathrm{L}^{-1}
+$().	Un pH-mètre mesure le pH de la solution et donne : <strong> pH = $val32.</strong></p>	<p>Compléter le tableau d'avancement ci-dessous. </p>	<div class="wims_instruction">On ne tiendra pas compte des chiffres significatifs</div>	<table class="tableau"><tr><td colspan=2>équation chimique</td>	<!-- ligne 1 -->	 
+!for m_i2=1 to $val8-1 
+$()	 <th>
+!insmath $(val7[3+$m_i2])
+$() </th><th>+</th>	 
+!next
+$()	 <th>
+!insmath $(val7[3+$val8])
+$() </th><td> 
+!insmath \rightarrow
+$() </td>	 
+!for m_i3=1 to $val9-1 
+$()	<th>
+!insmath $(val7[3+$val8+$m_i3])
+$() </th><th>+</th>	 
+!next
+$()	<th>
+!insmath $(val7[3+$val8+$val9])
+$() </th></tr>	<!-- ligne 2 -->	<tr><td>état du système</td><td>avancement</td>	 
+!for m_i4=1 to $val8-1 
+$()	 <td>nombre de moles</td><td>&nbsp;</td>	 
+!next
+$()	<td>nombre de moles</td><td>&nbsp;</td>	 
+!for m_i5=1 to $val9-1 
+$()	<td>nombre de moles</td><td>&nbsp;</td>	 
+!next
+$()	<td>nombre de moles</td>	</tr>	<!-- ligne 3 -->	<tr><td>état initial</td><td>
+!insmath x = 0
+$()</td>		<td>$(val21[1])</td><td>&nbsp;</td>		<td>excès</td><td>&nbsp;</td>	 
+!for m_i7=1 to $val9-1 
+$()	<td>$(val22[$m_i7])</td><td>&nbsp;</td> 
+!next
+$()		<td>$(val22[$val9])</td>		</tr>	<!-- ligne 4 -->	<tr><td>état intermédiaire</td><td>
+!insmath x
+$()</td>		<td>	 
+!read oef/embed.phtml $(val38[1]),10 
+$()</td><td>&nbsp;</td>	<td>	excès</td><td>&nbsp;</td>		<td>	 
+!read oef/embed.phtml $(val38[2]),10 
+$()</td><td>&nbsp;</td>		<td>	 
+!read oef/embed.phtml $(val38[3]),10 
+$()</td>		</tr>	<!-- ligne 5 -->	<tr><td>état maximal</td><td >
+!insmath x_max=
+$() 
+!read oef/embed.phtml $(val38[4]),4 
+$()</td>	<td>	 
+!read oef/embed.phtml $(val38[5]),10 
+$()</td><td>&nbsp;</td>	<td>	excès</td><td>&nbsp;</td>	<td>	 
+!read oef/embed.phtml $(val38[6]),10 
+$()</td><td>&nbsp;</td>	<td>	 
+!read oef/embed.phtml $(val38[7]),10 
+$()</td>	</tr>		<!-- ligne 6 -->	<tr><td>état final</td><td>
+!insmath x_f =
+$() 
+!read oef/embed.phtml $(val38[8]),4 
+$()</td>	<td>	 
+!read oef/embed.phtml $(val38[9]),10 
+$()</td><td>&nbsp;</td>	<td>	excès</td><td>&nbsp;</td>	<td>	 
+!read oef/embed.phtml $(val38[10]),10 
+$()</td><td>&nbsp;</td>	<td>	 
+!read oef/embed.phtml $(val38[11]),10 
+$()</td>	</tr>		</table>		<p>	En déduire le taux d'avancement 
+!insmath \tau = 
+$() 
+!read oef/embed.phtml $(val38[12]),10 
+$().	</p>	
+$()
+!exit
+
+:hint
+$()Pour remplir la dernière ligne du tableau, commencez par la case la plus à droite...
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,21,22,32,38
+embedcnt=12

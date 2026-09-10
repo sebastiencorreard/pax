@@ -1,0 +1,154 @@
+!set title=Arbre pondéré 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r,r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 9
+
+val6=$[5*$(tmp0)/100]
+val7=$[1-$val6]
+tmp0=!randint 2, 7
+
+val8=$[5*$(tmp0)/100]
+val9=$[1-$val6-$val8]
+tmp0=!randint 2, 9
+
+val10=$[5*$(tmp0)/100]
+val11=$[1-$val10]
+tmp0=!randint 5, 8
+
+val12=$[5*$(tmp0)/100]
+val13=$[1-$val12]
+val14=$[1-$val10-$val12]
+tmp0=!randint 6, 9
+
+val15=$[5*$(tmp0)/100]
+val16=$[1-$val15]
+tmp0=!randint 2, 7
+
+val17=$[5*$(tmp0)/100]
+val18=$[1-$val15-$val17]
+val19=300,300
+val20=large
+val21=medium
+val22=$[rint(12)]
+val23=$[rint(11)]
+!readproc oef/canvasdraw.phtml $val19 \
+xrange -1,$val22	yrange 0,$val23	linewidth 2	segment 0,5.5,4,3,black	segment 0,5.5,4,8,black	text black , 5,8,$val20,A	text black , 5,3,$val20,B	segment 6,3,10,1,black	segment 6,3,10,3,black	segment 6,3,10,5,black	text black ,11,5,$val20,C	text black , 11,3,$val20,D	text black , 11,1,$val20,E	segment 6,8,10,6,black	segment 6,8,10,8,black	segment 6,8,10,10,black	text black ,11,10,$val20,C	text black , 11,8,$val20,D	text black , 11,6,$val20,E	text black ,2,7.4,$val21,$val6	text black ,2,4.25,$val21,$val7	text black ,8,9.5,$val21,$val10	text black ,8,8.2,$val21,$val12	text black ,8,7,$val21,$val14	text black ,8,4.5,$val21,$val15	text black ,8,3.2,$val21,$val17	text black ,8,2,$val21,$val18	 
+tmp0=$canvasdraw_out
+val24=$(tmp0)
+tmp=!trim A,B	C,D,E
+val25=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val6,$val7	$val10,$val12,$val14,$val15,$val17,$val18
+val26=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem 1,2
+
+val27=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val28=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val29=$[rint($(tmp0))]
+val30=$[rint($val28+3*($val27-1))]
+val31=$[$val6*$(val26[2;$val29])+$val7*$(val26[2;$val29+3])]
+val32=$(val25[2;$val29])
+val33=\(p($val32)=p(A)\times p_{A}($val32)+p(B)\times p_{B}($val32)=$val6\times$(val26[2;$val29])+$val7\times$(val26[2;$val29+3])=$val31)
+val34=\(p(A)=$val6\), \(p(B)=p(\overline{A})=$val7\), \(p_{A}(C)=$val10\), \(p_{A}(D)=$val12\), \(p_{A}(E)=$val14\), \(p_{B}(C)=$val15\), \(p_{B}(D)=$val15\) et \(p_{B}(E)=$val18\)
+val35=$(val25[1;$val27])
+val36=$(val25[2;$val28])
+val37=$[$(val26[1;$val27])*$(val26[2;$val30])]
+val38=$(val25[1;]),$(val25[2;])
+replytype1=numeric
+replyname1=
+replygood1=$[$val37]
+replytype2=numeric
+replyname2=
+replygood2=$[$val31]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> $val24</div>	  <div class="medium_size text_col">L'arbre ci-contre décrit une probabilité 
+!insmath p
+$() sur un univers 
+!insmath {\Omega}
+$(). <br>On considère les événements
+!insmath $val38
+$().<br>	 <div class="wims_question">Calculer les probabilités suivantes.	<br> 
+!insmath p($val35 \cap $val36)=
+$() 
+!read oef/embed.phtml r1,5 
+$()	<br>
+!insmath p($val32)=
+$() 
+!read oef/embed.phtml r2,5 
+$()</div>	</div>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'arbre nous donne les probabilités suivantes : $val34.<br>
+!insmath p($val35 \cap $val36)=p($val35)\times p_{$val35}($val36)=$(val26[1;$val27]) \times $(val26[2;$val30])=$val37
+$().<br>	$val33.	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24,26,27,30,32,33,34,35,36,37,38
+embedcnt=2

@@ -1,0 +1,136 @@
+!set title=Addition de nombres relatifs #
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem +,-
+
+val6=$(tmp0)
+tmp0=!randitem +,-
+
+val7=$(tmp0)
+tmp0=!shuffle 20
+
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[2]))]
+!if $val6=+ and $val7=+ 
+val11=A = $val9 \plus $val10
+val12=$[rint($val9+$val10)]
+val13=A=(\plus$val9)+(\plus$val10)
+val14=<p>\($val13\)</p>	Le résultat est <span style="color:red">positif</span> et on <span style="color:red">additionne</span> les distances à zéro <span class="nowrap">\($val9+$val10\)</span>.
+!endif
+!if $val6=+ and $val7=- 
+val11=A = $val9 \minus $val10
+val12=$[rint($val9-$val10)]
+val13=A=(\plus$val9)+(\minus$val10)
+!if $val10>$val9 
+val14=<p>\($val13\)</p>	   <span style="color:red">Comme \($val10>$val9\) et que \(\minus $val10\) est négatif</span> alors le résultat est <span style="color:red">négatif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\($val10-$val9\).</span>	   
+!else
+val14=<p>\($val13\)</p>	   <span style="color:red">Comme \($val9>$val10\) et que \(\plus$val9\) est positif</span> alors le résultat est <span style="color:red">positif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\($val9-$val10\).</span>	   
+!endif
+!endif
+!if $val6=- and $val7=+ 
+val11=A = \minus $val9 \plus $val10
+val12=$[rint(-$val9+$val10)]
+val13=A=(\minus$val9)+(\plus$val10)
+!if $val9>$val10 
+val14=<p>\($val13\)</p>	               <span style="color:red">Comme \($val9>$val10\) et que \(\minus$val9\) est négatif</span> alors le résultat est <span style="color:red">négatif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\($val9-$val10\).</span>
+!else
+val14=<p>\($val13\)</p><span style="color:red">Comme \($val10>$val9\) et que \(\plus$val10\) est positif</span> alors le résultat est <span style="color:red">positif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\($val10-$val9\).</span>
+!endif
+!endif
+!if $val6=- and $val7=- 
+val11=A =\minus $val9 \minus $val10
+val12=$[rint(-$val9-$val10)]
+val13=A=(\minus$val9)+(\minus$val10)
+val14=<p>\($val13\)</p>Le résultat est <span style="color:red">négatif</span> et on <span style="color:red">additionne</span> les distances à zéro <span class="nowrap">\($val9+$val10\).</span>
+!endif
+replytype1=numexp
+replyname1=
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Pour calculer la somme de deux nombres relatifs&nbsp;: <ul><li>Si les deux nombres ont le même signe, le signe de leur somme est le signe commun aux deux nombres et on additionne les distances à zéro.</li> <li>Si les deux nombres ont des signes contraires, le signe de la somme est le signe du nombre qui a la plus grande distance à zéro et on calcule la différence de leurs distances à zéro.</li></ul>
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer 
+!insmath $val11
+$().	<p><label for="reply1">
+!insmath A=
+$()</label>  
+!read oef/embed.phtml r1,5 
+$()
+$()
+!exit
+
+:hint
+$()Pour calculer la somme de deux nombres relatifs&nbsp;: <ul><li>Si les deux nombres ont le même signe, le signe de leur somme est le signe commun aux deux nombres et on additionne les distances à zéro.</li> <li>Si les deux nombres ont des signes contraires, le signe de la somme est le signe du nombre qui a la plus grande distance à zéro et on calcule la différence de leurs distances à zéro.</li></ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val11
+$()	$val14	<p>
+!insmath A=$val12
+$()</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14
+embedcnt=1

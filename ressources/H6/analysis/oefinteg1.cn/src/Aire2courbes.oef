@@ -1,0 +1,93 @@
+\title{2条曲线的面积}
+\language{cn}
+\range{-5..5}
+\author{Michel Gosse}
+\email{michel.gosse@ac-poitiers.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+\integer{x0=random(-4,-3)}
+\integer{y0=random(-1,0,1)}
+\integer{x1=random(4,3)}
+\integer{y1=random(-1,0,1)}
+\integer{x2=random(\x0+1,\x1-1)}
+\integer{y2=random(2,3,4)}
+\integer{x3=random(\x0+1,\x1-1)}
+\integer{y3=random(-2,-3,-4)}
+\text{f=maxima(expand(\y2/((\x2-\x0)*(\x2-\x1))*(x-\x0)*(x-\x1)+
+\y0*(x-\x1)*(x-\x2)/((\x0-\x1)*(\x0-\x2))+
+\y1*(x-\x0)*(x-\x2)/((\x1-\x0)*(\x1-\x2))
+);)}
+\function{f=\f}
+\text{g=maxima(expand(\y3*(x-\x0)*(x-\x1)/((\x3-\x0)*(\x3-\x1))+
+\y0*(x-\x1)*(x-\x3)/((\x0-\x1)*(\x0-\x3))+
+\y1*(x-\x0)*(x-\x3)/((\x1-\x0)*(\x1-\x3))
+);)}
+\function{g=\g}
+\integer{a=random(\x0..-1)}
+\integer{b=random(0..\x1)}
+\text{diff=maxima(expand((\f)-(\g));)}
+\function{diff=\diff}
+
+\function{int=int(\diff,x)}
+\text{rep=maxima((subst(x=\b,\int)-subst(x=\a,\int));)}
+\function{derf=diff(\f,x)}
+\real{maxf=solve(\derf=0,x=\x0..\x1)}
+\function{derg=diff(\g,x)}
+\real{maxg=solve(\derg=0,x=\x0..\x1)}
+\real{ymax=evalue(\f,x=\maxf)}
+\real{ymin=evalue(\g,x=\maxg)}
+
+\text{ftex=\texmath(\f)}
+\text{gtex=\texmath(\g)}
+\text{difftex=\texmath(\diff)}
+\text{inttex=\texmath(\int)}
+
+\statement{
+确定由以下函数 <i>f</i> 与 <i>g</i> 
+<center>
+\(f(x)=\ftex \quad) 与  \(g(x)=\gtex )
+</center>
+代表的曲线以及方程为 <i>x=\a</i> 与 <i>x=\b</i> 的直线所围成的区域的面积:
+<center>
+\draw{300,300}{
+xrange \x0-1,\x1+1
+yrange \ymin-1,\ymax+1
+line \x0,\ymin-1,\x0,\ymax+1,blue
+line \a,\ymin-1,\a,\ymax+1,yellow
+line \b,\ymin-1,\b,\ymax+1,yellow
+line \x1,\ymin-1,\x1,\ymax+1,blue
+line \x0-1,0,\x1+1,0,green
+plot black,\f
+plot red,\g
+text blue,\x0,0,medium,x=\x0
+text black,\a,0,medium,x=\a
+text black,\b,0,medium,x=\b
+text blue,\x1,0,medium,x=\x1
+text black,\maxf,\ymax,medium,y=f(x)
+text red,\maxg,\ymin,medium,y=g(x)
+}
+</center>
+你可以利用在另一个窗口里的计算器 : 
+<a href="/wims/wims.cgi?cmd=new&+lang=cn&+module=tool%2Fnumber%2Fcalcnum.cn" target=_blank>数值计算器</a>
+}
+
+\hint{请注意在 [\a,\b] 上 <i>f</i> 代表的曲线总是在 <i>g</i> 的曲线之上.
+因此所求面积等于以下积分:
+<center>
+\(\int_{\a}^{\b} (f(x)-g(x)) \, dx)
+</center>
+
+}
+
+\answer{面积 :}{\rep}{type=auto}
+\solution{首先求出
+<center>
+\(f(x)-g(x)=\difftex)
+</center>
+然后在 \a 与 \b 之间积分这个函数, 得到原函数 :
+<center>
+\(x \rightarrow \inttex)
+</center>
+}

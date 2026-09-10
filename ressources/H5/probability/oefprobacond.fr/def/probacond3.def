@@ -1,0 +1,137 @@
+!set title=Probabilités conditionnelles 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+oefobservation=Différents exercices sur l'utilisation de la formrule des probabilités conditionnelles : <ul><li>Probabilités conditionnelles 1 : \(p(A)\) et \(p_A(B)\) donnés. Calculer \(p(A \cap B)\).</li> <li>Probabilités conditionnelles 2 : \(p(A)\) et \(p(A \cap B)\) donnés. Calculer \(p_A(B)\).</li> <li>Probabilités conditionnelles 3 : \(p(A)\), \(p(B)\) et \(p(A \cup B)\) donnés. Calculer \(p_A(B)\).</li> <li>Probabilités conditionnelles 4 : \(p(A)\), \(p(B)\) et \(p_A(B)\) donnés. Calculer \(p_B(A)\).</li> <li>Probabilités conditionnelles 5 : \(p(A)\), \(p_A(B)\) et \(p_{\overline{A}}(B)\) donnés. Calculer \(p(B)\).</li> <li>Probabilités conditionnelles 6 : \(p(A)\), \(p(B)\) et \(p_A(B)\) donnés. Calculer \(p_{\overline{\A}}(\B)\)</li></ul> 
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 18
+
+val6=$[$(tmp0)/20]
+tmp0=!randint 4, 16
+
+val7=$[$(tmp0)/20]
+tmp0=!randint 5, (100*$val6-5)
+
+val8=$[$(tmp0)/100]
+val9=$[$val8*$val6]
+val10=$[$val6+$val7-$val9]
+val11=$[1-$val6]
+val12=$[1-$val7]
+val13=$[$val9/$val7]
+tmp0=!randint 5, (100*(1-$val6)-5)
+
+val14=$[$(tmp0)/100]
+val15=A,B
+tmp0=!shuffle 1,2
+
+val16=$(tmp0)
+val17=$(val15[$(val16[1])])
+val18=$(val15[$(val16[2])])
+val19=On considère une probabilité \(p) sur un univers \({\Omega}) et deux événements \(A) et \(B).
+t_=!replace internal \( by ( in min(100*$val6,100*$val7)
+tmp0=!exec maxima $t_
+
+val20=$[rint($(tmp0))]
+tmp0=!randint 2, ($val20-5)
+
+val21=$[$(tmp0)/100]
+replytype1=numeric
+replyname1=\(p_$val17($val18)\)
+replygood1=$[$val8]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val19<br>	On donne 
+!if $(val16[1])==1 
+$()
+!insmath p($val17)=$val6
+$(), 
+!insmath p($val18)=$val7
+$() 
+!else
+$() 
+!insmath p($val18)=$val7
+$(), 
+!insmath p($val17)=$val6
+$() 
+!endif
+$() et 
+!insmath p(A\cup B)=$val10
+$().	<div class="wims_question">Calculer 
+!insmath p_$val17($val18)
+$().</div>	
+!insmath p_$val17($val18)={}
+$() 
+!read oef/embed.phtml r1,10 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath p(A \cup B)=p(A)+p(B)-p(A \cap B)
+$() donc 
+!insmath p(A\cap B)=-(p(A\cup B)-p(A)-p(B))=-($val10-$val6-$val7)=$val9
+$(). <br>	
+!insmath p_$val17($val18)=\frac{p(A\cap B)}{p($val17)}=\frac{$val9}{$val6}=$val8
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,16,17,18,19
+embedcnt=1

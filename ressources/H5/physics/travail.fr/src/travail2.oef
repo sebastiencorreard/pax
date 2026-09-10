@@ -1,0 +1,133 @@
+\title{Travail d'une force (2)}
+
+\real{f=randint(12..35)/10}
+\text{fN=slib(text/sigunits \f N,2)}
+\real{alphadegre=randint(-179..180)}
+\real{alpha=\alphadegre/180*pi}
+
+\text{trajectoires=(param-0.5)^2,param-0.5;
+cos(pi*param),sin(pi*param);
+2*(param-0.5),0.6*sin(2*(param*pi));
+cos(3*pi*param),param-0.5+0.6*sin(3*pi*param);
+cos(5*pi*param),param-0.5+0.6*sin(3*pi*param);
+param-0.5,param-0.5+0.4*cos(10*param)
+}
+
+\text{trajectoire=wims(randrow \trajectoires)}
+
+\function{trajx=item(1,\trajectoire)}
+\function{trajy=item(2,\trajectoire)}
+
+\text{xa=wims(replace param by 0 in \trajx)}
+\real{xa=wims(eval \xa)}
+\text{ya=wims(replace param by 0 in \trajy)}
+\real{ya=wims(eval \ya)}
+\text{xm=wims(replace param by s in \trajx)}
+\text{x=wims(replace param by t in \trajx)}
+
+\text{xb=wims(replace param by 1 in \trajx)}
+\real{xb=wims(eval \xb)}
+\text{yb=wims(replace param by 1 in \trajy)}
+\real{yb=wims(eval \yb)}
+\text{ym=wims(replace param by s in \trajy)}
+\text{y=wims(replace param by t in \trajy)}
+
+\real{echforce=0.35}                //échelle des forces : 0.35 m pour 1 N
+\real{fleche=0.2 }                      //taille de la flèche
+\real{ff=3}                                   // finesse de la flèche
+\real{fx=\echforce*\f*cos(\alpha)} //pointe de fleche
+\real{fy=\echforce*\f*sin(\alpha)}
+\real{fx1=\fx+\fleche*cos(\alpha+pi)+\fleche/\ff*cos(\alpha+pi/2)}
+\real{fy1=\fy+\fleche*sin(\alpha+pi)+\fleche/\ff*sin(\alpha+pi/2)}
+\real{fx2=\fx+\fleche*cos(\alpha+pi)+\fleche/\ff*cos(\alpha-pi/2)}
+\real{fy2=\fy+\fleche*sin(\alpha+pi)+\fleche/\ff*sin(\alpha-pi/2)}
+
+\real{fxRound=\f*cos(\alpha)}
+\text{fxRound=slib(text/sigunits \fxRound,2)}
+\text{fxN=slib(text/sigunits \fxRound N,2)}
+\real{fyRound=\f*sin(\alpha)}
+\text{fyRound=slib(text/sigunits \fyRound,2)}
+\text{fyN=slib(text/sigunits \fyRound N,2)}
+
+\text{xaRound=slib(text/sigunits \xa,2)}
+\text{yaRound=slib(text/sigunits \ya,2)}
+\text{xbRound=slib(text/sigunits \xb,2)}
+\text{ybRound=slib(text/sigunits \yb,2)}
+
+\real{w=\fxRound*(\xbRound-\xaRound)+\fyRound*(\ybRound-\yaRound)}
+\text{wJ=slib(text/sigunits \w J,2)}
+
+\text{schema=animate 50,0.04,0
+xrange -1.5,1.5
+yrange -1.5,1.5
+linewidth 7
+point \xa,\ya, blue
+text black,\xa,\ya,medium,A
+point \xb,\yb, blue
+text black,\xb,\yb,medium,B
+linewidth 1
+plot blue,\x,\y
+linewidth 7
+point \xm, \ym, red
+text black,\xm, \ym, medium, M
+linewidth 2
+segment \xm,\ym,\xm+\fx, \ym+\fy, red
+segment \xm+\fx, \ym+\fy, \xm+\fx1, \ym+\fy1, red
+segment \xm+\fx, \ym+\fy, \xm+\fx2, \ym+\fy2, red
+}
+
+\\ pour l'indication
+\text{u1=slib(text/matrixtex [x_1;y_1])}
+\text{u2=slib(text/matrixtex [x_2;y_2])}
+
+
+\integer{debug=0}
+\statement{
+\if{\debug=1}{
+<div style="font-size:80%;background:lightyellow; border:1px solid black;">
+<h3>debug</h3>
+f = \f alpha=\alpha rad fx =\fxRound fy=\fyRound
+Fx = \fxN Fy = \fyN<br>
+trajectoire=\trajectoire<br>
+xa=\xa xb=\xb ya=\ya yb=\yb<br>
+</div>
+}
+
+<table><tr><td>
+\draw{300,300}{\schema}
+</td><td>
+Un objet mobile M est se déplace entre un point de départ A et 
+un point d'arrivée B. Cet objet est soumis à une 
+force F de valeur \fN,
+Voici une liste de coordonnées
+<p>
+<center>
+<table style="border:1px solid black; background=lightyellow;"><tr>
+<th>&nbsp;</th><th>force F</th><th>point A</th><th>point B</th>
+</tr><tr>
+<th>abscisses&nbsp;:&nbsp;</td><td>\fxN</td><td>\xaRound m</td><td>\xbRound m</td>
+</tr><tr>
+<th>ordonnées&nbsp;:&nbsp;</td><td>\fyN</td><td>\yaRound m</td><td>\ybRound m</td>
+</tr></table>
+</center>
+<p>
+Calculez le travail de la force F&nbsp;:\embed{r1}
+<span style="font-size:80%;color:grey;">
+Attention au nombre de chiffres significatifs, précisez l'unité.<br>
+Vous pouvez consulter l'indication ...
+</span>
+</td></tr></table>
+}
+
+\reply{}{\wJ}{type=sigunits}
+\hint{Le travail d'une force constante F reçue par un mobile qui se 
+déplace d'un point A à un point B peut se calculer come le
+produit scalaire \(\vec{F}.\vec{AB}). Il suffit donc de déterminer
+les coordonnées de \(\vec{AB}) et d'effectuer le 
+produit scalaire.
+<hr width="60%">
+Dans un plan, le produit scalaire de deux vecteurs 
+\(\vec{u_1}=\u1) et \(\vec{u_2}=\u2) 
+<br>se calcule comme
+\(\vec{u_1}.\vec{u_2}=x_1 x_2 + y_1 y_2)
+}

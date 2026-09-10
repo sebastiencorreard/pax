@@ -1,0 +1,134 @@
+!set title=Ordre de grandeur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=ambali@free.fr
+title_en=Order of magnitude
+title_es=Orden de magnitud
+title_it=Ordine di grandezza
+title_nl=Orde grootte
+
+ansorder=r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Déterminer un ordre de grandeur du nombre 
+val8=Si besoin est, l'exposant de la puissance de 10 peut être zéro.
+!if $val6=en 
+val7=Determine an order of magnitude for the number
+val8=If necessary, the exponent in the power of 10 can be zero.
+!endif
+!if $val6=es 
+val8=Si es necesario, el exponente de la potencia puede ser cero. 
+!endif
+!if $val6=it 
+val7=Determina l'ordine di grandezza del numero \(A\) dato.
+val8=Se necessario, l'esponente di 10 può essere zero.
+!endif
+!if $val6=nl 
+val7=Bepaal de orde grootte van getal \(A) in:
+val8=Let op: de macht kan ook 0 worden.
+!endif
+tmp0=!randint 3, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+tmp1=!randint 1, 3
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val10=$[rint($(tmp2))]
+tmp0=!randint 10^($val9), 10^($val9 + 1)-1
+
+val11=$[$(tmp0)]
+val12=$[$val11/10^($val10)]
+val13=$[$val11/10^($val9)]
+val14=$[$val9-$val10]
+val15=$[$val14]
+val16=$[rint($val13)]
+!if $val16=10 
+val16=$[1]
+val15=$[$val15+1]
+!else
+!endif
+replyname1=
+replygood1=$val16
+replyname2=
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7 
+!insmath  A = $val12
+$().	<div class="wimscenter">	
+!insmath A = 
+$()  
+!read oef/embed.phtml  reply1 ,3 
+$()
+!insmath  \times 10 
+$() <sup> 
+!read oef/embed.phtml reply2,3 
+$()</sup></div>	<div class="wims_instruction">	$val8	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,12
+embedcnt=2

@@ -1,0 +1,55 @@
+target=2
+#include "lang_boxplot.inc"
+
+\title{TITRE}
+
+\range{-5..5}
+\computeanswer{no}
+\precision{10}
+
+\integer{dec1=randint(1..10)}
+\integer{dec9=randint(\dec1+5..20)}
+\integer{med=randint(\dec1+2..\dec9-2)}
+\integer{q1=randint(\dec1+1..\med-1)}
+\integer{q3=randint(\med+1..\dec9-1)}
+\text{defaut=1,2,3,5,6}
+\integer{xmin=\dec1-randint(1..3)}
+\integer{xmax=\dec9+randint(1..3)}
+\text{defaut=pari([\xmin+1,\xmin+2,\xmin+3,\xmin+4,\xmin+5])}
+\text{range=pari([\xmin,\xmax])}
+
+\text{script=slib(stat/boxplot [\range,600,100], [\defaut],,anstype)}
+\text{height=wims(getopt Y in \script)}
+
+\statement{
+\name_instruction1
+<table class="wimsborder wimscenter">
+<tr><th>\entete[1]</th><th>\entete[5]</th><th>\entete[3]</th><th>\entete[2]</th><th>\entete[4]</th></tr>
+<tr><td>\dec1</td><td>\dec9</td><td>\med</td><td>\q1</td><td>\q3</td></tr>
+</table>
+
+\name_instruction2
+<div class="wimscenter">
+\embed{reply1,600x150
+\script}
+</div>
+}
+
+\answer{}{\dec1;\q1;\med;\q3;\dec9}{type=jsxgraph}{option=absolute precision=2}
+
+\text{rep=wims(replace internal ; by , in \reply1)}
+\feedback{1=1}{<ul>
+<li>\if{(abs(\rep[1]-\dec1)<0.2)}{Le minimum est bien placé en xmin = <span class="oef_indgood">\dec1</span>}{Le minimum est mal placé ; on a : xmin = <span class="oef_indgood">\dec1</span> et non <span class="oef_indbad">\rep[1]</span>}</li>
+<li>\if{(abs(\rep[2]-\q1)<0.2)}{Le premier quartile est bien placé en \(Q_1\) = <span class="oef_indgood">\q1</span>}{Le premier quartile est mal placé ; on a : \(Q_1\) = <span class="oef_indgood">\q1</span> et non <span class="oef_indbad">\rep[2]</span>}</li>
+<li>\if{(abs(\rep[3]-\med)<0.2)}{La médiane est bien placée en \(M_e\) = <span class="oef_indgood">\med</span>}{La médiane est mal placée ; on a : \(M_e\) = <span class="oef_indgood">\med</span> et non <span class="oef_indbad">\rep[3]</span>}</li>
+<li>\if{(abs(\rep[4]-\q3)<0.2)}{Le troisième quartile est bien placé en \(Q_3\) = <span class="oef_indgood">\q3</span>}{Le troisième quartile est mal placé ; on a : \(Q_3\) = <span class="oef_indgood">\q3</span> et non <span class="oef_indbad">\rep[4]</span>}</li>
+<li>\if{(abs(\rep[5]-\dec9)<0.2)}{Le maximum est bien placé en <span class="oef_indgood">\dec9</span>}{Le maximum est mal placé ; on a : xmax = <span class="oef_indgood">\dec9</span> et non <span class="oef_indbad">\rep[5]</span>}</li>
+</ul>
+<script type="text/javascript">
+brd.suspendUpdate();
+brd.create('point',[\dec1,\height], {face:'o', name:'Min', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+brd.create('point',[\q1,\height], {face:'o', name:'Q<sub>1</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+brd.create('point',[\med,\height], {face:'o', name:'M<sub>e</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+brd.create('point',[\q3,\height], {face:'o', name:'Q<sub>3</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+brd.create('point',[\dec9,\height], {face:'o', name:'Max',size:'4',fixed:true,strokeColor:'green',fillColor:'none'});
+</script>}

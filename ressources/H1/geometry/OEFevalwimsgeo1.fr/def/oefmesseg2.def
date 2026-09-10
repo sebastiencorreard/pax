@@ -1,0 +1,112 @@
+!set title=Mesure d'un segment 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+precision=100000
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Mesurez sur votre cahier et donner la réponse&nbsp;
+tmp0=!shuffle A,B,C,E,F,G,R,S,T
+
+val7=$(tmp0)
+val8=$[0.1]
+val9=$[rint(150)]
+val10=$[rint(20)]
+tmp0=!randint 20, 99
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 110-$val11, 220-$val11
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val10+$val11)]
+val14=$[rint($val13+$val12)]
+!readproc oef/draw.phtml 300,300 \
+linewidth 1	segment $val10,$val9+4,$val10,$val9-4,black	text black,$val10,$val9-20,medium,$(val7[1])	segment $val13,$val9+4,$val13,$val9-4,black	text black,$val13,$val9-20,medium,$(val7[2])	segment $val14,$val9+4,$val14,$val9-4,black	text black,$val14,$val9-20,medium,$(val7[3])	segment $val10,$val9,$val14,$val9,black	 
+tmp0=$ins_url
+val15=$(tmp0)
+val16=$[rint($val11/10)]
+val17=$[rint($val12/10)]
+val18=$[rint($val16+$val17)]
+val19=Nous avons trois points $(val7[1]), $(val7[2]) et $(val7[3]) alignés.	<br>$(val7[1])$(val7[3]) = $val18 cm et $(val7[2])$(val7[3]) = $val17 cm
+val20=$(val7[1])$(val7[2])
+val21=$[rint($val16)]
+replytype1=numeric
+replyname1=
+replygood1=?analyze 22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"><img src="$val15" alt=""></div>	 <div class="medium_size text_col">	 <div>Reproduisez le dessin suivant avec les bonnes dimensions sur	   le cahier de brouillon.</div>	  <div>$val19</div>	  $val6:	  <div><label for="reply1">$val20 =</label>  
+!read oef/embed.phtml r1,5 
+$() cm.</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val22<=$val21+$val8 and $val22>=$val21-$val8
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=mesure
+
+!exit
+
+:stat
+vsavelist=6,8,15,19,20,21,22
+embedcnt=1

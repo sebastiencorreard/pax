@@ -1,0 +1,130 @@
+target=repstat
+#include "lang_titles.inc"
+
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+
+\format{html}
+
+\integer{p=randint(1..3)}
+
+\integer{v=randint(3+2*\p..5+2*\p-1)}
+\integer{m=5*\v}
+\text{n=randint(40,45,50,55,60,65,70)}
+
+\text{a=slib(stat/random \n,0,\m)}
+\text{liste=item(1..\v,0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75)}
+\integer{cnt=wims(itemcnt \liste)}
+\text{liste2=shuffle(\cnt)}
+\text{liste2=wims(values x for x=1 to \cnt)}
+\real{rangex=item(-1,\liste2)+2}
+
+\text{d=slib(stat/freq [\a],[\liste])}
+\text{d=item(1,\d)}
+\text{c=slib(stat/effectif [\a],[\liste])}
+\text{c=item(1,\c)}
+\text{c=wims(declosing \c)}
+\text{c=item(1..\cnt,\c)}
+\text{cc= wims(sort numeric reverse item of \c)}
+\text{s=random(1,2,1,3,1)}
+\text{c=\s=2? wims(sort numeric item of \c)}
+\text{c=\s=3? \cc}
+\real{effc=0}
+\for{i=1 to \cnt}{\real{effc=item(\i,\c)+\effc}}
+\real{total=\effc}
+\real{rangey=\total+5}
+\text{cho=random(1,2,3,4,5,6)}
+\text{dessin=hline 0,0,black
+vline 0,0, black}
+\integer{u=5}
+\if{\cho=5 or \cho=2}{
+  \real{effc=0}
+  \text{dessin=\dessin}
+  \for{i=1 to \cnt}{
+    \real{effc=item(\i,\c)+\effc}
+    \if{\i=1}{\text{effcumlist= \effc}
+      \text{poliste=item(\i,\liste2),\effc}
+    }
+    {\text{effcumlist=\effcumlist,\effc}
+      \text{poliste=\poliste, item(\i,\liste2),\effc}}
+      \text{dessin=\dessin
+         disk item(\i,\liste2),\effc,7,blue}
+  }
+}
+\if{\cho=6 or \cho=3}{
+  \text{dessin=\dessin}
+  \text{rangey=\total+5}
+  \text{effc=\total}
+  \for{i=1 to \cnt}{
+    \if{\i=1}{\text{effcumdec=\effc}
+      \text{polistedec= item(\i,\liste2),\effc}
+    }
+    {\text{effcumdec=\effcumdec,\effc}
+      \text{polistedec=\polistedec, item(\i,\liste2),\effc}
+    }
+    \text{dessin=\dessin
+disk item(\i,\liste2),\effc,7,blue
+text black,item(\i,\liste2),0, medium,\i}
+    \real{effc=-item(\i,\c)+\effc}
+  }
+}
+\if{\cho=4}{
+  \text{dessin=\dessin}
+  \text{rangey=item(1,\cc)+5}
+  \for{i=1 to \cnt}{
+    \if{\i=1}{\text{poliste1= item(\i,\liste2),item(\i,\c)}}
+       {\text{poliste1= \poliste1,item(\i,\liste2),item(\i,\c)}
+       }
+   \text{dessin=\dessin
+disk item(\i,\liste2),item(\i,\c),7,blue
+text black,item(\i,\liste2),0, medium,\i}
+  }
+}
+
+\integer{uu=floor(\rangey/\u)}
+\for{i=1 to \uu}{
+  \integer{w=\i*\u}
+  \text{dessin=\dessin
+text black,-1,\w+0.5, medium,\w}
+}
+\text{S=\cho=1?\c}
+\text{S=\cho=2? \effcumlist}
+\text{S=\cho=3?\effcumdec}
+\if{\cho<4}{
+  \text{histo=slib(stat/histo [\S],[\liste2],ytics 10,xtics,baton)}
+}
+{\text{S=\cho=4?\poliste1:\poliste}
+  \text{S=\cho=6?\polistedec}
+  \text{histo=xrange -2, \rangex
+    yrange -\u,\rangey
+    parallel 0,0,\rangex,0,0,\u, \rangey/\u , grey
+    parallel 0,0,0,\rangey,1,0, \rangex , grey
+    polyline red,\S
+    \dessin}
+}
+#include "lang.inc"
+\text{tableau=<table class="wimscenter wimsborder" style="background-color:skyblue"><tr>
+<th>\name_header</th>}
+\for{i=1 to \cnt}{\text{tableau=\tableau <td>\i</td>}}
+\text{tableau=\tableau</tr><tr><th>\name_eff</th>}
+\for{i=1 to \cnt}{
+  \text{h=item(\i,\c)}
+  \text{tableau=\tableau<td>\h</td>}
+  }
+  \text{tableau=\tableau</tr></table>}
+
+\text{listechoix= \name_listechoix}
+\text{rep=item(\cho,\listechoix)}
+
+\statement{\name_instruction0 :
+\tableau
+<div class="wims_question">
+<div class="wimscenter">
+\if{\cho<4}{\draw{300,150}{\histo}}{\draw{200,200}{\histo}}
+</div>
+ \name_instruction?
+ </div>
+}
+
+\choice{\name_prompt}{\rep}{\listechoix}

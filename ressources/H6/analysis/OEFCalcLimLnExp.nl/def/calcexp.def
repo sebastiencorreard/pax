@@ -1,0 +1,506 @@
+!set title=De limiet van u(x)*exp(kx)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Véronique Royer
+email=veronique.royer@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=80
+prevarcnt=79
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val6=$[rint($(tmp0)*$(tmp1))]
+!if \cas<3 
+tmp0=!randitem -1,1
+
+tmp1=!randitem 0,0,1,2,3,4
+
+val7=$[rint($(tmp0)*$(tmp1))]
+!else
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val7=$[rint($(tmp0)*$(tmp1))]
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$val8
+
+!ifval $val8=-1
+val9=-
+!endif
+
+!ifval $val8=1
+val9=
+!endif
+t_=!replace internal \( by ( in expand($val6*x + $val7)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val6*x + $val7)^2
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+val12=!rawmath sqrt($val10)
+tmp0=!randitem 1,2,3
+
+val13=$[rint($(tmp0))]
+val10=($val10)
+tmp0=!item $val13 of $val10,$val11,$val12
+
+val14=$(tmp0)
+tmp0=!texmath $val14
+
+val14=$(tmp0)
+val15=e^{$val9 x}
+val16=!rawmath $val14 \times $val15
+val17=&#8734;
+!if $val13<3 
+val18=-$val17
+val19=+$val17
+val20=x\to-\infty
+val21=x\to+\infty
+val22=\(\RR)
+!endif
+!if $val13=1 
+
+!ifval $val6>0
+val23=-inf,-\infty,+inf,+\infty
+!else
+val23=+inf,+\infty,-inf,-\infty
+!endif
+
+!ifval $val6>0
+val24=-1,1
+!else
+val24=1,-1
+!endif
+
+!ifval $val8>0
+val25=0,0,+inf,+\infty
+!else
+val25=+inf,+\infty,0,0
+!endif
+
+!ifval $val8>0
+val26=0,1
+!else
+val26=1,0
+!endif
+!endif
+!if $val13=2 
+val23=+inf,+\infty,+inf,+\infty
+val24=1,1
+
+!ifval $val8>0
+val25=0,0,+inf,+\infty
+!else
+val25=+inf,+\infty,0,0
+!endif
+
+!ifval $val8>0
+val26=0,1
+!else
+val26=1,0
+!endif
+!endif
+!if $val13=3 
+t_=!rawmath -$val7/$val6
+val27=!exec pari print($t_)
+
+!ifval $val6>0
+val28=+
+!else
+val28=-
+!endif
+
+!ifval ($val28 issametext +)
+val29=$[rint(1)]
+!else
+val29=$[rint(-1)]
+!endif
+val30=$val28$val17
+val31=$val28\infty
+
+!ifval $val6>0
+val22= &#93;  $val27 ; $val30 &#91; 
+!endif
+
+!ifval $val6>0
+val32=from above
+!else
+val32=from below
+!endif
+
+!ifval $val6>0
+val33=>
+!else
+val33=<
+!endif
+
+!ifval $val6<0
+val22= &#93;$val30 ; $val27 &#91; 
+!endif
+
+!ifval $val6>0
+val18=$val27
+!else
+val18=$val30
+!endif
+
+!ifval $val6>0
+val19=$val30
+!else
+val19=$val27
+!endif
+
+!ifval $val6>0
+val20= x \downarrow $val27 
+!else
+val20=x\to$val31
+!endif
+
+!ifval $val6>0
+val21=x\to$val31
+!else
+val21=x \uparrow $val27
+!endif
+
+!ifval $val6>0
+val23=0,0,+inf,+\infty
+!else
+val23=+inf,+\infty,0,0
+!endif
+
+!ifval $val6>0
+val24=0,1
+!else
+val24=1,0
+!endif
+t_=!rawmath $val8*$val27
+val34=!exec pari print($t_)
+val35=exp($val34)
+val36=e^{$val34}
+!if $val6>0 
+
+!ifval $val8>0
+val25=$val35,$val36,+inf,+\infty
+!else
+val25=$val35,$val36,0,0
+!endif
+
+!ifval $val8>0
+val26=2,1
+!else
+val26=2,0
+!endif
+!else
+
+!ifval $val8>0
+val25=0,0,$val35,$val36
+!else
+val25=+inf,+\infty,$val35,$val36
+!endif
+
+!ifval $val8>0
+val26=0,2
+!else
+val26=1,2
+!endif
+!endif
+!endif
+tmp0=!item 1 of $val23
+
+val37=$(tmp0)
+tmp0=!item 3 of $val23
+
+val38=$(tmp0)
+tmp0=!item 2 of $val23
+
+val39=$(tmp0)
+tmp0=!item 4 of $val23
+
+val40=$(tmp0)
+tmp0=!item 1 of $val25
+
+val41=$(tmp0)
+tmp0=!item 3 of $val25
+
+val42=$(tmp0)
+tmp0=!item 2 of $val25
+
+val43=$(tmp0)
+tmp0=!item 4 of $val25
+
+val44=$(tmp0)
+tmp0=!item 1 of $val24
+
+val45=$[rint($(tmp0))]
+tmp0=!item 2 of $val24
+
+val46=$[rint($(tmp0))]
+tmp0=!item 1 of $val26
+
+val47=$[rint($(tmp0))]
+tmp0=!item 2 of $val26
+
+val48=$[rint($(tmp0))]
+val49=$[rint($val45*$val47)]
+
+!ifval $val47=0
+val50=$[rint(2)]
+!else
+val50=$[rint(1)]
+!endif
+tmp0=!item $val50 of produkt,groeifactor
+
+val51=$(tmp0)
+!if $val49=0 
+val52=0,0
+!else
+!if $val49>0 
+val52=+inf,+\infty
+!else
+val52=-inf,-\infty
+!endif
+!endif
+val49=$[rint($val46*$val48)]
+
+!ifval $val48=0
+val53=$[rint(2)]
+!else
+val53=$[rint(1)]
+!endif
+!if $val49=0 
+val54=0,0
+!else
+!if $val49>0 
+val54=+inf,+\infty
+!else
+val54=-inf,-\infty
+!endif
+!endif
+tmp0=!item 1 of $val52
+
+val55=$(tmp0)
+tmp0=!item 2 of $val52
+
+val56=$(tmp0)
+tmp0=!item 1 of $val54
+
+val57=$(tmp0)
+tmp0=!item 2 of $val54
+
+val58=$(tmp0)
+oefsteps=reply1,reply2	reply3,reply4	reply5,reply6	reply7,reply8 
+nextstep=!nosubst reply1,reply2	reply3,reply4	reply5,reply6	reply7,reply8 
+!readproc oef/steps.proc
+replytype1=raw
+replyoption1=nospace nonstop 
+replyname1=De limiet van \(u) op $val18
+replygood1=$val37
+replytype2=raw
+replyoption2=nospace nonstop 
+replyname2=De limiet van \(u) op $val19
+replygood2=$val38
+replytype3=raw
+replyoption3=nospace nonstop 
+replyname3=De limiet van exp($val9 x) op $val18
+replygood3=$val41
+replytype4=raw
+replyoption4=nospace nonstop 
+replyname4=De limiet van exp($val9 x) op $val19
+replygood4=$val42
+replytype5=menu
+replyoption5=nonstop 
+replyname5=De limiet van \(f) op $val18
+replygood5=$val50;de regel mbt limiet van producten,het principe van de winnende functie
+replytype6=raw
+replyoption6=nospace nonstop 
+replyname6=De limiet van \(f) op $val18
+replygood6=$val55
+replytype7=menu
+replyoption7=nonstop 
+replyname7=De limiet van \(f) op $val18
+replygood7=$val53;de regel mbt limiet van producten, het principe van de winnende functie
+replytype8=raw
+replyoption8=nospace 
+replyname8=De limiet van \(f) op $val19
+replygood8=$val57
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  
+
+
+!goto stat
+
+!exit
+
+:question
+$()		<div style="font-family: verdana,  sans-serif ;  font-size: 11pt ; background-color: yellow ;">	<p> 		We nemen de functie 
+!insmath f(x) = $val16 
+$() gedefinieerd in $val22. <br/> 	De bedoeling van deze oefening is om stap voor stap de limieten van 
+!insmath f
+$() in $val18 en in $val19 te berekenen.		</p>	<small><b> 
+!read oef/special.phtml help typing,Syntax tips 
+$()</b></small>	</div>				<ul>		 
+!if $m_step=1 
+$()	<li> Laat 
+!insmath u
+$() de functie 
+!insmath  u(x) = $val14
+$() zijn, gedefinieerd in $val22.	 <br/>	Bepaal de limieten van 
+!insmath u
+$() in $val18 en in $val19 : 	<small>( 
+!read oef/special.phtml help typing,Syntax tips 
+$())</small>	<center>
+!insmath \lim_{$val20} $val14 
+$() =  
+!read oef/embed.phtml reply1,5 
+$() <br>en<br> 
+!insmath \lim_{$val21} $val14 
+$() =  
+!read oef/embed.phtml reply2,5 
+$() </center>	</li>	 
+!endif
+$()	 
+!if $m_step>1 
+$()<li><font color = blue>De limieten van  
+!insmath u
+$() in $val18 en in $val19 zijn</font>:	<center>
+!insmath \lim_{$val20} $val14 = $val39
+$()  en  
+!insmath \lim_{$val21} $val14 = $val40
+$()  </center>	</li>	 
+!endif
+$()		 
+!if $m_step=2 
+$()	<li>Nu gaan we de limieten van  
+!insmath $val15
+$() in  $val18 en in $val19 bepalen : 	 <small>( 
+!read oef/special.phtml help typing,Syntax tips 
+$())</small>	<center>
+!insmath \lim_{$val20} $val15 
+$() =  
+!read oef/embed.phtml reply3,8 
+$() <br>en<br> 
+!insmath \lim_{$val21} $val15 
+$() =  
+!read oef/embed.phtml reply4,8 
+$()  </center>	</li>	 
+!endif
+$()	 
+!if $m_step>2 
+$()<li><font color = blue>De limieten van de exponenti&euml;le functie in $val18 en in $val19 zijn</font>:	<center>
+!insmath \lim_{$val20} $val15 = $val43
+$()  &nbsp; en &nbsp;  
+!insmath \lim_{$val21} $val15 = $val44
+$()  </center>	</li>	 
+!endif
+$()			 
+!if $m_step=3 
+$()<li>Uit de voorafgaande berekeningen kunnen we de limiet van 
+!insmath f
+$() in $val18 afleiden door  
+!read oef/embed.phtml reply5 
+$() te gebruiken:	<center>
+!insmath  \lim_{$val20} $val16
+$()   =  
+!read oef/embed.phtml reply6,5 
+$()	</li> 	 
+!endif
+$()			 
+!if $m_step>3 
+$()<li><font color = blue>	Uit de voorafgaande berekeningen en $val51 kunnen we herleiden dat</font>:	<center>
+!insmath  \lim_{$val20} $val16 = $val56
+$()  	</li>	 
+!endif
+$()				 
+!if $m_step=4 
+$()<li>	Uit de voorafgaande berekeningen kunnen we - met  
+!read oef/embed.phtml reply7 
+$() - de limiet van 
+!insmath f
+$() in $val19 herleiden :	<center>
+!insmath  \lim_{$val21} $val16
+$()   =  
+!read oef/embed.phtml reply8,5 
+$()	</li> 	 
+!endif
+$()			</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()		 
+!if $m_help_subject issametext typing 
+$()	<b>Syntax tips:</b><br/>	Bereik en Domein notatie:<br>	&#93; -inf ; 5 &#93; == &lt;-inf : 5&#93;<br> 	&#93; -5 ; 5 &#91; == &lt; -5 : 5 &gt;	<br>	schrijf <b>+inf</b> voor 
+!insmath +\infty
+$()  ;<br/>	schrijf <b>-inf </b> voor 
+!insmath -\infty
+$() ;<br/>	schrijf <b>exp(x)</b> voor 
+!insmath e^{x}
+$() ;<br/>	(<font color=red>gebruik niet e^x </font>)	 
+!endif
+$()	  
+!if $m_help_subject issametext product 
+$()Met "produkt" bedoelen we: de rekenregels voor de limieten van produkten.	 Dat wil zeggen: de limiet van een produkt is gelijk aan het produkt der limieten (uitgezonderd de tussenvormen).	 <p>	 Een voorbeeld van <em>het principe van de winnende functie</em> is: een exponenti&euml;le functie [met groeifactor &gt;1] 	 stijgt sneller dat een polynoom.   	 
+!endif
+$() 	
+$()
+!exit
+
+:solution
+$() 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15,16,18,19,20,21,22,39,40,43,44,51,56
+embedcnt=11

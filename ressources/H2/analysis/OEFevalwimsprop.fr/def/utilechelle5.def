@@ -1,0 +1,101 @@
+!set title=Utiliser un rapport d'échelle 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val7=Largeur,Votre réponse
+val10=étudie sur une carte un parcours à réaliser.	  L'échelle de la carte est de
+val11=Sur la carte, il trouve que la distance à parcourir est de,	  centimètres.
+val12=Quelle est la longueur réelle, en kilomètres,	  du parcours qu'il est en train de prépareré&nbsp;
+!readproc slib/lang/fname boy,fr 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp=!nonempty items 50000,250000,200000,100000
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp0=!randint 15, 25
+
+val15=$[rint($(tmp0))]
+val16=$[$val15*$val14/100000]
+replytype1=numexp
+replyname1=$(val7[1])
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val13 $val10 
+!insmath \frac{1}{$val14}
+$().<p>	$(val11[1]) $(val11[2]) $val15 $(val11[3])</p><p>	$val12?</p>	<b>$(val7[2])</b> :  
+!read oef/embed.phtml r1,5 
+$() Km.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,12,13,14,15
+embedcnt=1

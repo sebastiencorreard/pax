@@ -1,0 +1,162 @@
+!set title=Etat d'un système
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie,Lemaire
+email=Sophie.Lemaire@math.u-psud.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 95
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 5, 95
+
+val7=$[$(tmp0)/100]
+val8=$[1-$val6]
+val9=$[1-$val7]
+tmp=!trim $val8,$val6	$val7,$val9
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=xrange -8,8	yrange -3,3	circle -4,0, 16,black	circle 4,0, 16,black	text black,-4.1,0.2,,1	text black,3.9,0.2,,2	arc -5,0, 2,2, 35,335,blue	arc 5,0, 2,2, 215,515,blue	arc 0,0, 8,3.5, 15,165,blue	arc 0,0, 8,3.5, 205,345,blue	arrow -4.2,0.55,-4,0.35,10,blue	arrow 4.2,-0.55,4,-0.35,10,blue	arrow 3.8,0.45,3.9,0.35,10,blue	arrow -3.8,-0.45,-3.9,-0.35,10,blue	text navy, -0.2,2.5,,$val6	text navy, -0.2,-2,,$val7	text navy, -7.2,0.1,,$val8	text navy, 6.2,0.1,,$val9	
+!readproc oef/draw.phtml 400,150 \
+$val11 
+tmp0=$ins_url
+val12=$(tmp0)
+tmp0=!randint 0, 10
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val13+$val14)]
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+val18=$[$val6+$val7]
+val19=$[(1-$val18)^$val14]
+val20=$[($val6*$val19+$val7)/$val18]
+val21=$[(-$val6*$val19+$val6)/$val18]
+val22=$[(-$val7*$val19+$val7)/$val18]
+val23=$[($val7*$val19+$val6)/$val18]
+tmp=!trim $val20,$val21	$val22,$val23
+val24=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem 1,2
+
+val25=$[rint($(tmp0))]
+!if $val25=1 
+val26=$[$(val24[$val16;$val17])]
+val27=L'évolution de l'état d'un système entre deux unités de temps n et n+1 est décrit par le graphe probabiliste ci-dessous.<br>	  On sait qu'à l'instant $val13, le système est dans l'état $val16. 
+val28=probabilité que le système se trouve dans l'état $val17 à l'instant $val15
+!else
+tmp0=!randint 1, 99
+
+val29=$[rint($(tmp0))]
+val30=$[rint(100-$val29)]
+t_=!replace internal \( by ( in Tn=Mat([$val24]);v=[$val29/100,$val30/100]*Tn;print(v)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val31=!translate internal $	\
+$ to ;; in $tmp
+!if $val16=1 
+val32=$val29
+!else
+val32=$val30
+!endif
+val26=$[$(val31[1;$val17])]
+val27=L'évolution de l'état d'un système entre deux unités de temps \(n\) et \(n+1\) est décrit par le graphe probabiliste ci-dessous.<br>	  On suppose  qu'à l'instant $val13, le système a $val32 % de chance de se trouver dans l'état $val16.
+val28=probabilité que le système se trouve dans l'état $val17 à l'instant $val15
+!endif
+val33=Déterminer la $val28
+val34=$[rint(10000*$val26)]
+val34=$[$val34/10000]
+replytype1=numeric
+replyoption1=noanalyzeprint 
+replyname1=Probabilité
+replygood1=$[$val26]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val27	<p class="wimscenter"> <img src="$val12" alt=""></p>		$val33 :  
+!read oef/embed.phtml reply1,8 
+$()	<div class="wims_instruction">	 Donner une valeur approchée à 
+!insmath 10^{-4}
+$() près.	 </div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!if $val26!=$val34 
+$()La valeur approchée à 
+!insmath 10^{-4}
+$() près de la 
+!else
+$() La 
+!endif
+$() $val28 est 
+!insmath $val34
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,26,27,28,33,34
+embedcnt=1

@@ -1,0 +1,132 @@
+!set title=Effet de structure 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r
+varcnt=6
+prevarcnt=5
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 35, 45
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0)+$val6)]
+tmp0=!randint 25, 34
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val9=$[rint(-$(tmp0)+$val8)]
+val10=r1,r2	r3,r4,r5,r6
+oefsteps=$val10 
+nextstep=!nosubst $val10 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=
+replygood1=1;Oui,Non
+replytype2=radio
+replyname2=
+replygood2=2;Oui,Non
+replytype3=numeric
+replyname3=
+replygood3=?analyze 11
+replytype4=numeric
+replyname4=
+replygood4=?analyze 12
+replytype5=numeric
+replyname5=
+replygood5=?analyze 13
+replytype6=numeric
+replyname6=
+replygood6=?analyze 14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On s'intéresse à l'âge moyen des adhérents à deux clubs de	sports.	 Les résultats, par sexe, sont regroupés dans les	tableaux suivants:	</p>	<table class="wimsborder wimscenter">	<tr><th> &nbsp;</th><th>Hommes</th><th>Femmes</th></tr>	<tr><th> Âge moyen dans le club A</th><td> $val6</td><td> $val9 </td></tr>	<tr><th> Âge moyen dans le club B</th><td> $val7</td><td> $val8 </td></tr>	</table>	
+!if $m_step=1 
+$()	<ol>	<li> Peut-on trouver une répartition Hommes/Femmes dans les deux clubs	telle que la moyenne d'âge globale soit plus élevée	dans le club A que dans le club B&nbsp;?	<div class="wimscenter">  
+!read oef/embed.phtml reply1 
+$() </div></li>	<li> Peut-on trouver une répartition Hommes/Femmes dans les deux clubs	telle que la moyenne d'âge globale soit plus élevée	chez les femmes que chez les hommes&nbsp;?	<div class="wimscenter">  
+!read oef/embed.phtml reply2 
+$() </div></li>	</ol>	 
+!else
+$() 	Remplir les tableaux suivants avec une répartition Hommes/Femmes dans les deux clubs	telle que la moyenne d'âge globale soit plus élevée	dans le club A que dans le club B:	<table class="wimsborder wimscenter">	<tr><th> Club A</th><th>Hommes</th><th>Femmes</th></tr>	<tr><th> <label for="reply3">Effectif</label></th><td>  
+!read oef/embed.phtml reply3,4 
+$()</td>	<td>  
+!read oef/embed.phtml reply4,4 
+$() </td></tr>	<tr><th> Âge moyen dans le club A</th><td> $val6</td><td> $val9 </td></tr>	</table>	<table class="wimsborder wimscenter">	<tr><th> Club B</th><th>Hommes</th><th>Femmes</th></tr>	<tr><th><label for="reply5">Effectif</label> </th><td>  
+!read oef/embed.phtml reply5,4 
+$()</td><td>  
+!read oef/embed.phtml reply6,4 
+$() </td></tr>	<tr><th> Âge moyen dans le club B</th><td> $val7</td><td> $val8 </td></tr>	</table>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val11*$val6+$val12*$val9)*($val13+$val14) > ($val13*$val7+$val14*$val8)*($val11+$val12)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12,13,14
+embedcnt=6

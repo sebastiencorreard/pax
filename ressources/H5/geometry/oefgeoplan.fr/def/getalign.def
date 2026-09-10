@@ -1,0 +1,209 @@
+!set title=Obtenir un alignement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val12*(-1)^$val10)]
+val15=$[rint($val8*$val14)]
+val16=$[rint($val9*$val14)]
+val17=$[rint($val6+$val8*$val14)]
+val18=$[rint($val7+$val9*$val14)]
+tmp0=!randint 0, 1
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 0, 1
+
+val20=$[rint($(tmp0))]
+val21=$[rint($val13*(-1)^$val11+$val19)]
+val22=$[rint($val6+$val8*$val21)]
+val23=$[rint($val7+$val9*$val13*(-1)^$val11+$val20*$val9)]
+val24=$[rint($val8*$val21)]
+tmp0=!randint 1, 5
+
+val25=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val26=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val27=$[rint($(tmp0))]
+val28=$[rint($val25*(-1)^$val27)]
+
+!ifval $val28=1
+val29=x
+!endif
+
+!ifval $val28=-1
+val29= -x 
+!endif
+
+!ifval (($val28<>1) and ($val28<>-1))
+val29=$val28 x  
+!endif
+
+!ifval $val26>0
+val30=$val29 + $val26
+!endif
+
+!ifval $val26=0
+val30=$val29 
+!endif
+
+!ifval $val26<0
+val30=$val29  $val26
+!endif
+t_=!rawmath ($val7 - ($val26) + ($val21) * ($val9) ) / ($val28)
+val31=!exec pari print($t_)
+val27=$[rint(($val6-$val17)*($val7-$val23)-($val6-$val22)*($val7-$val18))]
+!if $val7>=0 
+val32=$val30-$val7
+!else
+val32=$val30-($val7)
+!endif
+t_=!replace internal \( by ( in $val28*x+($val26)-($val7)
+tmp0=!exec pari $t_
+
+val33=$(tmp0)
+tmp0=!replace internal * by in $val33
+
+val33=$(tmp0)
+!if $val16>=0 
+val34=$val16
+!else
+val34=($val16)
+!endif
+replytype1=numeric
+replyname1=x
+replygood1=$[$val31]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Déterminer la valeur du nombre réel 
+!insmath x
+$() qui rend alignés les points <span class="nowrap">
+!insmath A
+$(),</span>
+!insmath B
+$() et 
+!insmath C
+$()	 dont les coordonnées dans un repère donné sont respectivement	 <span class="nowrap">
+!insmath \left($val6 ; $val7 \right)
+$(),</span>	 
+!insmath \left($val17 ; $val18 \right)
+$() et	 <span class="nowrap">
+!insmath \left($val22 ; $val30 \right)
+$().</span>		<div>	<b>Condition d'alignement : </b>		<label for="reply1">
+!insmath  x
+$()</label> = 
+!read oef/embed.phtml r1,4 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Calculons les coordonnées des vecteurs 
+!insmath \overrightarrow{A B}
+$() et <span class="nowrap">
+!insmath \overrightarrow{A C}
+$()&nbsp;:</span><br>	
+!insmath \overrightarrow{A B}
+$()
+!insmath \left(\begin{array}{c} $val15 \\ $val16 \end{array}\right)
+$() et	 
+!insmath \overrightarrow{A C}
+$()
+!insmath \left(\begin{array}{c} $val24 \\ $val32 \end{array}\right)
+$()<br>	On résout donc l'équation 
+!insmath  $val15 \times ($val33)= $val24 \times $val34 
+$()<br>	Ce qui donne 
+!insmath x=$val31
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,15,16,17,18,22,24,30,31,32,33,34
+embedcnt=1

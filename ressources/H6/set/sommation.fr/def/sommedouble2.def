@@ -1,0 +1,409 @@
+!set title=Sommation double 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas,Guillon
+email=bernadette.m.riou@orange.fr
+language=fr
+computeanswer=no
+oefdescription=Ecrire une somme indexée par des couples d'entiers à l'aide d'une double somme
+
+ansorder=r,r,r,r
+varcnt=79
+prevarcnt=78
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 12
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 7, 12
+
+val7=$[rint($(tmp0))]
+val8=$[rint(max($val6,$val7))]
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp0=!randint -4, 4
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val8-2, $val8+2
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!item $val12 of  \leq , < 
+
+val14=$(tmp0)
+tmp0=!item $val13 of  \leq , < 
+
+val15=$(tmp0)
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=1
+val17= i
+!else
+val17= j
+!endif
+
+!ifval $val16=1
+val18= j
+!else
+val18= i
+!endif
+
+!ifval $val12=1
+val19=$[rint( $val10)]
+!else
+val19=$[rint( $val10+1)]
+!endif
+
+!ifval $val13=1
+val20=$[rint( $val11)]
+!else
+val20=$[rint( $val11-1)]
+!endif
+!if $val16=1 
+!if $val9 issametext + 
+val21=$[rint(max(1,$val19-$val7) )]
+val22=$[rint(min($val6,$val20-1) )]
+tmp=!translate ";': to $     $ in $val19-i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val20-i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val7,$val24)
+!else
+val21=$[rint(max(1+$val19,1))]
+val22=$[rint(min($val20+$val7,$val6))]
+tmp=!translate ";': to $     $ in i-$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in i-($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val7,$val24)
+!endif
+evaltmp=$val25
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val25
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27=$val28 
+val29=$[rint(1)]
+!else
+evaltmp=$val23
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val23
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27>=1 and $val28>=1 
+val29=$val23
+!else
+val29=$val25
+!endif
+!endif
+evaltmp=$val26
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val26
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30=$val31 
+val32=$[rint($val7)]
+!else
+evaltmp=$val24
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val24
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30<=$val7 and $val31<=$val7 
+val32=$val24
+!else
+val32=$val26
+!endif
+!endif
+!else
+!if $val9 issametext + 
+val21=$[rint(max(1,$val19-$val6) )]
+val22=$[rint(min($val7,$val20-1) )]
+tmp=!translate ";': to $     $ in $val19-j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val20-j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val6,$val24)
+!else
+val21=$[rint(max(1-$val20,1))]
+val22=$[rint(min($val6-$val19,$val7))]
+tmp=!translate ";': to $     $ in $val19+j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val20+j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val6,$val24)
+!endif
+evaltmp=$val25
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val25
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27=$val28 
+val29=$[rint(1)]
+!else
+evaltmp=$val23
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val23
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27>=1 and $val28 >=1 
+val29=$val23
+!else
+val29=$val25
+!endif
+!endif
+evaltmp=$val26
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val26
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30=$val31 
+val32=$[rint($val6)]
+!else
+evaltmp=$val24
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val24
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30<=$val6 and $val31<=$val6 
+val32=$val24
+!else
+val32=$val26
+!endif
+!endif
+!endif
+
+!ifval $val9 issametext +
+val33= i+j
+!else
+val33= i-j
+!endif
+
+!ifval $val9 issametext +
+val34= i-j
+!else
+val34= i+j
+!endif
+val35=xrange -1,$val8+1	yrange -1,$val8+1	parallel 0,0,0,$val8, 1,0,$val8+1,grey	parallel 0,0,$val8, 0,0,1,$val8+1,grey	text black,-1,$val8,medium,j	text black,$val8,0, medium,i	hline 0,0,black	vline 0,0,black
+!for val36 =1 to $val6 
+!for val37 =1 to $val7 
+evaltmp=$val33
+
+evaltmp=!mathsubst i=($val36) in $evaltmp
+evaltmp=!mathsubst j=($val37) in $evaltmp
+tmp0=($evaltmp)
+val38=$[$(tmp0)]
+evaltmp=$val34
+
+evaltmp=!mathsubst i=($val36) in $evaltmp
+evaltmp=!mathsubst j=($val37) in $evaltmp
+tmp0=($evaltmp)
+val39=$[$(tmp0)]
+!if $val38 >=$val19 and $val38<=$val20 
+val35=$val35	        disk $val36,$val37, 8,red
+!endif
+!next
+!next
+!if $val16=1 
+val35=$val35	arrow 1,-1,1,-0.1,8,blue
+!else
+val35=$val35	arrow -1,1,-0.1,1,8,blue
+!endif
+!readproc oef/draw.phtml 200,200 \
+ $val35 
+tmp0=$ins_url
+val40=$(tmp0)
+replytype1=formal
+replyname1=
+replygood1=$val21
+replytype2=formal
+replyname2=
+replygood2=$val22
+replytype3=formal
+replyname3=
+replygood3=$val29
+replytype4=formal
+replyname4=
+replygood4=$val32
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div>On considère l'ensemble 
+!insmath E
+$() des couples 
+!insmath (i , j) \in \NN^2
+$()	  tels que	  
+!insmath 1 \leq i \leq $val6
+$() et 
+!insmath 1 \leq j \leq $val7
+$()	  avec la condition :	  
+!insmath $val10 $val14 i $val9 j $val15 $val11
+$(). <br>	  On note 
+!insmath S
+$() la somme des nombres 
+!insmath p_(i , j)
+$() pour 
+!insmath (i , j ) \in E
+$() :	  
+!insmath \displaystyle{S = \sum_{(i, j) \in E}p_{i, j}}
+$(). </div>	<div class="wims_question">	  Écrire 
+!insmath S
+$() sous la forme d'une somme double :	 
+!read oef/special.phtml mathmlinput [\displaystyle{S=\sum_{$val17= reply1}^{reply2}\left(\sum_{$val18=reply3}^{reply4}p_{i,j}\right)}],4	reply 1	reply 2	reply 3	reply 4	 
+$()	</div>	<div class="wims_instruction">Consigne : la borne d'en bas doit être inférieure à celle d'en haut.	  On pourra utiliser les fonctions <span class="tt">min</span>	  et <span class="tt">max</span> sous la forme <span class="tt">max(i,2)</span> par exemple.	  Mais les formules devront être simplifiées : par exemple,	  on n'écrira pas <span class="tt">max(6,13)</span> à la place de 13.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()(indications) Les éléments de 
+!insmath E
+$() sont représentés par des points rouges sur la figure :	  <div class="wimscenter"><img src="$val40" alt="">	  </div>	  En parcourant l'ensemble de ces points rouges	  
+!if $val17 issametext j 
+$()de bas en haut, ligne après ligne, 
+!else
+$() de gauche à droite, colonne après colonne, 
+!endif
+$() on obtient : <div class="wimscenter">
+!insmath \displaystyle{\sum_{(i,j) \in E}p_{i,j}}
+$() = 
+!insmath \displaystyle{\sum_{$val17 = $val21}^{$val22}\Big(\sum_{ $val18 = $val29}^{$val32} p_{i,j} \Big)}
+$().	  </p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val18 isin $m_reply1 or $val18 isin $m_reply1
+ <div class='oef_feedbacks'>Attention, cela n'a pas de sens	  de faire dépendre les bornes de la première somme de $val18 qui est	   l'indice de sommation de la seconde somme.
+$()</div>
+!endif
+!ifval max isin $m_reply1 or min isin $m_reply1 or max isin $m_reply2 or min isin $m_reply2
+ <div class='oef_feedbacks'>Attention,	  ça n'a pas de sens de mettre un <span class="tt">min</span> ou un <span class="tt">max</span> dans la première somme.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,14,15,17,18,21,22,29,32,40
+embedcnt=1

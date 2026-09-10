@@ -1,0 +1,249 @@
+!set title=Black box II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=nl
+
+ansorder=r,r,r,r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of table
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val7=$[rint($(tmp0))]
+
+!ifval $val2 notitemof 1,2,3,4
+val2=$[rint(0)]
+!endif
+
+!ifval $val3 notitemof 1,2,3,4
+val3=$[rint(0)]
+!endif
+val8=
+
+!ifval $val4 issametext $val8 or $val4<7 or	  $val4>$val7
+val4=$[rint(54)]
+!endif
+tmp0=!values x for x=1 to $val7
+
+val9=$(tmp0)
+tmp0=!listintersect $val5 and $val9
+
+val5=$(tmp0)
+
+!ifval $val2>0
+val10=$[rint($val2)]
+!else
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+!endif
+
+!ifval $val3=$val2
+val11=$[rint(0)]
+!else
+val11=$[rint($val3)]
+!endif
+tmp0=!listcomplement $val10 in 1,2,3,4
+
+val12=$(tmp0)
+
+!ifval \candouble issametext yes and $val10 != 1
+val12=$val10,$val12
+!endif
+
+!ifval $val11>0 and $val11 isitemof $val12
+val13=$[rint($val11)]
+!else
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+!endif
+val14=table2.gif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=atoomnummer, symbool, naam, atoomgewicht
+val17=Wat is de,Wat is de,Wat is de,Wat is de
+val18=In het periodiek systeem der elementen hieronder,	  is 1 element zwart gemaakt.
+val19=
+val20=van dit element
+val21=Het atoomnummer,Het symbool is,De naam van dit element is,Het atoomgewicht is
+tmp0=!record 0 of table
+
+val22=$(tmp0)
+val6=$val22
+val8=
+!if $val5 notsametext $val8 and \selective notsametext no 
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val24=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val25=$[rint(min($val4,$(tmp0)))]
+tmp0=!record 0 of position
+
+val26=$(tmp0)
+val27=$val26
+val8=
+!if $val5 notsametext $val8 and \selective notsametext no 
+tmp=!translate internal $	$ to ; in $val27
+
+tmp=!row $val5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val27=$(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val27
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+tmp=!translate internal $	$ to ; in $val27
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val24=$(tmp0)
+tmp=!translate internal $	$ to ; in $val27
+
+tmp0=!rowcnt $tmp
+val28=$[rint(min($val4,$(tmp0)))]
+tmp0=!randint 1, $val25
+
+val29=$[rint($(tmp0))]
+val30=$(val6[$val29;])
+tmp0=!item 1 of $val30
+
+val29=$[rint($(tmp0))]
+val31=$(val26[$val29;])
+val32=$[rint(30)]
+val33=$[rint(30)]
+val34=$[rint($(val31[4])*$val32)]
+val35=$[rint($(val31[3])*$val33)]
+
+!ifval $(val31[3])>8
+val35=$[rint($val35+5)]
+!endif
+
+!ifval $(val31[3])>8
+val34=$[rint($val34+$val32*2)]
+!endif
+val36=
+!for val37 =1 to $val7 
+val36=$val36 r,$val34,$val35,$val34+$val32,$val35+$val33;
+!if $val37=$val29 
+val38=r,$val34,$val35,$val34+$val32,$val35+$val33
+!endif
+!next
+val39=$(val30[$val13])
+
+!ifval $val13=3
+val39=$val39;$(val22[;3])
+!endif
+val40=r1,r2,r3,r4
+oefsteps=$(val40[$val13]) 
+nextstep=!nosubst $(val40[$val13]) 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$(val21[1])
+replygood1=$[$val39]
+replytype2=case
+replyname2=$(val21[2])
+replygood2=$val39
+replytype3=nocase
+replyname3=$(val21[3])
+replygood3=$val39
+replytype4=numeric
+replyname4=$(val21[4])
+replygood4=$[$val39]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val18 $(val17[$val13]) $val19 $(val16[$val13]) $val20?	  <div class="wimscenter">	   
+!read oef/draw.phtml 600,360 \
+	copy 0,0,-1,-1,-1,-1,$val14	frect $val34,$val35,$val34+$val32,$val35+$val33,black	 
+$()	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,16,17,18,19,20,32,33,34,35
+embedcnt=0

@@ -1,0 +1,157 @@
+!set title=Courses
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Dingyu, Xiao
+email=xiao@unice.fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+precision=10000
+title_en=Courses
+title_nl=Boodschappen
+title_es=Compras
+
+ansorder=r,r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim Maman m'envoie chez l'épicier acheter du	  Je prends un paquet de,bouteilles.	  La caissière me dit alors qu'il me manque	  Je repose une bouteille et repasse à la caisse.La caissière me rend alors
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=jus d'orange, jus de pomme, Coca cola, jus de raisin
+tmp=!trim Quel est le prix d'une bouteille de	  Combien d'argent avais-je sur moi
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Les réponses seront données en
+val11=euros
+val12=Prix d'une bouteille
+val13=Mon argent
+!if $val6=en 
+tmp=!trim Maman m'envoie chez l'épicier acheter du	  Je prends un paquet de,bouteilles.	  La caissière me dit alors qu'il me manque	  Je repose une bouteille et repasse à la caisse.La caissière me rend alors
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=jus d'orange, jus de pomme, Coca cola, jus de raisin
+tmp=!trim Quel est le prix d'une bouteille de	  Combien d'argent avais-je sur moi
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Les réponses seront données en
+val11=euros
+val12=Prix d'une bouteille
+val13=Mon argent
+!endif
+!if $val6=es 
+tmp=!trim Mamá me envía a la tienda a comprar	  Cojo un paquete de,botellas.	  La cajera me dice entonces que me faltan	  Dejo una botella y vuelvo a la caja. Entonces la cajera me devuelve
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=zumo de naranja, zumo de manzana, Coca Cola, zumo de uvas
+tmp=!trim ¿Qué vale una botella de	  ¿Cuánto dinero llevaba yo al principio
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Les réponses seront données en
+val11=euros
+val12=Precio de una botella
+val13=Mi dinero
+!endif
+!if $val6=nl 
+tmp=!trim Mijn moeder stuurt mij naar de supermarkt om	  te kopen. Ik neem, flessen.	  Bij de kassa hoor ik dat ik,tekort kom.	  Ik zet een fles terug en ga terug naar de kassa. Ik krijg vervolgens
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=sinaasappelsap, appelsap, Coca cola, druivensap
+tmp=!trim Wat is de prijs van een fles	  Hoeveel geld had ik bij mij
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Les réponses seront données en
+val11=euros
+val12=Prijs van een fles
+val13=Mijn geld
+!endif
+tmp0=!randint 2, 8
+
+val14=$[rint($(tmp0))]
+tmp0=!randitem 0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1
+
+val15=$[$(tmp0)]
+tmp0=!randitem 0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5
+
+val16=$[$(tmp0)]
+val17=$[$val15+$val16]
+val18=$[($val14*$val17)-$val16]
+tmp=!nonempty items $val8
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+replytype1=default
+replyname1=$val12
+replygood1=$val17
+replytype2=default
+replyname2=$val13
+replygood2=$val18
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement}$(val7[1;]) $val19. $(val7[2;1]) $val14 $(val7[2;2]) $(val7[3;]) $val16 $val11. $(val7[4;]) $val15 $val11. $(val9[1;]) $val19? $(val9[2;])? \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1;]) $val19.	  $(val7[2;1]) $val14 $(val7[2;2])	  $(val7[3;]) $val16 $val11.	  $(val7[4;]) $val15 $val11.	<p>	$(val9[1;]) $val19? $(val9[2;])?	</p>	<div class="wims_instruction">$val10 $val11.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement}$(val7[1;]) $val19. $(val7[2;1]) $val14 $(val7[2;2]) $(val7[3;]) $val16 $val11. $(val7[4;]) $val15 $val11. $(val9[1;]) $val19? $(val9[2;])? $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,11,14,15,16,19
+embedcnt=0

@@ -1,0 +1,175 @@
+!set title=Ordre des relatifs
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+title_es=Orden de los relativos
+title_nl=Noteer de getallen in de goede volgorde III
+
+ansorder=r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 4, 7
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2,30 repeat $val7
+
+val8=$(tmp0)
+tmp0=!values x/5 for x in $val8
+
+val8=$(tmp0)
+tmp0=!randint 2,30 repeat $val7
+
+val9=$(tmp0)
+tmp0=!values -x/5 for x in $val9
+
+val9=$(tmp0)
+tmp0=!sort numeric item $val8,$val9
+
+val10=$(tmp0)
+tmp0=!listuniq $val10
+
+val10=$(tmp0)
+val11=
+!for val12 =1 to 2*$val7 
+
+!ifval $val12%2=0
+val13= -1
+!else
+val13=4
+!endif
+tmp0=!item $val12 of $val10
+
+tmp1=!item $val12 of $val10
+
+tmp2=!item $val12 of $val10
+
+val11=$val11	disk $(tmp0),0,6,blue	text black,$(tmp1)-0.2,$val13*0.4,medium,$(tmp2)
+!next
+tmp0=!itemcnt $val10
+
+val14=$[$(tmp0)]
+tmp0=!randint 2, $val14-1
+
+val15=$[rint($(tmp0))]
+tmp0=!item $val15 of $val10
+
+tmp1=!item $val15+1 of $val10
+
+tmp2=!randitem 10*$(tmp0)+1,10*$(tmp1)-1
+
+val16=$[$(tmp2)/10]
+val16=$[$val16/10]
+tmp0=!item $val15 of  $val10
+
+val14=$[$(tmp0)]
+tmp0=!item $val15+1 of  $val10
+
+val17=$[$(tmp0)]
+val11=$val11	arrow $val16,3,$val16,0,6,red	text red,$val16,3,medium,$val16
+tmp0=!shuffle $val10
+
+val18=$(tmp0)
+tmp0=!replace internal , by &nbsp;;&nbsp; in $val18
+
+val18=$(tmp0)
+val19=Donner le meilleur encadrement possible de $val16 en prenant	  les nombres dans la liste suivante
+!if $val6=es 
+val19=Dar el mejor marco posible de $val16	  tomando los números de la lista siguiente
+!endif
+!if $val6=nl 
+val19=Geef het nauwkeurigste interval van $val16 met behulp van de volgende getallen
+!endif
+val11=xrange -6,6	yrange -2,3	hline black,0,0	arrow 0,0,1,0,10,black	parallel -6,-0.8,-6,0.4,1/2,0, 120, blue	parallel -6,-0.3,-6,0.3,1/10,0, 600, blue	parallel -6,-0.8,-6,0.6,1,0, 40, red	$val11
+replytype1=numeric
+replyname1=
+replygood1=$[$val14]
+replytype2=numeric
+replyname2=
+replygood2=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val19 \begin{center} $val18. \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val19	<div class="wimscenter"> $val18.</div>	<div class="wims_question wimscenter">	 
+!read oef/embed.phtml reply 1, 5 
+$()
+!insmath \leq $val16 \leq 
+$()  
+!read oef/embed.phtml reply 2, 5 
+$() </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val19 $m_begin{center} $val18. $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	<div class="wimscenter"> 
+!read oef/draw.phtml 800,50 \
+	$val11 
+$()	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,16,18,19
+embedcnt=2

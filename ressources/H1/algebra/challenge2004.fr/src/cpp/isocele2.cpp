@@ -1,0 +1,48 @@
+target=isocele2
+
+#include "header.inc"
+
+\title{Triangles isocèles}
+
+\integer{type=random(1,2)}
+\real{pos=item(\type,0.15,0.5)}
+\text{eq=item(\type,DB = DA, BA = BD)}
+
+\integer{a1=randint(4..26)*2}
+\integer{r=item(\type,180-3*\a1,90-3*\a1/2)}
+
+\statement{
+<div class="grid-x grid-margin-x">
+  <div class="cell small-12 medium-6 large-8">
+    <ul>
+    <li>\(ABC) est un triangle isocèle de sommet \(A) (c'est-à-dire \(AB = AC)).</li>
+    <li>\(D) est un point appartenant à \(BC) tel que \(\eq) ;</li>
+    <li>L'angle \(\widehat {CBA}) vaut \a1 degrés ; </li>
+    </ul>
+    Combien mesure l'angle \(\widehat {DAC})&nbsp;?
+    <div class="wimscenter">
+      \embed{r1,5} degrés.
+      <div class="wims_instruction">
+        Le dessin ci-contre n'est qu'une indication délibérément imprécise.
+      </div>
+    </div>
+  </div>
+  <div class="cell small-12 medium-6 large-4">
+    \draw{300,200}{
+ xrange -1.2,1.2
+ yrange -0.7,0.7
+ linewidth 2
+ triangle -1,-0.5,1,-0.5,0,0.5,blue
+ segment 0,0.5,\pos,-0.5,blue
+ text black,-1.1,-0.5,large,B
+ text black,1.02,-0.5,large,C
+ text black,-0.03,0.65,large,A
+ text black,\pos-0.03,-0.53,large,D
+}
+  </div>
+</div>
+
+
+}
+
+\reply{L'angle A}{\r}

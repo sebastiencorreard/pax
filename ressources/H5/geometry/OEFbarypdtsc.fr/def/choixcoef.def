@@ -1,0 +1,194 @@
+!set title=Choix des coefficients 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+oefcss=<style> .enonce { margin:2% 2%; padding:1em;} </style> 
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=1
+tmp0=!randitem -1,-2,2
+
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+!else
+tmp1=!randitem -1,-2,-3,2,3
+
+t_=!rawmath $(tmp1)/$val7
+val8=!exec pari print($t_)
+!endif
+
+!ifval $val8=1
+t_=!rawmath 2
+val8=!exec pari print($t_)
+!endif
+t_=!rawmath 1-($val8)
+val9=!exec pari print($t_)
+
+!ifval $val8>0
+val10=+
+!else
+val10=-
+!endif
+t_=!rawmath -1*($val8)
+val11=!exec pari print($t_)
+val12=$val8
+val13=$val11
+tmp0=!replace internal / by , in $val12
+
+val12=$(tmp0)
+tmp0=!itemcnt $val12
+
+
+!ifval $(tmp0)>1
+val12=\frac{$(val12[1])}{$(val12[2])}
+!endif
+tmp0=!replace internal / by , in $val13
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+
+!ifval $(tmp0)>1
+val13=\frac{$(val13[1])}{$(val13[2])}
+!endif
+val14=$val9
+t_=!rawmath -1*($val9)
+val15=!exec pari print($t_)
+val16=$val15
+tmp0=!replace internal / by , in $val14
+
+val14=$(tmp0)
+tmp0=!itemcnt $val14
+
+
+!ifval $(tmp0)>1
+val14=\frac{$(val14[1])}{$(val14[2])}
+!endif
+tmp0=!replace internal / by , in $val16
+
+val16=$(tmp0)
+tmp0=!itemcnt $val16
+
+
+!ifval $(tmp0)>1
+val16=\frac{$(val16[1])}{$(val16[2])}
+!endif
+val17=(\($val14),\($val12)),(\($val16),\($val12)),(\($val12),\($val14)),(\($val13),\($val14))
+tmp0=!item \($val14) of ($val12)
+
+tmp1=!positionof $(tmp0) in $val17
+
+val18=$[rint($(tmp1))]
+val19=$[rint($val8*($val7))]
+val20=$[rint(0)]
+val21=$[rint(403)]
+val22=$[rint(31)]
+val23=$[rint($val21+$val22*$val19)]
+val24=$[rint($val23-0.3*$val22)]
+val25=$[rint($val23+0.3*$val22)]
+val26=xrange -13,13	  yrange -1.5,3	  hline 0,0,red	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,2,blue	  text red,-0.1,1.5,medium,A	  text red,$val7-0.1,1.5,medium,B	  text red,$val19-0.1,-0.5,medium,G	  segment 0,-0.2,\a,0.2,red	  segment $val7,-0.2,$val7,0.2,red	  segment $val19,-0.2,$val19,0.2,red	  
+replytype1=radio
+replyoption1=shuffle 
+replyname1=choix des coeeficients
+replygood1=1;$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	Le point 
+!insmath G
+$() est le barycentre de la famille de points pondérés	&#123;
+!insmath (A;x);(B;y)
+$()&#125;. Un seul des couples 
+!insmath (x,y)
+$() est compatible avec	la figure.	<div class="wimscenter"> 
+!read oef/draw.phtml 800,64 \
+$val26 
+$()</div>	</div>	<div class="wims_question">	  Lequel&nbsp;?	<ul><li>	 
+!read oef/embed.phtml r1,1 
+$()	</li><li>	 
+!read oef/embed.phtml r1,2 
+$()	</li><li>	 
+!read oef/embed.phtml r1,3 
+$()	</li><li>	 
+!read oef/embed.phtml r1,4 
+$()	</li></ul>	</div>	 
+$()
+!exit
+
+:hint
+$()	<ol>	<li>Le point 
+!insmath K
+$() est plus proche du point ayant le plus grand coefficient en valeur absolue.</li>	<li>Si les coefficients sont de même signe, il appartient au segment &#91; 
+!insmath AB
+$() &#93;.</li>	</ol>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=26
+embedcnt=4

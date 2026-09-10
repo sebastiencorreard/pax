@@ -1,0 +1,164 @@
+!set title=Lire un graphique 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oiseaux,mammifères,insectes,fruits,été,hiver,ete
+val7=Le renard mange des mammifères,	  des oiseaux, des insectes et des fruits.
+val8=Les deux diagrammes circulaires donnent la composition	  de l'alimentation du renard selon les saisons.
+val9=Rouge : Mammifères, Bleu : Oiseaux,	  Jaune : Insectes, Vert : Fruits
+val10=Ois.,Mamm.,Insec.,Fruits
+val11=Quel pourcentage les,	  représentent-ils dans l'alimentation du renard en
+val12=100
+tmp0=!randint 5, 12
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 25, 40
+
+tmp1=!randint $val13+1, 16
+
+val13=$val13,$(tmp0),$(tmp1)
+val12=$[$val12-$(val13[1])-$(val13[2])-$(val13[3])]
+val13=$val13,$val12
+val12=100
+tmp0=!randint 8, 40
+
+val14=$(tmp0)
+val15=$val14
+val12=$[$val12-$val14]
+val15=$val15,$val12
+val16=skyblue,red,yellow,lightgreen
+tmp0=!randint 1, \n
+
+val17=$(tmp0)
+val18=ellipse 0,0,2,2,black	segment 0,0,1,0,black
+val19=0
+!for val20 =1 to 4 
+tmp0=!item $val20 of $val13
+
+val21=$[$(tmp0)*2*pi/100]
+val22=$[$val19+$val21/2]
+tmp0=!item $val20 of $val16
+
+val23=$(tmp0)
+val19=$[$val19+$val21]
+val18=$val18	segment 0,0,cos($val19),sin($val19),black	fill cos($val22)/2,sin($val22)/2, $val23	text black,-0.4,1.4,large,$(val6[7])
+tmp0=!item $val20 of $val13
+
+tmp1=!item $val20 of $val10
+
+val18=$val18	text black, 2*cos($val22)/3,2*sin($val22)/3, medium, $(tmp0)%	text black, 3.4*cos($val22)/3,3.4*sin($val22)/3, medium, $(tmp1)	
+!next
+val24=ellipse 0,0,2,2,black	segment 0,0,1,0,black
+val25=0
+!for val20 =1 to 2 
+tmp0=!item $val20 of $val15
+
+val26=$[$(tmp0)*2*pi/100]
+val27=$[$val25+$val26/2]
+tmp0=!item $val20 of $val16
+
+val28=$(tmp0)
+val25=$[$val25+$val26]
+val24=$val24	  segment 0,0,cos($val25),sin($val25),black	  fill cos($val27)/2,sin($val27)/2, $val28	  text black,-0.4,1.4,large,$(val6[6])
+tmp0=!item $val20 of $val15
+
+tmp1=!item $val20 of $val10
+
+val24=$val24	text black, 2*cos($val27)/3,2*sin($val27)/3, medium, $(tmp0)%	text black, 3.4*cos($val27)/3,3.4*sin($val27)/3, medium, $(tmp1)	
+!next
+tmp=!trim $(val6[1]),$(val13[1]),$(val6[5])	$(val6[2]),$(val13[2]),$(val6[5])	$(val6[3]),$(val13[3]),$(val6[5])	$(val6[4]),$(val13[4]),$(val6[5])	$(val6[1]),$(val15[1]),$(val6[6])	$(val6[2]),$(val15[2]),$(val6[6])
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val30=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val29
+
+tmp=!row $val30 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val29=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$(val29[2])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7	<p>$val8</p>	<div class="wimscenter">	$val9	</div>	<div class="wimscenter">	  
+!read oef/draw.phtml 300,300 \
+	xrange -1.5,1.5	yrange -1.5,1.5	$val18	 
+$()	 
+!read oef/draw.phtml 300,300 \
+	xrange -1.5,1.5	yrange -1.5,1.5	$val24	 
+$()	</div>		<label for="reply1">$(val11[1]) $(val29[1])	  $(val11[2]) $(val29[3])</label> ?	 
+!read oef/embed.phtml r1,5 
+$()&nbsp;%		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,18,24,29
+embedcnt=1

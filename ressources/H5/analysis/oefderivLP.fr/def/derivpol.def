@@ -1,0 +1,250 @@
+!set title=Dérivée(s) de polynôme(s)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=norbert.rey@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2 = 
+val6= 3
+!else
+val6=$val2
+!endif
+val7=reply1,reply2,reply3,reply4,reply5
+val7=$(val7[1..$val6])
+
+!ifval $val6 = 1 
+val8= Calculer la dérivée de la fonction suivante 
+!else
+val8= Calculer les dérivées des fonctions suivantes 
+!endif
+
+!ifval $val3 = 
+val9= 3
+!else
+val9=$val3
+!endif
+tmp0=!itemcnt $val9
+
+val10=$(tmp0)
+val11=$[rint($(val9[1]))]
+
+!ifval 2>$val10 
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val12=$[rint( $(tmp0))]
+!else
+val12=$[rint($(val9[2]))]
+!endif
+
+!ifval 3>$val10 
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val13=$[rint( $(tmp0))]
+!else
+val13=$[rint($(val9[3]))]
+!endif
+
+!ifval 4>$val10 
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val14=$[rint( $(tmp0))]
+!else
+val14=$[rint($(val9[4]))]
+!endif
+
+!ifval 5>$val10 
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val15=$[rint( $(tmp0))]
+!else
+val15=$[rint($(val9[5]))]
+!endif
+tmp0=!listunion $val4 and $val5
+
+val4=$(tmp0) 
+
+!ifval $val4 = 
+val4= x
+!else
+val4=$val4
+!endif
+tmp=!nonempty items $val4
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+tmp0=!char 1 of $val16
+
+val16=$(tmp0)
+!readproc slib/polynomial/random $val11,4,$val16,4 
+tmp0=$slib_out
+val17=!rawmath $(tmp0)
+!readproc slib/polynomial/random $val12,4,$val16,1 
+tmp0=$slib_out
+val18=!rawmath $(tmp0)
+!readproc slib/polynomial/random $val13,1,$val16,5 
+tmp0=$slib_out
+val19=!rawmath $(tmp0)
+!readproc slib/polynomial/random $val14,5,$val16,-9 
+tmp0=$slib_out
+val20=!rawmath $(tmp0)
+!readproc slib/polynomial/random $val15,9,$val16,9 
+tmp0=$slib_out
+val21=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val17,$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val22=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val18,$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val19,$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val24=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val20,$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val25=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val21,$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val26=!rawmath $(tmp0)
+val27=\($val17 \),\($val18 \),\($val19\),\($val20\),\($val21\)
+val27=$(val27[1..$val6])
+val28=,
+val28=$(val28[1..$val6])
+val29=\($val17 \),\($val22\);\($val18 \),\($val23\);\($val19\),\($val24\);\($val20\),\($val25\);\($val21\),\($val26\)
+tmp=!translate internal $	$ to ; in  $val29
+
+tmp=!row 1 to $val6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val29=$(tmp0)
+tmp=!trim fonction \(f \),fonction dérivée \(f' \);\($val17 \),reply1;\($val18 \),reply2;\($val19\),reply3;\($val20\),reply4;\($val21\),reply5
+val30=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val30
+
+tmp=!row 1 to $val6+1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val30=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val30],wimscenter wimsborder,TH=[1;] 
+tmp0=$slib_out
+val31=$(tmp0)
+!readproc slib/text/matrixhtml [fonction \(f \),fonction dérivée \(f' \);$val29],wimscenter wimsborder,TH=[1;0] 
+tmp0=$slib_out
+val32=$(tmp0)
+oefsteps=$val7 
+nextstep=!nosubst $val7 
+!readproc oef/steps.proc
+replytype1=function
+replyoption1=comma 
+replyname1=
+replygood1=!rawmath $val22,$val16
+replytype2=function
+replyoption2=comma 
+replyname2=
+replygood2=!rawmath $val23,$val16
+replytype3=function
+replyoption3=comma 
+replyname3=
+replygood3=!rawmath $val24,$val16
+replytype4=function
+replyoption4=comma 
+replyname4=
+replygood4=!rawmath $val25,$val16
+replytype5=function
+replyoption5=comma 
+replyname5=
+replygood5=!rawmath $val26,$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val32
+
+
+!goto stat
+
+!exit
+
+:question
+$() 	<div class="wims_question">$val8 de la variable 
+!insmath $val16 
+$() .</div>	 
+!read oef/special.phtml codeinput [$val31], 15,div	reply1	reply2	reply3	reply4	reply5	   
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val32
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,16,31,32
+embedcnt=1

@@ -1,0 +1,531 @@
+!set title=Variations avec logarithme 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+keywords=derivative,function_variation,logarithm
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=9000
+oefdescription=Exercice comportant deux étapes aboutissant à la construction du tableau de variations d'une fonction
+oefobservation=Construction du tableau de variations d'une fonction de la forme ax^2 + bx + c+ k log(dx) ou ax+b+log(cx+d)
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=46
+prevarcnt=43
+postvarcnt=2
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=8
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=45x40
+tmp0=!randitem 1,2,3,4
+
+val7=$[rint($(tmp0))]
+
+!ifval $val7 = 4 
+val8=$[rint( 2 )]
+!else
+val8=$[rint( $val7)]
+!endif
+val9=reply3,reply4
+
+!ifval $val8 >1 
+val9= $val9,reply5,reply6,reply7,reply8 
+!else
+val9= $val9
+!endif
+
+!ifval $val8 = 3 
+val9= $val9,reply9,reply10,reply11,reply12 
+!else
+val9= $val9
+!endif
+tmp0=!randint 1, 6
+
+tmp1=!randitem 1,1,1,2,3,4
+
+t_=!rawmath $(tmp0)/$(tmp1)
+val10=!exec pari print($t_)
+tmp0=!randint 1, 6
+
+tmp1=!randitem 1,1,1,2,3,4
+
+t_=!rawmath $(tmp0)/$(tmp1)
+val11=!exec pari print($t_)
+
+!ifval $val7 =4 
+t_=!rawmath  -($val11) 
+val11=!exec pari print($t_)
+!else
+t_=!rawmath  $val11 
+val11=!exec pari print($t_)
+!endif
+
+!ifval $val10 = $val11 
+t_=!rawmath  $val11 +1 
+val11=!exec pari print($t_)
+!else
+t_=!rawmath  $val11
+val11=!exec pari print($t_)
+!endif
+t_=!rawmath (-1)*($val10+$val11)
+val12=!exec pari print($t_)
+t_=!rawmath ($val10)*($val11)
+val13=!exec pari print($t_)
+tmp0=!randitem 1,-1
+
+val14=$[rint($(tmp0))]
+t_=!rawmath ($val14)
+val15=!exec pari print($t_)
+t_=!rawmath ($val14)*($val12)
+val12=!exec pari print($t_)
+t_=!rawmath ($val14)*($val13)
+val13=!exec pari print($t_)
+tmp0=!randint 1, 3
+
+val16=$[rint($(tmp0)*$val14)]
+tmp0=!randint 1-$val16*$val10, 7-$val16*$val10
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val18=$[rint($(tmp0)*$val14 )]
+
+!ifval $val7 = 2 
+t_=!rawmath (-$val16)/($val10*$val16+$val17)
+val18=!exec pari print($t_)
+!else
+t_=!rawmath $val18
+val18=!exec pari print($t_)
+!endif
+tmp0=!randint -6, 6
+
+val19=$[rint($(tmp0))]
+
+!ifval $val7 >2 
+t_=!replace internal \( by ( in expand(($val15)*x^2+2*($val12)*x+$val19+2*($val13)*log(x))
+tmp0=!exec maxima $t_
+
+val20=!rawmath  $(tmp0)
+!else
+t_=!replace internal \( by ( in expand($val18*x+$val19+log($val16*x+$val17))
+tmp1=!exec maxima $t_
+
+val20=!rawmath $(tmp1) 
+!endif
+tmp=!translate ;";': to $     $ in $val20,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val21=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp0)
+tmp0=!texmath $val20
+
+val22=$(tmp0)
+tmp0=!replace internal log by ln in $val22
+
+val22=$(tmp0)
+tmp0=!texmath $val21
+
+val23=$(tmp0)
+
+!ifval $val8 = 2 
+t_=!rawmath  $val10 
+val24=!exec pari print($t_)
+!else
+t_=!rawmath  max($val10,$val11)
+val24=!exec pari print($t_)
+!endif
+
+!ifval $val8 = 2 
+t_=!rawmath  $val10 
+val25=!exec pari print($t_)
+!else
+t_=!rawmath  min($val10,$val11)
+val25=!exec pari print($t_)
+!endif
+
+!ifval $val16 < 0
+val26= - \infty
+!else
+tmp=!translate ";': to $     $ in -($val17)/($val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26= $(tmp0)
+!endif
+
+!ifval $val16 > 0
+val27= + \infty
+!else
+tmp=!translate ";': to $     $ in -($val17)/($val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27= $(tmp0)
+!endif
+tmp0=!item $val7 of $val26,$val26,0,0
+
+val26=$(tmp0)
+tmp0=!item $val7 of $val27,$val27,+ \infty,+ \infty
+
+val27=$(tmp0)
+evaltmp=$val20
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val28=!rawmath $(tmp1)
+evaltmp=$val20
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val29=!rawmath $(tmp1)
+tmp0=!replace internal log by ln in $val28
+
+val28=$(tmp0)
+tmp0=!replace internal log by ln in $val29
+
+val29=$(tmp0)
+val30=+ , - 
+val31=\(\nearrow\),\(\searrow\)
+
+!ifval $val14>0 
+tmp=!translate internal $	$ to ; in 1	1,2	1,2,1	2,1	
+
+tmp=!row $val7 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val32= $(tmp0)
+!else
+tmp=!translate internal $	$ to ; in 2	1,2	2,1,2	1,2	
+
+tmp=!row $val7 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+val32=$(tmp1)
+!endif
+val33=$(val30[$val32])
+val11=$(val31[$val32])
+val34=Pour  \(x\), entrer sa valeur exacte.	 Pour \(f(x)\), indiquer soit la valeur exacte, soit une valeur approchée en gardant	 au moins 5 chiffres significatifs.	 
+oefsteps=reply1,reply2	$val9 
+nextstep=!nosubst reply1,reply2	$val9 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=
+replygood1=$val21
+replytype2=menu
+replyname2=
+replygood2=$val8 ; 0,1,2,3,autre
+replytype3=clickfill
+replyname3=
+replygood3=$(val33[1]) ;$val31,$val30
+replytype4=clickfill
+replyname4=
+replygood4=$(val11[1]) 
+replytype5=numexp
+replyname5=
+replygood5=$val25
+replytype6=function
+replyname6=
+replygood6=!rawmath $val28
+replytype7=clickfill
+replyname7=
+replygood7=$(val33[2])
+replytype8=clickfill
+replyname8=
+replygood8=$(val11[2])
+replytype9=numexp
+replyname9=
+replygood9=$val24
+replytype10=function
+replyname10=
+replygood10=!rawmath $val29
+replytype11=clickfill
+replyname11=
+replygood11=$(val33[3])
+replytype12=clickfill
+replyname12=
+replygood12=$(val11[3])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soit 
+!insmath f
+$() la fonction définie sur 
+!insmath \rbrack $val26 ; $val27 \lbrack
+$() par 
+!insmath f(x) = $val22
+$().<br/>		
+!if $m_step=1 
+$()Calculer 
+!insmath f'(x)
+$(). <div class="wimscenter">
+!insmath f'(x) = 
+$() 
+!read oef/embed.phtml reply1 
+$()</div>	 Combien y a-t-il de valeurs dans 
+!insmath \rbrack $val26 ; $val27 \lbrack
+$() annulant 
+!insmath f'(x)
+$() ?  
+!read oef/embed.phtml reply2 
+$() 
+!endif
+$()	
+!if $m_step=2 
+$()<p>Vous avez trouvé que sa dérivée est : 
+!insmath f'(x) = $val23
+$().</p>	Compléter le tableau de variations de 
+!insmath f
+$().		<table class="wimscenter wimsborder" style="width:70%;">	<tr>	<td style="width:10%;"> 
+!insmath x
+$()</td><td style="width:5%;text-align:left">
+!insmath $val26
+$()</td>	<td style="width:25%;"></td>	
+!if $val8>1 
+$()<td style="width:5%;"> 
+!read oef/embed.phtml reply5,6 
+$()</td><td style="width:25%;"></td>	
+!if $val8>2 
+$()<td style="width:5%;"> 
+!read oef/embed.phtml reply9,6 
+$()</td><td style="width:25%;"></td> 
+!endif
+$() 
+!endif
+$()	<td style="width:5%:text-align:right">
+!insmath $val27
+$()</td>	</tr><tr>	<td>
+!insmath f'(x)
+$()</td><td></td><td>  
+!read oef/embed.phtml reply3,$val6 
+$() </td>	
+!if $val8>1 
+$()<td>0</td><td>  
+!read oef/embed.phtml reply7,$val6 
+$() </td>	
+!if $val8>2 
+$()<td>0</td><td>  
+!read oef/embed.phtml reply11,$val6 
+$()</td> 
+!endif
+$() 
+!endif
+$()	<td></td>	</tr><tr>	<td>
+!insmath f(x)
+$()</td><td style="text-align:left"> </td><td>  
+!read oef/embed.phtml reply4,$val6 
+$() </td>	
+!if $val8>1 
+$()<td> 
+!read oef/embed.phtml reply6,10 
+$()</td><td>  
+!read oef/embed.phtml reply8,$val6 
+$() </td>	
+!if $val8>2 
+$()<td> 
+!read oef/embed.phtml reply10,10 
+$()</td><td>  
+!read oef/embed.phtml reply12,$val6 
+$()</td> 
+!endif
+$() 
+!endif
+$()	<td style="text-align:right"> </td>	</tr>	</table>	
+!if $val8>1 
+$()	<div class="wims_instruction"> $val34</div> 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La dérivée de 
+!insmath f
+$() en 
+!insmath x
+$() est 
+!insmath $val23
+$(). <br/> Cette dérivée	
+!if $val8=1 
+$() ne s'annule pas dans 
+!insmath \rbrack $val26 ; $val27 \lbrack
+$(). 
+!endif
+$()	
+!if $val8=2 
+$() s'annule une fois dans 
+!insmath \rbrack $val26 ; $val27 \lbrack
+$() : pour 
+!insmath x = $val25
+$(). 
+!endif
+$()	
+!if $val8=3 
+$() s'annule deux fois dans 
+!insmath \rbrack $val26 ; $val27 \lbrack
+$() : pour 
+!insmath x = $val25
+$() et pour 
+!insmath x = $val24
+$(). 
+!endif
+$()	<p>Le tableau de variations de 
+!insmath f
+$() sur 
+!insmath \rbrack $val26 ; $val27 \lbrack
+$() est : </p>	<table class="wimscenter wimsborder" style="width:70%;">	<tr>	<td style="width:10%;"> 
+!insmath x
+$()</td><td style="width:5%;text-align:left">
+!insmath $val26
+$()</td>	<td style="width:25%;"></td>	
+!if $val8>1 
+$()<td style="width:5%;">
+!insmath $val25
+$()</td><td style="width:25%;"></td>	
+!if $val8>2 
+$()<td style="width:5%;">
+!insmath $val24
+$()</td><td style="width:25%;"></td> 
+!endif
+$() 
+!endif
+$()	<td style="width:5%;text-align:right">
+!insmath $val27
+$()</td>	</tr><tr>	<td>
+!insmath f'(x)
+$()</td><td></td><td> $(val33[1]) </td>	
+!if $val8>1 
+$()<td>0</td><td> $(val33[2]) </td>	
+!if $val8>2 
+$()<td>0</td><td> $(val33[3])</td> 
+!endif
+$() 
+!endif
+$()	<td></td>	</tr><tr>	<td>
+!insmath f(x)
+$()</td><td></td><td> $(val11[1]) </td>	
+!if $val8>1 
+$()<td>
+!insmath $val28
+$()</td><td> $(val11[2]) </td>	
+!if $val8>2 
+$()<td>
+!insmath $val29
+$()</td><td> $(val11[3])</td> 
+!endif
+$() 
+!endif
+$()	<td></td>	</tr>	</table>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val35=vous avez trouvé que la dérivée \(f'(x)\) est négative ; vous devriez donc dire que la fonction \(f\) est décroissante sur cet intervalle.
+val36=vous avez trouvé que la dérivée \(f'(x)\) est positive ; vous devriez donc dire que la fonction \(f\) est croissante sur cet intervalle.
+
+!exit
+
+:feedback
+!ifval $m_reply3 isitemof $val31 or $m_reply7 isitemof $val31 or $m_reply11 isitemof $val31 
+ <div class='oef_feedbacks'>Pour obtenir les variations de 
+!insmath f
+$(), on indique le SIGNE de la dérivée 
+!insmath f'(x)
+$().
+$()</div>
+!endif
+!ifval $m_reply4 isitemof $val30 or $m_reply8 isitemof $val30 or $m_reply12 isitemof $val30 
+ <div class='oef_feedbacks'>Ce sont les VARIATIONS de la fonction 
+!insmath f(x)
+$() qu'on cherche, et pas son signe.
+$()</div>
+!endif
+!ifval $m_reply3 isitemof - and $m_reply4 isitemof \(\nearrow\)
+ <div class='oef_feedbacks'>Incohérence dans la première colonne du tableau : $val35
+$()</div>
+!endif
+!ifval $m_reply3 isitemof + and $m_reply4 isitemof \(\searrow\)
+ <div class='oef_feedbacks'>Incohérence dans la première colonne du tableau : $val36
+$()</div>
+!endif
+!ifval $m_reply7 isitemof - and $m_reply8 isitemof \(\nearrow\)
+ <div class='oef_feedbacks'>Incohérence dans la deuxième colonne du tableau : $val35
+$()</div>
+!endif
+!ifval $m_reply7 isitemof + and $m_reply8 isitemof \(\searrow\)
+ <div class='oef_feedbacks'>Incohérence dans la deuxième colonne du tableau : $val36
+$()</div>
+!endif
+!ifval $m_reply11 isitemof - and $m_reply12 isitemof \(\nearrow\)
+ <div class='oef_feedbacks'>Incohérence dans la troisième colonne du tableau : $val35
+$()</div>
+!endif
+!ifval $m_reply11 isitemof + and $m_reply12 isitemof \(\searrow\)
+ <div class='oef_feedbacks'>Incohérence dans la troisième colonne du tableau : $val36
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,11,22,23,24,25,26,27,28,29,30,31,33,34
+embedcnt=12

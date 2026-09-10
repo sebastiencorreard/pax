@@ -1,0 +1,178 @@
+!set title=C-Légender une cellule en Anaphase I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jonathan,Faivre
+email=prof.svt.lc@gmail.com
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=http://www.jeulin.fr/antheres-lys-meiose-575528.html
+val6=En cliquant sur les étiquettes, les mettre à leur place.
+val7=Photomeiosejeulin.jpeg
+val8=$[rint(4)]
+val9=$[rint(3)]
+val10=150,20
+val11=black
+val12=clickfill
+tmp=!trim 220,221	Paroi,201,90,150,105	Chromosome,183,165,108,141	Cytoplasme,123,58,88,88
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=$(val13[1;])
+val15=$(val13[2..-1;])
+tmp=!translate internal $	$ to ; in $val15
+
+tmp0=!rowcnt $tmp
+val16=$[rint($(tmp0))]
+tmp=!trim $val15
+val15=!translate internal $	\
+$ to ;; in $tmp
+val8=$[rint(min($val8,$val16))]
+val17=$(val10[1])
+val18=$(val10[2])
+val19=
+tmp0=!shuffle $val16
+
+val20=$(tmp0)
+val21=$[rint(max(0,min($val9,$val16-$val8)))]
+val22=$(val20[1..$val8])
+val23=copy 0,0,-1,-1,-1,-1,$val7
+!for val24  =1 to $val8 
+val23=$val23	arrow $(val15[$(val22[$val24]);2]),$(val15[$(val22[$val24]);3]),$(val15[$(val22[$val24]);4]),$(val15[$(val22[$val24]);5]),20,$val11
+val25=$(val15[$(val22[$val24]);2,3])
+
+!ifval $(val15[$(val22[$val24]);2]) < $(val15[$(val22[$val24]);4]) 
+t_=!replace internal \( by ( in [$val25] - [$val17,$val18/2]
+tmp0=!exec pari $t_
+
+val25= $(tmp0)
+!else
+t_=!replace internal \( by ( in [$val25] - [0,$val18/2]
+tmp1=!exec pari $t_
+
+val25=	     $(tmp1)
+!endif
+val19=$val19	r $val24,$(val25[1]) x $(val25[2])
+!next
+!readproc oef/draw.phtml $val14 \
+$val23 
+tmp0=$ins_url
+val26=$(tmp0)
+
+!ifval $val21 >0
+val27= $(val15[$(val20[$val8+1..$val8+$val21]);1])
+!else
+val27=
+!endif
+tmp0=!makelist r x for x=1 to $val8
+
+val28=$(tmp0)
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=$val12
+
+replyname1=
+replygood1=$(val15[$(val22[1]);1])
+replytype2=$val12
+
+replyname2=
+replygood2=$(val15[$(val22[2]);1])
+replytype3=$val12
+
+replyname3=
+replygood3=$(val15[$(val22[3]);1])
+replytype4=$val12
+
+replyname4=
+replygood4=$(val15[$(val22[4]);1])
+replytype5=$val12
+
+replyname5=
+replygood5=$(val15[$(val22[5]);1])
+replytype6=$val12
+
+replyname6=
+replygood6=$(val15[$(val22[6]);1])
+replytype7=$val12
+
+replyname7=
+replygood7=$(val15[$(val22[7]);1])
+replytype8=$val12
+
+replyname8=
+replygood8=$(val15[$(val22[8]);1])
+replytype9=$val12
+
+replyname9=
+replygood9=$(val15[$(val22[9]);1])
+replytype10=$val12
+
+replyname10=
+replygood10=$(val15[$(val22[10]);1])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val6	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val26,$(val14[1]) x $(val14[2]),$val17 x $val18	$val19 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,17,18,19,26
+embedcnt=1

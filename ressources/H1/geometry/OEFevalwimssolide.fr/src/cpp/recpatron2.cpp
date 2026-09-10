@@ -1,0 +1,55 @@
+target=oefrecpatron2
+
+#include "lang_titles.inc"
+#include "author.inc"
+#include "lang.inc"
+
+\integer{ha=random(35,40,45,50,55,60,65)}
+\integer{la=random(75,80,85,90,94,98)}
+\integer{lo=randint(\ha..380-2*\ha)}
+
+\integer{xo=(420-\lo-2*\ha)/2}
+\integer{yo=200+\la+\la}
+\text{pat1=draw(420,400
+rect \xo+\ha,\yo,\xo+\ha+\lo,\yo-\la,black
+rect \xo+\ha+\lo,\yo-\la,\xo+\ha,\yo-\la-\ha,black
+rect \xo+\ha,\yo-\la-\ha,\xo,\yo-\ha-2*\la,black
+rect \xo+\ha,\yo-\la-\ha,\xo+\ha+\lo,\yo-\ha-2*\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+2*\ha+\lo,\yo-\ha-\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+\ha,\yo-2*\la-2*\ha,black
+)}
+\text{pat2=draw(420,400
+rect \xo+\ha,\yo,\xo+\ha+\lo,\yo-\la,black
+rect \xo+\ha+\lo,\yo-\la,\xo+\ha,\yo-\la-\la,black
+rect \xo+\ha,\yo-\la-\la,\xo,\yo-\la-2*\la,black
+rect \xo+\ha,\yo-\la-\la,\xo+\ha+\lo,\yo-\la-2*\la,black
+rect \xo+\ha+\lo,\yo-\la-2*\la,\xo+2*\ha+\lo,\yo-\la-\la,black
+rect \xo+\ha+\lo,\yo-\la-2*\la,\xo+\ha,\yo-2*\la-2*\la,black
+)}
+\text{pat3=draw(420,400
+rect \xo+\ha,\yo+\ha-\la,\xo+\ha+\lo,\yo-\la,black
+rect \xo+\ha+\lo,\yo-\la,\xo+\ha,\yo-\la-\ha,black
+rect \xo+\ha,\yo-\la-\ha,\xo,\yo-\ha-2*\la,black
+rect \xo+\ha,\yo-\la-\ha,\xo+\ha+\lo,\yo-\ha-2*\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+2*\ha+\lo,\yo-\ha-\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+\ha,\yo-2*\la-2*\ha,black
+)}
+\text{pat4=draw(420,400
+rect \xo+\ha,\yo,\xo+\ha+\lo,\yo-\la,black
+rect \xo+\ha+\lo,\yo-\la,\xo+\ha,\yo-\la-\ha,black
+rect \xo+\ha,\yo-\la-\ha,\xo-15,\yo-\ha-2*\la,black
+rect \xo+\ha,\yo-\la-\ha,\xo+\ha+\lo,\yo-\ha-2*\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+2*\ha+\lo+15,\yo-\ha-\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+\ha,\yo-2*\la-2*\ha,black
+)}
+\text{patron=\pat2,\pat1,\pat3,\pat1,\pat4,\pat1}
+\integer{a=randint(1..6)}
+\integer{b=1+\a-floor(\a/2)*2}
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\patron[\a]" alt=""></div>
+ <div class="medium_size text_col">
+\name_enonce: \embed{r1}.
+</div></div>
+}
+\answer{}{\b;\name_choix}{type=radio}

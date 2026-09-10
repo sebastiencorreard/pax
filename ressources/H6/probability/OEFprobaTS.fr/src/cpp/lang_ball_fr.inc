@@ -1,0 +1,15 @@
+\text{name_il=Il y a }
+\text{name_ball=balles}
+\text{name_and=et}
+\text{name_sac1=dans un sac}
+\text{name_sac2=du sac}
+\text{name_if=Si}
+\text{name_extract=sont tirées}
+\text{name_quest=quelle est la probabilité d'obtenir }
+\text{name_alea=aléatoirement}
+\text{name_prob=La probabilité est égale à }
+\text{name_consigne=La réponse est demandée avec au moins 3 chiffres significatifs.}
+\text{name_tirer= façons de tirer}
+\text{name_concl=Donc la probabilité demandée est}
+\text{name_in=parmi}
+\text{name_defalea=signifie que l'on suppose que toutes les balles du sac ont la même chance d'être tirée.}

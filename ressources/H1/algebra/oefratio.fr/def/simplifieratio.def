@@ -1,0 +1,179 @@
+!set title=Simplifier un ratio
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=ratio, proportion,proportionality
+language=fr
+computeanswer=no
+precision=100000000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss=<style> .macss{background-color: #FAFAD2;} .damier {width:3px;height:3px;} .col1 {background-color:#FFFF00} .col2 {background-color:#FF0000} .wims_matrix td{padding:0} .unepart{width:100%;height:1em} .part_1{background-color:red} .part_2{background-color:blue} .part_3{background-color:maroon} .ecrit_1{color:red} .ecrit_2{color:blue} .ecrit_3{color:maroon} </style>
+
+ansorder=r,r
+varcnt=13
+prevarcnt=9
+postvarcnt=3
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($val6*$(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($val6*$(tmp0))]
+val9=$val7,$val8
+tmp0=!listuniq $val9
+
+val10=$(tmp0)
+tmp0=!itemcnt $val10
+
+!if $(tmp0)<2 
+val8=$[rint($val6*6)]
+!endif
+val11=$[rint(gcd($val7,$val8))]
+val12=$[rint($val7/$val11)]
+val13=$[rint($val8/$val11)]
+replytype1=numexp
+replyname1=
+replygood1=$val12
+replytype2=numexp
+replyname2=
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">Simplifier un ratio, c'est diviser chaque nombre du ratio par un diviseur commun aux nombres du ratio.	</div>	Simplifier <b>au maximum</b> le ratio <span class="nowrap"><b>
+!insmath $val7 : $val8
+$()</b>.</span>	<div><label for="reply1">On obtient</label><span class="nowrap"> 
+!read oef/embed.phtml r1,3 
+$()<label for="reply2">:</label> 
+!read oef/embed.phtml r2,3 
+$()</span>.</div>
+$()
+!exit
+
+:hint
+$()Simplifier un ratio (quand c'est possible), c'est diviser chaque nombre du ratio par un diviseur commun aux nombres du ratio.	<p>Par exemple, pour simplifier le ratio 
+!insmath 16:18
+$(), on cherche un diviseur commun à 
+!insmath 16
+$() et 
+!insmath 18
+$().</p>	<p>
+!insmath 16
+$() et 
+!insmath 18
+$() sont divisibles par 
+!insmath 2
+$() et on a 
+!insmath  16 = 2 \times 8 
+$() et <span class="nowrap">
+!insmath  18 = 2 \times 9
+$().</span></p>	<p>Donc le ratio 
+!insmath 16:18
+$() se simplifie en 
+!insmath 8:9
+$().</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!if $val7!=$val8 
+$()<p>Simplifier un ratio, c'est diviser chaque nombre du ratio par un diviseur commun aux nombres du ratio.</p>	Le nombre $val7 et le nombre $val8 sont divisibles par $val11 car 
+!insmath  $val7=$val11 \times $val12 
+$() et <span class="nowrap">
+!insmath  $val8=$val11 \times $val13 
+$().</span></p>	<p>Par conséquent, le ratio 
+!insmath $val7 : $val8
+$() peut également s'écrire <span class="nowrap">
+!insmath $val12 : $val13
+$().</span></p>	 
+!else
+$() <p>Les deux nombres étant égaux, le ratio 
+!insmath $val7 : $val8
+$() peut également s'écrire <span class="nowrap">
+!insmath $val12 : $val13
+$().</span></p>	 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val14=$[rint(gcd($m_reply1,$m_reply2))]
+val15=$[rint($m_reply1/$val14)]
+val16=$[rint($m_reply2/$val14)]
+
+!exit
+
+:feedback
+!ifval $m_reply1/$m_reply2=$val12/$val13 and $val14<>1
+ <div class='oef_feedbacks'><div class="macss">Vous pouviez encore simplifier chaque nombre de votre réponse par <b>$val14</b>.	<p>En effet, $m_reply1 et $m_reply2 sont divisibles par $val14.</p>	<p>
+!insmath $m_reply1 = $val14 \times $val15
+$() et <span class="nowrap">
+!insmath $m_reply2 = $val14 \times $val16
+$().</span></p></div>
+$()</div>
+!endif
+!ifval $m_reply1/$m_reply2<>$val12/$val13
+ <div class='oef_feedbacks'><div class="macss">Tu as fait une erreur dans ta simplification.</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $m_reply1/$m_reply2=$val12/$val13 and $val14=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Votre réponse est-elle correcte ?&nbsp;
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,13
+embedcnt=2

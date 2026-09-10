@@ -1,0 +1,120 @@
+!set title=Taux annuel
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2
+
+val6=$[rint($(tmp0))]
+
+!ifval $val6=1
+val7= augmentent 
+!else
+val7= diminuent
+!endif
+
+!ifval $val6=1
+val8= augmentent-elles 
+!else
+val8= diminuent-elles
+!endif
+
+!ifval $val6=1
+val9= d'augmentation 
+!else
+val9= de diminution 
+!endif
+tmp0=!randint 4, 10
+
+val10=$[rint($(tmp0))]
+!if $val6=1 
+val11=$[$val10]
+!else
+val11=$[-$val10]
+!endif
+val12=$[1+0.01*$val11]
+val13=$[$val12^4]
+val14=$[rint(abs($val13-1)*1000)]
+val14=$[0.1*$val14]
+replytype1=numeric
+replyname1=Pourcentage annuel
+replygood1=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Il s'agit d'une suite géométrique de raison $val12. <ul><li> Quel coefficient correspond à 4 étapes ? </li><li> A quel pourcentage correspond ce coefficient ?</li></ul>
+
+solution=!nosubst Il s'agit d'une suite géométrique de raison $val12. Au bout de 4 trimestres, les ventes auront été multipliées par $val13. Ce qui correspond à un pourcentage $val9 de $val14 %. 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<ul class="wims_nopuce">	<li>Chaque trimestre les ventes $val7 de $val10 % par rapport au trimestre précédent.</li>	<li><label for="reply1">De quel pourcentage $val8 au bout d'un an (4 trimestres) ?</label></li>	</ul>	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,5 
+$() % (à 0,1 % près).	</div>	
+$()
+!exit
+
+:hint
+$()Il s'agit d'une suite géométrique de raison $val12. <ul><li> Quel coefficient correspond à 4 étapes ? </li><li> A quel pourcentage correspond ce coefficient ?</li></ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Il s'agit d'une suite géométrique de raison $val12. Au bout de 4 trimestres, les ventes auront été multipliées par $val13. Ce qui correspond à un pourcentage $val9 de $val14 %. 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,12,13,14
+embedcnt=1

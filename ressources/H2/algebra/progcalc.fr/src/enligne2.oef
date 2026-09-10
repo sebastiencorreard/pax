@@ -1,0 +1,120 @@
+\title{Programme de calcul en ligne 2}
+\langage {fr}
+\author{Paul, Byache}
+\email{paul@byache.fr}
+\langage{html}
+\precision{1000}
+\css{<style>
+table.algo {border: 2px solid #999;}
+.fleche {font-size:2em;}
+</style>}
+
+\text{confparm1=\confparm1= ? 1,2,3,4,5:\confparm1}
+\text{confparm2=\confparm2= ?3:\confparm2}
+\text{confparm3=\confparm3= ? 1:\confparm3}
+\text{confparm4=\confparm4= ? 1:\confparm4}
+\text{at=numeric}
+\text{op=}
+\text{com=des valeurs décimales arrondies à \(10^(-2)) près.}
+\integer{a=random(3..9)}
+\integer{x=random(2..10)}
+\if{\confparm3=2}{
+\real{x=randint(1..300)/10}
+}
+\if{\confparm3=3}{
+\rational{x=randint(1..10)/randint(3..10)}
+\text{at=numexp}
+\text{op=noreduction}
+\text{com=les réponses sous forme de fractions (pas forcément simplifiées).}
+}
+
+\text{chop=wims(values x*2 for x in \confparm1)}
+\text{chop=\chop,wims(values x-1 for x in \chop)}
+
+#si racine carrée ou inverse, pas de soustraction (pour assurer que le prog de calcul soit bien défini)
+\if{1 isitemof \confparm1 or 2 isitemof \confparm1} {
+\text{chop=wims(listintersect 1,2,3,4,5,6,7,8,9 and \chop)}
+}
+
+\integer{n1=wims(randitem \chop)}
+\integer{n2=wims(randitem \chop)}
+\integer{n3=wims(randitem \chop)}
+
+\text{sol=On met<br>au carré.,On prend la <br>racine carrée.,On prend<br>l'inverse.,On prend<br>l'inverse.,On double.,On prend<br>la moitié.,On divise<br> par \a.,On multiplie<br>par \a.,On ajoute \a.,On soustrait \a.}
+\matrix{data=(XXX)^2
+(XXX)^0.5
+1/(XXX)
+1/(XXX)
+2*(XXX)
+(XXX)/2
+(XXX)/\a
+(XXX)*\a
+(XXX)+\a
+(XXX)-\a}
+
+\text{op1=wims(replace internal XXX by \x in \data[\n1;])}
+\rational{op1=\op1}
+\real{sol1=rint(\op1*100)/100}
+\text{op2=wims(replace internal XXX by \op1 in \data[\n2;])}
+\rational{op2=\op2}
+\real{sol2=rint(\op2*100)/100}
+\text{op3=wims(replace internal XXX by \op2 in \data[\n3;])}
+\rational{op3=\op3}
+\real{sol3=rint(\op3*100)/100}
+\if{\confparm3=3}{
+\rational{sol1=\op1}
+\rational{sol2=\op2}
+\rational{sol3=\op3}
+}
+
+\text{STEP=wims(item 1 to \confparm2 of r1,r2,r3)}
+\steps{\STEP}
+
+\text{HINT=(1 isin \confparm1 or 2 isin \confparm1) ?
+<iframe src=scripts/js/wincalc.html height="300" width="500" frameborder="0" align="right">
+</iframe>Voici une calculatrice.<br>
+Pour calculer \(sqrt(8)) par exemple, taper <span class="tt">8</span> puis la touche <span class="tt">sqrt</span>.
+<br>Notez les résultats sur une feuille de brouillon.<br>
+Quand vous avez fini vos calculs, cliquez sur "retour au travail" ci-dessous.
+<br><I>Remarque</I> Il est plus pratique d'utiliser votre propre calculatrice...:}
+
+\statement{Complète le programme de calcul ci-dessous.
+<br>Il faut donner \com
+<div class="unbreakable">
+<table class="wimscenter algo">
+<tr><td></td><td>\sol[\n1]</td>
+\if{\confparm2>1}{<td></td><td>\sol[\n2]</td>
+\if{\confparm2>2}{<td></td><td>\sol[\n3]</td>
+}}<td></td></tr>
+<tr><td style="color:blue;background:yellow">
+&nbsp;\x &nbsp;
+</td>
+<td class="fleche">&rarr;</td>
+<td>
+\embed{r1,7
+autocomplete="off"}
+</td>
+\if{\confparm2>1}{
+<td class="fleche">&rarr;</td>
+<td>
+\embed{r2,7
+autocomplete="off"}
+</td>
+\if{\confparm2>2}{
+<td class="fleche">&rarr;</td>
+<td>
+\embed{r3,7
+autocomplete="off"}
+</td>}}</tr>
+</table>
+</div>
+}
+
+\answer{Etape 1 : }{\sol1}{type=\at}{option=\op}
+\if{\confparm2>1}{
+  \answer{Etape 2 : }{\sol2}{type=\at}{option=\op}
+\if{\confparm2>2}{
+  \answer{Etape 3 : }{\sol3}{type=\at}{option=\op}
+}}
+
+\hint{\HINT}

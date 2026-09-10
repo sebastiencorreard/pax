@@ -1,0 +1,183 @@
+!set title=E. Calcul de dénombrement 1 bis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=combinatorics
+precision=1000
+oefdescription=Dénombrement d'entiers ayant des propriétés particulières
+
+ansorder=r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint $val6, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!shuffle 1,2,3,4,5,6,7,8,9
+
+val8=$(tmp0)
+tmp0=!item 1 to $val7 of $val8
+
+val8=$(tmp0)
+tmp0=!sort list $val8
+
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[-1]))]
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11=1
+val12=pairs
+!else
+val12=multiples de 5
+!endif
+!if $val11=1 
+val13=0,2,4,6,8
+!else
+val13=0,5
+!endif
+tmp0=!listintersect $val13 and $val8
+
+val14=$(tmp0)
+tmp0=!itemcnt $val14
+
+val15=$[rint($(tmp0))]
+tmp0=!randint $val9+1, $val10-1
+
+val16=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+val18=$[rint($val16*10^($val6-1))]
+
+!ifval $val17=1
+val19=supérieurs à $val18
+!else
+val19=inférieurs à $val18
+!endif
+val20=$[rint(0)]
+!if $val17=1 
+!for val21 =1 to $val7 
+
+!ifval $(val8[$val21])>=$val16
+val20=$[rint($val20+1)]
+!endif
+!next
+!else
+!for val21 =1 to $val7 
+
+!ifval $(val8[$val21])<$val16
+val20=$[rint($val20+1)]
+!endif
+!next
+!endif
+val22=chiffres distincts
+val23=$(val8[1..$val6])
+tmp0=!shuffle $val23
+
+val23=$(tmp0)
+val24=$[rint(($val7!)/(($val7-$val6)!))]
+val25=$[rint((($val7-1)!)/(($val7-$val6)!)*$val15)]
+val26=$[rint((($val7-1)!)/(($val7-$val6)!)*$val20)]
+tmp0=!replace internal , by in $val23
+
+val23=$(tmp0)
+val27=Combien de nombres de, peut-on former avec les chiffres
+val28=Parmi ces nombres,combien sont
+val29=Exemple
+val30=est un nombre formé de
+val31=On peut former $val24 nombres de \($val6\) $val22 avec les chiffres $val8.
+val32=$(val28[1]), $val25 sont $val12 et $val26 sont $val19.
+val33=$(val27[1]) $val6 $val22 $(val27[2]) $val8
+val34=$(val28[1]) \begin{itemize} \item $(val28[2]) $val12
+val35=\item $(val28[2]) $val19
+replytype1=numexp
+replyname1=question 1
+replygood1=$val24
+replytype2=numexp
+replyname2=question 2
+replygood2=$val25
+replytype3=numexp
+replyname3=question 3
+replygood3=$val26
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val29 : $val23 $val30 $val6 $val22. 
+
+solution=!nosubst $val31<br/> $val32
+
+latex=!nosubst  \begin{statement} $val33 ?\newline $val34 ? $val35 ? \end{itemize} \end{statement} \begin{solution} $val31\newline $val32 \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<ul class="wims_nopuce">	 <li><label for="reply1">	 $(val27[1]) $val6 $val22 $(val27[2]) $val8 ?</label>	  
+!read oef/embed.phtml reply1,6 
+$() </li>	 <li> $(val28[1]),	 <ul class="spacer">	  <li><label for="reply2">$(val28[2]) $val12 ?</label>	   
+!read oef/embed.phtml reply2,6 
+$()	  </li><li><label for="reply3">$(val28[2]) $val19 ?</label>	   
+!read oef/embed.phtml reply3,6 
+$()	  </li>	  </ul>	</ul>	</div>	
+$()
+!exit
+
+:hint
+$()$val29 : $val23 $val30 $val6 $val22. 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val31<br/> $val32
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val33 ?$m_newline $val34 ? $val35 ? $m_end{itemize} $m_end{statement} $m_begin{solution} $val31$m_newline $val32 $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,19,22,23,27,28,29,30,31,32,33,34,35
+embedcnt=3

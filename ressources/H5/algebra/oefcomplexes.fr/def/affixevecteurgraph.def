@@ -1,0 +1,142 @@
+!set title=Affixe d'un vecteur graphiquement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=complex_number
+
+ansorder=r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -6, 6
+
+val6=$[rint($(tmp0))]
+
+!ifval ($val6=0)
+tmp0=!randint 1, 7
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val7=$[rint( $(tmp0)*$(tmp1))]
+!else
+tmp2=!randint -7, 7
+
+val7=$[rint($(tmp2))]
+!endif
+
+!ifval ($val6>=0)
+tmp0=!randint -7, (7-$val6)
+
+val8=$[rint( $(tmp0))]
+!else
+tmp1=!randint (-7-$val6), 7
+
+val8=$[rint($(tmp1))]
+!endif
+
+!ifval ($val7>=0)
+tmp0=!randint -7, (7-$val7)
+
+val9=$[rint( $(tmp0))]
+!else
+tmp1=!randint (-7-$val7), 7
+
+val9=$[rint($(tmp1))]
+!endif
+val10=$[rint($val6+$val8)]
+val11=$[rint($val7+$val9)]
+t_=!rawmath $val6+$val7*i
+t_=!exec pari print($t_)
+val12=!mathsubst I=i in $t_
+!readproc oef/draw.phtml 400,400 \
+xrange -8,8	yrange -8,8	parallel -8,-8,-8,8,1,0,16,grey	parallel -8,-8,8,-8,0,1,16,grey	hline 0,0,black	vline 0,0,black	arrow 0,0,1,0,8,black	arrow 0,0,0,1,8,black	text black , -0.5,-0.2,small , O	text black , 0.5,-0.3,small , u	arrow 0.3,-0.2,1,-0.2,6,black	text black , -0.5,0.8,small , v	arrow -0.7,0.9,0,0.9,6,black	linewidth 1.7	segment -0.3,5,0.3,5,0,black	segment -0.3,-5,0.3,-5,0,black	segment -5,0.3,-5,-0.3,black	segment 5,0.3,5,-0.3,black	segment $val8-0.3,$val9-0.3,$val8+0.3,$val9+0.3,black	segment $val8-0.3,$val9+0.3,$val8+0.3,$val9-0.3,black	segment $val10-0.3,$val11-0.3,$val10+0.3,$val11+0.3,black	segment $val10-0.3,$val11+0.3,$val10+0.3,$val11-0.3,black	linewidth 2	arrow $val8,$val9,$val10,$val11,10,black	 
+tmp0=$ins_url
+val13=$(tmp0)
+!readproc oef/draw.phtml 380,380 \
+xrange -8,8	yrange -8,8	parallel -8,-8,-8,8,1,0,16,grey	parallel -8,-8,8,-8,0,1,16,grey	hline 0,0,black	vline 0,0,black	arrow 0,0,1,0,8,black	arrow 0,0,0,1,8,black	text black , -0.5,-0.2,small , O	text black , 0.5,-0.3,small , u	arrow 0.3,-0.2,1,-0.2,6,black	text black , -0.5,0.8,small , v	arrow -0.7,0.9,0,0.9,6,black	linewidth 1.7	segment $val8-0.3,$val9-0.3,$val8+0.3,$val9+0.3,black	segment $val8-0.3,$val9+0.3,$val8+0.3,$val9-0.3,black	segment $val10-0.3,$val11-0.3,$val10+0.3,$val11+0.3,black	segment $val10-0.3,$val11+0.3,$val10+0.3,$val11-0.3,black	arrow 0,0,$val6,$val7,10,blue	segment $val6-0.3,$val7-0.3,$val6+0.3,$val7+0.3,blue	segment $val6-0.3,$val7+0.3,$val6+0.3,$val7-0.3,blue	dline $val8,$val9,$val10,$val9,black	dline $val10,$val9,$val10,$val11,black	text blue , $val6+0.3,$val7+0.3,medium , M	segment -0.3,5,0.3,5,0,black	segment -0.3,-5,0.3,-5,0,black	segment -5,0.3,-5,-0.3,black	segment 5,0.3,5,-0.3,black	linewidth 2	arrow $val8,$val9,$val10,$val11,10,black		 
+tmp0=$ins_url
+val14=$(tmp0)
+replytype1=complex
+
+replyname1=
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Lire l'affixe du vecteur 
+!insmath \overrightarrow{w}
+$() dont un représentant est tracé dans le plan complexe ci-dessous.	<img src="$val13" alt="dessin" />	<div class="wims_question"><label for="reply1">L'affixe est </label> 
+!read oef/embed.phtml r1,5 
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<img src="$val14" alt="dessinsol" /><br/>	L'affixe de 
+!insmath \overrightarrow{w}
+$() est l'affixe du point 
+!insmath M
+$() tel que 
+!insmath \overrightarrow{w}=\overrightarrow{OM}
+$() c'est à dire 
+!insmath $val12
+$().<br/>	On peut également observer comment on se déplace de l'origine à l'extrémité du vecteur 
+!insmath \overrightarrow{w}
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14
+embedcnt=1

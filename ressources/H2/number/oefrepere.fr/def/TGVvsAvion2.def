@@ -1,0 +1,157 @@
+!set title=Echelle-Mesure de distance-Temps
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+oefcss=<style> .jxgbox {margin-left:auto;margin-right:auto;} </style>
+
+ansorder=r,r,r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim Lisbonne,-17.7,-13	Madrid,-13.9,-12.6	Rome,-3.9,-12.9	Athènes,3.2,-16.5	Tirana,0.6,-13.6	Sofia,2.6,-12.2	Belgrade,0.8,-10.7	Bucarest,4,-10.4	Budapest,-0.2,-8.4	Bratislava,-1,-7.7	Vienne,-1.7,-7.7	Prague,-2.7,-5.9	Berlin,-3,-4	Bruxelles,-7.7,-5	Amesterdan,-7.3,-4.1	Londres,-9.8,-3.9	Dublin,-12.5,-1.5	Copenhague,-3.5,-1.5	Oslo,-4,2.4	Stokholm,-1.4,1.8	Helsinki,1.9,2.9	Tallinn,2,2	Riga,2,0	Vilnius,2.2,-2	Minsk,3.5,-2.5	Moscou,8,0.2	Varsovie,0.65,-4.1	Kiev,5.3,-5.1
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 28
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1 , 28
+
+val8=$[rint($(tmp0))]
+!while $val7 = $val8 
+tmp0=!randint 1 , 28
+
+val8=$[rint($(tmp0))]
+!endwhile
+tmp=!trim 
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=$[rint(sqrt(($(val6[$val7;2])-$(val6[$val8;2]))^2+($(val6[$val7;3])-$(val6[$val8;3]))^2)*100)]
+val11=$[$val10/100]
+val12=$[$val11*150]
+val13=$[($val11-0.4)*150]
+val14=$[($val11+0.4)*150]
+val15=$[$val12/250]
+val16=$[$val13/250]
+val17=$[$val14/250]
+val18=$[$val12/750]
+val19=$[$val13/750]
+val20=$[$val14/750]
+
+!ifval $val15<($val18+2) 
+val21=$[rint(1)]
+!else
+val21=$[rint(2)]
+!endif
+val22=var brd = JXG.JSXGraph.initBoard('jxgbox', {	axis:true,boundingbox: [-20, 20, 20, -20], grid:true, shownavigation:true,showFullscreen: true});	var urlImg = "$val1/Capital.png";	var carte = brd.create('image',[urlImg,[-24,-22], [48,38] ],{fixed:true});	var dfp = brd.create('text',[-16,16,"Placer les capitales suivantes :" ],{fontSize:30});	jxgbox_rep1 = brd.create('point',jxgbox_var1 , {face:'+', name:'$(val6[$val7;1])', size:6, showInfobox: false});	jxgbox_rep2 = brd.create('point',jxgbox_var2, {face:'+', name:'$(val6[$val8;1])', size:6, showInfobox: false});
+!readproc slib/geo2D/jsxgraph box,800 x 800, var brd = JXG.JSXGraph.initBoard('box', {	  axis:true,boundingbox: [-20, 20, 20, -20], grid:true, shownavigation:true,showFullscreen: true});	        var urlImg = "$val1/Capital.png";	        var carte = brd.create('image',[urlImg,[-24,-22], [48,38] ],{fixed:true});	        var sos = brd.create('point',[3.5,15] , {face:'+', size:8,fixed:false, showInfobox: false,Color:'black'});	        var soss = brd.create('point',[15,15] , {face:'+', size:8,fixed:false, showInfobox: false,Color:'black'});	        brd.create('text',[-16,17,function(){	return 'Utiliser le segment [AB] pour effectuer des mesures: AB =' + sos.Dist(soss).toFixed(2) +' unités';}],{fontSize:20});	        brd.create('point',[$(val6[$val7;2]),$(val6[$val7;3])] , {face:'o',fixed:true, size:1, showInfobox: false,name:'$(val6[$val7;1])',Color:'green'});	        brd.create('point',[$(val6[$val8;2]),$(val6[$val8;3])] , {face:'o',fixed:true, size:1, showInfobox: false,name:'$(val6[$val8;1])',Color:'green'});	        var sss= brd.create('line',[sos,soss],{straightFirst:false, straightLast:false});	               
+tmp0=$slib_out
+val23=$(tmp0)
+replytype1=range
+replyoption1=nonstop noanalyzeprint 
+replyname1=
+replygood1=!rawmath $val11-0.4,$val11+0.4,$val11
+replytype2=range
+replyoption2=nonstop noanalyzeprint 
+replyname2=
+replygood2=!rawmath $val13,$val14,$val12
+replytype3=range
+replyoption3=nonstop noanalyzeprint 
+replyname3=
+replygood3=!rawmath $val13,$val14,$val12
+replytype4=range
+replyoption4=nonstop noanalyzeprint 
+replyname4=Temps en TGV
+replygood4=!rawmath $val16,$val17,$val15
+replytype5=range
+replyoption5=nonstop noanalyzeprint 
+replyname5=Temps en avion
+replygood5=!rawmath $val19,$val20,$val18
+replytype6=radio
+replyoption6=shuffle split nonstop 
+replyname6=Le plus rapide
+replygood6=$val21;Le TGV,L'avion
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<div class="problematique">	Quel est le moyen de transport le plus rapide pour aller de $(val6[$val7;1]) à $(val6[$val8;1]) ?	</div>	<p class="special_letter">	Le TGV roule à la vitesse moyenne de 250 km/h.	<br> L'avion vole à la vitesse de 750 km/h mais il faut arriver 2H à l'avance pour	 compléter les modalités d'enregistrement.	</p>	<div class="question">	$val23	<br>	Quelle est la distance entre les 2 capitales ?	<ul><li>  
+!read oef/embed.phtml reply1, 6 
+$() en unité du graphique.</li>	<li>	<table class="float_left wimsborder"><tr><td> 900 km représente</td><td> 6 unités graphique.</td></tr>	<tr><td> 
+!read oef/embed.phtml reply2, 6 
+$() km représente</td><td> $val11 unités graphique.</td></tr>	</table>	</li></ul>	<br>	<div class="float_left">	La distance entre les deux capitales est de :  
+!read oef/embed.phtml reply3, 6 
+$() km.	</div>	<br>	<br>	<div class="float_left">	Quel est le temps en heure du trajet entre les 2 capitales ?	</div>	<br>	<ul><li> En TGV le temps est de  
+!read oef/embed.phtml reply4, 6 
+$().</li>	<li>En avion le temps de parcours est de  
+!read oef/embed.phtml reply5, 6 
+$() sans compter l'embarquement.</li></ul>	<br>	Le moyen de transport le plus rapide est donc :	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply6,\h 
+$()</li> 
+!next
+$()	</ul>	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,23
+embedcnt=6

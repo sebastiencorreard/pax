@@ -1,0 +1,127 @@
+!set title=Multiplication de fractions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul.byache@ac-aix-marseille.fr
+language=fr
+
+ansorder=r,r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=3
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 10
+
+val6=$[$(tmp0)]
+tmp0=!randint 1, 10
+
+val7=$[$(tmp0)]
+tmp0=!randint 0, 20
+
+val8=$[$(tmp0)]
+tmp0=!randint 1, 20
+
+val9=$[$(tmp0)]
+val10=$[$val6*$val8]
+val11=$[$val7*$val9]
+val12=Compléter le calcul suivant
+replytype1=numeric
+replyname1=
+replygood1=?analyze 13
+replytype2=numeric
+replyname2=
+replygood2=?analyze 14
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val12 \par \begin{center} \LARGE \(\frac{$val6}{$val7}\times \frac{$val8}{$val9}=\frac{\cdots}{\cdots}\) \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$() $val12 :	<table class="wimscenter wimsnoborder">	<tr><td>$val6</td><td></td><td>$val8</td><td></td><td> 
+!read oef/embed.phtml reply 1,6	autocomplete="off" 
+$()</td></tr>	<tr><td><hr></td><td>&times;</td><td><hr></td><td>=</td><td><hr></td></tr>	<tr><td>$val7</td><td></td><td>$val9</td><td></td><td> 
+!read oef/embed.phtml reply 2,6	autocomplete="off" 
+$()</td></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<I>La bonne réponse (non simplifiée) était :</I> 
+!insmath ($val10)/($val11)
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val12 $m_par $m_begin{center} $m_LARGE 
+!insmath \frac{$val6}{$val7}\times \frac{$val8}{$val9}=\frac{\cdots}{\cdots}
+$() $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val6*$val8*$val14=$val7*$val9*$val13
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La réponse est-elle bonne ? 
+
+!ifval $val6*$val8*$val14=$val7*$val9*$val13 or $val6*$val8=$val13
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Le numérateur est-il bien calculé ?
+
+!ifval ($val6*$val8*$val14=$val7*$val9*$val13 and $val10!=0) or $val14=$val7*$val9
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=Le dénominateur est-il bien calculé ?
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14
+embedcnt=2

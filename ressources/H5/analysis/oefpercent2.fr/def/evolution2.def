@@ -1,0 +1,275 @@
+!set title=Comparaison d'évolutions construction et consommation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+oefcss=<style> .myred {color:red} .myblue {color:blue} </style>
+oefdescription=Choisir parmi 5 graphiques pour comparer et comment calculer.
+
+ansorder=r,r,r
+varcnt=100
+prevarcnt=99
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 1071,1074,1080,1074	1083,1089,1093,1065	1125,1139,1145,1127	1159,1163,1170,1140	1183,1202,1203,1172	1225,1267,1272,1214	1270,1276,1278,1269	1362,1366,1381,1332	1385,1435,1443,1406	1497,1562,1594,1474	1503,1498,1502,1523	1508,1517,1520,1507	1554,1593,1624,1533	1617,1666,1648,1638
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 78,79,79,79	80,80,80,80	81,82,82,82	82,83,83,83	84,84,85,85	86,87,87,87	88,88,88,88	89,90,90,90	90,91,91,92	93,94,94,93	93,94,93,94	95,95,95,95	96,97,97,98	99,99,99,99
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 4
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 0, 4
+
+val9=$[rint($(tmp0))]
+val10=$[rint(16)]
+val11=le prix de la construction
+val12=le prix de la consomation
+val13=$[rint($(val6[$val9+1;$val8]))]
+val14=$[rint($(val7[$val9+1;$val8]))]
+val15=$[100/$val13]
+val16=$[100/$val14]
+val17=$[$val13/$val10]
+val18=$val13
+val19=$val14
+val20=$val11,100
+val21=$val12,100
+val22=polyline red, 0,$val13
+val23=polyline blue, 0,$val14
+val24=polyline red, 0,100
+val25=polyline blue, 0,100
+val26=polyline red, 0,$val17
+val27=$[rint($val13)]
+val28=$[rint($val14)]
+val29=$[rint(1999+$val9)]
+val30=Année $val29 +,0
+!for val31 =1 to 9 
+val32=$[rint($(val7[$val9+1+$val31;$val8]))]
+val33=$[rint($(val6[$val9+1+$val31;$val8]))]
+val17=$[$val33/$val10]
+val26=$val26,$val31,$val17
+val27=$[rint(max($val27,$val33))]
+val28=$[rint(max($val28,$val32))]
+val34=$[rint($val15*$val33)]
+val35=$[rint($val16*$val32)]
+val30=$val30,$val31
+val18=$val18,$val33
+val19=$val19,$val32
+val22=$val22,$val31,$val33
+val23=$val23,$val31,$val32
+val24=$val24,$val31,$val34
+val25=$val25,$val31,$val35
+!if $val31=1 
+val20=$val20,$val34
+!else
+val20=$val20, xxx
+!endif
+val21=$val21, xxx
+!next
+val36=$val11,$val18
+val37=$val12,$val19
+tmp=!trim $val30;$val36;$val37
+val38=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val38],wimscenter wimsborder,TH=[;1]		CAPTION="Tableau initial" 
+tmp0=$slib_out
+val39=$(tmp0)
+tmp=!trim $val30;$val20;$val21
+val40=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val40],wimscenter wimsborder,TH=[;1]		CAPTION="Tableau des indices de base 100 en $val29" 
+tmp0=$slib_out
+val41=$(tmp0)
+val28=$[rint(1.15*$val28)]
+val27=$[rint(1.1*$val27)]
+val42=$[rint(max(110*$val27/$val13,$val28))]
+val43=$[rint(max($val27/$val10,$val28))]
+val44=$[rint(-0.1*$val28)]
+val45=$[rint(floor($val27*0.0018)*50+50)]
+val46=$[rint(floor($val42*0.002)*25+25)]
+val47=$[rint(ceil($val43*0.01)*5)]
+val48=$[0.5*$val46]
+val49=$[rint(ceil($val28*0.02)*5)]
+val50=$[0.15*$val47]
+val51=$[0.4*$val49]
+val52=$[1*$val47]
+val53=text black, 0,-1,large, 0
+val54=text black, -1, $val48, large,0
+val55=text black, -1,2,large,0 %
+val56=text red, -1,$val50,large,0
+val57=text blue, -1,0.2*$val49,large,0
+val58=text blue, 9.1,1*$val47,large,0
+!for val31 =1 to 10 
+val59=$[rint($val45*$val31)]
+val60=$[rint($val46*$val31)]
+val61=$[$val59/$val10]
+val62=$[rint($val49*$val31)]
+val63=$[rint($val47*$val31)]
+val53=$val53;text black, $val31,-1,large, $val31
+val54=$val54;text black, -1,$val59+$val48, large,$val59
+val55=$val55;text black, -1.5, $val60+5, large,$val60 %
+val56=$val56;text red, -1, $val61+$val50,large,$val59
+val57=$val57;text blue, -1,$val62+$val51,large,$val62
+val58=$val58;text blue, 9.1,$val63+$val52,large,$val63
+!next
+val64=xrange -2,11	yrange -0.1*$val27,$val27	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val27,10,black	linewidth 4	$val53	$val54	
+val65=$val64		$val22	$val23	
+val66=xrange -2,11	yrange -0.1*$val42,$val42	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val42,10,black	linewidth 4	$val53	$val55	$val24	$val25	
+val67=$val64	$val22	
+val68=xrange -2,11	yrange $val44,$val28	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val28,10,black	linewidth 4	$val53	$val57	$val23	
+val69=xrange -2,10	yrange -0.1*$val43,$val43	linewidth 3		arrow 0,0,10,0,10,black	arrow 9,0,9,$val43,10,blue	arrow 0,0,0,$val43,10,red	linewidth 4		$val53	$val56	$val58		$val23	$val26	
+val70=text red, -10,-1,large, 0
+val71=text blue, -0.06*$val27,0.2*$val49,large, 0
+val72=points black, $val13,$val14
+!for val31 =1 to 10 
+val59=$[rint($val45*$val31)]
+val61=$[rint(10*$val31)]
+val70=$val70;text red, $val59-15, -1, large,$val59
+val71=$val71;text blue, -0.08*$val27,$val61+0.2*$val49,large,$val61
+val72=$val72,$(val18[$val31]),$(val19[$val31])
+!next
+val73=xrange -0.1*$val27,$val27	yrange $val44,$val28	linewidth 3	arrow 0,0,$val27,0,10,black	arrow 0,0,0,$val28,10,black		linewidth 4	$val70	$val71	$val72	
+val74=On veut comparer $val11 et $val12 à partir de $val29 (trimestre $val8) :
+tmp=!trim Données brutes dans un même repère.	  Pourcentage par rapport à la valeur de $val29.	  Chaque série dans un repère adapté<br>l'un en dessous de l'autre.	  Un seul graphique avec un axe pour chaque liste	  Les coordonnées des points sont les nombres <br>de chaque série correspondant à la même année
+val75=!translate internal $	\
+$ to ;; in $tmp
+oefsteps=reply1	reply2,reply3 
+nextstep=!nosubst reply1	reply2,reply3 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=Graphique
+replygood1=2;A,B,C,D,E
+replytype2=numeric
+replyname2=Coefficient pour $val11
+replygood2=$[$val15]
+replytype3=numeric
+replyname3=Coefficient pour $val12
+replygood3=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val74	  $val39	  Données INSEE.	  
+!if $m_step=1 
+$()	    <p>Déterminer parmi les graphiques ci-dessous celui qui permet le mieux	      de comparer les évolutions des deux séries statistiques à partir de $val29.	    </p>	    Dans les graphiques, $val11 est en rouge et $val12 en bleu.	    <ul class="inline">	    <li> 
+!read oef/draw.phtml 400,400 \
+$val65 
+$()<br> 
+!read oef/embed.phtml reply1,1,$(val75[1;]) 
+$()</li>	    <li> 
+!read oef/draw.phtml 400,400 \
+$val66 
+$()<br> 
+!read oef/embed.phtml reply1,2,$(val75[2;]) 
+$()</li>	    <li> 
+!read oef/draw.phtml 400,200 \
+$val67 
+$()<br> 
+!read oef/draw.phtml 400,200 \
+$val68 
+$()<br> 
+!read oef/embed.phtml reply1,3,		    $(val75[3;]) 
+$()</li>	    <li> 
+!read oef/draw.phtml 400,400 \
+$val69 
+$()<br> 
+!read oef/embed.phtml reply1,4,$(val75[4;]) 
+$()</li>	    <li> 
+!read oef/draw.phtml 400,400 \
+$val73 
+$()<br> 
+!read oef/embed.phtml reply1,5,$(val75[5;]) 
+$()</li>	    </ul>	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    <p class="oefindgood">	    Vous avez choisi le bon graphique !</p>	    <p>Le pourcentage d'une valeur par rapport à celle de l'année $val29 est appelé l'indice de	    base 100 en $val29.</p><p>	    Pour réaliser le bon graphique, on doit compléter le tableau ci-dessous, obtenu à partir	    du tableau initial par proportionnalité.	    </p>	    $val41	    <ul><li>	    <label for="reply2">Par quel nombre doit-on multiplier $val11	    pour calculer son indice de base 100 en $val29 ?</label>  
+!read oef/embed.phtml reply2,10 
+$()	    </li><li>	    <label for="reply3">Par quel nombre doit-on multiplier $val12	    pour calculer son indice de base 100 en $val29 ? </label> 
+!read oef/embed.phtml reply3,10 
+$()	    </li></ul>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <p>	  B : Remplacer les données brutes par leur pourcentage par rapport à leur valeur de $val29		  permet de bien comparer les évolutions des deux séries depuis $val29.<br>	  On appelle ces pourcentages les indices de base 100 en $val29 pour $val11 et pour $val12.	  </p><p>	  Les indices de base 100 en $val29 sont calculés par proportionnalité.<br>	  Pour obtenir l'indice de base 100 en $val29 d'une série de termes, il suffit de diviser chaque	  terme de la série par la valeur de l'année $val29 et de multiplier par 100,	   par exemple pour  $val11 de multiplier chaque terme par 100/$val13.	  </p>	  <div class="wimscenter">	   
+!read oef/draw.phtml 400,400 \
+$val66 
+$()</div>	  <ul class="inline wimscenter">	  <li class="myred">$val11 en rouge</li>	  <li class="myblue">$val12 en bleu</li>	  </ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 issametext A 
+ <div class='oef_feedbacks'>	  <p class="myred">	  A :  Ce graphique est facile à faire parce qu'il utilise les données brutes et n'utilise qu'un		  axe.<br>	  Mais les valeurs des deux séries sont disproportionnées ce qui fait que les évolutions de		  la petite série sont écrasées et peu visibles.	  </p>		
+$()</div>
+!endif
+!ifval $m_reply1 issametext C 
+ <div class='oef_feedbacks'>	  <p class="myred">	  C : Utiliser un repère adapté à chaque série et les placer l'un en dessous de l'autre est		  une bonne idée.<br>	  Mais la distance entre les deux courbes ne facilite pas la comparaison.	  </p>	
+$()</div>
+!endif
+!ifval $m_reply1 issametext D 
+ <div class='oef_feedbacks'>	  <p class="myred">	  D : Réaliser un seul graphique avec deux axes est une bonne idée.<br>	  Mais c'est difficile à réaliser et à lire et le point de départ en $val29	  n'est pas automatiquement le même ce qui peut fausser la comparaison.	  </p>	  
+$()</div>
+!endif
+!ifval $m_reply1 issametext E 
+ <div class='oef_feedbacks'>	  <p class="myred">	  E : Utiliser les nombres de chaque série comme des coordonnées de points est une bonne	  idée.<br>	  Mais cela permet surtout de déceler s'il y a une corrélation entre les nombres plutôt que	  leurs évolutions.	  </p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,29,39,41,65,66,67,68,69,73,74,75
+embedcnt=7

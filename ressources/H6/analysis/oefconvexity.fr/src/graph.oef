@@ -1,0 +1,222 @@
+\title{Lecture graphique de la convexité}
+\author{Bruno, Mifsud}
+\email{bmifsud@ac-aix-marseille.fr}
+\credits{}
+: le nombre de solutions proposées
+\integer{tot=3}
+
+:Le nombre de bons choix dans chaque exercice. Ne doit pas dépasser le total.
+
+\integer{givetrue=1}
+
+:Nombre de mauvais choix "obligatoires".
+Par exemple si ce nombre est 2, les deux premiers mauvais choix dans la liste seront toujours présentés dans les exercices générés.
+<p> Dans le doute, mettez 0.</p>
+\integer{minfalse=0}
+\text{instruction=Dans le plan muni d'un repère orthonormé \((O,i,j)\),
+on a tracé la courbe représentative d'une fonction \(f).
+}
+\text{question=Parmi les propositions suivantes, une seule est juste. Laquelle}
+
+:%%%%%%%%%%%%%%%%%%%%%%%%%
+%% couleur des grilles
+\text{gridcolor=lightblue}
+
+%% Choix de 4 points dans le cadre
+\integer{x0=random(-4..-2)}
+\integer{x1=\x0+randint(1..3)}
+\integer{x2=\x1+randint(1..3)}
+\integer{x3=\x2+randint(1..3)}
+\integer{a=randint(-1,1)}
+\integer{y0=5*\a}
+\integer{y1=\a*random(-3..-1)}
+\integer{y2=\a*random(1..3)}
+\integer{y3=\a*-3}
+
+%% Polynome d'interpolation
+\text{f0=\y0*(x-(\x1))*(x-(\x2))*(x-(\x3))/((\x0-(\x1))*(\x0-(\x2))*(\x0-(\x3)))}
+\text{f1=\y1*(x-(\x0))*(x-(\x2))*(x-(\x3))/((\x1-(\x0))*(\x1-(\x2))*(\x1-(\x3)))}
+\text{f2=\y2*(x-(\x1))*(x-(\x0))*(x-(\x3))/((\x2-(\x1))*(\x2-(\x0))*(\x2-(\x3)))}
+\text{f3=\y3*(x-(\x1))*(x-(\x2))*(x-(\x0))/((\x3-(\x1))*(\x3-(\x2))*(\x3-(\x0)))}
+\function{f=\f0 + (\f1) +(\f2)+ (\f3)}
+%% racines de la dérivée seconde
+\text{g1= diff(\f,x)}
+\text{g2= diff(\g1,x)}
+\rational{r= solve(\g2=0,x=\x0..\x3 )}
+\integer{r0=floor(\r)}
+\integer{r1=\r0+1}
+\integer{q0=\r0-random(1..5)}
+\integer{q1=\r1+random(1..5)}
+
+%% cadre générique %%
+\text{cadre=
+xrange -5,7
+yrange -6,6
+gridfill 0,0,5,5,\gridcolor
+linewidth 1
+linewidth 2
+  parallel -5,-6,-5,6,1,0,12,blue
+  parallel -5,-6,7,-6,0,1,13,blue
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.2,0.7,medium,j
+text black,-0.2,-0.1,medium,O
+    linewidth 2
+    plot red,\f
+
+
+}
+%% fin du cadre générique %%
+
+:%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+:les bonnes et mauvaises propositions
+
+\text{val=evalue(\g2,x=\r0)}
+\if {\val<0}
+{
+\matrix{datatrue=asis(La fonction est convexe sur  [\r1;\q1]
+La fonction est concave sur [\q0; \r0]
+La fonction est ni convexe ni concave sur [\q0;\q1])}
+}
+{\matrix{datatrue=asis(La fonction est concave sur [\r1;\q1]
+La fonction est convexe sur [\q0;\r0]
+La fonction est ni convexe ni concave sur [\q0;\q1])}
+}
+
+
+:Les mauvais choix, un par ligne.
+Vous pouvez en donner plus que ce qu'il faut tirer au hasard.
+Evitez les phrases trop longues ! Aucun point-virgule dans la phrase.
+help
+\if{\val>0}
+{
+\matrix{datafalse=asis(La fonction est convexe sur  [\r1;\q1]
+La fonction est concave sur [\q0; \r0]
+La fonction est ni convexe ni concave sur [\q0;\r0]
+La fonction est ni convexe ni concave sur [\r1;\q1])}
+}
+{\matrix{datafalse=asis(La fonction est concave sur [\r1;\q1]
+La fonction est convexe sur [\q0;\r0]
+La fonction est ni convexe ni concave sur [\q0;\r0]
+La fonction est ni convexe ni concave sur [\r1;\q1])}
+}
+
+
+:Mots d'option :  <span class="tt wims_code_words">checkbox</span>,  <span class="tt wims_code_words">split</span>.
+Ajouter le mot  <span class="tt wims_code_words">checkbox</span> s'il y a plusieurs bonnes réponses et si l'élève doit choisir toutes les bonnes réponses (au lieu d'une seule).
+Dans ce cas, ajouter aussi le mot  <span class="tt wims_code_words">split</span> si on autorise une note partielle quand seulement une partie des bonnes réponses sont choisies.
+\text{option=}
+
+:Feedback Général
+Ce texte s'affichera après la réponse de l'apprenant, qu'elle soit juste ou fausse.
+\text{feedback_general=}
+
+:Feedback en cas de bonne réponse
+Ce texte s'affichera après la réponse de l'apprenant, en cas de bonne reponse ou de reponse partielle.
+\text{feedback_bon=}
+
+:Feedback en cas de mauvaise réponse
+Ce texte s'affichera après la réponse de l'apprenant, s'il a coché au moins une mauvaise réponse.
+\text{feedback_mauvais=Il faut revoir son cours.
+ <p> Une fonction est convexe sur un intervalle
+  lorsque, sur cet intervalle, sa courbe est au dessus de ses tangentes.
+<br>Elle est concave lorsque, sur cet intervalle, sa courbe est au dessous
+de ses tangentes.
+</p>
+<b>Exemples :</b>
+<ul class="wims_nopuce"><li>
+\(f(x)=x^2) est convexe sur \(\mathbb{R})
+</li><li>
+\(f(x)=-2x^2) est concave sur \(\mathbb{R}_{+}^{*})
+</li></ul>
+}
+
+
+:Indication
+Un texte qui peut aider l'apprenant à trouver la bonne réponse
+\text{exo_hint=}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+
+\text{empty=}
+\if{\feedback_general != \empty}{
+  \text{feedback_general=<div class="feedback">\feedback_general</div>}
+}
+\if{\feedback_bon != \empty}{
+  \text{feedback_bon=<div class="feedback good_answer">\feedback_bon</div>}
+}
+\if{\feedback_mauvais != \empty}{
+  \text{feedback_mauvais=<div class="feedback bad_answer">\feedback_mauvais</div>}
+}
+\if{\exo_hint != \empty}{
+  \hint{\exo_hint}
+}
+
+\text{datatrue=wims(nonempty rows \datatrue)}
+\text{datafalse=wims(nonempty rows \datafalse)}
+\integer{truecnt=rows(\datatrue)}
+\integer{falsecnt=rows(\datafalse)}
+\integer{givetrue=\givetrue<1?1}
+\integer{givetrue=\givetrue>\truecnt?\truecnt}
+\integer{tot=\tot > \falsecnt+\givetrue?\falsecnt+\givetrue}
+\integer{givetrue=\givetrue>\tot-1?\tot-1}
+\integer{minfalse=\minfalse>\tot-\givetrue?\tot-\givetrue}
+\text{tsh=shuffle(\truecnt)}
+\text{true=row(\tsh,\datatrue)}
+\if{\minfalse>0}{
+ \text{false1=row(1..\minfalse,\datafalse);}
+ \text{false2=row(\minfalse+1..\falsecnt,\datafalse)}
+}{
+ \integer{minfalse=0}
+ \text{false1=}
+ \text{false2=\datafalse}
+}
+\text{fsh=shuffle(\falsecnt)}
+\text{false2=row(\fsh,\false2)}
+\text{pick=row(1..\givetrue,\true);\false1 row(1..\tot-\givetrue-\minfalse,\false2)}
+\text{ind=wims(makelist 1 for x=1 to \givetrue),wims(makelist 0 for x=1 to \tot-\givetrue)}
+
+\text{sh=shuffle(\tot)}
+\text{ind=item(\sh,\ind)}
+\text{pick=row(\sh,\pick)}
+\text{pick=\accolade=1 ? wims(embraced randitem \pick)}
+\text{explain=\accolade=1 ? wims(embraced randitem \explain)}
+\text{ans=positionof(1,\ind)}
+\text{list=item(1..\tot,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z)}
+\text{anstype=checkbox iswordof \option?checkbox:radio}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement{
+<div class="float_right"> \draw{400,400}{\cadre}</div>
+<div class="enonce">
+\instruction
+</div>
+<div class="question">
+\question ?
+<div class="reponse">
+  \for{i=1 to \tot}
+  {<div class="oefreply">\embed{reply 1,\i, \list[\i] : \pick[\i;]}</div>}
+</div>
+</div>
+
+
+}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{La réponse}{\ans;\list}{type=\anstype}{option=\option}
+
+\feedback{1=1}{\feedback_general}
+\feedback{\reply1 isitemof \list[\ans]}{\feedback_bon}
+\feedback{\reply1 notitemof \list[\ans]}{\feedback_mauvais}

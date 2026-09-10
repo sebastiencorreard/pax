@@ -1,0 +1,168 @@
+!set title=Mult. de fractions (avec simplification)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul.byache@ac-aix-marseille.fr
+language=fr
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+val6=$[$(tmp0)]
+tmp0=!randint 1, 10
+
+val7=$[$(tmp0)]
+tmp0=!randint 1, 20
+
+val8=$[$(tmp0)]
+tmp0=!randint 1, 20
+
+val9=$[$(tmp0)]
+val10=$[rint($val6*$val8/$val7*$val9)]
+val11=$[$val6*$val8/$val7*$val9]
+
+!ifval $val10=$val11 or $val11=1 
+tmp0=!randint 2, 10
+
+val7=$[rint( $(tmp0) )]
+!else
+val7=$[rint( $val7)]
+!endif
+
+!ifval $val10=$val11 or $val11=1 
+tmp0=!randint 2, 20
+
+val9=$[rint( $(tmp0) )]
+!else
+val9=$[rint( $val9)]
+!endif
+
+!ifval $val10=$val11 or $val11=1 
+tmp0=!randint 1, $val7-1
+
+val6=$[rint( $(tmp0) )]
+!else
+val6=$[rint( $val6)]
+!endif
+
+!ifval $val10=$val11 or $val11=1 
+tmp0=!randint 1, $val9-1
+
+val8=$[rint( $(tmp0) )]
+!else
+val8=$[rint( $val8)]
+!endif
+val12=$[$val6*$val8]
+val13=$[$val7*$val9]
+t_=!replace internal \( by ( in $val12/$val13
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+tmp0=!replace internal / by , in $val14
+
+val15=$(tmp0)
+val16=$[rint($val12 / $(val15[1]))]
+
+!ifval $val16=1 
+val17= 
+!else
+val17=<p>Pour obtenir cette réponse, il fallait simplifier	par $val16 (plusieurs méthodes étaient sans doute possibles).</p>
+!endif
+val18=Compléter le calcul suivant en donnant la réponse sous forme	  de fraction simplifiée le plus possible
+replytype1=numeric
+replyname1=
+replygood1=?analyze 19
+replytype2=numeric
+replyname2=
+replygood2=?analyze 20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val18 \par \begin{center} \LARGE \(\frac{$val6}{$val7}\times \frac{$val8}{$val9}=\frac{\cdots}{\cdots}\) \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val18:	<table class="wimscenter wimsnoborder">	<tr><td>$val6</td><td></td><td>$val8</td><td></td><td> 
+!read oef/embed.phtml reply 1,3	autocomplete="off" 
+$()</td></tr>	<tr><td><hr></td><td>&times;</td><td><hr></td><td>=</td><td><hr></td></tr>	<tr><td>$val7</td><td></td><td>$val9</td><td></td><td> 
+!read oef/embed.phtml reply 2,3	autocomplete="off" 
+$()</td></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La bonne réponse (simplifiée le plus possible) était : 
+!insmath \frac{$(val15[1])}{$(val15[2])}
+$()	$val17
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val18 $m_par $m_begin{center} $m_LARGE 
+!insmath \frac{$val6}{$val7}\times \frac{$val8}{$val9}=\frac{\cdots}{\cdots}
+$() $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val6*$val8*$val20=$val7*$val9*$val19
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La réponse est-elle bonne ? 
+
+!ifval $val19/$val20 issametext $val14
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=La bonne réponse était-elle simplifiée ?
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,14,15,17,18,19,20
+embedcnt=2

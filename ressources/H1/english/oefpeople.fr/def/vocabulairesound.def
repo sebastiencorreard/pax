@@ -1,0 +1,289 @@
+!set title=Vocabulary (2) and sound
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Csilla, Ducrocq
+email=csilla.ducrocq@u-psud.fr
+language=fr
+computeanswer=no
+oefcss=<style type="text/css"> .question{background-color: #FF6666; margin: 2% 5%; padding: 1%;} .reponse{background-color: #FFCC99; color: black; margin: 2% 5%; padding: 0%;} ol li {list-style: upper-alpha; } </style> 
+
+ansorder=r
+varcnt=66
+prevarcnt=65
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=vocabulairesound
+!readproc slib/utilities/notepad Notepad,small 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!nosubst Match the words with their sound.
+
+val8=$(tmp0)
+tmp0=!nosubst 
+
+val9=$(tmp0)
+val10=
+val11=
+val12=no
+val13=no
+val14=no
+val15=
+val16=yes
+val17=100x100x200
+val18=split
+val19=1
+val20=aucune de ces possibilités
+val21=clickfill
+val22=yes
+val7=
+val23=inside
+val24=yes
+val25=1
+val26=
+val27=
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+val28=$(tmp0)
+tmp0=!recordcnt $val28
+
+val29=$[rint($(tmp0))]
+val30=1
+val31=1
+val32=3
+
+!ifval $val25 notwordof 0 
+val25=$[rint( 1)]
+!endif
+
+!ifval $val22 issametext no 
+!readproc slib/utilities/nopaste  
+tmp0=$slib_out
+val33= $(tmp0)
+!endif
+
+!ifval $val8 issametext 
+tmp0=!getdef instruction in $val28
+
+val8= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction2 in $val28
+
+val9= $(tmp0)
+!endif
+
+!ifval $val17 issametext 
+tmp0=!getdef size in $val28
+
+val17= $(tmp0)
+!endif
+
+!ifval $val13 issametext 
+tmp0=!getdef reading_file in $val28
+
+val13= $(tmp0)
+!endif
+tmp0=!record 0 of $val13
+
+val34=$(tmp0)
+
+!ifval $val12 issametext 
+tmp0=!getdef audio_file in $val28
+
+val12= $(tmp0)
+!endif
+
+!ifval $val12 notsametext  and  $val12 notsametext no
+!readproc slib/media/audio $val1/$val12 
+tmp0=$slib_out
+val35=	<p class="wimscenter">$(tmp0)</p>
+!endif
+
+!ifval $val14 issametext 
+tmp0=!getdef image_file in $val28
+
+val14= $(tmp0)
+!endif
+
+!ifval $val14 notsametext  and  $val14 notsametext no
+tmp0=!makelist <img src="$val1/x" alt=""> for x in $val14
+
+val36=	$(tmp0)
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef video_file in $val28
+
+val15= $(tmp0)
+!endif
+
+!ifval $val15 notsametext  and  $val15 notsametext no
+val37=	<a wims_target=external href="$val1/$val15">[video] </a></p>
+!endif
+
+!ifval $val10 issametext 
+tmp0=!getdef choice in $val28
+
+val38= $(tmp0)
+!else
+val38=$val10
+!endif
+
+!ifval $val27 notwordof 1 2 3 4 5 6 7 8 9 10 
+val27= 1
+!endif
+
+!ifval $val21 iswordof dragfill clickfill 
+val17= $val17 x 1
+!endif
+val31=$[rint(min($val29,$val31))]
+val30=$[rint(min($val31*$val30,$val29))]
+
+!ifval $val16 issametext yes 
+tmp0=!shuffle $val29
+
+val39= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val29
+
+val39=	$(tmp1)
+!endif
+tmp0=!randrecord $val6
+
+tmp=!trim $(tmp0)
+val40=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!embraced randitem $val40
+
+tmp=!trim $(tmp0)
+val40=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val40
+
+tmp0=!rowcnt $tmp
+val41=$[rint($(tmp0))]
+
+!ifval $val32 issametext all 
+val32=$[rint( $val41)]
+!else
+val32=$[rint(min($val41,$val32))]
+!endif
+tmp0=!shuffle $val41
+
+val38=$(tmp0)
+tmp=!trim $(val40[$(val38[1..$val32]);])
+val40=!translate internal $	\
+$ to ;; in $tmp
+val42=
+val43=
+!for val44  = 1 to $val32 
+!if .mp3 isin $(val40[$val44;2]) 
+tmp0=!nospace $(val40[$val44;2])
+
+val45=$(tmp0)
+!readproc slib/media/audio $val1/$(val40[$val44;2]) 
+tmp0=$slib_out
+val45=$(tmp0)
+!else
+val45=$(val40[$val44;2])
+!endif
+tmp0=!append item $val45 to $val43
+
+val43=$(tmp0)
+!next
+!for val44  = 1 to $val32 
+!if .mp3 isin $(val40[$val44;1]) 
+tmp0=!nospace $(val40[$val44;1])
+
+val45=$(tmp0)
+!readproc slib/media/audio $val1/$(val40[$val44;1]) 
+tmp0=$slib_out
+val45=$(tmp0)
+!else
+val45=$(val40[$val44;1])
+!endif
+tmp0=!append item $val45 to $val42
+
+val42=$(tmp0)
+!next
+replytype1=correspond
+replyname1=
+replygood1=$val42; $val43
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val33 $val8	  
+!if $val34 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val36 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val35$val37	  <div class="wimscenter question"> 
+!read oef/embed.phtml reply1,$val17 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,17,33,34,35,36,37
+embedcnt=3

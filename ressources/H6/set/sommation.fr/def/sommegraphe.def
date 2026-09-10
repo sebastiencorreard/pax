@@ -1,0 +1,482 @@
+!set title=Sommation graphique 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas,Guillon
+email=bernadette.m.riou@orange.fr
+language=fr
+computeanswer=yes
+precision=10000
+oefdescription=Se familiariser avec les ensembles d'indices utilisés dans les sommes doubles
+
+ansorder=r
+varcnt=98
+prevarcnt=97
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 12
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 7, 12
+
+val7=$[rint($(tmp0))]
+val8=$[rint(max($val6,$val7))]
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp0=!randint -4, 4
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val8-2, $val8+2
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!item $val12 of  \leq , < 
+
+val14=$(tmp0)
+tmp0=!item $val13 of  \leq , < 
+
+val15=$(tmp0)
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=1
+val17= i
+!else
+val17= j
+!endif
+
+!ifval $val16=1
+val18= j
+!else
+val18= i
+!endif
+
+!ifval $val12=1
+val19=$[rint( $val10)]
+!else
+val19=$[rint( $val10+1)]
+!endif
+
+!ifval $val13=1
+val20=$[rint( $val11)]
+!else
+val20=$[rint( $val11-1)]
+!endif
+!if $val16=1 
+!if $val9 issametext + 
+val21=$[rint(max(1,$val19-$val7) )]
+val22=$[rint(min($val6,$val20-1) )]
+tmp=!translate ";': to $     $ in $val19-i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val20-i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val7,$val24)
+!else
+val21=$[rint(max(1+$val19,1))]
+val22=$[rint(min($val20+$val7,$val6))]
+tmp=!translate ";': to $     $ in i-$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in i-($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val7,$val24)
+!endif
+evaltmp=$val25
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val25
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27=$val28 
+val29=$[rint(1)]
+!else
+evaltmp=$val23
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val23
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27>=1 and $val28>=1 
+val29=$val23
+!else
+val29=$val25
+!endif
+!endif
+evaltmp=$val26
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val26
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30=$val31 
+val32=$[rint($val7)]
+!else
+evaltmp=$val24
+
+evaltmp=!mathsubst i=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val24
+
+evaltmp=!mathsubst i=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30<=$val7 and $val31<=$val7 
+val32=$val24
+!else
+val32=$val26
+!endif
+!endif
+!else
+!if $val9 issametext + 
+val21=$[rint(max(1,$val19-$val6) )]
+val22=$[rint(min($val7,$val20-1) )]
+tmp=!translate ";': to $     $ in $val19-j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val20-j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val6,$val24)
+!else
+val21=$[rint(max(1-$val20,1))]
+val22=$[rint(min($val6-$val19,$val7))]
+tmp=!translate ";': to $     $ in $val19+j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val20+j
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+val25=max(1,$val23)
+val26=min($val6,$val24)
+!endif
+evaltmp=$val25
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val25
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27=$val28 
+val29=$[rint(1)]
+!else
+evaltmp=$val23
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+evaltmp=$val23
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+!if $val27>=1 and $val28 >=1 
+val29=$val23
+!else
+val29=$val25
+!endif
+!endif
+evaltmp=$val26
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val26
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30=$val31 
+val32=$[rint($val6)]
+!else
+evaltmp=$val24
+
+evaltmp=!mathsubst j=($val21) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+evaltmp=$val24
+
+evaltmp=!mathsubst j=($val22) in $evaltmp
+tmp0=($evaltmp)
+val31=$[$(tmp0)]
+!if $val30<=$val6 and $val31<=$val6 
+val32=$val24
+!else
+val32=$val26
+!endif
+!endif
+!endif
+
+!ifval $val9 issametext +
+val33= i+j
+!else
+val33= i-j
+!endif
+
+!ifval $val9 issametext +
+val34= i-j
+!else
+val34= i+j
+!endif
+val35=xrange -1,$val8+1	yrange -1,$val8+1	parallel 0,0,0,$val8, 1,0,$val8+1,grey	parallel 0,0,$val8, 0,0,1,$val8+1,grey	text black,-1,$val8,medium,j	text black,$val8,0, medium,i	hline 0,0,black	vline 0,0,black
+tmp0=!randitem 1,2
+
+val36=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+tmp1=!randitem -1,1
+
+val37=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 2
+
+val38=$[rint($(tmp0))]
+val39=$val35
+val40=$val35
+val41=$val35
+!for val42 =1 to $val6 
+!for val43 =1 to $val7 
+evaltmp=$val33
+
+evaltmp=!mathsubst i=($val42) in $evaltmp
+evaltmp=!mathsubst j=($val43) in $evaltmp
+tmp0=($evaltmp)
+val44=$[$(tmp0)]
+evaltmp=$val34
+
+evaltmp=!mathsubst i=($val42) in $evaltmp
+evaltmp=!mathsubst j=($val43) in $evaltmp
+tmp0=($evaltmp)
+val45=$[$(tmp0)]
+!if $val44 >=$val19 and $val44<=$val20 
+val35=$val35	      disk  $val42,$val43, 8,red
+!endif
+!if $val44 >=$val19+$val37 and $val44<=$val20+$val38  
+val39=$val39	      disk  $val42,$val43, 8,red
+!endif
+!if $val45 >=$val19 and $val45 <=$val20 
+val40=$val40	        disk  $val42,$val43, 8,red
+!endif
+!if $val45 >=$val19+$val37 and $val45 <=$val20+$val38 
+val41=$val41	        disk  $val42,$val43, 8,red
+!endif
+!next
+!next
+!readproc oef/draw.phtml 200,200 \
+ $val35 
+tmp0=$ins_url
+val46=$(tmp0)
+tmp0=!randitem 1,2
+
+val47=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val48=$[rint($(tmp0))]
+
+!ifval $val47=1
+!readproc oef/draw.phtml 200,200 \
+ $val41 
+tmp0=$ins_url
+val49= $(tmp0)
+!endif
+
+!ifval $val47=1
+!readproc oef/draw.phtml 200,200 \
+ $val40 
+tmp0=$ins_url
+val50= $(tmp0)
+!endif
+!if $val47=2 and $val48=1 
+!readproc oef/draw.phtml 200,200 \
+ $val39 
+tmp0=$ins_url
+val49=$(tmp0)
+!readproc oef/draw.phtml 200,200 \
+ $val40 
+tmp0=$ins_url
+val50=$(tmp0)
+!endif
+!if $val47=2 and $val48=2 
+!readproc oef/draw.phtml 200,200 \
+ $val39 
+tmp0=$ins_url
+val49=$(tmp0)
+!readproc oef/draw.phtml 200,200 \
+ $val41 
+tmp0=$ins_url
+val50=$(tmp0)
+!endif
+tmp0=!shuffle 1,2,3
+
+val19=$(tmp0)
+val51=<img src="$val46" alt="">,<img src="$val49" alt="">,<img src="$val50" alt="">
+val51=$(val51[$val19])
+tmp0=!positionof item 1 in $val19
+
+val52=$(tmp0)
+replytype1=click
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$val52;$val51
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!if $val36=1 
+$()	 <div>On considère la somme double suivante sur un ensemble fini 
+!insmath E
+$() : </div>	  <div class="wimscenter">	
+!insmath \displaystyle{\sum_{(i,j) \in E} p_{i,j} =	  \sum_{$val17=$val21}^{$val22}\Big( \sum_{$val18 = $val29}^{$val32}p_{i,j}\Big)}
+$()	</div>	 
+!else
+$() 	<div>On considère l'ensemble 
+!insmath E
+$() des couples 
+!insmath (i, j) \in \NN^2
+$()	  tels que 
+!insmath 1 \leq i \leq $val6
+$() et 
+!insmath 1 \leq j \leq $val7
+$()	  et tels que </div>	<div class="wimscenter">
+!insmath $val10 $val14 i $val9 j $val15 $val11
+$(). </div>	 
+!endif
+$()	<div class="wims_question">	  Sur l'un des dessins, l'ensemble des  points rouges représente	  l'ensemble des éléments de 
+!insmath E
+$(). Cliquez sur ce dessin :	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  
+!if $val36=1 
+$()L'ensemble 
+!insmath E
+$() est l'ensemble des couples 
+!insmath (i, j) \in\NN^2
+$()	  tels que 
+!insmath $val21 \leq $val17 \leq $val22
+$() et 
+!insmath $val29 \leq $val18 \leq $val32.
+$() Il	   
+!else
+$()	   L'ensemble 
+!insmath E
+$() 
+!endif
+$()	  est représenté sur le dessin 
+!if $val52=1 
+$()de gauche. 
+!endif
+$()
+!if $val52=2 
+$()du milieu. 
+!endif
+$()
+!if $val52=3 
+$()de droite. 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>Vous aviez le choix entre ces trois dessins :	<div class="wimscenter">$val51</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,14,15,17,18,21,22,29,32,36,51,52
+embedcnt=1

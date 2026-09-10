@@ -1,0 +1,434 @@
+!set title=Min et max 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=79
+prevarcnt=78
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=100000000
+tmp0=!randitem 4,5,6,7,8
+
+tmp1=!randitem 3,4,5,6,7
+
+tmp2=!randitem 3,4,5,6,7
+
+tmp3=!randitem 3,4,5,6,7
+
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 4,5,10
+
+val7=1,2,3,4,5,6,7,8,9,10,	11,12,13,14,15,16,17,18,19,20,21,23,24,25,27,30,	$(tmp0)0,$(tmp1)5,$(tmp2)2,	$(tmp3)8,$(tmp4)00,$(tmp5)00	
+
+!ifval frac isitemof $val2
+val7=$val7,	 1/2,3/2,5/2,7/2,9/2,11/2,13/2,	 1/3,2/3,4/3,5/3,7/3,8/3,10/3	
+!endif
+
+!ifval root isitemof $val2
+val7=$val7,	sqrt(3),sqrt(5),sqrt(6),sqrt(7),sqrt(8),sqrt(11),sqrt(12),	sqrt(18),sqrt(20),sqrt(30),sqrt(40),sqrt(60)	
+!endif
+
+!ifval pie isitemof $val2
+val7=$val7,	pi,e,sqrt(2),pi+1,pi-1,e+1,e-1,	pi^2,e^2,pi^3,e^3,1/pi,1/e,2*pi,2*e,4*pi,4*e	
+!endif
+
+!ifval log isitemof $val2
+val7=$val7,	ln(2),ln(3),ln(4),ln(5),ln(8),ln(10),ln(15),ln(20),ln(30),ln(50)	
+!endif
+
+!ifval exp isitemof $val2
+val7=$val7,	2^e,3^e,2^pi,3^pi,pi^e,e^pi,pi^pi,e^e,	4^e,5^e,2^-e,2^-pi,pi^-e,e^-pi	
+!endif
+tmp0=!makelist -x for x in $val7
+
+val7=$(tmp0),0,$val7
+tmp0=!sort numeric items $val7
+
+val7=$(tmp0)
+tmp0=!itemcnt $val7
+
+val8=$[rint($(tmp0))]
+val9=Soit une fonction \(f: \RR \to \RR\) continue et dérivable ayant	  le tableau de variation suivant.
+val10=Aucun
+val11=Remplissez
+val12=70x40x1
+val13=$[rint(3)]
+tmp0=!shuffle $val8
+
+tmp1=!item 1 to 8 of $(tmp0)
+
+tmp2=!sort numeric items $(tmp1)
+
+val14=$(tmp2)
+tmp0=!item $val14 of $val7
+
+val15=$(tmp0)
+tmp0=!randint $val8/4, $val8*3/4
+
+val16=$[rint($(tmp0))]
+tmp0=!item 3 to $val16-3 of $val7
+
+tmp1=!shuffle $(tmp0)
+
+val17=$(tmp1)
+tmp0=!item $val16+3 to $val8-2 of $val7
+
+tmp1=!shuffle $(tmp0)
+
+val18=$(tmp1)
+tmp0=!randitem 1,2
+
+val19=$[rint($(tmp0))]
+!if $val19=1 
+val20=ne,se,ne,se
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val21=-\infty
+!else
+val21=$(val17[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val22=+\infty
+!else
+val22=$(val18[2])
+!endif
+val23=$val21,$(val18[1]),$(val17[2]),$val22
+val24=bottom,top,bottom,top,bottom
+!else
+val20=se,ne,se,ne
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val21=+\infty
+!else
+val21=$(val18[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val22=-\infty
+!else
+val22=$(val17[2])
+!endif
+val23=$val21,$(val17[1]),$(val18[2]),$val22
+val24=top,bottom,top,bottom,top
+!endif
+tmp0=!replace internal \infty by $val6 in $val23
+
+val25=$(tmp0)
+val26=
+!for val27 =1 to 3 
+val28=
+!for val29  in $val7 
+!if $val29>min($(val25[$val27]),$(val25[$val27+1])) and $val29<max($(val25[$val27]),$(val25[$val27+1])) 
+tmp0=!append item $val29 to $val28
+
+val28=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val28
+
+tmp1=!item 1 to 2 of $(tmp0)
+
+val28=$(tmp1)
+
+!ifval $(val20[$val27]) issametext ne
+tmp0=!sort numeric items $val28
+
+val28=	    $(tmp0)
+!else
+tmp1=!sort reverse numeric items $val28
+
+val28=	    $(tmp1)
+!endif
+val26=$val26$val28;
+!next
+val30=$(val15[1,2]);$(val15[4,5]);$(val15[7,8])
+val31=-\infty, $(val15[3,6]), +\infty
+tmp0=!makelist \(x) for x in $val31
+
+val32=$(tmp0)
+tmp0=!makelist \(x) for x in $val23
+
+val33=$(tmp0)
+val34=1
+val35=&#91;
+val36=&#93;
+val37=
+tmp0=!item $val19 of +,-
+
+val38=$(tmp0)
+!if $val13=4 
+
+!ifval $val38($(val23[2]))>$val38($(val23[4]))
+val39=2
+!else
+val39=4
+!endif
+val40=$val39
+
+!ifval $val38($(val25[1]))>$val38($(val25[5]))
+val41=5
+!else
+val41=1
+!endif
+
+!ifval $val38($(val25[$val41]))<$val38($(val23[3]))
+val42=$val41
+!else
+val42=3
+!endif
+
+!ifval $val42=3
+val43=3
+!else
+val43=6
+!endif
+!if $val19=1 
+val44=$(val33[$val39])
+val45=$val44
+val46=$(val33[$val42])
+
+!ifval $val43=6
+val47=$val10
+!else
+val47=$val46
+!endif
+!else
+val46=$(val33[$val39])
+val47=$val46
+val44=$(val33[$val42])
+
+!ifval $val43=6
+val45=$val10
+!else
+val45=$val44
+!endif
+!endif
+!else
+
+!ifval $val38($(val23[2]))>$val38($(val25[4]))
+val39=2
+!else
+val39=4
+!endif
+
+!ifval $val39=2
+val40=2
+!else
+val40=6
+!endif
+
+!ifval $val38($(val25[1]))<$val38($(val23[3]))
+val42=1
+!else
+val42=3
+!endif
+
+!ifval $val42=3
+val43=3
+!else
+val43=6
+!endif
+!if $val19=1 
+val44=$(val33[$val39])
+
+!ifval $val40=6
+val45=$val10
+!else
+val45=$val44
+!endif
+val46=$(val33[$val42])
+
+!ifval $val43=6
+val47=$val10
+!else
+val47=$val46
+!endif
+!else
+val46=$(val33[$val39])
+
+!ifval $val40=6
+val47=$val10
+!else
+val47=$val46
+!endif
+val44=$(val33[$val42])
+
+!ifval $val43=6
+val45=$val10
+!else
+val45=$val44
+!endif
+!endif
+!endif
+tmp0=!listuniq $val32,$val33
+
+val48=$(tmp0)
+val49=$val35,$val36
+
+!ifval $val47 issametext $val10
+val50=$(val49[2])
+!else
+val50=$(val49[1])
+!endif
+
+!ifval $val45 issametext $val10
+val51=$(val49[1])
+!else
+val51=$(val49[2])
+!endif
+replytype1=clickfill
+replyname1=Inf(\(f\))
+replygood1=$val46;$val48,$val10
+replytype2=clickfill
+replyname2=Sup(\(f\))
+replygood2=$val44
+replytype3=clickfill
+replyname3=Min(\(f\))
+replygood3=$val47
+replytype4=clickfill
+replyname4=Max(\(f\))
+replygood4=$val45
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val9		<table class="wimscenter wimsnoborder" style="border: solid black 1px;">	<tr style="border: solid black 1px;"><th style="border-right: solid black 1px;">
+!insmath x
+$()</th>	 
+!for m_t=1 to $val13 
+$()<td>$(val32[$m_t])</td><td></td> 
+!next
+$()	<td>$(val32[$val13+1])</td></tr>	<tr style="border: solid black 1px;">	 <th style="border: solid black 1px;">
+!insmath f(x)
+$()</th>	 
+!for m_t=1 to $val13 
+$()	 <td valign="$(val24[$m_t])">$(val33[$m_t])</td>	 <td><img src="$val1/$(val20[$m_t])$val34.gif" alt="$(val20[$m_t])"></td>	 
+!next
+$()	<td valign="$(val24[$val13+1])">$(val33[$val13+1])</td></tr>	</table>		 $val11:	<div class="wimscenter">Inf(
+!insmath f
+$()) =  
+!read oef/embed.phtml r1,$val12 
+$()&nbsp;&nbsp;&nbsp;	Sup(
+!insmath f
+$()) =  
+!read oef/embed.phtml r2,$val12 
+$()<br>	Min(
+!insmath f
+$()) =  
+!read oef/embed.phtml r3,$val12 
+$()&nbsp;&nbsp;&nbsp;	Max(
+!insmath f
+$()) =  
+!read oef/embed.phtml r4,$val12 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_reply3 notitemof $val33 and $m_reply3 isitemof $val32) or	   ($m_reply4 notitemof $val33 and $m_reply4 isitemof $val32)
+ <div class='oef_feedbacks'>	 Min(
+!insmath f
+$()) et Max(
+!insmath f
+$()) sont des valeurs de 
+!insmath f(x)
+$(), mais pas de 
+!insmath x
+$() !	
+$()</div>
+!endif
+!ifval $val47 issametext $val10 and $m_reply3 issametext $val46
+ <div class='oef_feedbacks'>	 La valeur $val46 n'est qu'une limite de 
+!insmath f(x)
+$() quand 
+!insmath x
+$()	 tend vers l'infini. Elle ne peut pas être atteinte par une valeur	 finie de 
+!insmath x
+$(). Donc Min(
+!insmath f
+$()) n'existe pas.	
+$()</div>
+!endif
+!ifval $val45 issametext $val10 and $m_reply4 issametext $val44
+ <div class='oef_feedbacks'>	 La valeur Sup(
+!insmath f
+$()) = $val44 n'est qu'une limite de 
+!insmath f(x)
+$() quand 
+!insmath x
+$()	 tend vers l'infini. Elle ne peut pas être atteinte par une valeur	 finie de 
+!insmath x
+$(). Donc Max(
+!insmath f
+$()) n'existe pas.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,10,11,12,13,20,24,32,33,34,44,45,46,47
+embedcnt=4

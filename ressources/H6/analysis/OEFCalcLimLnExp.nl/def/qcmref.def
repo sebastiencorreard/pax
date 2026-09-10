@@ -1,0 +1,285 @@
+!set title=Limieten [basis]
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Véronique Royer
+email=veronique.royer@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem x,t,\alpha
+
+val6=$(tmp0)
+tmp0=!randitem 1,1,2,3,4
+
+val7=$[rint($(tmp0))]
+
+!ifval $val7>1
+val8=$val6^$val7
+!else
+val8=$val6
+!endif
+
+!ifval $val7=1 or $val7=3
+val9=-
+!else
+val9=+
+!endif
+val10=&#8734;
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val11=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val11>0
+val12=+
+!else
+val12=-
+!endif
+
+!ifval $val11>0
+val13=-
+!else
+val13=+
+!endif
+tmp0=!randitem 0,0,1,2,3,4
+
+val14=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val14=$[rint($(tmp0)*$val14)]
+t_=!replace internal \( by ( in expand($val11*x + $val14)
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+tmp0=!replace internal x by $val6 in $val15
+
+val15=$(tmp0)
+tmp0=!texmath $val15
+
+val15=$(tmp0)
+t_=!rawmath -$val14/$val11
+val16=!exec pari print($t_)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val17=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val17>0
+val18=+
+!else
+val18=-
+!endif
+
+!ifval $val17>0
+val19=-
+!else
+val19=+
+!endif
+
+!ifval $val11>0
+val20=>
+!else
+val20=<
+!endif
+tmp=!trim \(\lim_{$val6 \to +\infty}e^{$val6})	\(\lim_{$val6 \to -\infty}e^{$val6})	\(\lim_{$val6 \to +\infty}\ln($val6))	\(\lim_{$val6 \downarrow 0 } \ln($val6))	\(\lim_{$val6 \to +\infty} $val17 e^{$val6})	\(\lim_{$val6 \to -\infty} $val17 e^{$val6})	\(\lim_{$val6 \to +\infty} $val17 \ln($val6))	\(\lim_{$val6 \uparrow 0 } $val17 \ln($val6))	\(\lim_{$val6 \to +\infty} e^{$val15})	\(\lim_{$val6 \to -\infty} e^{$val15})	\(\lim_{$val6 \to $val12\infty} \ln($val15))	\(\lim_{$val6 \downarrow $val16} \ln($val15))	\(\lim_{$val6 \to +\infty} \frac{e^{$val6}}{$val8})	\(\lim_{$val6 \to -\infty} $val8 \times e^{$val6})	\(\lim_{$val6 \to +\infty}\frac{\ln($val6)}{$val8})	\(\lim_{$val6 \downarrow 0 } $val8 \times \ln($val6))	\(\lim_{$val6 \to +\infty}\frac{$val8}{e^{$val6}})	\(\lim_{$val6 \to -\infty}$val8\times e^{-$val6})	\(\lim_{$val6 \to +\infty}\frac{$val8}{\ln($val6)})	\(\lim_{$val6 \uparrow 0 }\frac{$val8}{\ln($val6)})	\(\lim_{$val6 \to 1}\frac{\ln($val6)}{$val6-1})	\(\lim_{$val6 \to 0}\frac{e^{$val6}-1}{$val6})	
+val21=!translate internal $	\
+$ to ;; in $tmp
+val22=+inf,0,+inf,-inf,$val18 inf,0,$val18 inf,$val19 inf
+
+!ifval $val11>0
+val23=+inf
+!else
+val23=0
+!endif
+
+!ifval $val11>0
+val24=0
+!else
+val24=+inf
+!endif
+val25=+inf
+val26=-inf
+val22=$val22,$val23,$val24,$val25,$val26,+inf,0,0,0,0,$val9 inf,+inf,0,1,1
+tmp0=!shuffle 22
+
+val27=$(tmp0)
+tmp0=!item 1 to 6 of $val27
+
+val27=$(tmp0)
+tmp=!translate internal $	$ to ; in $val21
+
+tmp=!row $val27 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val28=$(tmp0)
+tmp0=!item $val27 of $val22
+
+val29=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val30=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val32=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val33=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val34=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val35=$(tmp0)
+tmp0=!item 1 of $val29
+
+val36=$(tmp0)
+tmp0=!item 2 of $val29
+
+val37=$(tmp0)
+tmp0=!item 3 of $val29
+
+val38=$(tmp0)
+tmp0=!item 4 of $val29
+
+val39=$(tmp0)
+tmp0=!item 5 of $val29
+
+val40=$(tmp0)
+tmp0=!item 6 of $val29
+
+val41=$(tmp0)
+replytype1=raw
+replyoption1=nospace 
+replyname1=
+replygood1=$val36
+replytype2=raw
+replyoption2=nospace 
+replyname2=
+replygood2=$val37
+replytype3=raw
+replyoption3=nospace 
+replyname3=
+replygood3=$val38
+replytype4=raw
+replyoption4=nospace 
+replyname4=
+replygood4=$val39
+replytype5=raw
+replyoption5=nospace 
+replyname5=
+replygood5=$val40
+replytype6=raw
+replyoption6=nospace 
+replyname6=
+replygood6=$val41
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="font-family: verdana,  sans-serif ;  font-size: 11pt ; background-color: yellow ;">	<p> 	Deze oefening test je kennis van de basale limieten van logaritmische en exponentiele functies.<br>	Antwoord zo snel als je kunt !	</p>	<small><b> 
+!read oef/special.phtml help saisie,Syntax tips 
+$()</b></small>			<p><center>	<table cellpadding="10">	<tr>	<td align="right">$val30</td><td>=</td><td align="left"> 
+!read oef/embed.phtml reply1, 5 
+$()</td><td></td><td align="right">$val31 </td><td>=</td><td align="left"> 
+!read oef/embed.phtml reply2, 5 
+$()</td>	</tr><tr>	<td align="right">$val32 </td><td>=</td><td align="left"> 
+!read oef/embed.phtml reply3, 5 
+$()</td><td>&nbsp;</td><td align="right">$val33 </td><td>=</td><td align="left"> 
+!read oef/embed.phtml reply4, 5 
+$()</td>	</tr><tr>	<td align="right">$val34 </td><td>=</td><td align="left"> 
+!read oef/embed.phtml reply5, 5 
+$()</td><td></td><td align="right">$val35 </td><td>=</td><td align="left"> 
+!read oef/embed.phtml reply6, 5 
+$()</td>	</tr></table>	</center></p>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	  
+!if $m_help_subject issametext saisie 
+$()	<b>Syntax tips:</b><br/>	schrijf <b>+inf</b> voor
+!insmath +\infty
+$()  ;<br> schrijf  <b>-inf</b> voor
+!insmath -\infty
+$(). 	    
+!endif
+$()	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=30,31,32,33,34,35
+embedcnt=7

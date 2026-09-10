@@ -1,0 +1,330 @@
+!set title=Représentation de séries statistiques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+title_es=Representación de series de datos
+title_ca=Representació de sèries de dades
+title_it=Rappresentazione di serie di dati
+title_nl=Representatie van een serie getallen
+
+ansorder=c
+varcnt=100
+prevarcnt=99
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 3+2*$val6, 5+2*$val6-1
+
+val7=$[rint($(tmp0))]
+val8=$[rint(5*$val7)]
+tmp0=!randitem 40,45,50,55,60,65,70
+
+val9=$(tmp0)
+!readproc slib/stat/random $val9,0,$val8 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!item 1 to $val7 of 0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75
+
+val11=$(tmp0)
+tmp0=!itemcnt $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val12
+
+val13=$(tmp0)
+tmp0=!values x for x=1 to $val12
+
+val13=$(tmp0)
+tmp0=!item -1 of $val13
+
+val14=$[$(tmp0)+2]
+!readproc slib/stat/freq [$val10],[$val11] 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!item 1 of $val15
+
+val15=$(tmp0)
+!readproc slib/stat/effectif [$val10],[$val11] 
+tmp0=$slib_out
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+val16=$(tmp0)
+tmp0=!declosing $val16
+
+val16=$(tmp0)
+tmp0=!item 1 to $val12 of $val16
+
+val16=$(tmp0)
+tmp0=!sort numeric reverse item of $val16
+
+val17=$(tmp0)
+tmp0=!randitem 1,2,1,3,1
+
+val18=$(tmp0)
+
+!ifval $val18=2
+tmp0=!sort numeric item of $val16
+
+val16= $(tmp0)
+!endif
+
+!ifval $val18=3
+val16= $val17
+!endif
+val19=$[0]
+!for val20 =1 to $val12 
+tmp0=!item $val20 of $val16
+
+val19=$[$(tmp0)+$val19]
+!next
+val21=$[$val19]
+val22=$[$val21+5]
+tmp0=!randitem 1,2,3,4,5,6
+
+val23=$(tmp0)
+val24=hline 0,0,black	vline 0,0, black
+val25=$[rint(5)]
+!if $val23=5 or $val23=2 
+val19=$[0]
+val24=$val24
+!for val20 =1 to $val12 
+tmp0=!item $val20 of $val16
+
+val19=$[$(tmp0)+$val19]
+!if $val20=1 
+val26=$val19
+tmp0=!item $val20 of $val13
+
+val27=$(tmp0),$val19
+!else
+val26=$val26,$val19
+tmp0=!item $val20 of $val13
+
+val27=$val27, $(tmp0),$val19
+!endif
+tmp0=!item $val20 of $val13
+
+val24=$val24	         disk $(tmp0),$val19,7,blue
+!next
+!endif
+!if $val23=6 or $val23=3 
+val24=$val24
+val22=$val21+5
+val19=$val21
+!for val20 =1 to $val12 
+!if $val20=1 
+val28=$val19
+tmp0=!item $val20 of $val13
+
+val29=$(tmp0),$val19
+!else
+val28=$val28,$val19
+tmp0=!item $val20 of $val13
+
+val29=$val29, $(tmp0),$val19
+!endif
+tmp0=!item $val20 of $val13
+
+tmp1=!item $val20 of $val13
+
+val24=$val24	disk $(tmp0),$val19,7,blue	text black,$(tmp1),0, medium,$val20
+tmp0=!item $val20 of $val16
+
+val19=$[-$(tmp0)+$val19]
+!next
+!endif
+!if $val23=4 
+val24=$val24
+tmp0=!item 1 of $val17
+
+val22=$(tmp0)+5
+!for val20 =1 to $val12 
+!if $val20=1 
+tmp0=!item $val20 of $val13
+
+tmp1=!item $val20 of $val16
+
+val30=$(tmp0),$(tmp1)
+!else
+tmp0=!item $val20 of $val13
+
+tmp1=!item $val20 of $val16
+
+val30=$val30,$(tmp0),$(tmp1)
+!endif
+tmp0=!item $val20 of $val13
+
+tmp1=!item $val20 of $val16
+
+tmp2=!item $val20 of $val13
+
+val24=$val24	disk $(tmp0),$(tmp1),7,blue	text black,$(tmp2),0, medium,$val20
+!next
+!endif
+val31=$[rint(floor($val22/$val25))]
+!for val20 =1 to $val31 
+val32=$[rint($val20*$val25)]
+val24=$val24	text black,-1,$val32+0.5, medium,$val32
+!next
+
+!ifval $val23=1
+val33=$val16
+!endif
+
+!ifval $val23=2
+val33= $val26
+!endif
+
+!ifval $val23=3
+val33=$val28
+!endif
+!if $val23<4 
+!readproc slib/stat/histo [$val33],[$val13],ytics 10,xtics,baton 
+tmp0=$slib_out
+val34=$(tmp0)
+!else
+
+!ifval $val23=4
+val33=$val30
+!else
+val33=$val27
+!endif
+
+!ifval $val23=6
+val33=$val29
+!endif
+val34=xrange -2, $val14	    yrange -$val25,$val22	    parallel 0,0,$val14,0,0,$val25, $val22/$val25 , grey	    parallel 0,0,0,$val22,1,0, $val14 , grey	    polyline red,$val33	    $val24
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val35=$(tmp0)
+val36=Caractères
+val37=Effectifs
+val38=de l'histogramme des effectifs,	  de l'histogramme des effectifs cumulés,	  de l'histogramme des effectifs cumulés décroissants,	  du polygone des effectifs,	  du polygone des effectifs cumulés,	  du polygone des effectifs cumulés décroissants
+val39=Voici les effectifs d'une série statistique prenant les	  caractères de 1 à $val12 et un diagramme statistique construit à partir de cette série.
+val40=Duquel s'agit-il&nbsp;
+val41=Il s'agit
+!if $val35=es 
+val36=Valores
+val37=Frecuencias
+val38=del histograma de frecuencia,	  del histograma de frecuencia acumulada,	  del histograma de frecuencias acumuladas decrecientes,	  del polígono de frecuencias,	  del polígono de frecuencias acumuladas,	  del polígono de frecuencias acumuladas decrecientes
+val39=A continuación se muestran las frecuencias de una serie de datos que toman valores de 1 a $val12 y un diagrama de datos construido a partir de esta serie
+val40=¿De cuál se trata&nbsp;
+val41=Se trata
+!endif
+!if $val35=ca 
+val36=Valors
+val37=Freqüències
+val38=de l'histograma de freqüències,	  de l'histograma de freqüències acumulades,	  de l'histograma de freqüències acumulades decreixents,	  del polígon de freqüències,	  del polígon de freqüències acumulades,	  del polígon de freqüències acumulades decreixents
+val39=A continuació es mostren les freqüències d'una sèrie de dades que prenen valors d'1 a $val12 i un diagrama de dades construït a partir d'aquesta sèrie
+val40=De quin es tracta&nbsp;
+val41=Es tracta
+!endif
+!if $val35=it 
+val36=Valori
+val37=Frequenze
+val38=l'istogramma delle frequenze,	  l'istogramma delle frequenze cumulate,	  l'istogramma delle frequenze cumulate decrescenti,	  il grafico a linea delle frequenze,	  il grafico a linea delle frequenze cumulate,	  il grafico a linea delle frequenze cumulate decrescenti
+val39=Ecco le frequenze di una serie di dati statistici a	  valori tra 1 e $val12 e un diagramma statistico costruito a partire da questi dati.
+val40=Che tipo di diagramma è
+val41=Il diagramma è
+!endif
+val42=<table class="wimscenter wimsborder" style="background-color:skyblue"><tr>	<th>$val36</th>
+!for val20 =1 to $val12 
+val42=$val42 <td>$val20</td>
+!next
+val42=$val42</tr><tr><th>$val37</th>
+!for val20 =1 to $val12 
+tmp0=!item $val20 of $val16
+
+val43=$(tmp0)
+val42=$val42<td>$val43</td>
+!next
+val42=$val42</tr></table>
+val44=$val38
+tmp0=!item $val23 of $val44
+
+val45=$(tmp0)
+choicename1=$val41
+choicegood1=$val45
+choicebad1=$val44
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val39 :	$val42	<div class="wims_question">	<div class="wimscenter">	
+!if $val23<4 
+$() 
+!read oef/draw.phtml 300,150 \
+$val34 
+$() 
+!else
+$()  
+!read oef/draw.phtml 200,200 \
+$val34 
+$() 
+!endif
+$()	</div>	 $val40?	 </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=23,34,39,40,42
+embedcnt=0

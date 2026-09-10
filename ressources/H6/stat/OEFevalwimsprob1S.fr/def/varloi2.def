@@ -1,0 +1,192 @@
+!set title=Variable aléatoire, loi de probabilité 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Donner les valeurs exactes.
+tmp0=!randint 4, 5
+
+val7=$[rint($(tmp0))]
+val8=
+val9=
+!for val10 =1 to $val7 
+val11=$[rint(4*$val10-2*($val7-$val10))]
+
+!ifval $val11<0
+val11=$[rint(0)]
+!endif
+tmp0=!append item $val11 to $val8
+
+val8=$(tmp0)
+val12=$[rint(binomial($val7,$val10))]
+tmp0=!append item $val12 to $val9
+
+val9=$(tmp0)
+!next
+tmp0=!listuniq $val8
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+val14=$[rint($(tmp0))]
+val15=
+!for val10 =1 to $val14 
+tmp0=!positionof item $(val13[$val10]) in $val8
+
+val16=$(tmp0)
+
+!ifval $(val13[$val10])=0
+t_=!rawmath 1/2^$val7
+val17=!exec pari print($t_)
+!else
+t_=!rawmath 0
+val17=!exec pari print($t_)
+!endif
+!for val18  in $val16 
+t_=!rawmath $val17+$(val9[$val18])/2^$val7
+val17=!exec pari print($t_)
+!next
+tmp0=!append item $val17 to $val15
+
+val15=$(tmp0)
+!next
+tmp0=!makelist r x for x= 4 to $val14+3
+
+val19=$(tmp0)
+tmp0=!nospace $val19
+
+val19=$(tmp0)
+t_=!rawmath 0
+val20=!exec pari print($t_)
+t_=!rawmath 0
+val21=!exec pari print($t_)
+!for val10 =1 to $val14 
+t_=!rawmath $val20+$(val13[$val10])*$(val15[$val10])
+val20=!exec pari print($t_)
+t_=!rawmath $val21+$(val13[$val10])^2*$(val15[$val10])
+val21=!exec pari print($t_)
+!next
+t_=!rawmath $val21-($val20)^2
+val21=!exec pari print($t_)
+val22=$[round(100*sqrt($val21))/100]
+oefsteps=r1,r2,r3,$val19 
+nextstep=!nosubst r1,r2,r3,$val19 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=Espérance
+replygood1=$val20
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=Variance
+replygood2=$val21
+replytype3=numeric
+replyname3=Ecart type
+replygood3=$[$val22]
+replyoption4=noreduction 
+replyname4=\(P(N=$(val13[1]))\)
+replygood4=$(val15[1])
+replyoption5=noreduction 
+replyname5=\(P(N=$(val13[2]))\)
+replygood5=$(val15[2])
+replyoption6=noreduction 
+replyname6=\(P(N=$(val13[3]))\)
+replygood6=$(val15[3])
+replyoption7=noreduction 
+replyname7=\(P(N=$(val13[4]))\)
+replygood7=$(val15[4])
+replyoption8=noreduction 
+replyname8=\(P(N=$(val13[5]))\)
+replygood8=$(val15[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Un test est composé de $val7 questions auxquelles on doit répondre	 par Vrai ou Faux. </p><p>	On coche au hasard les réponses aux $val7 questions posées.</p>	Le barème est le suivant :	<ul>	<li> 4 points par réponse exacte.</li>	<li> -2 points pour une réponse inexacte.</li>	</ul>	 La note finale est le plus grand des deux nombres entre 0 et	 la somme des points obtenus.	<div class="wims_question">	Déterminer la loi de probabilité de la variable aléatoire 
+!insmath N
+$(),	 définie par la note d'un candidat ayant répondu au hasard.	<table class="wimsborder wimscenter">	<tr><td> 
+!insmath n
+$() </td>	 
+!for m_j=4 to $val14+3 
+$()	<td>$(val13[$m_j-3])</td>	 
+!next
+$()	</tr><tr><td>
+!insmath P(N=n)
+$()</td>	 
+!for m_j=4 to $val14+3 
+$()	<td> 
+!read oef/embed.phtml reply\j,4 
+$()</td>	 
+!next
+$()	</tr></table>	Calculer l'espérance mathématique, la variance et l'écart type de 
+!insmath N
+$().	<table class="wimscenter">	<tr><td> Espérance = </td><td>  
+!read oef/embed.phtml reply1,7 
+$()</td><td><i> sous forme de fraction</i></td></tr>	<tr><td> Variance = </td><td>  
+!read oef/embed.phtml reply2,7 
+$()</td><td><i> sous forme de fraction</i></td></tr>	<tr><td> Ecart type = </td><td>  
+!read oef/embed.phtml reply3,7 
+$() </td><td><i> arrondi au centième</i></td></tr>	</table>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,13,14
+embedcnt=4

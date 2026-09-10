@@ -1,0 +1,132 @@
+!set title=Encadrer 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=dixième,centième
+val7=Encadrer le nombre au, près
+val8=\(\Large{< }\),\(\Large{>}\), \(\Large{=}\)
+tmp0=!randint 0, 9
+
+tmp1=!randint 1, 9
+
+tmp2=!randint 1, 9
+
+tmp3=!randint 1, 9
+
+tmp4=!randint 1, 9
+
+val9=$(tmp0),$(tmp1),$(tmp2),$(tmp3),$(tmp4)
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+!if $val10=1 
+val11=$(val9[1]),$(val9[2]),$(val9[3]),0,0
+!else
+val11=$(val9[1]),$(val9[2]),$(val9[3]),$(val9[4]),0
+!endif
+val12=$[rint(0)]
+val13=$[rint(0)]
+!for val14 =1 to 5 
+val12=$[$val12+$(val9[$val14])/10^($val14-2)]
+val13=$[$val13+$(val11[$val14])/10^($val14-2)]
+!next
+!if $val10=1 
+val15=$[$val13+0.1]
+!else
+val15=$[$val13+0.01]
+!endif
+val16=$(val7[1]) $(val6[$val10]) $(val7[2])
+val17=$(val8[1]) $val12 $(val8[1]) 
+val18=6
+val19=numeric
+val20=
+replytype1=$val19
+
+replyname1=
+replygood1=$val13
+replytype2=$val19
+
+replyname2=
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val16: \begin{center} \(\dots\dots\) $val17 \(\dots\dots\) \end{center} $val20 \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val16: <div class="wimscenter"> 
+!read oef/embed.phtml r1,$val18 
+$()	$val17  
+!read oef/embed.phtml r2,$val18 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val16: $m_begin{center} 
+!insmath \dots\dots
+$() $val17 
+!insmath \dots\dots
+$() $m_end{center} $val20 $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16,17,18,20
+embedcnt=2

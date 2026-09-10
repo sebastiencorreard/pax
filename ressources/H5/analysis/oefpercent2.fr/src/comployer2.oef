@@ -1,0 +1,330 @@
+\language{fr}
+\range{-5..5}
+\author{Rémi,Belloeil}
+\email{remi.belloeil@orange.fr}
+\computeanswer{yes}
+\format{html}
+\precision{1000}
+\css{<style>
+.myred {color:red}
+.myblue {color:blue}
+</style>}
+
+\title{Comparaison loyers et prix sur tableur}
+\description{Choisir une méthode, choisir une formule de tableur, comparer.}
+
+
+% nombre de valeurs 10
+% Listes L1 et V
+% Valeurs initiales loyer a0 et indice des prix b0
+% Sens s = 1 : le loyer augmente plus vite, s = -1 : le loyer augmente moins vite, s = 0 l'augmentation est la même.
+
+\text{t1=indice des prix}
+\text{t2=loyer}
+\integer{an=2010}
+
+\integer{k=randint(1..2)}
+\integer{s=randint(-1,0,1)}
+\integer{cs=1-\s*\s}
+\integer{l=5}
+
+\integer{b0=100}
+\integer{a0=400+10*randint(1..5)}
+\real{k1=100/\a0}
+\integer{ai=\a0}
+\integer{bi=\b0}
+
+\text{L=\a0}
+\text{V=\b0}
+\text{L4=100}
+\text{LA=\an}
+
+
+\integer{ui=\ai}
+\integer{vi=\bi}
+\integer{h=1}
+
+\text{P4=polyline blue, 0,\b0}
+\text{P3=polyline red, 0,100}
+\integer{M=\a0}
+\integer{n=\b0}
+
+\integer{qi=1000*\a0/\b0}
+\real{qi=0.001*\qi}
+\text{Q=\qi}
+\text{Tx=  }
+
+\for{i=1 to 9}{
+  \real{ti=\ai}
+  \integer{d=\i%2}
+  \integer{d=2*\d-1}
+  \real{t=1+0.01*randint(5..8)}
+  \real{h=\h*\t}
+  \integer{bi=\bi*\t}
+  \real{r=randint(1..5)*0.01}
+  \integer{ai=\cs*\a0*\h*(1+\d*\r)+(1-\cs)*\ai*(\t+\s*\r)}
+  \integer{M=max(\M,\ai)}
+  \integer{n=max(\n,\bi)}
+  \integer{ui=100*\ai/\a0}
+  \text{P3=\P3,\i,\ui}
+  \text{P4=\P4,\i,\bi}
+  \text{L=\L,\ai}
+
+  \text{V=\V,\bi}
+  \integer{ti=1000*(\ai-\ti)/\ti}
+  \real{ti=0.1*\ti}
+  \text{Tx=\Tx,\ti %}
+  \integer{qi=1000*\ai/\bi}
+  \real{qi=0.001*\qi}
+  \text{Q=\Q,\qi}
+  \integer{am=\an+\i}
+  \text{L4=\L4,\ui}
+  \text{LA=\LA,\am}
+
+  }
+\integer{M1=250}
+\integer{p1=25}
+
+\text{T1 = text black, 1050,105,large, \L[10]}
+\text{T2 = text black, 1050,125,large, \V[10]}
+\text{T4 = text black, 1050,80,large, \Q[10]}
+\text{T5 = text black, 1050,85,large, \Tx[10]}
+\text{T6 = text black, 1050,85,large, \L4[10]}
+\text{X1 = text black, 0,-5,large, 0}
+\text{U2 = text black, -1,2,large,0}
+\text{TA = text black, 1050,145,large, \LA[10]}
+
+
+\for{i=1 to 9}{
+   \integer{j=100*\i+50}
+   \integer{j2=\p1*\i}
+
+   \text{T1 = \T1;text black, \j,105, large,\L[\i]}
+   \text{T2 = \T2;text black, \j,125, large,\V[\i]}
+   \text{T4 = \T4;text black, \j,80,large,\Q[\i]}
+   \text{T5 = \T5;text black, \j,85,large, \Tx[\i]}
+   \text{T6 = \T6;text black, \j,85,large, \L4[\i]}
+   \text{X1 = \X1;text black, \i,-5,large, \i}
+   \text{U2 = \U2;text black, -1.5, \j2+5, large,\j2}
+   \text{TA = \TA;text black, \j,145, large,\LA[\i]}
+}
+
+%%Tableur initial#%%
+\text{dessin0=xrange -50,1200
+yrange 0,220
+copy -50,200,-1,-1,-1,-1,TabEvol0.png
+text black, -10,125, small,\t1
+text black, -10,105, small,\t2
+text black, -10,145, small,année
+\TA
+\T1
+\T2
+}
+
+\text{dessin1=\dessin0
+text black, -10,80,small,Quotient L/I
+}
+
+\text{dessin2=\dessin0
+text black, -10,80,small,Taux d'évolution
+}
+\text{dessin3=\dessin0
+text black, -15,80,small,Indice des Loyers
+text black, 150,85,large, 100
+}
+\text{dessin4=\dessin1
+\T4
+}
+\text{dessin5=\dessin2
+\T5
+}
+\text{dessin6=\dessin3
+\T6}
+\text{graph2= xrange -2,11
+yrange -0.1*\M1,\M1
+linewidth 3
+arrow 0,0,11,0,10,black
+arrow 0,0,0,\M1,10,black
+linewidth 4
+\X1
+\U2
+\P3
+\P4
+}
+
+\text{t1= =C3*100/§B§3}
+\text{tch= =C3*100/§B§3, =\L[2]*100/\L[1], =C3*100/B3, =B3*100/C3, =B3/B2, =B3/§B§2, =(C3-B3)/B3, =(C3-B3)/§B§3,\L[1]/100}
+
+\text{Analyse=Les loyers ont augmenté moins vite que les prix,Les loyers ont augmenté environ comme les prix,Les loyers ont augmenté plus vite que les prix}
+\integer{rA=2+\s}
+
+\matrix{methode=Diviser le loyer par l'indice des prix de la même année
+  Déterminer les pourcentages d'évolution des loyers d'une année par rapport à la précédente.
+  Déterminer l'indice des loyers de base 100 en 2010.
+}
+
+\text{W=}
+
+\text{ETAPE = r1}
+\text{COND = 1}
+\nextstep{ \ETAPE}
+\conditions{ \COND}
+
+
+\statement{<p>Jean compare l'évolution de son loyer depuis 2010 avec
+  l'indice des prix (valeurs fictives).</p>
+
+  \if{\step=1}{
+  \draw{1000,200}{\dessin0}
+    <p>
+    Choisir une méthode pour comparer les évolutions des deux séries statistiques à partir de 2010.
+    </p>
+    <ul class="wims_nopuce"><li>
+    \embed{reply1,1,\methode[1;]}
+    </li><li>
+    \embed{reply1,2,\methode[2;]}
+    </li><li>
+    \embed{reply1,3,\methode[3;]}
+    </li></ul>
+  }
+\if{\step=2}{
+  Vous avez choisi la méthode : <br>
+  \if{\W=A}{
+  Diviser le loyer par l'indice des prix de la même année
+  <div class="wimscenter">\draw{1000,200}{\dessin1}</div>
+  Quelle formule faut-il mettre dans la case B4 à recopier automatiquement
+    vers la droite pour obtenir tous les nombres voulus ?
+  <div class="wimscenter">\embed{reply2,150x20}</div>
+  }
+  \if{\W=B}{
+    Déterminer les pourcentages d'évolution des loyers d'une année par rapport à la précédente.
+    <div class="wimscenter">\draw{1000,200}{\dessin2}</div>
+    <p>Quelle formule faut-il mettre dans la case C4 à recopier
+    automatiquement vers la droite pour obtenir tous les nombres voulus ?</p>
+    <div class="wimscenter">\embed{reply3,150x20}</div>
+  }
+  \if{\W=C}{
+    Déterminer l'indice des loyers de base 100 en 2010.
+    <div class="wimscenter">\draw{1000,200}{\dessin3}</div>
+    <p>Quelle formule faut-il mettre dans la case C4 à recopier automatiquement
+    vers la droite pour obtenir tous les nombres voulus ?</p>
+    <div class="wimscenter">\embed{reply4,150x20}</div>
+  }
+}
+\if{\step=3}{
+  <p class="oefindgood">
+  Bonne réponse !</p>
+
+  Voici le tableau complété.
+    \if{\W=A}{
+  A:
+  \draw{1000,200}{\dessin4}<br>
+}
+\if{\W=B}{
+  B:
+  \draw{1000,200}{\dessin5}
+}
+  \if{\W=C}{
+  C:
+    \draw{1000,200}{\dessin6}
+}
+
+<p>Quel est votre avis :</p>
+<ul class="wims_nopuce"><li>
+\embed{reply5,1}</li><li>
+\embed{reply5,2}</li><li>
+\embed{reply5,3}</li>
+</ul>
+}
+}
+
+\answer{Méthode}{\var1;A,B,C}{type=radio}{option=nonstop}
+\answer{Formule}{ =B3/B2;\tch}{ type=clickfill } {option=shuffle}
+\answer{Formule}{ =(C3-B3)/B3;\tch}{ type=clickfill } {option=shuffle}
+\answer{Formule}{\t1;\tch}{ type=clickfill } {option=shuffle}
+\answer{Analyse}{\rA;\Analyse}{type = radio}
+
+\text{ETAPE=}
+
+\if{\step=2}{
+  \text{W=\var1}
+  \if{\var1=A}{
+    \text{ETAPE=r2}
+  }
+  \if{\var1=B}{
+    \text{ETAPE=r3}
+  }
+  \if{\var1=C}{
+    \text{ETAPE=r4}
+  }
+}
+\if{\step=3}{
+  \text{ETAPE=r5}
+ }
+
+\condition{Choix d'une méthode}{\step > 1}{option=hide}
+
+\feedback{\W issametext A }{
+  A : <ul class="wims_nopuce"><li>
+  Ce calcul donne des résultats pour chaque année.
+  </li><li>
+  Si le quotient augmente toujours, c'est que les loyers augmentent plus vite que les prix.
+  </li><li>
+  Si le quotient diminue toujours, c'est que les loyers augmentent moins vite que les prix.
+  </li><li>
+  Dans les autres cas, si le coefficient varie autour de la même valeur, les loyers et les prix augmentent à peu près de la même façon.
+  </li><li>
+  Mais il aurait été intéressant de comparer les indices de l'année 2010.
+  </li></ul>
+}
+
+\feedback{\W issametext B }{
+  B : Calculer le pourcentage d'évolution des loyer d'une année sur l'autre est une bonne idée.
+  <br>
+  Mais il faudrait alors le faire aussi pour l'indice des prix.<br>
+  Mais dans ce cas, on perd l'évolution depuis l'année 2010.
+  </p>
+}
+
+\feedback{\W issametext C }{
+  <p>
+  C : Comme on dispose de l'indice de base 2010 des prix, c'est une bonne idée
+  de calculer aussi l'indice de base 2010 des loyers.
+  </p>
+}
+
+\hint{
+  \if{\step=1}{
+    Un choix peu adapté n'empêche pas de continuer.
+  }
+  \if{\step=2}{
+    <ul><li>
+    Le symbole § bloque la cellule lors de la recopie vers la droite.
+    </li><li>
+    Sinon les références B2, B3 ... sont modifiées lors de la recopie en C2, C3...
+    </li><li>
+    Les nombres 100... ne sont pas modifiés lors de la recopie vers la droite.
+    </li></ul>
+  }
+  \if{\step=3}{
+    Vous pouvez utiliser les données du tableau ou effectuer d'autres calculs.
+  }
+}
+\solution{
+  <p>
+  \Analyse[\rA] car
+  \if{\rA=1}{l'indice des loyers est toujours inférieur à l'indice des prix.}
+  \if{\rA=2}{l'indice des loyers est parfois inférieur à l'indice des prix, parfois supérieur à l'indice des prix.}
+  \if{\rA=3}{l'indice des loyers est toujours supérieur à l'indice des prix.}
+  </p>
+  <div class="wimscenter">
+  \draw{400,400}{\graph2}</div>
+  <ul class="inline wimscenter">
+  <li class="myred">Loyers en rouge</li>
+  <li class="myblue">Prix en bleu</li>
+  </ul>
+
+  <div class="wimscenter">
+  \draw{1000,200}{\dessin6}
+  </div>
+}

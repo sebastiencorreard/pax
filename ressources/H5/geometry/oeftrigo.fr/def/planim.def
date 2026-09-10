@@ -1,0 +1,120 @@
+!set title=Planimètre et trigonométrie
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Un planimètre est formé de deux barres de même longueur	  1 liées par une articulation.  L'extrémité orange \(O)  de l'une	  est fixée tandis que la deuxième extrémité rouge \(M) de l'autre	  est libre de se déplacer et munie d'une pointe&nbsp;
+val8=Si le point \(M) est de coordonnées
+val9=calculer les coordonnées	  du point d'articulation bleu \(N).	  Calculer l'angle \(\theta_1) que fait la branche partant de \(O) avec l'axe	  \(O x) et l'angle \(\theta_2) que fait la deuxième branche avec la première.	
+val10=On mesurera \(\theta_1) entre 0 et \(2 \pi) et \(\theta_2) entre	 \(0) et \(\ \pi) (en radians).
+val11=Passer dans le plan complexe.
+tmp0=!randitem 1,-1
+
+tmp1=!randint 3, 20
+
+val12=$[$(tmp0)*$(tmp1)/10]
+val13=$[sqrt(4-($val12)^2)]
+tmp0=!randint -10*$val13, 10*$val13
+
+val14=$[$(tmp0)/10]
+val15=$[sqrt((4-($val12)^2-($val14)^2)/(($val12)^2+($val14)^2))/2]
+val16=$[($val12)/2+($val14)*($val15)]
+val17=$[($val14)/2-($val12)*($val15)]
+val18=$[($val16)^2 + ($val17)^2]
+val19=$[acos(sqrt(($val12)^2+($val14)^2)/2)/2]
+t_=!replace internal \( by ( in print(arg($val12+I*($val14))-2*($val19))
+tmp0=!exec pari $t_
+
+val20=$[$(tmp0)	]
+val20=$[$val20-(floor($val20/(2*pi))*2*pi)]
+replytype1=numeric
+replyname1=\(x_N)
+replygood1=$[$val16]
+replytype2=numeric
+replyname2=\(y_N)
+replygood2=$[$val17]
+replytype3=numeric
+replyname3=\(\theta_1)
+replygood3=$[$val20]
+replytype4=numeric
+replyname4=\(\theta_2)
+replygood4=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val11
+
+
+!goto stat
+
+!exit
+
+:question
+$() $val7:	<div class="wimscenter"> 
+!read oef/draw.phtml 200,200 \
+xrange -2,2	yrange -2,2	hline 0,0,black	arrow 0,0,2,0,7,black	vline 0,0,black	segment 0,0, 2*$val16,2*$val17, black	linewidth 3	disk 0,0,8, orange	disk $val16,$val17,8, blue	disk $val12,$val14,8, red	text black, $val12,$val14,medium, M	text black, \0,0,medium, O	text black, $val16,$val17,medium, N	polyline green, 0,0,$val16,$val17,$val12,$val14	 
+$()	</div>	$val8 
+!insmath ($val12 , $val14)
+$(), $val9	<div class="wims_instruction"> $val10	</div>	
+$()
+!exit
+
+:hint
+$()$val11
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,14,16,17
+embedcnt=0

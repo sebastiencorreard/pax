@@ -1,0 +1,113 @@
+!set title=Ontbinding van polynomen van graad 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Frédéric PITOUN
+email=lva.pitoun@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val8=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in factor((x-$val7)*(x-$val8))
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+t_=!replace internal \( by ( in factor(($val6)*(x-$val7)*(x-$val8))
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val10)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+val12=$[rint((($val7-$val8)*($val7-$val8)*$val6*$val6))]
+replytype1=algexp
+replyname1=Ontbinding
+replygood1=$val10
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Schrijf polynoom 
+!insmath $val11
+$() als product van zijn factoren.	<p align=left>	<b>Let op:	</b> Je moet "maximal" ontbinden.	</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()De discriminant van dit polynoom is 
+!insmath $val12
+$(), zijn wortels zijn 
+!insmath x_1=$val7
+$() en 
+!insmath x_2=$val8
+$(). Zijn ontbinding is dus: <br/>	<p align="center"> 
+!insmath $val10
+$() </p>
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,11,12
+embedcnt=0

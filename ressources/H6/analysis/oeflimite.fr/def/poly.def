@@ -1,0 +1,173 @@
+!set title=Polynome en l'infini
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=chantal.causse@noos.fr
+
+ansorder=r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=\(+\infty)
+val7=\(-\infty)
+val8=$val6, $val7
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+val14=$val10,$val11,$val12,$val13
+tmp0=!randint 1, 8
+
+val15=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=1
+val17=+\infty
+!else
+val17=-\infty
+!endif
+!if ($val9>0 and $val16=1) or ($val9*(-1)^$val15 > 0 and $val16=2) 
+val18=$val6
+!else
+val18=$val7
+!endif
+tmp0=!randint 0, $val15-1
+
+val19=$(tmp0) 
+!for val20 =1 to 3 
+!if $(val19[$val20])>0 
+tmp0=!randint 0, $(val19[$val20])-1
+
+val19=$val19,$(tmp0)
+!endif
+!next
+t_=!replace internal \( by ( in $val9*x^$val15
+tmp0=!exec pari $t_
+
+val21=!rawmath $(tmp0)
+tmp0=!itemcnt $val19
+
+!for val22 =1 to $(tmp0) 
+t_=!replace internal \( by ( in $(val14[$val22])*x^$(val19[$val22])
+tmp0=!exec pari $t_
+
+t_=!replace internal \( by ( in $(val14[$val22])*x^$(val19[$val22])
+tmp1=!exec pari $t_
+
+tmp2=!randitem $val21+$(tmp0), $(tmp1) + $val21
+
+val21=!rawmath $(tmp2)
+!next
+tmp0=!texmath $val21
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in $val9*x^$val15
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+replytype1=formal
+replyname1=terme prépondérant
+replygood1=$val24
+replytype2=clickfill
+replyname2=
+replygood2=$val18;$val7,$val6,0,une autre limite
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On veut déterminer la limite éventuelle en 
+!insmath $val17
+$() de la fonction 
+!insmath f
+$() définie par:	<p class ="wimscenter"> 
+!insmath f(x)=$val23
+$() </p>				En 
+!insmath $val17
+$(), le terme prépondérant est: 
+!read oef/embed.phtml reply1,7 
+$()				
+!insmath \displaystyle{\lim_{x \rightarrow $val17}f(x) = }
+$()  
+!read oef/embed.phtml reply2,150 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,23
+embedcnt=2

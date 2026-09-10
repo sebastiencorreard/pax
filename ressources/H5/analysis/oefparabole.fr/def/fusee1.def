@@ -1,0 +1,325 @@
+!set title=La fusée retardée 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val7=$[rint($(tmp0))]
+tmp=!trim 4,4/3,3,1	4,1/2,8,2	4.5,1.5,3,1	3,1,6,4
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=$[$(val8[$val6;1])]
+t_=!rawmath $(val8[$val6;2])
+val10=!exec pari print($t_)
+val11=$[rint($(val8[$val6;3]))]
+val12=$[rint($(val8[$val6;4]))]
+val13=$[rint($val10*$val11/$val9)]
+val14=$[rint($val11+$val13)]
+val15=$[$val10*$val11^2]
+val16=$[rint($val15+$val9*$val13^2)]
+val17=$[sqrt($val16/$val9)]
+val18=$[$val14+$val17]
+val19=$[rint($val14+$val7)]
+val20=!rawmath $val10*x^2+sqrt(x)*0+sqrt($val11+0.05-x)*0
+val21=!rawmath -$val9*x^2+$val16+sqrt(x+$val13-0.02)*0+sqrt($val17+0.01-x)*0
+val22=!rawmath -$val9*(x-$val14)^2+$val16+sqrt(x-$val11+0.02)*0+sqrt($val18+0.015-x)*0
+val23=!rawmath $val10*(x-$val7)^2
+val24=!rawmath -$val9*(x-$val19)^2+$val16
+val25=!rawmath $val10*(x-$val7)^2+sqrt(x-$val7+0.05)*0+sqrt($val11+$val7+0.05-x)*0
+val26=!rawmath -$val9*(x-$val19)^2+$val16+sqrt(x-$val11-$val7+0.05)*0+sqrt($val18+$val7+0.02-x)*0
+val27=$[rint(-$val13-1)]
+val28=$[rint(25+$val27)]
+val29=$[rint(-(floor($val16/10)+1))]
+val30=$[rint(1.125*$val16)]
+val31=!rawmath -$val9*(x-$val14)^2+$val16
+t_=!replace internal \( by ( in expand($val31)
+tmp0=!exec maxima $t_
+
+val32=!rawmath $(tmp0)
+val33=$[rint(2*$val9*$val14)]
+val34=$[rint($val9*($val14^2)-$val16)]
+val35=!rawmath -$val9*x^2+$val33*x-$val34
+val36=(0.5*animstep-$val13)
+val37=text black,-$val13-0.2,-0.2,small,-$val13
+!for val38  = 1 to 20  
+val37=$val37	text black,$val38-0.2,-0.2,small,$val38
+!next
+val39=text black,-0.8,1.3*$val12,small,$val12
+!for val38  = 2*$val12 to $val16 step $val12 
+val39=$val39 ; text black,-0.8,$val38+0.3*$val12,small,$val38
+!next
+val40=xrange $val27,$val28	yrange $val29,$val30	linewidth 1	parallel $val27,0,$val27,$val30,1,0,$val28+3,lightblue	parallel $val27,$val12,$val28,$val12,0,$val12,$val30,lightblue	text black,0.5,$val30,medium,altitude en m	text black,$val28-4.5,$val12,medium,temps en s	linewidth 2	arrow $val27,0,$val28,0,10, black	arrow 0,$val29,0,$val30,10, black	text black $val27,-$val13,medium,- $val13	$val37	$val39	plotsteps 1000	text green,0.8*$val13,$val12,medium,c	text black,0.8*$val13,$val16-$val12,medium,r	plot green,$val20	plot black,$val21	
+val41=$val40	plot red,$val22	text red,$val14,$val16-$val12,medium,g	
+val42=animate 2*$val17+2*$val13+1,1,0	$val41	linewidth 2	arrow $val36,$val16-$val9*$val36^2,$val36+$val14,$val16-$val9*$val36^2,10,black	text black,$val36-0.2,0.5*$val29,medium,x-$val14	text black,$val36+$val14-0.2,0.5*$val29,medium,x	dsegment $val36,0,$val36,$val16-$val9*$val36^2,black	dsegment $val36+$val14,0,$val36+$val14,$val16-$val9*$val36^2,black	
+val43=animate 2*$val17+2*$val13+1,1,0	$val40	plot red,$val22	plot green,$val25	plot red,$val26	text red,$val14,$val16-3,medium,g	text red,$val19,$val16-3,medium,u	text green,$val7+$val13,$val12,medium,f	linewidth 2	arrow $val36+$val14,$val16-$val9*$val36^2,$val36+$val14+$val7,$val16-$val9*$val36^2,10,black	text black,$val36-0.2,0.5*$val29,medium,x-$val19	text black,$val36+$val14-1,0.5*$val29,medium,x - $val7	text black,$val36+$val14+$val7-0.2,0.5*$val29,medium,x	dsegment $val36,0,$val36,$val16-$val9*$val36^2,black	dsegment $val36+$val14,0,$val36+$val14,$val16-$val9*$val36^2,black	dsegment $val36+$val19,0,$val36+$val19,$val16-$val9*$val36^2,black	
+val44=\(g(x) = r(x)+$val14)
+val45=\(g(x) = r(x+$val14))
+val46=\(g(x) = r(x-$val14))
+val47=\(g(x) = r(x)-$val14)
+val48=
+oefsteps=reply1	reply2	reply3	reply4,reply5 
+nextstep=!nosubst reply1	reply2	reply3	reply4,reply5 
+!readproc oef/steps.proc
+replytype1=radio
+replyoption1=shuffle 
+replyname1=\(g(x))
+replygood1=3;$val44,$val45,$val46,$val47
+replytype2=function
+replyname2=\(g(x) =)
+replygood2=!rawmath $val31,x
+replytype3=numeric
+replyname3=\(x =)
+replygood3=$[$val18]
+replytype4=function
+replyname4=\(f(x) =)
+replygood4=!rawmath $val23,x
+replytype5=function
+replyname5=\(u(x) =)
+replygood5=!rawmath $val24,x
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<ul class="wims_nopuce">	<li>Un club organise le lancement d'une fusée. Maud explique que la fusée va d'abord monter	grâce à la puissance de son moteur pendant $val11 secondes.</li>	<li>Dans cette phase son altitude en mètres sera égale à $val10 multiplié par le carré du temps	
+!insmath x
+$() écoulé depuis l'instant 0 en secondes,
+!insmath $val10*x^2
+$().</li>	<li>Elle montre la courbe en vert de la fonction notée 
+!insmath f
+$().</li>	<li>Au bout de $val11 secondes, le moteur va s'arrêter et la fusée va continuer à monter	pendant $val13 s jusqu'à $val16 m puis elle va redescendre jusqu'au sol.</li>	<li>Dans cette deuxième phase, la courbe sera obtenue par une translation à partir de celle	de la fonction 
+!insmath r
+$() avec 
+!insmath r(x) = $val16 -$val9*x^2
+$() qu'elle a tracée en noir.</li>	</ul>	</div>	<div class="wimscenter">	 
+!read oef/draw.phtml 500,400 \
+$val41 
+$()	</div>	
+!if $m_step=1 
+$()	Quelle est la formule de la fonction 
+!insmath g
+$() ainsi représentée en rouge ?	<ul class="wims_nopuce">	<li> 
+!read oef/embed.phtml reply 1,1 
+$()</li><li> 
+!read oef/embed.phtml reply 1,2 
+$()</li><li> 
+!read oef/embed.phtml reply 1,3 
+$()</li>	<li> 
+!read oef/embed.phtml reply 1,4 
+$()</li>	</ul>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<p>Tu as trouvé $val46. Donne l'expression de 
+!insmath g
+$() en fonction de 
+!insmath x
+$() sans la lettre 
+!insmath r
+$().<p>	<Rappel 
+!insmath r(x) = -$val9*x^2+$val16
+$().</p>	<ul class="wims_nopuce">	<li>Vérifie que 
+!insmath g($val11) = $val15
+$() et que 
+!insmath g($val14) = $val16
+$().</li>	<li><label for="reply2">
+!insmath g(x) = 
+$()</label>  
+!read oef/embed.phtml reply 2,25 
+$().</li>	</ul>	 
+!endif
+$()	
+!if $m_step=3 
+$()	<p>Tu as trouvé $val46 donc 
+!insmath g(x) = $val31
+$().</p>	<p>A quel instant la fusée retombe-t-elle au sol (altitude 0) ?	<label for="reply3">
+!insmath x =
+$()</label>  
+!read oef/embed.phtml reply 3,10 
+$()</p>	$m_t1	 
+!endif
+$()	
+!if $m_step=4 
+$()	<p>Tu as trouvé $val46 donc 
+!insmath g(x) = $val31 = $val35
+$().</p>	<p>Mais en fait <b>la fusée part avec un retard de $val7 secondes</b>.</p>		<p>On appelle 
+!insmath f
+$() la fonction correspondant à la première phase et 
+!insmath u
+$() la fonction	correspondant à la deuxième phase.</p>	<p>Trouve les expressions de 
+!insmath f
+$() et 
+!insmath u
+$().</p>	<ul>	<li><label for="reply4">
+!insmath f(x) =
+$()</label>	 
+!read oef/embed.phtml reply 4,25 
+$() correspondant à la fonction 
+!insmath c
+$() avec 
+!insmath c(x) = $val10*x^2
+$()	</li>	<li><label for="reply5">
+!insmath u(x) =
+$()</label>  
+!read oef/embed.phtml reply 5,25 
+$()</li>	</ul>		 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	  
+!if $m_step=1 
+$()	    Pour calculer l'image de 
+!insmath x
+$() par 
+!insmath g
+$() on utilise l'image de 
+!insmath x - $val14
+$() par 
+!insmath r
+$().<br>	     
+!read oef/draw.phtml 500,400 \
+$val42 
+$()	   
+!endif
+$()	  
+!if $m_step=2 
+$()	  L'expression de la fonction peut être donnée sous la forme canonique 
+!insmath a
+$() *(x - 
+!insmath k
+$() )^2+	  
+!insmath c
+$() en déterminant les nombres 
+!insmath a
+$(), 
+!insmath k
+$() et 
+!insmath c
+$()<br>	  ou sous la forme développée 
+!insmath a
+$() *x^2+ 
+!insmath b
+$() *x+ 
+!insmath c
+$() en déterminant les nombres 
+!insmath a
+$(),	  
+!insmath b
+$() et 
+!insmath c
+$().	 
+!endif
+$()	
+!if $m_step=3 
+$()		  Il suffit de lire sur le graphique la valeur 
+!insmath x_2
+$() pour laquelle 
+!insmath g(x_2) = 0
+$() mais il est bon	  de vérifier le résultat par le calcul.		 
+!endif
+$()	
+!if $m_step=4 
+$()	<ul class="wims_nopuce">	<li>L'expression de la fonction peut être donnée sous la forme canonique 
+!insmath a
+$() *(x - 
+!insmath k
+$() )^2+ 
+!insmath c
+$()	en déterminant les nombres 
+!insmath a
+$(), 
+!insmath k
+$() et 
+!insmath c
+$()</li>	<li>ou sous la forme développée 
+!insmath a
+$() *x^2+ 
+!insmath b
+$() *x+ 
+!insmath c
+$() en déterminant les nombres 
+!insmath a
+$(),	
+!insmath b
+$() et 
+!insmath c
+$().</li></ul>	$val48	 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()		 
+!read oef/draw.phtml 500,400 \
+$val42 
+$()<br> puis<br> 
+!read oef/draw.phtml 500,400 \
+$val43 
+$()		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,11,13,14,15,16,31,35,41,42,43,46,48
+embedcnt=8

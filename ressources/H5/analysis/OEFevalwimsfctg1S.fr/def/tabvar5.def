@@ -1,0 +1,157 @@
+!set title=Tableau de variations 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard; Maguy, Bruno
+email=regine@mangeard.fr
+precision=1000
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=toujours positif, toujours négatif, d'abord positif puis négatif, d'abord négatif puis positif
+tmp0=!randint 5, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, $val7-2
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+val10=$[rint(1)]
+!if $val9=2 
+tmp0=!randint -10, -1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val12=$[rint($val11-$(tmp0))]
+tmp0=!randint 2, 10
+
+val13=$[rint($val11-$(tmp0))]
+tmp0=!randint 6, 15
+
+val14=$[rint($(tmp0))]
+val15=2,2,4
+val16=bottom,top,bottom,top
+val17=\(\nearrow),\(\searrow),\(\nearrow)
+!else
+tmp0=!randint -10, -1
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+val11=$[rint($val13-$(tmp0))]
+tmp0=!randint -15, -6
+
+val14=$[rint($(tmp0))]
+val15=3,2,2
+val17=\(\searrow),\(\nearrow),\(\searrow)
+val16=top,bottom,top,bottom
+!endif
+replytype1=numeric
+replyname1=nombre de solutions
+replygood1=$[$val10]
+replytype2=radio
+replyname2=&#93;\(-\infty);$val8&#93;
+replygood2=$(val15[1]);$val6
+replytype3=radio
+replyname3=&#91;$val8;$val7&#93;
+replygood3=$(val15[2]);$val6
+replytype4=radio
+replyname4=&#91;$val8;\(+\infty)&#91;
+replygood4=$(val15[3]);$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère une fonction 
+!insmath g
+$(), dont on connaît le tableau des variations:	<table class="tab_var"><tr>	  <th>
+!insmath x
+$()</th>	  <td style="text-align:left"> 
+!insmath -\infty
+$()</td>	  <td></td>	  <td>$val8</td>	  <td></td>	  <td>$val7</td>	  <td></td>	  <td style="text-align:right">
+!insmath \infty
+$()</td>	</tr><tr>	  <th valign="middle">
+!insmath var g
+$()</th>	  <td style="text-align:left" valign="$(val16[1])"> $val12 </td>	  <td> $(val17[1]) </td>	  <td valign="$(val16[2])"> $val11 </td>	  <td> $(val17[2])</td>	  <td valign="$(val16[3])"> $val13 </td>	  <td> $(val17[3]) </td>	  <td style="text-align:right" valign="$(val16[4])"> $val14 </td>	  </tr>	</table>	$m_tableau	<ol>	<li><label for="reply1">Quel est le nombre de solutions de l'équation 
+!insmath g(x)=0
+$()?	</label> 
+!read oef/embed.phtml reply1,3 
+$()</li>	<li>Quel est le signe de 
+!insmath g(x)
+$()?	<ul>	<li>sur &#93;
+!insmath -\infty
+$();$val8&#93;?  
+!read oef/embed.phtml reply2 
+$()</li>	<li>sur &#91;$val8;$val7&#93;?  
+!read oef/embed.phtml reply3 
+$()</li>	<li>sur &#91;$val8;
+!insmath +\infty
+$()&#91;?  
+!read oef/embed.phtml reply4 
+$()</li>	</ul></li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,13,14,16,17
+embedcnt=4

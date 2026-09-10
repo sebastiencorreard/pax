@@ -1,0 +1,149 @@
+type=game
+textarea="data"
+:Frise chronologique
+Evénements à classer du type frise chronologique.
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Les planètes et leur distance au Soleil (3)}
+:\author{Chantal, Causse}
+:\email{chantal.causse@noos.fr}
+\keywords{solar_system, planet, power, exponent  }
+:\credits{}
+:Consigne
+
+\text{instruction=Ranger les planètes le long de la flèche en les classant de la plus proche du Soleil à la plus éloignée.<br>
+Le nom de chaque planète (au-dessus de la flèche) doit être associé à sa distance au Soleil (en dessous de la flèche).<br> Certaines distances peuvent être exprimées en unités astronomiques. L'unité astronomique (UA) est la distance moyenne Terre-Soleil, soit environ 149,6 millions de km.}
+
+:Nombre de mots maximum (maximum 10)
+
+\text{N=6}
+
+:Couleur de la flèche
+
+\text{couleur=blue}
+
+:Largeur des étiquettes
+
+\text{facteur=100}
+
+:Hauteur des étiquettes
+
+\integer{height=50}
+
+:Largeur de la flèche
+Mettre un entier entre 1 et 3
+\integer{wi=1}
+
+:Utilise les deux items des données principales (0), seulement la première colonne (1), seulement la deuxième colonne (2), affiche la première colonne et demande la première colonne (3).
+
+\text{choix=0}
+
+:Données principales.
+Mettre les données dans l'ordre où elles doivent apparaître.
+\text{data={\(0,39) UA,{57 900 000 km,\(57,9 * 10^6) km,\(5,79 * 10^7) km}},Mercure
+{\(0,72) UA,{108 200 000 km,\(108,2 * 10^6) km,\(1,082 * 10^8) km}},Vénus
+{1 UA,{149 600 000 km,\(149,6 *10^6) km,\(1,1496 * 10^8) km}},Terre
+{\(1,52) UA,{227 900 000 km,\(227,9 *10^6) km,\(2,279 * 10^8) km}},Mars
+{\(5,2) UA,{778 300 000 km,\(778,3 * 10^6) km,\(7,783 * 10^8) km}},Jupiter
+{\(9,5) UA,{1 427 000 000 km,\(1,427 * 10^9) km}},Saturne
+{\(19,2) UA,{2 870 000 000 km,\(2,870 * 10^9) km}},Uranus
+{\(30,1) UA,{4 497 000 000 km,\(4,497 * 10^9) km}},Neptune}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier ensuite %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+\real{M=\N-0.3}
+\text{xrange=-1,\N+1}
+\text{yrange=\choix iswordof 0 ? -5,5:-2,5}
+\text{yrange=\choix=1 ? -5,2}
+\text{yrange=\choix=3 ? -5,4}
+\text{cnt=rows(\data)}
+\text{shu=shuffle(\cnt)}
+\text{shu=\shu[1..\N]}
+\text{shu=wims(sort numeric item \shu)}
+\text{data=row([\shu],\data)}
+\text{data=\accolade=1 ? wims(embraced randitem \data)}
+\matrix{rep=\data}
+\integer{size=(1.5*\facteur)*(\M+1)}
+\integer{height2=4*\height}
+\text{size=\size,\height2}
+\text{fleche=xrange \xrange
+yrange \yrange
+polyline \couleur,\M,\wi/2,-1,\wi/2,-1,-\wi/2,\M,-\wi/2,\M,-\wi,\N+0.5,0,\M,\wi,\M,\wi/2
+fill 0,0,\couleur
+}
+
+\text{STEP=\choix=0 ? wims(values x for x=1 to 2*\N)}
+\text{STEP=\choix=1 ? wims(values 2*x-1 for x=1 to \N)}
+\text{STEP=\choix=2 or \choix=3? wims(values 2*x for x=1 to \N)}
+\text{STEP=wims(makelist r x for x in  \STEP)}
+\steps{\STEP}
+\text{positionbas=}
+\text{positionhaut=}
+\text{positionbas2=}
+\for{j=0 to \N-1}{
+  \text{fleche=\choix=0 or \choix=1 or \choix=3 ? \fleche
+  segment \j-0.1,-\wi/2,\j-0.1,-2*\wi,\couleur}
+  \text{fleche=\choix=0 or \choix=2 or \choix=3? \fleche
+  segment \j-0.1,\wi/2,\j-0.1,2*\wi,\couleur}
+  \text{ans=pari([2*\j+1,2*\j+2])}
+  \text{v=slib(draw/convpixel \j-0.5,-2,\size,\xrange,\yrange,0,pixels)}
+  \text{positionbas=\positionbas
+ r\ans[1],\v[1] x \v[2]}
+ \text{v=slib(draw/convpixel \j-0.5,-2,\size,\xrange,\yrange,0,pixels)}
+ \text{positionbas2=\positionbas2
+ r\ans[2],\v[1] x \v[2]}
+  \text{v=slib(draw/convpixel \j-0.5,4,\size,\xrange,\yrange,0,pixels)}
+  \text{positionhaut=\positionhaut
+r\ans[2],\v[1] x \v[2]}
+
+ \text{fleche=\choix=3? \fleche
+ text black, \j-0.2,3,medium,\data[\j+1;1]}
+ }
+  \text{position=\choix=1 or \choix=0? \positionbas}
+  \text{position=\choix=2 or \choix=0? \position
+ \positionhaut}
+ \text{position=\choix=3? \positionbas2}
+ \text{urlfleche=draw(\size
+\fleche)}
+\statement{
+\instruction
+<div class="wimscenter">
+\special{imagefill \urlfleche,\size[1]x\size[2],\facteur x \height
+\position}
+</div>
+}
+
+\answer{}{\rep[1;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[1;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;2]}{type=clickfill}{option=shuffle}

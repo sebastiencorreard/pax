@@ -1,0 +1,174 @@
+!set title=Calculer des termes d'une suite sans somme 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Philippe,Colpin
+email=jp.colpin@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r,r,r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 100,200,300,400,500
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 10, 15
+
+val8=$[rint($(tmp0))]
+val9=$[$val7+$val6/1000]
+val10=$[$val9+$val6/1000]
+val11=$[$val7+$val6*($val8-1)/1000]
+val12=$[1+$val6/10000]
+val13=Chaque semaine la distance parcourue est égale à la distance parcourue	la semaine précédente ?? à laquelle on ajoute $val6 m, multipliée par $val6,multipliée par $val12 ??.	<br>La suite \(( u_{n})\) est donc ??arithmétique,géométrique, ni l'un ni l'autre ??. 
+tmp0=!singlespace $val13
+
+val13=$(tmp0)
+tmp0=!embraced randitem $val13
+
+val13=$(tmp0)
+!readproc slib/text/cutchoice2 $val13 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=$[rint(5)]
+val15=
+val16=
+!for val17 =1 to $val14 
+val18=$(val13[2*$val17;])
+val19=$(val18[1])
+tmp0=!sort items $val18
+
+val18=$(tmp0)
+tmp0=!positionof item $val19 in $val18
+
+val19=$(tmp0)
+val15=$val15$val19,
+val16=$val16$val18;
+!next
+tmp0=!embraced randitem \pre
+
+val20=$(tmp0)
+tmp0=!embraced randitem \post
+
+val21=$(tmp0)
+tmp0=!makelist reply x for x=1 to $val14
+
+val22=$(tmp0)
+val23=$val6 m
+val24=boy,girl
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val25=$(tmp0)
+val24=$(val24[$val25])
+!readproc slib/lang/fname ,$val24 
+tmp0=$slib_out
+val26=$(tmp0)
+val27=Il,Elle
+val28=Après une blessure, $val26 reprend son entrainement en natation. $(val27[$val25]) met au point	  un programme d'entrainement qui va se dérouler sur $val8 semaines.	  $(val27[$val25]) décide de parcourir $val7 km la première semaine et d'augmenter ensuite	  chaque semaine la distance parcourue de $val23.	  On note \( u_n \) la distance parcourue la \(n\)-ième semaine.	  Pour la première semaine, on a donc	
+val29=Arrondir les valeurs au centième.
+val30=Calculer les termes \(u_2\), \(u_3\) et \(u_$val8\) de cette suite.
+val31=et
+oefsteps=$val22 
+nextstep=!nosubst $val22 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Champ 1
+replygood1=$(val15[1]);$(val16[1;])
+replytype2=menu
+replyname2=Champ 2
+replygood2=$(val15[2]);$(val16[2;])
+replyname3=3
+replygood3=$val9
+replyname4=4
+replygood4=$val10
+replyname5=5
+replygood5=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>$val28 
+!insmath  u_1 
+$() = $val7.</p>	$(val13[1;])	 
+!for m_k=1 to 2 
+$()	 
+!read oef/embed.phtml r \k,\len 
+$() $(val13[2*$m_k+1;]) 
+!next
+$()	<p>	$val30	</p>	<div class="wims_instruction">$val29</div>	<ul><li>	 <label for="reply3"> 
+!insmath u_2
+$() =</label>  
+!read oef/embed.phtml reply 3,3 
+$() km	</li><li>	  <label for="reply4">
+!insmath u_3
+$() =</label>  
+!read oef/embed.phtml reply 4,3 
+$() km	</li><li>	  <label for="reply5">
+!insmath u_$val8
+$()</label> =  
+!read oef/embed.phtml reply 5,3 
+$() km	</li></ul>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,13,28,29,30
+embedcnt=4

@@ -1,0 +1,166 @@
+!set title=A. Simplification avec factorielle 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=factorial
+precision=1000
+oefdescription=Pour se familiariser la définition de la factorielle d'un entier
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 4
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 0, 5
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8-$val7)]
+val10=$[rint(abs($val9))]
+
+!ifval $val9<0
+val11=strictement supérieur à $val10
+!else
+val11=strictement positif
+!endif
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+!if $val12=1 
+t_=!replace internal \( by ( in n+$val8
+tmp0=!exec maxima $t_
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in n+$val9
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+val15=
+!for val16 =0 to $val7-1 
+
+!ifval $val16=0
+t_=!replace internal \( by ( in n+$val8
+tmp0=!exec maxima $t_
+
+val15=!rawmath ($(tmp0))
+!else
+t_=!replace internal \( by ( in n+$val8-$val16
+tmp1=!exec maxima $t_
+
+val15=!rawmath $val15 *($(tmp1))
+!endif
+!next
+!else
+t_=!replace internal \( by ( in n+$val8
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+t_=!replace internal \( by ( in n+$val9
+tmp0=!exec maxima $t_
+
+val13=$(tmp0)
+val15=
+!for val16 =0 to $val7-1 
+
+!ifval $val16=0
+t_=!replace internal \( by ( in n+$val8
+tmp0=!exec maxima $t_
+
+val15=($(tmp0))
+!else
+t_=!replace internal \( by ( in n+$val8-$val16
+tmp1=!exec maxima $t_
+
+val15=$val15 *($(tmp1))
+!endif
+!next
+val15=!rawmath 1/($val15)
+!endif
+tmp0=!texmath $val15
+
+val17=$(tmp0)
+val18=Soit \(n\) un entier
+val19=Simplifier l'expression
+replytype1=formal
+replyname1=
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val18 $val11.\newline $val19 \(\frac{($val13)!}{($val14)!}\). \end{statement} \begin{solution} \(\frac{($val13)!}{($val14)!}=$val17.\) \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val18 $val11.	<div class="wims_question">	  $val19 
+!insmath \frac{($val13)!}{($val14)!}
+$().	  <div class="wimscenter">	  <label for="reply1">
+!insmath \frac{($val13)!}{($val14)!}
+$()=</label> 
+!read oef/embed.phtml reply1 
+$().	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val18 $val11.$m_newline $val19 
+!insmath \frac{($val13)!}{($val14)!}
+$(). $m_end{statement} $m_begin{solution} 
+!insmath \frac{($val13)!}{($val14)!}=$val17.
+$() $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,14,17,18,19
+embedcnt=1

@@ -1,0 +1,53 @@
+target=twoprod
+#include "header.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\language{fr}
+\options{nofloat}
+\methods{ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/divexp,
+ineq/trans, ineq/addineq
+prf/contrapose}
+\minsteps{3}
+
+\matrix{vars=a,b,c,d
+x,y,z,t
+r,s,t,u
+p,q,r,s
+}
+\text{vars=randomrow(\vars)}
+\text{vars=shuffle(\vars)}
+\text{a=item(1,\vars)}
+\text{b=item(2,\vars)}
+\text{c=item(3,\vars)}
+\text{d=item(4,\vars)}
+
+\text{eqr=random(,=)}
+\text{moreless=shuffle(>,<)}
+\text{more=item(1,\moreless)\eqr}
+\text{less=item(2,\moreless)\eqr}
+
+\matrix{data=\name_posneg[1],>,\more,\less
+\name_posneg[2],<,\less,\more
+}
+\text{data=randomrow(\data)}
+\text{posneg=item(1,\data)}
+\text{sign=item(2,\data)}
+\text{sign2=item(3,\data)}
+\text{sign3=item(4,\data)}
+\text{ctx1=simplify(\a*\b \less \c*\d)}
+\text{ctx2=\a \sign2 \c}
+\text{prv=\b \sign3 \d}
+
+\context{\a \sign 0
+\b \sign 0
+\c \sign 0
+\d \sign 0
+\ctx1
+\ctx2}
+\goal{\prv}
+\text{oldgoal=\goal}
+
+\statement{\name_enonce[1] \(\a, \b, \c, \d\) \name_enonce[2] \posneg
+\name_enonce[3] \(\ctx1\) \name_and \(\ctx2\).
+\name_prove	\( \oldgoal \).
+}

@@ -1,0 +1,479 @@
+!set title=Nature des planètes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=chantal.causse@noos.fr
+keywords=solar_system, planet 
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=79
+prevarcnt=59
+postvarcnt=19
+replycnt=10
+choicecnt=0
+conditioncnt=20
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=$[rint(5)]
+val7=$[rint(4)]
+val8=
+val9=100x40
+val10=Planète tellurique avec une atmosphère importante, Planète tellurique avec peu ou pas d'atmosphère, Planète gazeuse
+tmp=!trim Vénus,Planète tellurique avec une atmosphère importante	Terre,Planète tellurique avec une atmosphère importante	Mars,Planète tellurique avec peu ou pas d'atmosphère	Mercure,Planète tellurique avec peu ou pas d'atmosphère	Jupiter,Planète gazeuse	Saturne,Planète gazeuse	Uranus,Planète gazeuse	Neptune,Planète gazeuse
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=
+val13=Classer les planètes du système solaire selon leur nature.
+val14=
+val15=est une
+val16=n'appartient à aucune catégorie
+tmp0=!itemcnt $val10
+
+val17=$[rint($(tmp0))]
+
+!ifval $val8=
+val8=$[rint( $val17)]
+!endif
+val8=$[rint(min($val8,$val17))]
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+val18=$[rint($(tmp0))]
+val19=$[rint($val7+1)]
+
+!ifval $val6<$val17
+val6=$[rint($val17)]
+!endif
+
+!ifval $val17>1 and shuffle iswordof $val12
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+!endif
+val20=
+val21=
+val22=
+val23=
+val24=
+val25=
+!for val26 =1 to $val8 
+tmp0=!select $val11 where column 2 issametext $(val10[$val26])
+
+tmp=!translate internal $	$ to ; in $(tmp0)
+
+tmp=!column 1 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+tmp2=!shuffle $(tmp1)
+
+val27=$(tmp2)
+tmp0=!itemcnt $val27
+
+val28=$[rint(min($val7,$(tmp0)))]
+tmp0=!append item $(val27[1]) to $val20
+
+val20=$(tmp0)
+tmp0=!append item $val26 to $val21
+
+val21=$(tmp0)
+!if $val28 > 1 
+tmp0=!append item $(val27[2..$val28]) to $val22
+
+val22=$(tmp0)
+tmp0=!makelist $val26 for x=2 to $val28
+
+tmp1=!append item $(tmp0) to $val23
+
+val23=$(tmp1)
+!endif
+!next
+!if $val8<$val17 
+tmp0=!select $val11 where column 2 issametext $(val10[$val8+1])
+
+tmp=!translate internal $	$ to ; in $(tmp0)
+
+tmp=!column 1 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+tmp2=!shuffle $(tmp1)
+
+val27=$(tmp2)
+tmp0=!itemcnt $val27
+
+val28=$[rint(min($val7,$(tmp0)))]
+tmp0=!append item $(val27[1]) to $val24
+
+val24=$(tmp0)
+tmp0=!append item $val26 to $val25
+
+val25=$(tmp0)
+!endif
+!if $val6>$val8 
+tmp0=!itemcnt $val22
+
+val29=$[rint($(tmp0))]
+val30=$[rint(min($val6-$val8,$val29))]
+val6=$[rint($val8+$val30)]
+tmp0=!shuffle $val29
+
+val31=$(tmp0)
+val31=$(val31[1..$val30])
+tmp0=!item $val31 of $val22
+
+val22=$(tmp0)
+tmp0=!item $val31 of $val23
+
+val23=$(tmp0)
+val32=$val20,$val22
+val33=$val21,$val23
+!else
+val32=$val20
+val33=$val21
+!endif
+tmp0=!nonempty items $val32
+
+val32=$(tmp0)
+tmp0=!listuniq $val32
+
+val32=$(tmp0)
+tmp0=!itemcnt $val32
+
+val34=$[rint($(tmp0))]
+tmp0=!shuffle $val34
+
+val35=$(tmp0)
+tmp0=!item $val35 of $val32
+
+val32=$(tmp0)
+tmp0=!item $val35 of $val33
+
+val33=$(tmp0)
+val10=$(val10[1..$val8])
+tmp0=!tolower $val10
+
+val36=$(tmp0)
+tmp0=!tolower $val32
+
+val37=$(tmp0)
+val38=$val9 x $val19
+tmp0=!makelist r x for x=1 to 10
+
+tmp1=!item 1 to $val8 of $(tmp0)
+
+val39=$(tmp1)
+
+!ifval $val24!= 
+val40=$[rint( 1 )]
+!else
+val40=$[rint( 0)]
+!endif
+oefsteps=$val39 
+nextstep=!nosubst $val39 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=$(val10[1])
+replygood1=?analyze 41;$val32,$val24
+replytype2=dragfill
+replyname2=$(val10[2])
+replygood2=?analyze 42
+replytype3=dragfill
+replyname3=$(val10[3])
+replygood3=?analyze 43
+replytype4=dragfill
+replyname4=$(val10[4])
+replygood4=?analyze 44
+replytype5=dragfill
+replyname5=$(val10[5])
+replygood5=?analyze 45
+replytype6=dragfill
+replyname6=$(val10[6])
+replygood6=?analyze 46
+replytype7=dragfill
+replyname7=$(val10[7])
+replygood7=?analyze 47
+replytype8=dragfill
+replyname8=$(val10[8])
+replygood8=?analyze 48
+replytype9=dragfill
+replyname9=$(val10[9])
+replygood9=?analyze 49
+replytype10=dragfill
+replyname10=$(val10[10])
+replygood10=?analyze 50
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="instruction">	$val13	</div>	<table class="wimsnoborder">	 
+!for m_k=1 to $val8 
+$()	 <tr><th>$(val10[$m_k])</th>	 <td> 
+!read oef/embed.phtml reply \k, $val38 
+$()	 </td></tr>	 
+!next
+$()	</table>	$val14
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!items2words $val41
+
+tmp1=!items2words $val42
+
+tmp2=!items2words $val43
+
+tmp3=!items2words $val44
+
+tmp4=!items2words $val45
+
+tmp5=!items2words $val46
+
+tmp6=!items2words $val47
+
+tmp7=!items2words $val48
+
+tmp8=!items2words $val49
+
+tmp9=!items2words $val50
+
+tmp10=!item 1 to $val8 of 	 $(tmp0),	 $(tmp1),	 $(tmp2),	 $(tmp3),	 $(tmp4),	 $(tmp5),	 $(tmp6),	 $(tmp7),	 $(tmp8),	 $(tmp9)
+
+val51=$(tmp10)
+val52=
+val53=
+!for val27 =1 to $val34 
+val54=$[rint(0)]
+!for val55 =1 to $val8 
+
+!ifval $(val32[$val27]) iswordof $(val51[$val55])
+val54=$[rint($val55)]
+!endif
+!next
+!if $val54 > 0 
+val52=$val52 $val15 $(val36[$val54]),
+
+!ifval $(val33[$val27])=$val54
+val53=$val53 1,
+!else
+val53=$val53 0,
+!endif
+!else
+val52=$val52 $val16,
+val53=$val53 0,
+!endif
+!next
+!if $val24!= 
+!for val27 =1 to 1 
+val54=$[rint(0)]
+!for val55 =1 to $val8 
+
+!ifval $(val24[$val27]) iswordof $(val51[$val55])
+val54=$[rint($val55)]
+!endif
+!next
+!if $val54 = 0 
+val52=$val52 $(val24[$val27]) $val16,
+val53=$val53 1,
+!else
+val52=$val52 $(val24[$val27]) $val15 $(val36[$val54]),
+val53=$val53 0,
+!endif
+!next
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+tmp0=!makelist x for x=1 to $val34 + $val40
+
+
+condlist=$(tmp0)
+
+!ifval $(val53[1])=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val32[1]) $(val52[1])
+
+!ifval $(val53[2])=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val32[2]) $(val52[2])
+
+!ifval $(val53[3])=1
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$(val32[3]) $(val52[3])
+
+!ifval $(val53[4])=1
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=$(val32[4]) $(val52[4])
+
+!ifval $(val53[5])=1
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=$(val32[5]) $(val52[5])
+
+!ifval $(val53[6])=1
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=$(val32[6]) $(val52[6])
+
+!ifval $(val53[7])=1
+ condtest7=1
+!else
+ condtest7=0
+!endif
+condname7=$(val32[7]) $(val52[7])
+
+!ifval $(val53[8])=1
+ condtest8=1
+!else
+ condtest8=0
+!endif
+condname8=$(val32[8]) $(val52[8])
+
+!ifval $(val53[9])=1
+ condtest9=1
+!else
+ condtest9=0
+!endif
+condname9=$(val32[9]) $(val52[9])
+
+!ifval $(val53[10])=1
+ condtest10=1
+!else
+ condtest10=0
+!endif
+condname10=$(val32[10]) $(val52[10])
+
+!ifval $(val53[11])=1
+ condtest11=1
+!else
+ condtest11=0
+!endif
+condname11=$(val32[11]) $(val52[11])
+
+!ifval $(val53[12])=1
+ condtest12=1
+!else
+ condtest12=0
+!endif
+condname12=$(val32[12]) $(val52[12])
+
+!ifval $(val53[13])=1
+ condtest13=1
+!else
+ condtest13=0
+!endif
+condname13=$(val32[13]) $(val52[13])
+
+!ifval $(val53[14])=1
+ condtest14=1
+!else
+ condtest14=0
+!endif
+condname14=$(val32[14]) $(val52[14])
+
+!ifval $(val53[15])=1
+ condtest15=1
+!else
+ condtest15=0
+!endif
+condname15=$(val32[15]) $(val52[15])
+
+!ifval $(val53[16])=1
+ condtest16=1
+!else
+ condtest16=0
+!endif
+condname16=$(val32[16]) $(val52[16])
+
+!ifval $(val53[17])=1
+ condtest17=1
+!else
+ condtest17=0
+!endif
+condname17=$(val32[17]) $(val52[17])
+
+!ifval $(val53[18])=1
+ condtest18=1
+!else
+ condtest18=0
+!endif
+condname18=$(val32[18]) $(val52[18])
+
+!ifval $(val53[19])=1
+ condtest19=1
+!else
+ condtest19=0
+!endif
+condname19=$(val32[19]) $(val52[19])
+
+!ifval $(val53[20])=1
+ condtest20=1
+!else
+ condtest20=0
+!endif
+condname20=$(val32[20]) $(val52[20])
+
+!exit
+
+:stat
+vsavelist=8,10,13,14,15,16,24,27,32,33,34,36,38,40,41,42,43,44,45,46,47,48,49,50
+embedcnt=1

@@ -1,0 +1,246 @@
+!set title=Ordre de grandeur soustraction 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r,r
+varcnt=74
+prevarcnt=73
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/utilities/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Trouver l'ordre de grandeur du résultat&nbsp;
+val8=Ordre de grandeur,Donc l'ordre de grandeur du résultat est
+val9=Vous utiliserez les étiquettes.
+val10=0.001,0.01,0.1,1,10,100,1 000,10000
+tmp0=!randint 1, 7
+
+val11=$[rint($(tmp0))]
+val12=$[rint(0)]
+val13=$[rint(0)]
+val14=0,0,0,0,0,0,0,0,0,0
+!for val15 =1 to 8 
+tmp0=!randint 1-$val11, 7-$val11
+
+val16=$(tmp0)
+tmp0=!append item $val16 to $val14
+
+val14=$(tmp0)
+!next
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp0=!randint 1100, 7900
+
+val17=$[$(tmp0)]
+tmp0=!randint $val17+1000, 9900
+
+val18=$[$(tmp0)]
+tmp0=!char 1 to 2 of $val17
+
+val19=$(tmp0)
+tmp0=!char 3  to 3 of $val17
+
+val20=$(tmp0)
+!if $val20>4 
+!if $val19=99 
+val13=$[rint(1)]
+val19=$[rint(10)]
+!else
+val19=$[rint($val19+1)]
+!endif
+!endif
+val21=
+!for val15 =1 to 8 
+tmp0=!item $val15 of $val10
+
+val22=$(tmp0)
+val22=$[$val22*$val19/10]
+!readproc slib/numeration/ecriturenombre $val22 
+tmp0=$slib_out
+val22=$(tmp0)
+tmp0=!append item $val22 to $val21
+
+val21=$(tmp0)
+!next
+tmp0=!char 1 to 2 of $val18
+
+val23=$(tmp0)
+tmp0=!char 3 to 3 of $val18
+
+val24=$(tmp0)
+!if $val24>4 
+!if $val23=99 
+val12=$[rint(1)]
+val23=$[rint(10)]
+!else
+val23=$[rint($val23+1)]
+!endif
+!endif
+val25=
+!for val15 =1 to 8 
+tmp0=!item $val15 of $val10
+
+val22=$(tmp0)
+val22=$[$val22*$val23/10]
+!readproc slib/numeration/ecriturenombre $val22 
+tmp0=$slib_out
+val22=$(tmp0)
+tmp0=!append item $val22 to $val25
+
+val25=$(tmp0)
+!next
+val17=$[$val17*10^($val11-7)]
+val18=$[$val18*10^($val11+$val14-7)]
+val26=$[0]
+!if $val17<$val18 
+val26=$[$val17]
+val17=$[$val18]
+val18=$[$val26]
+!endif
+!readproc slib/numeration/ecriturenombre $val17 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!translate . to , in $val17
+
+val17=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val18 
+tmp0=$slib_out
+val18=$(tmp0)
+tmp0=!translate . to , in $val18
+
+val18=$(tmp0)
+!if $val26=0 
+val27=$(val21[$val11+$val13])
+val28=$(val25[$val14+$val11+$val12])
+val29=$[$val27-$val28]
+!else
+val28=$(val21[$val11+$val13])
+val27=$(val25[$val14+$val11+$val12])
+val29=$[$val27-$val28]
+!endif
+val30=$[rint(1)]
+val31=$[rint(0)]
+!while $val31=0 or $val31=. 
+tmp0=!char $val30 to $val30 of $val29
+
+val31=$(tmp0)
+val30=$val30+1
+!endwhile
+tmp0=!char $val30-1 to $val30 of $val29
+
+val31=$(tmp0)
+tmp0=!char $val30 to $val30 of $val29
+
+val32=$(tmp0)
+tmp0=!char $val30+1  to $val30+1 of $val29
+
+val33=$(tmp0)
+!if $val33>4 
+val31=$[rint($val31+1)]
+!endif
+!if $val31<10 
+!if $val32=. 
+val31=$val31$val33
+!else
+val31=$[rint($val31*10)]
+!endif
+!endif
+val34=
+!for val15 =1 to 8 
+tmp0=!item $val15 of $val10
+
+val22=$(tmp0)
+val22=$[$val22*$val31/10]
+!readproc slib/numeration/ecriturenombre $val22 
+tmp0=$slib_out
+val22=$(tmp0)
+tmp0=!append item $val22 to $val34
+
+val34=$(tmp0)
+!next
+val35=$[rint(floor(lg($val29)))]
+val36=$(val34[$val35+4])
+val37=-
+val38=80x30
+replytype1=clickfill
+replyname1=
+replygood1=$val27;$val21
+replytype2=clickfill
+replyname2=
+replygood2=$val28;$val25
+replytype3=clickfill
+replyname3=
+replygood3=$val36;$val34
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<table class="wimscenter wimsnoborder">	  <tr>	    <td></td>	    <td><span class="larger">$val17</span></td>	    <td><span class="larger">$val37</span></td>	    <td><span class="larger">$val18</span></td>	  </tr><tr>	    <th>$(val8[1])</th>	    <td><span class="larger"> 
+!read oef/embed.phtml r1,$val38 
+$()</span></td>	    <td><span class="larger">$val37</span></td>	    <td><span class="larger"> 
+!read oef/embed.phtml r2,$val38 
+$()</span></td>	  </tr>	</table>	<div class="wims_instruction">$val9</div>	<div class="spacer">$(val8[2]): 
+!read oef/embed.phtml r3,$val38 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,17,18,37,38
+embedcnt=3

@@ -1,0 +1,48 @@
+target=compens
+#include "common.inc"
+#include "css.inc"
+#define GGG B1 -
+#include "lang_compens_fr.inc"
+\if{\lang=it}{
+#include "lang_compens_it.inc"
+}
+\if{\lang=es}{
+#include "lang_compens_es.inc"
+}
+\title{GGG Comparer deux ensembles}
+\author{Sophie, Lemaire}
+\email{sophie.lemaire@universite-paris-saclay.fr}
+\description{exercice de type QCM sur les notations ensemblistes.}
+\observation{Les données variables sont les deux ensembles. }
+\keywords{set_theory}
+\integer{n=randint(5..10)}
+\integer{k=randint(2..(\n-1))}
+\integer{l1=randint(2..\k)}
+\integer{l2=randint((\k+1)..\n)}
+\text{elt=wims(makelist x for x=1 to 20)}
+\text{A1=slib(data/random \n, item, \elt)}
+\text{A2=\A1[1..\k]}
+\text{A3=\A1[(\k+1)..\n]}
+\text{A4=\A1[\l1..\l2]}
+\text{A1=wims(sort numeric list \A1)}
+\text{A2=wims(sort numeric list \A2)}
+\text{A3=wims(sort numeric list \A3)}
+\text{A4=wims(sort numeric list \A4)}
+\text{choix= \(A\) = \(B\), \(A \subseteq B\),\(B \subseteq A\),\(A\cap B=\emptyset\),\(A\cap B\neq \emptyset\), \(A\setminus B\neq \emptyset\), \(B\setminus A\neq \emptyset\)}
+\integer{c=randint(1..5)}
+\if{\c=1}{\text{A=\A1}\text{B=\A1}\text{rep=1,2,3,5}}
+\if{\c=2}{\text{A=\A2}\text{B=\A1}\text{rep=2,5,7}}
+\if{\c=3}{\text{A=\A1}\text{B=\A2}\text{rep=3,5,6}}
+\if{\c=4}{\text{A=\A2}\text{B=\A3}\text{rep=4,6,7}}
+\if{\c=5}{\text{A=\A2}\text{B=\A4}\text{rep=5,6,7}}
+
+
+\statement{<div class="color1">\name_ins[1;]:
+<ul><li>\(A\) = {\A}</li>
+    <li> \(B\) = {\B} </li></ul>
+</div>
+<div class="wims_question">
+\name_ins[2;]:
+<ul> \for{i=1 to 7}{<li>\embed{reply1,\i}</li>}</ul>
+</div>}
+\answer{}{\rep;\choix}{type=checkbox}

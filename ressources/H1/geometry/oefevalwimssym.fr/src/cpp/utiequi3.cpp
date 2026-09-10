@@ -1,0 +1,73 @@
+target=oefutiequi3
+#define NUM 3
+#include "lang_titles.inc"
+#include "author.inc"
+\keywords{symmetry,perpendicular_bisector}
+\text{dessinmod=text black,15,95,medium,E
+segment -100,-50,0,-100,black
+segment 100,-50,0,-100,black
+text black,15,-110,medium,F}
+
+\text{med1=draw(300,300
+xrange -150,150
+yrange -150,150
+rotate 40
+segment 0,-150,0,150,black
+segment -100,-50,100,-50,black
+segment -48,-44,-52,-56,red
+segment -52,-44,-56,-56,red
+segment 48,-56,52,-44,red
+segment 52,-56,56,-44,red
+segment -100,-55,-100,-45,black
+segment 100,-55,100,-45,black
+segment 0,-40,10,-40,red
+segment 10,-40,10,-50,red
+text black,10,140,medium,(d)
+text black,-110,-55,medium,A
+text black,105,-55,medium,B
+segment -100,-50,0,80,black
+segment 100,-50,0,80,black
+\dessinmod
+)}
+
+\integer{l2=randint(2..12)}
+\integer{l1=randint(\l2+2..30)}
+\integer{rep=(\l1+\l2)*2}
+
+\text{fig=\med1}
+\text{t1=Les points E et F appartiennent à la médiatrice du segment [AB].}
+\text{t2=Donc les points E et F sont à égale distance des deux extrémités du segment.}
+\text{t3=J'en déduis que AF = }
+\text{t4=et AE = }
+\text{t5=Périmètre du quadrilatère AEBF :}
+
+\statement{
+<div class="wims_columns">
+  <div class="medium_size">
+    <img src="\fig" alt="">
+  </div>
+  <div class="medium_size">
+<ul>
+<li>La droite (d) est la médiatrice du segment [AB].</li>
+<li>Le point E appartient à la droite (d).</li>
+<li>Le point F appartient à la droite (d).</li>
+<li>AE = \l1 cm</li>
+<li>AF = \l2 cm</li>
+</ul>
+Calculer le périmètre du quadrilatère AEBF.
+</div></div>
+Placer les étiquettes dans le bon ordre et compléter :
+<ul>
+<li>\embed{r1,520x40}</li>
+<li>\embed{r2}</li>
+<li>\t3 \embed{r3,3}</li>
+<li>\t4 \embed{r4,3}</li>
+<li>\t5 \embed{r5,3} cm</li>
+</ul>
+}
+
+\answer{}{\t1}{type=dragfill}
+\answer{}{\t2}{type=dragfill}
+\answer{}{BF|FB}{type=text}{option=case}
+\answer{}{BE|EB}{type=text}{option=case}
+\answer{}{\rep}{type=raw}

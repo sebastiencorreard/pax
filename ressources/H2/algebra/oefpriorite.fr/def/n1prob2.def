@@ -1,0 +1,112 @@
+!set title=Circulation sanguine
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=ambali@free.fr
+computeanswer=yes
+
+ansorder=r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 53, 63
+
+val7=$[rint($(tmp0))]
+val8=$[$val7 / 10]
+tmp0=!randint 90, 100
+
+val9=$[rint($(tmp0))]
+val10=$[$val9 / 10]
+tmp0=!randint 150, 200
+
+val11=$[rint($(tmp0))]
+val12=$[$val11 / 10]
+tmp0=!randint 25, 59
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 30, 180
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val13 * ($val10-$val8)*10)]
+val16=$[$val15 / 10]
+t_=!replace internal \( by ( in divide($val14,60)
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+val18=$[rint($(val17[1])*($val12-$val8)*10 + $(val17[2])*($val12-$val8)*10 /60)]
+val19=$[$val18 / 10]
+replytype1=numeric
+replyname1=
+replygood1=$[$val16]
+replytype2=numeric
+replyname2=
+replygood2=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Bien lire l'énoncé et répondre aux deux questions posées.	<div style="background-color : #FFFFF0;">	Dans le tableau ci-dessous, il est donné le débit cardiaque de	$val6. Il s'agit du volume de sang qui est propulsé par son coeur	pendant 1 minute.</div>	<table class="wimsborder wimscenter">	<tr>	 <td>Au repos</td>	 <td>En marchant</td>	 <td>En courant</td>	</tr><tr>	 <td>$val8 L</td>	 <td>$val10 L</td>	 <td>$val12 L</td>	</tr>	</table>	En comparant avec la situation au repos, calculez le volume (en L)	de sang supplémentaire propulsé par son coeur :	<ol>	  <li>lors d'une marche de $val13 minutes :  
+!read oef/embed.phtml r1,8 
+$()</li>	  <li>lors d'une course de $val14 secondes :  
+!read oef/embed.phtml r2,8 
+$()</li>	</ol>	<div class="wims_instruction">Vous donnerez votre réponse avec un chiffre après la virgule.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,10,12,13,14
+embedcnt=2

@@ -1,0 +1,115 @@
+\title{Linéarité du produit scalaire}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+
+\css{<style>
+.enonce { margin:2% 2%; padding:1em;}
+</style>
+}
+\integer{nu=random(1..10)}
+\rational{nu=\nu /randitem(1,1,1,2,2,3)}
+\integer{nv=random(1..10)}
+\rational{nv= \nv/randitem(1,1,1,2,2,3)}
+\integer{pdt=random(1..10)*random(1,-1)}
+\rational{pdt=\pdt/randitem(1,1,1,2,2,3)}
+
+\text{tnu=\nu}
+\text{tnu=wims(replace internal / by , in \tnu)}
+\text{tnu=items(\tnu)=1?\tnu:\frac{\tnu[1]}{\tnu[2]}}
+\text{tnv=\nv}
+\text{tnv=wims(replace internal / by , in \tnv)}
+\text{tnv=items( \tnv)=1?\tnv:\frac{\tnv[1]}{\tnv[2]}}
+\text{tpdt=\pdt}
+\text{tpdt=wims(replace internal / by , in \tpdt)}
+\text{tpdt=items( \tpdt)=1?\tpdt:\frac{\tpdt[1]}{\tpdt[2]}}
+
+\rational{nuc=(\nu)^2}
+\rational{nvc=(\nv)^2}
+
+\integer{a1=random(1..5)*random(1,-1)}
+\integer{a2=random(1..5)*random(1,-1)}
+\integer{b1=random(1..5)*random(1,-1)}
+\integer{b2=random(1..5)*random(1,-1)}
+\integer{c1=random(1..5)*random(1,-1)}
+\integer{c2=random(1..5)*random(1,-1)}
+\integer{d1=random(1..5)*random(1,-1)}
+\integer{d2=random(1..5)*random(1,-1)}
+\rational{q1=(\a1)*(\c1)*\nuc+(\b1)*(\d1)*(\nvc)+((\a1)*(\d1)+(\b1)*(\c1))*(\pdt)}
+\rational{q2=(\a2)^2*\nuc+(\b2)^2*(\nvc)+2*(\a2)*(\b2)*(\pdt)}
+\text{rep1=\q1}
+\text{rep2=\q2}
+
+\\\Construction de la solution
+\text{e0=pari((\a1)*x + (\b1)*y)}
+\text{e1=pari((\c1)*x + (\d1)*y)}
+\text{e2=pari((\a2)*x + (\b2)*y)}
+\text{Quest=pari([(\e0)*(\e1),(\e2)*(\e2)])}
+\text{Coef=pari([\a1*\c1,\a1*\d1+\b1*\c1,\d1*\b1;\a2*\a2,2*\a2*\b2,\b2*\b2])}
+\text{exp0=\e0}
+\text{exp00=wims(replace  internal * by in \exp0)}
+\text{exp01=wims(replace  internal x by \overrightarrow{u}  in \exp00)}
+\text{exp02=wims(replace  internal y by \overrightarrow{v} in \exp01)}
+\text{exp1=\e1}
+\text{exp10=wims(replace  internal * by in \exp1)}
+\text{exp11=wims(replace  internal x by \overrightarrow{u}  in \exp10)}
+\text{exp12=wims(replace  internal y by \overrightarrow{v} in \exp11)}
+\text{exp2=\e2}
+\text{exp20=wims(replace  internal * by in \exp2)}
+\text{exp21=wims(replace  internal x by \overrightarrow{u}  in \exp20)}
+\text{exp22=wims(replace  internal y by \overrightarrow{v} in \exp21)}
+
+\text{sortie=}
+\for{i=1 to 2}{
+\text{q=\Quest[\i]}
+\text{prod1 = pari(\q)}
+\text{prod10=wims(replace internal x^2 by \overrightarrow{u}^2 in \prod1)}
+\text{prod11=wims(replace internal y^2 by \overrightarrow{v}^2 in \prod10)}
+\text{prod12=wims(replace internal y*x by \overrightarrow{u}\cdot\overrightarrow{v} in \prod11)}
+\text{prod13=wims(replace internal * by  in \prod12)}
+\text{sortie=wims(append item \prod13 to \sortie)}
+\text{coef1 = \Coef[\i;1]}
+\text{coef2 = \Coef[\i;2]}
+\text{coef3 = \Coef[\i;3]}
+\if{(\coef1=1 or \coef1=-1)}{\text{prod14=wims(replace internal \overrightarrow{u}^2 by \left(\tnu\right)^2 in \prod13)}}{\text{prod14=wims(replace internal \overrightarrow{u}^2 by \times\left(\tnu\right)^2 in \prod13)}}
+\if{(\coef2=1 or \coef2=-1)}{\text{prod15=wims(replace internal \overrightarrow{u}\cdot\overrightarrow{v} by \left(\tpdt\right) in \prod14)}}{\text{prod15=wims(replace internal \overrightarrow{u}\cdot\overrightarrow{v} by \times\left(\tpdt\right) in \prod14)}}
+\if{\coef3=1}{\text{prod16=wims(replace internal \overrightarrow{v}^2 by \left(\tnv\right)^2 in \prod15)}}{\text{prod16=wims(replace internal \overrightarrow{v}^2 by \times\left(\tnv\right)^2 in \prod15)}}
+\text{sortie=wims(append item \prod16 to \sortie)}
+}
+\text{textsol=\(\overrightarrow{u}) et \(\overrightarrow{v}) sont deux vecteurs tels que \( \Vert \overrightarrow{u} \Vert = \tnu) , \( \Vert \overrightarrow{v} \Vert = \tnv)
+et \( \overrightarrow{u} \cdot \overrightarrow{v} = \tpdt).<br>
+On rappelle que pour tout vecteur \(\overrightarrow{u}), \(\Vert \overrightarrow{u} \Vert ^2=\overrightarrow{u}^2).
+<ol>
+	<li>Calcul de \((\exp02)(\exp12)\).<br>
+En utilisant les formules de linéarité du produit scalaire on montre que : <span class="unbreakable">\((\exp02)(\exp12) = \sortie[1]).</span>
+D'où <span class="unbreakable">\((\exp02)(\exp12) = \sortie[2]=)\(\q1).</span></li>
+<li>Calcul de \((\exp22)^2\).<br>
+De la même manière on montre que : <span class="unbreakable">\(\left( \exp22\right)^2=\sortie[3]=\sortie[4]=)\(\q2).</span></li>
+</ol>
+}
+\\Fin de la solution
+
+\text{name_quest=Question1,Question2}
+\statement{
+<div class="enonce">
+  Soit \(\overrightarrow{u}) et \(\overrightarrow{v}) deux vecteurs tels que :
+ <div class="wimscenter unbreakable">
+ \( \Vert \overrightarrow{u} \Vert = \tnu) , \( \Vert \overrightarrow{v} \Vert = \tnv)
+et \(\overrightarrow{u} \cdot \overrightarrow{v} = \tpdt).
+ </div>
+</div>
+<div class="wims_question">
+Calculer :
+<ol><li>
+<label for="reply1">\((\exp02) \cdot (\exp12)\)</label> = \embed{reply1,7}
+</li><li>
+<label for="reply2">\((\exp22)^2\) </label>= \embed{reply2,7}
+</li></ol>
+</div>
+}
+\answer{\name_quest[1]}{\rep1}{type=numexp}{option=noreduction}
+\answer{\name_quest[2]}{\rep2}{type=numexp}{option=noreduction}
+\solution{\textsol}

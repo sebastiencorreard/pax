@@ -1,0 +1,88 @@
+target = combin1 combin2
+#if TARGET_combin1
+\title{Construction d'une VA puis calculs 1}
+\observation{Seuls le nombre de bonbons au départ et le nombre de lancers peuvent changer lorsqu'on renouvelle l'exercice}
+#endif
+#if TARGET_combin2
+\title{Construction d'une VA puis calculs 2}
+\observation{Le nombre de bonbons au départ, le nombre de bonbons perdus ou gagnés à chaque lancer et le nombre de lancers peuvent changer lorsqu'on renouvelle l'exercice}
+
+#endif
+\author{Bruno,Mifsud;Hubert,Proal}
+\email{communanute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr}
+
+\computeanswer{yes}
+%%%% cas à traiter pour affichages : kg=kp
+\integer{n=randint(2..10)}
+\integer{m=randint(\n..50)}
+\integer{kg=randint(1..4)}
+#if  defined TARGET_combin1
+\integer{kp=1}
+#endif
+#if defined TARGET_combin2
+\integer{kp=randint(1..4)}
+#endif
+\text{B=\m-\kp*\n+(\kg+\kp)*X}
+\integer{mn=\m-\kp*\n}
+\integer{mn1=\kg+\kp}
+\text{B1=\mn1*X+\mn}
+\real{EB=\m-\kp*\n+(\kg+\kp)*\n/2}
+\real{EBsol=\EB}
+\real{VB=(\n/4)*(\kg+\kp)^2}
+\real{VBsol=\VB}
+
+\text{etape=r1
+r2,r3}
+\steps{\etape}
+
+\statement{
+\if{\step=1}{<p class="wims_emph">Partie 1 :</p>}
+\if{\step>0}{
+<p>On considère le jeu suivant :</p>
+<ul><li>Le joueur dispose de \(\m) bonbons.</li>
+<li>Il joue \(\n\) fois à pile ou face.</li>
+<li>Dès qu'il fait pile, il gagne \(\kg\) \if{\kg>1}{bonbons.}{bonbon.}</li>
+<li>Dès qu'il fait face, il perd \(\kp\) \if{\kg>1}{bonbons.}{bonbon.}</li>
+</ul>
+
+<p>On note \(X\) la variable aléatoire correspondant au nombre
+de fois où la pièce est tombée sur "pile" et \(B\)
+la variable aléatoire correspondant au nombre de
+bonbons dont dispose le joueur à la fin du jeu.</p>
+}
+\if{\step=1}{<div class="wims_question">Écrire \(B\) en fonction de \(X\) :
+<br/><label for="reply1"> \(B=\) </label>\embed{r1,30}</div>}
+\if{\step=2}{<p>\if{\sc_reply1=1}{Bonne réponse,}{<span class="oef_indbad">Votre expression de B n'est pas correcte.</span> On a} \(B=\B1\).</p>
+<p class="wims_emph">Partie 2 :</p>
+Déterminer les valeurs de l'espérance et de la variance de la variable aléatoire \(B\).
+<div class="wims_question">
+<ul class="wims_nopuce">
+<li><label for="reply2">L'espérance \(E(B)=\) </label>\embed{r2,30}</li>
+<li><label for="reply3">La variance \(V(B)=\) </label>\embed{r3,30}</li>
+</ul>
+</div>
+}
+}
+
+\answer{\(B\)}{\B}{type=formal}{option=nonstop}
+\answer{\(E(B)\)}{\EB}{type=numexp}{option=nonstop}
+\answer{\(V(B)\)}{\VB}{type=numexp}{option=nonstop}
+
+
+\solution{<p><b>Partie 1</b></p>
+<p>\(B=\m+\kg X-\kp(\n-X)=\mn+\mn1 X\).
+<br/>En effet : on peut écrire \(B=\m\)<i> ("bonbons au départ")</i>\(+) \(\kg X\) <i>("bonbons gagnés")</i>
+ \(-\kp(\n-X)\)<i>("bonbons perdus")</i></p>
+<p><b>Partie 2</b></p>
+<ul class="wims_nopuce">
+<li>on a : \(E(B)=E(\mn+\mn1 X)=\mn+E(\mn1 X)=\mn+\mn1 E(X)=\mn+\mn1 \times \frac{\n}{2}=\)\(\EBsol\).</li>
+<li>on a : \(V(B)=V(\mn+\mn1 X)=V(\mn1 X)=\mn1^2 V(X)=\mn1^2 \times \n \times 0.5 \times 0.5=\)\(\VBsol\).</li>
+</ul>
+<p>Puisque d'après les propriétés de l'espérance et de la variance d'une v.a. \(X\) </p>
+<ul class="wims_nopuce">
+<li>\(E(a X)=a E(X)\) pour tout \(a\) réel.</li>
+<li>\(E(X+b)=E(X)+b\) pour tout \(b\) réel.</li>
+<li>\(V(a X) = a^2 V(X)\) pour tout \(a\) réel.</li>
+<li>\(V(X+b) = V(X)\) pour tout \(b\) réel.</li>
+</ul>
+}

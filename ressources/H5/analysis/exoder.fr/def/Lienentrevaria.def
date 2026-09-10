@@ -1,0 +1,167 @@
+!set title=Lien entre variation et signe de la dérivée 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=functions, derivative, function_variation
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, -1
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val8*(x-$val6)/(x-$val7)
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+!if $val10=1 
+val11=&#91;
+tmp0=!randint 1, 2
+
+val12=$[rint($val6-$(tmp0))]
+tmp0=!randint $val6, $val7
+
+val13=$[rint($(tmp0))]
+!if $val13=$val6 
+val13=$[rint($val6+1)]
+!endif
+val14=&#93;
+val15=$[rint(3)]
+!endif
+!if $val10=2 
+val11=&#91;
+tmp0=!randint $val6, 0
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, $val7
+
+val13=$[rint($(tmp0))]
+val14=&#91;
+
+!ifval $val8>0
+val15=$[rint(2)]
+!else
+val15=$[rint(1)]
+!endif
+!endif
+!if $val10=3 
+val11=&#93;
+val12=\(-\infty)
+tmp0=!randint -10, $val6
+
+val13=$[rint($(tmp0))]
+val14=&#93;
+
+!ifval $val8>0
+val15=$[rint(1)]
+!else
+val15=$[rint(2)]
+!endif
+!endif
+!if $val10=4 
+val11=&#93;
+tmp0=!randint $val7, 10
+
+val12=$[rint($(tmp0))]
+val13=\(+\infty)
+val14=&#91;
+
+!ifval $val8>0
+val15=$[rint(1)]
+!else
+val15=$[rint(2)]
+!endif
+!endif
+val16=strictement croissante,strictement décroissante, ni croissante ni décroissante
+replytype1=menu
+replyname1=Variations
+replygood1=$val15;$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère une fonction 
+!insmath f
+$(), dont la <b> dérivée </b>	
+!insmath f'
+$() est définie par 
+!insmath f'(x)=$val9
+$().	<div class="wimscenter">	Sur l'intervalle $val11 $val12;$val13 $val14 la fonction 
+!insmath f
+$() est :  
+!read oef/embed.phtml reply 1 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11,12,13,14
+embedcnt=1

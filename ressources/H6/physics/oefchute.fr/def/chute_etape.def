@@ -1,0 +1,218 @@
+!set title=Chute libre verticale (par étape)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît,Markey ; Marie-Claude, David
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+val6=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val6 ,2 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/text/sigunits $val6 m,2 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!randint 0, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val10=$[rint($(tmp0))]
+val11=$[$val10*$val9/10]
+tmp0=!texmath -gt+$val10*v0
+
+val12=$(tmp0)
+tmp0=!texmath -g/2*t^2+$val10*v_0*t+z0
+
+val13=$(tmp0)
+val14=$[abs($val11)]
+!readproc slib/text/sigunits $val14 ,2 
+tmp0=$slib_out
+val14=$(tmp0)
+!readproc slib/text/sigunits $val14 m/s,2 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=$[rint(-40*($val6+$val10*1.5)+480)]
+val17=$[($val11+sqrt($val11^2+2*9.81*$val6))/(9.81)]
+!readproc slib/text/sigunits $val17 ,2 
+tmp0=$slib_out
+val18=$(tmp0)
+val19=$[abs(-9.81*$val18+$val11)]
+!readproc slib/text/sigunits $val19 m.s^-1,2 
+tmp0=$slib_out
+val20=$(tmp0)
+!readproc slib/text/sigunits $val17 s,2 
+tmp0=$slib_out
+val18=$(tmp0)
+!readproc oef/draw.phtml 150,500 \
+frect 0,0,150,500,skyblue	arrow 75,500,75,5,10,black	text black,85,10,medium,z	frect 0,500,150,480,brown	text black,70,485,medium,SOL	segment 72,480,78,480,black	segment 72,440,78,440,black	segment 72,400,78,400,black	segment 72,360,78,360,black	segment 72,320,78,320,black	segment 72,280,78,280,black	segment 72,240,78,240,black	segment 72,200,78,200,black	segment 72,160,78,160,black	segment 72,120,78,120,black	segment 72,80,78,80,black	segment 72,40,78,40,black	text black,82,475,small,0	text black,82,435,small,1	text black,82,395,small,2	text black,82,355,small,3	text black,82,315,small,4	text black,82,275,small,5	text black,82,235,small,6	text black,82,195,small,7	text black,82,155,small,8	text black,82,115,small,9	text black,82,75,small,10	text black,82,35,small,11	arrow 75,480,75,440,10,blue	text blue,85,460,medium,i	arrow 77,455,97,455,7,blue	fcircle 75,-40*$val6+480,10,red	text red,90,-40*$val6+480-5,medium,A	arrow 70,-40*$val6+480,70,$val16,10,green	text green,40,(-40*$val6+480+$val16)/2,medium,v	text green,48,(-40*$val6+480+$val16)/2+5,small,0	arrow 32,(-40*$val6+480+$val16)/2-5,52,(-40*$val6+480+$val16)/2-5,7,green 
+tmp0=$ins_url
+val21=$(tmp0)
+
+!ifval $val10=-1
+val22= bas
+!else
+val22=haut
+!endif
+val23=<img src="$val21" alt="vitesse vers le $val22">
+oefsteps=reply1,reply2,reply3	reply4,reply5 
+nextstep=!nosubst reply1,reply2,reply3	reply4,reply5 
+!readproc oef/steps.proc
+replytype1=litexp
+replyweight1=1 
+replyname1=rep1
+replygood1=-g
+replytype2=algexp
+replyweight2=1.5 
+replyname2=v(t)
+replygood2=-g*t+$val10*v0
+replytype3=algexp
+replyweight3=1.5 
+replyname3=z(t)
+replygood3=-g/2*t^2+$val10*v0*t+z0
+replytype4=sigunits
+replyweight4=3 
+replyname4=tf
+replygood4=$val18
+replytype5=sigunits
+replyweight5=3 
+replyname5=vf
+replygood5=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right">$val23</div>	<div><p><em>Cet exercice présente deux étapes.</em></p>	<p>Un mobile de masse 
+!insmath m
+$() est lancé verticalement en 
+!insmath A
+$() soit vers le haut, soit vers le bas (voir schéma) et subit  une chute libre.</p>	
+!if $m_step=1 
+$()	<em>Etape A.</em>	<ol>	<li>En fonction du schéma ci-contre, établir l'équation différentielle vérifiée par la vitesse 
+!insmath \vec v
+$() 	en fonction du temps 
+!insmath t
+$() : <br>	
+!insmath \frac{d\vec{v}}{dt}(t)
+$()= 
+!read oef/embed.phtml reply1,10 
+$()
+!insmath \vec{i}
+$()</li>	<li>En déduire  la valeur de 
+!insmath v
+$() en  fonction du temps 
+!insmath t
+$() : <br>	
+!insmath \vec{v} (t)
+$()= 
+!read oef/embed.phtml reply2,10 
+$()
+!insmath \vec{i}
+$()</li>	<li>Donner l'expression de l'altitude 
+!insmath z
+$() en fonction du temps : 	<br>
+!insmath z(t) = 
+$() 
+!read oef/embed.phtml reply3,20 
+$()</li>	</ol></div>	<div class="wims_instruction">Dans cette question, on attend des réponses littérales en notant g, le module de l'accélération de la pesanteur, v0, celui de la vitesse initiale, z0, l'altitude initiale, t, le temps. On rappelle la notation pour les puissances : 
+!insmath t^2
+$() se note t^2.</div> 
+!endif
+$() 	
+!if $m_step=2 
+$()<span class="oef_indgood">Vous avez donné les bonnes réponses : </span><br>	
+!insmath v(t)=$val12
+$() et 
+!insmath z(t)=$val13
+$()<br>	<em>Etape B.</em> Applications numériques.<br>	Le mobile est lancé avec la vitesse initiale 
+!insmath v_0 = $val14
+$()  
+!insmath \textrm{m}\cdot\textrm{s}^{-1}
+$()	et à l'altitude repérée par l'abscisse 
+!insmath z_0 = $val7
+$() m. <br>	On donne : 
+!insmath g=9.81 \, \textrm{m}\cdot\textrm{s}^{-2}
+$(). Calculer : 	<ol>	<li>La durée du mouvement : 
+!insmath t_f = 
+$()	 
+!read oef/embed.phtml reply4,10 
+$()</li>	<li>La vitesse à laquelle il s'écrase au sol :
+!insmath v_f = 
+$()	 
+!read oef/embed.phtml reply5,10 
+$()</li></ol></div>	<div class="wims_instruction">	 Donner les résultats en tenant compte des chiffres significatifs (indiquer les 
+!insmath 0
+$() significatifs) et des unités.</div> 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'> La notation 2e-2 signifie 
+!insmath 2.10^{-2}
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,12,13,14,23
+embedcnt=5

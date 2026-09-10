@@ -1,0 +1,104 @@
+!set anstype=yes
+!set anstyle=numeric
+!set oef_js_submit=fieldsend()
+!set var_limit=!getopt limit in $(replyoption$i)
+!default var_limit=10
+!if $wims_read_parm=def
+ !exit
+!endif
+!set inputoption=!replace internal $	$ by $\
+$ in $inputsize
+!set size_input=!line 1 of $inputoption
+!set size_input=!replace internal x by , in $size_input
+!set size_row=$(size_input[2])
+!set size_input=$(size_input[1])
+!set inputoption=!line 2 to -1 of $inputoption
+!set option=!line 1 of $inputoption
+!!debug $inputoption  $inputsize
+!if $option issametext default
+  !set inputoption=!line 2 to -1 of $inputoption
+  !set inputoption=class="wims_oef_input" $inputoption
+!endif
+!bound size_input between integer 1 and 100 default 20
+!set size_inputpx=!nospace $[$size_input*10] px
+!bound size_row between integer 1 and 100 default 1
+!!!default inputoption=style="font-size:20px;background-color:#CCCCFF;border:5px solid red;width:$size_inputpx" autocomplete="off"
+!default inputoption=style="width:$size_inputpx" autocomplete="off"
+
+!set input_begin=<input size="$size_input" $inputoption value="" type="text" id=
+!set oef_fill_option=$size_input,$size_row\
+<input size="$size_input" $inputoption type="text" readonly="readonly"
+!set input_end=>
+!set inputfield=$input_begin "create0" $input_end
+
+<script type="text/javascript">
+/*<![CDATA[*/
+    var inputfield='$input_begin "create0" $input_end'
+    var n=1;
+    var cnt=1
+    var row=0
+
+function fieldsend(){
+    	var rep;var reply=''; var transition=''; var pp=1;
+	    for(var p=0;p < n;p++){
+	     if(p == n-1){ transition=''} else {
+	       if (pp==$size_row) { pp=1 ; transition='\n';} else { pp=pp+1 ; transition=','}};
+	    rep=document.getElementById('create'+p).value;
+		reply=reply+rep+transition;
+	    }
+	    document.getElementById('oefvar').value=reply;
+}
+
+function addfield(){
+	if(n>=$var_limit){ alert('no more $name_toomuch')} else {
+	if (cnt==$size_row){
+	 row=(row+1);
+	 var newrow = document.createElement('tr');
+	 newrow.setAttribute('id','oefvarrow' + row);
+	 document.getElementById('oefvartable').appendChild(newrow);
+	 cnt=0
+    }
+	var old = document.getElementById('oefvarrow'+row);
+	var divIdName = 'oefvardiv'+n;
+	cnt = cnt + 1 ;
+	var newdiv = document.createElement('td');
+	newdiv.setAttribute('id',divIdName);
+	newdiv.setAttribute('name',divIdName);
+	newdiv.innerHTML = '$input_begin "create' + n + '" $input_end';
+	old.appendChild(newdiv);
+	document.getElementById('create'+n).focus();
+	n=n+1;
+	}
+}
+function deletefield() {
+	var m=n-1;
+	if(m>0){
+	    var current = document.getElementById('oefvarrow' + row);
+	    var last = document.getElementById('oefvardiv'+m);
+	    current.removeChild(last);
+	    if (cnt==1){ document.getElementById('oefvartable').removeChild(document.getElementById('oefvarrow'+row)) ;
+	    row =row - 1 ; cnt=$size_row ;
+	    } else {cnt=cnt-1 ; }
+	    n=n-1;
+	}
+	else
+	{alert('ne peut être supprimé');return;}
+	document.getElementById('oefvardiv0').style.width='$size_inputpx';
+    }
+/*]]>*/
+</script>
+
+<input type="hidden" name="reply$i" id="oefvar" value="">
+	<table class="wimscenter" id="oefvartable"><tr id="oefvarrow0"><td id="oefvardiv0">$inputfield</td></tr></table>
+<p class="wimscenter">
+	<input id="add" type="button" style="font-weight:normal;text-align:center" onclick="addfield();" value="$wims_name_add0">
+
+	<input id="delete" type="button" style="font-weight:normal;text-align:center" onclick="deletefield();" value="$wims_name_delete">
+</p>
+<script type="text/javascript">
+/*<![CDATA[*/
+if (n==1) {document.getElementById('create0').focus();}
+!! if (n==1){ alert(n);document.getElementById('delete').style.visibility='hidden'; } else {document.getElementById('delete').style.visibility='visible';
+!! if (n==$var_limit){document.getElementById('add').style.visibility='hidden'; }
+/*]]>*/
+ </script>

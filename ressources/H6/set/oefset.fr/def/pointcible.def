@@ -1,0 +1,554 @@
+!set title=D4 - Positions de points aléatoires
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=set_theory,events
+author=Sophie, Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+oefdescription=il s'agit de déterminer si un événement est réalisé ou non. 
+oefobservation=exercice faisant travailler sur les notations ensemblistes à partir d'un exemple concret d'événement. Suivant la valeur du paramètre "Complexité des ensembles", la question portera sur un, deux ou au moins 3 ensembles. 
+language=fr
+computeanswer=yes
+precision=1000
+title_it=D4 - Posizioni di punti aleatori
+title_es=D4 - Posiciones de puntos aleatorios
+
+ansorder=r,r
+varcnt=195
+prevarcnt=190
+postvarcnt=4
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+
+!ifval $val2= 
+tmp0=!randint 1, 3
+
+val7=$[rint( $(tmp0))]
+!endif
+!if $val2=1 
+val7=$[rint(1)]
+!endif
+!if $val2=2 
+val7=$[rint(2)]
+!endif
+!if $val2>2 
+val7=$[rint(3)]
+!endif
+tmp0=!randint 0, 10
+
+val8=$[rint(50+$(tmp0)*5)]
+val9=$[rint(2*$val8)]
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+!if $val10=1 
+val11=fcircle 110,110,$val9,antiquewhite
+val11=$val11,	  circle 110,110,$val9,brown
+val12=$[pi*$val8*$val8]
+!else
+val13=$[rint(110-$val8)]
+val11=fsquare $val13,$val13,$val9,antiquewhite
+val11=$val11,	                     square $val13,$val13,$val9,brown
+val12=$[$val9*$val9 ]
+!endif
+!if $val7=1 
+val14=$[rint(1)]
+!endif
+!if $val7=2 
+val14=$[rint(2)]
+!endif
+!if $val7=3 
+tmp0=!randint 3, 5
+
+val14=$[rint($(tmp0))]
+!endif
+val15=$[rint($val8-4)]
+!if $val10=1 
+!readproc slib/stat/random 2*$val14,0,1,R 
+tmp0=$slib_out
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+tmp1=!item 2 of $val16
+
+val17=$[rint(10*$val15*sqrt($(tmp0))*cos(2*pi*$(tmp1)))]
+tmp0=!item 1 of $val16
+
+tmp1=!item 2 of $val16
+
+val18=$[rint(10*$val15*sqrt($(tmp0))*sin(2*pi*$(tmp1)))]
+val17=$[$val17/10]
+val18=$[$val18/10]
+val19=$[$val17+110]
+val20=$[110-$val18]
+val21=$val17,$val18
+val22=$val19,$val20
+!for val23 =2 to $val14 
+tmp0=!item 2*$val23-1 of $val16
+
+tmp1=!item 2*$val23 of $val16
+
+val17=$[rint(10*$val15*sqrt($(tmp0))*cos(2*pi*$(tmp1)))]
+tmp0=!item 2*$val23-1 of $val16
+
+tmp1=!item 2*$val23 of $val16
+
+val18=$[rint(10*$val15*sqrt($(tmp0))*sin(2*pi*$(tmp1)))]
+val17=$[$val17/10]
+val18=$[$val18/10]
+val19=$[$val17+110]
+val20=$[110-$val18]
+val21=$val21,$val17,$val18
+val22=$val22,$val19,$val20
+!next
+!else
+!readproc slib/stat/random 2*$val14, -$val15,$val15,Z 
+tmp0=$slib_out
+val21=$(tmp0)
+tmp0=!item 1 of $val21
+
+val19=$[rint(110+$(tmp0))]
+tmp0=!item 2 of $val21
+
+val20=$[rint(110-$(tmp0))]
+val22=$val19,$val20
+!for val23 =2 to $val14 
+tmp0=!item 2*$val23-1 of $val21
+
+val19=$[rint(110+$(tmp0))]
+tmp0=!item 2*$val23 of $val21
+
+val20=$[rint(110-$(tmp0))]
+val22=$val22,$val19,$val20
+!next
+!endif
+tmp0=!item 1 of $val21
+
+tmp1=!item 2 of $val21
+
+val24=M1 ($(tmp0), $(tmp1))
+val25=text navy, 222, 12,medium,$val24
+!for val23 =2 to $val14 
+tmp0=!item 2*$val23-1 of $val21
+
+tmp1=!item 2*$val23 of $val21
+
+val24=M$val23 ($(tmp0), $(tmp1))
+val25=$val25	  text navy, 222, 12*$val23,medium,$val24
+!next
+tmp0=!randint 10, ($val8-5)
+
+val26=$[rint($(tmp0))]
+tmp0=!randint 1, ($val26-1)
+
+val27=$[rint($(tmp0))]
+val28=$[rint($val27)]
+val29=$[rint($val26)]
+tmp0=!randint 1, 4
+
+val30=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val31=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3
+
+val32=$[rint($(tmp0))]
+val33=centre,bord
+val34=cercle,carré
+val35=diamètre,côté
+val36=$(val34[$val10])
+val37=$(val35[$val10])
+
+!ifval $val14=1 
+val38= 
+!else
+val38= \(i\)-ième
+!endif
+val39=inférieure ou égale à,strictement supérieure à, comprise entre $val27 et 
+tmp=!trim la distance du $val38 point au 	 du $val36 est 	 $val26 mm
+val40=!translate internal $	\
+$ to ;; in $tmp
+val41=non,oui
+val42=n'est pas,est
+tmp=!trim Le point bleu marque la position du point choisi.	Les point bleus marquent la position des points choisis.
+val43=!translate internal $	\
+$ to ;; in $tmp
+val44=un point,deux points,points
+val45=la zone coloriée en vert (bords compris) représente l'ensemble des points du $val36 dont la distance au 
+tmp=!trim Pour \(i\in \{1,...,$val14\}\), on note <b>\(A_i\)</b> l'événement	On note <b>\(A\)</b> l'événement	Pour \(i\in \{1,2\}\), on note <b>\(A_i\)</b> l'événement	
+val46=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val14>2 
+val47= $val14 $(val44[3])
+!else
+val47=$(val44[$val14])
+!endif
+val48=On a choisi au hasard $val47 à l'intérieur du $val36 dessiné en marron,	centré en 0 et dont le $val37 mesure $val9 mm.
+val49=La distance considérée est la distance euclidienne dans le plan : si \(m_1 = (x_1,y_1)\)	 et \(m_2 = (x_2,y_2)\) sont deux points du plan, la distance entre	 \(m_1\) et \(m_2\) est \(d(m_1,m_2)\) = \(\sqrt{(x_1-x_2)^2+(y_1-y_2)^2}\).
+val50=La distance d'un point \(m\) à un ensemble \(E\) est définie comme l'infimum des distances	entre \(m) et un point \(e) de \(E\)
+val51=L'événement, est-il réalisé&nbsp;
+val52=Remarque
+!if $val6=it 
+val33=centro,bordo
+val34=cerchio,quadrato
+val35=diametro,lato
+val36=$(val34[$val10])
+val37=$(val35[$val10])
+
+!ifval $val14=1 
+val38= del 
+!else
+val38= dell'\(i\)-esimo
+!endif
+val39=inferiore o uguale a,strettamente superiore a, compreso tra $val27 e 
+tmp=!trim la distanza $val38 punto dal 	  del $val36 è 	 $val26 mm
+val40=!translate internal $	\
+$ to ;; in $tmp
+val41=no,sì
+val42=non è,è
+tmp=!trim Il punto blu marca la posizione del punto scelto.	I punti blu marcano la posizione dei punti scelti.
+val43=!translate internal $	\
+$ to ;; in $tmp
+val44=un punto,due punti,punti
+val45=la zona colorata in verde (bordi compresi) rappresenta l'insieme dei punti del $val36 la cui distanza dal 
+tmp=!trim per \(i\in \{1,...,$val14\}\), si indica con <b>\(A_i\)</b> l'evento	si indica con <b>\(A\)</b> l'evento	per \(i\in \{1,2\}\), si indica con <b>\(A_i\)</b> l'evento	
+val46=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val14>2 
+val47= $val14 $(val44[3])
+!else
+val47=$(val44[$val14])
+!endif
+val48=Scegliendo a caso $val47 all'interno del $val36 disegnato in marrone (centrato in 0 e il cui $val37 misura $val9 mm) 
+val49=La distanza considerata è la distanza euclidea nel piano: se \(m_1 = (x_1,y_1)\)	 e \(m_2 = (x_2,y_2)\) sono due punti del piano, la distanza tra \(m_1\) e \(m_2\) è \(d(m_1,m_2)\) = \(\sqrt{(x_1-x_2)^2+(y_1-y_2)^2}\).
+val50=La distanza di un punto \(m\) da un insieme \(E\) è definita come l'estremo inferiore delle distanze tra \(m) e un punto \(e) di \(E\)
+val51=L'evento, si è verificato
+val52=Nota
+!endif
+!if $val6=es 
+val33=centro,borde
+val34=círculo,cuadrado
+val35=diámetro,lado
+val36=$(val34[$val10])
+val37=$(val35[$val10])
+
+!ifval $val14=1 
+val38= 
+!else
+val38= \(i\)-ésimo
+!endif
+
+!ifval $val32=3 
+val53= está
+!else
+val53= es 
+!endif
+val39=menor o igual a, estrictamente mayor a, comprendida entre $val27 y 
+tmp=!trim la distancia del $val38 punto al 	  del $val36 $val53 	  $val26 mm
+val40=!translate internal $	\
+$ to ;; in $tmp
+val41=no,sí
+val42=no es,es
+tmp=!trim El punto azul marca la posición del punto escogido.	Los puntos azules marcan las posiciones de los puntos escogidos.
+val43=!translate internal $	\
+$ to ;; in $tmp
+val44=un punto,dos puntos,puntos
+val45=la zona coloreada en verde (incluyendo borde) representa el conjunto de puntos del $val36 cuya distancia al 
+tmp=!trim Para \(i\in \{1,...,$val14\}\), denotemos por <b>\(A_i\)</b> el evento	Denotamos por <b>\(A\)</b> el evento	Para \(i\in \{1,2\}\), denotemos por <b>\(A_i\)</b> el evento	
+val46=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val14>2 
+val47= $val14 $(val44[3])
+!else
+val47=$(val44[$val14])
+!endif
+val48=Escogemos al azar $val47 al interior del $val36 dibujado en café (centrado en 0 y cuyo $val37 mide $val9 mm). 
+val49=La distancia considerada es la distancia euclideana en el plano: si \(m_1 = (x_1,y_1)\)	 y \(m_2 = (x_2,y_2)\) son dos puntos del plano, la distancia entre \(m_1\) y \(m_2\) es \(d(m_1,m_2)\) = \(\sqrt{(x_1-x_2)^2+(y_1-y_2)^2}\).
+val50=La distancia de un punto \(m\) a un conjunto \(E\) se define como el ínfimo de la distancia entre \(m) y un punto \(e) de \(E\)
+val51=¿El evento, ocurre
+val52=Observación
+!endif
+!if $val14>2 
+val54=$(val43[2;])
+val55=$(val46[1;])
+!if $val32=2 
+val56=\cup_{i=1}^{$val14}A_{i}^{c},\cap_{i=1}^{$val14}A_{i}^{c},	       \cap_{i=1}^{$val14}A_{i},\cup_{i=1}^{$val14}A_{i} 
+!else
+val56=\cup_{i=1}^{$val14}A_{i},\cap_{i=1}^{$val14}A_{i},	  \cap_{i=1}^{$val14}A_{i}^{c},\cup_{i=1}^{$val14}A_{i}^{c} 
+!endif
+!else
+!if $val14=1 
+val54=$(val43[1;])
+val55=$(val46[2;])
+!if $val32=2 
+val56=A^{c}, A^{c}, A, A
+!else
+val56=A, A, A^{c}, A^{c}
+!endif
+!else
+val54=$(val43[2;])
+val55=$(val46[3;])
+!if $val32=2 
+val56=A_{1}^{c} \cup A_{2}^{c}, A_{1}^{c} \cap A_{2}^{c}, A_{1} \cap A_{2} ,  A_{1} \cup A_{2} 
+!else
+val56=A_{1} \cup A_{2}, A_{1} \cap A_{2}, A_{1}^{c} \cap A_{2}^{c}, A_{1}^{c} \cup A_{2}^{c}
+!endif
+!endif
+!endif
+!if $val31=2 
+!if $val32<3 
+val32=$[rint(3-$val32)]
+val29=$[rint($val8-$val26)]
+val28=$[rint($val8-$val27)]
+!else
+val29=$[rint($val8-$val27)]
+val28=$[rint($val8-$val26)]
+!endif
+!endif
+val57=\($(val56[$val30])\)
+val58=$[rint(0)]
+val59=$[rint(0)]
+!if $val31=1 or $val10=1 
+!for val23 =1 to $val14 
+tmp0=!item 2*$val23-1 of $val21
+
+tmp1=!item 2*$val23-1 of $val21
+
+tmp2=!item 2*$val23 of $val21
+
+tmp3=!item 2*$val23 of $val21
+
+val60=$[$(tmp0)*$(tmp1)+$(tmp2)*$(tmp3)]
+!if $val60<=$val29^2 
+val58=$[rint($val58+1)]
+!if $val60>=$val28^2 
+val59=$[rint($val59+1)]
+!endif
+!endif
+!next
+val61=$[pi*$val29*$val29/$val12]
+!if $val58=0 
+val62=0,0,1,1
+!else
+!if $val58=$val14 
+val62=1,1,0,0
+!else
+val62=1,0,0,1
+!endif
+!endif
+!if $val32=3 
+val61=$[pi*($val29*$val29-$val28*$val28)/$val12]
+!if $val59=0 
+val62=0,0,1,1
+!else
+!if $val59=$val14 
+val62=1,1,0,0
+!else
+val62=1,0,0,1
+!endif
+!endif
+!endif
+!endif
+!if $val31=2 and $val10=2 
+!for val23 =1 to $val14 
+tmp0=!item 2*$val23-1 of $val21
+
+tmp1=!item 2*$val23 of $val21
+
+val60=$[max(abs($(tmp0)),abs($(tmp1)))]
+!if $val60<=$val29 
+val58=$[rint($val58+1)]
+!if $val60>=$val28 
+val59=$[rint($val59+1)]
+!endif
+!endif
+!next
+val61=$[4*$val29*$val29/$val12]
+!if $val58=0 
+val62=0,0,1,1
+!else
+!if $val58=$val14 
+val62=1,1,0,0
+!else
+val62=1,0,0,1
+!endif
+!endif
+!if $val32=3 
+!if $val59=0 
+val62=0,0,1,1
+!else
+!if $val59=$val14 
+val62=1,1,0,0
+!else
+val62=1,0,0,1
+!endif
+!endif
+val61=$[4*($val29*$val29-$val28*$val28)/$val12]
+!endif
+!endif
+tmp0=!item $val30 of $val62
+
+val63=$[rint(1+$(tmp0))]
+val64=$[$val61^($val14)]
+val65=$[(1-$val61)^($val14)]
+val66=$[1-$val65]
+val67=$[1-$val64]
+val68=$val66,$val64,$val65,$val67
+tmp0=!item $val30 of $val68
+
+val69=$[$(tmp0)]
+!if $val63=1 
+val70=$(val42[1])
+!else
+val70=$(val42[2])
+!endif
+val71=arrow 0,110,220,110,10,gray
+val71=$val71	arrow 110,220,110,0,10,gray	text gray, 100,110,,0	
+!for val23 =1 to 10 
+val71=$val71	segment 110+10*$val23, 108, 110+10*$val23, 112, gray	segment 110-10*$val23, 108, 110-10*$val23, 112, gray	segment 108,110+10*$val23, 112, 110+10*$val23, gray	segment 108,110-10*$val23, 112, 110-10*$val23, gray
+!next
+!if $val10=2 and $val31=2 
+val72=square $val13+$val26, $val13+$val26,$val9-2*$val26,green
+!if $val32=3 
+val72=$val72	        square $val13+$val27, $val13+$val27,$val9-2*$val27,green	        fill $val13+($val26+$val27)/2, 110, aquamarine
+!else
+!if $val32=1 
+val72=$val72	        fill 110+$val8-$val26/2, 110, aquamarine	        square $val13, $val13,$val9,green
+!else
+val72=$val72	        fill 110, 110, aquamarine
+!endif
+!endif
+!else
+!if $val31=2 
+val73=$[$val8-$val26]
+val74=$[$val8-$val27]
+!else
+val73=$[$val26]
+val74=$[$val27]
+!endif
+val72=circle 110,110,2*$val73,green
+!if $val32=3 
+val72=$val72	circle 110,110,2*$val74,green	fill 110+($val73+$val74)/2, 110, aquamarine
+!else
+!if ($val32=1 and $val31=1) or ($val32=2 and $val31=2) 
+val72=$val72	fill 110,110,aquamarine
+!else
+val72=$val72	fill 110+($val73+$val8)/2,110,aquamarine
+!if $val10=1 
+val72=$val72	circle 110,110,$val9,green
+!else
+val72=$val72	 square $val13,$val13,$val9,green
+!endif
+!endif
+!endif
+!endif
+tmp0=!record 2 of notations.$val6
+
+val75=$(tmp0)
+oefsteps=reply1 
+nextstep=!nosubst reply1 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=
+replygood1=$val63;$val41
+replytype2=numeric
+replyname2=La probabilité est
+replygood2=$[$val69]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val48	$val55	<div class="instruction wimscenter" style="font-style:italic;">$(val40[1;]) $(val33[$val31]) $(val40[2;]) $(val39[$val32])	$(val40[3;]).</div>	<div class="wimscenter">	 
+!read oef/draw.phtml 350,230 \
+	$val11	segments blue,221,100,241,100,221,99,221,101,231,99,231,101,241,99,241,101	text navy,220,85,medium, 20 mm	$val71	arrow 0,110,220,110,10,gray	arrow 110,220,110,0,10,gray	text gray, 100,110,,0	linewidth 3	points navy, $val22	$val25	 
+$()	</div>	$val54	<div class="wims_question">	$(val51[1]) $val57 $(val51[2])?  
+!read oef/embed.phtml reply1 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()<ul>	<li>$val75</li>	<li>$val49</li>	<li> $val50	<div class="wimscenter"> 
+!insmath d(m,E)
+$() = 
+!insmath \inf(d(m,e),\ e\in E)
+$(). </div>	</li>	</ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!positionof item $m_reply1 in $val41
+
+val76=$[rint($(tmp0))]
+
+!ifval $m_reply2<0 or $m_reply2>1 
+val77=$[ 1]
+!else
+val77=$[0]
+!endif
+val78=$[abs($m_reply2-(1-$val69))]
+val79=$[abs($m_reply2-$val69)]
+
+!exit
+
+:feedback
+!ifval $val76!=$val63
+ <div class='oef_feedbacks'>	<span class="oef_indbad">$val52</span>: $val45 $(val33[$val31])	$(val40[2;]) $(val39[$val32]) $(val40[3;]).	<div class="wimscenter">	 
+!read oef/draw.phtml 350,230 \
+	$val11	$val72	$val71	linewidth 3	points navy, $val22	 
+$()</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,22,25,31,32,33,39,40,41,45,48,49,50,51,52,54,55,57,63,69,71,72,75
+embedcnt=1

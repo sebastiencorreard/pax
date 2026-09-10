@@ -1,0 +1,81 @@
+!read language lang/names
+!set title=!lookup $thisexo in lang/Extitles.$modu_lang
+module_title=$module_title<br />--- $title ---
+plotset=tmargin 1; xzeroaxis; yzeroaxis; samples 150
+insplot_set=size 0.6,0.65; $plotset
+!distribute words ff0000 00c000 0000ff 00a0a0 a000a0 a0a000\
+	307000 9500d3 dda0dd into\
+	color1,color2,color3,color4,color5,color6,\
+	color7,color8,color9
+insplot_colors= xffffff x000000 x404040 x$color1 x$color2 x$color3 x$color4\
+	x$color5 x$color6 x$color7 x$color8 x$color9
+diff=0
+
+mf=<i>f</i>
+!reset summands, fs, combi
+!for i=1 to $fcnt
+ summands=!append item $(f$i) title "f$i" lt $i to $summands
+ fs=!append item <span style="color:#$(color$i)">$mf<sub>$i</sub>(x)</span> to $fs
+ combi=!append item c<sub>$i</sub><span style="color:#$(color$i)">$mf<sub>$i</sub>(x)</span> to $combi
+!next i
+fs=!replace , by , $ in $fs
+combi=!replace , by $ + $ in $combi
+
+!if $cmd=reply and $status=waiting
+ wims_html_bodyoption=onload="self.scrollto(0,200)"
+ dd=0
+ myadd=
+ gx=
+ !for i=1 to $fcnt
+  c=!trim $(c$i)
+  c$i=$c
+  !if $c=$empty
+   error=empty_data
+   !exit
+  !endif
+  c=!rawmath $c
+  c=$[$c]
+  !if NaN isin $c or Inf isin $c
+   error=bad_data
+   !exit
+  !endif
+  dd=$[$dd+($(C$i)-($c))^2]
+  myadd=$myadd+($c)*($(f$i))
+  gx=$gx + $c*f$i(x)
+ !next i
+ gx=!htmlmath $gx
+ gx=!replace f by $mf in $gx
+ diff=$[sqrt($dd/$fcnt)]
+ !if NaN isin $diff or Inf isin $diff
+  error=bad_data
+  !exit
+ !endif
+ mycurve=,$myadd title "mycurvename" lt 7
+
+ !if $cmd=reply and $status=waiting
+  !if $shortcut!=yes or $replycnt<1
+   replycnt=$[$replycnt+1]
+  !endif
+ !endif
+
+ !if $bestreply=0 or $bestdiff>$diff
+  bestreply=$replycnt
+  bestcurve=$mycurve
+  bestgx=$gx
+  bestdiff=$diff
+ !endif
+
+ !if $replycnt>=$maxreply or $shortcut=yes
+  status=done
+  !if $bestdiff<0.0000001
+   module_score=10
+  !else
+   module_score=$[min(10,rint(-$score_coef1*ln($bestdiff*$score_coef2))/10)]
+  !endif
+  !if $module_score<0 or NaN isin $module_score or Inf isin $module_score
+   module_score=0
+  !endif
+  wims_module_log=score $module_score/10
+ !endif
+!endif
+

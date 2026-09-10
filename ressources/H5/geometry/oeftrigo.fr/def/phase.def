@@ -1,0 +1,140 @@
+!set title=Calcul de la phase
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+
+ansorder=r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Mettre la fonction,sous la forme,avec
+val8=Que vaut la partie réelle de 
+val9=Vous avez trouvé
+val10=est le module du nombre complexe \(a - i*b) et \(u) son argument. Ici,
+tmp0=!randint 1, 20
+
+val11=$[$(tmp0)]
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val12=$[$(tmp0)*$(tmp1)]
+val13=$[sqrt(($val11)^2+($val12)^2)]
+
+!ifval $val12 > 0
+val14=$[ -pi/2]
+!else
+val14=$[pi/2]
+!endif
+
+!ifval $val11 = 0
+val15=$[ $val14]
+!else
+val15=$[ arctan($val12/($val11))]
+!endif
+
+!ifval $val11 < 0
+val16=$[ $val15 + pi]
+!else
+val16=$[$val15]
+!endif
+replytype1=numeric
+replyname1=\(A)
+replygood1=$[$val13]
+replytype2=numeric
+replyname2=\(u)
+replygood2=?analyze 17
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val7[1]) 
+!insmath $val11 * cos(x) + $val12 * sin(x)
+$()	$(val7[2]) 
+!insmath A * cos(x - u)
+$()	$(val7[3]) 
+!insmath A > 0
+$().	
+$()
+!exit
+
+:hint
+$()$val8 
+!insmath (a - i*b) exp( i x)
+$() ?
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath A
+$() $val10	<div class="wimscenter">	
+!insmath A = $val13
+$() ,  
+!insmath u
+$() $m_equiv $val16  mod  2 $m_pi.	</div> 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval abs(($val17-$val16)/(2*pi)-round(($val17-$val16)/(2*pi)))	<0.0001
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val9	\(u) = $val17 modulo 2*pi 
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,16,17
+embedcnt=0

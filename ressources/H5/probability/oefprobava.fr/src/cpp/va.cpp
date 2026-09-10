@@ -1,0 +1,76 @@
+target=va1 va2 
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\format{html}
+#define TITLE Variable aléatoire
+
+\integer{n=randint(3..5)}##Nombre de valeurs##
+\integer{x1=randint(1..5)*randint(1,-1)}##valeur##
+\integer{x2=\x1+randint(2..7)}##valeur##
+\integer{x3=\x2+randint(1..5)}
+\integer{x4=\x3+randint(1..5)}
+\integer{x5=\x4+randint(1..7)}
+\real{p1=randint(3..15)/100}##probabilité##
+\real{p2=randint(2..20)/100}
+\real{p3=randint(5..20)/100}
+\real{p4=randint(10..20)/100}
+
+\text{preambsol=}
+
+#if defined TARGET_va1 
+\title{TITLE - 1 probabilité manquante}
+\real{p=(\n=3)? 1-\p1-\p2:1-\p1-\p2-\p3}
+\real{p=(\n=5)? \p-\p4:\p}
+\real{somme=(\n=3)? \p1+\p2:\p1+\p2+\p3}##pour le corrigé##
+\real{somme=(\n=5)? \somme+\p4:\somme}
+\integer{val=\x1}
+
+\statement{Le tableau ci-dessous décrit la loi d'une variable aléatoire \(X\).
+<div class="wimscenter">
+<table class="wimscenter; wimsborder">
+   <tr><th>\(x\)</th><td>\(\x1\)</td><td>\(\x2\)</td><td>\(\x3)</td>\if{\n>=4}{<td>\(\x4\)</td>}\if{\n=5}{<td>\(\x5\)</td>}</tr>
+   <tr><th>\(p(X=x)\)</th><td>\(\p1\)</td><td>\(\p2\)</td>\if{\n=3}{<td>\(t\)</td>}{<td>\(\p3\)</td>\if{\n=4}{<td>\(t\)</td>}{<td>\(\p4\)</td>}}\if{\n=5}{<td>\(t\)</td>}</tr>
+</table></div>
+<div class="wims_question">Quelle est la valeur de \(t\)?
+<br> \(t={}\) \embed{r1,10}</div>}
+
+\answer{\(t\)}{\p}{type=numexp}
+\solution{La somme des probabilités est égale à \(1) donc 
+\if{\n=3}{\(\p1+\p2+t=1\)}{\if{\n=4}{\(\p1+\p2+\p3+t=1\)}{\(\p1+\p2+\p3+\p4+t=1\)}}. D'où \(t+\somme=1\) et \(t=1-\somme=\p\).}
+
+#endif
+
+#if defined TARGET_va2
+\title{TITLE - 1 probabilité et 1 valeur manquantes}
+\real{p=(\n=3)? 1-\p1-\p2:1-\p1-\p2-\p3}
+\real{p=(\n=5)? \p-\p4:\p}
+\real{esp=(\n=3)? \p1*\x1+\p2*\x2+\p*\x3:\p1*\x1+\p2*\x2+\p3*\x3+\p*\x4}##espérance##
+\real{esp=(\n=5)? \esp+\p*\x5:\esp}
+##Variables pour le corrigé##
+\real{somme=(\n=3)? \p1+\p2:\p1+\p2+\p3}
+\real{somme=(\n=5)? \somme+\p4:\somme}
+\real{a=(\n=3)? \p2*\x2+\p*\x3:\p2*\x2+\p3*\x3+\p*\x4}
+\real{a=(\n=5)? \a+\p*\x5:\a}
+\real{b=\esp-\a}
+
+\statement{Le tableau ci-dessous décrit la loi d'une variable aléatoire \(X\).
+<div class="wimscenter">
+<table class="wimscenter; wimsborder">
+   <tr><th>\(x\)</th><td>\(a\)</td><td>\(\x2\)</td><td>\(\x3)</td>\if{\n>=4}{<td>\(\x4\)</td>}\if{\n=5}{<td>\(\x5\)</td>}</tr>
+   <tr><th>\(p(X=x)\)</th><td>\(\p1\)</td><td>\(\p2\)</td>\if{\n=3}{<td>\(t\)</td>}{<td>\(\p3\)</td>\if{\n=4}{<td>\(t\)</td>}{<td>\(\p4\)</td>}}\if{\n=5}{<td>\(t\)</td>}</tr>
+</table></div>
+On donne l'espérance de \(X) : \(E(X)=\esp\).
+<div class="wims_question">Quelles sont les valeurs de \(t\) et \(a\) ?
+<ul class="wims_nopuce"><li>\(t={}\) \embed{r1,10}</li>
+<li>\(a={}\) \embed{r2,10}</li>
+</ul>
+</div>}
+
+\answer{\(t)}{\p}{type=numexp}
+\answer{\(a)}{\x1}{type=numexp}
+
+\solution{La somme des probabilités est égale à \(1) donc 
+\if{\n=3}{\(\p1+\p2+t=1\)}{\if{\n=4}{\(\p1+\p2+\p3+t=1\)}{\(\p1+\p2+\p3+\p4+t=1\)}}. D'où \(t+\somme=1\) et \(t=1-\somme=\p\).
+<br>\if{\n=3}{\(E(X)=\p1 \times a+\p2 \times \x2+\p \times \x3\)}{\if{\n=4}{\(E(X)=\p1 \times a+\p2 \times \x2+\p3 \times \x3+\p \times \x4\)}{\(E(X)=\p1 \times a+\p2 \times \x2+\p3 \times \x3+\p4 \times \x4+\p \times \x5\)}}
+c'est à dire \(\esp=\p1 a+\a\). <br>\(\p1 a+\a=\esp\) &hArr; \(\p1 a=\b\) &hArr; \(a=\x1\).}
+#endif

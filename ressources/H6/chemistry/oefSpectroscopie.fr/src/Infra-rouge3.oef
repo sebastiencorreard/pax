@@ -1,0 +1,128 @@
+\title{Spectroscopie Infra rouge -nom molecule(1)}
+\author{Benoit Markey}
+\email{benoit.markey@ac-lille.fr}
+\integer{taille=800}
+\text{table=wims(record 1 of IR-table-long-onde)}
+
+\matrix{fonc=wims(record 1 of IR-liste2)}
+\matrix{fonc11=shuffle(\fonc)}
+-------------spectre 1-------------------------------------------------------
+\matrix{fonc2=\fonc11[1]}
+\matrix{molecule11=wims(record 1 of \fonc2[1])}
+\integer{tri=rows(\molecule11)}
+\matrix{tri2=shuffle(\tri)}
+\text{molecule1=row(\tri2[1],\molecule11)}
+\matrix{sp1=wims(record 1 of \molecule1[1])}
+\integer{nb=rows(\sp1)}
+\text{sp2x=column(1,\sp1)}
+\text{sp2y=column(2,\sp1)}
+\text{sp2x2=\taille*(1-\sp2x[1]/4000)}
+\text{sp3=\taille*(1-\sp2x[1]/4000),2*(100-\sp2y[1]*\molecule1[2])}
+\for{i=2 to \nb}{
+\text{sp2x2=\sp2x2,\taille*(1-\sp2x[\i]/4000)}
+\text{sp3=\sp3,\sp2x2[\i],2*(100-\sp2y[\i]*\molecule1[2])}
+}
+
+-------------spectre 2-------------------------------------------------------
+
+\matrix{fonc2bis=\fonc11[2]}
+\matrix{molecule11bis=wims(record 1 of \fonc2bis[1])}
+\integer{tribis=rows(\molecule11bis)}
+\matrix{tri2bis=shuffle(\tribis)}
+\text{moleculebis=row(\tri2bis[1],\molecule11bis)}
+\matrix{sp1bis=wims(record 1 of \moleculebis[1])}
+\integer{nbbis=rows(\sp1bis)}
+\text{sp2xbis=column(1,\sp1bis)}
+\text{sp2ybis=column(2,\sp1bis)}
+\text{sp2x2bis=\taille*(1-\sp2xbis[1]/4000)}
+\text{sp3bis=\taille*(1-\sp2xbis[1]/4000),2*(100-\sp2ybis[1]*\moleculebis[2])}
+\for{ibis=2 to \nbbis}{
+\text{sp2x2bis=\sp2x2bis,\taille*(1-\sp2xbis[\ibis]/4000)}
+\text{sp3bis=\sp3bis,\sp2x2bis[\ibis],2*(100-\sp2ybis[\ibis]*\moleculebis[2])}
+}
+
+-------------spectre 3-------------------------------------------------------
+
+\matrix{fonc2ter=\fonc11[3]}
+\matrix{molecule11ter=wims(record 1 of \fonc2ter[1])}
+\integer{triter=rows(\molecule11ter)}
+\matrix{tri2ter=shuffle(\triter)}
+\text{moleculeter=row(\tri2ter[1],\molecule11ter)}
+\matrix{sp1ter=wims(record 1 of \moleculeter[1])}
+\integer{nbter=rows(\sp1ter)}
+\text{sp2xter=column(1,\sp1ter)}
+\text{sp2yter=column(2,\sp1ter)}
+\text{sp2x2ter=\taille*(1-\sp2xter[1]/4000)}
+\text{sp3ter=\taille*(1-\sp2xter[1]/4000),2*(100-\sp2yter[1]*\moleculeter[2])}
+\for{iter=2 to \nbter}{
+\text{sp2x2ter=\sp2x2ter,\taille*(1-\sp2xter[\iter]/4000)}
+\text{sp3ter=\sp3ter,\sp2x2ter[\iter],2*(100-\sp2yter[\iter]*\moleculeter[2])}
+}
+
+
+\text{spectre=segments green,\sp3}
+\text{spectrebis=segments green,\sp3bis}
+\text{spectreter=segments green,\sp3ter}
+
+
+\text{axes=arrow 910,200,2,200,10,black
+parallel 0,198,0,202,\taille/20,0,19,black
+text blue,7,185,small,s (cm )
+text blue,33,180,small,-1
+text blue,0,205,small,4000
+text blue,\taille/10-10,205,small,3600
+text blue,2*\taille/10-10,205,small,3200
+text blue,3*\taille/10-10,205,small,2800
+text blue,4*\taille/10-10,205,small,2400
+text blue,5*\taille/10-10,205,small,2000
+text blue,6*\taille/10-10,205,small,1600
+text blue,7*\taille/10-10,205,small,1200
+text blue,8*\taille/10-10,205,small,800
+text blue,9*\taille/10-10,205,small,400
+text blue,\taille/2,180,small,nombre d'onde
+arrow 2,200,2,2,10,black
+parallel 0,200,4,200,0,-20,10,black
+text red,8,155,small,20
+text red,8,115,small,40
+text red,8,75,small,60
+text red,8,35,small,80
+textup red,20,150,small,transmittance (%)
+}
+\text{graph2=draw(\taille + 10,220
+\spectre
+\axes
+)}
+\text{graph2bis=draw(\taille + 10,220
+\spectrebis
+\axes
+)}
+\text{graph2ter=draw(\taille + 10,220
+\spectreter
+\axes
+)}
+
+\text{graph=<img src="\graph2">}
+\text{graphbis=<img src="\graph2bis">}
+\text{graphter=<img src="\graph2ter">}
+\text{choix1= <img src = "\graph2" /><br>,<img src = "\graph2bis" /><br>,<img src = "\graph2ter" /><br> }
+\text{choix=shuffle(\choix1)}
+\integer{rep=position(<img src = "\graph2" /><br>,\choix)}
+
+\text{schema=<img src=\imagedir/../\molecule1[4]>}
+\comment{
+\text{schemabis=<img src=\imagedir/../\moleculebis[4]>}
+\text{schemater=<img src=\imagedir/../\moleculeter[4]>}
+}
+
+\statement{On s'intéresse à la molécule: <h2>\molecule1[3]</h2>
+<br>
+Ci dessous, voici 3 spectres de molécules différentes, cliquer sur le spectre correspondant à cette molécule
+<div class="wimscenter">
+   \embed{ reply1,1}\embed{ reply1,2}\embed{ reply1,3 } </div>
+<br>
+Vous trouverez une table de bandes d’absorption caractéristiques en cliquant sur le bouton
+<b>Aide.</b>
+<br>
+}
+\answer{ }{ \rep ; \choix }{ type=click }
+\help{\table}

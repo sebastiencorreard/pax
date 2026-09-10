@@ -1,0 +1,160 @@
+!set title=J. Couleur de taxi
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=events,modelling,probability
+oefdescription=Exercice de modélisation
+oefobservation=Application de la formule de Bayes
+
+ansorder=r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 60, 90
+
+val6=$[rint($(tmp0))]
+val7=$[rint(100-$val6)]
+tmp0=!randint 70, 90
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+!if $val9=1 
+val10=$[rint($val7)]
+val11=$[rint($val6)]
+!else
+val10=$[rint($val6)]
+val11=$[rint($val7)]
+!endif
+val12=$[rint(100-$val8)]
+t_=!rawmath $val10*$val8/($val10*$val8+$val11*$val12)
+val13=!exec pari print($t_)
+!readproc slib/text/approximation $val13,3 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=$(val14[3])
+val16=Bleu,Vert
+val17=$(val16[$val9])
+val18=$(val16[3-$val9])
+val19=Un taxi est impliqué dans un carambolage de nuit.	  Deux compagnies de taxi, les Verts et les Bleus, opèrent en ville.
+val20=On dispose des informations suivantes&nbsp;
+val21=\($val6 \%\) des taxis en ville sont Verts et \($val7 \%\) sont Bleus&nbsp;
+val22=Un témoin a identifié le taxi responsable comme $val17.
+val23=Le tribunal a testé la fiabilité des témoignages dans ce type	  de circonstances (accident de nuit) et en a conclu que	  les témoins identifient correctement les couleurs dans \($val8 \%\) des cas	  et se trompent dans \($val12 \%\) des cas. 
+val24=Si on suppose que le risque qu'un taxi cause un carambolage la nuit est	 le même pour tous les taxis, quelle est la probabilité pour que le taxi impliqué dans l'accident soit un $val17&nbsp;
+val25=Donner la valeur exacte sous forme d'une fraction.
+val26=On cherche
+val27=la probabilité pour que 
+val28=sachant que
+val29=est
+val30=le taxi soit
+val31=le témoin a identifié un taxi
+val32=Le témoin identifie le taxi impliqué dans le carambolage comme un
+val33=et il ne se trompe pas avec une probabilité de
+val34=et il se trompe avec une probabilité de
+val35=Donc
+val36=et
+val37=$val27 $val30 $val17 $val28 $val31 $val17
+val38=D'après l'énoncé
+val39=si un taxi est impliqué dans un carambolage dans cette ville et si on ne dispose pas d'autres informations alors	 la probabilité que cela soit un
+val40=le témoin identifie le taxi impliqué dans le carambolage comme un
+val41=c'est le cas est égale à
+val42=alors qu'il est en fait
+val43=De ces informations, on déduit que
+replytype1=numexp
+replyname1=
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val19 \newline $val20 \begin{itemize} \item $val21 \item $val22 \end{itemize} $val23 \newline $val24? (\emph{$val25}) \end{statement} \begin{solution} $val26 $val37.\newline $val38, \begin{itemize} \item $val39 $val17 $val29\($val10/100\); \item $val27 $val40 $val17 $val28 $val41 \($val8/100\); \item $val27 $val40 $val17 $val42 $val18 $val29 \($val12/100\). \end{itemize} $val43 \begin{itemize} \item $val32 $val17 $val33 \(\frac{$val10}{100}\times \frac{$val8}{100}\). \item $val32 $val17 $val34 \(\frac{$val11}{100}\times \frac{$val12}{100}\). \end{itemize} $val35, $val27 $val40 $val17 $val29 \[\frac{$val10}{100}\times \frac{$val8}{100}+\frac{$val11}{100}\times \frac{$val12}{100}.\] $val36 $val37 $val29 \[\frac{$val10\times $val8}{$val10\times$val8 + $val11 \times $val12}\simeq $val15.\] \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	  $val19	</p>	  $val20:	  <ul><li>	 $val21;	</li><li>	 $val22	</li></ul>	 $val23	<div class="wims_question">	 <label for="reply1"> $val24?</label>	<div class="wimscenter"> 
+!read oef/embed.phtml r1,7 
+$()</div>	<div class="wims_instruction">$val25</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val26	$val37.<br/>	$val38,	<ul><li> $val39 $val17 $val29 
+!insmath $val10/100
+$();	</li><li>	 $val27 $val40 $val17 $val28 $val41 
+!insmath $val8/100
+$();	</li><li>$val27 $val40 $val17 $val42 $val18 $val29 
+!insmath $val12/100
+$().</li></ul>	$val43	<ul><li>	$val32 $val17 $val33 
+!insmath \frac{$val10}{100}\times \frac{$val8}{100}
+$().	</li><li>	$val32 $val17 $val34 
+!insmath \frac{$val11}{100}\times \frac{$val12}{100}
+$().	</li></ul>	$val35, $val27 $val40 $val17 $val29	<div class="wimscenter">	
+!insmath \frac{$val10}{100}\times \frac{$val8}{100}+\frac{$val11}{100}\times \frac{$val12}{100}
+$().	</div>	$val36 $val37 $val29	<div class="wimscenter">	
+!insmath \frac{$val10\times $val8}{$val10\times$val8 + $val11 \times $val12}\simeq $val15
+$().	</div>	
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val19 $m_newline $val20 $m_begin{itemize} $m_item $val21 $m_item $val22 $m_end{itemize} $val23 $m_newline $val24? ($m_emph{$val25}) $m_end{statement} $m_begin{solution} $val26 $val37.$m_newline $val38, $m_begin{itemize} $m_item $val39 $val17 $val29
+!insmath $val10/100
+$(); $m_item $val27 $val40 $val17 $val28 $val41 
+!insmath $val8/100
+$(); $m_item $val27 $val40 $val17 $val42 $val18 $val29 
+!insmath $val12/100
+$(). $m_end{itemize} $val43 $m_begin{itemize} $m_item $val32 $val17 $val33 
+!insmath \frac{$val10}{100}\times \frac{$val8}{100}
+$(). $m_item $val32 $val17 $val34 
+!insmath \frac{$val11}{100}\times \frac{$val12}{100}
+$(). $m_end{itemize} $val35, $val27 $val40 $val17 $val29 \[$m_frac{$val10}{100}$m_times $m_frac{$val8}{100}+$m_frac{$val11}{100}$m_times $m_frac{$val12}{100}.\] $val36 $val37 $val29 \[$m_frac{$val10$m_times $val8}{$val10$m_times$val8 + $val11 $m_times $val12}$m_simeq $val15.\] $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,11,12,15,17,18,19,20,21,22,23,24,25,26,27,28,29,32,33,34,35,36,37,38,39,40,41,42,43
+embedcnt=1

@@ -1,0 +1,221 @@
+\title{Diagrammes en boite II}
+\language{fr}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+\integer{offset=random(0..10)*10}
+\integer{offset5=\offset+5}
+\integer{offset10=\offset+10}
+\integer{offset15=\offset+15}
+\integer{offset20=\offset+20}
+\integer{offset25=\offset+25}
+\integer{offset30=\offset+30}
+\integer{offset35=\offset+35}
+\integer{offset40=\offset+40}
+### cadre générique ###
+\text{cadre=
+xrange -2,45
+yrange -2,4
+parallel 0,-0.1,0,4,1,0,41,gray
+linewidth 2
+segment 0,0,40,0,black
+parallel 0,-0.1,0,0.1,1,0,40,black
+parallel 0,-0.2,0,0.2,5,0,9,black
+text black,0,-0.4,small,\offset
+text black,5,-0.4,small,\offset5
+text black,10,-0.4,small,\offset10
+text black,15,-0.4,small,\offset15
+text black,20,-0.4,small,\offset20
+text black,25,-0.4,small,\offset25
+text black,30,-0.4,small,\offset30
+text black,35,-0.4,small,\offset35
+text black,40,-0.4,small,\offset40
+}
+
+## fin du cadre générique ##
+
+## choix de la bonne série
+\integer{nbsol=random(1..4)}
+\text{listgraph=}
+\text{listmin=}
+\text{listmax=}
+\text{listmed=}
+\text{listq1=}
+\text{listq3=}
+## liste de séries ##
+\integer{xim=random(1..15)}
+\integer{xiM=random(\xim+10..40)}
+\integer{Mie=random(\xim+5..\xiM-5)}
+\integer{Qi1=random(\xim..\Mie)}
+\integer{Qi3=random(\Mie..\xiM)}
+
+
+\text{graphi=
+\cadre
+segment \xim,2,\Qi1,2,black
+segment \Qi3,2,\xiM,2,black
+segment \xim,1.8,\xim,2.2,black
+segment \xiM,1.8,\xiM,2.2,black
+polygon blue,\Qi1,1,\Qi3,1,\Qi3,3,\Qi1,3
+segment \Mie,1.5,\Mie,2.5,red
+}
+\integer{bd=20+\offset}
+\integer{bg=\offset}
+    \integer{xmin=\xim+\offset}
+    \integer{xmax=\xiM+\offset}
+    \integer{Med=\Mie+\offset}
+    \integer{Q1=\Qi1+\offset}
+    \integer{Q3=\Qi3+\offset}
+\text{listmin=wims(append item \xmin to \listmin)}
+\text{listmax=wims(append item \xmax to \listmax)}
+\text{listmed=wims(append item \Med to \listmed)}
+\text{listq1=wims(append item \Q1 to \listq1)}
+\text{listq3=wims(append item \Q3 to \listq3)}
+    \text{graph=\graphi}
+## deuxième liste: changement de xmin
+\integer{xim=random(random(\bg..\xmin-1),random(\xmin+1,15))}
+\text{listmin=wims(append item \xim to \listmin)}
+\integer{xiM=random(\xim..\bd)}
+\text{listmax=wims(append item \xiM to \listmax)}
+\integer{Mie=random(\xim..\xiM)}
+\text{listmed=wims(append item \Mie to \listmed)}
+\integer{Qi1=random(\xim..\Mie)}
+\text{listq1=wims(append item \Qi1 to \listq1)}
+\integer{Qi3=random(\Mie..\xiM)}
+\text{listq3=wims(append item \Qi3 to \listq3)}
+## troisième liste: changement de Med
+    \integer{xim=\xmin}
+    \integer{xiM=\xmax}
+    \integer{Mie=\Med}
+    \integer{Qi1=\Q1}
+    \integer{Qi3=\Q3}
+\if{\Med=\Q1}
+  {
+   \if{Med=\Q3}
+     {
+       \if{\Q3=\bd}
+         {
+         \integer{Mie=random(\xmin..\Mie-1)}
+         }
+       \if{\Q3=\bg}
+         {
+         \integer{Mie=random(\Mie+1..\xmax)}
+         }
+       \if{\Q3<\bd and \Q3>\bg}
+         {
+         \integer{Mie=random(random(\xmin..\Mie-1),random(\Mie+1..\xmax))}
+         }
+       \integer{Qi1=random(\xmin..\Mie)}
+       \integer{Qi3=random(\Mie..\xmax)}
+     }
+     {
+       \integer{Mie=random(\Mie+1..\Q3)}
+     }
+  }
+  {
+  \integer{Mie=random(\Q1..\Mie-1)}
+  }
+\text{listmin=wims(append item \xim to \listmin)}
+\text{listmax=wims(append item \xiM to \listmax)}
+\text{listmed=wims(append item \Mie to \listmed)}
+\text{listq1=wims(append item \Qi1 to \listq1)}
+\text{listq3=wims(append item \Qi3 to \listq3)}
+## quatrième liste: changement de Q3
+    \integer{xim=\xmin}
+    \integer{xiM=\xmax}
+    \integer{Mie=\Med}
+    \integer{Qi1=\Q1}
+    \integer{Qi3=\Q3}
+\if{\Q3<\xmax and \Q3>\Med}
+   {\integer{Qi3=random(random(\Med..\Q3-1),random(\Q3+1..\xmax))}
+   }
+   {
+    \if{\Q3=\xmax}
+     {
+       \if{\xmax<\bd}
+        {\integer{xiM=random(\xmax+1..\bd)}
+         \integer{Qi3=random(\Q3+1..\xiM)}
+        }
+        {
+        \if{\Q3>\Med}
+         {\integer{Qi3=random(\Med+1..\bd)}
+          \integer{xiM=random(\Qi3..\bd)}
+         }
+         {
+         \integer{Mie=random(\xmin..\Mie-1)}
+         \integer{Qi1=random(\xmin..\Mie)}
+         \integer{Qi3=random(\Mie..\xmax)}
+         }
+        }
+      }
+      {
+        \integer{Qi3=random(\Q3+1..\xmax)}
+      }
+    }
+\text{listmin=wims(append item \xim to \listmin)}
+\text{listmax=wims(append item \xiM to \listmax)}
+\text{listmed=wims(append item \Mie to \listmed)}
+\text{listq1=wims(append item \Qi1 to \listq1)}
+\text{listq3=wims(append item \Qi3 to \listq3)}
+
+## On mélange les listes de données:
+\text{indsh=shuffle(4)}
+\integer{nbsol=wims(positionof item 1 in \indsh)}
+
+####### enoncé de l'exo #######
+\statement{
+ <p>
+      On considère une série statistique dont on connait le diagramme en boîte suivant:</p>
+<p class="wimscenter">\draw{200,200}{\graph}</p>
+      <p>
+      Indiquez dans la liste ci-dessous, la liste des indicateurs de cette série.
+      </p>
+  <table class="wimsborder wimscenter">
+    <tr>
+      <td style="background-color:antiquewhite">
+        \embed{reply 1,1}
+      </td>
+      <td style="background-color:antiquewhite">
+         <table class="wimsborder">
+         <tr><th>Premier décile</th><th>Neuvième décile</th><th>Médiane</th><th>Premier Quartile</th><th>Troisième Quartile</th></tr>
+         <tr><td>\listmin[\indsh[1]]</td><td>\listmax[\indsh[1]]</td><td>\listmed[\indsh[1]]</td><td>\listq1[\indsh[1]]</td><td>\listq3[\indsh[1]]</td></tr>
+         </table>
+      </td>
+      <td style="background-color:silver">
+        \embed{reply 1,2}
+      </td>
+      <td style="background-color:silver">
+         <table class="wimsborder">
+         <tr><th>Premier décile</th><th>Neuvième décile</th><th>Médiane</th><th>Premier Quartile</th><th>Troisième Quartile</th></tr>
+         <tr><td>\listmin[\indsh[2]]</td><td>\listmax[\indsh[2]]</td><td>\listmed[\indsh[2]]</td><td>\listq1[\indsh[2]]</td><td>\listq3[\indsh[2]]</td></tr>
+         </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:silver">
+        \embed{reply 1,3}
+      </td>
+      <td style="background-color:silver">
+         <table class="wimsborder">
+         <tr><th>Premier décile</th><th>Neuvième décile</th><th>Médiane</th><th>Premier Quartile</th><th>Troisième Quartile</th></tr>
+         <tr><td>\listmin[\indsh[3]]</td><td>\listmax[\indsh[3]]</td><td>\listmed[\indsh[3]]</td><td>\listq1[\indsh[3]]</td><td>\listq3[\indsh[3]]</td></tr>
+         </table>
+      </td>
+      <td style="background-color:antiquewhite">
+        \embed{reply 1,4}
+      </td>
+      <td style="background-color:antiquewhite">
+         <table class="wimsborder">
+         <tr><th>Premier décile</th><th>Neuvième décile</th><th>Médiane</th><th>Premier Quartile</th><th>Troisième Quartile</th></tr>
+         <tr><td>\listmin[\indsh[4]]</td><td>\listmax[\indsh[4]]</td><td>\listmed[\indsh[4]]</td><td>\listq1[\indsh[4]]</td><td>\listq3[\indsh[4]]</td></tr>
+         </table>
+      </td>
+    </tr>
+  </table>
+}
+#### soumission de réponse ####
+\reply{\rep}{\nbsol;1,2,3,4}{type=radio}

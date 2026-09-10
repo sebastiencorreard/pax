@@ -1,0 +1,63 @@
+\title{Exploiter le tracé d'une tangente}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+
+\matrix{fract=3,1,1,2,2
+4,1,1,3,3
+5,1,2,3,4
+6,1,1,5,5}##dénominateur (en 1er) et numérateur (les autres) de a##
+\integer{choixden=randint(1..4)}
+\integer{choixnum=randint(1..4)}
+\rational{a=randitem(\fract[\choixden;\choixnum]/\fract[\choixden;1],randint(1..3))*randint(-1,1)}
+\integer{b=randint(-4..4)}
+##choix de l'abscisse (x)##
+\if{abs(\a)<2}
+{\integer{x=(floor(\a)=\a)? randint(-4..4):randitem(-\fract[\choixden;1],0,\fract[\choixden;1])}}
+{
+\integer{m=floor((-10-\b)/\a)}
+\integer{M=floor((10-\b)/\a)}
+\if{\a>0}
+{\integer{x=random((\m+1)..(\M-1))}}
+{\integer{x=random((\M+1)..(\m-1))}}
+}
+##Variables pour le corrigé##
+\integer{\sol=\a*\x+\b}
+\integer{x1=(floor(\a)=\a)? 1:\x}
+\integer{y1=\a*(\x1)+\b}
+\integer{x2=(floor(\a)=\a)? 1:\x+\fract[\choixden;1]}
+\integer{y2=\a*(\x2)+\b}
+
+##Fonction du second degré##
+\integer{a3=(\x=0)? \b:\b+randint(1..3)}
+\rational{a1=(\x=0)? 1:(\a3-\b)/(\x*\x)}
+\rational{a2=(\x=0)? \a:\a-2*\a1*\x}
+\function{f=maxima(\a1*x^2+\a2*x+\a3)}
+\statement{
+\draw{480,400}{
+xrange -12,12
+yrange -10,10
+parallel -12,-10,12,-10,0,1,20, grey
+ parallel -12,-10,-12,10,1,0,24, grey
+hline 0,0,black
+vline 0,0,black
+segment 1,-0.3,1,0.3,black
+segment -0.3,1,0.3,1,black
+text black , -0.5,-0.3,small , O
+text black , 1,-0.3,small , I
+text black , -0.5,1,small , J
+linewidth 1.5
+plot blue, \a*x+\b
+plot black, \f
+}<br/>
+<p>\(f) est une fonction dérivable sur \(\mathbb{R}).</p>
+<p>La droite tracée est la tangente à \(C_f) au point d'abscisse \(\x).</p>
+<p>Donner \(f'(\x)) et \(f(\x)).</p>}
+
+\hint{La tangente à \(C_f) au point d'abscisse \(a) est une droite
+passant par le point de coordonnées \((a; f(a))) et de coefficient directeur \(f'(a)).}
+
+\answer{\(f'(\x))}{\a}{type=formal}
+\answer{\(f(\x))}{\sol}{type=formal}
+
+\solution{\(f'(\x)) est le coefficient directeur de la tangente. Comme \(A(\x1,\y1)) et \(B(\x2,\y2)) appartiennent à la tangente, le coefficient directeur est \(\a) (graphiquement ou par la formule). La tangente et la courbe de \(f) passent par le point de coordonnées 
+\((\x; \sol)) donc \(f(\x)=\sol). }

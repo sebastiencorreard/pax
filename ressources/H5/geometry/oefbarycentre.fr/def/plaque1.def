@@ -1,0 +1,130 @@
+!set title=Centre d'inertie d'une plaque évidée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 1/2,1/2	3/2,1/2	5/2,1/2	7/2,1/2	1/2,3/2	3/2,3/2	5/2,3/2	7/2,3/2	1/2,5/2	3/2,5/2	5/2,5/2	7/2,5/2	1/2,7/2	3/2,7/2	5/2,7/2	7/2,7/2	
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 16
+
+val7=$(tmp0)	
+tmp0=!randint 3, 5
+
+val8=$[rint($(tmp0))]
+val9=xrange -1,5	yrange -1,5	parallel 0,0,0,4,1,0,5,blue	parallel 0,0,4,0,0,1,5,blue	linewidth 2	arrow 0,0,1,0,10,red	arrow 0,0,0,1,10,red	linewidth 1	
+!for val10 =1 to $val8 
+tmp0=!item $val10 of $val7
+
+tmp1=!item $val10 of $val7
+
+val9=$val9	fill $(val6[$(tmp0);1]),$(val6[$(tmp1);2]),blue	
+!next
+t_=!rawmath 16*2
+val11=!exec pari print($t_)
+t_=!rawmath 16*2
+val12=!exec pari print($t_)
+!for val10 =1 to $val8 
+tmp0=!item $val10 of $val7
+
+t_=!rawmath $val11-$(val6[$(tmp0);1])
+val11=!exec pari print($t_)
+tmp0=!item $val10 of $val7
+
+t_=!rawmath $val12-$(val6[$(tmp0);2])
+val12=!exec pari print($t_)
+!next
+t_=!rawmath $val11/(16-$val8)
+val11=!exec pari print($t_)
+t_=!rawmath $val12/(16-$val8)
+val12=!exec pari print($t_)
+replytype1=rational
+
+replyname1=Valeur de \(x)
+replygood1=$val11
+replytype2=rational
+
+replyname2=Valeur de \(y)
+replygood2=$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"> 
+!read oef/draw.phtml 200,200 \
+$val9 
+$()	<div class="wims_instruction">Les parties évidées sont les parties coloriées.</div></div>	On considère une plaque homogène évidée représentée	ci-contre.	Donner les coordonnées du centre d'inertie de cette plaque.	<div class="wims_spacer">	Le centre d'inertie de cette plaque a pour coordonnées	</div>	<div class="wimscenter">	( 
+!read oef/embed.phtml reply 1,5 
+$(); 
+!read oef/embed.phtml reply 2,5 
+$())	</div>	<div class="wims_instruction">	Les résultats seront donnés sous forme de fraction.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9
+embedcnt=2

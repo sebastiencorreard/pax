@@ -1,0 +1,109 @@
+!set title=Montant après réduction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+precision=10000000
+computeanswer=yes
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 999
+
+val7=$[rint($(tmp0))]
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val8=$(tmp0)
+!readproc slib/life/frcommodity $val7 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!item 1 of $val9
+
+val10=$(tmp0)
+tmp0=!item 2 of $val9
+
+val9=$(tmp0)
+val11=$[$val7*$val6/100]
+val12=$[$val7-$val11]
+val13=$val8 a acheté $val10 $val9 à $val7 euros en janvier,Les prix ont diminué de $val6 % en février
+val14=Quel est le montant de la réduction&nbsp;?,Quel est le prix final après la réduction&nbsp;?
+replytype1=numeric
+replyname1=Montant après réduction
+replygood1=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val13[1]).	<p>$(val13[2]).</p>	$(val14[2])	<div class="wims_instruction">Le point sera utilisé comme séparateur décimal au lieu de la virgule.</div>	<p><label for="reply1"><b>Montant final après réduction</b>&nbsp;:</label> 
+!read oef/embed.phtml r1,7 
+$() &euro;.</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On calcule d'abord le montant de la réduction.	<p>"$val6 % de $val7" fait 
+!insmath \frac{$val6 \times $val7}{100} = $val11
+$().</p>	On calcule le prix final après la réduction.	<p>
+!insmath $val7 - $val11 = $val12
+$()</p>	Le prix final après la réduction est 
+!insmath  $val12 \ \euro
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11,12,13,14
+embedcnt=1

@@ -1,0 +1,202 @@
+!set title=Projection orthogonale 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+
+!ifval ($val6=1)
+val8= 4,5
+!else
+val8=5,4
+!endif
+
+!ifval ($val6=1)
+val9= 4+$val7,5
+!else
+val9=5,4+$val7
+!endif
+
+!ifval ($val6=1)
+tmp0=!randint -3, 5
+
+val10=$[rint( $(tmp0))]
+!else
+tmp1=!randint 1, 4
+
+tmp=!nonempty items -1,1
+
+tmp2=!randitem $tmp
+val10=$[rint($(tmp1)*$(tmp2))]
+!endif
+
+!ifval ($val6=1)
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val11=$[rint( $(tmp0)*$(tmp1))]
+!else
+tmp2=!randint -3, 5
+
+val11=$[rint($(tmp2))]
+!endif
+val12=$(val8[1])+$val10,$(val8[2])+$val11
+
+!ifval ($val10>0)
+t_=!rawmath  -0.5
+val13=!exec pari print($t_)
+!else
+t_=!rawmath 0.2
+val13=!exec pari print($t_)
+!endif
+
+!ifval ($val10<0 and $val11<0)
+t_=!rawmath  -0.5
+val14=!exec pari print($t_)
+!else
+t_=!rawmath 0.2
+val14=!exec pari print($t_)
+!endif
+!readproc oef/canvasdraw.phtml 300,300 \
+xrange 0,10	yrange 0,10	grid 1,1,black	linewidth 4	arrow $(val8[1]),$(val8[2]),$(val9[1]),$(val9[2]),8,black	arrow $(val8[1]),$(val8[2]),$(val12[1]),$(val12[2]),8,black	linewidth 3	crosshairs black,$(val8[1]),$(val8[2]),$(val9[1]),$(val9[2]),$(val12[1]),$(val12[2])	text black,$(val8[1])+$val13,$(val8[2])+0.2,large,A	text black,$(val9[1])+0.2,$(val9[2])+0.2,large,B	text black,$(val12[1])+$val14,$(val12[2])+$val14,large,C	 
+tmp0=$canvasdraw_out
+val15=$(tmp0)
+
+!ifval ($val6=1)
+val16=$[rint( $val10*$val7)]
+!else
+val16=$[rint($val11*$val7)]
+!endif
+
+!ifval ($val6=1)
+val17= $(val8[1])+$val10,5
+!else
+val17=5,$(val8[2])+$val11
+!endif
+!readproc oef/canvasdraw.phtml 300,300 \
+xrange 0,10	yrange 0,10	grid 1,1,black	linewidth 4	arrow $(val8[1]),$(val8[2]),$(val9[1]),$(val9[2]),8,black	arrow $(val8[1]),$(val8[2]),$(val12[1]),$(val12[2]),8,black	arrow $(val8[1]),$(val8[2]),$(val17[1]),$(val17[2]),8,blue	linewidth 3	crosshairs black,$(val8[1]),$(val8[2]),$(val9[1]),$(val9[2]),$(val12[1]),$(val12[2])	crosshairs blue,$(val17[1]),$(val17[2])	text black,$(val8[1])+$val13,$(val8[2])+0.2,large,A	text black,$(val9[1])+0.2,$(val9[2])+0.2,large,B	text black,$(val12[1])+$val14,$(val12[2])+$val14,large,C	text blue,$(val17[1])+$val13,$(val17[2])+0.2,large,H	dashed	segment $(val12[1]),$(val12[2]),$(val17[1]),$(val17[2]),blue	 
+tmp0=$canvasdraw_out
+val18=$(tmp0)
+
+!ifval ($val6=1)
+val19=$[rint( abs($val10))]
+!else
+val19=$[rint(abs($val11))]
+!endif
+replytype1=formal
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer  
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}
+$() dans la situation suivante (l'unité est le carreau) :<br/>$val15 		
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C} 
+$()= 
+!read oef/embed.phtml r1,4 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!if $val16=0 
+$()Les droites
+!insmath (A B)
+$() et 
+!insmath (A C)
+$() étant perpendiculaires,
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}=0
+$(). 
+!else
+$() 	$val18	<p>En notant 
+!insmath H
+$() le projeté orthogonal de 
+!insmath C
+$() sur la droite 
+!insmath (A B)
+$(), on a 
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}=\overrightarrow{A B}\cdot\overrightarrow{A H}
+$().</p>	<p>Les vecteurs 
+!insmath \overrightarrow{A B}
+$() et 
+!insmath \overrightarrow{A H}
+$() sont colinéaires de 
+!if $val16<0 
+$()sens contraires donc 
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}=-A B \times A C=-$val7 \times $val19=$val16
+$() 
+!else
+$()	 même sens donc 
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}=A B \times A H=$val7 \times $val19=$val16
+$() 
+!endif
+$().	 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,15,16,18,19
+embedcnt=1

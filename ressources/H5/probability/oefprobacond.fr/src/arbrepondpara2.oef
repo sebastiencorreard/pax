@@ -1,0 +1,91 @@
+\title{Arbre pondéré à paramètre et inéquation du second degré par étapes}
+\author{Cyrille Douriez, David Rousseau, IREM Picardie}
+\email{cyrille.douriez@ac-amiens.fr,david.rousseau@ac-amiens.fr}
+
+\integer{v=randint(4..10)}##nombre de boules vertes##
+\real{p=randint(5..9)/10}##probabilité minimale voulue##
+
+\real{a=1-\p}
+\real{b=(1-2*\v)*\p-1}
+\real{c=\p*(\v-\v^2)}
+\function{f=maxima(\a*x^2+\b*x+\c)}
+\text{f=texmath(\f)}
+\real{delta=(\b)^2-4*(\a)*(\c)}
+\real{x1=(-\b-sqrt(\delta))/(2*\a)}
+\real{x2=(-\b+sqrt(\delta))/(2*\a)}
+\real{sol2=round(\x2*10)/10}
+\integer{n=(floor(\x2)=\x2)? \x2:floor(\x2)+1}
+\text{tt=slib(utilities/tooltip sans remise, on ne remet pas la première boule tirée dans l'urne avant de tirer la seconde boule)}
+\function{num=maxima(x*(x-1))}
+\function{den=maxima((x+\v)*(x+\v-1))}
+\text{signes=1,2}
+\integer{exact=(\sol2=\x2)? 1:0}
+\function{f2=maxima(\a*x^2+\b*x+\c)}
+
+##Pour le corrigé##
+\integer{vm1=\v-1}
+\integer{b1=\v+\vm1}
+\integer{c1=\v*\vm1}
+\real{b2=\p*\b1}
+\real{c2=\p*\c1}
+
+\text{etapes=r1,r2
+r3,r4
+r5,r6,r7
+r8}
+\steps{\etapes}
+
+\statement{Une urne contient \(\v) boules vertes et \(x) boules rouges où \(x) est un entier naturel non nul.<br/>
+On tire successivement \tt deux boules de l'urne.<br>
+<b>Le but est de déterminer la plus petite valeur de l'entier naturel \(x) telle que la probabilité d'obtenir deux boules rouges soit supérieure ou égale à \(\p).</b>
+\if{\step=1}{<div class="wims_question">1&#41;Ecrire la probabilité d'obtenir deux boules rouges, en fonction de \(x), sous la forme d'une fraction rationnelle.</div>
+La probabilité est 
+ \special{mathmlinput [ \frac{reply1}{reply2}],2
+reply1,7
+reply2,7
+}.
+
+}
+\if{\step=2}{<br><br>La probabilité d'obtenir deux boules rouges est \(\frac{\num}{\den}).
+<br>Déterminer l'entier \(x) se ramène à la résolution d'une inéquation de la forme \(\a x^2+b x+c \geq 0).
+<div class="wims_question">2&#41;Déterminer la valeur des réels \(b) et \(c).</div>
+\(b)=\embed{r3,4} et \(c)=\embed{r4,4}.}
+
+\if{\step=3}{<br><br>Déterminer l'entier \(x) se ramène à la résolution de l'inéquation \(\f \geq 0).
+<div class="wims_question">3&#41;Etudier le signe de \(\f) sur &#91;0; +&infin;&#91;.</div>
+<table class="wimsborder">
+<tr><th>\(x)</th><td align="left">0</td><td></td><td>\embed{r5,4}</td><td></td><td align="right">+&infin;</td></tr>
+<tr><th>\(\f)</th><td align="left"></td><td>\embed{r6,4}</td><td>0</td><td>\embed{r7,4}</td><td></td></tr>
+</table><br>
+<div class="wims_instruction">On arrondira la racine positive de \(\f) à 0,1 près.</div>
+}
+\if{\step=4}{<br><br>Déterminer l'entier \(x) se ramène à la résolution de l'inéquation \(\f \geq 0).
+<br>Le signe de \(\f) est<br>
+<table class="wimsborder">
+<tr><th>\(x)</th><td align="left">0</td><td></td><td>\(\sol2)</td><td></td><td align="right">+&infin;</td></tr>
+<tr><th>\(\f)</th><td align="left"></td><td>-</td><td>0</td><td>+</td><td></td></tr>
+</table>
+<br>
+<div class="wims_question">4&#41;En déduire la plus petite valeur de \(x) telle que la probabilité d'obtenir deux boules rouges soit supérieure ou égale à \(\p).</div>
+La valeur de \(x) est \embed{r8,3}.}
+
+}
+\answer{1}{\num}{type=function}{option=nonstop}
+\answer{2}{\den}{type=function}{option=nonstop}
+\answer{3}{\b}{type=numeric}{option=nonstop}
+\answer{4}{\c}{type=numeric}{option=nonstop}
+\answer{5}{\sol2}{type=numeric}{option=nonstop}
+\answer{6}{\signes[1];-,+}{type=menu}{option=nonstop}
+\answer{7}{\signes[2];-,+}{type=menu}{option=nonstop}
+\answer{8}{\n}{type=numeric}
+
+\solution{Si on note \(R_1\) l'événement "obtenir une boule rouge au 1er tirage" et \(R_2\) l'événement "obtenir une boule rouge au 2ème tirage" alors la probabilité d'obtenir deux boules rouges est \(p(R_1\cap R_2)\). <br>
+Les boules ayant la même probabilité d'être choisies \(p(R_1)=\frac{x}{x+\v}\) et \(p_{R_1}(R_2)=\frac{x-1}{x+\vm1}\) puisque la boule choisie au 1er tirage n'est pas remise dans l'urne avant le 2ème tirage.
+<br>Donc \(p(R_1\cap R_2)=p(R_1)p_{R_1}(R_2)=\frac{x}{x+\v} \times\frac{x-1}{x+\vm1}=\frac{x^2-x}{x^2+\b1 x+\c1}\).
+<br>On cherche donc à déterminer la plus petite valeur de \(x\) telle que \(\frac{n^2-n}{n^2+\b1 n+\c1}\geq \p\).
+<br>\(\frac{x^2-x}{x^2+\b1 x+\c1}\geq \p\) &hArr; \(x^2-x\geq \p(x^2+\b1 x+\c1)\)
+<br>\(\frac{x^2-x}{x^2+\b1 x+\c1}\geq \p\) &hArr; \(x^2-x\geq \p x^2+\b2 x+\c2\)
+<br>\(\frac{x^2-x}{x^2+\b1 x+\c1}\geq \p\) &hArr; \(\f \geq 0\).
+<br>La solution positive \if{\exact==0}{approchée} de l'équation \(\f=0\) est \(\sol2\).
+<br>Comme \(x>0\) et \(\a>0\), \(\f \geq 0\) &hArr; \(x \geq \sol2\). 
+<br>La plus petite valeur de \(x\) est donc \(\n\). }

@@ -1,0 +1,151 @@
+!set title=Les piles électrochimiques(1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=benoit.markey@ac-lille.fr
+
+ansorder=r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<script type="text/javascript">	function getInput(n){	  f=window.document.forms[0];	  for(i=0; i<f.elements.length; i=i+1){	    if (f.elements[i].name=="reply"+n) { 	      return f.elements[i];	    }	  }	  return null;	}	function appendToInput(n,msg){	  var i=getInput(n);	  i.value=i.value+msg+' ';	  i.focus();	}	</script>	
+tmp0=!recordcnt couples_piles.dat
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, $val7-1
+
+val8=$[rint($(tmp0))]
+tmp0=!randint $val8+1, $val7
+
+val9=$[rint($(tmp0))]
+tmp0=!record $val8 of couples_piles.dat
+
+val10=$(tmp0)
+tmp0=!record $val9 of couples_piles.dat
+
+val11=$(tmp0)
+!readproc oef/draw.phtml 20,20 \
+frect 0,0,20,20,232,232,232	text black,8,3,medium,+	circle 10,10,18,black 
+tmp0=$ins_url
+val12=$(tmp0)
+val13=<img src="$val12">
+!readproc oef/draw.phtml 20,20 \
+frect 0,0,20,20,232,232,232	text black,8,3,medium,-	circle 10,10,18,black 
+tmp0=$ins_url
+val14=$(tmp0)
+val15=<img src="$val14">
+!readproc slib/chemistry/chemeq_components $(val10[;1]), htmlbuttons 1,shuffle,[extra,redox_extra,$(val11[;4]),$(val11[;5]) ] 
+tmp0=$slib_out
+val16=$(tmp0)
+!readproc slib/chemistry/chemeq_rev $(val11[;1]) 
+tmp0=$slib_out
+val17=$(tmp0)
+!readproc slib/chemistry/chemeq_components $val17, htmlbuttons 2,shuffle,[extra,redox_extra,$(val10[;4]),$(val10[;5]) ] 
+tmp0=$slib_out
+val18=$(tmp0)
+!readproc slib/chemistry/chemeq_el $(val10[;1]) 
+tmp0=$slib_out
+val19=$[rint($(tmp0))]
+!readproc slib/chemistry/chemeq_el $(val11[;1]) 
+tmp0=$slib_out
+val20=$[rint($(tmp0))]
+val21=$[rint(gcd($val19,$val20))]
+val22=$[rint($val20/$val21)]
+val23=$[rint($val19/$val21)]
+!readproc slib/chemistry/chemeq_add $val22,$(val10[;1]) 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val24 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/chemistry/chemeq_add -$val23,$(val11[;1]) 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val26 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc slib/chemistry/chemeq_add $val22,$(val10[;1]),-$val23,$(val11[;1]) 
+tmp0=$slib_out
+val28=$(tmp0)
+!readproc slib/chemistry/chemeq_components $val28, htmlbuttons 3,shuffle,[extra,redox_extra] 
+tmp0=$slib_out
+val29=$(tmp0)
+replytype1=chemeq
+replyname1=
+replygood1=$(val10[;1])
+replytype2=chemeq
+replyname2=
+replygood2=$val17
+replytype3=chemeq
+replyname3=
+replygood3=$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val6		On considère la pile électrochimique suivante:	$val15 
+!insmath $(val11[;5])/$(val11[;4])//$(val10[;4])/$(val10[;5])
+$() $val13 <br>	<ol>	<li>Ecrire la réaction se produisant au pôle $val13: (<i>Les coefficients stoechiométriques doivent	être ajoutés avec votre clavier le cas échéant</i>)<br>	 
+!read oef/embed.phtml reply1 
+$()<br>	$val16	<li>Ecrire la réaction se produisant au pôle $val15: (<i>Les coefficients stoechiométriques doivent	être ajoutés avec votre clavier le cas échéant</i>)<br>	 
+!read oef/embed.phtml reply2 
+$()<br>	$val18	<li>En déduire l'équation de la réaction globale de la pile: (<i>Les coefficients stoechiométriques doivent	être ajoutés avec votre clavier le cas échéant</i>)<br>	 
+!read oef/embed.phtml reply3 
+$()<br>	$val29	</ol>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,13,15,16,18,29
+embedcnt=3

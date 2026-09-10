@@ -1,0 +1,67 @@
+\title{Sum and product of 3 II}
+\author{Gang Xiao}
+\email{xiao@unice.fr}
+\language{fr}
+\options{nofloat fixedgoal}
+\text{methcst=random(constineq,obvineq)}
+\text{methtra=random(trans,addineq)}
+\methods{ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/lincomb,
+ineq/\methcst, ineq/\methtra, ineq/mulineq, ineq/sqrpos}
+\minsteps{7}
+
+\matrix{vars=x,y,z
+a,b,c
+r,s,t
+l,m,n
+u,v,w
+}
+\text{vars=randomrow(\vars)}
+\text{x=item(1,\vars)}
+\text{y=item(2,\vars)}
+\text{z=item(3,\vars)}
+
+\integer{n=3*random(10..60)}
+\integer{N=\n^2/3}
+\text{range=random(integers, rational numbers, real numbers)}
+
+\text{less=random(<,<=)}
+\text{ctx1=\x + \y + \z \less \n}
+\text{ctx2=0 \less \x + \y + \z}
+\text{prv=\x*\y + \x*\z + \y*\z \less \N}
+
+\context{\ctx2
+\ctx1
+}
+\goal{\prv}
+
+\statement{Let \(\x, \y, \z) be three \range such that \( 0 \less \ctx1 ).
+Prove
+<div class="wimscenter">
+\(\prv).
+</div>
+}
+
+\if{\newobject != $empty}{
+ \text{cut=wims(exec mathexp cut inequality
+\newobject)}
+ \text{left=item(1,\cut)}
+ \text{sign=item(2,\cut)}
+ \text{right=item(3,\cut)}
+ \if{\sign issametext \less}{
+  \text{test1=simplify(\left-(\prv1))}
+  \text{test2=simplify(\right-(\N))}
+ }{
+  \text{test1=simplify(\right-(\prv1))}
+  \text{test2=simplify(\left-(\N))}
+  \text{sign=wims(translate internal <> to >< in \sign)}
+ }
+}
+
+\condition{\test1 = 0 and \test2 = 0 and \sign issametext \less}
+
+\hint{One should prove
+<div class="wimscenter">
+\(\x*\y + \x*\z + \y*\z \less \x^2 + \y^2 + \z^2).
+</div>
+And for this, you should start by \(2*\x*\y \less \x^2 + \y^2), etc.
+}

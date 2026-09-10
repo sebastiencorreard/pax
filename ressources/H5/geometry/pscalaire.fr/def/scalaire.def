@@ -1,0 +1,122 @@
+!set title=Calcul de produit scalaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=René, Chaffard
+email=chafrene@club-internet.fr
+oefobservation=exercice de calcul d'un produit scalaire dans un triangle quelconque
+language=fr
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+val9=$(val6[3])
+tmp0=!randint 2, 8
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val11=$[rint($(tmp0))]
+val12=$[rint(abs($val10-$val11)+1)]
+val13=$[rint($val10+$val11-1)]
+tmp0=!randint $val12, $val13
+
+val14=$[rint($(tmp0))]
+val15=$[rint(($val10)^2)]
+val16=$[rint(($val11)^2)]
+val17=$[rint(($val14)^2)]
+tmp=!translate ";': to $     $ in ($val15+$val16-$val17)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+tmp0=!shuffle \($val7 $val8 = $val10 ) , \($val8 $val9 = $val14) ,  \($val9 $val7 = $val11)
+
+val19=$(tmp0)
+replytype1=numeric
+replyname1=Produit scalaire
+replygood1=$[$val18]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère un triangle 
+!insmath A B C
+$() tel que	<p class="wimscenter"> $(val19[1]),  $(val19[2]), $(val19[3]). </p>	Calculer le produit scalaire	<p class="wimscenter">	
+!insmath \special{color=green} \vec{$val7 $val8} \cdot \vec{$val7 $val9} 
+$() =	 
+!read oef/embed.phtml reply1 
+$() . </p>	
+$()
+!exit
+
+:hint
+$()Puisque les trois côtés du triangle sont connus, on peut utiliser la définition	du produit scalaire utilisant  les distances :	<p class="wimscenter">
+!insmath  \vec{$val7 $val8} \cdot \vec{$val7 $val9} = \frac{1}{2} ($val7 $val8^2 + $val7 $val9^2 - $val8 $val9^2) 
+$()</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!insmath \vec{$val7 $val8} \cdot \vec{$val7 $val9} 
+$() = 
+!insmath ($val7 $val8^2 + $val7 $val9^2 - $val8 $val9^2) /2 = ($val10^2 + $val11^2 - $val14^2)/2	= ($val15 + $val16 - $val17)/2 = $val18
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,14,15,16,17,18,19
+embedcnt=1

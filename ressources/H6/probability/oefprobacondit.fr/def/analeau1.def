@@ -1,0 +1,236 @@
+!set title=Analyse d'échantillons d'eau 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+keywords=modelling
+computeanswer=yes
+precision=10000
+oefdescription=exercice de modélisation comportant une question
+oefobservation=Si le niveau de difficulte le plus faible est choisi la question portera sur l'analyse d'un seul échantillon. Sinon elle portera sur l'analyse de 3 échantillons et fait appel à l'indépendance conditionnelle. 
+
+ansorder=r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(2)]
+!if $val2=1 
+val6=$[rint(1)]
+!endif
+!if $val6=1 
+val7=$[rint(1)]
+!else
+val7=$[rint(3)]
+!endif
+t_=!rawmath $val7/2
+val8=!exec pari print($t_)
+tmp0=!randint floor($val8+1), $val7
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 0,1
+
+val10=$[rint($(tmp0))]
+!if $val10=1 
+val11=non polluée
+val12=est saine
+val13=$[rint($val7-$val9)]
+val14=$[rint($val9)]
+!else
+val11=polluée
+val12=est polluée
+val13=$[rint($val9)]
+val14=$[rint($val7-$val9)]
+!endif
+tmp0=!randint 2, 16
+
+val15=$[$(tmp0)*5/100]
+tmp0=!randint 70, 98
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 70, 98
+
+val17=$[rint($(tmp0))]
+t_=!rawmath $val16/100
+val18=!exec pari print($t_)
+t_=!rawmath $val17/100
+val19=!exec pari print($t_)
+t_=!rawmath ($val18)^($val13)*((1-$val18)^($val14))*($val15)
+val20=!exec pari print($t_)
+t_=!rawmath (($val19)^($val14)*(1-$val19)^($val13))*(1-$val15)
+val21=!exec pari print($t_)
+t_=!rawmath ($val20)/($val20+$val21)
+val22=!exec pari print($t_)
+val23=!rawmath (($val18)^($val13)*((1-$val18)^($val14))*x)/(($val18)^($val13)*((1-$val18)^($val14))*x+($val19)^($val14)*(1-$val19)^($val13)*(1-x))
+!if $val10=0 
+val24=$[1-$val22]
+tmp=!translate ";': to $     $ in 1-$val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=!rawmath $(tmp0)
+!else
+val24=$[$val22]
+tmp=!translate ";': to $     $ in $val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=!rawmath $(tmp0)
+!endif
+val26=-0.1,1.1
+val27=-0.1,1.1
+val28=$[rint($(val26[2])-$(val26[1]))]
+val29=$[rint($(val27[2])-$(val27[1]))]
+val30=rangex $val26	rangey $val27	parallel $(val26[1]),0,$(val26[2]),0, 0,0.1,12,grey	parallel 0,$(val27[1]),0,$(val27[2]),0.1,0,12,grey	arrow 0,-0.1,0,1.05,10,black	arrow -0.1,0,1.05,0,10,black	text black,-0.07,-0.03,,0	segment 0.1,-0.01,0.1,0.01,black	text black,0.07,-0.03,,0.1	segment -0.01,0.1,0.01,0.1,black	text black,-0.1,0.16,,0.1	text black,-0.1,0.8,,y	text black,0.6,-0.03,,x	
+!readproc oef/draw.phtml 200,200 \
+$val30	trange 0,1	plot red,$val25 
+tmp0=$ins_url
+val30=$(tmp0)
+oefsteps=reply1 
+nextstep=!nosubst reply1 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$val24]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Lorsque la rivière qui longe le village XXX déborde, la probabilité	 que la source du village soit polluée est de $val15 le lendemain.	 Dans le cas où cette rivière déborde, un employé municipal est chargé de prélever	 
+!if $val7=1 
+$()et d'analyser un échantillon d'eau de la source. 
+!else
+$() $val7 échantillons d'eau de la source le lendemain	  et d'analyser séparément chaque échantillon. 
+!endif
+$()	<br>	 L'analyse d'un échantillon n'est pas totalement fiable :	<ul>	<li>dans seulement $val16 % des cas, l'analyse d'un échantillon contenant de l'eau polluée indiquera que l'eau est polluée. </li>	<li>dans seulement $val17 % des cas, l'analyse d'un échantillon contenant de l'eau saine indiquera que l'eau est non polluée. </li>	</ul>	<div class="wims_question">	
+!if $m_step>=1 
+$()	 Si l'eau contenue dans	 
+!if $val9<$val7 
+$()$val9 échantillons sur 
+!endif
+$() 
+!if $val7=1 
+$()l'échantillon prélévé 
+!else
+$()	 les $val7 échantillons prélévés 
+!endif
+$()	 est déclarée $val11 par l'analyse effectuée, quelle est la probabilité pour	 que le maire se trompe en déclarant que l'eau	 
+!endif
+$()	
+!if $m_step=1 
+$()<label for="reply1">$val12 ?</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1,50 
+$()</div>	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_step=1
+ <div class='oef_feedbacks'>	 Si on exprime la probabilité 
+!insmath y
+$()	 que le maire se trompe en déclarant que l'eau $val12 en fonction de	 la probabilité 
+!insmath x
+$() que la source du village soit polluée le jour qui suit	 le débordement de la rivière, on obtient l'expression suivante :	
+!insmath y=$val25
+$() <div class="wimscenter"><img src="$val30" alt="" ></div>	
+$()</div>
+!endif
+!ifval $m_step=2
+ <div class='oef_feedbacks'>	 Si on exprime la probabilité 
+!insmath y
+$()	 que le maire se trompe en déclarant que l'eau $val12 en fonction de	 la probabilité 
+!insmath x
+$() que la source du village soit polluée le jour qui suit	 le débordement de la rivière, on obtient l'expression suivante :	<ul>	<li>
+!insmath y=\f0
+$() si la réponse se base sur un échantillon dont l'eau est déclarée $val11 par l'analyse effectuée (question 1); </li>	<li>
+!insmath y=$val25
+$() si la réponse se base sur l'étude de $val7 échantillons et si l'eau contenue dans	 
+!if $val9<$val7 
+$()$val9 échantillons sur 
+!endif
+$() les $val7 échantillons prélévés est déclarée $val11 par l'analyse effectuée (question 2).</li>	</ul>	<div class="wimscenter"><img src="$m_dessin1" alt="" ></div>	
+$()</div>
+!endif
+!ifval $m_sc_reply1=0
+ <div class='oef_feedbacks'><span class="bold">Indications :</span> commencer par traduire les hypothèses	 en introduisant les événements :	 <ul><li>
+!insmath E
+$() : <span class="wims_emph">"l'eau de la source est polluée"</span></li>	<li> 
+!if $val7=1 
+$()
+!insmath A
+$() 
+!else
+$() 
+!insmath A_i
+$() 
+!endif
+$() :	<span class="wims_emph">"l'analyse 
+!if $val7=1 
+$()de l'échantillon 
+!else
+$() du 
+!insmath i
+$()-ième échantillon 
+!endif
+$()	 dit que l'eau de l'échantillon est polluée".</span></li>	</ul>	
+$()</div>
+!endif
+!ifval $m_step>=2 and $m_sc_reply2=0
+ <div class='oef_feedbacks'><span class="bold">Indications :</span>	 utiliser l'indépendance conditionnelle.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,11,12,15,16,17,25,30
+embedcnt=1

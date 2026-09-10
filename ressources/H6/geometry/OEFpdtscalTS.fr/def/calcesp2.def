@@ -1,0 +1,119 @@
+!set title=Produit scalaire dans l'espace 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[1;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val7]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[2;])
+val10=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val7]+[$val10])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=$[rint($(val8[1])*$(val10[1])+$(val8[2])*$(val10[2])+$(val8[3])*$(val10[3]))]
+replytype1=numeric
+replyname1=produit scalaire
+replygood1=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	 L'espace est muni d'un repère orthonormal 
+!insmath (O,\vec{i},\vec{j},\vec{k})
+$().	 On considère les points 
+!insmath A($(val7[1]),$(val7[2]),$(val7[3])),B($(val9[1]),$(val9[2]),$(val9[3]))
+$()	 et 
+!insmath C($(val11[1]),$(val11[2]),$(val11[3]))
+$().</p>	<p>	 Calculer 
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}
+$():	</p>	<div class="wimscenter"><label for="reply1">	
+!insmath \overrightarrow{A B}\cdot\overrightarrow{A C}
+$() =</label>  
+!read oef/embed.phtml reply1,5 
+$() </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,11
+embedcnt=1

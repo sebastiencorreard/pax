@@ -1,0 +1,41 @@
+target=oefquadprop4
+
+\langage{fr}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\format{html}
+
+\matrix{pp= \prop[1],\prop[2]
+\prop[1],\prop[2],\prop[3],\prop[4],\prop[5],\prop[7]
+\prop[1],\prop[2],\prop[6],\prop[3],\prop[4],\prop[5],\prop[7]
+\prop[1],\prop[2],\prop[3],\prop[4],\prop[6],\prop[7]}
+
+\integer{r=randint(1..4)}
+
+\text{rep=\nat[\r]}
+\text{p=row(\r,\pp)}
+\text{p=shuffle(\p)}
+\integer{pcnt=items(\p)}
+\text{latextext=}
+\for{k=1 to \pcnt}{
+\text{latextext=\latextext
+\item \p[\k]}
+}
+\statement{\name_question[1]:
+<ul>
+\for{j=1 to \pcnt}{<li>\p[\j]</li>}
+</ul>
+<div class="spacer"><label for="reply1">\name_question[2] </label>\embed{r1,24}.</div>
+}\
+
+\answer{}{\rep}{type=atext}
+
+\latex{
+\begin{statement}
+\name_question[1]:
+\begin{itemize}
+\latextext
+\end{itemize}
+\end{statement}
+}

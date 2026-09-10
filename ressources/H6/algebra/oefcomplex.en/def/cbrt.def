@@ -1,0 +1,135 @@
+!set title=CBRT
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=en
+leftrange=-5.000000
+rightrange=5.000000
+precision=1000
+computeanswer=no
+title_it=CBRT
+title_es=CBRT
+title_fr=CBRT
+title_nl=CBRT
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!item $val7 of +,-
+
+val8=$(tmp0)
+tmp0=!randint 100, 999
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9%3=0
+val10=$[rint(2)]
+!else
+val10=$[rint(-1)]
+!endif
+
+!ifval $val7=1 or $val9%2=0
+val10=$[rint($val10)]
+!else
+val10=$[rint(-($val10))]
+!endif
+val11=a complex number such that,a (complex) root of the polynomial
+val12=Let,What is the number
+!if $val6=it 
+val11=un numero complesso tale che,una radice (complessa) del polinomio
+val12=Sia,Qual è il numero
+!endif
+!if $val6=es 
+val11=un complejo tal que,una raíz (compleja) del polinomio
+val12=Sea,¿Cuál es el número
+!endif
+!if $val6=fr 
+val11=un nombre complexe tel que,une racine (complexe) du polynôme
+val12=Soit, Quel est le nombre
+!endif
+!if $val6=nl 
+val11=een complex getal zijn&sbquo; zo dat,een (complexe) wortel	  zijn van de polynoom
+val12=Laat,Wat is dan het getal waarvoor geldt
+!endif
+tmp0=!randitem $(val11[1])	 \(z^2 $val8 z+1=0),	 $(val11[2]) \(X^2$val8 X+1)
+
+val13=$(tmp0)
+replyname1=\(Re(w)\)
+replygood1=$val10
+replyname2=\(Im(w)\)
+replygood2=0
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val12[1]) 
+!insmath z
+$() $val13. $(val12[2])	
+!insmath w = z^$val9 +z^(-$val9) 
+$()?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,12,13
+embedcnt=0

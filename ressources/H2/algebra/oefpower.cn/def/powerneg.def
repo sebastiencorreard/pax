@@ -1,0 +1,375 @@
+!set title=方幂
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette PERRIN-RIOU
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=c,r,r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=2
+choicecnt=1
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2,4,5,7,11,13,17,23
+
+val6=$(tmp0)
+tmp0=!randitem 3,2,5,7,$val6, 11, 13,19,29
+
+val7=$(tmp0)
+tmp0=!randitem 1,-1
+
+val8=$[rint($val6*$(tmp0))]
+tmp0=!randitem 1,2
+
+val9=$(tmp0)
+tmp0=!randitem 1,-1
+
+val10=$[rint($val7*$(tmp0))]
+tmp0=!item $val9 of $val8,$val10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 11
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 11
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 11
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val8>0 
+val15= $val8
+!else
+val15=($val8)
+!endif
+
+!ifval $val11>0 
+val16= $val11
+!else
+val16=($val11)
+!endif
+
+!ifval $val10>0 
+val17= $val10
+!else
+val17=($val10)
+!endif
+
+!ifval abs($val8)=abs($val10) 
+val18=  (-1) 
+!else
+val18= $val15
+!endif
+val18=$[abs($val8)]
+
+!ifval abs($val8)=abs($val10) 
+val19= $val7 
+!else
+val19=$val17
+!endif
+val19=$[abs($val10)]
+
+!ifval $val9=1 
+val20=$[rint( $val12+($val13))]
+!else
+val20=$[rint( $val12)]
+!endif
+
+!ifval $val9=2 
+val21=$[rint( $val14+($val13))]
+!else
+val21=$[rint( $val14)]
+!endif
+
+!ifval abs($val8)=abs($val10) 
+val20=$[rint($val12+($val13)+($val14))]
+!endif
+val22=$[rint(sign(($val8)^($val12)*($val11)^($val13)*($val10)^($val14)))]
+tmp0=!shuffle 1,2,3
+
+val23=$(tmp0)
+val24=$val15^$val12,$val16^$val13,$val17^$val14
+tmp0=!item 1 of $val23
+
+tmp1=!item $(tmp0) of $val24
+
+val25=$(tmp1)
+tmp0=!item 2 of $val23
+
+tmp1=!item $(tmp0) of $val24
+
+val26=$(tmp1)
+tmp0=!item 3 of $val23
+
+tmp1=!item $(tmp0) of $val24
+
+val27=$(tmp1)
+val28=正的, 负的
+
+!ifval $val22=1 
+tmp0=!item 1 of $val28
+
+val29= $(tmp0)
+!else
+tmp1=!item 2 of $val28
+
+val29= $(tmp1)
+!endif
+tmp0=!item 1 of $val23
+
+tmp1=!item $(tmp0) of $val8,$val11,$val10
+
+val30=$(tmp1)
+tmp0=!item 2 of $val23
+
+tmp1=!item $(tmp0) of $val8,$val11,$val10
+
+val31=$(tmp1)
+tmp0=!item 3 of $val23
+
+tmp1=!item $(tmp0) of $val8,$val11,$val10
+
+val32=$(tmp1)
+
+!ifval $val30 <0 
+tmp0=!item 1 of $val23
+
+tmp1=!item $(tmp0) of $val12,$val13,$val14
+
+val33= $(tmp1)
+!else
+val33=
+!endif
+
+!ifval $val31 <0 
+tmp0=!item 2 of $val23
+
+tmp1=!item $(tmp0) of $val12,$val13,$val14
+
+val33= $val33,$(tmp1)
+!endif
+
+!ifval $val32 <0 
+tmp0=!item 3 of $val23
+
+tmp1=!item $(tmp0) of $val12,$val13,$val14
+
+val33= $val33,$(tmp1)
+!endif
+
+!ifval $val30 <0 
+tmp0=!item 1 of $val23
+
+tmp1=!item $(tmp0) of $val8,$val11,$val10
+
+val34=  $(tmp1)
+!else
+val34=
+!endif
+
+!ifval $val31 <0 
+tmp0=!item 2 of $val23
+
+tmp1=!item $(tmp0) of $val8,$val11,$val10
+
+val34= $val34,$(tmp1)
+!endif
+
+!ifval $val32 <0 
+tmp0=!item 3 of $val23
+
+tmp1=!item $(tmp0) of $val8,$val11,$val10
+
+val34= $val34,$(tmp1)
+!endif
+tmp0=!listuniq $val34
+
+val34=$(tmp0)
+tmp0=!itemcnt $val33
+
+val35=$(tmp0)
+tmp0=!itemcnt $val34
+
+val36=$(tmp0)
+
+!ifval $val18 = $val19 
+val37= choice1	reply1	
+!else
+val37=	choice1	reply1, reply2	
+!endif
+oefsteps=$val37 
+nextstep=!nosubst $val37 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$val20]
+replytype2=numeric
+replyname2=
+replygood2=$[$val21]
+choicename1=
+choicegood1=$val29
+choicebad1=$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!if $m_step <=1 
+$() 数 
+!insmath $val25
+$()
+!insmath \times
+$()
+!insmath  $val26
+$()
+!insmath \times 
+$()
+!insmath $val27
+$() 是  
+!read oef/embed.phtml choice 1 
+$(). 
+!endif
+$()	 
+!if $m_step=2 
+$()写成方幂的乘积 :	<center>	 
+!if $val22=1 and $val18 !=$val19  
+$()
+!insmath $val25
+$()
+!insmath \times
+$()
+!insmath  $val26
+$()
+!insmath \times 
+$()
+!insmath $val27
+$()=  $val18<sup><sup> 
+!read oef/embed.phtml reply 1,3 
+$()</sup></sup>	 $val19<sup><sup> 
+!read oef/embed.phtml reply 2,3 
+$()</sup></sup> 
+!endif
+$()	  
+!if $val22=1 and $val18=$val19  
+$()
+!insmath $val25
+$()
+!insmath \times
+$()
+!insmath  $val26
+$()
+!insmath \times 
+$()
+!insmath $val27
+$()= 	 $val18<sup><sup> 
+!read oef/embed.phtml reply 1,3 
+$()</sup></sup>	  
+!endif
+$()	  
+!if $val22=-1 and $val18<>$val19 
+$()
+!insmath $val25
+$()
+!insmath \times
+$()
+!insmath  $val26
+$()
+!insmath \times 
+$()
+!insmath $val27
+$()=  -$val18<sup><sup> 
+!read oef/embed.phtml reply 1,3 
+$()</sup></sup>	 $val19<sup><sup> 
+!read oef/embed.phtml reply 2,3 
+$()</sup></sup></center> 
+!endif
+$()	  
+!if $val22=-1 and $val18=$val19 
+$()
+!insmath $val25
+$()
+!insmath \times
+$()
+!insmath  $val26
+$()
+!insmath \times 
+$()
+!insmath $val27
+$()=  -$val18<sup><sup>\	  
+!read oef/embed.phtml reply 1,3 
+$()</sup></sup> 
+!endif
+$()	</center> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+!if $m_choice1 notsametext $val29 and 	($val8<0  or $val10<0)
+ <p>你是否注意到负数 $val34 的指数 $val33 的奇偶性 ?	这些指数的符号与问题的答案没有关系.	
+$()
+!endif
+!if $m_choice1 notsametext $val29 and $val8>0  and $val10>0
+ <p>正数的乘积, 正数的乘积总是正的. 	
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,18,19,22,25,26,27,29,33,34
+embedcnt=7

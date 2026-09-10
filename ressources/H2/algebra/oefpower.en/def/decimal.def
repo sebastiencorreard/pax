@@ -1,0 +1,153 @@
+!set title=Decimal numbers and powers of 10
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim Write the number, in two ways	  scientific notation	  as,with \(a\) an integer and not multiple of 10
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=scientific notation,exponent,\(a\), exponent
+tmp0=!randint 3, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+tmp1=!randint 1, 5
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val10=$[rint($(tmp2))]
+tmp0=!randint 10^($val9), 10^($val9+1)-1
+
+val11=$[$(tmp0)]
+val12=$[$val11/10^($val10)]
+val13=$[$val11]
+val14=$[rint(0)]
+!for val15 =1 to $val9 
+val16=$[10*floor($val13/10)]
+!if $val16=$val13 
+val13=$[$val13/10]
+val14=$[rint($val14+1)]
+!endif
+!next
+val17=$[$val11/10^($val9)]
+val18=$[$val9-($val10)]
+t_=!replace internal \( by ( in $val13
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+val20=$[$val14-$val10]
+replytype1=numeric
+replyname1=$(val8[1])
+replygood1=$[$val17]
+replytype2=numeric
+replyname2=$(val8[2])
+replygood2=$[$val18]
+replytype3=numeric
+replyname3=$(val8[3])
+replygood3=$[$val19]
+replytype4=numeric
+replyname4=$(val8[4])
+replygood4=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $(val7[1;1]) \($val12\) $(val7[1;2]): \begin{itemize} \item $(val7[2;]) \begin{center}\($val12 = \cdots\times 10^{\cdots}\)\end{center} \item $(val7[3;1]) \(a \times 10^p\) $(val7[3;2]) \begin{center}\($val12\ = \cdots \times 10^{\cdots}\)\end{center} \end{itemize} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1;1]) 
+!insmath $val12
+$() $(val7[1;2]):	<ul><li>	$(val7[2;])	 <div class="wimscenter"> 
+!insmath $val12
+$()	=  
+!read oef/embed.phtml reply 1, 12 
+$()$m_times 10<sup><sup> 
+!read oef/embed.phtml reply 2,4 
+$()</sup></sup></div>	</li><li>	$(val7[3;1]) 
+!insmath a 10^p
+$() $(val7[3;2])	<div class="wimscenter">
+!insmath $val12
+$()	=  
+!read oef/embed.phtml reply 3, 12 
+$() $m_times 10<sup><sup> 
+!read oef/embed.phtml reply 4,4 
+$()</sup></sup></div>	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $(val7[1;1]) 
+!insmath $val12
+$() $(val7[1;2]): $m_begin{itemize} $m_item $(val7[2;]) $m_begin{center}
+!insmath $val12 = \cdots\times 10^{\cdots}
+$()$m_end{center} $m_item $(val7[3;1]) 
+!insmath a \times 10^p
+$() $(val7[3;2]) $m_begin{center}
+!insmath $val12\ = \cdots \times 10^{\cdots}
+$()$m_end{center} $m_end{itemize} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,12
+embedcnt=4

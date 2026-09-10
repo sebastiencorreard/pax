@@ -1,0 +1,150 @@
+!set title=Construction d'un patron 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 35, 75
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 45, 105
+
+val8=$[rint($(tmp0))]
+tmp0=!randint $val7, 380-2*$val7
+
+val9=$[rint($(tmp0))]
+val10=$val9,$val8,$val7
+tmp0=!shuffle a,b,c
+
+val11=$(tmp0)
+tmp0=!positionof item a in $val11
+
+tmp1=!item $(tmp0) of $val10
+
+val12=$[rint($(tmp1))]
+tmp0=!positionof item b in $val11
+
+tmp1=!item $(tmp0) of $val10
+
+val13=$[rint($(tmp1))]
+tmp0=!positionof item c in $val11
+
+tmp1=!item $(tmp0) of $val10
+
+val14=$[rint($(tmp1))]
+val15=$[rint($val9+$val7*2)]
+val16=$[rint($val8*2+$val7*2)]
+val17=$[rint((-$val9-2*$val7)/2)]
+val18=$[rint($val8+$val8-50)]
+val19=xrange -210,210	yrange -200,200	rect $val17+$val7,$val18,$val17+$val7+$val9,$val18-$val8,black	rect $val17+$val7+$val9,$val18-$val8,$val17+$val7,$val18-$val8-$val7,black	rect $val17+$val7,$val18-$val8-$val7,$val17,$val18-$val7-2*$val8,black	filledrect $val17+$val7,$val18-$val8-$val7,$val17+$val7+$val9,$val18-$val7-2*$val8,yellow	rect $val17+$val7,$val18-$val8-$val7,$val17+$val7+$val9,$val18-$val7-2*$val8,black	rect $val17+$val7+$val9,$val18-$val7-2*$val8,$val17+2*$val7+$val9,$val18-$val7-$val8,black	rect $val17+$val7+$val9,$val18-$val7-2*$val8,$val17+$val7,$val18-2*$val8-2*$val7,black	arrow2 $val17+$val7,$val18+10,$val17+$val7+$val9,$val18+10,10,black	text black,$val17+$val7+$val9/2,$val18+30,medium,$(val11[1])	arrow2 $val17+$val7-10,$val18-$val8,$val17+$val7-10,$val18-$val8-$val7,10,black	text black,$val17+$val7-25,$val18-$val8-$val7/2,medium,$(val11[3])	arrow2 $val17+$val7-10,$val18,$val17+$val7-10,$val18-$val8,10,black	text black,$val17+$val7-25,$val18-$val8/2,medium,$(val11[2])	arrow2 $val17+$val7+$val9/2,$val18,$val17+$val7+$val9/2,$val18-2*$val7-2*$val8,10,black	text black,$val17+$val7+$val9/2+12,$val18-$val8-$val7/2,medium,e	arrow2 $val17,$val18-$val8*1.5-$val7,$val17+$val7*2+$val9,$val18-$val8*1.5-$val7,10,black	text black,$val17+$val7+$val9/4,$val18-$val8*1.5-$val7-10,medium,d	
+!readproc oef/draw.phtml 420,400 \
+$val19	 
+tmp0=$ins_url
+val20=$(tmp0)
+!readproc oef/draw.phtml 420,400 \
+rotate 90	$val19	 
+tmp0=$ins_url
+val21=$(tmp0)
+!readproc oef/draw.phtml 420,400 \
+rotate 270	$val19	 
+tmp0=$ins_url
+val22=$(tmp0)
+val19=$val20,$val21,$val22
+tmp0=!randint 1, 3
+
+val23=$[rint($(tmp0))]
+replytype1=raw
+replyname1=
+replygood1=$val12
+replytype2=raw
+replyname2=
+replygood2=$val13
+replytype3=raw
+replyname3=
+replygood3=$val14
+replytype4=raw
+replyname4=
+replygood4=$val15
+replytype5=raw
+replyname5=
+replygood5=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"><img src="$(val19[$val23])" alt=""></div>	 <div class="medium_size text_col">	Nous avons un parallélépipède rectangle avec les dimensions suivantes :	<ul><li>Longueur = $val9 mm	</li><li> largeur = $val8 mm	</li><li> hauteur = $val7 mm.	</li></ul>	La face jaune servira de base pour poser le parallélépipède rectangle.	<p>Quelles seront les dimensions du patron du parallélépipède rectangle ?	</p>	<ul><li><label for="reply1">a =</label>  
+!read oef/embed.phtml r1,3 
+$() mm	</li><li><label for="reply2">b =</label>  
+!read oef/embed.phtml r2,3 
+$() mm	</li><li><label for="reply3">c =</label>  
+!read oef/embed.phtml r3,3 
+$() mm	</li><li><label for="reply4">d =</label>  
+!read oef/embed.phtml r4,4 
+$() mm	</li><li><label for="reply5">e =</label>  
+!read oef/embed.phtml r5,4 
+$() mm	</li></ul></div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,19,23
+embedcnt=5

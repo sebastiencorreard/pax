@@ -1,0 +1,224 @@
+!set title=Spectroscopie RMN -fonction identique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoit Markey
+email=benoit.markey@ac-lille.fr
+
+ansorder=r
+varcnt=56
+prevarcnt=55
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(600)]
+tmp0=!record 1 of RMN-liste2
+
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle $val7
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val8[1])
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!record 1 of $(val9[1])
+
+tmp=!trim $(tmp0)
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+val11=$[rint($(tmp0))]
+tmp0=!shuffle $val11
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $(val12[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!record 1 of $(val13[1])
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val14
+
+tmp0=!rowcnt $tmp
+val15=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+val18=$[rint(ceil($(val16[1])))]
+val19=$[$val6/(5*$val18)]
+val20=parallel 0,198,0,202,$val19,0,5*$val18+1,black	text blue,0,205,small,$val18
+!for val21 =1 to $val18 
+val22=$[rint($val18-$val21)]
+val20=$val20	text blue,$val21*$val6/$val18-1,205,small,$val22
+!next
+val23=$val6
+val24=200-10
+val25=segment $val23,200,$val23,$val24,red
+!for val26 =1 to $val15 
+val23=$val6*(1-$(val16[$val26])/$val18)
+val24=2*(100-$(val17[$val26]))
+val25=$val25	segment $val23,200,$val23,$val24,green
+!next
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $(val12[2]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val27=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!record 1 of $(val27[1])
+
+tmp=!trim $(tmp0)
+val28=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val28
+
+tmp0=!rowcnt $tmp
+val29=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val30=$(tmp0)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+val32=$[rint(ceil($(val30[1])))]
+val33=$[$val6/(5*$val32)]
+val34=parallel 0,198,0,202,$val33,0,5*$val32+1,black	text blue,0,205,small,$val32
+!for val35 =1 to $val32 
+val36=$[rint($val32-$val35)]
+val34=$val34	text blue,$val35*$val6/$val32-1,205,small,$val36
+!next
+val37=$val6
+val38=200-10
+val39=segment $val37,200,$val37,$val38,red
+!for val40 =1 to $val29 
+val37=$val6*(1-$(val30[$val40])/$val32)
+val38=2*(100-$(val31[$val40]))
+val39=$val39	segment $val37,200,$val37,$val38,green
+!next
+val41=arrow 910,200,2,200,10,black	text blue,7,185,small,d (ppm)	text brown,$val6/2,205,small,déplacement chimique	arrow 2,200,2,2,10,black	parallel 0,200,4,200,0,-20,10,black	dhline 0,160,red	dhline 0,120,red	dhline 0,80,red	dhline 0,40,red	dhline 0,0,red	text black,8,160,small,20	text black,8,120,small,40	text black,8,80,small,60	text black,8,40,small,80	text black,8,0,small,100	textup red,20,150,small,Intensité du signal (%)	
+!readproc oef/draw.phtml $val6+10,220 \
+$val25	$val41	$val20	 
+tmp0=$ins_url
+val42=$(tmp0)
+!readproc oef/draw.phtml $val6+10,220 \
+$val39	$val41	$val34	 
+tmp0=$ins_url
+val43=$(tmp0)
+val44=<img src="$val42">
+val45=<img src="$val43">
+val46=<img src = "$val42" >,<img src = "$val43" >
+tmp0=!shuffle $val46
+
+val47=$(tmp0)
+tmp0=!positionof item <img src = "$val42" > in $val47
+
+val48=$[rint($(tmp0))]
+val49=<img src=$val1/../$(val13[4])>
+val46=<img src = $val1/../$(val13[4]) >,<img src = $val1/../$(val27[4]) >
+tmp0=!shuffle $val46
+
+val47=$(tmp0)
+tmp0=!positionof item <img src = $val1/../$(val13[4]) > in $val47
+
+val48=$[rint($(tmp0))]
+replytype1=click
+replyname1=
+replygood1=$val48 ; $val47 
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst <h2> <center>Table des déplacements chimiques</center></h2><br> <img src="$val1/../tableRMN.gif">
+
+
+!goto stat
+
+!exit
+
+:question
+$()	Voici le spectre d'une molécule:<br>	<center>	$val44</center>	<br>	Ci dessous, voici 2 molécules différentes, mais possédant la même fonction chimique,	 <b>cliquer</b> sur la molécule correspondant à ce spectre	<div class="wimscenter">	    
+!read oef/embed.phtml  reply1,1 
+$() 
+!read oef/embed.phtml  reply1,2 
+$()</div> 	<br>	En cliquant sur le bouton <b>aide</b>, vous trouverez une table des déplacements chimiques.<br>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<h2> <center>Table des déplacements chimiques</center></h2><br> <img src="$val1/../tableRMN.gif">
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,44
+embedcnt=2

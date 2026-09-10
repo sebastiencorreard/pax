@@ -1,0 +1,139 @@
+!set title=Angles orientés
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frederic, Pitoun
+email=frederic.pitoun@free.fr
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 0,1/6,1/4,1/3,1/2,2/3,3/4,5/6,1,7/6,3/4,4/3,3/2,4/3,7/4,11/6
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1/6,1/4,1/3,1/2,2/3,3/4,5/6
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!itemcnt $val6
+
+val9=$[rint($(tmp0))]
+tmp0=!itemcnt $val7
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, $val9
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, $val10
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!item $val12 of $val7
+
+t_=!rawmath $(tmp0)*$(tmp1)
+val13=!exec pari print($t_)
+tmp0=!item $val11 of $val6
+
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+t_=!rawmath $val11+$val13
+val14=!exec pari print($t_)
+val15=$[cos($val11*3.14159)]
+val16=$[sin($val11*3.14159)]
+val17=$[cos($val14*3.14159)]
+val18=$[sin($val14*3.14159)]
+!readproc oef/draw.phtml 200,200 \
+xrange -1,1	yrange -1,1	linewidth 2		circle 0,0,200,red		linewidth=1dsegment 0.7,-0.7,0.7,0.7,green	dsegment 0.7,0.7,-0.7,0.7,green	dsegment -0.7,0.7,-0.7,-0.7,green	dsegment -0.7,-0.7,0.7,-0.7,green		dsegment 0.87,-0.5,0.87,0.5,green	dsegment 0.87,0.5,-0.87,0.5,green	dsegment -0.87,0.5,-0.87,-0.5,green	dsegment -0.87,-0.5,0.87,-0.5,green		dsegment 0.5,-0.87,0.5,0.87,green	dsegment 0.5,0.87,-0.5,0.87,green	dsegment -0.5,0.87,-0.5,-0.87,green	dsegment -0.5,-0.87,0.5,-0.87,green	fcircle 0.99*$val15,0.99*$val16,10,blue	fcircle 0.99*$val17,0.99*$val18,10,green	arrow -1,0,1,0,10,blue	arrow 0,-1,0,1,10,blue	 
+tmp0=$ins_url
+val19=$(tmp0)	
+val20=!rawmath $val13*x
+tmp0=!replace x by \pi in $val20
+
+val20=$(tmp0)
+tmp0=!texmath $val20
+
+val20=$(tmp0)
+replytype1=default
+replyname1=
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Sur le cercle trigonométrique, ci-dessous, on a tracé les lignes trigonométriques	remarquables. En outre, on a placé deux points	A (en bleu) et B (en vert).<br />	Déterminer la mesure principale de l'angle orienté	formé par les vecteurs 
+!insmath \overrightarrow{O A}
+$() et 
+!insmath \overrightarrow{O B}
+$().	<div class="wimscenter">	<img src="$val19" alt="" /><br />	La mesure principale de l'angle	
+!insmath (\overrightarrow{O A},\overrightarrow{O B})
+$() est: 
+!read oef/embed.phtml reply 1,6 
+$() 
+!insmath \pi
+$() radians.	</div>		<br>	<b>Remarque:</b> Votre réponse doit être un nombre rationnel.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La mesure principale de l'angle orienté	 
+!insmath (\overrightarrow{O A},\overrightarrow{O B})
+$() est 
+!insmath $val20
+$()		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20
+embedcnt=1

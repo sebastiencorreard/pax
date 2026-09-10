@@ -1,0 +1,179 @@
+!set title=Décimaux positifs II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=randint
+val7=60x30
+val8=$[rint(4)]
+tmp0=!values $val6(19)+x/10 for x=1 to 9
+
+val9=$(tmp0)
+tmp0=!values $val6(199)/10+x/100 for x=1 to 9
+
+val10=$(tmp0)
+val11=$(val9[1..$val8]),$(val10[1..$val8])
+val12=nombre
+val13=Nombre
+!if $val2>=3 and $val2<=8 
+val14=$[rint($val2)]
+!else
+val14=$[rint(4)]
+!endif
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+!if $val3=2 
+val15=$[rint(1)]
+!endif
+!if $val3=3 
+val15=$[rint(2)]
+!endif
+tmp0=!item $val15 of &lt;,&gt;
+
+val16=$(tmp0)
+tmp0=!item $val15 of ,reverse
+
+val17=$(tmp0)
+val18=petit,grand
+val19=s
+tmp0=!nonempty items $val11
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+
+!ifval $val15=1
+tmp0=!sort numeric items $(val11[1..$val14])
+
+val11=$(tmp0)
+!else
+tmp1=!sort reverse numeric items $(val11[1..$val14])
+
+val11=	        $(tmp1)	
+!endif
+val20=
+!if $val12 iswordof fraction 
+tmp0=!replace internal / by \over in $val11
+
+val11=$(tmp0)
+!for val21 =1 to $val14 
+tmp0=!append item \({$(val11[$val21])}) to $val20
+
+val20=$(tmp0)
+!next
+!else
+!for val21 =1 to $val14 
+tmp0=!append item \($(val11[$val21])) to $val20
+
+val20=$(tmp0)
+!next
+!endif
+tmp0=!item 1 to $val14 of r1,r2,r3,r4,r5,r6,r7,r8
+
+val22=$(tmp0)
+oefsteps=$val22 
+nextstep=!nosubst $val22 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=$val13 1
+replygood1=$(val20[1])
+replytype2=dragfill
+replyname2=$val13 2
+replygood2=$(val20[2])
+replytype3=dragfill
+replyname3=$val13 3
+replygood3=$(val20[3])
+replytype4=dragfill
+replyname4=$val13 4
+replygood4=$(val20[4])
+replytype5=dragfill
+replyname5=$val13 5
+replygood5=$(val20[5])
+replytype6=dragfill
+replyname6=$val13 6
+replygood6=$(val20[6])
+replytype7=dragfill
+replyname7=$val13 7
+replygood7=$(val20[7])
+replytype8=dragfill
+replyname8=$val13 8
+replygood8=$(val20[8])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Rangez les $val12$val19 en bas, du plus $(val18[$val15])	au plus $(val18[3-$val15]).	<table class="wimscenter"><tr>	<td> 
+!read oef/embed.phtml r1,$val7 
+$()</td>	 
+!for m_t=2 to $val14 
+$()	 <td> $val16 </td><td> 
+!read oef/embed.phtml $(val22[$m_t]),$val7 
+$()</td>	 
+!next
+$()	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,12,14,15,16,18,19,22
+embedcnt=2

@@ -1,0 +1,191 @@
+!set title=Figure symétrique et fonctions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 20
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!makelist x for x=0 to $val7
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[2]))]
+val11=$[rint($(val8[3]))]
+val12=$[rint(0)]
+val13=$[rint(0)]
+tmp0=!makelist 2*x for x=1 to $val6/2
+
+val14=$(tmp0)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+val14=$(val14[1]),$(val14[2]),$(val14[3])
+tmp0=!sort numeric list $val14
+
+val14=$(tmp0)
+val15=$[rint($(val14[1]))]
+val16=$[rint($(val14[2]))]
+val17=$[rint($(val14[3]))]
+val18=$[rint(($val13-$val15)*($val13-$val16)*($val13-$val17))]
+val19=$[rint(($val15-$val13)*($val15-$val16)*($val15-$val17))]
+val20=$[rint(($val16-$val15)*($val16-$val13)*($val16-$val17))]
+val21=$[rint(($val17-$val15)*($val17-$val16)*($val17-$val13))]
+val22=$[rint(lcm($val18,$val19))]
+val23=$[rint(lcm($val20,$val21))]
+val24=$[rint(lcm($val22,$val23))]
+val7=$[rint($val24*$val7)]
+val25=!rawmath (x-$val15)*(x-$val16)*(x-$val17)/$val18
+val26=!rawmath (x-$val13)*(x-$val16)*(x-$val17)/($val19)
+val27=!rawmath (x-$val15)*(x-$val13)*(x-$val17)/($val20)
+val28=!rawmath (x-$val15)*(x-$val16)*(x-$val13)/($val21)
+val29=!rawmath $val24*($val9*$val25+$val10*$val26+$val11*$val27+$val12*$val28)
+tmp0=!randitem 1,2
+
+tmp1=!randitem 1,-1
+
+val30=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val31=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val32=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val33=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in expand($val29)
+tmp0=!exec maxima $t_
+
+val29=$(tmp0)
+tmp0=!texmath $val29
+
+val34=$(tmp0)
+val35=!rawmath -($val29)
+tmp0=!replace x by (-x) in $val29
+
+val36=$(tmp0)
+tmp0=!replace x by (-x) in $val35
+
+val37=$(tmp0)
+val38=xrange -$val6-2,$val6+2	 yrange -$val7-2,$val7+2	 arrow -$val6-2,0,$val6+2,0,10,black	 arrow 0,-$val7-2,0,$val7+2,10,black	 trange 0,$val17	 plot red,$val29	 plot blue,$val35	 trange -$val17,0	 plot green,$val36	 plot purple,$val37	
+replytype1=function
+replyname1=\(g(x))
+replygood1=!rawmath $val35
+replytype2=function
+replyname2=\(h(x))
+replygood2=!rawmath $val36
+replytype3=function
+replyname3=\(k(x))
+replygood3=!rawmath $val37
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 300,300 \
+$val38 
+$()</div>	 <div class="medium_size text_col">	La figure ci-contre présente les axes de coordonnées comme axes de symétrie.	<div>	L'arc de courbe <span style="color:red"> rouge </span> représente la fonction	<span style="color:red">
+!insmath f
+$() </span> définie sur [0;$val17] par:	<div class="wimscenter"><span style="color:red">
+!insmath f(x)=$val34
+$().</span></div>	L'arc de courbe <span style="color:blue"> bleue </span> représente la fonction <span style="color:blue">
+!insmath g
+$() </span> définie sur [0;$val17].<br>	L'arc de courbe <span style="color:green"> verte </span> représente la fonction <span style="color:green"> 
+!insmath h
+$() </span> définie sur [-$val17;0].<br>	L'arc de courbe <span style="color:purple">violette </span> représente la fonction <span style="color:purple">
+!insmath k
+$() </span> définie sur [-$val17;0].<br>	</div>	Déterminer les expressions algébriques des fonctions 
+!insmath g
+$(), 
+!insmath h
+$() et 
+!insmath k
+$():	<div class="wimscenter">	<label for="reply1"><span style="color:blue">
+!insmath g(x)
+$()</span></label>= 
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wimscenter">	<label for="reply2"><span style="color:green">
+!insmath h(x)
+$()</span></label>= 
+!read oef/embed.phtml reply2 
+$()</div>	<div class="wimscenter">	<label for="reply3"><span style="color:purple">
+!insmath k(x)
+$()</span></label>= 
+!read oef/embed.phtml reply3 
+$()</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,34,38
+embedcnt=3

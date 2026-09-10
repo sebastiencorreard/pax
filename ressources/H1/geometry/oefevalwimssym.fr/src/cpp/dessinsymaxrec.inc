@@ -1,0 +1,29 @@
+\text{dessin=draw(500,500
+xrange -10,10
+yrange -10,10
+gridfill 0,0,10,10,\col
+translate 0.2,0.2
+linewidth 2
+vline 2,0,\col
+vline 4,0,\col
+vline 6,0,\col
+vline 8,0,\col
+vline 10,0,\col
+vline -2,0,\col
+vline -4,0,\col
+vline -6,0,\col
+vline -8,0,\col
+vline -10,0,\col
+hline 0,2,\col
+hline 0,4,\col
+hline 0,6,\col
+hline 0,8,\col
+hline 0,10,\col
+hline 0,-2,\col
+hline 0,-4,\col
+hline 0,-6,\col
+hline 0,-8,\col
+hline 0,-10,\col
+triangle \x1,\y1,\x2,\y2,\x3,\y3,\coul[1]
+triangle \i1,\j1,\i2,\j2,\i3,\j3,\coul[2]
+\dessincomp)}

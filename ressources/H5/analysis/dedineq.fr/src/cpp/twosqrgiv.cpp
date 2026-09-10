@@ -1,0 +1,56 @@
+target=twosqrgiv
+#include "header.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\language{fr}
+\options{nofloat}
+\methods{ineq/rewrite, ineq/simpdeduc, ineq/mulexp,
+ineq/trans, ineq/addineq, ineq/mulineq,
+prf/contrapose}
+
+\matrix{vars=a,b
+c,d
+x,y
+r,s
+s,t
+p,q
+}
+\text{vars=randomrow(\vars)}
+\text{x=item(1,\vars)}
+\text{y=item(2,\vars)}
+
+\integer{a=random(3..20)}
+\integer{b=random(3..20)}
+\integer{prod=\a*\b}
+\text{empty=}
+
+\text{eqr=randitem(,=)}
+\text{more=>}
+\text{less=<}
+\matrix{data=\x^2 \more \y^2, \x \more= 0, \x \more \y, 2, 4
+\x^2 \more \y^2, \x \less= 0, \x \less \y, 3, 3
+\x^2 \less \y^2, \y \more= 0, \x \less \y, 2, 4
+\x^2 \less \y^2, \y \less= 0, \x \more \y, 3, 3
+}
+\text{data=randomrow(\data)}
+\text{ctx1=item(1,\data)}
+\if{random(1,2)=1}{
+ \text{ctx2=item(2,\data)}
+ \text{prv=item(3,\data)}
+ \integer{stp=item(4,\data)}
+}{
+ \text{ctx2=item(3,\data)}
+ \text{prv=item(2,\data)}
+ \integer{stp=item(5,\data)}
+}
+\minsteps{\stp}
+
+\context{\ctx1
+\ctx2}
+\goal{\prv}
+\text{oldgoal=\goal}
+
+\statement{\name_enonce[1] \(\x\) \name_and \(\y) \name_enonce[2] \(\ctx1) \name_and \(\ctx2).
+\name_prove \( \oldgoal \).
+}
+

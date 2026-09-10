@@ -1,0 +1,693 @@
+\title{3. Voiture}
+\language{fr}
+\range{-5..5}
+\author{Julien Lyotard}
+\email{Julien.Lyotard@ac-dijon.fr}
+
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{listereponse= wims(makelist r x for x = 33 to 67)} 
+
+\matrix{STEP= reply1, reply2, reply3
+reply4, reply5, reply6, reply7, reply8, reply9, reply10, reply11
+reply12, reply13, reply14, reply15, reply16, reply17, reply18, reply19
+reply20, reply21, reply22, reply23, reply24, reply25, reply26, reply27
+reply28
+reply29, reply30, reply31, reply32
+\listereponse
+reply68
+reply69, reply70
+reply71
+reply72
+reply73
+reply74, reply75
+}
+\steps{\STEP}
+
+mode debug
+integer{n=9}
+\integer{n=randint(0..17)}
+mode debug
+integer{v=200}
+\integer{v=110+10*\n}
+\text{vi=\v}
+
+\integer{d=340}
+\integer{dpi=1377-\d/100*60}
+\integer{t=\d/\v*10}
+\real{ta=\t/10}
+\real{tamin=\ta-0.1}
+\real{tamax=\ta+0.1}
+\integer{taentier=floor(\ta)}
+\integer{tapi=(\ta+1)*60+3}
+\real{tfleche=\t+10}
+\real{dfleche=\d/10+10}
+
+
+\text{vt=} 
+\text{listcoordonne=}
+\text{listcoor=}
+\for{u=1 to 8}{ 
+  \integer{s=\v*\u}
+  \integer{dd=(\u+1)*60+6}
+  \integer{aa=1377-(66+\n*6)*\u}
+  \text{vt=wims(append item \s to \vt)}
+  \text{listcoordonne=wims(append item \dd,\aa to \listcoordonne)}
+  \text{listcoor=wims(append item \u,\s to \listcoor)}
+} 
+
+\text{alphabet = A,B,C,D,E,F,G,H}
+\text{axe=Temps,Distance,1 cm pour 1 Heure,1 cm pour 100 Km}
+
+\text{L=slib(millimetre 4,6,,,,,[255,255,255],[190,190,190],,style:grad=no)}
+\text{Croix=slib(millimetre 4,6,2,3,,,[255,255,255],[190,190,190],,style:grad=no)}
+\text{T=slib(millimetre 4,6,,3,,,[255,255,255],[190,190,190],,style:grad=no)}
+\text{ae=slib(millimetre 10,10,,,,,[255,255,255],[190,190,190],,style:grad=no)}
+\text{grad=slib(millimetre 15,24,,,,,[255,255,255],[190,190,190],,style:grad=no)}
+\text{point=slib(millimetre 15,24,,,1,100,[255,255,255],[190,190,190],,style:grad=xy)}
+\text{pointrep=slib(millimetre 15,24,,,1,100,[255,255,255],[190,190,190],,style:grad=xy,style:dot=+,\listcoor)}
+\text{vecteur=slib(graphpaper/func_milli 15,24,,,1,100,[255,255,255],[190,190,190],,\v*x,[],\listcoor)}
+\text{flechefirst= linewidth 2
+arrow 10,\dfleche,\tfleche,\dfleche,10,red}
+\text{finalfirst=\vecteur \flechefirst}
+\text{flechesecond= linewidth 2
+arrow 10,\dfleche,\tfleche,\dfleche,10,red
+linewidth 2
+arrow \tfleche,\dfleche,\tfleche,10,10,red}
+\text{finalsecond=\vecteur \flechesecond}
+
+
+\text{urlL = draw(240,360
+\L)}
+\text{urlCroix = draw(240,360
+\Croix)}
+\text{urlT = draw(240,360
+\T)}
+\text{urlae = draw(600,600
+\ae)}
+\text{urlgrad = draw(900,1440
+\grad)}
+\text{urlpoint = draw(900,1440
+\point)}
+\text{urlpointrep = draw(900,1440
+\pointrep)}
+\text{urlvecteur = draw(900,1440
+\vecteur)}
+\text{urlfinalfirst = draw(900,1440
+\finalfirst)}
+\text{urlfinalsecond = draw(900,1440
+\finalsecond)}
+
+\text{listegraph=<img src="\urlL" alt="Repère en L" />,<img src="\urlT" alt="Repère en T inversé" />,<img src="\urlCroix" alt="Repère en croix" />}
+\text{li=shuffle(3)}
+\text{lgm=wims(makelist li[\x] for x=1 to 3)}
+\text{listegraphmixe=\listegraph[\li[1]],\listegraph[\li[2]],\listegraph[\li[3]]}
+\integer{rep=position(1,\li)}
+
+\text{gggo=} 
+\for{u=0 to 21}{ 
+\integer{h=1305-\u*60} 
+\text{gggo=wims(append item \h to \gggo)}
+}
+\text{ggga=} 
+\for{e=0 to 13}{ 
+\integer{r=98+\e*60} 
+\text{ggga=wims(append item \r to \ggga)}
+}
+
+\text{pro=Quel est le temps mis par la Ferrari pour parcourir la
+ distance de \d Km de Paris à Dijon ?
+<br /><br />}
+\text{enonce= Une Ferrari F40 roule à la vitesse moyenne de <b>\v Km/h</b>
+ sur une autoroute allemande.}
+
+\statement{
+<br />
+<div class="consigne">
+<div id="boiteg">
+<img src="\imagedir/Ferrarif40_2.jpg" alt="Ferrari" />
+</div>
+<p class="problematique"> \pro</p>
+<p class="special_letter">\enonce</p>
+
+\if{\step==1}{
+<br />
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<ul><li> La voiture roule pendant une heure. Calculez la distance
+ parcourue ? \embed{reply1, 4} Km. </li>
+<li> La voiture roule pendant 2 heures. Calculez la distance
+ parcourue ? \embed{reply2, 4} Km. </li>
+<li> La voiture roule pendant 5 heures. Calculez la distance
+ parcourue ?  \embed{reply3, 4} Km. </li></ul>
+</div>}
+
+\if{\step==2}{
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+La voiture roule pendant <span class="bold" style="color:#cf3333">x</span>
+ heures. Donnez l'expression littérale de la distance parcourue
+ <span class="bold" style="color:#fbf80a">D(x)</span> par la Ferrari en
+ complétant les calculs suivants.
+<br />
+Vous venez de réaliser les calculs suivants :
+<br />
+<table class="wimscenter wimsnoborder">
+<tr>
+<td><span style="color:#cf3333">1</span></td>
+<td><span style="color:#3F5B98"> \times</span></td>
+<td><span style="color:#ec10ed">\v</span></td>
+<td><span style="color:#3F5B98">=</span></td>
+<td><span style="color:#fbf80a">\v</span></td>
+</tr>
+<tr>
+<td><span style="color:#cf3333">2</span></td>
+<td><span style="color:#3F5B98">\times</span></td>
+<td><span style="color:#ec10ed">\v</span></td>
+<td><span style="color:#3F5B98">=</span></td>
+<td><span style="color:#fbf80a">\reply2</span></td>
+</tr>
+<tr>
+<td><span style="color:#cf3333">5</span></td>
+<td><span style="color:#3F5B98">\times</span></td>
+<td><span style="color:#ec10ed">\v</span></td>
+<td><span style="color:#3F5B98">=</span></td>
+<td><span style="color:#fbf80a">\reply3</span></td>
+</tr>
+<tr>
+<td><span style="color:#cf3333">&darr;</span></td>
+<td><span style="color:#3F5B98">&nbsp;&nbsp;</span></td>
+<td><span style="color:#ec10ed">&darr;</span></td>
+<td><span style="color:#3F5B98">&nbsp;&nbsp;</span></td>
+<td><span style="color:#fbf80a">&darr;</span></td>
+</tr>
+<tr>
+<td><span style="color:#cf3333">\embed{reply4, 4}</span></td>
+<td><span style="color:#3F5B98">\times</span></td>
+<td><span style="color:#ec10ed">\embed{reply5, 4}</span></td>
+<td><span style="color:#3F5B98">=</span></td>
+<td><span style="color:#fbf80a">\embed{reply6, 4}</span></td>
+</tr>
+<tr>
+<td><span style="color:#cf3333">&darr;</span></td>
+<td><span style="color:#3F5B98">&nbsp;&nbsp;</span></td>
+<td><span style="color:#ec10ed">&darr;</span></td>
+<td><span style="color:#3F5B98">&nbsp;&nbsp;</span></td>
+<td><span style="color:#fbf80a">&darr;</span></td>
+</tr>
+<tr>
+<td><span style="color:#cf3333">\embed{reply7, 4}</span></td>
+<td><span style="color:#3F5B98">\times</span></td>
+<td><span style="color:#ec10ed">\embed{reply8, 4}</span></td>
+<td><span style="color:#3F5B98">=</span></td>
+<td><span style="color:#fbf80a">\embed{reply9, 4}</span></td>
+</tr>
+</table>
+<br />
+<span style="text-decoration:underline">Conclusion :</span> A tout temps <span class="bold" style="color:#cf3333">x</span>
+, on fait correspondre une distance de valeur : \embed{reply10, 4} .
+ Vous définissez ainsi une fonction linéaire et vous écrivez :
+ <span class="bold" style="color:#fbf80a">D(x)</span>=\embed{reply11, 4}
+  </div>}
+
+\if{\step==3}{
+<br />
+<div class="consigne">
+Les calculs suivants ont été réalisés:
+<br />
+<ul><li>1\times \v = \v</li>
+<li>2 \times \v = \reply2</li>
+<li>5 \times \v = \reply3</li>
+</ul>
+
+
+<table class="wimscenter wimsborder">
+<tr>
+<td>La fonction linéaire est définie par :
+ <span class="bold" style="color:#fbf80a">\( D(x)= \vi times x) </span></td>
+<td>&nbsp;&nbsp;</td>
+<td><b>\v</b> est le <b>coefficient de proportionnalité</b> de la
+ fonction linéaire.<br />
+Le nombre <b>x</b> est appelé <b>variable</b>.<br />
+Le nombre <b>D(x)</b> est appelé image du nombre <b>x</b>
+ par la fonction <b>D</b>.<br />
+</td>
+</tr>
+</table>
+
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+Complétez le tableau suivant à l’aide des calculs précédents :
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 8}{<td><b>\alphabet[\l]</b></td>}
+</tr>
+<tr>
+<td><b>Temps du trajet x en heures</b></td>
+\for{j=1 to 8}{<td>\j</td>}
+</tr>
+<tr>
+<td><b>Distance parcourue D(x) en kilomètres</b></td>
+\for{k=12 to 19}{<td>\embed{reply\k, 4}</td>}
+</tr>
+</table>
+</div>}
+
+\if{\step==4}{
+<br />
+<div class="consigne">
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 8}{<td><b>\alphabet[\l]</b></td>}
+</tr>
+<tr>
+<td><b>Temps du trajet x en heures</b></td>
+\for{j=1 to 8}{<td>\j</td>}
+</tr>
+<tr>
+<td><b>Distance parcourue D(x) en kilomètres</b></td>
+\for{k=1 to 8}{
+
+<td> \vt[\k]</td>}
+</tr>
+</table>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+Dans un graphique vous devez donc placez les points dont les
+ coordonnées sont les suivantes :
+<br />
+<table class="wimscenter wimsnoborder">
+<tr>
+\for{k=1 to 4}{<td><ul><li class="unbreakable">\alphabet[\k](\k ;\embed{reply\k+19, 3})</li></ul></td>}
+</tr>
+<tr>
+\for{k=5 to 8}{<td><ul><li  class="unbreakable">\alphabet[\k](\k ;\embed{reply\k+19, 3})</li></ul></td>}
+</tr>
+</table>
+</div>}
+
+\if{\step==5}{
+<br />
+<div class="consigne">
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 8}{<td><b>\alphabet[\l]</b></td>}
+</tr>
+<tr>
+<td><b>Temps du trajet x en heures</b></td>
+\for{j=1 to 8}{<td>\j</td>}
+</tr>
+<tr>
+<td><b>Distance parcourue D(x) en kilomètres</b></td>
+\for{k=1 to 8}{
+
+<td> \vt[\k]</td>}
+</tr>
+</table>
+<br />
+Les points ont donc pour coordonnées :
+<table class="wimscenter wimsnoborder">
+<tr>
+\for{k=1 to 4}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+<tr>
+\for{k=5 to 8}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+</table>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+Cliquez sur la forme du graphique que vous souhaitez utiliser en
+ fonction des points à placer :
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+\for{i=1 to 3}{<td> \embed{reply28,\i}</td>}
+</tr>
+</table>
+</div>}
+
+\if{\step==6}{
+<br />
+<div class="consigne">
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 8}{<td><b>\alphabet[\l]</b></td>}
+</tr>
+<tr>
+<td><b>Temps du trajet x en heures</b></td>
+\for{j=1 to 8}{<td>\j</td>}
+</tr>
+<tr>
+<td><b>Distance parcourue D(x) en kilomètres</b></td>
+\for{k=1 to 8}{<td> \vt[\k]</td>}
+</tr>
+</table>
+<br />
+Les points ont donc pour coordonnées :
+<table class="wimscenter wimsnoborder">
+<tr>
+\for{k=1 to 4}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+<tr>
+\for{k=5 to 8}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+</table>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+On souhaite réaliser la représentation graphique de cette fonction
+ linéaire dans un repère orthogonal d'origine 0, où :
+<ul><li> 1 cm représente 1 heure en abscisse. </li>
+<li>1 cm représente 100 km en ordonnée. </li></ul>
+<div class="wimscenter"><span class="bold" style="text-decoration: underline">1<sup>ère</sup> ÉTAPE :</span> Placez les axes et les
+ échelles sur le graphique.</div>
+<br />
+<div class="wimscenter">
+\special{imagefill \urlae,600x600,200x20
+reply29, 440x500
+reply30, 82x10
+reply31, 440x560
+reply32, 82x40}
+</div>
+
+</div>}
+
+\if{\step==7}{
+<br />
+<div class="consigne">
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 8}{<td><b>\alphabet[\l]</b></td>}
+</tr>
+<tr>
+<td><b>Temps du trajet x en heures</b></td>
+\for{j=1 to 8}{<td>\j</td>}
+</tr>
+<tr>
+<td><b>Distance parcourue D(x) en kilomètres</b></td>
+\for{k=1 to 8}{<td> \vt[\k]</td>}
+</tr>
+</table>
+<br />
+Les points ont donc pour coordonnées :
+<table class="wimscenter wimsnoborder">
+<tr>
+\for{k=1 to 4}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+<tr>
+\for{k=5 to 8}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+</table>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<div class="wimscenter"><span class="bold" style="text-decoration: underline">2<sup>ème</sup> ÉTAPE :</span> Graduez les axes et
+ déterminez la valeur d'un mm.</div>
+<br />
+<div class="wimscenter">
+<div class="graph">
+<div id="ordonne">
+\axe[2]
+<br />
+\axe[4]
+</div>
+<div id="abscisse">
+\axe[1]
+<br />
+\axe[3]
+</div>
+\for{i=33 to 54}{
+<div style="position:absolute;z-index:2;left:12px;top:\gggo[\i-32]px;width:60px;height:20px;">
+\embed{reply\i, 2}
+</div>}
+\for{i=55 to 67}{
+<div style="position:absolute;z-index:2;left:\ggga[\i-54]px;top:1388px;width:60px;height:20px;">
+\embed{reply\i, 2}
+</div>}
+<img src="\urlgrad" alt="Graphique" />
+</div>
+</div>
+</div>}
+
+\if{\step==8}{
+<br />
+<div class="consigne">
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 8}{<td><b>\alphabet[\l]</b></td>}
+</tr>
+<tr>
+<td><b>Temps du trajet x en heures</b></td>
+\for{j=1 to 8}{<td>\j</td>}
+</tr>
+<tr>
+<td><b>Distance parcourue D(x) en kilomètres</b></td>
+\for{k=1 to 8}{<td> \vt[\k]</td>}
+</tr>
+</table>
+<br />
+Les points ont donc pour coordonnées :
+<table class="wimscenter wimsnoborder">
+<tr>
+\for{k=1 to 4}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+<tr>
+\for{k=5 to 8}{<td><ul><li>\alphabet[\k](\k ; \vt[\k])</li></ul></td>}
+</tr>
+</table>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<div class="wimscenter"><span class="bold" style="text-decoration: underline">3<sup>ème</sup> ÉTAPE :</span> Placez les points
+ \alphabet, en cliquant sur le graphique.</div>
+<br />
+\embed{reply68, 900 x 1440}
+</div>}
+
+\if{\step==9}{
+<br />
+<div class="consigne">
+<div class="wimscenter">
+<div class="graph">
+<div id="ordonne">
+\axe[2]
+<br />
+\axe[4]
+</div>
+<div id="abscisse">
+\axe[1]
+<br />
+\axe[3]
+</div>
+<img src="\urlpointrep" alt="Tracer de la fonction linéaire" />
+</div>
+</div>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<span class="bold" style="text-decoration: underline">Conclusion :</span> L'ensemble des points de cette fonction linéaire
+ <span class="bold" style="color:#fbf80a">\( D(x)= \vi times x) </span> est
+ une \embed{reply69, 4} qui passe par l' \embed{reply70, 4} du repère.
+</div>}
+
+\if{\step==10}{
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<span class="bold" style="text-decoration: underline">Interprétation graphique :</span> \pro
+<br />
+Vous devez construire la première flèche de lecture sur le
+ graphique pour pouvoir répondre à la question.
+<div class="wims_instruction">Le premier clic correspond au début de la flèche, le second à la fin.</div>
+
+\embed{reply71, 900 x 1440}
+<br />
+</div>}
+
+\if{\step==11}{
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<span class="bold" style="text-decoration: underline">Interprétation graphique :</span> \pro
+<br />
+Vous devez construire la deuxième flèche de lecture sur le
+ graphique pour pouvoir répondre à la question.
+<div class="wims_instruction"> Le premier clic correspond au début de la flèche, le second à la fin.</div>
+\embed{reply72, 900 x 1440}
+<br />
+</div>}
+
+\if{\step==12}{
+<br />
+<div class="consigne">
+<div class="wimscenter">
+<div class="graph">
+<div id="ordonne">
+\axe[2]
+<br />
+\axe[4]
+</div>
+<div id="abscisse">
+\axe[1]
+<br />
+\axe[3]
+</div>
+<img src="\urlfinalsecond" alt="Fonction linéaire et flèches de lecture" />
+</div>
+</div>
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+<span class="bold" style="text-decoration: underline">Interprétation graphique :</span> \pro
+<br />
+Le temps nécessaire à la Ferrari pour parcourir la distance Dijon
+ Paris est de \embed{reply73, 4} H.
+</div>}
+
+\if{\step==13}{
+<br />
+<div class="consigne">
+<div class="wimscenter">
+<div class="graph">
+<div id="ordonne">
+\axe[2]
+<br />
+\axe[4]
+</div>
+<div id="abscisse">
+\axe[1]
+<br />
+\axe[3]
+</div>
+<img src="\urlfinalsecond" alt="Fonction linéaire et flèches de lecture" />
+</div>
+</div>
+<br />
+<div class="question">
+<div class="etape">ÉTAPE \step sur 13</div>
+Le temps nécessaire à la Ferrari pour parcourir la distance Dijon
+ Paris est de \reply73 H  donc \embed{reply74, 4} H et
+ \embed{reply75, 4} minutes.
+</div>
+</div>}
+
+
+
+</div>}
+
+\answer{En 1 Heure, la voiture parcourt }{\v }{type=numeric}
+\answer{En 2 Heures, la voiture parcourt }{\v*2}{type=numeric}
+\answer{En 5 Heures, la voiture parcourt }{\v*5}{type=numeric}
+
+\answer{Le temps est }{<font color="#cf3333">Temps</span>}{type=dragfill}{option=shuffle nonstop}
+\answer{Le coefficient est }{<font color="#ec10ed">\vi</span>}{type=dragfill}{option=shuffle  nonstop}
+\answer{La distance est }{<font color="#fbf80a">Distance</span>}{type=dragfill}{option=shuffle nonstop}
+\answer{L'inconnue est }{x}{type=nocase}{option=nonstop}
+\answer{La constante est }{\vi}{type=numeric}{option=nonstop}
+\answer{La distance parcourue est }{ D(x) }{type=algexp}{option=nonstop}
+\answer{L'expression algébrique est }{\vi x}{type=algexp}{option=nonstop}
+\answer{La fonction linéaire est }{\vi x}{type=algexp}{option=nonstop}
+
+\answer{En 1 Heure, la voiture parcourt }{\v }{type=numeric}{option=nonstop}
+\answer{En 2 Heures, la voiture parcourt }{\v*2}{type=numeric}{option=nonstop}
+\answer{En 3 Heures, la voiture parcourt }{\v*3}{type=numeric}{option=nonstop}
+\answer{En 4 Heure, la voiture parcourt }{\v*4 }{type=numeric}{option=nonstop}
+\answer{En 5 Heures, la voiture parcourt }{\v*5}{type=numeric}{option=nonstop}
+\answer{En 6 Heures, la voiture parcourt }{\v*6}{type=numeric}{option=nonstop}
+\answer{En 7 Heure, la voiture parcourt }{\v*7 }{type=numeric}{option=nonstop}
+\answer{En 8 Heures, la voiture parcourt }{\v*8}{type=numeric}{option=nonstop}
+
+\answer{L'ordonnée du point A est }{\v }{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point B est }{\v*2}{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point C est }{\v*3}{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point D est }{\v*4 }{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point E est }{\v*5}{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point F est }{\v*6}{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point G est }{\v*7 }{type=numeric}{option=nonstop}
+\answer{L'ordonnée du point H est }{\v*8}{type=numeric}{option=nonstop}
+
+\answer{}{\rep;\listegraphmixe}{type=click}{option=nonstop}
+
+\answer{}{\axe[1]|\axe[3];\axe}{type=clickfill}{option=shuffle nonstop}
+\answer{}{\axe[2]|\axe[4]}{type=clickfill}{option=shuffle nonstop}
+\answer{}{\axe[3]|\axe[1]}{type=clickfill}{option=shuffle nonstop}
+\answer{}{\axe[4]|\axe[2]}{type=clickfill}{option=shuffle nonstop}
+
+\answer{}{100 }{type=numeric}{option=nonstop}
+\answer{}{200}{type=numeric}{option=nonstop}
+\answer{}{300}{type=numeric}{option=nonstop}
+\answer{}{400}{type=numeric}{option=nonstop}
+\answer{}{500}{type=numeric}{option=nonstop}
+\answer{}{600}{type=numeric}{option=nonstop}
+\answer{}{700}{type=numeric}{option=nonstop}
+\answer{}{800}{type=numeric}{option=nonstop}
+\answer{}{900}{type=numeric}{option=nonstop}
+\answer{}{1000}{type=numeric}{option=nonstop}
+\answer{}{1100}{type=numeric}{option=nonstop}
+\answer{}{1200}{type=numeric}{option=nonstop}
+\answer{}{1300}{type=numeric}{option=nonstop}
+\answer{}{1400}{type=numeric}{option=nonstop}
+\answer{}{1500}{type=numeric}{option=nonstop}
+\answer{}{1600}{type=numeric}{option=nonstop}
+\answer{}{1700}{type=numeric}{option=nonstop}
+\answer{}{1800}{type=numeric}{option=nonstop}
+\answer{}{1900}{type=numeric}{option=nonstop}
+\answer{}{2000}{type=numeric}{option=nonstop}
+\answer{}{2100}{type=numeric}{option=nonstop}
+\answer{}{2200}{type=numeric}{option=nonstop}
+
+\answer{}{1}{type=numeric}{option=nonstop}
+\answer{}{2}{type=numeric}{option=nonstop}
+\answer{}{3}{type=numeric}{option=nonstop}
+\answer{}{4}{type=numeric}{option=nonstop}
+\answer{}{5}{type=numeric}{option=nonstop}
+\answer{}{6 }{type=numeric}{option=nonstop}
+\answer{}{7}{type=numeric}{option=nonstop}
+\answer{}{8}{type=numeric}{option=nonstop}
+\answer{}{9}{type=numeric}{option=nonstop}
+\answer{}{10}{type=numeric}{option=nonstop}
+\answer{}{11}{type=numeric}{option=nonstop}
+\answer{}{12}{type=numeric}{option=nonstop}
+\answer{}{13}{type=numeric}{option=nonstop}
+
+\answer{}{\urlpoint;points,\listcoordonne}{type=jsxgraphcurve}{option=nonstop color1=blue color2=red}
+
+\answer{}{droite;droite,origine,point,axe,repère,ordonnée,abscisse}{type=clickfill}{option=shuffle nonstop}
+\answer{}{origine}{type=clickfill}{option=shuffle nonstop}
+
+\answer{}{\urlvecteur;vector,66,\dpi,\tapi,\dpi}{type=jsxgraphcurve}{option=nonstop color1=blue color2=red}
+
+\answer{}{\urlfinalfirst;vector,\tapi,\dpi,\tapi,1374}{type=jsxgraphcurve}{option=nonstop color1=blue color2=red}
+
+\answer{Le temps du trajet à O.1 H est de }{\tamin,\tamax,\ta}{type=range}{option=nonstop}
+
+\integer{tmin=(\reply73-\taentier)*60}
+\answer{Le temps du trajet en heure est de }{\taentier}{type=numeric}{option=nonstop}
+\answer{}{\Tmin}{type=numeric}
+\condition{Le temps du trajet en minutes est de \tmin est non de \Tmin.}{\tmin=\Tmin}{option=nonstop}

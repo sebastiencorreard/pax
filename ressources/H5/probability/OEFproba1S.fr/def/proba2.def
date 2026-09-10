@@ -1,0 +1,162 @@
+!set title=Calcul de probabilités 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=probability
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Calcolo di probabilità 2
+
+ansorder=r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 1, 80
+
+val7=$[rint($(tmp0))]
+val7=$[$val7/100]
+tmp0=!randint 1, 80
+
+val8=$[rint($(tmp0))]
+val8=$[$val8 / 100]
+
+!ifval $val7>$val8
+val9=$[rint($val8*100)]
+!else
+val9=$[rint($val7*100)]
+!endif
+
+!ifval $val7+$val8>1
+val10=$[rint(100*($val7+$val8-1))]
+!else
+val10=$[rint(1)]
+!endif
+tmp0=!randint $val10, $val9
+
+val11=$[rint($(tmp0))]
+val11=$[$val11 / 100]
+val12=et
+val13=Soit une probabilité,sur un univers,et deux événements,tels que\(\;\)
+val14=Calculer
+!if $val6=it 
+val12=e
+val13=Data una probabilità,definita su un universo,e due eventi,tali che
+val14=Calcola
+!endif
+val15=$[1-$val7]
+val16=$[1-$val8]
+val17=$[$val7+$val8 -$val11]
+val18=$[1-$val17]
+val19=$[1-$val11]
+val20=$[$val7-$val11]
+val21=$[$val15-$val18]
+val22=$[$val11+$val20+$val18]
+val23=\(P(A) = $val7,\)   \(P(B) = $val8\) $val12 \(P(A \cup B)\) = $val17,\(P(A \cap B)\),$val11	\(P(A) = $val7,\) \(P(B) = $val8\) $val12 \(P(A \cap B)\) = $val11,\(P(A \cup B)\),$val17	\(P(A) = $val7,\)  \(P(A \cup B) = $val17\) $val12 \(P(A \cap B)\) = $val11,\(P(B)\),$val8	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cup B)\) = $val17,\(P(A \cap \bar{B})\),$val20	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cup B)\) = $val17,\(P(A \cup \bar{B})\),$val22	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cup B)\) = $val17,\(P(\bar{A} \cup \bar{B})\),$val19	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cup B)\) = $val17,\(P(\bar{A} \cap \bar{B})\),$val18	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cap B)\) = $val11,\(P(A \cap \bar{B})\),$val20	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cap B)\) = $val11,\(P(A \cup \bar{B})\),$val22	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cap B)\) = $val11,\(P(\bar{A} \cup \bar{B})\),$val19	\(P(A) = $val7,\)  \(P(B) = $val8\) $val12 \(P(A \cap B)\) = $val11,\(P(\bar{A} \cap \bar{B})\),$val18	
+val24=
+tmp0=!randint 1, 3
+
+val25=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val23
+
+tmp=!row $val25 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+val27=$(val26[1])
+val28=$(val26[2])
+val29=$[$(val26[3])]
+val30=<table><tr><td>&nbsp;</td><td> B </td><td> non B </td><td>total</td></tr>	<tr><td>A</td><td>$val11</td><td>$val20</td><td>$val7</td></tr>	<tr><td>non A</td><td>$val21</td><td>$val18</td><td>$val15</td></tr>	<tr><td>&nbsp;</td><td>$val8</td><td>$val16</td></tr></table>
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=$val28
+replygood1=$val29
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $(val13[1]) \(P\) $(val13[2]) \(\Omega\;\) $(val13[3]) $val24 \(A\) $val12 \(B\), $(val13[4]): \begin{center} $val27. \end{center} $val14 $val28. \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	 $(val13[1]) 
+!insmath P
+$() $(val13[2]) 
+!insmath \Omega\;
+$() $(val13[3]) $val24 
+!insmath A
+$() $val12 
+!insmath B
+$(),	 $(val13[4]):	<div class="wimscenter"> $val27. </div>	<label for="reply1">$val14 $val28</label> =  
+!read oef/embed.phtml reply1,5 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $(val13[1]) 
+!insmath P
+$() $(val13[2]) 
+!insmath \Omega\;
+$() $(val13[3]) $val24 
+!insmath A
+$() $val12 
+!insmath B
+$(), $(val13[4]): $m_begin{center} $val27. $m_end{center} $val14 $val28. $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14,24,27,28
+embedcnt=1

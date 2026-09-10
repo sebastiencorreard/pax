@@ -1,0 +1,88 @@
+\title{Suite arithmétique ou géométrique ?}
+\language{fr}
+\range{-5..5}
+\author{Véronique Royer}
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+
+\text{goodrep=shuffle(Exact,Bien,Juste,Bravo,Bonne réponse,Oui)}
+\text{erreur=shuffle(Erreur,Faux,Inexact,Mauvaise réponse,Non)}
+\integer{q=randint(10..100)}
+\real{q=randitem(0,0.5,0.5)+\q*0.01}
+\real{r0=randint(1..10)+randint(1..9)*0.1}
+\integer{s0=randitem(1,-1)}
+\text{add=\s0>0? + : - }
+\real{r=\s0*\r0}
+\integer{u1=random(1..100)}
+\text{natures=arithmétique, géométrique, ni arithmétique ni géométrique}
+\text{formules=\u1+\r*(n-1),\u1*\q^(n-1),\u1*\q^n+\r*(n-1)}
+\integer{\cas=randitem(1,1,1,2,2,2,3)}
+
+\real{raison=item(\cas,\r,\q)}
+\text{plusr=\raison>0?+ \raison: \raison}
+\function{nature=item(\cas,\natures)}
+\function{u=item(\cas,\formules)}
+\text{test=item(\cas, en ajoutant, en multipliant par, ni en ajoutant ni en multipliant par)}
+\real{u2=evaluate(\u,n=2)}
+\real{u3=evaluate(\u,n=3)}
+\real{u4=evaluate(\u,n=4)}
+\real{u5=evaluate(\u,n=5)}
+\real{rep3=pari(0.001*round(1000*\u5))}
+\integer{n=randint(10..20)}
+\real{un=evaluate(\u,n=\n)}
+\real{rep4=pari(0.001*round(1000*\un))}
+
+\text{etapes=\cas!=3?reply1
+reply2
+reply3,reply4}
+\text{etapes=\cas=3?reply1}
+\steps{\etapes}
+
+\statement{
+<div style="background-color:#FFFF66">
+
+<p>On donne les quatre nombres suivants :
+ <center><font color=blue>\(u_1) = \u1 ; \(u_2) = \u2 ; \(u_3) = \u3 ; \(u_4) = \u4</font> </center>
+</p>
+<ul>
+\if{\step>=1}{
+<li>Ce sont les quatre premiers termes d'une suite : \embed{reply1}.</li>
+}
+\if{\step>=2}{
+   \if{\reply1=\nature}
+      {<font color=green> \goodrep[1] !</font><p>}
+     {<font color=red> \erreur[1]... Ce sont  les premiers termes d'une suite \nature, car on passe d'un terme au suivant \test un nombre constant.</font><p>}
+   <li>La raison de cette suite est : \embed{reply2,5}.</li>
+}
+
+\if{\step>=3}{
+   \if{\reply2=\raison}
+      {<font color=green>\goodrep[2] !</font>}
+      {<font color=red>\erreur[2]... La raison de cette  suite est \(\raison).
+        \if{\cas=1}{On a  :  \(u_2 = u_1 \add \r0) ; \(u_3 = u_2 \add \r0) ; \(u_4 = u_3 \add \r0) ; etc. }
+        \if{\cas=2}{On a  :  \(u_2 = u_1 \times \raison) ; \(u_3 = u_2 \times \raison) ; \(u_4 = u_3 \times \raison) ; etc.}
+      </font>}
+   <li> En continuant la suite, on aurait :
+<center> \(u_5) = \embed{reply3, 10}  &nbsp; et &nbsp; \(u_{\n}) = \embed{reply4, 10}
+ \if{\cas=2}{ &nbsp;(valeurs arrondies au millième)}{ &nbsp;(valeurs exactes)}
+</center>
+</li>
+}
+</ul>
+</div>}
+
+\answer{Nature}{\cas;\natures}{type=radio}{option=nonstop}
+\answer{Raison }{\raison}{type=numeric}{option=nonstop}
+\answer{\(u_4)}{\rep3}{type=numeric}
+\answer{\(u_\n)}{\rep4}{type=numeric}
+
+\feedback{\step=3 and (\reply3!=\rep3 or \reply4!=\rep4)}{
+  <font color=red>\erreur[3] à la dernière question... <br>La suite étant \nature de raison \raison on applique la formule  :
+  \if{\cas=1}{\(u_n = u_1 \add (n-1)\times\r0)}{\(u_n = u_1 \times \q^{n-1})}. <br>
+
+  \if{\cas=1}{\(u_5 = u_1 \add 4\times\r0=\rep3)  &nbsp;et&nbsp; \(u_{\n} = u_1 \add (\n-1)\times\r0=\rep4)}
+              {\(u_5 = u_1 \times \q^{4} \simeq \rep3) &nbsp;et&nbsp; \(u_{\n} = u_1 \times \q^{\n-1} \simeq \rep4)  en arrondissant au millième.}
+ </font>
+}

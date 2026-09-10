@@ -1,0 +1,98 @@
+target=trigo
+#include "lang_titles.inc"
+#include "author.inc"
+\precision{10000}
+\text{liste= 0,pi/2
+pi/2,pi
+pi,3*pi/2
+3*pi/2, 2*pi
+}
+\text{chx=random(1,2,3,4)}
+\text{chy=random(1,2,3,4)}
+\text{ux=item(1,row(\chx,\liste))}
+\text{vx=item(2,row(\chx,\liste))}
+\text{uy=item(1,row(\chy,\liste))}
+\text{vy=item(2,row(\chy,\liste))}
+\real{x=random(\ux..\vx)}
+\real{y=random(\uy..\vy)}
+\text{sincosx=random(sin,cos)}
+\text{sincosy=random(sin,cos)}
+\real{a=\sincosx(\x)}
+\real{b=\sincosy(\y)}
+\text{eps=random(1,-1)}
+\function{expr= simplify(random(sin((\eps)*x + y), cos((\eps)*x + y),
+ tan((\eps)*x + y)))}
+ \text{f=simplify((\eps)*x + y)}
+\real{A=\sincosy(2*\y)}
+\function{expr2= simplify(\sincosy(2*y))}
+\real{sol=evalue(\expr,x=\x,y=\y)}
+\text{pointx=cos(\x),sin(\x)}
+\text{pointy=cos(\y),sin(\y)}
+\text{point1=cos((\eps)*\x+\y),sin((\eps)*\x+\y)}
+\text{point2=cos(2*\y),sin(2*\y)}
+!!laisser ici
+
+#include "lang.inc"
+\statement{\name_instruction
+}
+\answer{\(\expr)}{\sol}{type=numeric}
+\answer{\(\expr2)}{\A}{type=numeric}
+
+\text{dessin=}
+\if{\reply1<>\sol}{
+	\if{sin isin \expr and abs(\reply1) <=1}{\text{dessin=\dessin
+	hline 0, \reply1, red}}
+ \if{cos isin \expr and abs(\reply1) <=1}{\text{dessin=\dessin
+ vline \reply1, 0, red}}
+\if{tan isin \expr}{\text{dessin=\dessin
+xrange -1.5,1.5
+yrange -1.5,1.5
+plot red, (\reply1)*x
+}}
+}
+\if{\reply2<>\A}{
+	\if{sin isin \expr2 and abs(\reply2) <= 1}{\text{dessin=\dessin
+	hline 0, \reply2, magenta}
+}
+\if{cos isin \expr2 and abs(\reply2) <= 1}{\text{dessin=\dessin
+ vline \reply2,0, magenta}
+}
+}
+\feedback{((sin isin \expr or cos isin \expr ) and abs(\reply1) > 1 )
+ or ((sin isin \expr2 or cos isin \expr2 ) and abs(\reply2) > 1)}{\name_feed1}
+
+\feedback{1=1}{\name_feed2
+\(exp(i*x), exp(i*y), exp(i*(\f)), exp(2*i*y)). <br>
+
+\if{\reply1 <> \sol and ( ( abs(\reply1) <= 1 and s isin \expr) or (tan isin \expr))}
+{\name_feed3 \(exp(i*(\f))).
+}
+\if{\reply2 <> \A and abs(\reply2) <= 1}{
+<br>\name_feed4 \(exp(2*i*y)).
+}
+<div class="wimscenter">\draw{200,200}{
+ xrange -1.5,1.5
+ yrange -1.5,1.5
+ trange -1,1
+ hline 0,0,black
+ vline 0,0,black
+	plot blue, cos(2*pi*t),sin(2*pi*t)
+	linewidth 6
+	point \pointx, blue
+	text black, \pointx , medium,A
+	point \pointy, blue
+	point \point1, green
+	point \point2, green
+	text black, \pointy,medium,B
+	text black, \point1, medium,C
+	text black, \point2, medium,D
+	linewidth 1
+	segment 0,0,\pointx,blue
+	segment 0,0,\pointy,blue
+	segment 0,0,\point1,green
+	segment 0,0,\point2,green
+	linewidth 2
+	\dessin
+}
+</div>
+}

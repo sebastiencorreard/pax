@@ -1,0 +1,178 @@
+target=prsurj
+
+#include "xiao.inc"
+\computeanswer{no}
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\text{fg=shuffle(f,g,h)}
+\text{f=\fg[1]}
+\text{g=\fg[2]}
+\text{ij=shuffle(I,J,K,L)}
+\text{I=\ij[1]}
+\text{J=\ij[2]}
+\text{xy=shuffle(x,y,u,v,s,t)}
+\text{x=\xy[1]}
+\text{y=\xy[2]}
+\text{forall=random(chaque,tout(e))}
+
+\text{g1=Soit \(\x) {un élément {,quelconque} de,\(\in)} \(\I).}
+\text{g2={Je prends,Soit} \(\y = \f(\x)).}
+\text{g3={Comme,Parce que,Puisque} \(\g) est la réciproque de \(\f)&#44;<br>
+ \(\x = \g(\y)).}
+\text{g4=Donc \(\x) {est une image de,a un antécédent \(\y) par} \(\g).}
+\text{b1=Soit \(\x) {un élément {,quelconque} de,\(\in)} \(\J).,
+ {Je prends,Soit} \(\y = \g(\x)).,
+ {Comme,Parce que,Puisque} \(\f) est {injective,surjective,bijective}&#44;<br>
+  \(\x = \g(\y)).,
+ {Comme,Parce que,Puisque} \(\g) est la réciproque de \(\f)&#44;<br>
+  \(\x = \f(\y)).
+}
+
+\text{good=wims(singlespace wims(embraced randitem \g1,\g2,\g3,\g4))}
+\text{bad=wims(singlespace wims(embraced randitem \b1))}
+\text{goodcnt=items(\good)}
+\text{all=\good,\bad}
+
+\text{but=}
+\text{test1=}
+\text{nextstep=r1}
+\nextstep{\nextstep}
+\text{this=1}
+\text{size2=360x50x1}
+
+\statement{Soient \(\I,\J) deux intervalles, \(\f : \I -> \J) une fonction bijective,
+et soit \(\g : \J -> \I) sa réciproque.
+\if{\this=1}{Montrer que \(\g) est surjective.
+<p>
+Composez d'abord ce qu'il faut montrer concrètement en cliquant sur les groupes de
+mots donnés plus bas.
+</p>
+\embed{r1,6}
+\exit{}
+}
+Composez une démonstration de la surjectivité de \(\g) à l'aide des
+phrases données plus bas.
+<p>
+Il faut montrer que <span class="wims_emph">\but</span>.
+</p>
+\if{\status issametext end}{<!-- \embed{r1} -->}
+<ol>
+<li>\embed{r2,\size2}</li>
+<li>\embed{r3,\size2}</li>
+<li>\embed{r4,\size2}</li>
+<li>\embed{r5,\size2}</li>
+</ol>
+}
+
+\answer{Le but}{\none;\forall,élément de \(\I),est un(e),image de \(\g),
+élément de \(\J),image de \(\f),a un(e),antécédent par \(\f),
+antécédent par \(\g),il existe un(e),seul(e),qui}{type=compose}
+\answer{Etape 1}{\t1;\all}{type=dragfill}
+\answer{Etape 2}{\t2}{type=dragfill}
+\answer{Etape 3}{\t3}{type=dragfill}
+\answer{Etape 4}{\t4}{type=dragfill}
+
+\if{\step=2}{
+ \text{but=wims(singlespace wims(items2words \reply1))}
+ \text{but=wims(replace internal (e) image by e image in \but)}
+ \text{but=wims(replace internal (e) by in \but)}
+ \text{but2=wims(replace internal a un antécédent par by est une image de in \but)}
+ \text{chaque=wims(replace internal (e) by in \forall)}
+ \text{chaquee=wims(replace internal (e) by e in \forall)}
+ \if{\but2 issametext \chaque élément de \(\I) est une image de \(\g)}{
+  \text{nextstep=r2,r3,r4,r5}
+  \text{test1=good}
+  \text{this=2}
+ }{
+  \text{nextstep=}
+  \integer{repcnt=items(\reply1)}
+  \text{test1=bad}
+  \text{test1=(a notwordof \but2 and est notwordof \but2)
+   or (\chaque notin \but2 and exist notwordof \but2)?
+   grammar}
+  \text{test1=\but2 issametext
+   \chaque élément de \(\J) est une image de \(\f)?
+   surjf}
+  \text{test1=\but2 issametext
+   \chaquee image de \(\g) est un élément de \(\J)
+   or \but2 issametext
+   \chaque élément de \(\J) est une image de \(\g)?
+   domaing}
+  \text{test1=\but2 issametext
+   \chaquee image de \(\f) est un élément de \(\I)
+   or \but2 issametext
+   \chaque élément de \(\I) est une image de \(\f)?
+   domainf}
+  \text{test1=\but2 issametext
+   \chaquee image de \(\g) est un élément de \(\I)
+   or \but2 issametext
+   \chaquee image de \(\f) est un élément de \(\J)
+   or \but2 issametext
+   \chaque élément de \(\J) est un antécédent par \(\g)
+   or \but2 issametext
+   \chaque élément de \(\I) est un antécédent par \(\f)?
+   always}
+ }
+}
+\if{\step>2}{
+ \text{test1=good}
+ \integer{this=3}
+ \text{r1=positionof(\t1,\all)}
+ \text{r2=positionof(\t2,\all)}
+ \text{r3=positionof(\t3,\all)}
+ \text{r4=positionof(\t4,\all)}
+ \text{but1=wims(word 1 to 5 of \but)}
+}
+
+\condition{La démonstration est bien construite}
+{\test1 issametext good and \r1\r2\r3\r4 iswordof 1234}
+
+\feedback{\test1 issametext bad}{
+ Revoyez la définition de la surjectivité d'une fonction.
+}
+\feedback{\test1 issametext grammar}{
+ Votre phrase est incomplète. Soyez sérieux.
+}
+\feedback{\test1 issametext surjf}{
+ Votre phrase signifie la surjectivité de \(\f), au lieu de celle de
+ \(\g)&nbsp;!
+}
+\feedback{\test1 issametext domaing}{
+ Les images de \(\g) vivent dans l'intervalle \(\I), mais pas dans \(\J).
+}
+\feedback{\test1 issametext domainf}{
+ Les images de \(\f) vivent dans l'intervalle \(\J), mais pas dans \(\I).
+}
+\feedback{\test1 issametext always}{
+  Ce que vous dites est vrai pour n'importe quelle fonction. Pas besoin d'être
+ surjective.
+}
+
+\feedback{\step>2 and \r1!=1}{
+  La première étape est mauvaise.
+  <p>
+  Vous voulez montrer <span class="wims_emph">\forall élément de \(\I) ...</span>. Alors il fallait
+  commencer par définir un élément quelconque de \(\I).
+  </p>
+}
+\feedback{\step>2 and \r1=1 and \r2=6}{
+  La deuxième étape est mauvaise : \(\g(\x)) n'a pas de sens si \(\x)
+  n'appartient pas à \(\J).
+}
+\feedback{\step>2 and \r1=1 and \r2 isin 3478}{
+  La deuxième étape est mauvaise : vous avez fait référence à \(\y)
+  sans l'avoir défini d'abord.
+}
+\feedback{\step>2 and \r1=1 and 5 isin \r2\r3\r4}{
+  Redéfinition de \(\x)&nbsp;! Qu'est-ce que vous voulez dire au juste&nbsp;?
+}
+\feedback{\step>2 and \r1\r2=12 and 7 isin \r3\r4}{
+  L'injectivité ou la surjectivité de \(\f) n'a rien à voir ici. Révisez bien
+  les définitions.
+}
+\feedback{\step>2 and \r1\r2=12 and \r4!=4}{
+  Mauvaise conclusion : la dernière étape ne donne pas ce que vous vouliez
+  démontrer.
+}
+

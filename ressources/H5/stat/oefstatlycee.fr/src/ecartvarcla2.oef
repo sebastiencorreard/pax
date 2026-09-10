@@ -1,0 +1,98 @@
+\title{Moyenne et écart-type avec des classes II}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{yes}
+\format{html}
+\precision{100}
+
+\integer{nb=6}
+\integer{neff=random(10..25)}
+\text{heure=0,2,4,6,11,16,26}
+
+\text{eff=slib(stat/random \nb-2, 0,\neff)}
+\real{S=slib(stat/sum \eff)}
+\integer{i=100-\S}
+\integer{j=random(0..\i)}
+\text{eff=wims(append item \j to \eff)}
+\integer{j=\i-\j}
+\text{eff=wims(append item \j to \eff)}
+\text{eff=wims(sort reverse numeric item \eff)}
+text{eff=shuffle(\eff)}
+
+##text{moy=item(1,slib(stat/arithmean [\heure],[\eff]))}
+\real{moy=0}
+\for {i=1 to \nb}{
+    \real{moy=\moy+(\heure[\i]+\heure[\i+1])*\eff[\i]/200}
+  }
+\real{varian=0}
+\for{i=1 to \nb}{
+ \real{varian=\varian+\eff[\i]*((\heure[\i]+\heure[\i+1])/2-\moy)^2/100}
+ }
+\real{sigm=sqrt(\varian)}
+
+\text{liste=wims(sort  numeric item \eff)}
+\text{maxi=item( -1 ,  \liste)}
+\text{mini=item( 1 ,  \liste)}
+\real{etendue=\maxi-\mini}
+\real{S=slib(stat/sum \eff)}
+
+\text{table=<table class="wimscenter wimsborder" style="background-color:skyblue">
+	 <tr>}
+\text{table=\table<th>Nombre de salariés </th><th> Pourcentage d'entreprises</th></tr>}
+
+\for{a=1 to \nb}{
+\text{table=\table <tr><td> &#91; \heure[\a] &#59; \heure[\a+1] &#91; </td><td> \eff[\a] % </td></tr>}
+}
+\text{table=\table </table>}
+
+
+## préparation de la solution
+\text{tablefeed=<table class="wimscenter wimsborder" style="background-color:MistyRose">
+	 <tr>}
+\text{tablefeed=\tablefeed <th>centre des classes </th><th> Pourcentage d'entreprises</th></tr>}
+\text{tmoy=}
+
+\for{a=1 to \nb}{
+\rational{centre=(\heure[\a]+\heure[\a+1])/2}
+\text{tablefeed=\tablefeed <tr><td> \centre </td><td> \eff[\a] % </td></tr>}
+\text{tmoy=\tmoy+\centre \times \eff[\a]}
+}
+\text{tablefeed=\tablefeed </table>}
+
+
+
+\real{S=\S*0.5}
+\real{M=item(1,\eff)}
+\for{i=1 to \nb}{
+\if{\M<\S}{\real{M=\M+item(\i+1,\eff)}
+  \integer{m=\i}}
+}
+
+
+\statement{<p>
+On a relevé le nombre de salariés dans les entreprises artisanales en
+France à une certaine date:</p>
+ \table
+<p>
+Calculer  pour cette série statistique:</p>
+ <table>
+  <tr>
+   <th> la moyenne :</th><td> \embed{reply 1, 6}</td>
+  </tr>
+  <tr>
+   <th> l'écart-type :</th><td> \embed{reply 2, 6}</td>
+ </tr>
+</table>
+Les valeurs seront données au centième près.
+}
+
+\answer{Moyenne}{\moy}{type=numeric}
+\answer{Ecart-type}{\sigm}{type=numeric}
+\feedback{\reply1!=\moy or \reply2 != \sigm}
+{Pour calculer la moyenne de cette série, il faut pondérer les centres des classes par les fréquences:<br>
+\tablefeed<br>
+Ce qui donne: \(\mu) = \(\frac{\tmoy}{100})<p>
+L'écart-type est donné par la calculatrice grâce au tableau précédent.
+}

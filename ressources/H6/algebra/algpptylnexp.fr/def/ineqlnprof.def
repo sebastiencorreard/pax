@@ -1,0 +1,325 @@
+!set title=Inéquation résolue en ln
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+varcnt=75
+prevarcnt=74
+postvarcnt=0
+replycnt=0
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,-1
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val7=$[rint($(tmp0)*$val6)]
+tmp0=!randitem 1,-1
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 0, 20
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9*$val8)]
+tmp0=!randitem 1,-1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val12=$[rint($(tmp0)*$val11)]
+!if $val7=$val12 
+val12=$[rint($val12 +$val11 )]
+!endif
+tmp0=!randint -10, 10
+
+val13=$[rint($(tmp0))]
+tmp=!nonempty items x,y,z,t
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+
+!ifval ($val10=0)
+val15=!rawmath $val7$val14
+!else
+val15=!rawmath $val7$val14+$val10
+!endif
+tmp0=!texmath $val15
+
+val16=$(tmp0)
+
+!ifval ($val13=0)
+val17=!rawmath $val12$val14
+!else
+val17=!rawmath $val12$val14+$val13
+!endif
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+tmp=!nonempty items <,>
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+tmp0=!positionof item $val19 in <,>
+
+val20=$(tmp0)
+
+!ifval $val7>0
+val21=>
+!else
+val21=<
+!endif
+t_=!rawmath -$val10/$val7
+val22=!exec pari print($t_)
+!if $val21 issametext < 
+val23=&#93; -&#8734; ; $val22 &#91;
+!else
+val23=&#93; $val22 ; +&#8734;&#91;
+!endif
+
+!ifval $val12>0
+val24=>
+!else
+val24=<
+!endif
+t_=!rawmath -$val13/$val12
+val25=!exec pari print($t_)
+!if $val24 issametext < 
+val26=&#93; -&#8734; ; $val25 &#91;
+!else
+val26=&#93; $val25 ; +&#8734;&#91;
+!endif
+!if $val21 issametext $val24 
+!if $val21 issametext < 
+val27=$[rint(4)]
+val28=-&#8734;
+
+!ifval ($val22<$val25)
+val29=$val22
+!else
+val29=$val25
+!endif
+!else
+val27=$[rint(3)]
+
+!ifval ($val22<$val25)
+val28=$val25
+!else
+val28=$val22
+!endif
+val29=+&#8734;
+!endif
+!else
+!if $val21 issametext < 
+!if $val22<$val25 
+val27=$[rint(1)]
+!else
+val27=$[rint(2)]
+val28=$val25
+val29=$val22
+!endif
+!else
+!if $val22<$val25 
+val27=$[rint(2)]
+val28=$val22
+val29=$val25
+!else
+val27=$[rint(1)]
+!endif
+!endif
+!endif
+
+!ifval ($val27=1)
+val30= &#8709; 
+!else
+val30= &#93; $val28, $val29 &#91;
+!endif
+val31=$[rint($val7-$val12)]
+val32=$[rint($val13-$val10)]
+
+!ifval ($val31>0)
+val33=$val19
+!endif
+
+!ifval ($val31<0 && $val20=1)
+tmp0=!item 2 of <,>
+
+val33=$(tmp0)
+!endif
+
+!ifval ($val31<0 && $val20=2)
+tmp0=!item 1 of <,>
+
+val33=$(tmp0)
+!endif
+t_=!rawmath $val32/$val31
+val34=!exec pari print($t_)
+!if $val33 issametext < 
+val35=&#93; -&#8734;, $val34 &#91;
+!else
+val35=&#93; $val34, +&#8734;&#91;
+!endif
+val36=ln($val15) $val19 ln($val17) 
+!if $val27=1 
+val37=$[rint(1)]
+!endif
+!if $val27=2 
+!if $val33 issametext < 
+!if $val34<=$val28 
+val37=$[rint(1)]
+!endif
+!if $val34>=$val29 
+val37=$[rint(2)]
+val38=$val28 ; $val29
+!endif
+!if $val34>$val28 && $val34<$val29 
+val37=$[rint(2)]
+val38=$val28 ; $val34
+!endif
+!else
+!if $val34>=$val29 
+val37=$[rint(1)]
+!endif
+!if $val34<=$val28 
+val37=$[rint(2)]
+val38=$val28 ; $val29
+!endif
+!if $val34>$val28 && $val34<$val29 
+val37=$[rint(2)]
+val38=$val34 ; $val29
+!endif
+!endif
+!endif
+!if $val27=3 
+!if $val33 issametext < 
+!if $val34<=$val28 
+val37=$[rint(1)]
+!endif
+!if $val34>$val28 
+val37=$[rint(2)]
+val38=$val28 ; $val34
+!endif
+!else
+!if $val34<=$val28 
+val37=$[rint(3)]
+val38=$val28 ; +&#8734;
+!endif
+!if $val34>$val28 
+val37=$[rint(3)]
+val38=$val34 ; +&#8734;
+!endif
+!endif
+!endif
+!if $val27=4 
+!if $val33 issametext < 
+!if $val34>=$val29 
+val37=$[rint(4)]
+val38=-&#8734; ; $val29
+!endif
+!if $val34<$val29 
+val37=$[rint(4)]
+val38=-&#8734; ; $val34
+!endif
+!else
+!if $val34>=$val29 
+val37=$[rint(1)]
+!endif
+!if $val34<$val29 
+val37=$[rint(2)]
+val38=$val34 ; $val29
+!endif
+!endif
+!endif
+val39=&#93; $val38 &#91;
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div>	Résoudre dans 
+!insmath \mathbb{R}
+$() l'inéquation (I) : 
+!insmath $val36
+$() .	</div>	Il s'agit de répondre aux questions suivantes :	<ol><li>	  A quelle condition sur 
+!insmath x
+$() le premier membre de (I) est-il défini ?	</li><li>	  A quelle condition sur 
+!insmath x
+$() le second membre de (I) est-il défini ?	</li><li>Pour 
+!insmath $val14
+$() vérifiant les conditions 1. et 2. ,	  on peut simplifier (I) en une inéquation	 (I') du premier degré.	<br>Poser l'inéquation (I').	Quelles sont les solutions de (I') ?	</li><li>	En déduire l'ensemble des solutions de (I).	(il faut tenir compte des conditions obtenues en 1., 2. et 3.)	</li></ol>	  Voici une résolution détaillée de (I) : 
+!insmath $val36
+$() :	  <p>	  </p><p>	  Pour tout réel 
+!insmath $val14
+$() vérifiant ces deux conditions, on peut ramener	  (I) à une inéquation du premier degré	  en appliquant la règle	  
+!insmath \ln(u) $val19 \ln(v) \Longleftrightarrow u $val19 v
+$(),	  on obtient :	  </p><div class="wimscenter">	  (I) 
+!insmath \Longleftrightarrow $val16 $val19 $val18 \Longleftrightarrow $val31$val14 $val19 $val32	  \Longleftrightarrow $val14 $val33 $val34
+$().	</div>	Les réels 
+!insmath $val14
+$() solutions de (I) doivent donc vérifier les trois inégalités :	<div class="wimscenter">	  
+!insmath $val14 $val21 $val22
+$() et 
+!insmath $val14 $val24 $val25
+$()	  et 
+!insmath $val14 $val33 $val34
+$().	  </div>	  Chaque inégalité définit un intervalle,	  l'ensemble des solutions est l'intersection des	  trois intervalles.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,16,18,19,21,22,24,25,31,32,33,34,36
+embedcnt=0

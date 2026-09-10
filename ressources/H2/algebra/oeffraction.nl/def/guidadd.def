@@ -1,0 +1,302 @@
+!set title=Stapsgewijs optellen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+author=XIAO, Gang
+email=xiao@unice.fr
+computeanswer=no
+precision=10000
+computeanswer=no
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=30
+prevarcnt=24
+postvarcnt=5
+replycnt=12
+choicecnt=0
+conditioncnt=2
+feedbackcnt=8
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 8,9,10,12,14,15,16
+
+val6=$[rint($(tmp0))]
+tmp0=!randint $val6/2+1, $val6-1
+
+tmp1=!randint $val6+1, 2*$val6-1
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val7=$[rint($(tmp2))]
+tmp0=!randint 2, 1.5*$val6
+
+val8=$[rint($(tmp0))]
+
+!ifval gcd($val8,$val6)>1
+val8=$[rint($val8+1)]
+!endif
+tmp0=!randint 2, 1.5*$val7
+
+val9=$[rint($(tmp0))]
+
+!ifval gcd($val9,$val7)>1
+val9=$[rint($val9+1)]
+!endif
+val10=<HR noshade size=2>
+val11=
+val12=$[rint(0)]
+val13=<font size=+2>
+val14=</font>
+val15=alleen de teller,alleen de noemer,	zowel de teller als de noemer
+tmp0=!randitem Maak de breuken gelijknamig,	    Verander de breuken zo dat ze dezelfde noemer krijgen	
+
+val16=$(tmp0)
+val17=$val16,	    Verander de breuken zo dat ze dezelfde teller krijgen,	    Tel eerst de tellers op,	    Tel eerst de noemers op,	    Tel de tellers op en vermenigvuldig de noemers,	    Vermenigvuldig de tellers	
+tmp0=!itemcnt $val17
+
+val18=$[rint($(tmp0))]
+tmp0=!shuffle $val18
+
+val19=$(tmp0)
+tmp0=!positionof item 1 in $val19
+
+val20=$[rint($(tmp0))]
+tmp0=!item $val19 of $val17
+
+val17=$(tmp0)
+val21=Tel de tellers op en houdt de noemers gelijk,	 Tel de tellers op en tel de noemers op		
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+tmp0=!shuffle $val22
+
+val23=$(tmp0)
+tmp0=!positionof item 1 in $val23
+
+val24=$[rint($(tmp0))]
+tmp0=!item $val23 of $val21
+
+val21=$(tmp0)
+val25=r1
+dynsteps=yes
+oefsteps=$val25 
+nextstep=!nosubst $val25 
+!readproc oef/steps.proc
+replytype1=click
+replyname1=Methode stap 1
+replygood1=$val20;$val17
+replytype2=menu
+replyname2=Te vermenigvuldigen object 1
+replygood2=3;$val15
+replytype3=numeric
+replyname3=Vermenigvuldiging 1
+replygood3=?analyze 26
+replytype4=menu
+replyname4=Te vermenigvuldigen object 2
+replygood4=3;$val15
+replytype5=numeric
+replyname5=Vermenigvuldiging 2
+replygood5=?analyze 27
+replytype6=numeric
+replyname6=Nieuwe teller 1
+replygood6=?analyze 28
+replytype7=numeric
+replyname7=Nieuwe noemer 1
+replygood7=?analyze 29
+replytype8=numeric
+replyname8=Nieuwe teller 2
+replygood8=?analyze 30
+replytype9=numeric
+replyname9=Nieuwe noemer 2
+replygood9=?analyze 31
+replytype10=click
+replyname10=Methode stap 2
+replygood10=$val24;$val21
+replytype11=numeric
+replyname11=Teller van de som
+replygood11=?analyze 32
+replytype12=numeric
+replyname12=Noemer van de som
+replygood12=?analyze 33
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Tel de volgende breuken op.	<p><center>	
+!insmath $val8/($val6) + $val9/($val7)
+$()	</center> <p>	 
+!if $m_step=1 
+$()	 Maak een keuze uit &eacute;&eacute;n van de volgende stappen:<ul>	  
+!for m_k=1 to $val18 
+$() <li> 
+!read oef/embed.phtml r1,\k 
+$()  
+!next
+$()	 </ul>	 
+!exit
+{}	 
+!endif
+$()	 
+!if $m_step=2 or $val12<1 
+$()	 Etape 1. Maak de breuken gelijknamig (zelfde noemer).	 <p>	 Vermenigvulig  
+!read oef/embed.phtml r2 
+$() van 
+!insmath $val8/($val6)
+$() met  
+!read oef/embed.phtml r3,3 
+$(), dan krijg je	 <p><center><table border=0 cellpadding=3>	  <tr>	  <td align=center>$val8<td rowspan=3>&nbsp;$val13=$val14&nbsp;	  <td align=center> 
+!read oef/embed.phtml r6,3 
+$()	  <tr><td>$val10<td>$val10	  <tr><td align=center>$val6	  <td align=center> 
+!read oef/embed.phtml r7,3 
+$()	 </table></center> <p>	 Vermenigvuldig  
+!read oef/embed.phtml r4 
+$() van 
+!insmath $val9/($val7)
+$() met  
+!read oef/embed.phtml r5,3 
+$(), dan krijg je	 <p><center><table border=0 cellpadding=3>	  <tr>	  <td align=center>$val9<td rowspan=3>&nbsp;$val13=$val14&nbsp;	  <td align=center> 
+!read oef/embed.phtml r8,3 
+$()	  <tr><td>$val10<td>$val10	  <tr><td align=center>$val7	  <td align=center> 
+!read oef/embed.phtml r9,3 
+$()	 </table></center> <p>	 
+!exit
+{}	 
+!endif
+$()	 Etape 1. Je hebt 
+!insmath $val8/($val6) = $(val11[1])/($(val11[2]))
+$() en	 
+!insmath $val9/($val7) = $(val11[3])/($(val11[4]))
+$(), dan wordt de som	 <p><center>	  
+!insmath $(val11[1])/($(val11[2])) + $(val11[3])/($(val11[4]))
+$() .	 </center> <p>	  
+!if $m_step=3 
+$()	  Wat wordt de volgende stap?<ul>	   
+!for m_k=1 to $val22 
+$() <li> 
+!read oef/embed.phtml r10,\k 
+$()  
+!next
+$()	  </ul>	  
+!exit
+{}	  
+!endif
+$()	 Etape 2. Je telt de tellers op en houdt de noemers gelijk, dan wordt de som	 <p><center>	 <table border=0 cellpadding=2>	 <tr><td align=center>$val8	 <td rowspan=3>&nbsp;&nbsp;$val13+$val14&nbsp;&nbsp;</td>	 <td align=center>$val9	 <td rowspan=3>&nbsp;&nbsp;&nbsp;$val13=$val14&nbsp;&nbsp;&nbsp;</td>	 <td align=center>$(val11[1])	 <td rowspan=3>&nbsp;&nbsp;$val13+$val14&nbsp;&nbsp;</td>	 <td align=center>$(val11[3])	 <td rowspan=3>&nbsp;&nbsp;&nbsp;$val13=$val14&nbsp;&nbsp;&nbsp;</td>	 <td align=center> 
+!read oef/embed.phtml r11,4 
+$()	 <tr><td>$val10<td>$val10<td>$val10<td>$val10<td>$val10	 <tr><td align=center>$val6	 <td align=center>$val7	 <td align=center>$(val11[2])	 <td align=center>$(val11[4])	 <td align=center> 
+!read oef/embed.phtml r12,4 
+$()	 </table>	 </center> <p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 
+val25=r2,r3,r4,r5,r6,r7,r8,r9
+!endif
+
+!ifval $val12<1 and $val26>0 and $val26=floor($val26) and $val27>0 and $val27=floor($val27)	    and $val28=$val8*$val26 and $val29=$val6*$val26	    and $val30=$val9*$val27 and $val31=$val7*$val27	    and $val29=$val31
+val12=1
+!endif
+!if $val12>0 
+val11=$val28,$val29,$val30,$val31
+!endif
+!if $m_step=3 and $val12>0 
+val25=r10
+!endif
+!if $m_step=4 
+val25=r11,r12
+!endif
+
+!exit
+
+:feedback
+!ifval $m_step=1 and $m_reply1 notsametext ~$val20
+ <p>	 De twee breuken hebben verschillende noemers. Je kunt de breuken zo niet	 direct optellen. Je moet de breuken eerst gelijknamig maken.	
+$()
+!endif
+!ifval $m_step=2 and ($m_reply2 notsametext ~3 or $m_reply4 notsametext ~3)
+ <p>	 Je moet zowel de teller als de noemer vermenigvuldigen met hetzelfde getal.	 Op deze manier blijft de breuk hetzelfde.	
+$()
+!endif
+!ifval $m_step=3 and ($val26=0 or $val27=0)
+ <p>	 Je kunt de teller en de noemer in een breuk niet vermenigvuldigen met het	 getal 0&nbsp;!	 <p>	 Je krijgt dan een onzinnige ``breuk''. 
+!insmath 0/(0)
+$(),	
+$()
+!endif
+!ifval $m_step=3 and ($val26<0 or $val27<0)
+ <p>	 In deze oefening kun je jammer genoeg niet vermenigvuldigen met een	 negatief getal.	
+$()
+!endif
+!ifval $m_step=3 and $val26>0 and $val27>0 and (\floor($val26)!=$val26 or \floor($val27)!=$val27)
+ <p>	 Je moet de teller en noemer vermenigvuldigen met een geheel getal.	
+$()
+!endif
+!ifval $m_step=3 and $val29=$val6*$val26 and $val31=$val7*$val27 and $val29!=$val31
+ <p>	 Het is de bedoeling de breuken gelijknamig te maken. Je moet dus een zelfde noemer	 krijgen in beide breuken. Met jouw vermenigvuldiging krijg je verschillende noemers.	 Het getal waarmee je vermenigvuldigt hebt is dus fout.	
+$()
+!endif
+!ifval $m_step=3 and ($val29!=$val6*$val26 or $val28!=$val8*$val26 or	        $val31!=$val7*$val27 or $val30!=$val9*$val27)
+ <p>	  Een foute berekening in je vermenigvuldiging.	
+$()
+!endif
+!ifval $m_step=3 and $m_reply10 notsametext ~$val24
+ <p>	 Twee breuken met een zelfde noemer kun je als volgt optellen. Je telt de tellers op en	 laat de noemers gewoon staan.	
+$()
+!endif
+
+!exit
+
+:test
+
+!ifval $val12>0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=De vermenigvuldigingen zijn correct
+
+!ifval $val12>0 and $val32=$val28+$val30 and $val33=$val29
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=De som is goed
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,18,20,22,24,26,27,28,29,30,31,32,33
+embedcnt=12

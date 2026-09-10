@@ -1,0 +1,163 @@
+!set title=Reconstituer un texte 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Philippe, Colpin
+email=jp.colpin@laposte.net
+
+ansorder=r,r,r,r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2,3
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 45, 55
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 4,5,6
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 25, 30
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9 + 12)]
+tmp0=!randint 12, 18
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val6*$val7 + $val8*$val9+$val10)]
+val13=$[rint($val12+$val11)]
+val14=$[rint($val6+$val8+2)]
+val15=$[rint($val14-1)]
+tmp=!trim première,seconde,troisième,quatrième,cinquième,sixième,septième,huitième,neuvième,dixième,onzième
+val16=!translate internal $	\
+$ to ;; in $tmp
+val17=Utilise les opérations pour complèter le texte de ci-dessous: <ul><li>	($val6 x $val7) + ($val8 x $val9) + $val10 = $val12 </li><li>	 $val13 - $val12 = $val11	 </li></ul>		Un randonneur part pour $val14 jours sur un sentier de ??$val13,$val6,$val7,$val8,$val9,$val10,$val12,$val11 ?? km en pleine forêt Guyanaise. Pendant??$val6, $val13,$val7,$val8,$val9,$val10,$val12,$val11?? jours, il est en forme et	parcourt ??$val7,$val13,$val6,$val8,$val9,$val10,$val12,$val11?? km par jour. Mais les?? $val8,$val13,$val6,$val7,$val9,$val10,$val12,$val11?? jours suivants, accablé par la fatigue et la chaleur, il marche	??$val9,$val13,$val6,$val7,$val8,$val10,$val12,$val11?? km par jour.La $(val16[$val15]) journée étant plus fraîche, il réussit à effectuer ??$val10,$val13,$val6,$val7,$val8,$val9,$val12,$val11?? km. Il lui	reste donc ??$val11,$val13,$val6,$val7,$val8,$val9,$val10,$val12?? km avant la fin de sa randonnée.	
+tmp0=!singlespace $val17
+
+val17=$(tmp0)
+tmp0=!embraced randitem $val17
+
+val17=$(tmp0)
+!readproc slib/text/cutchoice2 $val17 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp=!translate internal $	$ to ; in $val17
+
+tmp0=!rowcnt $tmp
+val18=$[rint(min(20,floor($(tmp0)/2)))]
+val19=
+val20=
+!for val21 =1 to $val18 
+val22=$(val17[2*$val21;])
+val23=$(val22[1])
+tmp0=!sort items $val22
+
+val22=$(tmp0)
+tmp0=!positionof item $val23 in $val22
+
+val23=$(tmp0)
+val19=$val19$val23,
+val20=$val20$val22;
+!next
+tmp0=!embraced randitem \pre
+
+val24=$(tmp0)
+tmp0=!embraced randitem \post
+
+val25=$(tmp0)
+tmp0=!makelist reply x for x=1 to $val18
+
+val26=$(tmp0)
+oefsteps=$val26 
+nextstep=!nosubst $val26 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Champ 1
+replygood1=$(val19[1]);$(val20[1;])
+replytype2=menu
+replyname2=Champ 2
+replygood2=$(val19[2]);$(val20[2;])
+replytype3=menu
+replyname3=Champ 3
+replygood3=$(val19[3]);$(val20[3;])
+replytype4=menu
+replyname4=Champ 4
+replygood4=$(val19[4]);$(val20[4;])
+replytype5=menu
+replyname5=Champ 5
+replygood5=$(val19[5]);$(val20[5;])
+replytype6=menu
+replyname6=Champ 6
+replygood6=$(val19[6]);$(val20[6;])
+replytype7=menu
+replyname7=Champ 7
+replygood7=$(val19[7]);$(val20[7;])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val17[1;])	 
+!for m_k=1 to $val18 
+$()	 
+!read oef/embed.phtml r \k,\len 
+$() $(val17[2*$m_k+1;])	 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,18
+embedcnt=1

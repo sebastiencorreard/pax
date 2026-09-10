@@ -1,0 +1,149 @@
+!set title=Rapporteur 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=le sommet opposé au côté, est le sommet,	  le côté opposé au sommet,est le côté 
+tmp=!trim Construire le triangle	  avec les bonnes dimensions sur le brouillon et donner les mesures entières des angles suivants du triangle
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle A,B,C,E,F,G,H,J,K,L,M,N,R,S,T
+
+val8=$(tmp0)
+tmp0=!randint 20, 40
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 160, 180
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 70, $val9+140
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val10)]
+tmp0=!randint $val9, $val11
+
+val13=$[rint($(tmp0))]
+tmp0=!randint $val10-140, $val10-30
+
+val14=$[rint($(tmp0))]
+val15=$[rint(rint(180*atan(($val10-$val14)/($val13-$val9))/pi))]
+val16=$[rint(rint(180*atan(($val10-$val14)/($val11-$val13))/pi))]
+val17=$[rint(180-$val15-$val16)]
+val18=$[($val11-$val9)/10]
+val19=$[rint(sqrt(($val10-$val14)^2+($val13-$val9)^2))/10]
+val20=$[rint(sqrt(($val10-$val14)^2+($val11-$val13)^2))/10]
+val21=$[rint($val15-1)]
+val22=$[rint($val15+1)]
+val23=$[rint($val17-1)]
+val24=$[rint($val17+1)]
+val25=$[rint($val16-1)]
+val26=$[rint($val16+1)]
+!readproc oef/draw.phtml 200,200 \
+line $val9,$val10,$val13,$val14,black	text black,$val9-15,$val10,medium,$(val8[1])	segment $val9,$val10,$val11,$val12,black	text black,$val13,$val14-15,medium,$(val8[2])	segment $val13,$val14,$val11,$val12,black	text black,$val11+10,$val12,medium,$(val8[3]) 
+tmp0=$ins_url
+val27=$(tmp0)
+tmp0=!shuffle $(val8[1]),$(val8[2]),$(val8[3])
+
+val28=$(tmp0)
+tmp=!trim $(val6[1]) [$(val28[1])$(val28[2])]$(val6[2])	  $(val6[3]) $(val28[1]) $(val6[4]) 
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val30=$[rint($(tmp0))]
+!if $val30=1 
+val31=$(val28[3])
+!else
+val31=[$(val28[2])$(val28[3])]|[$(val28[3])$(val28[2])]
+!endif
+tmp=!translate internal $	$ to ; in $val29
+
+tmp=!row $val30 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val29=$(tmp0)
+val32=<img src="$val27" alt="">
+replytype1=case
+replyname1=
+replygood1=$val15|$val21|$val22
+replytype2=case
+replyname2=
+replygood2=$val16|$val25|$val26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col">$val32</div>	 <div class="medium_size text_col">	<ul><li>	$(val8[1])$(val8[3]) = $val18 cm </li><li>	$(val8[1])$(val8[2]) = $val19 cm </li><li>	$(val8[2])$(val8[3]) = $val20 cm</li><li>	
+!insmath \widehat{$(val8[1])$(val8[2])$(val8[3])}
+$()= $val17°	</li></ul>	$(val7[1;]) $(val8[1])$(val8[2])$(val8[3]) $(val7[2;]):	<ul><li>	
+!insmath \widehat{$(val8[2])$(val8[1])$(val8[3])}
+$() =  
+!read oef/embed.phtml r1,4 
+$()°	</li><li>	
+!insmath \widehat{$(val8[1])$(val8[3])$(val8[2])}
+$() =  
+!read oef/embed.phtml r2,4 
+$()°	</li></ul>	</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,17,18,19,20,32
+embedcnt=2

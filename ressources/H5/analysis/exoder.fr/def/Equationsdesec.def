@@ -1,0 +1,160 @@
+!set title=Equations du second degré
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0)^2)]
+tmp0=!randitem -1,-1,-1,1,0
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 2
+
+val9=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in expand($val9*((x+$val6)^2+$val8*$val7))
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+!if $val8<0 
+t_=!replace internal \( by ( in -$val6-sqrt($val7)
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+t_=!replace internal \( by ( in -$val6+sqrt($val7)
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+tmp=!trim $val11,$val12
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=$[rint(2)]
+val15=2 solutions
+!endif
+!if $val8=0 
+t_=!replace internal \( by ( in -$val6
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+tmp=!trim $val11
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=$[rint(1)]
+val15=1 solution
+!endif
+!if $val8>0 
+val14=$[rint(0)]
+!endif
+
+!ifval $val8<=0
+val16=	reply 1	reply 2
+!else
+val16=	reply 1
+!endif
+oefsteps=$val16 
+nextstep=!nosubst $val16 
+!readproc oef/steps.proc
+replytype1=default
+replyname1=Nombre de solutions
+replygood1=$val14
+replytype2=fset
+replyname2=Les solutions
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Résoudre l'équation du second degré:	<div class="wimscenter"> 
+!insmath $val10 = 0
+$() </div>	
+!if $m_step=1 
+$()<div class="wimscenter">	Combien cette équation possède-t-elle de solutions ?  
+!read oef/embed.phtml reply 1,5 
+$()	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()<p>	Effectivement, cette équation possède $val15.</p>	<div class="wimscenter">	L'ensemble des solutions de cette équation est:	  
+!read oef/embed.phtml reply 2,10 
+$()	</div>	<div class="wims_instruction">	<b>Remarque: </b> S'il y a plusieurs solutions, séparer par des virgules.	</div>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()Essayez de vous ramener à une équation du type 
+!insmath x^2+bx=c
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,15
+embedcnt=2

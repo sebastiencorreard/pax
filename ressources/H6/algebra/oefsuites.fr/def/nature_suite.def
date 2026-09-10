@@ -1,0 +1,190 @@
+!set title=Suite arithmétique ou géométrique ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Sénéchal
+email=ericsen@wanadoo.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=arithmétique, géométrique, constante, quelconque
+tmp=!nonempty items 0.1,0.2,0.5,1,1,1,1,1,2,5
+
+tmp0=!randitem $tmp
+val7=$[$(tmp0)]
+tmp=!nonempty items 0,0,0,-1,1,-2,2
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 1000
+
+val9=$[rint($(tmp0))]
+val10=$[$val9]
+val11=$[$val10*$val7+$val8]
+val12=$[$val11*$val7+$val8]
+val13=$[$val12*$val7+$val8]
+val14=$[$val13*$val7+$val8]
+!if $val7=1 and $val8=0 
+val15=3
+!else
+!if $val7=1 
+val15=1
+!else
+!if $val8=0 
+val15=2
+!else
+val15=4
+!endif
+!endif
+!endif
+
+!ifval $val15 issametext 2 
+val16= $val7
+!endif
+
+!ifval $val15 issametext 1 
+val17= arithmétique
+!endif
+
+!ifval $val15 issametext 2 
+val17= géométrique
+!endif
+
+!ifval $val15 issametext 2 
+val18= le rapport \(\frac{u_{n+1}}{u_n})
+!endif
+
+!ifval $val15 issametext 1 
+val18= la différence \(u_(n+1) - u_n)
+!endif
+
+!ifval $val15 issametext 1 
+val16= $val8
+!endif
+
+!ifval $val15 issametext 1 or $val15 issametext 2 
+val19= r1	r2	r3
+!endif
+
+!ifval $val15 issametext 3 or $val15 issametext 4 
+val19= r1
+!endif
+oefsteps=$val19 
+nextstep=!nosubst $val19 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val15;$val6
+replytype2=default
+replyname2=Raison
+replygood2=$val16
+replytype3=default
+replyname3=\(u_4)
+replygood3=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()Voici les premiers termes d'une suite numérique :	 <div class="wimscenter">	  
+!insmath u_0
+$() = $val10 ; 
+!insmath u_1
+$() = $val11 ; 
+!insmath u_2
+$() = $val12 ; 
+!insmath u_3
+$() = $val13	 </div>	Elle est :  
+!read oef/embed.phtml reply1 
+$() 
+!endif
+$()	
+!if $m_step=2 
+$()Voici les premiers termes d'une suite numérique :	<div class="wimscenter">	
+!insmath u_0
+$() = $val10 ; 
+!insmath u_1
+$() = $val11 ; 
+!insmath u_2
+$() = $val12 ; 
+!insmath u_3
+$() = $val13	</div>	<div class="oef_indgood">	Ce sont bien les premiers termes d'une suite $val17 car $val18 des termes consécutifs	est bien un nombre constant !</div>	Quelle est la raison de la suite ? 
+!endif
+$()	
+!if $m_step=3 
+$()Voici les premiers termes d'une suite numérique :	<div class="wimscenter">	 
+!insmath u_0
+$() = $val10 ; 
+!insmath u_1
+$() = $val11 ; 
+!insmath u_2
+$() = $val12 ; 
+!insmath u_3
+$() = $val13	</div>	<class="oef_indgood">	Vous avez pu vérifier que $val18 des termes consécutifs vaut toujours $val16.	</span>	<div class="wimscenter"> C'est la raison de la suite !</div>	Quel est le terme suivant ? 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,16,17,18
+embedcnt=1

@@ -1,0 +1,155 @@
+!set title=getallen en getallenlijn 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+
+ansorder=r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint  2,30 repeat $val6
+
+val7=$(tmp0)
+tmp0=!values  x/5 for x in $val7
+
+val7=$(tmp0)
+tmp0=!randint  2,30 repeat $val6
+
+val8=$(tmp0)
+tmp0=!values  -x/5 for x in $val8
+
+val8=$(tmp0)
+tmp0=!sort numeric item $val7,$val8
+
+val9=$(tmp0)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+val10=
+!for val11 =1 to 2*$val6 
+
+!ifval $val11%2=0
+val12= -1
+!else
+val12=4
+!endif
+tmp0=!item $val11 of $val9
+
+tmp1=!item $val11 of $val9
+
+tmp2=!item $val11 of $val9
+
+val10=$val10	disk  $(tmp0),0,6,blue	text  black,$(tmp1)-0.2,$val12*0.4,medium,$(tmp2)
+!next
+tmp0=!itemcnt $val9
+
+val13=$[$(tmp0)]
+tmp0=!randint 2, $val13-1
+
+val14=$[rint($(tmp0))]
+tmp0=!item $val14 of $val9
+
+tmp1=!item $val14+1 of $val9
+
+tmp2=!randitem 10*$(tmp0)+1,10*$(tmp1)-1
+
+val15=$[$(tmp2)/10]
+val15=$[$val15/10]
+tmp0=!item $val14 of  $val9
+
+val13=$[$(tmp0)]
+tmp0=!item $val14+1 of  $val9
+
+val16=$[$(tmp0)]
+val10=$val10	arrow $val15,3,$val15,0,6,red	text  red,$val15,3,medium,$val15
+tmp0=!shuffle $val9
+
+val17=$(tmp0)
+tmp0=!replace internal , by &nbsp; &nbsp; ;&nbsp;  &nbsp; in $val17
+
+val17=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$val13]
+replytype2=numeric
+replyname2=
+replygood2=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Geef het kleinste interval waarbinnen  $val15  ligt ,<br>	 kies uit de onderstaande lijst getallen.	<p><center> $val17  : </center>		<p>	<center>  
+!read oef/embed.phtml reply 1 
+$()
+!insmath  \leq $val15 \leq 
+$()  
+!read oef/embed.phtml reply 2 
+$() </center>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <p>	<center> 
+!read oef/draw.phtml 800,50 \
+transparent white	xrange -6,6	yrange -2,3	hline black,0,0	arrow  0,0,1,0,10,black	parallel  -6,-0.8,-6,0.4,1/2,0, 120, blue	parallel  -6,-0.3,-6,0.3,1/10,0, 600, blue	parallel  -6,-0.8,-6,0.6,1,0, 40, red	$val10	 
+$()	</center>
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,15,17
+embedcnt=2

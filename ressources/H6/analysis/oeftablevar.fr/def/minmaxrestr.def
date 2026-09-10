@@ -1,0 +1,452 @@
+!set title=Min et max restreint
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=97
+prevarcnt=96
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Soit une fonction \(f: \RR \to \RR\) continue et dérivable ayant	  le tableau de variation suivant.
+val7=Aucun
+val8=Remplissez&nbsp;
+val9=100000000
+tmp0=!randitem 4,5,6,7,8
+
+tmp1=!randitem 3,4,5,6,7
+
+tmp2=!randitem 3,4,5,6,7
+
+tmp3=!randitem 3,4,5,6,7
+
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 4,5,10
+
+val10=1,2,3,4,5,6,7,8,9,10,	11,12,13,14,15,16,17,18,19,20,21,23,24,25,27,30,	$(tmp0)0,$(tmp1)5,$(tmp2)2,	$(tmp3)8,$(tmp4)00,$(tmp5)00	
+
+!ifval frac isitemof $val2
+val10=$val10,	 1/2,3/2,5/2,7/2,9/2,11/2,13/2,	 1/3,2/3,4/3,5/3,7/3,8/3,10/3	
+!endif
+
+!ifval root isitemof $val2
+val10=$val10,	sqrt(3),sqrt(5),sqrt(6),sqrt(7),sqrt(8),sqrt(11),sqrt(12),	sqrt(18),sqrt(20),sqrt(30),sqrt(40),sqrt(60)	
+!endif
+
+!ifval pie isitemof $val2
+val10=$val10,	pi,e,sqrt(2),pi+1,pi-1,e+1,e-1,	pi^2,e^2,pi^3,e^3,1/pi,1/e,2*pi,2*e,4*pi,4*e	
+!endif
+
+!ifval log isitemof $val2
+val10=$val10,	ln(2),ln(3),ln(4),ln(5),ln(8),ln(10),ln(15),ln(20),ln(30),ln(50)	
+!endif
+
+!ifval exp isitemof $val2
+val10=$val10,	2^e,3^e,2^pi,3^pi,pi^e,e^pi,pi^pi,e^e,	4^e,5^e,2^-e,2^-pi,pi^-e,e^-pi	
+!endif
+tmp0=!makelist -x for x in $val10
+
+val10=$(tmp0),0,$val10
+tmp0=!sort numeric items $val10
+
+val10=$(tmp0)
+tmp0=!itemcnt $val10
+
+val11=$[rint($(tmp0))]
+val12=70x40x1
+val13=$[rint(4)]
+tmp0=!shuffle $val11
+
+tmp1=!item 1 to 11 of $(tmp0)
+
+tmp2=!sort numeric items $(tmp1)
+
+val14=$(tmp2)
+tmp0=!item $val14 of $val10
+
+val15=$(tmp0)
+tmp0=!randint $val11/4, $val11*3/4
+
+val16=$[rint($(tmp0))]
+tmp0=!item 3 to $val16-3 of $val10
+
+tmp1=!shuffle $(tmp0)
+
+val17=$(tmp1)
+tmp0=!item $val16+3 to $val11-2 of $val10
+
+tmp1=!shuffle $(tmp0)
+
+val18=$(tmp1)
+tmp0=!randitem 1,2
+
+val19=$[rint($(tmp0))]
+!if $val19=1 
+val20=ne,se,ne,se
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val21=-\infty
+!else
+val21=$(val17[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val22=-\infty
+!else
+val22=$(val17[3])
+!endif
+val23=$val21,$(val18[1]),$(val17[2]),$(val18[2]),$val22
+val24=bottom,top,bottom,top,bottom
+!else
+val20=se,ne,se,ne
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val21=+\infty
+!else
+val21=$(val18[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val22=+\infty
+!else
+val22=$(val18[3])
+!endif
+val23=$val21,$(val17[1]),$(val18[2]),$(val17[2]),$val22
+val24=top,bottom,top,bottom,top
+!endif
+tmp0=!replace internal \infty by $val9 in $val23
+
+val25=$(tmp0)
+val26=
+!for val27 =1 to 4 
+val28=
+!for val29  in $val10 
+!if $val29>min($(val25[$val27]),$(val25[$val27+1])) and $val29<max($(val25[$val27]),$(val25[$val27+1])) 
+tmp0=!append item $val29 to $val28
+
+val28=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val28
+
+tmp1=!item 1 to 2 of $(tmp0)
+
+val28=$(tmp1)
+
+!ifval $(val20[$val27]) issametext ne
+tmp0=!sort numeric items $val28
+
+val28=	    $(tmp0)
+!else
+tmp1=!sort reverse numeric items $val28
+
+val28=	    $(tmp1)
+!endif
+val26=$val26$val28;
+!next
+val30=$(val15[1,2]);$(val15[4,5]);$(val15[7,8]);$(val15[10,11])
+val31=-\infty, $(val15[3,6,9]), +\infty
+tmp0=!makelist \(x) for x in $val31
+
+val32=$(tmp0)
+tmp0=!makelist \(x) for x in $val23
+
+val33=$(tmp0)
+val34=1
+val35=&#91;
+val36=&#93;
+val37=
+tmp0=!item $val19 of +,-
+
+val38=$(tmp0)
+val39=$val7
+tmp0=!shuffle 13
+
+tmp1=!item 1 to 2 of $(tmp0)
+
+val40=$(tmp1)
+val41=$[rint(min($val40))]
+val42=$[rint(max($val40))]
+
+!ifval $val41=1 and $val42=13
+tmp0=!randint 2, 12
+
+val41=$[rint($(tmp0))]
+!endif
+
+!ifval $val41=1
+val43=$[rint(0)]
+!else
+tmp0=!randitem 0,1
+
+val43=$[rint($(tmp0))]
+!endif
+
+!ifval $val42=13
+val44=$[rint(0)]
+!else
+tmp0=!randitem 0,1
+
+val44=$[rint($(tmp0))]
+!endif
+val45=
+!for val46 =2 to 4 
+!if 3*$val46-2>$val41 and 3*$val46-2<$val42 
+val45=$val45 $val46
+!endif
+!next
+tmp0=!words2items $val45
+
+val45=$(tmp0)
+val47=-\infty,$val15,+\infty
+val48=$(val25[1]),$(val26[1;]),$(val23[2]),$(val26[2;]),$(val23[3]),$(val26[3;]),$(val23[4]),$(val26[4;]),$(val25[5])
+
+!ifval $val41 notitemof 1,4,7,10,13
+val49=$(val48[$val41])
+!else
+val49=
+!endif
+
+!ifval $val42 notitemof 1,4,7,10,13
+val50=$(val48[$val42])
+!else
+val50=
+!endif
+val51=$(val48[$val41])
+val52=$val51
+
+!ifval $val43=1
+val53=$val51
+!else
+val53=$val39
+!endif
+val54=$val53
+!for val46  in $val45 
+!if $val38($(val23[$val46])) > $val38($val51) 
+val51=$(val23[$val46])
+val53=$val51
+!endif
+!if $val38($(val23[$val46])) < $val38($val52) 
+val52=$(val23[$val46])
+val54=$val52
+!endif
+!next
+!if $val38($(val48[$val42])) > $val38($val51) 
+val51=$(val48[$val42])
+
+!ifval $val44=1
+val53=$val51
+!else
+val53=$val39
+!endif
+!endif
+!if $val38($(val48[$val42])) < $val38($val52) 
+val52=$(val48[$val42])
+
+!ifval $val44=1
+val54=$val52
+!else
+val54=$val39
+!endif
+!endif
+tmp0=!replace internal $val9 by \infty in $val51
+
+val51=$(tmp0)
+tmp0=!replace internal $val9 by \infty in $val52
+
+val52=$(tmp0)
+
+!ifval $val53 notsametext $val39
+val53=\($val53)
+!endif
+
+!ifval $val54 notsametext $val39
+val54=\($val54)
+!endif
+!if $val19=1 
+val55=\($val51)
+val56=$val53
+val57=\($val52)
+val58=$val54
+!else
+val57=\($val51)
+val58=$val53
+val55=\($val52)
+val56=$val54
+!endif
+val59=$val32,$val33
+
+!ifval $val49 notsametext 
+val59=$val59,\($val49)
+!endif
+
+!ifval $val50 notsametext 
+val59=$val59,\($val50)
+!endif
+tmp0=!listuniq $val59
+
+val60=$(tmp0)
+val61=$val35,$val36
+
+!ifval $val58 issametext $val39
+val62=$(val61[2])
+!else
+val62=$(val61[1])
+!endif
+
+!ifval $val56 issametext $val39
+val63=$(val61[1])
+!else
+val63=$(val61[2])
+!endif
+replytype1=clickfill
+replyname1=Inf(\(f_I))
+replygood1=$val57;$val60,$val39
+replytype2=clickfill
+replyname2=Sup(\(f_I))
+replygood2=$val55
+replytype3=clickfill
+replyname3=Min(\(f_I))
+replygood3=$val58
+replytype4=clickfill
+replyname4=Max(\(f_I))
+replygood4=$val56
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6		<table class="wimscenter wimsnoborder" style="border: solid black 1px;">	<tr style="border: solid black 1px;"><th style="border-right: solid black 1px;">
+!insmath x
+$()</th>	 
+!for m_t=1 to $val13 
+$()<td>$(val32[$m_t])</td><td></td> 
+!next
+$()	<td>$(val32[$val13+1])</td></tr>	<tr style="border: solid black 1px;">	 <th style="border: solid black 1px;">
+!insmath f(x)
+$()</th>	 
+!for m_t=1 to $val13 
+$()	 <td valign="$(val24[$m_t])">$(val33[$m_t])</td>	 <td><img src="$val1/$(val20[$m_t])$val34.gif" alt="$(val20[$m_t])"></td>	 
+!next
+$()	<td valign="$(val24[$val13+1])">$(val33[$val13+1])</td></tr>	</table>		<p>	 Soit 
+!insmath I
+$() = $(val61[2-$val43])
+!insmath $(val47[$val41])
+$() ,	
+!insmath $(val47[$val42])
+$()$(val61[1+$val44]) et soit 
+!insmath f_I
+$() la restriction de 
+!insmath f
+$()	sur 
+!insmath I
+$().	</p>	
+!if $val49 notsametext $val37 
+$()	 
+!if $val50 notsametext $val37 
+$()Nous avons 
+!insmath f($(val47[$val41])) = $val49
+$() et 
+!insmath f($(val47[$val42])) = $val50
+$(). 
+!else
+$()	   Nous avons 
+!insmath f($(val47[$val41])) = $val49
+$(). 
+!endif
+$()	 
+!else
+$() 	 
+!if $val50 notsametext $val37 
+$()Nous avons 
+!insmath f($(val47[$val42])) = $val50
+$(). 
+!endif
+$()	 
+!endif
+$()		$val8	<div class="wimscenter">Inf(
+!insmath f_I
+$()) =  
+!read oef/embed.phtml r1,$val12 
+$()&nbsp;	Sup(
+!insmath f_I
+$()) =  
+!read oef/embed.phtml r2,$val12 
+$() <br>	Min(
+!insmath f_I
+$()) =  
+!read oef/embed.phtml r3,$val12 
+$()&nbsp;	Max(
+!insmath f_I
+$()) =  
+!read oef/embed.phtml r4,$val12 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,8,12,13,20,24,32,33,34,37,41,42,43,44,47,49,50,61
+embedcnt=4

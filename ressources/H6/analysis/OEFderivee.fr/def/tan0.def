@@ -1,0 +1,208 @@
+!set title=Tangente et dérivée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 3
+
+tmp2=!randint 1, 4
+
+t_=!rawmath $(tmp0)*$(tmp1)/$(tmp2)
+val6=!exec pari print($t_)
+tmp0=!randint -4, 4
+
+tmp1=!randint 1, 2
+
+t_=!rawmath $(tmp0)/$(tmp1)
+val7=!exec pari print($t_)
+tmp0=!randint -3, 3
+
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+tmp0=!randitem $val6*x^2+$val7*x+$val8,$val6*x^3+$val7*x^2+$val8*x
+
+val9=!rawmath $(tmp0)
+tmp0=!randint -3, 3
+
+t_=!rawmath $(tmp0)/2
+val10=!exec pari print($t_)
+tmp=!translate ;";': to $     $ in $val9,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val11=!rawmath $(tmp0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+
+!ifval $val12=0 
+val13=$[rint( 1 )]
+!else
+val13=$[rint(ceil(abs($val12)/10))]
+!endif
+val9=!rawmath ($val9)/$val13
+tmp=!translate ;";': to $     $ in $val9,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val11=!rawmath $(tmp0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+t_=!replace internal \( by ( in $val9
+tmp0=!exec pari $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!texmath $val9
+
+val14=$(tmp0)
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val15=$[$(tmp0)]
+val16=$[-2.5]
+val17=$[2.5]
+!readproc slib/function/bounds $val9, x,$val16,$val17 
+tmp0=$slib_out
+val18=$(tmp0)
+val19=$[rint($(val18[1])-1)]
+val20=$[rint($(val18[2])+1)]
+!if $val20-$val19 > 15 
+val19=$[rint($val15-8)]
+val20=$[rint($val15+8)]
+!endif
+val21=xrange $val16,$val17	yrange $val19,$val20		parallel $val16+.5,$val19,$val16+.5,$val20,1,0,$val17 - $val16 +1,grey 	parallel $val16,$val19,$val17,$val19,0,1,$val20 -$val19 +1,grey 	linewidth 2	hline 0,0,black	arrow  0,0,1,0,6,black	arrow 0,0,0,1,6,black	vline 0,0,black	plot blue, $val9	fcircle $val10,$val15,7, green		linewidth 1	plot green, $val15+(x-$val10)*$val12	plot green, $val15+(x-$val10)*($val12+2)	plot green, $val15+(x-$val10)*($val12+4)	plot green, $val15+(x-$val10)*($val12-2)	text black,$val10,$val15,medium,A 	
+oefsteps=reply1	reply2,reply3 
+nextstep=!nosubst reply1	reply2,reply3 
+!readproc oef/steps.proc
+replytype1=range
+replyoption1=nonstop 
+replyname1=coefficient directeur de la tangente
+replygood1=!rawmath $val12-1,$val12+1
+replytype2=formal
+replyname2=
+replygood2=$val11
+replytype3=numexp
+replyname3=
+replygood3=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<table><tr><td>	 
+!read oef/draw.phtml 600,400 \
+$val21 
+$()</td><td></td><td>	Une courbe est tracée en bleu.<br /> Plusieurs droites sont tracées en vert. <p>	Parmi ces droites, il y a la tangente à la courbe au point 
+!insmath A
+$().</p>	
+!if $m_step = 1 
+$()	Déterminer graphiquement une valeur approchée du coefficient directeur de cette tangente.<p>	Vous vous aiderez pour cela du quadrillage : les lignes grises sont distantes les unes des autres d'une unité. On ne demande pas une grande précision de lecture.</p> 
+!endif
+$()	
+!if $m_step = 2 and $m_sc_reply1 = 1 
+$()<span class="oef_indgood">	Vous avez trouvé comme valeur approchée du coefficient directeur de cette tangente : $m_reply1.<br /> C’est une valeur approchée correcte.</span>	Vous allez maintenant en déterminer par le calcul la valeur exacte. 
+!endif
+$()	
+!if $m_step = 2 and $m_sc_reply1 = 0 
+$()<span class="oef_indbad">	Vous avez trouvé comme valeur approchée du coefficient directeur de cette tangente : $m_reply1.<br /> Cette valeur est loin de la valeur exacte.</span>	Vous allez maintenant en déterminer par le calcul la valeur exacte. 
+!endif
+$()	</td></tr></table>	
+!if $m_step = 2 
+$()La courbe est la représentation graphique de la fonction 
+!insmath f
+$() définie par 
+!insmath f(x) = $val14
+$()<br />	Le point 
+!insmath A
+$() a comme abscisse 
+!insmath $val10
+$().<br />	<label for="reply2">La dérivée de la fonction 
+!insmath f
+$() est définie par 
+!insmath f'(x) = 
+$()</label> 
+!read oef/embed.phtml reply2 
+$()<p>	<label for="reply3">Le coefficient directeur de la tangente à la courbe en 
+!insmath A
+$() est</label>  
+!read oef/embed.phtml reply3 
+$() <b> Donner sa valeur exacte</b></p> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,14,21
+embedcnt=2

@@ -1,0 +1,143 @@
+!set title=Loi exponentielle : calcul II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, MIFSUD
+email=bmifsud@bmifsud@ac-aix-marseille.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 20
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 2, 20
+
+val7=$[$(tmp0)/10]
+tmp0=!randint 1, 100
+
+val8=$[$val7+$(tmp0)/10]
+val9=!rawmath $val6*exp(-$val6*x)
+val10=l'espérance de \(X\)
+val11=\(E(X)\)
+tmp=!translate ;";': to $     $ in x*$val9,x,0, INF 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val12=$[$(tmp0)]
+tmp=!translate ;";': to $     $ in $val9,x,0, $val7 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val13=$[$(tmp0)]
+tmp=!translate ;";': to $     $ in $val9,x,$val7, $val8 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val14=$[$(tmp0)]
+replytype1=numeric
+replyname1=\(P( X<$val7 )\)
+replygood1=$[$val13]
+replytype2=numeric
+replyname2=\(P( $val7<X<$val8 )\)
+replygood2=$[$val14]
+replytype3=numeric
+replyname3=$val10
+replygood3=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce"> Soit 
+!insmath X
+$() une variable aléatoire suivant la loi exponentielle de paramètre 
+!insmath $val6
+$().	<p class="consigne">Garder au moins 4 chiffres significatifs</p>	</div>		<div class="question">	 Calculer la probabilité que l'événement 
+!insmath X<$val7
+$()  se réalise. 	 <div class="reponse">	
+!insmath P( X<$val7 ) =
+$()  
+!read oef/embed.phtml reply1,20 
+$() 	</div>	</div>		<div class="question"> Calculer la probabilité que l'événement 
+!insmath $val7<X<$val8
+$()  se réalise. 	<div class="reponse">	
+!insmath P( $val7<X<$val8 ) =
+$()  
+!read oef/embed.phtml reply2,20 
+$() 	</div>	</div>		<div class="question"> Déterminer $val10.	<div class="reponse">$val11 =  
+!read oef/embed.phtml reply3 
+$() 	</div>	</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Pour une loi exponentielle de paramètre 
+!insmath $val6
+$() sur 
+!insmath \RR^{+}
+$() on sait que :	<ul><li>	$val11 = 
+!insmath 1/$val6
+$() </li>	<li>
+!insmath P( $val7 < X < $val8 )= e^{-$val6 \times $val7}-e^{-$val6 \times $val8}
+$()</li>	<li>
+!insmath P(  X < $val7 )= 1-e^{-$val6 \times $val7}
+$()</li>	<li>
+!insmath P(  $val7 < X )= e^{-$val6 \times $val7}
+$()</li>	</ul>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11
+embedcnt=3

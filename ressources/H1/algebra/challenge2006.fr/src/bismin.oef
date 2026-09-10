@@ -1,0 +1,91 @@
+\language{fr}
+\author{Gang,XIAO}
+\email{qualite@wimsedu.fr}
+\format{html}
+
+\text{list=2,3,4,5,6,7,8,9,10,11,12} %% 200,100,50,20,10,5,2,1,0.5,0.2,0.1
+\integer{pursecnt=12}
+\text{size=110x60x12x2}
+\text{height=57}
+\text{bills=pièces et billets}
+\text{vendor=La caissière}
+\text{enonce1=Vous faites des achats dans un supermarché
+      pour un montant total de
+}
+\text{min=6}
+\text{max=10}
+\title{Pièces et billets}
+
+
+\text{img1=height="\height" src="\imagedir}
+%% 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+\text{vals=50000,20000,10000,5000,2000,1000,500,200,100,50,20,10, 5, 2, 1}
+\text{imgs=<img alt="cinq cent euro" \img1/50000a.png">,
+<img alt="deux cent euro" \img1/20000a.png">,
+<img alt="cent euro" \img1/10000a.png">,
+<img alt="cinquante euro" \img1/5000a.png">,
+<img alt="ving euro" \img1/2000a.png">,
+<img alt="dix euro" \img1/1000a.png">,
+<img alt="cinq euro" \img1/500a.png">,
+<img alt="deux euro" \img1/200.png">,
+<img alt="un euro" \img1/100.png">,
+<img alt="cinquante centimes" \img1/50.png">,
+<img alt="vingt centimes" \img1/20.png">,
+<img alt="dix centimes" \img1/10.png">,
+<img alt="cinq centimes" \img1/5.png">,
+<img alt="deux centimes" \img1/2.png">,
+<img alt="un centime" \img1/1.png">
+}
+\text{list=wims(sort numeric items \list)}
+\text{purse=shuffle(wims(makelist x,x,x for x in \list))}
+\text{purse=\purse[1..\pursecnt]}
+\integer{psum=wims(sum x for x in \vals[\purse])}
+\integer{pp=randint(1..items(\list)-3)}
+\if{\psum<\vals[\list[\pp]]}{
+ \text{purse=\list[\pp],\purse[1..\pursecnt-1]}
+ \integer{psum=wims(sum x for x in \vals[\purse])}
+}
+\integer{price=randint(
+        max(\min*10,\vals[\list[\pp+1]]/10+1)..
+        max(\max*10,\vals[\list[\pp]]/10-1))*10
+      + random(1..9)}
+\text{pay=wims(sort numeric items \purse)}
+\for{i=1 to \pursecnt}{
+ \if{\psum-\vals[\pay[\i]]>=\price}{
+  \integer{psum=\psum-\vals[\pay[\i]]}
+  \text{pay=wims(replace item number \i by in \pay)}
+ }
+}
+\text{pay=wims(nonempty items \pay)}
+\real{price2=\price/100}
+\real{psum2=\psum/100}
+\statement{\enonce1 \price2 &euro;. Vous possédez les \bills ci-dessous
+dans votre portefeuille.
+Composez la somme minimale pour effectuer votre réglement.
+
+
+
+<div class="wimscenter">
+\embed{reply 1,\size}
+</div>
+<span class="wims_instruction">Tirez les \bills de votre portefeuille ci-dessous sur le comptoir ci-dessus.</span>
+}
+\answer{Les billets}{\rep;\imgs[\purse]}{type=dragfill}
+\text{rep=wims(replace internal \img1 by in \rep)}
+\text{r=wims(text select ,0125 in \rep)}
+\real{rtot=wims(sum x for x in \r)/100}
+\real{remain=\price2-\rtot}
+\text{show=wims(items2words \imgs[\pay])}
+\condition{Ce paiement est suffisant}{\remain<=0}
+\condition{Ce paiement est minimal}{\rtot=\psum2}
+\feedback{\remain<=0 and \rtot!=\psum2}
+{Il vous suffit de payer \psum2 &euro; au lieu de
+\rtot &euro;, comme suit.
+<div class="wimscenter">
+\show
+</div>
+}
+\feedback{\remain>0}{
+\vendor ne vous laisse pas partir, car vous n'avez payé que
+\rtot &euro;. Vous lui devez encore \remain &euro;&nbsp;!
+}

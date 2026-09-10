@@ -1,0 +1,165 @@
+!set title=Calcul d'une somme algébrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem +,-
+
+tmp1=!randitem +,-
+
+tmp2=!randitem +,-
+
+val6=+,-,$(tmp0),$(tmp1),$(tmp2)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+val7=$(val6[1])
+tmp0=!randitem +,-
+
+tmp1=!randitem +,-
+
+tmp2=!randitem +,-
+
+tmp3=!randitem +,-
+
+val8=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+!for val9 =2 to 5 
+!if $(val8[$val9-1])=$(val6[$val9]) 
+val7=$val7,+
+!else
+val7=$val7,-
+!endif
+!next
+tmp0=!shuffle 9
+
+val10=$(tmp0)
+val11=$(val7[1])$(val10[1])
+!for val12 =2 to 5 
+val11=$val11,$(val7[$val12]) $(val10[$val12])
+!next
+val13=$[$(val11[1])+$(val11[2])+$(val11[3])+$(val11[4])+$(val11[5])]
+val14=$[0]
+val15=$[0]
+val16=
+val17=
+!for val18 =1 to 5 
+!if $(val7[$val18])=+ 
+val14=$[$(val11[$val18])+$val14]
+val16=$val16,($(val11[$val18]))
+!else
+val15=$[$(val11[$val18])+$val15]
+val17=$val17,($(val11[$val18])),
+!endif
+!next
+tmp0=!nonempty item $val16
+
+val16=$(tmp0)
+tmp0=!replace internal , by \plus in $val16
+
+val16=$(tmp0)
+tmp0=!nonempty item $val17
+
+val17=$(tmp0)
+tmp0=!replace internal , by \plus in $val17
+
+val17=$(tmp0)
+replytype1=numexp
+replyname1=A
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Pour calculer une somme algébrique, on procède dans cet ordre&nbsp;: <ol><li>On transforme chaque soustraction en addition de l'opposé.</li> <li>On effectue la somme des nombres positifs et la somme des nombres négatifs.</li> <li>On conclut.</li></ol>
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer l'expression&nbsp;:	<p><span class="nowrap">
+!insmath A=
+$()	 
+!for m_i=1 to 5 
+$()
+!insmath ( $(val6[$m_i]) $(val10[$m_i]) ) $(val8[$m_i])
+$() 
+!next
+$().</span></p>	<div class="wims_instruction">Vous pouvez écrire des calculs intermédiaires sur une feuille.</div>	<label for="reply1">
+!insmath  A=
+$()</label> 
+!read oef/embed.phtml r1,3 
+$().
+$()
+!exit
+
+:hint
+$()Pour calculer une somme algébrique, on procède dans cet ordre&nbsp;: <ol><li>On transforme chaque soustraction en addition de l'opposé.</li> <li>On effectue la somme des nombres positifs et la somme des nombres négatifs.</li> <li>On conclut.</li></ol>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath A=( $(val6[1]) $(val10[1]) ) $(val8[1]) ( $(val6[2]) $(val10[2]) ) $(val8[2]) ( $(val6[3]) $(val10[3]) ) $(val8[3]) ( $(val6[4]) $(val10[4]) ) $(val8[4]) ( $(val6[5]) $(val10[5]) )
+$()	<p>On transforme chaque soustraction en addition de l'opposé.</p>	
+!insmath A=($(val11[1]))+($(val11[2]))+($(val11[3]))+($(val11[4]))+($(val11[5]))
+$()	<p>On effectue la somme des nombres positifs et la somme des nombres négatifs.</p>	
+!insmath A = $val16 + $val17 
+$()	<p>
+!insmath  A = ( + $val14 ) + ( $val15 )
+$()</p>	On conclut	<p>
+!insmath  A= $val13
+$()</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,10,11,13,14,15,16,17
+embedcnt=1

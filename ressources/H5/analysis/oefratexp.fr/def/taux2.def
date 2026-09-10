@@ -1,0 +1,93 @@
+!set title=Le taux mensuel moyen de Bastien
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+precision=500
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 30
+
+val6=$[rint(100*$(tmp0))]
+tmp0=!randint 30, 90
+
+val7=$[0.1*$(tmp0)]
+val8=$[1+$val7/100]
+val9=$[$val8^(1/12)]
+val10=$[rint(10000*$val9-10000)]
+val11=$[0.01*$val10]
+val12=<ul><li>Le coefficient multiplicateur pour un an est : \(CM = 1 + \frac{$val7}{100} = $val8).</li>	<li>	Si \(k) est le coefficient multiplicateur pour un trimestre alors \(k^12*$val6=$val8*$val6).</li>	<li>	Donc \(k = \root{12}{$val8} \approx $val9) et donc le taux est de $val11 %.	</li></ul>
+replytype1=numeric
+replyoption1=absolute 
+replyname1=taux moyen
+replygood1=$[$val11]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val12
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<ul class="wims_nopuce">	<li>Bastien a placé $val6 &euro; sur un compte à intérêt composé à $val7 % par an.</li>	<li>Cela signifie qu'au bout d'un an, il touchera $val7 % d'intérêts	  qui seront ajoutés à son capital, et l'année suivante,	 il touchera $val7 % d'intérêts non seulement sur les $val6 &euro;,	  mais aussi sur les intérêts obtenus la première année.</li>	<li>Supposons que les intérêts soient calculés et ajoutés chaque <b>mois</b>.</li>	<li><label for="reply1">Quel taux d'intérêts composés mensuel	  conduirait au taux de $val7 % par an ?</label></li>	</ul>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$() % (arrondir à 0,01 % près).</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val12
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,12
+embedcnt=1

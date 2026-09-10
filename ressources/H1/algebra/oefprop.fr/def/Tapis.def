@@ -1,0 +1,142 @@
+!set title=Tapis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Dingyu, Xiao
+email=xiao@unice.fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+precision=10000
+title_en=Tapis
+title_nl=Tapijt
+title_es=Alfombra
+
+ansorder=c
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=monte,baisse
+tmp=!trim Le prix d'un tapis était de,euros en novembre	  il,de, en décembre	  puis,de, en janvier
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Quel est son nouveau prix&nbsp;
+val10=Le nouveau prix est
+val11=moins de, plus de,même prix
+val12=euros
+!if $val6=en 
+val7=monte,baisse
+tmp=!trim Le prix d'un tapis était de,euros en novembre	  il,de, en décembre	  puis,de, en janvier
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Quel est son nouveau prix&nbsp;
+val10=Le nouveau prix est
+val11=moins de, plus de,même prix
+val12=euros
+!endif
+!if $val6=es 
+val7=sube,baja
+tmp=!trim Una alfombra costaba,francos en noviembre	  el,de, en diciembre	  después,el, en enero
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=¿Cuál es su nuevo precio
+val10=El nuevo precio es
+val11=francos menos, francos más ,el mismo precio
+val12=francos
+!endif
+!if $val6=nl 
+val7=monte,baisse
+tmp=!trim De prijs van een tapijt was ,euros ein november	  met een,van, in decembe	  en een,van, in januari
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Wat is de nieuwe prijs
+val10=De nieuw prijs is
+val11=minder dan, meer dan,dezelfde
+val12=euros
+!endif
+tmp0=!randitem 20,25,30,35,40,45,50,55,60
+
+val13=$[rint($(tmp0)*10)]
+tmp0=!randint 10, 40
+
+val14=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+tmp0=!item $val15 of $val7
+
+val16=$(tmp0)
+tmp0=!item $val15 of $(val7[2,1])
+
+val17=$(tmp0)
+choicename1=$val10
+choicegood1=$(val11[1]) $val13 $val12
+choicebad1=$(val11[2]) $val13 $val12, $(val11[3])
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $(val8[1;1]) $val13 $(val8[1;2]), $(val8[2;1]) $val16 $(val8[2;2]) $val14 \% $(val8[2;3]), $(val8[3;1]) $val17 $(val8[3;2]) $val14 \% $(val8[3;3]). <p>$val9?</p> \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val8[1;1]) $val13 $(val8[1;2]), $(val8[2;1]) $val16 $(val8[2;2]) $val14 %	$(val8[2;3]), $(val8[3;1]) $val17 $(val8[3;2]) $val14 % $(val8[3;3]).	<p>$val9?</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $(val8[1;1]) $val13 $(val8[1;2]), $(val8[2;1]) $val16 $(val8[2;2]) $val14 \% $(val8[2;3]), $(val8[3;1]) $val17 $(val8[3;2]) $val14 \% $(val8[3;3]). <p>$val9?</p> $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,13,14,16,17
+embedcnt=0

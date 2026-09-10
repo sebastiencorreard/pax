@@ -1,0 +1,155 @@
+!set title=Équation de la sécante à une courbe 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=bmifsud@ac-aix-marseille.fr
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -6, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val7=$[rint($val6+$(tmp0))]
+tmp0=!randint -8, 8
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in (x-($val8))*($val9-x)
+tmp0=!exec pari $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in -1*($val10)
+tmp0=!exec pari $t_
+
+tmp=!nonempty items $val10,$(tmp0)
+
+tmp1=!randitem $tmp
+val10=!rawmath $(tmp1)
+t_=!replace internal \( by ( in subst($val10,x,$val6)
+tmp0=!exec pari $t_
+
+val11=$[rint($(tmp0))]
+t_=!replace internal \( by ( in subst($val10,x,$val7)
+tmp0=!exec pari $t_
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val7-($val6))]
+t_=!rawmath ($val12-($val11))/($val7-($val6))
+val14=!exec pari print($t_)
+t_=!replace internal \( by ( in $val14*(x-($val6))+$val11
+tmp0=!exec pari $t_
+
+val15=!rawmath $(tmp0)
+replytype1=formal
+replyname1=
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la fonction 
+!insmath f
+$() définie sur 
+!insmath \mathbb{R}
+$() par <span class="nowrap">
+!insmath f(x)=$val10
+$().</span>	Déterminez l'équation réduite de la sécante à la courbe représentative de 
+!insmath f
+$() qui passe	par les points de la courbe d'abscisses 
+!insmath $val6
+$() et <span class="nowrap">
+!insmath $val7
+$().</span>	<div class="wims_question">Votre réponse :	<div class="unbreakable"><label for="reply1">
+!insmath y=
+$()</label>	<span style="overflow-x:auto"> 
+!read oef/embed.phtml r1,20 
+$()</span></div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>Pour calculer l'équation réduite <span class="nowrap">(
+!insmath y=m x+p
+$()),</span> on calcule d'abord le taux de variation de la fonction 
+!insmath f
+$() entre 
+!insmath a
+$() et <span class="nowrap">
+!insmath b
+$().</span>	 <br>On utilise la formule&nbsp;: <span class="nowrap">
+!insmath (f(b)-f(a))/(b-a)
+$().</span></p>	 <ul class="wims_nopuce"><li> Ici&nbsp;: <span class="nowrap">
+!insmath f(a)=f($val6)=$val11
+$(),</span> 
+!insmath f(b)=f($val7)=$val12
+$() et <span class="nowrap">
+!insmath b-a=$val13
+$().</span></li>	 <li> Donc le taux de variation vaut&nbsp;: <span class="nowrap">
+!insmath m=
+$()
+!insmath $val14
+$().</span>	</li></ul>	<p>Puis on utilise la formule : 
+!insmath y=m(x-a)+f(a)
+$(), ce qui donne <span class="nowrap">
+!insmath y=$val15
+$().</span></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,13,14,15
+embedcnt=1

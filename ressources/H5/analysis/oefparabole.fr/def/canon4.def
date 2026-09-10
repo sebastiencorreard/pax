@@ -1,0 +1,205 @@
+!set title=Forme canonique du trinôme factorisation partielle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=rbelloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 7
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, -1,1..10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -50, 50
+
+val8=$[rint($(tmp0))]
+val9=$[rint(2*$val7)]
+val10=$[rint(-$val6*$val9)]
+val11=$[rint(($val7)^2)]
+val12=$[rint($val6*$val11)]
+val13=$[rint($val12+$val8)]
+!if $val13<0 
+val14=&nbsp;
+!else
+val14=+
+!endif
+val15=!rawmath $val6*(x-$val7)^2+$val8
+t_=!replace internal \( by ( in expand($val15)
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand(x^2-$val9*x)
+tmp0=!exec maxima $t_
+
+val17=!rawmath $(tmp0)
+val18=!rawmath x-$val7
+val19=&#40;
+val20=&#41;
+oefsteps=reply1	reply2,reply3,reply4,reply5	reply6 
+nextstep=!nosubst reply1	reply2,reply3,reply4,reply5	reply6 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=Factorisation partielle
+replygood1=$val17
+replytype2=numeric
+replyname2=Terme carré
+replygood2=$[$val11]
+replytype3=algexp
+replyname3=\(x - x_S)
+replygood3=$val18
+replytype4=numeric
+replyname4=Terme carré
+replygood4=$[$val11]
+replytype5=numeric
+replyname5=Terme constant du carré
+replygood5=$[$val12]
+replytype6=numeric
+replyname6=Extrema
+replygood6=$[$val8]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	On considère le trinôme 
+!insmath f(x)=$val6*x^2+$val10*x+$val13
+$().</p><p>	On cherche à obtenir sa forme canonique par une factorisation partielle.</p>	
+!if $m_step=1 
+$()	<p>Compléter l'égalité :</p>	<div class="wimscenter">	
+!insmath $val6*x^2+$val10*x+$val13
+$() = $val6 $val19  
+!read oef/embed.phtml reply1,10 
+$() $val20 $val14 
+!insmath $val13
+$().	</div>	<div class="wims_instruction">
+!insmath x^2
+$() s'écrit x^2.</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<p>
+!insmath $val6*x^2+$val10*x
+$() $val14 
+!insmath $val13= $val6($val17)+$val13
+$().</p>	<p>Compléter l'égalité pour obtenir un carré :</p>	<div class="wimscenter">	
+!insmath $val17
+$() +  
+!read oef/embed.phtml reply2,5 
+$() = $val19  
+!read oef/embed.phtml reply3,10 
+$() $val20 
+!insmath ^2
+$().	</div>	Et en multipliant par $val6 le premier membre et en développant :	<div class="wimscenter">	$val6 $val19 
+!insmath $val17
+$() +  
+!read oef/embed.phtml reply4,5 
+$() $val20 
+!insmath =$val6*x^2+$val10*x+
+$()  
+!read oef/embed.phtml reply5,5 
+$()	</div>	 
+!endif
+$()	
+!if $m_step=3 
+$()	  <div class="wimscenter">
+!insmath $val6*x^2+$val10*x+$val13
+$() = 
+!insmath $val6($val17)+$val13
+$()</div>	  <p>Or 
+!insmath $val17 + $val11 = ($val18)^2
+$().<p>	  <p>Et en multipliant par $val6 :</p>	  <p>
+!insmath $val6*x^2+$val10*x+$val12=$val6($val17+$val11)=$val6($val18)^2
+$().</p>	  Donc <div class="wimscenter">	  <p>
+!insmath $val6*x^2+$val10*x+$val13=$val6*x^2+$val10*x+$val12-$val12+$val13
+$()</p>	  <div>
+!insmath $val6*x^2+$val10*x+$val13=$val6*($val18)^2+
+$()  
+!read oef/embed.phtml reply6,5 
+$()</div>	  </div>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()<p>La forme canonique d'un trinôme est 
+!insmath a(x-d)^2+k
+$(), où 
+!insmath d
+$() et	
+!insmath k
+$() sont les abscisses et ordonnées du sommet de la parabole représentant le trinôme.</p>	<p>Pour déterminer la forme canonique, on peut	utiliser les identités remarquables :</p>	<div class="wimscenter">	<p>
+!insmath a^2+2*a*b+b^2=(a+b)^2
+$()</p>	<p>
+!insmath a^2-2*a*b+b^2=(a-b)^2
+$().</p>	</div>	Pour cela, on cherche d'abord à reconstituer le premier membre de l'identité,	en commençant par mettre le coefficient de 
+!insmath x^2
+$() en facteur des termes en 
+!insmath x^2
+$() et en 
+!insmath x
+$().	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,12,13,14,17,18,19,20
+embedcnt=6

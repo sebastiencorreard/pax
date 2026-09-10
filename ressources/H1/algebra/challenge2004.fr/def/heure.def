@@ -1,0 +1,97 @@
+!set title=L'heure de la journée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 1,3	2,3	5,3	3,2	1,4	1,5	3,5	4,5	5,3	5,4	
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+val7=$[rint($(val6[1]))]
+val8=$[rint($(val6[2]))]
+val9=24*$val8/($val7+$val8)
+val10=$[rint(floor($val9))]
+val11=$[rint((60*$val9-60*$val10))]
+replyname1=Heure
+replygood1=$val10
+replyname2=min
+replygood2=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On a demandé à Madmath l'heure qu'il était, et il a répondu :	"Il reste de la journée $val7/$val8 de ce qui est déjà passé."	<p>	Quelle heure est-il ?	 
+!read oef/embed.phtml r1,3 
+$() h  
+!read oef/embed.phtml r2,3 
+$() min	</p>	(en 24 heures ; la journée commence à minuit = 0h).	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8
+embedcnt=2

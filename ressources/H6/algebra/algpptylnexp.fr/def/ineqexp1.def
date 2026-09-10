@@ -1,0 +1,486 @@
+!set title=Inéquation du type c e^(ax+b) + d >0
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c,r,r,c,c,r,r,c,c,c
+varcnt=49
+prevarcnt=48
+postvarcnt=0
+replycnt=4
+choicecnt=6
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=positif,négatif,nul
+val7=10
+val8=5
+val9=x,u,z,t
+tmp0=!randitem 1,-1
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, $val7
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val11*$val10)]
+tmp0=!randitem 1,-1
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, $val7
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val14*$val13)]
+tmp0=!randitem 1,-1
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, $val8
+
+val17=$[rint($(tmp0)*$val16)]
+tmp0=!randint -$val7, $val7
+
+val18=$[rint($(tmp0))]
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+
+!ifval ($val15=0)
+val20=!rawmath $val12$val19
+!else
+val20=!rawmath $val12$val19+$val15
+!endif
+tmp0=!texmath $val20
+
+val21=$(tmp0)
+
+!ifval ($val18=0)
+val22=!rawmath  $val17*e^($val20)
+!else
+val22=!rawmath $val17*e^($val20) - $val18
+!endif
+val23=>
+
+!ifval ($val17>0)
+val24=$val23
+!else
+val24=<
+!endif
+t_=!rawmath $val18/$val17
+val25=!exec pari print($t_)
+
+!ifval ($val25=0)
+val26=$(val6[3])
+!endif
+
+!ifval ($val25>0)
+val26=$(val6[1])
+!endif
+
+!ifval ($val25<0)
+val26=$(val6[2])
+!endif
+
+!ifval ($val26 issametext $(val6[1]))
+val27=$[rint(1)]
+!else
+val27=$[rint(2)]
+!endif
+val28=$[rint($val12*$val17)]
+
+!ifval ($val28>0)
+val29=$val23
+!else
+val29=<
+!endif
+
+!ifval ($val25=1)
+val30=0
+!else
+val30=ln($val25)
+!endif
+
+!ifval ($val12=1)
+val31=!rawmath $val30-$val15
+!else
+val31=!rawmath ($val30-$val15)/($val12)
+!endif
+
+!ifval ($val12=-1)
+val31=!rawmath $val15-$val30
+!endif
+
+!ifval ($val25=1)
+tmp=!translate ";': to $     $ in $val31
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=!rawmath $(tmp0)
+!endif
+
+!ifval ($val15<0)
+val32=+$val14
+!else
+val32=-$val15
+!endif
+
+!ifval ($val12=1)
+val33=\ln($val25) $val32
+!else
+val33=\frac{\ln($val25) $val32}{$val12}
+!endif
+
+!ifval ($val12<0 || $val25=1)
+val34=$[rint(1)]
+!else
+val34=$[rint(0)]
+!endif
+!if $val34=1 
+
+!ifval ($val25=1)
+t_=!rawmath -$val15/$val12
+val35=!exec pari print($t_)
+!endif
+
+!ifval ($val25!=1 && $val12<0)
+val35=\frac{$val15 - \ln($val25)}{$val11}
+!endif
+
+!ifval ($val25!=1 && $val12=-1)
+val35=$val15 - \ln($val25)
+!endif
+!else
+val35=$val33
+!endif
+val36=f($val19) $val23 0
+val37=\($val36\)
+!if $val27=2 
+
+!ifval ($val24 issametext <)
+val38=$[rint(1)]
+!else
+val38=$[rint(2)]
+!endif
+!endif
+val39=la règle \(e^u $val24 v \Longleftrightarrow u $val24 ln(v)\)
+!if $val27=1 
+
+!ifval $val29 issametext <
+val40=+
+!else
+val40=-
+!endif
+
+!ifval $val29 issametext <
+val41=-
+!else
+val41=+
+!endif
+!endif
+!if $val27=2 
+
+!ifval $val38=2
+val42=+
+!else
+val42=-
+!endif
+!endif
+!if $val27=1 
+val43=choice3,reply3
+val44=choice4,choice5
+!else
+val43=reply4
+val44=choice6
+!endif
+oefsteps=choice1,reply1,reply2,choice2	$val43	$val44 
+nextstep=!nosubst choice1,reply1,reply2,choice2	$val43	$val44 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=nonstop 
+replyname1=Première question b.
+replygood1=$val25
+replytype2=menu
+replyoption2=nonstop 
+replyname2=Deuxième question a.
+replygood2=$val27;peut,ne peut pas
+replytype3=formal
+replyweight3=2 
+replyoption3=nonstop 
+replyname3=Troisième question b.
+replygood3=$val31
+replytype4=menu
+replyoption4=nonstop 
+replyname4=Troisième question
+replygood4=$val38;n'a aucune solution,admet tous les réels comme solutions
+choiceoption1=nonstop 
+choicename1=Première question a.
+choicegood1=$val24
+choicebad1=<,>
+choiceoption2=nonstop 
+choicename2=Deuxième question b.
+choicegood2=$val26
+choicebad2=$(val6[2]),$(val6[3]),$(val6[1])
+choiceoption3=nonstop 
+choicename3=Troisième question a.
+choicegood3=$val29
+choicebad3=<,>
+choicename4=Tableau de signes a.
+choicegood4=$val40
+choicebad4=+,-
+choicename5=Tableau de signes b.
+choicegood5=$val41
+choicebad5=+,-
+choicename6=Tableau de signes
+choicegood6=$val42
+choicebad6=+,-
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On veut étudier en fonction de 
+!insmath $val19
+$() le signe de :	
+!insmath f($val19) = $val22
+$() .	Pour ce faire, on commence par résoudre l'inéquation 
+!insmath $val36
+$().	<p>	Résolvez l'inéquation sur papier libre	puis complétez les affirmations suivantes.	</p>	
+!if $m_step=1 
+$()	<ul><li>	On peut écrire l'équivalence suivante :	<div class="wimscenter">	  $val37 
+!insmath \Longleftrightarrow e^{$val21}
+$()	   
+!read oef/embed.phtml choice1 
+$()  
+!read oef/embed.phtml reply1,5 
+$()	</div>	</li><li>	On  
+!read oef/embed.phtml reply2 
+$() appliquer $val39 car	le deuxième membre de l'inéquation est  
+!read oef/embed.phtml choice2 
+$().	</li></ul>	 
+!endif
+$()	
+!if $m_step=2 && $val27=1 
+$()	<ul><li>	On peut écrire l'équivalence suivante :	<div class="wimscenter">	  $val37 
+!insmath \Longleftrightarrow e^{$val21} $val24 $val25 
+$()	</div>	</li>	<li>	 On peut appliquer $val39, car	le deuxième membre de l'inéquation est <span class="bold"$val26</span>.	</li>	<li>	En appliquant cette règle, on obtient :	<div class="wimscenter">	$val37 
+!insmath \Longleftrightarrow $val19
+$() 
+!read oef/embed.phtml choice3 
+$()  
+!read oef/embed.phtml reply3 
+$().</div>	</li></ul> 
+!endif
+$()	
+!if $m_step=2 && $val27=2 
+$()	<ul>	<li>On peut écrire l'équivalence suivante :	<div class="wimscenter">	 $val37 
+!insmath \Longleftrightarrow e^($val21) $val24 $val25
+$()	</div>	</li><li>	On <font color=blue>ne peut pas</font> appliquer $val39 , car	le deuxième membre de l'inéquation est <font color=blue>$val26</font>.	</li>	<li> Sachant que 
+!insmath e^{t}>0
+$() pour tout réel t, on conclut que	l'inéquation $val37  
+!read oef/embed.phtml reply4 
+$().	</li></ul> 
+!endif
+$()	
+!if $m_step=3 && $val27=1 
+$()	  <ul><li>	  En résolvant 
+!insmath $val36
+$() on obtient :	  <div class="wimscenter">
+!insmath $val36
+$() 
+!insmath \Longleftrightarrow
+$()	  
+!insmath $val19
+$() <font color=blue> $val29 
+!insmath $val35
+$()</font>.</div>	  </li>	  <li>	  Posons 
+!insmath $val19 _{0} = $val35 
+$(). On dresse alors le tableau de signes suivant :	  <table style="width:75%" class="wimscenter wimsborder">	  <tr>	  <td style="width:5%;text-align:center">
+!insmath $val19
+$()</td>	  <td style="width:45%;text-align:left">
+!insmath -\infty
+$()</td>	  <td style="width:5%;text-align:center">
+!insmath $val19 _{0}
+$()</td>	  <td style="width:45%;text-align:right"> 
+!insmath +\infty
+$()</td>	  </tr><tr>	  <td style="text-align:center">
+!insmath f($val19)
+$()</td>	  <td style="text-align:center"> 
+!read oef/embed.phtml choice4 
+$()</td>	  <td style="text-align:center">0</td>	  <td style="text-align:center"> 
+!read oef/embed.phtml choice5 
+$()</td>	  </tr>	  </table>	  </li></ul>	   
+!endif
+$()	  
+!if $m_step=3 && $val27=2 
+$()	  <ul>	  <li>En résolvant 
+!insmath $val36
+$() on obtient que l'inéquation	  
+!if $val38=1 
+$()n'a aucune solution 
+!else
+$() admet tous les réels comme solutions 
+!endif
+$().	  </li><li>	  On dresse alors le tableau de signes suivant :	  <table style="width:60%;" class="wimscenter wimsborder">	  <tr>	  <td style="width:5%">
+!insmath $val19
+$()</td>	  <td style="width:5%">
+!insmath -\infty
+$()</td>	  <td style="width:85%"></td>	  <td style="width:5%"> 
+!insmath +\infty
+$()</td>	  </tr><tr>	  <td>
+!insmath f($val19)
+$()</td>	  <td></td>	  <td> 
+!read oef/embed.phtml choice6 
+$()</td>	  <td></td>	  </tr>	  </table>	  </li></ul>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>	<b>Voici une étude de signe détaillée de 
+!insmath f($val19) = $val22
+$() :</b>	<p>La fonction exponentielle est définie sur 
+!insmath \mathbb{R}
+$(), donc il n'y a pas de précaution de définition à prendre.</p>	<p>On résout d'abord l'inéquation 
+!insmath $val36
+$() :</p>	 <div class="wimscenter">	
+!insmath $val36
+$() 
+!insmath \Longleftrightarrow e^{$val21} $val24 $val25
+$()	</div>	
+!if $val27=1 
+$()	On peut appliquer $val39, car le logarithme du second membre est défini ($val25 > 0):	<div class="wimscenter">	
+!insmath $val36
+$() 
+!insmath \Longleftrightarrow $val21 $val24 ln($val25)
+$()	<br>	
+!insmath $val36
+$() 
+!insmath \Longleftrightarrow $val12$val19 $val24 ln($val25) $val32 
+$()	 <br>	
+!insmath $val36
+$() 
+!insmath \Longleftrightarrow $val19 $val29 $val33 
+$()	 <br>	
+!if $val34=1 
+$()
+!insmath $val36
+$() 
+!insmath \Longleftrightarrow $val19 $val29 $val35
+$() 
+!endif
+$()	</div>	On obtient le tableau de signes suivant, où 
+!insmath $val19 _{0} = $val35
+$() :	<table style="width:75%;" class="wimscenter wimsborder"><tr>	<td style="width:5%">
+!insmath $val19
+$()</td>	<td style="width:45%;text-align:left">
+!insmath -\infty
+$()</td>	<td style="width:5%">
+!insmath $val19 _{0}
+$()</td>	<td style="width:45%;text-align:right"> 
+!insmath +\infty
+$()</td>	</tr><tr>	<td>
+!insmath f($val19)
+$()</td><td>$val40</td><td>0</td><td>$val41</td>	</tr></table>	 
+!endif
+$()	
+!if $val27=2 
+$()	<p>On sait que 
+!insmath e^{\alpha}>0
+$() pour tout réel 
+!insmath \alpha
+$().	 
+!if $val24 issametext > 
+$()	 Donc l'inégalité 
+!insmath e^($val20) > $val25
+$() est toujours vraie, quel que soit 
+!insmath $val19
+$(). 
+!else
+$()	  Donc l'inégalité 
+!insmath e^($val20) < $val25
+$() est toujours fausse, quel que soit 
+!insmath $val19
+$(). 
+!endif
+$()	On en déduit	
+!if $val38=1 
+$()qu'il n'y a aucun réel 
+!insmath $val19
+$() tel que 
+!insmath $val36
+$(). 
+!else
+$()	 que 
+!insmath $val36
+$() pour tout réel 
+!insmath $val19
+$(). 
+!endif
+$()</p>	<p>D'où le tableau de signes suivant :</p>	<table style="width:60%;" class="wimscenter wimsborder">	<tr>	<td style="width:5%">
+!insmath $val19
+$()</td>	<td style="width:5%">
+!insmath -\infty
+$()</td>	<td style="width:85%"> </td>	<td style="width:5%">
+!insmath +\infty
+$()</td>	</tr><tr>	<td>
+!insmath f($val19)
+$()</td>	<td></td>	<td>$val42</td>	<td></td>	</tr>	</table>	 
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,19,20,21,22,24,25,26,27,29,32,33,34,35,36,37,38,39,40,41,42
+embedcnt=10

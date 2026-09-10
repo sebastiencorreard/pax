@@ -1,0 +1,442 @@
+!set title=Intervalle avec min/max
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=83
+prevarcnt=67
+postvarcnt=15
+replycnt=4
+choicecnt=0
+conditioncnt=1
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Soit une fonction \(f: \RR \to \RR\) continue et dérivable ayant	  le tableau de variation suivant.
+val7=100000000
+tmp0=!randitem 4,5,6,7,8
+
+tmp1=!randitem 3,4,5,6,7
+
+tmp2=!randitem 3,4,5,6,7
+
+tmp3=!randitem 3,4,5,6,7
+
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 4,5,10
+
+val8=1,2,3,4,5,6,7,8,9,10,	11,12,13,14,15,16,17,18,19,20,21,23,24,25,27,30,	$(tmp0)0,$(tmp1)5,$(tmp2)2,	$(tmp3)8,$(tmp4)00,$(tmp5)00	
+
+!ifval frac isitemof $val2
+val8=$val8,	 1/2,3/2,5/2,7/2,9/2,11/2,13/2,	 1/3,2/3,4/3,5/3,7/3,8/3,10/3	
+!endif
+
+!ifval root isitemof $val2
+val8=$val8,	sqrt(3),sqrt(5),sqrt(6),sqrt(7),sqrt(8),sqrt(11),sqrt(12),	sqrt(18),sqrt(20),sqrt(30),sqrt(40),sqrt(60)	
+!endif
+
+!ifval pie isitemof $val2
+val8=$val8,	pi,e,sqrt(2),pi+1,pi-1,e+1,e-1,	pi^2,e^2,pi^3,e^3,1/pi,1/e,2*pi,2*e,4*pi,4*e	
+!endif
+
+!ifval log isitemof $val2
+val8=$val8,	ln(2),ln(3),ln(4),ln(5),ln(8),ln(10),ln(15),ln(20),ln(30),ln(50)	
+!endif
+
+!ifval exp isitemof $val2
+val8=$val8,	2^e,3^e,2^pi,3^pi,pi^e,e^pi,pi^pi,e^e,	4^e,5^e,2^-e,2^-pi,pi^-e,e^-pi	
+!endif
+tmp0=!makelist -x for x in $val8
+
+val8=$(tmp0),0,$val8
+tmp0=!sort numeric items $val8
+
+val8=$(tmp0)
+tmp0=!itemcnt $val8
+
+val9=$[rint($(tmp0))]
+val10=$[rint(4)]
+tmp0=!shuffle $val9
+
+tmp1=!item 1 to 11 of $(tmp0)
+
+tmp2=!sort numeric items $(tmp1)
+
+val11=$(tmp2)
+tmp0=!item $val11 of $val8
+
+val12=$(tmp0)
+tmp0=!randint $val9/4, $val9*3/4
+
+val13=$[rint($(tmp0))]
+tmp0=!item 3 to $val13-3 of $val8
+
+tmp1=!shuffle $(tmp0)
+
+val14=$(tmp1)
+tmp0=!item $val13+3 to $val9-2 of $val8
+
+tmp1=!shuffle $(tmp0)
+
+val15=$(tmp1)
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+!if $val16=1 
+val17=ne,se,ne,se
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val18=-\infty
+!else
+val18=$(val14[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val19=-\infty
+!else
+val19=$(val14[3])
+!endif
+val20=$val18,$(val15[1]),$(val14[2]),$(val15[2]),$val19
+val21=bottom,top,bottom,top,bottom
+!else
+val17=se,ne,se,ne
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val18=+\infty
+!else
+val18=$(val15[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val19=+\infty
+!else
+val19=$(val15[3])
+!endif
+val20=$val18,$(val14[1]),$(val15[2]),$(val14[2]),$val19
+val21=top,bottom,top,bottom,top
+!endif
+tmp0=!replace internal \infty by $val7 in $val20
+
+val22=$(tmp0)
+val23=
+!for val24 =1 to 4 
+val25=
+!for val26  in $val8 
+!if $val26>min($(val22[$val24]),$(val22[$val24+1])) and $val26<max($(val22[$val24]),$(val22[$val24+1])) 
+tmp0=!append item $val26 to $val25
+
+val25=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val25
+
+tmp1=!item 1 to 2 of $(tmp0)
+
+val25=$(tmp1)
+
+!ifval $(val17[$val24]) issametext ne
+tmp0=!sort numeric items $val25
+
+val25=	    $(tmp0)
+!else
+tmp1=!sort reverse numeric items $val25
+
+val25=	    $(tmp1)
+!endif
+val23=$val23$val25;
+!next
+val27=$(val12[1,2]);$(val12[4,5]);$(val12[7,8]);$(val12[10,11])
+val28=-\infty, $(val12[3,6,9]), +\infty
+tmp0=!makelist \(x) for x in $val28
+
+val29=$(tmp0)
+tmp0=!makelist \(x) for x in $val20
+
+val30=$(tmp0)
+val31=1
+val32=&#91;
+val33=&#93;
+val34=
+val35=minimum,maximum
+tmp=!trim Début de \(I\) vaut	  Fin de \(I\) vaut	  Le \minimax de \(f_I\) est	  \(f_I\) atteint son,en	
+val36=!translate internal $	\
+$ to ;; in $tmp
+val37=70x40x1
+tmp0=!randitem 0,1
+
+val11=$[rint($(tmp0))]
+val38=$(val27[1+$val11..3+$val11;])
+tmp0=!translate internal ; to , in $val38
+
+val38=$(tmp0)
+tmp0=!makelist \(x\) for x in $val38
+
+val38=$(tmp0)
+tmp0=!item $val11*2+1 to $val11*2+6 of 1,1,2,2,3,3,4,4
+
+val39=$(tmp0)
+tmp0=!randitem 1,2
+
+val40=$[rint($(tmp0))]
+tmp0=!item $val40 of $val35
+
+val41=$(tmp0)
+tmp0=!item $val40 of inf,sup
+
+val42=$(tmp0)
+val43=$[rint(($val40+$val16)%2)]
+tmp0=!item $val16 of +,-
+
+val44=$(tmp0)
+
+!ifval $val43=1 and $val11=0
+val45=$[rint(2)]
+!endif
+
+!ifval $val43=1 and $val11=1
+val45=$[rint(4)]
+!endif
+
+!ifval $val43=0
+val45=$[rint(3)]
+!endif
+val46=$(val20[$val45])
+
+!ifval ($val45=2 and $val44($(val22[4]))>$val44($val46)) or	   ($val45=3 and $val11=0 and $val44($(val22[1]))<$val44($val46)) or	   ($val45=3 and $val11=1 and $val44($(val22[5]))<$val44($val46)) or	   ($val45=4 and $val44($(val22[2]))>$val44($val46))
+val47=yes
+!else
+val47=no
+!endif
+val48=$(val20[$(val11[1])+1])
+val49=$(val23[1+$val11..3+$val11;])
+val50=0
+val51=r1,r2
+dynsteps=yes
+oefsteps=$val51 
+nextstep=!nosubst $val51 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=$(val36[1;])
+replygood1=?analyze 52;$val38
+replytype2=dragfill
+replyname2=$(val36[2;])
+replygood2=?analyze 53
+replytype3=default
+replyname3=$(val36[3;])
+replygood3=$(val20[$val45])
+replytype4=default
+replyname4=$(val36[4;1]) $val41 $(val36[4;2])
+replygood4=$(val28[$val45])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6		<table class="wimscenter wimsnoborder" style="border: solid black 1px;">	<tr style="border: solid black 1px;"><th style="border-right: solid black 1px;">
+!insmath x
+$()</th>	 
+!for m_t=1 to $val10 
+$()<td>$(val29[$m_t])</td><td></td> 
+!next
+$()	<td>$(val29[$val10+1])</td></tr>	<tr style="border: solid black 1px;">	 <th style="border: solid black 1px;">
+!insmath f(x)
+$()</th>	 
+!for m_t=1 to $val10 
+$()	 <td valign="$(val21[$m_t])">$(val30[$m_t])</td>	 <td><img src="$val1/$(val17[$m_t])$val31.gif" alt="$(val17[$m_t])"></td>	 
+!next
+$()	<td valign="$(val21[$val10+1])">$(val30[$val10+1])</td></tr>	</table>		
+!if $m_step=1 
+$()	Utilisez les valeurs proposées ci-dessous pour construire un intervalle	ouvert 
+!insmath I
+$() tel que la restriction de 
+!insmath f
+$() sur 
+!insmath I
+$() atteigne son $val41.	<div class="wimscenter">	     
+!insmath I
+$() = $val33  
+!read oef/embed.phtml reply 1,$val37 
+$() ,	      
+!read oef/embed.phtml reply 2,$val37 
+$() $val32	</div>	
+!exit
+{}	 
+!endif
+$()	
+!if $m_step=2 and $val50<1 
+$()	  Vous avez répondu : la restriction de 
+!insmath f
+$() sur l'intervalle	  
+!insmath I
+$() = $val33$m_reply1 , $m_reply2$val32 atteint son $val41.	  
+!exit
+{}	 
+!endif
+$()	Soit 
+!insmath f_I
+$() la restriction de 
+!insmath f
+$() sur l'intervalle 
+!insmath I
+$() =	  $val33$m_reply1 , $m_reply2$val32.	  <p>	  
+!insmath f_I
+$() atteint son $val41  
+!read oef/embed.phtml reply 3,12 
+$() en	   
+!read oef/embed.phtml reply 4,12 
+$().	  </p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal \ by in $val52
+
+val54=$(tmp0)
+tmp0=!replace internal \ by in $val53
+
+val55=$(tmp0)
+val51=
+tmp0=!positionof item $val52 in $val38
+
+val56=$(tmp0)
+tmp0=!positionof item $val53 in $val38
+
+val57=$(tmp0)
+!if $val54<$val55 
+val58=$val56
+val59=$val57
+!else
+val58=$val57
+val59=$val56
+!endif
+val60=$(val39[$val58])
+val61=$(val39[$val59])
+tmp0=!itemcnt $val56
+
+tmp1=!itemcnt $val57
+
+
+!ifval $(tmp0)=1 and $(tmp1)=1 and $val54<$val55 and	      $val60<$val45 and $val61>=$val45
+val50=1
+!else
+val50=0
+!endif
+!if $val50>0 and ($val60<$val45-1 or $val61>$val45) and $val47 issametext yes 
+val50=-1
+
+!ifval $val60<$val45-1
+val62=$(val38[$val58])
+!else
+val62=$(val38[$val59])
+!endif
+!endif
+
+!ifval $val50>0 and $m_step=2
+val51=r3,r4
+!endif
+
+!exit
+
+:feedback
+!ifval $val54 > $val55
+ <div class='oef_feedbacks'>Vous avez écrit l'intervalle à l'envers.	Il faut placer le plus petit nombre à gauche.
+$()</div>
+!endif
+!ifval $val50<0
+ <div class='oef_feedbacks'>	 <strong>Attention</strong>. Votre intervalle n'est pas correct car l'existence du $val41	 dépend de la valeur inconnue 
+!insmath f_I
+$()($val62)	 qui pourrait dépasser 
+!insmath f_I
+$()(
+!insmath $(val28[$val45])
+$()) = 
+!insmath $val46
+$()&nbsp;!	
+$()</div>
+!endif
+!ifval $val60=$val61
+ <div class='oef_feedbacks'>	 D'après le tableau de variation, la fonction 
+!insmath f
+$() est strictement	 monotone sur l'intervalle 
+!insmath I
+$(). Puisque 
+!insmath I
+$() est ouvert,	 la restriction 
+!insmath f_I
+$() n'a ni maximum ni minimum.	
+$()</div>
+!endif
+!ifval $val54 > $val55 and $val60 != $val61 and \test=0
+ <div class='oef_feedbacks'>	 La restriction 
+!insmath f_I
+$() admet un $val42 mais pas de $val41.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val50>0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=L'intervalle est bon
+
+!exit
+
+:stat
+vsavelist=1,6,10,17,21,28,29,30,31,32,33,37,38,39,41,42,45,46,47,50,52,53
+embedcnt=4

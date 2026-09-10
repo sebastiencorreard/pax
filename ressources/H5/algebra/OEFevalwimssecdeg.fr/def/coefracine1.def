@@ -1,0 +1,218 @@
+!set title=Coefficients et racines 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val8=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val8/3=$val7/2
+val8=$[rint($val8+1)]
+!else
+val8=$[rint($val8)]
+!endif
+
+!ifval $val7/2<$val8/3
+t_=!rawmath $val7/2
+val9=!exec pari print($t_)
+!else
+t_=!rawmath $val8/3
+val9=!exec pari print($t_)
+!endif
+
+!ifval $val7/2<$val8/3
+t_=!rawmath $val8/3
+val10=!exec pari print($t_)
+!else
+t_=!rawmath $val7/2
+val10=!exec pari print($t_)
+!endif
+!ifval $val6=2 and abs($val10)<abs($val9) 
+t_=!rawmath $val9
+val11=!exec pari print($t_)
+t_=!rawmath $val10
+val9=!exec pari print($t_)
+t_=!rawmath $val11
+val10=!exec pari print($t_)
+!endif
+t_=!rawmath $val9+$val10
+val12=!exec pari print($t_)
+t_=!rawmath $val10-($val9)
+val13=!exec pari print($t_)
+t_=!rawmath 1/($val9)+1/($val10)
+val14=!exec pari print($t_)
+t_=!rawmath $val9*($val10)
+val15=!exec pari print($t_)
+t_=!rawmath $val12/($val14)
+val16=!exec pari print($t_)
+tmp0=!texmath $val12
+
+val17=$(tmp0)
+tmp0=!texmath $val15
+
+val18=$(tmp0)
+tmp0=!texmath $val13
+
+val19=$(tmp0)
+tmp0=!texmath $val14
+
+val20=$(tmp0)
+val21=$val9
+val22=$val10
+!if $val6=1 
+val23=dont la somme vaut \($val17) et le produit \($val18)
+tmp0=!texmath x^2-$val12*x+$val15=0
+
+val24=$(tmp0)
+t_=!rawmath ($val12)^2-4*($val15)
+val25=!exec pari print($t_)
+val26=x_1
+val27=x_2
+val28=\(x_1 < x_2\)
+!endif
+!if $val6=2 
+val23=dont la différence \(x_2-\x_1\) vaut \($val19) et dont le produit vaut \($val18)
+tmp0=!texmath x^2-$val13*x-$val15=0
+
+val24=$(tmp0)
+t_=!rawmath ($val13)^2+4*($val15)
+val25=!exec pari print($t_)
+val26=-x_1
+val27=x_2
+t_=!rawmath -($val9)
+val21=!exec pari print($t_)
+val28=\(|x_1| \leq |x_2|\)
+!endif
+!if $val6=3 
+val23=dont la somme vaut \($val17) et dont la somme des inverses vaut \($val20)
+tmp0=!texmath x^2-$val12*x+$val16=0
+
+val24=$(tmp0)
+t_=!rawmath ($val12)^2-4*($val16)
+val25=!exec pari print($t_)
+val26=x_1
+val27=x_2
+val28=\(x_1 < x_2\)
+!endif
+replytype1=numexp
+replyname1=x1
+replygood1=$val9
+replytype2=numexp
+replyname2=x2
+replygood2=$val10
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	  Trouver deux nombres 
+!insmath x_1
+$() et 
+!insmath x_2
+$(), avec $val28 $val23.	  </p>	  <ul class="wims_nopuce">	    <li>	    <label for="reply1">Valeur de 
+!insmath x_1
+$()</label>: 
+!read oef/embed.phtml reply 1,10 
+$()	    </li><li>	    <label for="reply2">Valeur de 
+!insmath x_2
+$()</label>: 
+!read oef/embed.phtml reply 2,10 
+$()	    </li>	  </ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val26
+$() et 
+!insmath $val27
+$() sont solutions de l'équation du second degré&nbsp;:	<div class="wimscenter">
+!insmath $val24
+$().</div>	Le discriminant de ce polynôme est égal à 
+!insmath $val25
+$(), ses racines sont 
+!insmath $val21
+$() et 
+!insmath $val22
+$().	De plus, 
+!insmath x_1=$val9
+$() et 
+!insmath x_2=$val10
+$() vérifient la condition $val28.	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($val6=2 and $m_reply1=-($val10) and $m_reply2=-($val9)) or	    ($val6!=2 and $m_reply1=$val10 and $m_reply2=$val9)
+ <div class='oef_feedbacks'>	  
+!insmath x_1=$m_reply1
+$() et 
+!insmath x_2=$m_reply2
+$() ne vérifient pas $val28.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,21,22,23,24,25,26,27,28
+embedcnt=2

@@ -1,0 +1,47 @@
+\title{Arbre pondéré à paramètre et inéquation du second degré}
+\author{Cyrille Douriez, David Rousseau, IREM Picardie}
+\email{cyrille.douriez@ac-amiens.fr,david.rousseau@ac-amiens.fr}
+
+\integer{v=randint(4..10)}##nombre de boules vertes##
+\real{p=randint(5..9)/10}##probabilité minimale voulue##
+
+\real{a=1-\p}
+\real{b=(1-2*\v)*\p-1}
+\real{c=\p*(\v-\v^2)}
+\real{delta=(\b)^2-4*(\a)*(\c)}
+\real{x1=(-\b-sqrt(\delta))/(2*\a)}
+\real{x2=(-\b+sqrt(\delta))/(2*\a)}
+\integer{n=(floor(\x2)=\x2)? \x2:floor(\x2)+1}
+\text{tt=slib(utilities/tooltip sans remise,, on ne remet pas la première boule tirée dans l'urne avant de tirer la seconde boule)}
+
+##Pour le corrigé##
+\integer{vm1=\v-1}
+\integer{b1=\v+\vm1}
+\integer{c1=\v*\vm1}
+\real{b2=\p*\b1}
+\real{c2=\p*\c1}
+\function{pol=maxima(\a*n^2+\b*n+\c)}
+\text{poly=texmath(\pol)}
+\integer{exact=(round(\delta)=\delta)? 1:0}
+\real{sol1=(\exact==1)? \x1:floor(10*\x1)/10}##arrondi par défaut##
+\real{sol2=(\exact==1)? \x2:floor(10*\x2)/10+0.1}##arrondi par excès##
+
+\statement{Une urne contient \(\v) boules vertes et \(n) boules rouges indiscernables au toucher, où \(n) est un entier naturel non nul.<br>
+On tire successivement \tt deux boules de l'urne.<br>
+<div class="wims_question">Déterminer la plus petite valeur de \(n) telle que la probabilité d'obtenir deux boules rouges soit supérieure ou égale à \(\p).</div>
+<br>La plus petite valeur de \(n) est \embed{r1,4}.}
+
+\hint{Il est conseillé d'utiliser un arbre pondéré afin d'obtenir une inéquation du second degré.}
+\answer{Réponse}{\n}{type=formal}
+
+\solution{Si on note \(R_1\) l'événement "obtenir une boule rouge au 1er tirage" et \(R_2\) l'événement "obtenir une boule rouge au 2ème tirage" alors la probabilité d'obtenir deux boules rouges est \(p(R_1\cap R_2)\). <br>
+Les boules ayant la même probabilité d'être choisies \(p(R_1)=\frac{n}{n+\v}\) et \(p_{R_1}(R_2)=\frac{n-1}{n+\vm1}\) puisque la boule choisie au 1er tirage n'est pas remise dans l'urne avant le 2ème tirage.
+<br>Donc \(p(R_1\cap R_2)=p(R_1)p_{R_1}(R_2)=\frac{n}{n+\v} \times\frac{n-1}{n+\vm1}=\frac{n^2-n}{n^2+\b1 n+\c1}).
+<br>On cherche donc à déterminer la plus petite valeur de \(n) telle que \(\frac{n^2-n}{n^2+\b1 n+\c1}\geq \p).
+<br>\(\frac{n^2-n}{n^2+\b1 n+\c1}\geq \p) &hArr; \(n^2-n\geq \p(n^2+\b1 n+\c1))
+<br>\(\frac{n^2-n}{n^2+\b1 n+\c1}\geq \p) &hArr; \(n^2-n\geq \p n^2+\b2 n+\c2)
+<br>\(\frac{n^2-n}{n^2+\b1 n+\c1}\geq \p) &hArr; \(\poly \geq 0).
+<br>Les solutions \if{\exact==0}{approchées} de l'équation \(\poly=0) sont \(\sol1\) et \(\sol2\).
+<br>Comme \(n>0) et \(\a>0), \(\poly \geq 0) &hArr; \(n \geq \sol2). 
+<br>La plus petite valeur de \(n) est donc \(\n). 
+}

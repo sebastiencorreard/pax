@@ -1,0 +1,138 @@
+!set title=Série A 12
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+language=fr
+
+ansorder=c
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 24
+
+val6=$[rint($(tmp0))]
+val6=$[rint(16)]
+val7=$[rint(5)]
+!for val8 =0 to 4 
+val7=$[rint($val7+floor(($val6-5*$val8)/2))]
+!next
+tmp=!translate ";': to $     $ in $val6+11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val6+8
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val6+14
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val6+16
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val9=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+tmp0=!listcomplement $val7 in $val9
+
+val9=$(tmp0)
+tmp0=!shuffle $val7,$val9
+
+val10=$(tmp0)
+val11=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val10
+
+val12=$[rint($(tmp0))]
+val13=
+val14=
+!for val8 =1 to $val12 
+tmp0=!item $val8 of $val10
+
+val15=$(tmp0)
+val16=Réponse $(val11[$val8])
+!if $val15 isitemof $val7 
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+!else
+tmp0=!append item $val16 to $val14
+
+val14=$(tmp0)
+!endif
+!next
+!readproc slib/lang/fname girl,fr 
+tmp0=$slib_out
+val17=$(tmp0)
+choicename1=Choisissez
+choicegood1=$val13
+choicebad1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val17 dispose dans son porte monnaie de pièce de 1 et de 2 euros ainsi que des billets de 5 euros.	Elle vient d'acheter $val6 euros un bel ouvrage de mathématiques amusantes contenant des petits	problèmes à résoudre.	Elle se demande alors de combien de manières différentes elle peut obtenir $val6 euros avec les pièces et les billets de son porte monnaie ?	<p>	De combien de manières différentes peut-on payer un achat de $val6 euros en pièces	de 1, et 2 euros, et billets de 5 euros ?</p>	<ul>	 
+!for m_l=1 to $val12 
+$()	 <li>$(val11[$m_l]) : $(val10[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,12,17
+embedcnt=1

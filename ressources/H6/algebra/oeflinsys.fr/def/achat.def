@@ -1,0 +1,152 @@
+!set title=Au marché
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val7=$(tmp0)
+val8=légume,légumes
+val9=haricots, concombres, tomates, poivrons, aubergines, chou
+val10=fruit,fruits
+val11=pommes, poires, oranges, clémentines, bananes, melons
+val12=euros de plus sur les,que sur les,autant d'argent sur les
+val13=Un restaurateur se fournit au marché. Il a acheté,	  kilogrammes de , à ,euros le kilo,pour,euros au total
+val14=Sachant qu'il a dépensé,combien de kilogrammes a-t-il acheté de chaque type de,	  combien a-t-il dépensé pour chaque type de
+val15=en kilogramme
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val16=$[rint($(tmp0))]
+!if $val16=1 
+val17=$(val8[1])
+val18=$(val8[2])
+tmp0=!shuffle $val9
+
+val19=$(tmp0)
+!endif
+!if $val16=2 
+val17=$(val10[1])
+val18=$(val10[2])
+tmp0=!shuffle $val11
+
+val19=$(tmp0)
+!endif
+val20=$[rint(30)]
+val21=$[rint(70)]
+tmp0=!shuffle $val21-$val20+1
+
+val22=$(tmp0)
+tmp0=!values (x+$val20)/20 for x in $(val22[1,2,3])
+
+val22=$(tmp0)
+
+!ifval ($(val22[3])>$(val22[1]) and $(val22[3])<$(val22[2])) or	  ($(val22[3])<$(val22[1]) and $(val22[3])>$(val22[2]))	  
+val22=$(val22[1]),$(val22[3]),$(val22[2])
+!endif
+tmp0=!randint 100
+
+tmp1=!randint 100
+
+tmp2=!randint 100
+
+val23=$(tmp0)/5+4,$(tmp1)/5+4,$(tmp2)/5+4
+tmp0=!values x for x in $val23
+
+val23=$(tmp0)
+tmp0=!sum x for x in $val23
+
+val24=$(tmp0)
+val25=$[$(val22[1])*$(val23[1])]
+val26=$[$(val22[2])*$(val23[2])]
+val27=$[$(val22[3])*$(val23[3])]
+val28=$[$val25+$val26+$val27]
+!if $val25<$val26 
+val29=$[$val26-$val25]
+val30=$val29 $(val12[1]) $(val19[2]) $(val12[2]) $(val19[1])
+!endif
+!if $val25>$val26 
+val29=$[$val25-$val26]
+val30=$val29 euros $(val12[1]) $(val19[1]) $(val12[2]) $(val19[2])
+!endif
+!if $val25=$val26 
+val30=$(val12[3]) $(val19[1]) $(val12[2]) $(val19[2])
+!endif
+replyname1=$(val19[1]) $val15
+replygood1=$(val23[1])
+replyname2=$(val19[2]) $val15
+replygood2=$(val23[2])
+replyname3=$(val19[3]) $val15
+replygood3=$(val23[3])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val13[1]) $val24 $(val13[2]) $val18 ($(val19[1])	$(val13[3]) $(val22[1]) $(val13[4]),	$(val19[2]) $(val13[3]) $(val22[2]) $(val13[4]),	$(val19[3]) $(val13[3]) $(val22[3]) $(val13[4]))	$(val13[5]) $val28 $(val13[6]).	<p>	$(val14[1]) $val30, $(val14[2]) $val18?	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,18,19,22,24,28,30
+embedcnt=0

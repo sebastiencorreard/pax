@@ -1,0 +1,149 @@
+!set title=Base orthonormale 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+val8=$[rint(($val6)^2+($val7)^2)]
+tmp=!translate ";': to $     $ in $val6/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val9=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val7/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val10=!exec pari print($t_)
+t_=!replace internal \( by ( in $val9*s
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val11=$(tmp1)
+tmp0=!replace internal s by \sqrt{$val8} in $val11
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in $val10*s
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val12=$(tmp1)
+tmp0=!replace internal s by \sqrt{$val8} in $val12
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in -$val10*s
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val13=$(tmp1)
+tmp0=!replace internal s by \sqrt{$val8} in $val13
+
+val13=$(tmp0)
+val14=!rawmath $val9*sqrt($val8)*x+$val10*sqrt($val8)*y
+val15=!rawmath -$val10*sqrt($val8)*x+$val9*sqrt($val8)*y
+replytype1=function
+replyname1=\(X\)
+replygood1=!rawmath $val14
+replytype2=function
+replyname2=\(Y\)
+replygood2=!rawmath $val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	 Le plan est muni d'un repère orthonormal 
+!insmath (O,\vec{i},\vec{j})
+$().	 On se donne une base orthonormale 
+!insmath \vec{u}($val11,$val12)
+$() et 
+!insmath \vec{v}($val13,$val11)
+$().	 </p><p>	 Étant donné un vecteur quelconque 
+!insmath \vec{w}=x\vec{i}+y\vec{j}
+$(),	 donner ses coordonnées 
+!insmath (X,Y)
+$() dans la base 
+!insmath (\vec{u},\vec{v})
+$().</p>	<div class="wimscenter"><label for="reply1">
+!insmath X=
+$()</label>  
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wimscenter"><label for="reply2">
+!insmath Y=
+$()</label> 
+!read oef/embed.phtml reply2 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13
+embedcnt=2

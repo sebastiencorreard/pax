@@ -1,0 +1,320 @@
+!set title=3. Durée d'un placement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=julien.lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=37
+prevarcnt=34
+postvarcnt=2
+replycnt=26
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim reply1
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 0, 4
+
+val7=$[rint($(tmp0))]
+val8=$[rint(500+$val7*50)]
+tmp0=!randint 0, 5
+
+val9=$[rint($(tmp0))]
+val10=$[3+$val9*1]
+val11=$[$val10/100]
+val12=$[1+$val11]
+tmp0=!randint 0, 7
+
+val13=$[rint($(tmp0))]
+val7=$[rint(3+$val13*1)]
+val14=$[rint($val8*(1+$val11)^($val7)*100)]
+val15=$[$val14/100]
+val16=$[rint($val15/$val8*10000)]
+val17=$[$val16/10000]
+val18=
+val19=$[rint()]
+!if 500<$val15 and $val15<=700 
+val19=$[rint(1)]
+!endif
+!if 700<$val15 and $val15<=900 
+val19=$[rint(2)]
+!endif
+!if 900<$val15 and $val15<=1100 
+val19=$[rint(3)]
+!endif
+!if 1100<$val15 and $val15<=1200 
+val19=$[rint(4)]
+!endif
+!if 1200<$val15 and $val15<=1600 
+val19=$[rint(5)]
+!endif
+val20=Valeur du capital la
+tmp=!trim un appareil photo,<img src="$val1/photo.jpg" alt="appareil photo">	un ordinateur portable,<img src="$val1/ordi.jpg" alt="ordinateur">	un camescope numérique,<img src="$val1/camescope.jpg" alt="camescope">	un téléviseur,<img src="$val1/tele.jpg" alt="televiseur">	une tablette pc,<img src="$val1/tablette.jpg" alt="tablette">
+val21=!translate internal $	\
+$ to ;; in $tmp
+val22=$(val21[;2])
+!readproc slib/oef/env fn 
+tmp0=$slib_out
+val23=$(tmp0)
+val24=
+!for val25 =1 to 10 
+val13=$[rint($val8*(1+$val11)^$val25*100)]
+val26=$[$val13/100]
+tmp0=!append item $val26 to $val24
+
+val24=$(tmp0)
+!next
+val27=Calculez la valeur acquise durant la première	 année\(,) la deuxième et ainsi de suite. À l'aide des résultats trouvés\(,)	 déterminez la durée du placement. ,Remplacez le montant de l'objet	 par la valeur acquise et résoudre l'équation en utilisant	 une propriété de la fonction ln. ,Réalisez la représentation graphique	 du capital acquis en fonction de la durée puis effectuez une lecture	 graphique., Réalisez la représentation graphique du capital acquis en	 fonction du taux puis effectuez une lecture graphique.
+val28=Quel doit être la durée du placement financier	 pour acheter $(val21[$val19;1]) ?
+val29=$val23 souhaite acquérir $(val21[$val19;1]). L'élève dispose d'une	somme de $val8 &#8364; qu'il place à un taux annuel de $val10 %. Dans	 combien de temps, pourra-t-il s'acheter le bien de consommation	 qui a une valeur de $val15 &#8364;.
+!readproc slib/geo2D/jsxgraph jsxbox,500 x 300,	var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 50, originY: 220, unitX: 10, unitY: 0.05, axis:true,shownavigation:false, grid:false});		var s = board.create('slider', [[1,-500],[21,-500],[500,500,700]],{name:'Capital',strokeColor:'black',fillColor:'red',snapWidth:50});	var t = board.create('slider', [[1,-1000],[26,-1000],[3,3,8]],{name:'Taux',strokeColor:'black',fillColor:'red',snapWidth:1});	var yy = board.create('text',[3,3800,function(){	    return '<b>Capital acquis en &#8364;</b>';}],{fontSize:'14px'});	var xx = board.create('text',[20,500,function(){	    return '<b>Durée du placement en année</b>';}],{fontSize:'14px'});	var fct= board.create('functiongraph', [function(x){	var sff=s.Value(),	tff=t.Value();	return sff*Math.pow(1+tff/100,x);},0,20]);	var g1 = board.create('glider', [2, $(val24[2]), fct], {style:12,name:"Déplace moi", strokeColor:'#990000',highlightStrokeColor:'#000000'});	var pyy = board.create('point',[0 ,function(){return g1.Y();}], {name:'B',style:6,visible:false});	var pxx = board.create('point',[function(){return g1.X();}, 0], {visible:false});		var fleyy = board.create('line',[pyy,g1],	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'#990000', dash:0,  lastArrow:true});	var fleyy = board.create('line',[g1,pxx],	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'#990000', dash:0,  lastArrow:true}); 
+tmp0=$slib_out
+val30=$(tmp0)
+!readproc slib/geo2D/jsxgraph box2,500 x 300,	var brd = JXG.JSXGraph.initBoard('box2', {originX: 50, originY: 220, unitX: 10, unitY: 0.05, axis:true,shownavigation:false, grid:false});	var ss = brd.create('slider', [[1,-500],[21,-500],[500,500,700]],{name:'Capital',strokeColor:'black',fillColor:'red',snapWidth:50});	var nn = brd.create('slider', [[1,-1000],[21,-1000],[1,3,10]],{name:'Durée du placement',strokeColor:'black',fillColor:'red',snapWidth:1});		var yyy = brd.create('text',[3,3800,function(){	    return '<b>Capital acquis en &#8364;</b>';}],{fontSize:'14px'});	var xxx = brd.create('text',[20,500,function(){	    return '<b>Taux en pourcentage</b>';}],{fontSize:'14px'});		var f= brd.create('functiongraph', [function(x){return ss.Value()*Math.pow(1+x/100,nn.Value());},0,20]);	var gg = brd.create('glider', [2, ss.Value()*Math.pow(1+2/100,nn.Value()), f], {style:12,name:"Déplace moi", strokeColor:'#990000',highlightStrokeColor:'#000000'});		var pyyy = brd.create('point',[0 , function(){ return gg.Y();}], {name:'B',style:6,visible:false});	var pxxx = brd.create('point',[function(){ return gg.X();}, 0], {visible:false});		var fleyyy = brd.create('line',[pyyy,gg],	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'#990000', dash:0,  lastArrow:true});	var fleyyy = brd.create('line',[pxxx,gg],	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'#990000', dash:0,  lastArrow:true}); 
+tmp0=$slib_out
+val31=$(tmp0)
+dynsteps=yes
+oefsteps=$val6 
+nextstep=!nosubst $val6 
+!readproc oef/steps.proc
+replytype1=radio
+replyoption1=shuffle nonstop 
+replyname1=Méthode
+replygood1=2;$val27
+replytype2=case
+replyoption2=nonstop 
+replyname2=$val20 1<sup>ére</sup> année
+replygood2=$(val24[1])|0
+replytype3=case
+replyoption3=nonstop 
+replyname3=$val20 2<sup>ème</sup> année
+replygood3=$(val24[2])|0
+replytype4=case
+replyoption4=nonstop 
+replyname4=$val20 3<sup>ème</sup> année
+replygood4=$(val24[3])|0
+replytype5=case
+replyoption5=nonstop 
+replyname5=$val20 4<sup>ème</sup> année
+replygood5=$(val24[4])|0
+replytype6=case
+replyoption6=nonstop 
+replyname6=$val20 5<sup>ème</sup> année
+replygood6=$(val24[5])|0
+replytype7=case
+replyoption7=nonstop 
+replyname7=$val20 6<sup>ème</sup> année
+replygood7=$(val24[6])|0
+replytype8=case
+replyoption8=nonstop 
+replyname8=$val20 7<sup>ème</sup> année
+replygood8=$(val24[7])|0
+replytype9=case
+replyoption9=nonstop 
+replyname9=$val20 8<sup>ème</sup> année
+replygood9=$(val24[8])|0
+replytype10=case
+replyoption10=nonstop 
+replyname10=$val20 9<sup>ème</sup> année
+replygood10=$(val24[9])|0
+replytype11=case
+replyoption11=nonstop 
+replyname11=$val20 10<sup>ème</sup> année
+replygood11=$(val24[10])|0
+replytype12=case
+replyoption12=nonstop 
+replyname12=Valeur acquise
+replygood12=$val15|0
+replytype13=case
+replyoption13=nonstop 
+replyname13=Somme
+replygood13=$val8|0
+replytype14=case
+replyoption14=nonstop 
+replyname14=Taux
+replygood14=$val11|0
+replytype15=case
+replyoption15=nonstop 
+replyname15=Valeur acquise
+replygood15=$val15|0
+replytype16=case
+replyoption16=nonstop 
+replyname16=Somme
+replygood16=$val8|0
+replytype17=case
+replyoption17=nonstop 
+replyname17=Taux
+replygood17=$val12|0
+replytype18=case
+replyoption18=nonstop 
+replyname18=Valeur acquise
+replygood18=$val15|0
+replytype19=case
+replyoption19=nonstop 
+replyname19=Somme
+replygood19=$val8|0
+replytype20=case
+replyoption20=nonstop 
+replyname20=Taux
+replygood20=$val12|0
+replytype21=case
+replyoption21=nonstop 
+replyname21=Quotient
+replygood21=$val17|0
+replytype22=case
+replyoption22=nonstop 
+replyname22=Taux
+replygood22=$val12|0
+replytype23=case
+replyoption23=nonstop 
+replyname23=Quotient
+replygood23=$val17|0
+replytype24=case
+replyoption24=nonstop 
+replyname24=Taux
+replygood24=$val12|0
+replytype25=case
+replyoption25=nonstop 
+replyname25=Durée
+replygood25=$val7|0
+replytype26=case
+replyoption26=nonstop 
+replyname26=Durée
+replygood26=$val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="consigne">	<div id="boited">	$(val22[$val19])	</div>	<p class="problematique"> $val28 </p>	<p class="special_letter"> $val29 </p><div></div>	<div></div>	<table class="wimscenter" >	<tr>	<td>La valeur acquise est donné par la relation suivante :	<br>	 <b>C<sub>n</sub> = C<sub>0</sub> (1+t)<sup>n</sup></b>	</td>	<td></td>	</tr>	<tr>	<td></td>	<td style="text-align:left">	<b>C<sub>n</sub> : Capital acquis en &#8364;</b>	<br>	<b>C<sub>0</sub> : Capital placé en &#8364;</b>	<br>	<b>t : Taux du placement annuel, semestriel, trimestriel, mensuel ou journalier</b>	<br>	<b>n : Période du placement en année, semestre, trimestre, mois ou jours</b>	<br>	</td>	</tr>	</table>	
+!if $m_step=1 
+$()	<div></div>	<div class="question">	Parmi les 4 propositions suivantes, précisez celle qui semble être	 la plus pertinente pour répondre à la question posée.	<ul class="wims_nopuce">	 
+!for m_mm=1 to 4 
+$()<li>  
+!read oef/embed.phtml reply1,\mm 
+$()</li> 
+!next
+$()	</ul>	</div> 
+!endif
+$()		
+!if $m_step=2 
+$()	<div></div>	<div class="question">	Complétez les seules informations qui permettent de résoudre	 la problématique : (Les cases qui ne vous semblent pas pertinentes	 doivent prendre la valeur 0.)	<div></div>	<div id="premiereTable">	<ul><li>$(val27[1])</li></ul>	<table class="wimscenter wimsborder">	<tr>	 
+!for m_dd=1 to 5 
+$()<td><b>C<sub>$m_dd</sub></b></td> 
+!next
+$()	</tr>	<tr>	 
+!for m_dd=2 to 6 
+$()<td> 
+!read oef/embed.phtml reply\dd, 5 
+$()</td> 
+!next
+$()	</tr>	<tr>	 
+!for m_dd=6 to 10 
+$()<td><b>C<sub>$m_dd</sub></b></td> 
+!next
+$()	</tr>	<tr>	 
+!for m_dd=7 to 11 
+$()<td> 
+!read oef/embed.phtml reply\dd, 5 
+$()</td> 
+!next
+$()	</tr>	</table>	</div>		<div id="secondTable">	<ul><li>	$(val27[2])	</li></ul>	<b>C<sub>n</sub> = C<sub>0</sub> (1+t)<sup>n</sup></b>	<br>	 
+!read oef/embed.phtml reply12, 5 
+$()=  
+!read oef/embed.phtml reply13, 5 
+$()(1+ 
+!read oef/embed.phtml reply14, 2 
+$())<sup>n</sup>	<br>	 
+!read oef/embed.phtml reply15, 5 
+$()=  
+!read oef/embed.phtml reply16, 5 
+$()( 
+!read oef/embed.phtml reply17, 2 
+$())<sup>n</sup>	<div></div>	  
+!read oef/special.phtml mathmlinput [\frac{reply18}{reply19}=reply20^n],5,noanswer	 reply 18	 reply 19	 reply 20 
+$()	<br>	<img src="$val1/attention.png" alt="Attention">Le calcul du	 quotient doit être arrondi à 10<sup>-4</sup>.	<br>	ln( 
+!read oef/embed.phtml reply21, 5 
+$())=ln( 
+!read oef/embed.phtml reply22, 2 
+$())<sup>n</sup>	<br>	ln( 
+!read oef/embed.phtml reply23, 5 
+$())=n $m_times ln( 
+!read oef/embed.phtml reply24, 2 
+$())	<br>	Arrondissez à l'unité	<br>	n= 
+!read oef/embed.phtml reply25, 2 
+$()	</div>	<div></div><div></div><div></div>		<table><tr>	<td>	<ul>	<li>	$(val27[3])	</li>	</ul>	$val30	</td>	<td>		<ul>	<li>	$(val27[4])	</li>	</ul>	$val31	</td></tr>	</table>	</div>		<div class="question">	<span style="text-decoration: underline; font-weight: bold;">Conclusion :</span> La durée du placement doit donc être de	  
+!read oef/embed.phtml reply26, 2 
+$() années.	</div> 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!makelist r x for x = 2 to 25
+
+val32=$(tmp0)
+
+!ifval ($m_step=2)
+val6= $val32
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,19,22,27,28,29,30,31
+embedcnt=16

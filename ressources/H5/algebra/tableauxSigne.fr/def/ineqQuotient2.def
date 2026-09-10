@@ -1,0 +1,220 @@
+!set title=Inéquation avec quotient (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer; Josep, Lopez
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r
+varcnt=49
+prevarcnt=48
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Résoudre algébriquement sur \(\RR\;\) l'inéquation (1)
+val8=avec
+val9=L'inéquation (1) équivaut à l'inéquation suivante 
+val10=On a montré que résoudre (1) équivaut à résoudre l'inéquation (2)
+val11=forme développée,forme factorisée
+val12=Faire <span class="enrouge">sur papier libre</span> l'étude des signes du quotient
+val13=Ensuite, dans la liste suivante, cocher tous les intervalles	  dont la réunion est l'ensemble des solutions de l'inéquation (1)
+val14=Forme développée du numérateur dans (2)
+val15=Forme factorisée du numérateur dans (2)
+tmp0=!randint 1, 5
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val17=$[rint($(tmp0))]
+val18=$[rint(-3*$val16-4*$val17)]
+val19=$[rint(2*$val16+3*$val17)]
+val20=$[rint($val16 + $val17)]
+val21=$[rint($val16+2*$val17)]
+val22=$[rint($val21^2)]
+val23=!rawmath x - $val18
+val24=!rawmath x - $val16
+val25=!rawmath x - $val20
+val26=!rawmath x^2 - $val22 
+val27=!rawmath (x - $val21)(x+$val21) 
+val28=!rawmath ($val24)($val25)
+val29=!rawmath ($val27) / ($val28)
+val30=<,>,\leq,\geq
+tmp0=!shuffle $val30
+
+tmp1=!item 1 of $(tmp0)
+
+val31=$(tmp1)
+val32=($val23) / ($val24) $val31 ($val19) / ($val25) 
+val33=&#93; -&#8734; &#44; -$val21 &#93; 
+val34=&#93; -&#8734; &#44; -$val21 &#91; 
+val35=&#91; -$val21 &#44; $val16 &#93; 
+val36=&#93; -$val21 &#44; $val16 &#91; 
+val37=&#93; -$val21 &#44; $val16 &#93; 
+val38=&#91; -$val21 &#44; $val16 &#91; 
+val39=&#91; $val16 &#44; $val20 &#93; 
+val40=&#93; $val16 &#44; $val20 &#91; 
+val41=&#93; $val16 &#44; $val20 &#93; 
+val42=&#91; $val16 &#44; $val20 &#91; 
+val43=&#91; $val20 &#44; $val21 &#93; 
+val44=&#93; $val20 &#44; $val21 &#91; 
+val45=&#93; $val20 &#44; $val21 &#93; 
+val46=&#91; $val20 &#44; $val21 &#91; 
+val47=&#91; $val21 &#44; +&#8734; &#91; 
+val48=&#93; $val21 &#44; +&#8734; &#91; 
+val49=$val34,$val33,$val35,$val36,$val37,$val38,$val39,$val40,$val41,$val42,$val43,$val44,$val45,$val46,$val47,$val48
+
+!ifval ($val31 issametext < )
+val50=4,12
+!endif
+
+!ifval ($val31 issametext \leq )
+val50=6,13
+!endif
+
+!ifval ($val31 issametext > )
+val50=1,8,16
+!endif
+
+!ifval ($val31 issametext \geq )
+val50=2,8,15
+!endif
+oefsteps=reply1, reply2	reply3 
+nextstep=!nosubst reply1, reply2	reply3 
+!readproc oef/steps.proc
+replytype1=algexp
+replyoption1=nonstop 
+replyname1=$val14
+replygood1=$val26
+replytype2=algexp
+replyoption2=nonstop 
+replyname2=$val15
+replygood2=$val27
+replytype3=checkbox
+replyname3=
+replygood3=$val50; $val49
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">$val7: 
+!insmath $val32
+$().</div>	<ol>	<li>	
+!if $m_step==1 
+$()	  $val9: 
+!insmath \frac{u(x)}{($val24)($val25)} $val31 0
+$()	  <div class="wimscenter">
+!insmath u(x)
+$() =  
+!read oef/embed.phtml reply1, 16 
+$() ($(val11[1])).</div>	  <div class="wimscenter">
+!insmath u(x)
+$() =  
+!read oef/embed.phtml reply2, 16 
+$() ($(val11[2])).</div>	 
+!else
+$() $val10 : 
+!insmath $val29
+$() 
+!insmath $val31 0
+$(). 
+!endif
+$()	</li>	
+!if $m_step==2 
+$()<li>$val12 
+!insmath  $val29 
+$().	  <br>	  $val13:	  <div class="wimscenter">	  <table class="tablesansbord">	  <tr> 
+!for m_k=1 to 2 
+$()<td> 
+!read oef/embed.phtml reply3,\k 
+$()</td> 
+!next
+$() 
+!for m_k=15 to 16 
+$()<td> 
+!read oef/embed.phtml reply3,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=3 to 6 
+$()<td> 
+!read oef/embed.phtml reply3,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=7 to 10 
+$()<td> 
+!read oef/embed.phtml reply3,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=11 to 14 
+$()<td> 
+!read oef/embed.phtml reply3,\k 
+$()</td> 
+!next
+$()</tr>	  </table></div>	  </li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,11,12,13,24,25,29,31,32
+embedcnt=7

@@ -1,0 +1,227 @@
+!set title=Distance entre droites parallèles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[1;])
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[2;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[3;])
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=$[rint($(val6[1;1]))]
+val11=$[rint($(val6[1;2]))]
+val12=$[rint($(val6[1;3]))]
+val13=$[rint($(val6[1;1]))]
+val14=$[rint($(val6[1;2]))]
+val15=$[rint($(val6[1;3]))]
+val16=$[rint($(val6[3;1]))]
+val17=$[rint($(val6[3;2]))]
+val18=$[rint($(val6[3;3]))]
+tmp0=!randint -9, 9
+
+val19=$[rint($(tmp0))]
+tmp0=!randint -9, 9
+
+val20=$[rint($(tmp0))]
+tmp0=!randint -9, 9
+
+val21=$[rint($(tmp0))]
+val22=$[rint($val19+$val16)]
+val23=$[rint($val20+$val17)]
+val24=$[rint($val21+$val18)]
+tmp=!translate ";': to $     $ in $val10*t+($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=x=$(tmp0)
+tmp=!translate ";': to $     $ in $val11*t+($val20)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=y=$(tmp0)
+tmp=!translate ";': to $     $ in $val12*t+($val21)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=z=$(tmp0)
+tmp0=!texmath $val25
+
+val28=$(tmp0)
+tmp0=!texmath $val26
+
+val29=$(tmp0)
+tmp0=!texmath $val27
+
+val30=$(tmp0)
+tmp=!translate ";': to $     $ in $val13*t+($val22)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=x=$(tmp0)
+tmp=!translate ";': to $     $ in $val14*t+($val23)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val32=y=$(tmp0)
+tmp=!translate ";': to $     $ in $val15*t+($val24)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=z=$(tmp0)
+tmp0=!texmath $val31
+
+val34=$(tmp0)
+tmp0=!texmath $val32
+
+val35=$(tmp0)
+tmp0=!texmath $val33
+
+val36=$(tmp0)
+val37=$[rint($val10*($val19)+($val11)*($val20)+($val12)*($val21))]
+tmp=!translate ";': to $     $ in ($val10)*x+($val11)*y+($val12)*z -($val37)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val38=$(tmp0)=0
+t_=!rawmath ($val37 - ($val10)*($val22)-($val11)*($val23)-($val12)*($val24))/($val10*($val13)+($val11)*($val14)+($val12)*($val15))
+val39=!exec pari print($t_)
+t_=!rawmath $val13*($val39)+($val22)
+val40=!exec pari print($t_)
+t_=!rawmath $val14*($val39)+($val23)
+val41=!exec pari print($t_)
+t_=!rawmath $val15*($val39)+($val24)
+val42=!exec pari print($t_)
+tmp=!trim $val40,$val41,$val42
+val43=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in sqrt(($val19-($val40))^2+($val20-($val41))^2+($val21-($val42))^2)
+tmp0=!exec pari $t_
+
+val44=$[$(tmp0)]
+replytype1=equation
+replyname1=Équation de \(P_1\)
+replygood1=!rawmath $val38
+replytype2=vector
+replyname2=Coordonnées de \(H\)
+replygood2=$val43
+replytype3=numeric
+replyname3=distance
+replygood3=$[$val44]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère deux droites 
+!insmath D_1
+$() et 
+!insmath D_2
+$() de l'espace définies par des	équations paramétriques	<div class="wimscenter">	
+!insmath D1
+$() :	
+!insmath \left \lbrace	\begin{array}{l}	$val28\\	$val29\\	$val30	\end{array} 
+$()		&nbsp;&nbsp;		
+!insmath D2
+$() :	
+!insmath \left \lbrace	\begin{array}{l}	$val34\\	$val35\\	$val36	\end{array} 
+$()	</div>	On veut calculer la distance entre ces deux droites.	<ol>	<li> Déterminer l'équation cartésienne du plan 
+!insmath P_1
+$() perpendiculaire	 à 
+!insmath D_1
+$() et passant par le point 
+!insmath A($val19,$val20,$val21)
+$() de 
+!insmath D_1
+$() :	<div class="wimscenter"> Équation de 
+!insmath P_1
+$() :  
+!read oef/embed.phtml reply1 
+$()</div>	</li><li>	Déterminer les coordonnées du point 
+!insmath H
+$() intersection de 
+!insmath P_1
+$() et 
+!insmath D_2
+$() :	<div class="wimscenter"> 
+!insmath H
+$() =  
+!read oef/embed.phtml reply2 
+$()</div>	</li><li>	La distance cherchée est donc la distance 
+!insmath A H
+$() :	<div class="wimscenter"> 
+!insmath A H
+$()= 
+!read oef/embed.phtml reply3 
+$()</div>	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20,21,28,29,30,34,35,36
+embedcnt=3

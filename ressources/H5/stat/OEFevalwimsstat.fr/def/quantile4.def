@@ -1,0 +1,139 @@
+!set title=Résumer: Médiane, écart interquartile 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le premier décile \(D_1\) et le neuvième décile \(D_9\) se calculent de la	même façon que le premier quartile \(Q_1\) et le troisième quartile \(Q_3\), en substituant	 au partage en 4 parties égales un partage en 10 parties égales.
+val7=On rappelle la définition du premier décile noté \(D_1\) et du neuvième décile noté \(D_9\):<br>	Pour une série statistique ordonnée dans l'ordre croissant, d'effectif total \(n\),<br>	\(D_1\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{n}{10}\),<br>	\(D_9\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{9n}{10}\)
+tmp0=!randint 5, 50
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 10, 50
+
+val9=$[rint($val8+$(tmp0))]
+tmp0=!makelist x for x=$val8 to $val9
+
+val10=$(tmp0)
+tmp0=!shuffle $val9-$val8
+
+val11=$(tmp0)
+tmp0=!item 1 to 7 of $val11
+
+val11=$(tmp0)
+tmp0=!sort numeric list $val11
+
+val11=$(tmp0)
+val8=$[rint($(val10[$(val11[1])]))]
+val12=$[rint($(val10[$(val11[2])]))]
+val13=$[rint($(val10[$(val11[3])]))]
+val14=$[rint($(val10[$(val11[4])]))]
+val15=$[rint($(val10[$(val11[5])]))]
+val16=$[rint($(val10[$(val11[6])]))]
+val9=$[rint($(val10[$(val11[7])]))]
+val17=$[rint($val15-$val13)]
+val18=$[rint($val16-$val12)]
+val19=$[rint($val9-$val8)]
+val20=moins,plus,
+val21=inférieures ou égales,strictement supérieures
+val22=plus,moins
+val23=strictement supérieures,inférieures ou égales
+tmp0=!randitem 1,2
+
+val24=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val25=$[rint($(tmp0))]
+val26=25,75
+replytype1=numeric
+replyname1=med
+replygood1=$[50]
+replytype2=numeric
+replyname2=moitié inf
+replygood2=$[$val13]
+replytype3=numeric
+replyname3=moitié sup
+replygood3=$[$val15]
+replytype4=numeric
+replyname4=Q3
+replygood4=$[$(val26[$val25])]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val6
+
+help=!nosubst $val7
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère une série statistique dont on connaît les indicateurs suivants:	</p>	<ul>	<li>Médiane = $val14 </li>	<li>Premier quartile = $val13</li>	<li>Troisième quartile = $val15</li>	<li>Premier décile = $val12 </li>	<li>Neuvième décile = $val16</li>	</ul>	<p>	Compléter les phrases suivantes:	</p>	<ol>	<li> <label for="reply1">Au $(val20[$val24])</label>  
+!read oef/embed.phtml reply1,3 
+$() % des valeurs	  sont $(val21[$val24]) à $val14.</li>	<li> <label for="reply2">Environ la moitié des valeurs se situe entre</label>  
+!read oef/embed.phtml reply2,3 
+$() <label for="reply3">et</label>  
+!read oef/embed.phtml reply3,3 
+$().</li>	<li> <label for="reply4">Au $(val22[$val25])</label>  
+!read oef/embed.phtml reply4,3 
+$() % des valeurs	  se situent $(val23[$val25]) de $val15.</li>	</ol>	
+$()
+!exit
+
+:hint
+$()$val6
+$()
+!exit
+
+:help
+$()$val7
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,12,13,14,15,16,20,21,22,23,24,25
+embedcnt=4

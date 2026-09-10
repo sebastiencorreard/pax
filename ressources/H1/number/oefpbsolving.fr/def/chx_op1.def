@@ -1,0 +1,143 @@
+!set title=Choix opération 1 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Philippe, Colpin
+email=jp.colpin@laposte.net
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 201, 285
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 5, 9
+
+val7=$[rint($(tmp0)*100)]
+val8=$[$val7*0.001]
+val9=$[rint(100*$val7 * $val6)/100]
+val10=$[$val7-$val6]
+val11=$[$val6-$val7]
+val12=$[$val7  + $val6]
+val13=$[rint(100*$val7 / $val6)/100]
+val14=$[$val6-$val8 ]
+val15=$[rint(100*$val8 / $val6)/100]
+val16=$[rint(100*$val8 * $val6)/100]
+val17=$[$val8+$val6]
+val18=Au marché, un kilogramme d'oranges coûte $val6 &euro;.	Paméla achète $val7 grammes d'oranges.	Pour calculer ce que Paméla doit payer,	on fait : ??$val8 x $val6 = $val16, $val7 x $val6 = $val9,$val7  -	 $val6  = $val10,$val6 - $val7=$val11,$val7  +  $val6=$val12, $val7 :	 $val6 = $val13,$val6 - $val8 = $val14,$val8 : $val6 =$val15 ,$val8 +	 $val6= $val17?? .		
+tmp0=!singlespace $val18
+
+val18=$(tmp0)
+tmp0=!embraced randitem $val18
+
+val18=$(tmp0)
+!readproc slib/text/cutchoice2 $val18 
+tmp0=$slib_out
+val18=$(tmp0)
+tmp=!translate internal $	$ to ; in $val18
+
+tmp0=!rowcnt $tmp
+val19=$[rint(min(20,floor($(tmp0)/2)))]
+val20=
+val21=
+!for val22 =1 to $val19 
+val23=$(val18[2*$val22;])
+val24=$(val23[1])
+tmp0=!sort items $val23
+
+val23=$(tmp0)
+tmp0=!positionof item $val24 in $val23
+
+val24=$(tmp0)
+val20=$val20$val24,
+val21=$val21$val23;
+!next
+tmp0=!embraced randitem \pre
+
+val25=$(tmp0)
+tmp0=!embraced randitem \post
+
+val26=$(tmp0)
+tmp0=!makelist reply x for x=1 to $val19
+
+val27=$(tmp0)
+oefsteps=$val27 
+nextstep=!nosubst $val27 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Champ 1
+replygood1=$(val20[1]);$(val21[1;])
+replytype2=menu
+replyname2=Champ 2
+replygood2=$(val20[2]);$(val21[2;])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val18[1;])	 
+!for m_k=1 to $val19 
+$()	 
+!read oef/embed.phtml r \k,\len 
+$() $(val18[2*$m_k+1;])	 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19
+embedcnt=1

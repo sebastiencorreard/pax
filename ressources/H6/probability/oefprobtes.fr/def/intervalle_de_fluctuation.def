@@ -1,0 +1,240 @@
+!set title=Intervalle de fluctuation asymptotique : urne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r,r,r
+varcnt=32
+prevarcnt=29
+postvarcnt=2
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 100
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 10, 500
+
+val7=$[rint($(tmp0))]
+val8=bleues,rouges,vertes,blanches,noires
+val9=bleue,rouge,verte,blanche,noire
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+!while $val10=$val11 
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+!endwhile
+val12=$(val8[$val10])
+val13=$(val8[$val11])
+tmp=!nonempty items 5,10,20,25,50,100
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, $val14-1
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val14-$val15)]
+val17=ensemble des boules de l'urne, ensemble des boules $(val8[$val10]),	ensemble des boules $(val8[$val11])
+val18=Une urne contient une proportion p=$val6 de boules $val12. On extrait $val7	boules avec remise de cette urne. On note F la fréquence de boules $val12 dans	l'échantillon.	
+val19=Une urne contient $val15 boules $val12	et $val16 boules $val13 . On extrait $val7	boules avec remise de cette urne. On note F	la fréquence de boules $val12 dans l'échantillon.	
+
+!ifval $val7>=30 and $val7*$val6>=5 and $val7*(1-$val6)>=5
+val20=1
+!else
+val20=2
+!endif
+val21=$val18,$val19
+tmp0=!randint 1, 2
+
+val22=$[rint($(tmp0))]
+!if $val22=2 
+val6=$[$val15/$val14]
+!endif
+val23=$[$val6-1.96*sqrt($val6*(1-$val6)/$val7)]
+val24=$[$val6+1.96*sqrt($val6*(1-$val6)/$val7)]
+val25=$[floor($val23*100)/100]
+!if $val23<0 
+val23=$[0]
+!endif
+val26=$[floor($val24)-$val24]
+!if $val26!=0 
+val27=$[floor($val24*100+1)/100]
+!else
+val27=$[floor($val24*100)/100]
+!endif
+val28=r1,r2,r3,r4,r5
+val29=$[$val7*$val6]
+val30=$[$val7*(1-$val6)]
+dynsteps=yes
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=nonstop 
+replyname1=population étudiée
+replygood1=1;$val17
+replytype2=menu
+replyoption2=nonstop 
+replyname2=couleur
+replygood2=1;$(val9[$val10]),$(val9[$val11])
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=proportion
+replygood3=$[$val6]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=taille
+replygood4=$[$val7]
+replytype5=checkbox
+replyoption5=nonstop 
+replyname5=condtions vérifiées ?
+replygood5=$val20;oui,non
+replytype6=numeric
+replyname6=borne 1
+replygood6=$[$val25]
+replytype7=numeric
+replyname7=borne 2
+replygood7=$[$val27]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	$(val21[$val22])	</div>		
+!if $m_step=1 
+$()	<div class="question">	Compléter.		<div class="reponse">		<table class="resumestat">	<tr><th>Population étudiée :</th><td>  
+!read oef/embed.phtml r1 
+$()</td></tr>	<tr><th>Caractère étudié :	</th><td> être de couleur  
+!read oef/embed.phtml r2 
+$()<br>	Proportion du caractère dans la population totale : p= 
+!read oef/embed.phtml r3,5 
+$()</td></tr>	<tr><th>Taille de l'échantillon :</th><td> n= 
+!read oef/embed.phtml r4,5 
+$()</td></tr>	</table>		Les conditions 
+!insmath n \ge 30,\ np\ge 5
+$() et 
+!insmath n(1-p)\ge 5
+$() sont-elles vérifiées ?  
+!read oef/embed.phtml r5 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step>=2 and $val20=1 
+$()	<div class="question">	
+!if $m_sc_reply1!=1 
+$()<p class="non">Population étudiée : $(val17[1]) </p> 
+!endif
+$()	
+!if $m_sc_reply2!=1 
+$()<p class="non">Caractère étudié : "être de couleur $(val9[$val10])"	
+!if $m_sc_reply3!=1 
+$()p=$val6  
+!endif
+$()</p> 
+!endif
+$()	
+!if $m_sc_reply4!=1 
+$()<p class="non">taille de l'échantillon : n=$val7 </p> 
+!endif
+$()	
+!if $m_sc_reply5!=1 
+$()<p class="non">
+!if $val20=1 
+$()Les conditions sont vérifiées 
+!else
+$() Les conditions	ne sont pas vérifiées. 
+!endif
+$() </p> 
+!endif
+$()			Déterminer l'intervalle de fluctuation asymptotique au seuil 0,95 de F	en arrondissant à 
+!insmath 10^{-2}
+$().		<div class="reponse">	
+!insmath I_{$val7}
+$()=[ 
+!read oef/embed.phtml r6,5 
+$(), 
+!read oef/embed.phtml r7,5 
+$()]	</div>	</div>		 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 and $val20=1 
+val28=r6,r7
+!endif
+!if $m_step=2 and $val20=2 
+val28=
+!endif
+
+!exit
+
+:feedback
+!ifval $val20=1 and $val23<$m_reply6
+ <div class='oef_feedbacks'>Il faut arrondir la première borne par défaut.
+$()</div>
+!endif
+!ifval $val20=1 and $val24>$m_reply7
+ <div class='oef_feedbacks'>Il faut arrondir la deuxième borne par excès.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,17,20,21,22,23,24
+embedcnt=7

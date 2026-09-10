@@ -1,0 +1,162 @@
+!set title=Fraction simple III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang Xiao
+email=xiao@unice.fr
+language=fr
+title_en=Simple fraction III
+
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=0
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Montrez que
+val8=et
+val9=Résoudre l'inégalité,La solution est
+!if $val6=en 
+val7=Prove
+val8=and
+val9=Solve the inequality,The solution is
+!endif
+m_options=nofloat
+m_methods=ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/divexp	ineq/trans, ineq/addineq, ineq/mulineq, ineq/splitineq
+m_minsteps=6
+tmp=!nonempty items a,b,c,d,p,q,r,s,t,u,v,x,y,z
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp0=!shuffle 15
+
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+tmp1=!randitem -1,1
+
+val12=$[rint(($(tmp0)+1)*$(tmp1))]
+tmp0=!item 2 of $val11
+
+tmp1=!randitem -1,1
+
+val13=$[rint(($(tmp0)+1)*$(tmp1))]
+tmp0=!item 3 of $val11
+
+tmp1=!randitem -1,1
+
+val14=$[rint(($(tmp0)+1)*$(tmp1)+1)]
+val15=$[rint(-($val13))]
+tmp=!translate internal $	$ to ; in \data
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+tmp1=!randitem ,=
+
+val17=$(tmp0)$(tmp1)
+tmp0=!item 2 of $val16
+
+val18=$(tmp0)
+tmp0=!item 3 of $val16
+
+val19=$[rint($(tmp0))]
+val20=!rawmath ($val10 + $val12)/($val10 + $val13)
+val21=$[($val12-($val13))*($val14-1)]
+tmp=!nonempty items ,=
+
+tmp0=!randitem $tmp
+val22=$(tmp0)
+
+!ifval $val14>1
+val23=>$val22
+!else
+val23=<$val22
+!endif
+t_=!rawmath ($val13*$val14-$val12)/(1-($val14))
+val24=!exec pari print($t_)
+val25=$val10 != $val15
+val26=$val20 $val23 $val14
+!if $val21>0 
+val27=$val10 > $val15
+val28=$val10 <$val22 $val24
+val29=$val15 < $val10 <$val22 $val24
+!else
+val27=$val10 < $val15
+val28=$val10 >$val22 $val24
+val29=$val24 <$val22 $val10 < $val15
+!endif
+m_context=$val25	$val26
+m_goal=$val27	$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val9[1]) 
+!insmath $val26
+$(). (
+!insmath $val25
+$())	<p>	($(val9[2]) 
+!insmath $val29
+$().)	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,25,26,29
+embedcnt=0

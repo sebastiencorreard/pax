@@ -1,0 +1,199 @@
+!set title=Nombre dérivé 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Maguy, Bruno ; Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+precision=10
+
+ansorder=r,r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+val7=nbder5$val6.ggb
+val8=
+val9=$val8	
+val10=file=$val7	width=500	height=400	showToolBar=true	customToolBar="0|1|3|2|5|38|50|40|41|42|"	showAlgebraInput=false
+val11=$val10	
+!readproc slib/geo2D/geogebra $val8, $val10 
+tmp0=$slib_out
+val12=$(tmp0)
+
+!ifval $val6=1
+val13=r1,r2,r3
+!else
+val13=r1,r2,r3,r4
+!endif
+val14=x^3/96-x^2/8+14/3,-0.25*x^2+2*x,2*x^3/15-x^2/5-4*x/5+3,-0.25*x^3+3*x+1
+tmp0=!item $val6 of $val14
+
+val15=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val15,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val16=!rawmath $(tmp0)
+!if $val6=1 
+val17=$[rint(-4)]
+val18=$[rint(1)]
+val19=$[rint(8)]
+val20=$[rint(0)]
+!else
+val21=-2,-1,0,1,2,3,4
+tmp0=!shuffle $val21
+
+val21=$(tmp0)
+tmp0=!item 1 to 4 of $val21
+
+val21=$(tmp0)
+tmp0=!sort numeric list $val21
+
+val21=$(tmp0)
+val17=$[rint($(val21[1]))]
+val18=$[rint($(val21[2]))]
+val19=$[rint($(val21[3]))]
+val20=$[rint($(val21[4]))]
+!endif
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val17) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val22=!exec pari print($t_)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val18) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val23=!exec pari print($t_)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val24=!exec pari print($t_)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val20) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val25=!exec pari print($t_)
+oefsteps=$val13 
+nextstep=!nosubst $val13 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$val22]
+replytype2=numeric
+replyname2=
+replygood2=$[$val23]
+replytype3=numeric
+replyname3=
+replygood3=$[$val24]
+replytype4=numeric
+replyname4=
+replygood4=$[$val25]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left">$val12</div>	<div class="float_left">	
+!if $val6=1 
+$()	   On a tracé la courbe représentative d'une fonction 
+!insmath f
+$() et certaines de ses tangentes.<br>	   Lire graphiquement&nbsp;:	<ol>	<li> <label for="reply1">
+!insmath f'(-4)
+$() =</label>  
+!read oef/embed.phtml reply1,3 
+$()</li>	<li> <label for="reply2">
+!insmath f'(1)
+$() =</label>  
+!read oef/embed.phtml reply2,3 
+$()</li>	<li> <label for="reply3">
+!insmath f'(8)
+$() =</label>  
+!read oef/embed.phtml reply3,3 
+$()</li>	</ol>	 
+!else
+$()	 	   On a tracé la courbe représentative d'une fonction 
+!insmath f
+$().<br> Déplacer le point 
+!insmath A
+$()	   sur la courbe et lire graphiquement les valeurs de 
+!insmath f'(x)
+$()	   pour compléter le tableau suivant&nbsp;:	<table class="wimscenter wimsborder">	<tr><th>
+!insmath x
+$()</th><td> $val17 </td><td> $val18 </td><td> $val19 </td><td> $val20 </td></tr>	<tr><th>
+!insmath f'(x)
+$()</th><td>  
+!read oef/embed.phtml reply1,3 
+$() </td><td>  
+!read oef/embed.phtml reply2,3 
+$()</td>	<td>  
+!read oef/embed.phtml reply3,3 
+$() </td><td>  
+!read oef/embed.phtml reply4,3 
+$() </td></tr>	</table>	<div class="wims_instruction">	   Donner des valeurs décimales avec 2 décimales ou bien des fractions irréductibles.	</div>	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,17,18,19,20
+embedcnt=7

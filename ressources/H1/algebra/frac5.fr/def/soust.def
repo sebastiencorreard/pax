@@ -1,0 +1,113 @@
+!set title=Soustraction de fractions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Michel, Gosse;Paul, Byache
+email=paul.byache@ac-aix-marseille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Déterminer la fraction égale à la différence
+tmp0=!randitem 1,2,3,4,5,6,7,8,9,10
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3,4,5,6,7,8,9,10
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem 2,3,4,5,6,7,8,9,10
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 2,3,4,5,6,7,8,9,10
+
+val10=$[rint($(tmp0)*$val9)]
+val11=$[rint(1)]
+tmp0=!item $val11 of \(($val7)/($val9)-($val8)/($val10)\),\(($val8)/($val10)-($val7)/($val9)\)
+
+val12=$(tmp0)
+tmp0=!item $val11 of \(\frac{$val7}{$val9}-\frac{$val8}{$val10}\),\(\frac{$val8}{$val10}-\frac{$val7}{$val9}\)
+
+val13=$(tmp0)
+t_=!rawmath (-1)^($val11+1)*($val7/$val9-$val8/$val10)
+val14=!exec pari print($t_)
+t_=!replace internal \( by ( in abs($val9*$val10/gcd($val9,$val10));
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+replytype1=mynumexp
+
+replyoption1=noreduction 
+replyname1=Votre réponse
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Pour soustraire deux fractions, on réduit au même dénominateur. Dans cet exemple, le dénominateur commun peut être (par exemple) $val15.
+
+latex=!nosubst  \begin{statement} $val6 \par \LARGE \begin{center} $val13 \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val6 :	<div class="wimscenter">	$val12	</div>
+$()
+!exit
+
+:hint
+$()Pour soustraire deux fractions, on réduit au même dénominateur. Dans cet exemple, le dénominateur commun peut être (par exemple) $val15.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val6 $m_par $m_LARGE $m_begin{center} $val13 $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,15
+embedcnt=0

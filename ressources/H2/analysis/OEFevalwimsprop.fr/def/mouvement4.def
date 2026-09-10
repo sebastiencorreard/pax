@@ -1,0 +1,137 @@
+!set title=Mouvement uniforme 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+tmp=!trim Dans le tableau ci-dessous, on a noté la distance parcourue par	  en kilomètres en fonction du temps en heures.
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Temps (en H),Distance parcourue (en Km) 
+val12=suit-il un mouvement uniforme sur son parcours&nbsp;
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+tmp=!nonempty items 1,1.5
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 2,2.5
+
+tmp1=!randitem $tmp
+tmp=!nonempty items 3,4
+
+tmp2=!randitem $tmp
+tmp=!nonempty items 4.5,5.5
+
+tmp3=!randitem $tmp
+tmp=!nonempty items 6,7
+
+tmp4=!randitem $tmp
+val14=0,$(tmp0),$(tmp1),$(tmp2),$(tmp3),$(tmp4)
+!if $val13=1 
+tmp0=!randint 5, 10
+
+val15=$(tmp0)*10
+tmp0=!values $val15 for v=1 to 5
+
+val15=$(tmp0)
+!else
+tmp0=!shuffle 50,60,70,80,90,100
+
+val15=$(tmp0)
+!endif
+val16=0
+!for val17 =1 to 5 
+val18=$[rint($(val16[$val17])+$(val15[$val17])*($(val14[$val17+1])-$(val14[$val17])))]
+tmp0=!append item $val18 to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!item 2 to -1 of $val16
+
+val16=$(tmp0)
+tmp0=!item 2 to -1 of $val14
+
+val14=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val19=$(tmp0)
+val20=$(val10[1;]) $val19 $(val10[2;])	<table class="wimscenter wimsborder">	<tr><th>$(val11[1])</th><td>$(val14[1])</td><td>$(val14[2])</td><td>$(val14[3])</td><td>$(val14[4])</td><td>$(val14[5])</td></tr>	<tr><th>$(val11[2])</th><td>$(val16[1])</td><td>$(val16[2])</td><td>$(val16[3])</td><td>$(val16[4])</td><td>$(val16[5])</td></tr>	</table>
+val21=$val19 $val12
+val22=$(val9[$val13])
+choicename1=
+choicegood1=$val22
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val20	<p>	$val21 ?	</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,21
+embedcnt=0

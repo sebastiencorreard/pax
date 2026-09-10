@@ -1,0 +1,279 @@
+!set title=Phénotypes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=Sophie.Lemaire@math.u-psud.fr
+keywords=modelling
+language=fr
+oefdescription=exercice comportant deux questions
+oefobservation=Si le niveau de difficulté le plus bas est choisi, l'énoncé portera sur l'étude de 2 phénotypes. Sinon, il y aura 3 ou 4 phénotypes. 
+computeanswer=yes
+precision=990
+
+ansorder=r,r
+varcnt=71
+prevarcnt=70
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 4
+
+val6=$[rint($(tmp0))]
+
+!ifval $val2= 
+tmp0=!randitem 1,2
+
+val7=$[rint( $(tmp0))]
+!else
+val7=$[rint( $val2)]
+!endif
+!if $val7=1 
+val6=$[rint(2)]
+!endif
+!if $val7>1 
+tmp0=!randint 3, 4
+
+val6=$[rint($(tmp0))]
+!endif
+val8=pères, mères
+val9=père, mère
+val10=un,deux,trois,quatre
+val11=A,B,C,D
+tmp0=!item 1 to $val6-1 of $val11
+
+val12=$(tmp0)
+tmp0=!item $val6 of $val11
+
+val13=$(tmp0)
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, $val6
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 1, $val6
+
+val16=$[rint($(tmp0))]
+tmp0=!item $val14 of $val8
+
+val17=$(tmp0)
+tmp0=!item $val14 of $val9
+
+val18=$(tmp0)
+val19=du,de la
+val20=le,la
+val21=son,sa
+tmp0=!item $val14 of $val19
+
+val22=$(tmp0)
+tmp0=!item $val14 of $val20
+
+val23=$(tmp0)
+tmp0=!item $val14 of $val21
+
+val24=$(tmp0)
+tmp0=!item $val15 of $val11
+
+val25=$(tmp0)
+tmp0=!item $val16 of $val11
+
+val26=$(tmp0)
+!readproc slib/stat/posdiscretelaw  $val6, 10, Q 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc slib/stat/posdiscretelaw  $val6, 10, Q 
+tmp0=$slib_out
+val28=$(tmp0)
+!readproc slib/stat/multinomial 1,100,[$val27] 
+tmp0=$slib_out
+val29=$(tmp0)
+!readproc slib/stat/multinomial 1,100,[$val28] 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val30=!translate internal $	\
+$ to ;; in $tmp
+!for val31 =2 to $val6 
+tmp0=!shuffle $val28
+
+!readproc slib/stat/multinomial 1,100,[$(tmp0)] 
+tmp1=$slib_out
+tmp=!trim $val30 ; $(tmp1)
+val30=!translate internal $	\
+$ to ;; in $tmp
+!next
+val32=$(val29[1])% de phénotypes A
+!for val31 =2 to $val6 
+tmp0=!item $val31 of $val11
+
+val32=$val32, $(val29[$val31])% de phénotypes $(tmp0)
+!next
+val33=<table class="wimscenter wimsborder">
+val33=$val33 <tr><th> </th>
+!for val34 =1 to $val6 
+tmp0=!item $val34 of $val11
+
+val33=$val33 <th> enfant $(tmp0) </th>
+!next
+val33=$val33 </tr>
+!for val31 =1 to $val6 
+tmp0=!item $val31 of $val11
+
+val33=$val33 <tr><th> $val18 $(tmp0) </th>
+!for val34 =1 to $val6 
+val33=$val33 <td> $(val30[$val31;$val34])% </td>
+!next
+val33=$val33 </tr>
+!next
+val33=$val33 </table>
+val35=ait, n'ait pas
+val36=a, n'a pas
+tmp0=!randitem 1,2
+
+val37=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val38=$[rint($(tmp0))]
+
+!ifval $val37*$val38=1 
+val39=$[rint( 3-$val38 )]
+!else
+val39=$[rint( $val38)]
+!endif
+tmp0=!item $val37 of $val35
+
+val40=$(tmp0)
+tmp0=!item $val38 of $val35
+
+val41=$(tmp0)
+tmp0=!item $val37 of $val36
+
+val42=$(tmp0)
+tmp0=!item $val39 of $val36
+
+val43=et que $val24 $val18 $val41 le phénotype $val26, ,sachant que $val24 $val18 $(tmp0) le phénotype $val26
+tmp0=!randint 1, 3
+
+val44=$[rint($(tmp0))]
+tmp0=!item $val44 of $val43
+
+val45=$(tmp0)
+val46=$[$(val30[$val16;$val15])*$(val29[$val16])/10000]
+val47=$[$(val29[$val16])/100-$val46]
+val48=$[0]
+!for val31 =1 to $val6 
+val48=$[$val48+$(val30[$val31;$val15])*$(val29[$val31])/10000]
+!next
+val49=$[$val48-$val46]
+val50=$[1-$(val29[$val16])/100-$val49]
+val51=$[1-$(val30[$val16;$val15])/100]
+val52=$[$val49/(1-$(val29[$val16])/100)]
+val53=$[1-$val52]
+!if $val44=2 
+
+!ifval $val37=1
+val54=$[ $val48 ]
+!else
+val54=$[ 1-$val48]
+!endif
+!else
+!if $val44=1 
+val55=$val46,$val49,$val47,$val50
+!else
+val55=$val52,$val52,$val51,$val53
+!endif
+tmp0=!item $val38+$val37*($val37-1) of $val55
+
+val54=$[$(tmp0)]
+!endif
+val56=$val46/$val48,1-$val46/$val48, $val47/(1-$val48),1-$val47/(1-$val48)
+tmp0=!item $val38+$val37*($val37-1) of $val56
+
+val57=$[$(tmp0)]
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=1ère question
+replygood1=$[$val54]
+replytype2=numeric
+replyname2=2ème question
+replygood2=$[$val57]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Commencer par exprimer les données de l'énoncé en introduisant des événements de la forme <ul><li><span class="wims_emph"> $val23 $val18 a le phénotype X</span></li> <li><span class="wims_emph">l'enfant a le phénotype Y</span></li> </ul> Puis écrire les questions à l'aide de ces événements.
+
+
+!goto stat
+
+!exit
+
+:question
+$()Supposons que dans une population, on observe $(val10[$val6]) phénotypes différents notés $val12 et $val13 avec	la répartition suivante parmi les $val17 de famille : $val32.<p>	Le tableau suivant donne la proportion d'enfants de phénotype donné	en fonction du phénotype $val22 $val18.</p>	$val33<p>	Par exemple, le tableau indique que $(val30[1;1])% des enfants dont $val23 $val18 est	de phénotype A ont le phénotype A.</p>	<div class="wims_question">On choisit un enfant au hasard dans cette population.	<ol class="spacer">	
+!if $m_step>=1 
+$()<li> Quelle est la probabilité qu'il $val40 le phénotype $val25 $val45 ? 	  
+!if $m_step=1 
+$() 
+!read oef/embed.phtml reply1,5 
+$()</li> 
+!endif
+$()	   
+!endif
+$()		
+!if $m_step>=2 
+$()	<div class="oef_indgood">Bonne réponse. La probabilité qu'il $val40 le phénotype	$val25 $val45 est $val54.</div>	</li>	<li>L'enfant choisi $val42 le phénotype $val25. 	Quelle est la probabilité que $val24 $val18 $val41 le phénotype $val26 ?  
+!read oef/embed.phtml reply2,5 
+$() </li> 
+!endif
+$()	</ol>	<div class="wims_instruction">Ecrire la valeur en gardant au moins quatre chiffres significatifs.</div>	</div>	
+$()
+!exit
+
+:hint
+$()Commencer par exprimer les données de l'énoncé en introduisant des événements de la forme <ul><li><span class="wims_emph"> $val23 $val18 a le phénotype X</span></li> <li><span class="wims_emph">l'enfant a le phénotype Y</span></li> </ul> Puis écrire les questions à l'aide de ces événements.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,12,13,17,18,22,23,24,25,26,30,32,33,40,41,42,45,54
+embedcnt=2

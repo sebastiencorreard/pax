@@ -1,0 +1,106 @@
+\title{Optimisation sous contrainte}
+\language{fr}
+\keywords{linear_optimisation}
+
+\range{-5..5}
+\author{Frédéric, Pitoun}
+\email{frederic.pitoun@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\matrix{c1=random(-1,1)*randint(1,5),0,random(-1,1)*randint(1..5),random(-5,5),random(-5,5),random(-5,5)}
+
+\integer{tbug=(\c1[1])^2-(\c1[3])^2}
+\if{\tbug=0}{
+\integer{td1=randint(1..5)}
+\integer{td3=-1*(\td1+randint(1..3))}
+\matrix{c1=\td1,0,\td3,random(-5,5),random(-5,5),random(-5,5)}
+}
+
+\text{fonc=pari([\c1]*[x^2;x*y;y^2;x;y;1])}
+\text{fonc=maxima(expand(\fonc))}
+
+\integer{u=random(-1,1)*randint(1..3)}
+\integer{v=random(-1,1)*\u}
+
+\integer{w=randint(1..3)*\u}
+
+\function{contrainte=maxima(\u*x+\v*y)}
+
+\function{fx=maxima(expand((\w-\v*y)/\u))}
+\function{fy=maxima(expand((\w-\u*x)/\v))}
+
+\function{foncx=maxima(subst((\fy),y,\fonc))}
+\function{foncx=maxima(expand(\foncx))}
+
+\function{foncy=maxima(subst((\fx),x,\fonc))}
+\function{foncy=maxima(expand(\foncy))}
+
+\integer{alvar=random(1..2)}
+
+\if{\alvar=1}{
+\text{var=x}
+\function{foncc=\foncx}
+}{
+\text{var=y}
+\function{foncc=\foncy}
+}
+
+\integer{c=maxima(subst(0,\var,\foncc))}
+\integer{b=maxima(subst(0,\var,diff(\foncc,\var)))}
+\integer{a=maxima(subst(0,\var,diff(\foncc,\var,2))/2)}
+
+\if{\a>0}{
+\text{ext=minimum}
+\integer{next=1}
+}{
+\text{ext=maximum}
+\integer{next=2}
+}
+
+\if{\alvar=1}{
+\rational{xext=-\b/(2*\a)}
+\rational{yext=maxima(subst((\xext),x,\fy))}
+}
+\if{\alvar=2}{
+\rational{yext=-\b/(2*\a)}
+\rational{xext=maxima(subst((\yext),y,\fx))}
+}
+\function{valext=maxima(subst(\xext,x,\fonc))}
+\rational{valext=maxima(subst(\yext,y,\valext))}
+\steps{
+reply 1
+reply 2
+reply 3, reply 4, reply 5
+}
+\statement{On considère la fonction de deux variables \(f) définie par \(f(x;y)=\fonc).
+On se propose d'optimiser  cette fonction sous la contrainre \(\contrainte=\w).
+\if{\step=1}{
+<p>
+Déterminer l'expression de \(f), sous la contrainte imposée en fonction de \var uniquement:
+</p><div class="wimscenter">
+\embed{reply 1,15}
+</div>
+}
+\if{\step=2}{<p>
+Oui, sous la contrainre imposée, on a \(f(x;y)=g(\var)=\foncc).</p>
+<div class="spacer">
+Cette fonction présente sur l'ensemble des réels \(\ \\R) un \embed{reply 2}.
+</div>
+}
+\if{\step=3}{
+<p>
+Oui, sous la contrainte imposée, cette fonction présente bien un \ext sur \(\ \\R).
+</p>
+<div class="spacer">
+Ce \ext vaut \embed{reply 3,10}.
+Il est atteint pour \(x=)\embed{reply 4,10} et pour \(y=)\embed{reply 5,10}.
+</div>
+}
+}
+\answer{Fonction}{\foncc}{type=function}
+\answer{Extrema}{\next;minimum,maximum}{type=menu}
+\answer{Valeur extrema}{\valext}{type=default}
+\answer{Extrema x}{\xext}{type=rational}
+\answer{Extrema y}{\yext}{type=rational}

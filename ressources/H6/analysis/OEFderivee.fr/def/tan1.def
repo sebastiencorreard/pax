@@ -1,0 +1,324 @@
+!set title=Tangente à une courbe polynomiale (guidé)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse; Fabien,Sommier
+email=Chantal.Causse@noos.fr;fsommier@ac-creteil.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+tmp2=!item $val6 of 0,$(tmp0)*$(tmp1)
+
+val7=$[$(tmp2)]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+tmp2=!randint -5, 5
+
+tmp3=!item $val6 of $(tmp0)*$(tmp1),$(tmp2)
+
+val8=$[$(tmp3)]
+tmp0=!randint -5, 5
+
+val9=$[$(tmp0)]
+tmp0=!randint -3, 3
+
+val10=$[$(tmp0)]
+tmp0=!randint -3, 3
+
+val11=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val7*x^3+$val8*x^2+$val9*x+$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val12
+tmp0=!exec pari $t_
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val12
+
+val13=$(tmp0)
+tmp=!translate ;";': to $     $ in $val12,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val14=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val14
+tmp0=!exec pari $t_
+
+val14=!rawmath $(tmp0)
+tmp0=!texmath $val14
+
+val15=$(tmp0)
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val16=$[$(tmp0)]
+evaltmp=$val12
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val17=$[$(tmp0)]
+val18=!rawmath $val16*(x-$val11)+$val17
+t_=!replace internal \( by ( in $val18
+tmp0=!exec pari $t_
+
+val19=!rawmath $(tmp0)
+evaltmp=$val19
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val20=$[$(tmp0)]
+oefsteps=reply1, reply2, reply3	reply4, reply5 
+nextstep=!nosubst reply1, reply2, reply3	reply4, reply5 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=nonstop 
+replyweight1=1 
+replyname1=\(f($val11))
+replygood1=$val17
+replytype2=formal
+replyoption2=nonstop 
+replyweight2=1 
+replyname2=\(f'(x))
+replygood2=$val14
+replytype3=numexp
+replyoption3=nonstop 
+replyweight3=1 
+replyname3=\(f '($val11))
+replygood3=$val16
+replytype4=numexp
+replyweight4=1 
+replyname4=
+replygood4=$val16
+replytype5=numexp
+replyweight5=1 
+replyname5=
+replygood5=$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère la fonction 
+!insmath f
+$() définie par 
+!insmath f(x) = $val13
+$() et 
+!insmath C
+$() sa courbe représentative.<br /> 	Le but de l'exercice est de calculer<strong> l'équation réduite de la tangente à la courbe</strong> 
+!insmath C
+$() au point d'abscisse 
+!insmath $val11
+$().</p>		
+!if $m_step=1 
+$()	Les questions qui suivent détaillent la méthode permettant d'obtenir cette équation.<p> 	<strong>Première étape : </strong> Calculer 
+!insmath f($val11)
+$(), puis l'expression de 
+!insmath f'(x)
+$() et  
+!insmath f'($val11)
+$().</p>	<label for="reply1">
+!insmath f($val11)= 
+$()</label> 
+!read oef/embed.phtml reply1,10 
+$() <br />	<label for="reply2">
+!insmath f'(x)= 
+$()</label> 
+!read oef/embed.phtml reply2,30 
+$() <br />	<label for="reply3">
+!insmath f'($val11)= 
+$()</label> 
+!read oef/embed.phtml reply3,10 
+$() 	 
+!endif
+$()		
+!if $m_step=2 and $m_sc_reply1 = 1 and $m_sc_reply2 = 1 and $m_sc_reply3 = 1 
+$()	<strong>Première étape : </strong> Trois bonnes réponses, très bien ! <hr />	Vous avez trouvé : 	 
+!endif
+$()	
+!if $m_step=2 and $m_sc_reply1 = 0 or $m_sc_reply2 = 0 or $m_sc_reply3 = 0 
+$()	<strong>Première étape : </strong> <span class="oef_indbad">Attention à vos calculs !</span> 	
+!if $m_sc_reply1 = 0 
+$()
+!insmath f($val11)
+$() ne vaut pas $m_reply1. <br /> 
+!else
+$() Vous avez trouvé la bonne valeur pour 
+!insmath f($val11)
+$().<br /> 
+!endif
+$()	
+!if $m_sc_reply2 = 0 
+$()Votre calcul de dérivée est incorrect : 
+!insmath f'(x) 
+$() ne vaut pas $m_reply2 .<br /> 
+!endif
+$()	
+!if $m_sc_reply3 = 0 
+$()
+!insmath f'($val11)
+$() ne vaut pas $m_reply3. <br /> 
+!endif
+$()	
+!if $m_sc_reply2 = 0 or $m_sc_reply3 = 0 
+$()<span class="oef_indgood"><strong>Solution</strong> : 
+!insmath f(x) = $val13
+$() donc	
+!insmath f'(x) = $val14 
+$() et 
+!insmath f'($val11) = $val16 
+$()</span> 
+!endif
+$()	<hr />	Faites la suite de l'exercice avec les bonnes valeurs : 	 
+!endif
+$()					
+!if $m_step=2 
+$() <span class="wims_emph"> 
+!insmath f($val11) = $val17
+$()  et 
+!insmath f'($val11) = $val16
+$().</span><br class="spacer"/>	<strong>Deuxième étape : </strong> Calculer l'équation réduite de la tangente à la courbe 
+!insmath C
+$() au point d'abscisse 
+!insmath $val11
+$()	<br />	<label for="reply4">Équation réduite de la tangente : </label>
+!insmath y= 
+$() 
+!read oef/embed.phtml reply4,5 
+$()
+!insmath x + 
+$()  
+!read oef/embed.phtml reply5,5 
+$() 	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()	
+!if $m_step=1 
+$()<p>Pour calculer 
+!insmath f($val11)
+$(), il faut remplacer 
+!insmath x
+$() par 
+!insmath $val11
+$() dans l'expression de 
+!insmath f(x)
+$(). </p>	Pour calculer l'expression de 
+!insmath f'(x)
+$(), il faut utiliser les formules du cours. <br />		Pour calculer 
+!insmath f'($val11)
+$(), il faut remplacer 
+!insmath x
+$() par 
+!insmath $val11
+$() dans l'expression de 
+!insmath f'(x)
+$().  
+!endif
+$()	
+!if $m_step=2 
+$()	Deux méthodes sont possibles, choisissez celle qui vous convient le mieux : 		<ul> <li> <strong>Méthode 1</strong> : La tangente a comme coefficient directeur 
+!insmath f'($val11)
+$()<p>	Donc  son équation réduite est de la forme : 
+!insmath y = f'($val11) x + b
+$(). </p>	Pour trouver 
+!insmath b
+$(), utiliser le fait qu'elle passe par le point de coordonnées 
+!insmath ($val11 ; f($val11))
+$() c'est à dire ici ($val11 ; $val17).	 </li>	 <li> <strong>Méthode 2</strong> : Appliquer la formule du cours 
+!insmath  y = f'($val11)(x-$val11)+f($val11) 
+$(), puis développer et réduire le membre de droite.	 </li>		</ul>	 	   
+!endif
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Deux méthodes sont proposées ici. Vous pouvez choisir celle qui vous convient le mieux.<br class="spacer"/>	<strong>Méthode 1</strong> : <br />	
+!insmath f'($val11) = $val16
+$(), donc l'équation cherchée est de la forme 
+!insmath y=$val16 x +b
+$().<br />	La tangente passe par le point de coordonnées 
+!insmath  ($val11 ; $val17) 
+$(), donc 
+!insmath $val17 =($val16) \times ($val11) + b
+$() , ce qui permet de trouver  
+!insmath b = $val20
+$().<br class="spacer"/>		<strong>Méthode 2</strong> : <br />	La tangente a pour équation réduite 
+!insmath y=f'($val11)(x-$val11)+f($val11)
+$() avec : 
+!insmath f($val11) = $val17
+$()  et 
+!insmath f'($val11) = $val16
+$().<br />	On obtient donc 
+!insmath y= $val16 (x-$val11)+ ($val17)
+$(). Il ne reste qu'à développer et réduire cette expression.		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,14,16,17,20
+embedcnt=5

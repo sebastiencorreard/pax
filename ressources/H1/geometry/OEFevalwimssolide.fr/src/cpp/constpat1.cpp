@@ -1,0 +1,59 @@
+target=oefconstpat1
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\text{coul=black,white}
+\integer{dim=80}
+\text{let=a,b,c}
+\text{let=shuffle(\let)}
+
+\matrix{pats=1,2,3,6,10,14,120,310,160,20,215,230,80,125,120,150,3,4
+1,2,6,7,11,12,35,70,295,155,90,20,170,205,200,240,4,3
+2,5,6,10,11,14,295,235,250,180,120,320,120,240,90,205,3,4
+1,2,6,10,11,15,120,230,295,310,250,365,120,150,90,125,3,4
+1,2,6,10,14,15,40,70,90,20,170,20,90,125,120,150,3,4
+3,7,8,10,11,14,250,20,380,150,330,200,200,150,170,180,3,4
+2,5,6,7,11,12,165,20,295,150,90,205,90,100,120,70,4,3
+2,5,6,7,8,11,165,20,295,235,40,155,120,75,90,100,4,3
+}
+\integer{mes=randint(30..120)}
+\integer{ch=randint(1..8)}
+\text{pat=row(\ch,\pats)}
+\integer{rep1=\mes*\pat[17]}
+\integer{rep2=\mes*\pat[18]}
+\text{coord=}
+\for{i=1 to 6}
+  {\integer{v=floor((\pat[\i]-1)/4)}
+    \integer{x=50+(\pat[\i]-4*\v-1)*\dim}
+    \integer{y=40+\v*\dim}
+        \text{coord=wims(append item \x to \coord)}
+    \text{coord=wims(append item \y to \coord)}}
+
+\text{patron=draw(420,400
+arrow2 0,20,420,20,10,black
+text black,100,5,medium,Longueur de la feuille
+arrow2 10,0,10,400,10,black
+text black,15,380,medium,Hauteur de la feuille
+square \coord[1],\coord[2],\dim,\coul[1]
+square \coord[3],\coord[4],\dim,\coul[1]
+square \coord[5],\coord[6],\dim,\coul[1]
+square \coord[7],\coord[8],\dim,\coul[1]
+square \coord[9],\coord[10],\dim,\coul[1]
+square \coord[11],\coord[12],\dim,\coul[1]
+)}
+\text{fig=<img src="\patron" alt="">}
+
+\statement{<div class="wims_columns">
+ <div class="medium_size img_col">\fig</div>
+ <div class="medium_size text_col">
+Nous avons le patron d'un cube dont les côtés mesurent \mes mm.
+ Nous ne faisons pas de languette pour le collage.
+<p>Trouver les dimensions minima de la feuille de papier :</p>
+<ul><li><label for="reply1">Longueur minimum de la feuille :</label> \embed{r1,5} mm
+</li><li><label for="reply2">Hauteur minimum de la feuille :</label> \embed{r2,5} mm
+</li></ul></div></div>
+}
+
+\answer{}{\rep1}{type=raw}
+\answer{}{\rep2}{type=raw}

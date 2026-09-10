@@ -1,0 +1,122 @@
+!set title=Appliquer un pourcentage 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Le résultat doit être arrondi au centième si nécessaire.
+val11=a acheté,à,Le vendeur lui a fait une remise de
+val12=Quel est le montant de son économie,Quel prix a-t-il finalement payé
+val13=euros
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=$val13
+tmp=!nonempty items 5,10,15,20,25
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+tmp0=!randint 20, 500
+
+val17=$[rint($(tmp0))]
+val18=$[rint(0.75*$val17)]
+val19=$[rint(1.25*$val17)]
+!readproc slib/life/frcommodity $val18,$val19 
+tmp0=$slib_out
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$(tmp0)
+tmp0=!item 2 of $val20
+
+val20=$(tmp0)
+val22=$[rint($val16*$val17)/100]
+tmp0=!randint 1, 2
+
+val23=$[rint($(tmp0))]
+val24=$val14 $(val11[1]) $val21 $val20 $(val11[2]) $val17 $val15. $(val11[3]) $val16 %.
+!if $val23=1 
+val25=$[$val22]
+val26=$(val12[1])
+!else
+val25=$[$val17-$val22]
+val26=$(val12[2])
+!endif
+replytype1=numexp
+replyname1=
+replygood1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val24	<p>$val26 ?</p>	<div class="spacer">	<b>$val7</b>:  
+!read oef/embed.phtml r1,5 
+$() $val15.</div>	<div class="wims_instruction">$val10</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,15,24,26
+embedcnt=1

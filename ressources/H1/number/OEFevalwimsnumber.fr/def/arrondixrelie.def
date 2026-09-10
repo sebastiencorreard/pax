@@ -1,0 +1,181 @@
+!set title=Arrondi au dixième (à relier)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+precision=10000
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On considère le nombre,On veut déterminer son arrondi 
+val7=à l'unité,au dixième,au centième
+val8=unités,dixièmes,centièmes
+val9=par défaut,par excès
+val10=Relier un nombre avec son arrondi au dixième
+val11=a pour arrondi au dixième
+val12=L'<b>arrondi</b> XXXX d'un nombre est la valeur approchée XXXX	  (par défaut ou par excès)<b> la plus proche</b> de ce nombre.</p>	  <p>En pratique, comment trouver l'arrondi XXXX&nbsp;:</p>	  <ul><li>Lorsque le chiffre des YYYY du nombre est 0, 1, 2, 3 ou 4,	  l'arrondi XXXX est la valeur approchée XXXX par défaut.</li>	  <li>Lorsque le chiffre des YYYY du nombre est 5, 6, 7, 8 ou 9,	  l'arrondi XXXX est la valeur approchée XXXX par excès.</li></ul>
+tmp0=!randint 0, 999
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 0, 9999
+
+val14=$[rint($(tmp0))]
+val15=$[$val13+$val14/10000]
+val16=$[rint(floor($val14/100)-(floor($val14/1000))*10)]
+tmp0=!replace internal . by , in $val15
+
+val17=$(tmp0)
+val18=$[$val13+(floor($val14/1000))/10]
+val19=$[$val18+0.1]
+tmp0=!replace internal . by , in $val18
+
+val20=$(tmp0)
+tmp0=!replace internal . by , in $val19
+
+val21=$(tmp0)
+!if $val16<5 
+val22=$[rint(1)]
+val23=$val20
+!else
+val22=$[rint(2)]
+val23=$val21
+!endif
+tmp0=!replace internal . by , in $val23
+
+val24=$(tmp0)
+val25=$(val6[1]) \($val17\).
+val26=<b><span style="color:red">$(val7[2])</span></b>
+val27=<b><span style="color:blue">$(val8[3])</span></b>
+tmp0=!replace internal XXXX by $val26 in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal YYYY by $val27 in $val12
+
+val12=$(tmp0)
+tmp0=!randint 0, 9
+
+tmp1=!randint 0, 9
+
+val13=$[rint($(tmp0)*100+$(tmp1)*10)]
+tmp0=!randint 1, 9
+
+val14=$[rint($(tmp0))]
+val22=
+val28=
+!for val29 =1 to 4 
+val30=$[rint($val14+$val29)]
+val15=$[($val13+$val14+$val29)/10]
+tmp0=!append item $val15 to $val22
+
+val22=$(tmp0)
+!if $val30<>10 
+!readproc slib/numeration/ecriturenombre $val15 
+tmp0=$slib_out
+val15=$(tmp0)
+!else
+!readproc slib/numeration/ecriturenombre $val15 
+tmp0=$slib_out
+val15=$(tmp0).0
+!endif
+tmp0=!append item $val15 to $val28
+
+val28=$(tmp0)
+!next
+tmp0=!randint 501, 999
+
+val31=$[$(val22[2])-$(tmp0)/10000]
+!readproc slib/numeration/ecriturenombre $val31 
+tmp0=$slib_out
+val31=$(tmp0)
+tmp0=!randint 1, 499
+
+val32=$[$(val22[2])-$(tmp0)/10000]
+!readproc slib/numeration/ecriturenombre $val32 
+tmp0=$slib_out
+val32=$(tmp0)
+tmp0=!randint 501, 999
+
+val33=$[$(val22[4])-$(tmp0)/10000]
+!readproc slib/numeration/ecriturenombre $val33 
+tmp0=$slib_out
+val33=$(tmp0)
+tmp0=!randint 1, 499
+
+val34=$[$(val22[4])-$(tmp0)/10000]
+!readproc slib/numeration/ecriturenombre $val34 
+tmp0=$slib_out
+val34=$(tmp0)
+val35=$val31 $val11,$val32 $val11,$val33 $val11,$val34 $val11
+replytype1=correspond
+replyname1=
+replygood1=$val35;$val28
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val12
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val10:	  <div class="wimscenter">  
+!read oef/embed.phtml r1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val12
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12
+embedcnt=1

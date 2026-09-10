@@ -1,0 +1,131 @@
+!set title=Question 556 S Comparer les prix après évolutions bis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz,percentage,percents,decimals
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-specialite-2.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+tmp=!nonempty items 40,50,50,60
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+val9=$[$val8/100]
+val10=$[$val9^2]
+tmp0=!shuffle réduction,augmentation
+
+val11=$(tmp0)
+val12=$[(1+$val8/100)*(1-$val8/100)]
+
+!ifval $val12 <1
+val13=$[ (1-$val12)*100]
+!else
+val13=$[($val12-1)*100]
+!endif
+val14=Une $(val11[1]) de \($val8 \%\) suivie d’une $(val11[2]) de \($val8 \%\) équivaut à&nbsp;&#58;
+val15=Une baisse de \($val13 \%\)
+val16=Une augmentation de \($val13 \%\)
+val17=Une $(val11[1]) de \($val8 \%\)
+val18=$[$val12*100]
+val19=Une $(val11[2]) de \($val18 \%\)
+val20=$val16,$val17,$val19 
+
+!ifval $(val11[1]) issametext réduction
+val21=-,+
+!else
+val21=+,-
+!endif
+val22=<br>Le coefficient multiplicateur après les deux évolutions se calcule ainsi \((1$(val21[1])$val9)(1$(val21[2])$val9)\)<br>On reconnait \((1-$val9)(1+$val9)=1-$val9^2 = 1-$val10\) qui est plus petit que \(1). <br>C'est donc une baisse de <span class="nowrap">\($val13\%\).</span> 
+val23=La bonne réponse est <b>" $val15 "</b>. $val22 
+val24=$val15,$val20
+tmp0=!shuffle 4
+
+val25=$(tmp0)
+tmp0=!positionof item 1 in $val25
+
+val26=$[rint($(tmp0))]
+val27=\latexversion	    \item	    $val14	    \begin{radio}	    \item $(val24[1])	    \item $(val24[2])	    \item $(val24[3])	    \item $(val24[4])	    \end{radio}
+val27=$val27 \end{enumerate}
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val26;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val27 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val14	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val24[$(val25[1])]) </td><td>$(val24[$(val25[2])]) </td><td>$(val24[$(val25[3])]) </td><td>$(val24[$(val25[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val27 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val23!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val23	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,23,24,25,27
+embedcnt=1

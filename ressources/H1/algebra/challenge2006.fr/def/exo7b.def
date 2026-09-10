@@ -1,0 +1,237 @@
+!set title=Fournitures scolaires
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Joachim,YAMEOGO
+email=yameogo@math.unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=75
+prevarcnt=69
+postvarcnt=5
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(2)]
+val7=0
+tmp0=!randint 100, 520
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 99
+
+val9=$[rint($(tmp0))]
+val10=$[$val8+($val9/100)]
+val11=10000,5000,2000,1000,500,200,100,50,20,10,5,2,1
+val12=$[rint($val10*100)]
+val13=un billet,deux billets,trois billets,quatre billets,cinq billets,six billets,sept billets,huit billets,neuf billets,dix billets,onze billets
+val14=$[rint($val12)]
+val15=
+val16=
+!for val17  in $val11 
+val18=$[rint(floor($val14/$val17))]
+tmp0=!append item $val18 to $val15
+
+val15=$(tmp0)
+val19=$[rint($val14%$val17)]
+tmp0=!append item $val19 to $val16
+
+val16=$(tmp0)
+val14=$[rint($val19)]
+!next
+!if $(val16[1])=0 
+val20=$[rint($(val15[1])-1)]
+val21=$[rint($val20*$(val11[1])+$(val11[2])+3*$(val11[3]))]
+val22=$(val13[$val20]) de 100 &euro;, un billet de 50 &euro; et trois billets de 20 &euro;
+!endif
+!if ($(val16[1])<>0) and $(val16[2])=0 
+tmp0=!randitem 1,2
+
+val23=$[rint($(tmp0))]
+!if $val23=1 
+val20=$[rint($(val15[1])+1)]
+val21=$[rint($val20*$(val11[1]))]
+val22=$(val13[$val20]) de 100 &euro;
+!else
+val20=$[rint($(val15[1]))]
+val21=$[rint($val20*$(val11[1])+3*$(val11[3]))]
+val22=$(val13[$val20]) de 100 &euro; et trois billets de 20 &euro;
+!endif
+!endif
+!if ($(val16[1])<>0) and ($(val16[2])<>0) 
+tmp0=!randint 1, 4
+
+val23=$[rint($(tmp0))]
+!if $val23=1 
+val20=$[rint($(val15[1]))]
+val24=$[rint($(val15[2])+1)]
+val21=$[rint($val20*$(val11[1])+$val24*$(val11[2]))]
+val22=$(val13[$val20]) de 100 &euro; et $(val13[$val24]) de 50 &euro;
+!endif
+!if $val23=2 
+val20=$[rint($(val15[1])+1)]
+val21=$[rint($val20*$(val11[1]))]
+val22=$(val13[$val20]) de 100 &euro; 
+!endif
+!if $val23=3 
+val20=$[rint(2*$(val15[1])+$(val15[2])+1)]
+val21=$[rint($val20*$(val11[2]))]
+val22=$(val13[$val20]) de 50 &euro;
+!endif
+!if $val23=4 
+val20=$[rint($(val15[1])-1)]
+val24=$[rint($(val15[2])+3)]
+val21=$[rint($val20*$(val11[1])+$val24*$(val11[2]))]
+!if $val20>0 
+val22=$(val13[$val20]) de 100 &euro; et $(val13[$val24]) de 50 &euro;
+!else
+val22=$(val13[$val24]) de 50 &euro;
+!endif
+!endif
+!endif
+val25=Un étudiant,Une étudiante
+val26=il,elle
+tmp0=!randitem 1,2
+
+val27=$[rint($(tmp0))]
+val28=fournitures scolaires,fournitures scolaires
+val29=$[rint($val21-$val12+$val7)]
+val30=$[rint($val29)]
+val31=
+!for val17 =2 to 13 
+val18=$[rint(floor($val30/$(val11[$val17])))]
+tmp0=!append item $val18 to $val31
+
+val31=$(tmp0)
+val19=$[rint($val30%$(val11[$val17]))]
+val30=$[rint($val19)]
+!next
+val32=$[$val29/100]
+val33=votre magasin
+val34=silver,darkseagreen,bisque
+val35=5000a.png,2000a.png,1000a.png,500a.png,200.png,100.png,50.png,20.png,10.png,5.png,2.png,1.png
+val36=height="55" src="$val1
+val37=<img alt="cinq cent euro" $val36/50000a.png">,	<img alt="deux cent euro" $val36/20000a.png">,	<img alt="cent euro" $val36/10000a.png">,	<img alt="cinquante euro" $val36/5000a.png">,	<img alt="ving euro" $val36/2000a.png">,	<img alt="dix euro" $val36/1000a.png">,	<img alt="cinq euro" $val36/500a.png">,	<img alt="deux euro" $val36/200.png">,	<img alt="un euro" $val36/100.png">,	<img alt="cinquante centimes" $val36/50.png">,	<img alt="vingt centimes" $val36/20.png">,	<img alt="dix centimes" $val36/10.png">,	<img alt="cinq centimes" $val36/5.png">,	<img alt="deux centimes" $val36/2.png">,	<img alt="un centime" $val36/1.png">	
+tmp0=!sum x for x in $val31
+
+val38=$(tmp0)
+val39=$[rint($val38 + $val6)]
+val40=$[rint(ceil($val39/6))]
+val41=$[rint(max(5,ceil($val39/$val40)))]
+val39=$[rint($val41*$val40)]
+val42=110 60 $val39 $val40
+val43=$[rint(2)]
+tmp=!translate internal $	$ to ; in Combien la caissière doit-elle lui rendre ? Elle doit utiliser le plus petit nombre possible de pièces et de billets.;	Combien le caissier doit-il lui rendre ? Il doit utiliser le plus petit nombre possible de pièces et de billets.
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val44=$(tmp0)
+replytype1=clickfill
+replyname1=Pièces et billets
+replygood1=?analyze 45;$val37
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Un client achète dans un magasin de $(val28[$val27]) pour $val10 euros d'articles et paye avec $val22.	$val44	<div class="wimscenter">	 
+!read oef/embed.phtml r1,$val42 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal $val36 by in $val45
+
+val45=$(tmp0)
+tmp0=!text select 1250, in $val45
+
+val45=$(tmp0)
+tmp0=!itemcnt $val45
+
+val46=$[rint($(tmp0))]
+tmp0=!sum x for x in $val45
+
+val47=$[rint($(tmp0))]
+val48=$[$val47/100]
+
+!exit
+
+:feedback
+!ifval $val47!=$val29
+ <div class='oef_feedbacks'>Les pièces et billets que vous rendez s'ajoutent	à $val48 &euro;, mais pas à $val32 &euro; comme il faut !
+$()</div>
+!endif
+!ifval $val47=$val29 and $val46>$val38
+ <div class='oef_feedbacks'>Il suffit de $val38	pièces et billets pour composer la même somme à rendre, au lieu de $val46.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val47=$val29
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Les pièces et billets s'ajoutent à la somme à rendre
+
+!ifval $val47=$val29 and $val46<=$val38
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=C'est le plus petit nombre de pièces et billets
+
+!exit
+
+:stat
+vsavelist=10,22,27,28,29,32,36,38,42,44,45
+embedcnt=1

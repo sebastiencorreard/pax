@@ -1,0 +1,271 @@
+!set title=Médiane, quartiles et déciles II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard; Sara, Brofferio
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=99
+prevarcnt=98
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 50
+
+val6=$[rint($(tmp0))]
+val7=
+val8=$[rint(20)]
+val9=$[rint($val8)]
+val10=$[rint(50)]
+val11=$[rint($val10)]
+tmp0=!randint 5, 6
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val10-$val8
+
+val13=$(tmp0)
+val14=
+val15=$[rint(0)]
+val16=
+tmp0=!randint 6, 18
+
+val17=$[rint($(tmp0))]
+!for val18 =1 to $val12 
+val19=$[rint($val18+$val17)]
+tmp0=!append item $val19 to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!sort numeric list $val16
+
+val16=$(tmp0)
+!for val18 =1 to $val12 
+val20=$[rint(floor(binomial(9 ,1+ $val18)/5))]
+tmp0=!randint -$val20, $val20
+
+val21=$[rint(binomial(9, 1+ $val18)+$(tmp0))]
+val15=$[rint($val15+$val21)]
+tmp0=!append item $val21 to $val14
+
+val14=$(tmp0)
+val19=$[rint($(val16[$val18]))]
+!for val22 =1 to $val21 
+tmp0=!append item $val19 to $val7
+
+val7=$(tmp0)
+!next
+
+!ifval $val19<$val11
+val11=$[rint($val19)]
+!endif
+
+!ifval $val19>$val9
+val9=$[rint($val19)]
+!endif
+!next
+tmp0=!randitem 1,2
+
+val23=$[rint($(tmp0))]
+val24=$[0]
+val25=
+!for val18 =1 to $val12 
+val26=$[rint(round($(val14[$val18])*10000/$val15))]
+val27=$[$val26/100]
+val24=$[$val24+$val27]
+!if $val18=$val12 
+val27=$[$val27+100-$val24]
+!endif
+tmp0=!append item $val27 to $val25
+
+val25=$(tmp0)
+!next
+!if choix=2 
+val15=$[100]
+val14=$val25
+!endif
+val28=$[rint(0)]
+val29=$[rint(-1)]
+val30=$[rint(-1)]
+val31=$[rint(-1)]
+val32=$[rint(-1)]
+val33=$[rint(-1)]
+val34=$[$val15/2]
+val35=$[$val15/4]
+val36=$[3*$val15/4]
+val37=$[$val15/10]
+val38=$[9*$val15/10]
+val39=$[rint($val34)]
+val40=$[rint($val35)]
+val41=$[rint($val36)]
+val42=$[rint($val37)]
+val43=$[rint($val38)]
+!for val18 =1 to $val12 
+val28=$[rint($val28+$(val14[$val18]))]
+!if $val28>=$val37 and $val31<0 
+val31=$[rint($(val16[$val18]))]
+!endif
+!if $val28>=$val35 and $val29<0 
+val29=$[rint($(val16[$val18]))]
+!endif
+!if $val28>=$val34 and $val33<0 
+
+!ifval $val28=$val34
+val33=$[($(val16[$val18])+$(val16[$val18+1]))/2]
+!else
+val33=$[$(val16[$val18])]
+!endif
+!endif
+!if $val28>=$val36 and $val30<0 
+val30=$[rint($(val16[$val18]))]
+!endif
+!if $val28>=$val38 and $val32<0 
+val32=$[rint($(val16[$val18]))]
+!endif
+!next
+tmp0=!shuffle $val7
+
+val44=$(tmp0)
+val45=$[rint($val9 - $val11)]
+val46=<table class="wimscenter wimsborder" style="background-color:skyblue">	  <tr>
+val47=$[rint(ceil($val15/10))]
+!for val18 =0 to $val47-1 
+val46=$val46 <tr>
+!for val22 =1 to 10 
+tmp0=!item $val18*10+$val22 of $val44
+
+val48=$(tmp0)
+val46=$val46 <td> $val48 </td>
+!next
+val46=$val46 </tr>
+!next
+val46=$val46 </table>
+val49=<table class="wimscenter wimsborder">
+val49=$val49<tr><th> Ages </th>
+!for val22 =1 to $val12 
+val49=$val49<td> $(val16[$val22]) </td>
+!next
+!if $val23=1 
+val50=effectifs cumulés croissants
+val49=$val49</tr><tr><th>Effectif</th>
+!for val22 =1 to $val12 
+val49=$val49<td> $(val14[$val22]) </td>
+!next
+val51=$val49</tr><tr><td>E.C.C</td>
+val52=$[rint(0)]
+!for val22 =1 to $val12 
+val52=$[rint($val52+$(val14[$val22]))]
+val51=$val51<td> $val52 </td>
+!next
+val51=$val51</tr></table>
+val53=L'effectif total de cette série est de $val15<br>	Le premier âge dont l'ECC dépasse $val39 est $val33, la médiane vaut donc $val33<br>	Le premier âge dont l'ECC dépasse $val40 est $val29, Q1 vaut donc $val29<br>	Le premier âge dont l'ECC dépasse $val41 est $val30, Q3 vaut donc $val30<br>	Le premier âge dont l'ECC dépasse $val42 est $val31, D1 vaut donc $val31<br>	Le premier âge dont l'ECC dépasse $val43 est $val32, D9 vaut donc $val32<br>
+!else
+val50=fréquences cumulées croissantes
+val49=$val49</tr><tr><th>Fréquence en %</th>
+!for val22 =1 to $val12 
+val49=$val49<td> $(val25[$val22]) </td>
+!next
+val51=$val49</tr><tr><td>F.C.C</td>
+val52=$[rint(0)]
+!for val22 =1 to $val12 
+val52=$[$val52+$(val25[$val22])]
+val51=$val51<td> $val52 </td>
+!next
+val51=$val51</tr></table>
+val53=Le premier âge dont la FCC dépasse 50 % est $val33, la médiane vaut donc $val33<br>	Le premier âge dont la FCC dépasse 25 % est $val29, Q1 vaut donc $val29<br>	Le premier âge dont la FCC dépasse 75 % est $val30, Q3 vaut donc $val30<br>	Le premier âge dont la FCC dépasse 10 % est $val31, D1 vaut donc $val31<br>	Le premier âge dont la FCC dépasse 90 % est $val32, D9 vaut donc $val32
+!endif
+val49=$val49</tr></table>
+replytype1=numeric
+replyname1=Médiane
+replygood1=$[$val33]
+replytype2=numeric
+replyname2=Q1
+replygood2=$[$val29]
+replytype3=numeric
+replyname3=Q3
+replygood3=$[$val30]
+replytype4=numeric
+replyname4=D1
+replygood4=$[$val31]
+replytype5=numeric
+replyname5=D9
+replygood5=$[$val32]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Voici la répartition des âges recensés dans une population à la suite d'une étude:	</p>		$val49		<ol><li> Quelle est la médiane de cette série:  
+!read oef/embed.phtml reply1 
+$()</li>	<li> Que vaut Q1: 
+!read oef/embed.phtml reply2 
+$()</li>	<li> Que vaut Q3: 
+!read oef/embed.phtml reply3 
+$()</li>	<li> Que vaut D1: 
+!read oef/embed.phtml reply4 
+$()</li>	<li> Que vaut D9: 
+!read oef/embed.phtml reply5 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'> On commence par calculer les $val50:	$val51	<p>	$val53	</p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=49,50,51,53
+embedcnt=5

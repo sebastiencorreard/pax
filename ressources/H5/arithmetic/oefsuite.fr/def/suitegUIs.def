@@ -1,0 +1,595 @@
+!set title=1. Passage des intérêts simples aux intérêts composés
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=51
+prevarcnt=44
+postvarcnt=6
+replycnt=49
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim reply1, reply2, reply3, reply4, reply5, reply6, reply7, reply8, reply9
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 0, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 0, 6
+
+val8=$[rint($(tmp0))]
+val9=$[rint(500+$val7*100)]
+val10=$[rint(3+$val8*1)]
+val11=$[$val10/100]
+val12=$[rint($val10/100*$val9)]
+val13=$[$val9+$val12]
+val14=$val9,$val12,$val13
+val15=$[$val10/100*$val13]
+val16=$[$val13+$val15]
+val17=$val15,$val16
+val18=$[rint($val10*$val16)]
+val19=$[$val18/100]
+val20=$[$val16+$val19]
+val21=$[rint($val10*$val20)]
+val22=$[$val21/100]
+val23=$[$val20+$val22]
+val24=$[rint($val10*$val23)]
+val25=$[$val24/100]
+val26=$[$val23+$val25]
+val27=$[rint($val10*$val26)]
+val28=$[$val27/100]
+val29=$[$val26+$val28]
+val30=$[rint($val10*$val29)]
+val31=$[$val30/100]
+val32=$[$val29+$val31]
+tmp=!trim $val9,$val12,$val13,$val15,$val16,$val19,$val20,$val22,$val23,$val25,$val26,$val28,$val29,$val31,$val32
+val33=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal , by ; in $val33
+
+tmp=!trim $(tmp0)
+val34=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal . by , in $val34
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+val36=er,e,e,e,e,e,e,e
+tmp=!trim un appareil photo,<img src="$val1/photo.jpg" alt="appareil photo" />,899	un téléphone portable,<img src="$val1/telephone.jpg" alt="telephone" />,599	un ordinateur portable,<img src="$val1/ordi.jpg" alt="ordinateur" />,999	un camescope numérique,<img src="$val1/camescope.jpg" alt="camescope" />,799	un téléviseur,<img src="$val1/tele.jpg" alt="televiseur" />,1899	une tablette pc,<img src="$val1/tablette.jpg" alt="tablette" />,1299
+val37=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val38=$[rint($(tmp0))]
+val39=$(val37[;2])
+tmp0=!shuffle 6
+
+val40=$(tmp0)
+val41=$(val39[$(val40[1])]),$(val39[$(val40[2])]),$(val39[$(val40[3])]),$(val39[$(val40[4])]),$(val39[$(val40[5])]),$(val39[$(val40[6])])
+val42=
+!for val43 =1 to 6 
+!if $(val37[$val43;3])<=$val32 
+tmp0=!positionof item $val43 in $val40
+
+val44=$[rint($(tmp0))]
+tmp0=!append item $val44 to $val42
+
+val42=$(tmp0)
+!endif
+!next
+!readproc slib/media/video [mp4="https://tube-sciences-technologies.apps.education.fr/download/videos/b3fda1f6-ad21-4758-81b9-ed778432453b-708.mp4"] 
+tmp0=$slib_out
+val45=$(tmp0)
+!readproc slib/oef/env fn 
+tmp0=$slib_out
+val46=$(tmp0)
+val47=Est-ce-que $val46 pourra se payer $(val37[;1]) ?
+val48=Lorsque $val46 a 11 ans, ses parents disposent	 d'une somme de $val9 &#8364;. Ils décident de placer ce capital à un taux	 annuel de $val10 % sur une période de 7 ans. Dès sa majorité $val46	 souhaite dépenser ce capital acquis. Quel est le cadeau que	$val46 peut s'offrir ? <b>L'ensemble des résultats sont à arrondir à 10<sup>-2</sup>.</b>
+dynsteps=yes
+oefsteps=$val6 
+nextstep=!nosubst $val6 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=Valeur du capital
+replygood1=$[$val9]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=Taux annuel
+replygood2=$[$val11]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=Durée du placement
+replygood3=$[1]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=Intérêt
+replygood4=$[$val12]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=C<sub>1</sub>
+replygood5=$[$val13]
+replytype6=clickfill
+replyoption6=shuffle nonstop 
+replyname6=Tableau 1<sup>er</sup> année :
+replygood6=$(val14[1]);$val14
+replytype7=clickfill
+replyoption7=shuffle nonstop 
+replyname7=Tableau 1<sup>er</sup> année :
+replygood7=$(val14[2])
+replytype8=clickfill
+replyoption8=shuffle nonstop 
+replyname8=Tableau 1<sup>er</sup> année :
+replygood8=$(val14[3])
+replytype9=clickfill
+replyoption9=shuffle nonstop 
+replyname9=Tableau 2<sup>e</sup> année :
+replygood9=$(val14[3])
+replytype10=numeric
+replyoption10=nonstop 
+replyname10=Valeur du capital
+replygood10=$[$val13]
+replytype11=numeric
+replyoption11=nonstop 
+replyname11=Taux annuel
+replygood11=$[$val11]
+replytype12=numeric
+replyoption12=nonstop 
+replyname12=Durée du placement
+replygood12=$[1]
+replytype13=numeric
+replyoption13=nonstop 
+replyname13=Intérêt
+replygood13=$[$val15]
+replytype14=numeric
+replyoption14=nonstop 
+replyname14=C<sub>2</sub>
+replygood14=$[$val16]
+replytype15=clickfill
+replyoption15=shuffle nonstop 
+replyname15=Tableau 2<sup>e</sup> année :
+replygood15=$(val17[1]);$val17
+replytype16=clickfill
+replyoption16=shuffle nonstop 
+replyname16=Tableau 2<sup>e</sup> année :
+replygood16=$(val17[2])
+replytype17=clickfill
+replyoption17=shuffle nonstop 
+replyname17=Tableau 3<sup>e</sup> année :
+replygood17=$(val17[2])
+replytype18=numeric
+replyoption18=nonstop 
+replyname18=Tableau 3<sup>e</sup> année :
+replygood18=$[$val19]
+replytype19=numeric
+replyoption19=nonstop 
+replyname19=Tableau 3<sup>e</sup> année :
+replygood19=$[$val20]
+replytype20=numeric
+replyoption20=nonstop 
+replyname20=Tableau 4<sup>e</sup> année :
+replygood20=$[$val20]
+replytype21=numeric
+replyoption21=nonstop 
+replyname21=Tableau 4<sup>e</sup> année :
+replygood21=$[$val22]
+replytype22=numeric
+replyoption22=nonstop 
+replyname22=Tableau 4<sup>e</sup> année :
+replygood22=$[$val23]
+replytype23=numeric
+replyoption23=nonstop 
+replyname23=Tableau 5<sup>e</sup> année :
+replygood23=$[$val23]
+replytype24=numeric
+replyoption24=nonstop 
+replyname24=Tableau 5<sup>e</sup> année :
+replygood24=$[$val25]
+replytype25=numeric
+replyoption25=nonstop 
+replyname25=Tableau 5<sup>e</sup> année :
+replygood25=$[$val26]
+replytype26=numeric
+replyoption26=nonstop 
+replyname26=Tableau 6<sup>e</sup> année :
+replygood26=$[$val26]
+replytype27=numeric
+replyoption27=nonstop 
+replyname27=Tableau 6<sup>e</sup> année :
+replygood27=$[$val28]
+replytype28=numeric
+replyoption28=nonstop 
+replyname28=Tableau 6<sup>e</sup> année :
+replygood28=$[$val29]
+replytype29=numeric
+replyoption29=nonstop 
+replyname29=Tableau 7<sup>e</sup> année :
+replygood29=$[$val29]
+replytype30=numeric
+replyoption30=nonstop 
+replyname30=Tableau 7<sup>e</sup> année :
+replygood30=$[$val31]
+replytype31=numeric
+replyoption31=nonstop 
+replyname31=Tableau 7<sup>e</sup> année :
+replygood31=$[$val32]
+replytype32=numeric
+replyoption32=nonstop 
+replyname32=Valeur actuelle :
+replygood32=$[$val32]
+replytype33=menu
+replyoption33=nonstop 
+replyname33=
+replygood33=2;ajoutant,multipliant par
+replytype34=numeric
+replyoption34=nonstop 
+replyname34=Raison
+replygood34=$[1+$val11]
+replytype35=menu
+replyoption35=nonstop 
+replyname35=
+replygood35=2;arithmétique,géométrique
+replytype36=numeric
+replyoption36=nonstop 
+replyname36=Premier terme :
+replygood36=$[$val9]
+replytype37=numeric
+replyoption37=nonstop 
+replyname37=Raison
+replygood37=$[1+$val11]
+replytype38=numeric
+replyoption38=nonstop 
+replyname38=U<sub>0</sub>
+replygood38=$[$val9]
+replytype39=numeric
+replyoption39=nonstop 
+replyname39=q
+replygood39=$[1+$val11]
+replytype40=numeric
+replyoption40=nonstop 
+replyname40=n
+replygood40=$[7]
+replytype41=nocase
+replyoption41=nonstop 
+replyname41=Premier terme dans la formule :
+replygood41=x
+replytype42=nocase
+replyoption42=nonstop 
+replyname42=n dans la formule :
+replygood42=x
+replytype43=nocase
+replyoption43=nonstop 
+replyname43=Raison dans la formule :
+replygood43=x
+replytype44=numeric
+replyoption44=nonstop 
+replyname44=Premier terme dans la formule :
+replygood44=$[$val9]
+replytype45=numeric
+replyoption45=nonstop 
+replyname45=Raison dans la formule :
+replygood45=$[1+$val11]
+replytype46=numeric
+replyoption46=nonstop 
+replyname46=n dans la formule :
+replygood46=$[7]
+replytype47=numeric
+replyoption47=nonstop 
+replyname47=U<sub>7</sub>
+replygood47=$[$val32]
+replytype48=numeric
+replyoption48=nonstop 
+replyname48=Valeur acquise :
+replygood48=$[$val32]
+replytype49=click
+replyoption49=nonstop 
+replyname49=
+replygood49=$val42;$val41
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br />	<div class="encadre">	<div id="boited">	$(val39[$val38])	</div>	<p class="problematique"> $val47</p>	<div class="enonce">$val48</div>		
+!if $m_step=1 
+$()	<div class="Table">	Les intérêts simples  sont donnés par la relation	 suivante :<br />	 
+!insmath \large{I = C \times t \times n}
+$()	</div>	<div class="Table">	<b>
+!insmath I
+$() : Intérêt en &#8364;</b>	<br />	<b>
+!insmath C
+$(): Capital placé en &#8364;</b>	<br />	<b>
+!insmath t
+$() : Taux du placement</b>	<br />	<b>
+!insmath n
+$() : Période du placement</b>	<br />	</div>	<br />		<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	A l'aide des énoncés, Précisez les informations suivantes :	<ul><li>La valeur du capital est de  
+!read oef/embed.phtml reply1, 4 
+$() &#8364;.</li>	<li>Le taux annuel est de  
+!read oef/embed.phtml reply2, 4 
+$().<img src="$val1/attention.png" alt="Attention" /><b> la valeur	 attendue ne doit pas être exprimée en pourcentage.</b></li>	<li>La Durée du placement de la première année est de  
+!read oef/embed.phtml reply3, 4 
+$() an.</li>	</ul>	En utilisant la formule, déterminer les intérêts de la première année :	I=  
+!read oef/embed.phtml reply4, 4 
+$() &#8364;	<br />	En déduire le capital à la fin de cette première année :	C<sub>1</sub>=  
+!read oef/embed.phtml reply5, 4 
+$() &#8364;	<br /> 	A l'aide des résultats précédent, compléter le tableau suivant :	<br />	<img src="$val1/attention.png" alt="Attention" /><b>Les solutions	 proposées correspondent forcément aux réponses trouvées.</b>	<br />	<br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	<td><b>Capital en début d'année<br />en &#8364;</b></td>	<td><b>Intérêt<br />en &#8364;</b></td>	<td><b>Capital à la fin d'année<br />en &#8364;</b></td>	</tr>	<tr>	<td>1<sup>er</sup> année</td>	<td> 
+!read oef/embed.phtml reply6, 4 
+$()</td>	<td> 
+!read oef/embed.phtml reply7, 4 
+$()</td>	<td> 
+!read oef/embed.phtml reply8, 4 
+$()</td>	</tr>	<tr>	<td>2<sup>e</sup> année</td>	<td> 
+!read oef/embed.phtml reply9, 4 
+$()</td>	<td></td>	<td></td>	</tr>	 
+!for m_u=3 to 8 
+$()	<tr>	<td>$m_u<sup>e</sup> année</td>	<td></td>	<td></td>	<td></td>	</tr> 
+!next
+$()	</table>	</div> 
+!endif
+$()		
+!if $m_step=2 
+$()	<div class="Table">	Les intérêts simples  sont donnés par la relation	 suivante :<br />	 
+!insmath \large{I = C \times t \times n}
+$()	</div>	<div class="Table">	<b>
+!insmath I
+$() : Intérêt en &#8364;</b>	<br />	<b>
+!insmath C
+$(): Capital placé en &#8364;</b>	<br />	<b>
+!insmath t
+$() : Taux du placement</b>	<br />	<b>
+!insmath n
+$() : Période du placement</b>	<br />	</div>	<br />	<div class="solution">	
+!if $m_reply1!=$val9 or $m_reply2!=$val11 or $m_reply3!=1	 or $m_reply4!=$val12 or $m_reply5!=$val13 or $m_reply6!=$(val14[1])	 or $m_reply7!=$(val14[2]) or $m_reply8!=$(val14[3]) or $m_reply9!=$(val14[3]) 
+$()Une ou plusieurs réponses précédentes sont fausses.<br />	<img src="$val1/attention.png" alt="Attention" />L'erreur	 classique est de penser que la durée du placement est de 7 ans	alors que pour la première année cette durée est de 1 an.	 
+!else
+$() Vos réponses précédentes sont justes 
+!endif
+$()	<br />	Le capital en début de 2<sup>e</sup> année a une valeur de $val13 &#8364;.	</div>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Précisez les informations suivante :	<ul>	<li>La valeur du capital au début de la 2<sup>e</sup> année est de  
+!read oef/embed.phtml reply10, 4 
+$() &#8364;.</li>	<li>Le taux annuel est de  
+!read oef/embed.phtml reply11, 4 
+$().<img src="$val1/attention.png" alt="Attention" />	<b> la valeur attendue ne doit pas être exprimée en pourcentage.</b>	</li>	<li>La durée du placement de la deuxième année est de  
+!read oef/embed.phtml reply12, 4 
+$() an.</li>	</ul>	En utilisant la formule, déterminer les intérêts de la deuxième année :	 I=  
+!read oef/embed.phtml reply13, 4 
+$() &#8364;	<br />	<br /> 	En déduire le capital à la fin de cette deuxième année :	 C<sub>2</sub>=  
+!read oef/embed.phtml reply14, 5 
+$() &#8364;	<br />	<br />	Compléter le tableau suivant :	<br />	<img src="$val1/attention.png" alt="Attention" /><b>Les solutions	 proposées correspondent forcément aux réponses trouvées.</b>	<br />	<br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	<td><b>Capital en début d'année<br />en &#8364;</b></td>	<td><b>Intérêt<br />en &#8364;</b></td>	<td><b>Capital à la fin d'année<br />en &#8364;</b></td>	</tr>	<tr>	<td>1<sup>er</sup> année</td>	<td>$val9</td>	<td>$val12</td>	<td>$val13</td>	</tr>	<tr>	<td>2<sup>e</sup> année</td>	<td>$val13</td>	<td> 
+!read oef/embed.phtml reply15, 4 
+$()</td>	<td> 
+!read oef/embed.phtml reply16, 4 
+$()</td>	</tr>	<tr>	<td>3<sup>e</sup> année</td>	<td> 
+!read oef/embed.phtml reply17, 4 
+$()</td>	<td></td>	<td></td>	</tr>	 
+!for m_u=4 to 8 
+$()	<tr>	<td>$m_u<sup>e</sup> année</td>	<td></td>	<td></td>	<td></td>	</tr> 
+!next
+$()	</table>		<br />	<br />	</div> 
+!endif
+$()		
+!if $m_step=3 
+$()	<div class="Table">	Les intérêts simples  sont donnés par la relation	 suivante :<br />	 
+!insmath \large{I = C \times t \times n}
+$()	</div>	<div class="Table">	<b>
+!insmath I
+$() : Intérêt en &#8364;</b>	<br />	<b>
+!insmath C
+$(): Capital placé en &#8364;</b>	<br />	<b>
+!insmath t
+$() : Taux du placement</b>	<br />	<b>
+!insmath n
+$() : Période du placement</b>	<br />	</div>	<div class="solution">	
+!if $m_reply10!=$val13 or $m_reply11!=$val11 or $m_reply12!=1	 or $m_reply13!=$val15 or $m_reply14!=$val16 or $m_reply15!=$(val17[1])	 or $m_reply16!=$(val17[2]) or $m_reply17!=$(val17[2]) 
+$()Une ou plusieurs réponses précédentes sont fausses.<br /><br />	<img src="$val1/attention.png" alt="Attention" /><b>La durée du	 placement est toujours de 1 an pour la deuxième année.</b> 
+!else
+$() Vos	 réponses précédentes sont justes. 
+!endif
+$()	<br />	Le taux d'intérêt est de $val11 et la période est toujours de 1 an.	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Regarder la vidéo :	<br /><br />	<div class="wimscenter">$val45</div>	<br />	Compléter le tableau :	<br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	<td><b>Capital en début d'année<br />en &#8364;</b></td>	<td><b>Intérêt<br />en &#8364;</b></td>	<td><b>Capital à la fin d'année<br />en &#8364;</b></td>	</tr>	 
+!for m_l=1 to 2 
+$()	<tr>	<td>$m_l<sup>$(val36[$m_l])</sup> année</td>	<td>$(val35[$m_l*2-1;])</td>	<td>$(val35[$m_l*2;])</td>	<td>$(val35[$m_l*2+1;])</td>	</tr>	 
+!next
+$()	<tr>	<td>3<sup>e</sup> année</td>	<td>$(val35[5;])</td>	<td> 
+!read oef/embed.phtml reply18, 4 
+$()</td>	<td> 
+!read oef/embed.phtml reply19, 5 
+$()</td>	</tr>	 
+!for m_l=4 to 7 
+$()	<tr>	<td>$m_l<sup>e</sup> année</td>	<td> 
+!read oef/embed.phtml reply\l*3+8, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply\l*3+9, 4 
+$()</td>	<td> 
+!read oef/embed.phtml reply\l*3+10, 5 
+$()</td>	</tr> 
+!next
+$()	</table>	<br />	<div class="question">	<span class="bold" style="text-decoration:underline">Conclusion :</span> <span class="bold"> Le capital placé durant 7 années a une	 valeur actuelle de :  
+!read oef/embed.phtml reply32, 5 
+$() &#8364;.</span>	Le tableau réalisé évite les calculs fastidieux.	</div>	</div> 
+!endif
+$()		
+!if $m_step=4 
+$()	<br />	<div class="solution">	
+!if $m_reply18!=$val19 or $m_reply19!=$val20 or $m_reply20!=$val20	 or $m_reply21!=$val22 or $m_reply22!=$val23 or $m_reply23!=$val23	 or $m_reply24!=$val25 or $m_reply25!=$val26 or $m_reply26!=$val26	 or $m_reply27!=$val28 or $m_reply28!=$val29 or $m_reply29!=$val29	 or $m_reply30!=$val31 or $m_reply31!=$val32 
+$()Une ou plusieurs réponses précédentes sont fausses.<br /><br />	En effet les calculs sont interminables. 
+!else
+$()  Vos	 réponses précédentes sont justes.<br />	 Vous êtes un excellent calculateur. 
+!endif
+$()	<br />	Le tableau correct est le suivant :	<br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	<td><b>Capital en début d'année<br />en &#8364;</b></td>	<td><b>Intérêt<br />en &#8364;</b></td>	<td><b>Capital à la fin d'année<br />en &#8364;</b></td>	</tr>	 
+!for m_l=1 to 7 
+$()	<tr>	<td>$m_l<sup>$(val36[$m_l])</sup> année</td>	<td>$(val35[$m_l*2-1;])</td>	<td>$(val35[$m_l*2;])</td>	<td>$(val35[$m_l*2+1;])</td>	</tr>	 
+!next
+$()	</table>	</div>	En reprenant le tableau précédent, on a :	<table class="wimscenter wimsborder">	<tr>	<td>Capital</td>	 
+!for m_sss=0 to 7 
+$()<td>C<sub>$m_sss</sub></td> 
+!next
+$()	</tr>	<tr>	<td>Montant du capital en fin d'année</td>	<td>$val9</td>	<td>$val13</td>	<td>$val16</td>	<td>$val20</td>	<td>$val23</td>	<td>$val26</td>	<td>$val29</td>	<td>$val32</td>	</tr>	</table>	<br />	On passe d'un terme à l'autre en  
+!read oef/embed.phtml reply33 
+$() la valeur  
+!read oef/embed.phtml reply34, 4 
+$().	<br />	<br />	Par conséquent les différents termes forment une suite  
+!read oef/embed.phtml reply35 
+$()	 de premier terme  
+!read oef/embed.phtml reply36, 4 
+$() et de raison  
+!read oef/embed.phtml reply37, 4 
+$().	<br /><br />	<b>Afin d'éviter l'ensemble de ses calculs, une des deux formules sur les suites permet	 le calcul direct de la valeur acquise au bout de la septième année.</b>	<br class="spacer"/>	<table class="wimscenter wimsborder">	<tr>	<td>Pour une <b>suite arithmétique</b>, la relation est donnée par :	<br />	
+!insmath \large{ U_n = U_0 + n \times r}
+$()	</td>	<td></td>	<td>Pour une <b>suite géométrique</b>, la relation est donnée par :	<br />	
+!insmath \large{ U_n = U_0 \times q^n}
+$()	</td>	</tr>	<tr><td></td><td></td><td></td></tr>	<tr>	<td>	<b>
+!insmath U_n
+$() : terme de rang 
+!insmath n
+$()</b>	<br />	<b>
+!insmath U_0
+$() : 1<sup>er</sup> terme</b>	<br />	<b>
+!insmath r
+$() : raison de la suite</b>	<br />	<b>
+!insmath n
+$() : rang de la suite</b>	<br />	</td>	<td></td>	<td>	<b>
+!insmath U_n
+$() : terme de rang 
+!insmath n
+$()</b>	<br />	<b>
+!insmath U_0
+$() : 1<sup>er</sup> terme</b>	<br />	<b>
+!insmath q
+$() : raison de la suite</b>	<br />	<b>
+!insmath n
+$() : rang de la suite</b>	<br />	</td>	</tr>	</table>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	A l'aide des énoncés, Précisez les informations suivantes :	<ul>	<li>U<sub>0</sub> =  
+!read oef/embed.phtml reply38, 4 
+$()</li>	<li>raison =  
+!read oef/embed.phtml reply39, 4 
+$()</li>	<li>n =  
+!read oef/embed.phtml reply40, 4 
+$()</li>	</ul>	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td>	<br />	<b>U<sub>n</sub> = U<sub>0</sub> + n $m_times r</b>	<br />	 <b>U<sub>n</sub> =  
+!read oef/embed.phtml reply41, 4 
+$() +  
+!read oef/embed.phtml reply42, 4 
+$() $m_times  
+!read oef/embed.phtml reply43, 2 
+$()</b>	<br /><br />	</td>	<td><img src="$val1/attention.png" alt="Attention" /><b>Choisir la bonne formule	<br />	 et mettre la valeur x dans les cases de la formule non utilisée</b></td>	<td>	<br />	<b>U<sub>n</sub> = U<sub>0</sub> q<sup>n</sup></b>	<br />	 <b>U<sub>n</sub> =  
+!read oef/embed.phtml reply44, 4 
+$() $m_times  
+!read oef/embed.phtml reply45, 4 
+$()<sup> 
+!read oef/embed.phtml reply46, 2 
+$()</sup></b>	<br /><br />	</td>	</tr>	</table>	<br /><br />	A l'aide de la calculatrice, on calcule :	<b>U<sub>n</sub> =  
+!read oef/embed.phtml reply47, 5 
+$() &#8364;</b>	<div class="question">	<span class="bold"  style="text-decoration:underline">Conclusion :</span><span class="bold"> Le capital placé durant 7 années a une	 valeur acquise de :  
+!read oef/embed.phtml reply48, 5 
+$() &#8364;.	Le calcul réalisé est rapide.</span>		</div>		</div> 
+!endif
+$()		
+!if $m_step=5 
+$()	<div class="consigne">	<span class="bold" style="text-decoration:underline">Conclusion :</span><span class="bold"> Le capital placé durant 7 années a une	 valeur acquise de : $val32 &#8364;.</span>	</div>	<div class="etape">ÉTAPE $m_step sur 5</div>	Par conséquent cliquez sur le bien de consommation que l'élève peut	 s'offrir :	<br /><br />	<table class="wimscenter wimsborder">	<tr>	 
+!for m_mm=1 to 3 
+$()<td>  
+!read oef/embed.phtml reply49,\mm 
+$()</td> 
+!next
+$()	</tr>	<tr>	 
+!for m_mm=1 to 3 
+$()<td>$(val37[$(val40[$m_mm]);3]) €</td> 
+!next
+$()	</tr>	<tr>	 
+!for m_mm=4 to 6 
+$()<td>  
+!read oef/embed.phtml reply49,\mm 
+$()</td> 
+!next
+$()	</tr>	<tr>	 
+!for m_mm=4 to 6 
+$()<td>$(val37[$(val40[$m_mm]);3]) €</td> 
+!next
+$()	</tr>	</table> 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step=2)
+val6= reply10, reply11, reply12, reply13, reply14, reply15, reply16, reply17
+!endif
+tmp0=!makelist r x for x = 18 to 32
+
+val49=$(tmp0)
+
+!ifval ($m_step=3)
+val6= $val49
+!endif
+tmp0=!makelist r x for x = 33 to 48
+
+val50=$(tmp0)
+
+!ifval ($m_step=4)
+val6= $val50
+!endif
+
+!ifval ($m_step=5)
+val6= reply49
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,11,12,13,14,15,16,17,19,20,22,23,25,26,28,29,31,32,35,36,37,38,39,40,45,47,48
+embedcnt=41

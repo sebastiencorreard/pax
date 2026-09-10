@@ -1,0 +1,136 @@
+\title{Tangente de direction donnée}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\keywords{tangent}
+\integer{a=random(1..5)*random(-1,1)}
+\integer{b=random(1..5)}
+\integer{c=random(1..5)}
+
+\text{flist=x^2, \a*x^2, \a/x, \a/(x-\b),\a/(x+\b),\a*x^2 + \b*x,\a*x^2 - \b*x, \a*x^2 + \b*x + \c,\a*x^2 - \b*x + \c, \a*x^2 +\b*x -\c, \a*x^2 -\b*x -\c}
+\text{deflist=\(\,\RR), \(\,\RR), \(\RR^*), \(\RR \setminus \left\lbrace \b \right\rbrace\),\(\RR \setminus \left\lbrace -\b \right\rbrace\) ,\(\,\RR),\(\,\RR),\(\,\RR),\(\,\RR), \(\,\RR)}
+\integer{nbf=items(\flist)}
+\integer{n=random(1..\nbf)}
+##  integer{n=4}
+\function{f=item(\n,\flist)}
+\text{defdom=\deflist[\n]}
+\text{ft=item(\n,x^2,  \a x^2, \frac{\a}{x}, \frac{\a}{x-\b},\frac{\a}{x+\b},\a x^2 + \b x,\a x^2 - \b x,\a x^2 + \b x + \c,\a x^2 - \b x + \c,\a x^2 + \b x - \c,\a x^2 - \b x - \c,)}
+\integer{x0=random(-3..3)}
+\if{\n=3 and \x0=0}{\integer{x0=random(1..3)*random(1,-1)}}
+\if{\n=4 and \x0=\b}{\integer{x0=\x0+1}}
+\if{\n=5 and \x0=-\b}{\integer{x0=\x0+1}}
+
+\function{y0=wims(mathsubst  x=(\x0)  in  \f)}
+\function{y0=simplify(\y0)}
+
+\function{fp=diff(\f,x)}
+\function{fp=pari(\fp)}
+\rational{nder=evalue(\fp,x=\x0)}
+\text{eqder=\fp=\nder}
+\text{solist=maxima(solve\((\eqder),x);)}
+\integer{nbsol=items(\solist)}
+\if{\nbsol=1}{
+  ## tangente
+  \text{eqtgte1=simplify(y= \nder*(x-(\x0))+(\y0))}
+  \function{tg= \nder*(x-(\x0))+(\y0)}
+  \integer{x1=\x0}
+  ## rédaction d'une solution:
+  \text{eqsol1=(\nder)*(x - (\x0))+ (\y0)}
+  \text{mstep=r1,r2}
+}{
+  \text{sol1=\solist[1]}
+  \text{sol1=wims(replace internal = by , in \sol1)}
+  \text{sol1=\sol1[2]}
+  \text{sol2=\solist[2]}
+  \text{sol2=wims(replace internal = by , in \sol2)}
+  \text{sol2=\sol2[2]}
+  \rational{xs1=\sol1}
+  \rational{xs2=\sol2}
+  \rational{x1=\xs1<\xs2?\xs1:\xs2}
+  \rational{x2=\xs1<\xs2?\xs2:\xs1}
+  \function{y1=wims(mathsubst  x=(\x1)  in  \f)}
+  \function{y1=simplify(\y1)}
+  ## tangentes
+  \text{eqtgte1=simplify(y= \nder*(x-(\x1))+(\y1))}
+  \function{tg1= \nder*(x-(\x1))+(\y1)}
+  \function{y2=wims(mathsubst  x=(\x2)  in  \f)}
+  \function{y2=simplify(\y2)}
+  \text{eqtgte2=simplify(y= \nder*(x-(\x2))+(\y2))}
+  \function{tg2= \nder*(x-(\x2))+(\y2)}
+  ## rédaction d'une solution:
+  \text{eqsol11=(\nder)(x - (\x1))+ (\y1)}
+  \text{eqsol12=(\nder)(x - (\x2))+ (\y2)}
+  \text{mstep=r1,r2,r3,r4}
+}
+
+\text{fpaff=texmath(\fp)}
+\nextstep{\mstep}
+
+\statement{
+Soit la fonction \(f) définie sur <span class="nowrap">\defdom</span> par&nbsp;: \(f(x)=\ft) et soit le réel <span class="nowrap">\(a=\nder).</span><br>
+\if{\nbsol=1}
+ {Déterminer l'équation réduite de la tangente à la courbe représentative de \(f) de coefficient directeur <span class="nowrap">\(a)&nbsp;:</span>
+<div class="wims_question"><ol>
+<li>
+Déterminer l'abscisse \(x_1) du point de tangence&nbsp;:
+<div class="unbreakable"><label for="reply1">\(x_1=)</label>\embed{reply1}</div></li>
+<li><label for="reply2">Équation de la tangente&nbsp;:</label> \embed{reply2}
+</li>
+</ol></div>
+ }
+ {Déterminer les équations réduites des deux tangentes à la courbe
+ représentative de \(f) de coefficient directeur <span class="nowrap">\(a)&nbsp;:</span>
+<div class="wims_question"><ol>
+<li>Déterminer les abscisses \(x_1) et \(x_2) (avec \(x_1 < x_2\)) des points de tangence&nbsp;:
+<ul>
+<li><div class="unbreakable"><label for="reply1">\(x_1=)</label>\embed{reply1}</div></li>
+<li><div class="unbreakable"><label for="reply3">\(x_2=)</label>\embed{reply3}</div></li>
+</ul></li>
+<li>Déterminer les équations réduites des tangentes&nbsp;:
+<ul>
+<li> <label for="reply2">Tangente au point d'abscisse \(x_1)&nbsp;:</label> \embed{reply2}
+</li>
+<li> <label for="reply4">Tangente au point d'abscisse \(x_2)&nbsp;:</label> \embed{reply4}
+</li>
+</ul></li>
+</ol></div>
+}
+
+}
+\text{mstep=}
+
+\answer{}{\x1}{type = numexp}{option=noreduction}
+\answer{}{\eqtgte1,x}{type = equation}
+\answer{}{\x2}{type = numexp}{option=noreduction}
+\answer{}{\eqtgte2,x}{type = equation}
+\solution{
+Calculons la dérivée de \(f\)&nbsp;: <span class="nowrap">\(f^{\prime}(x)=\fpaff).</span><br>
+On cherche donc \(x_1) solution de <span class="nowrap">\(\fp = \nder).</span><br>
+\if{\nbsol=1}{
+  Soit <span class="nowrap">\(x_1=\x0).</span><br>
+Donc l'équation de la tangente est de la forme&nbsp;:
+<div class="unbreakable wimscenter">
+\(y=f^{\prime}(x_1)(x - x_1)+f(x_1)) <br>
+\(y=\eqsol1) <br>
+\(\eqtgte1)
+</div>
+  }
+  { Soit \(x_1=\x1) et <span class="nowrap">\(x_2=\x2).</span><br>
+Donc l'équation de la première tangente est de la forme&nbsp;:
+<div class="unbreakable wimscenter">
+\(y=f^{\prime}(x_1)(x - x_1)+f(x_1))<br>
+\(y=\eqsol11)<br>
+\(\eqtgte1)</div>
+Et l'équation de la deuxième tangente est de la forme&nbsp;:
+<div class="unbreakable wimscenter">
+\(y=f^{\prime}(x_2)(x - x_2)+f(x_2))<br>
+\(y=\eqsol12)<br>
+\(\eqtgte2)
+</div>
+ }
+}

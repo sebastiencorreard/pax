@@ -1,0 +1,145 @@
+!set title=Soustraction de nombres relatifs (guidé)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 11, 19
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 4, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem +,-
+
+val8=$(tmp0)
+tmp0=!randitem +,-
+
+val9=$(tmp0)
+val10=+,-
+!if $val9=+ 
+val11=$[rint(-$val7)]
+val12=\minus $val7
+!else
+val11=+$val7
+val12=\plus $val7
+!endif
+val13=$[$val8$val6-$val9$val7]
+!if $val13>0 
+val14=positif
+!endif
+!if $val13<0 
+val14=négatif
+!endif
+val15=r1	r2
+oefsteps=$val15 
+nextstep=!nosubst $val15 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=
+replygood1=$val11
+replytype2=numexp
+replyname2=
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On veut calculer le résultat de la soustraction 
+!insmath  A = ( $val8 $val6 ) - ( $val9 $val7 ) 
+$()	
+!if $m_step=1 
+$()<p><b class="underline">Étape 1&nbsp;:</b> <labe for="mathml1">On commence par transformer la soustraction en addition de l'opposé.</label></p>	 
+!read oef/special.phtml mathmlinput [A=( $val8 $val6 ) + ( reply1 )], 4	reply1	 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()<p>
+!insmath A = ($val8$val6) - ($val9$val7)
+$()</p>	
+!insmath A =($val8$val6) + ( $val12 )
+$()	<p><b class="underline">Étape 2&nbsp;:</b> On termine le calcul.</p>	<label for="reply2">
+!insmath A=
+$()</label> 
+!read oef/embed.phtml reply2,3 
+$() 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath  A = ( $val8 $val6 ) - ( $val9 $val7 ) 
+$()	<p>On transforme la soustraction en addition de l'opposé.</p>	
+!insmath  A=( $val8 $val6 ) + ( $val12 )
+$()	<p>On conclut.</p>	
+!insmath A=$val13
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1=-$val13
+ <div class='oef_feedbacks'><div class="macss">Attention, vous avez donné l'opposé de la bonne réponse.	<p>Le signe du résultat est $val14.</p></div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,12,13,14
+embedcnt=2

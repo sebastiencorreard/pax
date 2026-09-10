@@ -1,0 +1,242 @@
+!set title=3. Paquet de cigarettes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=26
+prevarcnt=24
+postvarcnt=1
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist r x for x = 1 to 10
+
+val6=$(tmp0)
+tmp=!trim $val6
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 0, 12
+
+val8=$[rint($(tmp0))]
+val9=$[rint(18+$val8)]
+val10=$[rint($val8+3)]
+val11=$[rint(($val8+3)*12)]
+val12=$[rint(($val8+3)*12-1)]
+val13=$[rint(($val8+3)*12-2)]
+val14=$[rint(($val8+3)*12-3)]
+val15=$[93]
+tmp0=!randint 0, 20
+
+val16=$[rint($(tmp0))]
+val17=$[0.003+$val16*0.0001]
+val18=$[$val17*100*12]
+val19=$[$val17*100]
+val20=$[rint($val15*(1+$val17)*100)]
+val21=$[$val20/100]
+val22=$[rint($val15*(1+$val17)^2*100)]
+val23=$[$val22/100]
+val24=$[1+$val17]
+val25=$[$val15*(1-$val24^$val11)/(1-$val24)]
+val26=$[rint($val25*100)]
+val27=$[$val26/100]
+val28=Quel est le prix réel de la consommation de tabac ?
+val29=Un jeune décide d'arrêter de fumer à l'age de 15 ans. Sa consommation de cigarettes était de 1 paquet	 tous les 2 jours. Le prix d'un paquet est de 6.2 &#8364;.	<br />	 On réalise l'approximation suivante : l'ensemble des mois comporte 30 jours.	<br />	Il décide de placer l'argent sur un compte épargne rémunéré à un taux annuel de $val18 %.	<br />	Quelle est la somme d'argent qu'il aura à $val9 ans
+dynsteps=yes
+oefsteps=$val7 
+nextstep=!nosubst $val7 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=Montant placé chaque mois
+replygood1=$[$val15]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=Taux mensuel en %
+replygood2=$[$val19]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=Durée du placement en année
+replygood3=$[$val10]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=Durée du placement en mois
+replygood4=$[$val11]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=Valeur du capital acquis durant 0 mois
+replygood5=$[$val15]
+replytype6=numeric
+replyoption6=nonstop 
+replyname6=Valeur du capital acquis durant 1 mois
+replygood6=$[$val21]
+replytype7=numeric
+replyoption7=nonstop 
+replyname7=Valeur du capital acquis durant 2 mois
+replygood7=$[$val23]
+replytype8=menu
+replyoption8=nonstop 
+replyname8=
+replygood8=2;arithmétique,géométrique,quelconque
+replytype9=numeric
+replyoption9=nonstop 
+replyname9=1er terme \(U_0)
+replygood9=$[$val15]
+replytype10=numeric
+replyoption10=nonstop 
+replyname10=raison: q 
+replygood10=$[1+$val17]
+replytype11=numeric
+replyoption11=nonstop 
+replyname11=Bénéfice net mensuel
+replygood11=$[$val27]
+replytype12=numeric
+replyoption12=nonstop 
+replyname12=Valeur du capital placé
+replygood12=$[$val27]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<div class="wimscenter">	<div id="haut">	<img src="$val1/tabac.jpg" alt="Tabac" />	</div>	</div>	<p class="problematique">$val28</p>	<div class="enonce">$val29 ?</div>		
+!if $m_step=1 
+$()	<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 2</div>	Étudier l'évolution des montants des intérêts sur les 3 derniers mois.	<br />	<ul><li>Calculer le montant placé chaque mois : Mensualité =  
+!read oef/embed.phtml reply1, 5 
+$() &#8364;</li>	<li>Calculer le taux mensuel : tm =  
+!read oef/embed.phtml reply2, 5 
+$() %</li>	<li>Calculer la durée du placement en année : Durée=  
+!read oef/embed.phtml reply3, 5 
+$()</li>	<li>Calculer la durée du placement en mois : Durée=  
+!read oef/embed.phtml reply4, 5 
+$()</li>	</ul>		<table class="wimscenter wimsborder">	<tr>	<td></td>	<td><b>Durée du placement en mois</b></td>	<td><b>Capital avec les intérêts en &#8364;</b></td>	</tr>	<tr>	<td>$val11<sup>e</sup> versement</td>	<td>0</td>	<td> 
+!read oef/embed.phtml reply5, 5 
+$()</td>	</tr>	<tr>	<td>$val12<sup>e</sup> versement</td>	<td>1</td>	<td> 
+!read oef/embed.phtml reply6, 5 
+$()</td>	</tr>	<tr>	<td>$val13<sup>e</sup> versement</td>	<td>2</td>	<td> 
+!read oef/embed.phtml reply7, 5 
+$()</td>	</tr>	<tr>	<td>...<sup>e</sup> versement</td>	<td>...</td>	<td></td>	</tr>	<tr>	<td>3<sup>e</sup> versement</td>	<td>$m_duremmmm</td>	<td></td>	</tr>	<tr>	<td>2<sup>e</sup> versement</td>	<td>$val13</td>	<td></td>	</tr>	<tr>	<td>1<sup>er</sup> versement</td>	<td>$val12</td>	<td></td>	</tr>	</table>		<br />	On définit ainsi une suite  
+!read oef/embed.phtml reply8 
+$() de premier terme 
+!insmath U_0
+$()=  
+!read oef/embed.phtml reply9, 5 
+$() et de raison  
+!read oef/embed.phtml reply10, 5 
+$().		</div> 
+!endif
+$()		
+!if $m_step=2 
+$()	<div class="solution">	<table class="wimscenter wimsborder">	<tr>	<td></td>	<td><b>Durée du placement en mois</b></td>	<td><b>Capital avec les intérêts en &#8364;</b></td>	</tr>	<tr>	<td>$val11<sup>e</sup> versement</td>	<td>0</td>	<td>$val15</td>	</tr>	<tr>	<td>$val12<sup>e</sup> versement</td>	<td>1</td>	<td>$val21</td>	</tr>	<tr>	<td>$val13<sup>e</sup> versement</td>	<td>2</td>	<td>$val23</td>	</tr>	<tr>	<td>...<sup>e</sup> versement</td>	<td>...</td>	<td></td>	</tr>	<tr>	<td>3<sup>e</sup> versement</td>	<td>$val14</td>	<td></td>	</tr>	<tr>	<td>2<sup>e</sup> versement</td>	<td>$val13</td>	<td></td>	</tr>	<tr>	<td>1<sup>er</sup> versement</td>	<td>$val12</td>	<td></td>	</tr>	</table>		<ul><li>Les sommes d'argent ainsi placées forment une suite géométrique de premier terme 
+!insmath U_0
+$()=$val15 et de raison q=$val24</li></ul>	</div>	<br class="spacer"/>	<b> Les quatre formules sur les suites sont données ci-desous :</b>	<br class="spacer"/>	<table class="wimscenter wimsborder">	<tr>	<td>Pour une <b>suite arithmétique</b>, la relation est donnée par :	<br />	
+!insmath \large{ U_n = U_0 + n \times r}
+$()	<br />	
+!insmath \large{S_k=U_0+ ... +U_k = (k+1) \frac{(U_0 + U_k)}{2}}
+$()	</td>	<td></td>	<td>Pour une <b>suite géométrique</b>, la relation est donnée par :	<br />	
+!insmath \large{ U_n = U_0 \times q^n}
+$()	<br />	
+!insmath \large{S_k=U_0+ ... +U_k = U_0 \frac{1-q^{k+1}}{1-q}}
+$()	</td>	</tr>	<tr><td></td><td></td><td></td></tr>	<tr>	<td>	<b>
+!insmath S_k
+$() : Somme des termes de rang 
+!insmath k
+$()</b>	<br />	<b>
+!insmath U_n
+$() : terme de rang 
+!insmath n
+$()</b>	<br />	<b>
+!insmath U_0
+$() : 1<sup>er</sup> terme</b>	<br />	<b>
+!insmath r
+$() : raison de la suite</b>	<br />	<b>
+!insmath n
+$() : rang de la suite</b>	<br />	</td>	<td></td>	<td>	<b>
+!insmath S_k
+$() : Somme des termes de rang 
+!insmath k
+$()</b>	<br />	<b>
+!insmath U_n
+$() : terme de rang 
+!insmath n
+$()</b>	<br />	<b>
+!insmath U_0
+$() : 1<sup>er</sup> terme</b>	<br />	<b>
+!insmath q
+$() : raison de la suite</b>	<br />	<b>
+!insmath n
+$() : rang de la suite</b>	<br />	</td>	</tr>	</table>		<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 2</div>	Calculer la valeur acquise sur les $val10 ans.	<br /> Utiliser aux choix les formules ou la construction d'un tableur.	<br />	<img src="$val1/attention.png" alt="Attention" /><b>Pour écrire une formule avec une puissance dans un tableur,	 on utilise le formaliste suivant : x<sup>4</sup> = x^4</b>	<br /> Les deux méthodes peuvent être complémentaires. Un arrondi à 0.01 est à réaliser.	<ul><li><b>Valeur acquise =  
+!read oef/embed.phtml reply11,7 
+$()</b></li></ul>	<br /><br />	<span class="bold" style="text-decoration:underline">Conclusion :</span><span class="bold"> L'arrêt du tabac a rapporté la somme de  
+!read oef/embed.phtml reply12,7 
+$() &#8364; en $val10 ans.</span>		</div> 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step=2)
+val7= reply11, reply12
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,10,11,12,13,14,15,21,23,24,28,29
+embedcnt=12

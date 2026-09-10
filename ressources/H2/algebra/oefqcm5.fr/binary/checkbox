@@ -1,0 +1,86 @@
+good=!rows2lines $(replygood$i)
+menulist=!line 2 to -1 of $good
+menulist=!translate internal $\
+$ to ; in $menulist
+good=!line 1 of $good
+replyGood$i=!item $good of $menulist
+menucnt=!itemcnt $menulist
+
+!if $wims_read_parm=nocompare
+ !exit
+!endif
+
+!if $(replyGood$i)=$empty
+ Test=bad $i
+ !exit
+!endif
+
+!reset menupos
+!if $(replytype$i) iswordof mark
+  menupos=$(reply$i)
+  m_reply$i=!item $menupos of $menulist
+ reply_$i=$(m_reply$i)
+!else
+ reply$i=!replace internal \\( by \( in $(reply$i)
+ !if $(replytype$i) notwordof checkbox menu
+  !if &#39; isin $menulist
+   reply$i=!replace internal ' by &#39; in $(reply$i)
+  !endif
+  !if &#44; isin $menulist
+   reply$i=!replace internal , by &#44; in $(reply$i)
+  !endif
+ !endif
+ !for ri_ in $(reply$i)
+  mp_=!positionof item $ri_ in $menulist
+  menupos=!append item $mp_ to $menupos
+ !next ri_
+!endif
+menupos=!nonempty items $menupos
+!if $menupos=$empty
+ test=NaN
+ !exit
+!endif
+
+poscnt1=!itemcnt $menupos
+menupos=!listintersect $menupos and $good
+poscnt2=!itemcnt $menupos
+poscnt3=!itemcnt $good
+!!!if split iswordof $(replyoption$i) or partialscore iswordof (replyoption$i)
+!! !if $poscnt1=$poscnt2 and $poscnt1=$poscnt3
+!!  diareply$i=good
+!!  !advance freegot
+!! !else
+!!  !if eqweight iswordof $(replyoption$i)
+!!   diaratio=$[2*$poscnt2 - $poscnt1]
+!!  !else
+!!   diaratio=$[3*$poscnt2 - 2*$poscnt1]
+!!  !endif
+!!  !if $diaratio > 0
+!!   diareply$i=good
+!!   partialgood$i=yes
+!!   freegot=$[$freegot+ max(0,$diaratio/max($poscnt3,1))]
+!!  !else
+!!   diareply$i=bad
+!!  !endif
+!! !endif
+!!!else
+!! !if $poscnt1=$poscnt2 and $poscnt1=$poscnt3
+!!  diareply$i=good
+!!  !advance freegot
+!! !else
+!!  diareply$i=bad
+!! !endif
+!!!endif
+
+!ifval $menucnt != $poscnt3
+  freegot=$[($poscnt2/$poscnt3 - ($poscnt1 -$poscnt2)/($menucnt-$poscnt3)+1)/2]
+!else 
+ freegot=$[$poscnt2/$poscnt3]
+!endif
+
+!if $poscnt1=$poscnt2 and $poscnt1=$poscnt3
+  diareply$i=good
+ !else
+  diareply$i=bad
+ !endif
+!endif

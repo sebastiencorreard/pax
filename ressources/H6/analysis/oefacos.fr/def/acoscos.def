@@ -1,0 +1,131 @@
+!set title=arccos(cos)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+computeanswer=yes
+title_en=arccos(cos)
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Écrire,sous la forme,avec \(a\) et \(b\) des nombres rationnels. 
+val8=Attention, on demande que \(a\) et \(b\)	  soient des nombres rationnels, ils sont en fait décimaux.	  Vérifier qu'il n'y a alors qu'une seule solution.
+!if $val6=en 
+val7=Compute,writing it under the form,where \(a\) and \(b\) are rational numbers.
+val8=Attention, on demande que \(a\) et \(b\)	  soient des nombres rationnels, ils sont en fait décimaux.	  Vérifier qu'il n'y a alors qu'une seule solution.
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!random 10, 150
+
+val9=$[$(tmp0)*floor($(tmp1))/10]
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+tmp0=!item $val10 of 0,pi/2
+
+val11=$[$(tmp0)]
+tmp0=!item $val10 of cos,sin
+
+val12=$(tmp0)
+val13=$[$val9+$val11]
+val14=$[floor($val13/pi)]
+val15=$[floor($val14/2)]
+
+!ifval $val14%2=0
+val16=$[$val9]
+!else
+val16=$[-$val9]
+!endif
+tmp0=!item $val10 of 2,1
+
+val17=$[rint($(tmp0))]
+
+!ifval $val14%2=0
+val18=$[-2*$val15]
+!else
+val18=$[2*$val15+$val17]
+!endif
+val19=arc$val12
+replyname1=\(a\)
+replygood1=$val16
+replyname2=\(b\)
+replygood2=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val8
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) 
+!insmath x = $val19($val12($val9))
+$() $(val7[2])	  
+!insmath x = a + b pi
+$() $(val7[3])	
+$()
+!exit
+
+:hint
+$()$val8
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,12,19
+embedcnt=0

@@ -1,0 +1,233 @@
+!set title=Soustraction 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r,r,r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+val7=$[rint(1)]
+!readproc slib/utilities/env lang 
+tmp0=$slib_out
+val8=$(tmp0)
+val9=Effectuer la soustraction posée suivante&nbsp;
+val10=Vous devez remplir toutes les étiquettes avec des chiffres.
+!if $val7=2 
+tmp0=!randint 1, 9
+
+tmp1=!randint 0, 5
+
+tmp2=!randint 3, 9
+
+val11=$(tmp0),$(tmp1),$(tmp2)
+!else
+tmp0=!randint 1, 9
+
+tmp1=!randint 0, 5
+
+tmp2=!randint 3, 9
+
+tmp3=!randint 3, 9
+
+val11=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+!endif
+!if $val6=2 
+tmp0=!randint 2, 9
+
+tmp1=!randint 3, 9
+
+tmp2=!randint 1, $(val11[4])-1
+
+val12=$(tmp0),$(tmp1),$(tmp2)
+!else
+tmp0=!randint 2, 9
+
+tmp1=!randint 3, 9
+
+tmp2=!randint 1, 9
+
+val12=$(tmp0),$(tmp1),$(tmp2)
+!endif
+val13=$[rint($(val11[4])$(val11[3])$(val11[2])$(val11[1]))]
+val14=$[rint($(val12[3])$(val12[2])$(val12[1]))]
+val15=$[rint(($val13*10^$val7-$val14*10^$val6)/10)]
+val16=$[rint(4-$val6-$val7)]
+val17=
+val18=
+!for val19 =1 to $val16 
+tmp0=!char $val19 to $val19 of $val15
+
+val18=$(tmp0)
+!if $val18= 
+!else
+tmp0=!append item $val18 to $val17
+
+val17=$(tmp0)
+!endif
+!next
+val18=
+val19=$[rint($val16+1)]
+tmp0=!char $val19 to $val19 of $val15
+
+val18=$(tmp0)
+tmp0=!append item $val18&#44; to $val17
+
+val17=$(tmp0)
+val18=
+!for val19 = $val16+2 to 4 
+tmp0=!char $val19 to $val19 of $val15
+
+val18=$(tmp0)
+!if $val18= 
+!else
+tmp0=!append item $val18 to $val17
+
+val17=$(tmp0)
+!endif
+!next
+val20=-
+val21=$[rint(max(max($val6+4,$val7+4),$val6+$val7+3))]
+tmp0=!makelist <td></td> for x= 5+$val6 to $val21
+
+val22=$(tmp0)
+tmp0=!makelist <td></td> for x= 5+$val7 to $val21
+
+val23=$(tmp0)
+tmp0=!makelist <td></td> for x= $val6+$val7+4 to $val21
+
+val24=$(tmp0)
+tmp0=!items2words $val22
+
+val22=$(tmp0)
+tmp0=!items2words $val23
+
+val23=$(tmp0)
+tmp0=!items2words $val24
+
+val24=$(tmp0)
+val25=25x35x1
+val26=0,1,2,3,4,5,6,7,8,9,0&#44;,1&#44;,2&#44;,3&#44;,4&#44;,5&#44;,6&#44;,7&#44;,8&#44;,9&#44;
+replytype1=clickfill
+replyname1=
+replygood1=$(val17[1]);$val26
+replytype2=clickfill
+replyname2=
+replygood2=$(val17[2]);$val26
+replytype3=clickfill
+replyname3=
+replygood3=$(val17[3]);$val26
+replytype4=clickfill
+replyname4=
+replygood4=$(val17[4]);$val26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val9:	<div class="wims_instruction">$val10</div>	<table class="wimscenter wimsnoborder">	 <tr>	   
+!for m_a=1 to $val6 
+$()<td></td> 
+!next
+$()	   
+!for m_a=1 to 3-$val6 
+$()<td><span class="larger">$(val11[5-$m_a])</span></td> 
+!next
+$()	  
+!for m_a=4-$val6 to 4-$val6 
+$()<td><span class="larger">
+!insmath $(val11[5-$m_a]),
+$()</span></td> 
+!next
+$()	 
+!for m_a=5-$val6 to 4 
+$()<td><span class="larger">$(val11[5-$m_a])</span></td> 
+!next
+$()	$val22	</tr><tr>	 <td>$val20</td>	 
+!for m_a=1 to $val7 
+$()<td></td> 
+!next
+$()	 
+!for m_a=1 to 2-$val7 
+$()<td><span class="larger">$(val12[4-$m_a])</span></td> 
+!next
+$()	 
+!for m_a=3-$val7 to 3-$val7 
+$()<td><span class="larger">
+!insmath $(val12[4-$m_a]),
+$()</span></td> 
+!next
+$()	 
+!for m_a=4-$val7 to 3 
+$()<td><span class="larger">$(val12[4-$m_a])</span></td> 
+!next
+$()	 $val23</tr><tr>	  <td colspan="$val21"><hr></td>	 </tr><tr>	 
+!for m_a=1 to $val6+$val7-1 
+$()<td></td> 
+!next
+$()	 
+!for m_b=1 to 4 
+$()	<td> 
+!read oef/embed.phtml r\b,$val25 
+$()</td> 
+!next
+$()	$val24	</tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12,20,21,22,23,24,25
+embedcnt=1

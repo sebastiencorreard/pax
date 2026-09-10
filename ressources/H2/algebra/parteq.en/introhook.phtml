@@ -1,0 +1,66 @@
+!set tmp_lang=$lang
+!if $tmp_lang notwordof en it fr nl
+  !set tmp_lang=en
+!endif
+!set name_header=Objects to fill,Type of terms,Number of extra terms,Type of operation
+!set name_prompt= 1 term, 2 terms, 3 terms,\
+  all terms, 1 operator, 2 operators,\
+  all operators, 1 term + 1 operator,2 terms + 1 operator,\
+  2 terms + 2 operators, everything
+
+!if $lang=it
+  !set name_header=Oggetti da inserire,Tipo di termini,Numero di termini extra,Tipo di operazioni
+  !set name_prompt= 1 termine, 2 termini, 3 termini,\
+  tutti i termini, 1 operatore, 2 operatori,\
+  tutti gli operatori, 1 termine + 1 operatore,2 termini + 1 operatore,\
+  2 termini + 2 operatori, tutto
+!endif
+!if $lang=fr
+  !set name_header=Objects à remplir,Type de termes,Nombre de termes suppl.,Type d'opérations
+  !set name_prompt=1 terme, 2 termes, 3 termes,\
+  tous les termes, 1 opérateur, 2 opérateurs,\
+  tous les opérateurs, 1 terme + 1 opérateur,2 termes + 1 opérateur,\
+  2 termes + 2 opérateurs, tout
+!endif
+!if $lang=nl
+  !set name_header=Kies de open plek(ken) in de vergelijking,keuze uit de volgende "termen",Het aantal extra "sleep-objecten",Keuze uit de volgende "operators"
+  !set name_prompt=1 open plek, 2 open plekken, 3 open plekken,\
+	alles open, 1 operator, 2 operators,\
+	alle operators, 1 open plek  + 1 operator,2 open plekken + 1 operator,\
+	2 open plekken + 2 operators, alles open
+!endif
+!set n=!recordcnt src/data.$tmp_lang
+!reset objlist
+!for i=1 to $n
+  !set l=!record $i of src/data.$tmp_lang
+  !set l=!line 1 of $l
+  !set objlist=!append item $l to $objlist
+!next i
+<tr><th>$(name_header[1])
+</th><td>
+!set wims_formselect_switch=multiple="multiple" size="5"
+!default confparm3=50 0
+!formselect confparm3 list 1 0,2 0,3 0,\
+  50 0,0 1,0 2,\
+  0 50,1 1,2 1,\
+  2 2,50 50\
+  prompt \
+  $name_prompt
+!reset wims_formselect_switch
+</td></tr><tr><th>
+$(name_header[2])
+</th><td>
+!default confparm1=1
+!formselect confparm1 from 1 to $n prompt $objlist
+</td></tr>
+<tr><th>
+$(name_header[4])
+</th><td>
+!default confparm2=2
+!formselect confparm2 from 1 to 3 prompt \
+  + and -, + - &times;, + - &times; &divide;
+</td></tr><tr><th>$(name_header[3])
+</th><td>
+!default confparm4=1
+!formselect confparm4 from 0 to 5
+</td></tr>

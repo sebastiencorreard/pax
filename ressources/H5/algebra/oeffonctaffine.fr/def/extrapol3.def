@@ -1,0 +1,134 @@
+!set title=Coût d'un lot d'objets
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 12
+
+val6=$[rint($(tmp0))]
+val7=savon,photo,bracelet,stylo,foulard,verre,bol,figurine,peluche,dragon,bille,balle,nounours
+val8=$(val7[$val6])
+val9=$(val7[$val6])s
+tmp0=!randitem 1,3,5,7
+
+val10=$[0.2+0.2*$(tmp0)]
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 0, 10
+
+val12=$[rint(10+2*$(tmp0))]
+val13=$[$val10 *$val12 +$val11]
+tmp0=!randint 2, 10
+
+val14=$[rint($val12 +10*$(tmp0))]
+val15=$[$val10 *$val14 +$val11]
+val16=$[rint($val14 - $val12)]
+val17=$[$val15 - $val13]
+val18=!rawmath $val10*x+$val11
+val19=$[rint($val12 +10)]
+val20=$[$val10 *$val19 +$val11]
+replytype1=default
+replyname1=Prix de $val19 $val9
+replygood1=$val20
+replytype2=default
+replyname2=Prix de chaque $val8 supplémentaire
+replygood2=$val10
+replytype3=default
+replyname3=Coût du transport
+replygood3=$val11
+replytype4=formal
+replyname4=Coût total pour \(x) $val9
+replygood4=$val18
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_question">	  Pour un achat de $val9 par correspondance, on paye un prix fixe pour l'envoi par la Poste	  et un prix proportionnel au nombre de $val9.	  Le prix total pour $val12 $val9 est $val13 &euro; et pour $val14 $val9, il est de $val15&euro;.	  </div>	  <ul><li>	  <label for="reply1">Quel est le prix de $val19 $val9 ?</label>  
+!read oef/embed.phtml reply 1,5 
+$() &euro;.	  </li><li>	  <label for="reply2">Quel est le prix de chaque $val8 supplémentaire (sans les frais de transport) ?	  </label> 
+!read oef/embed.phtml reply 2,5 
+$() &euro;.	  </li><li>	  <label for="reply3"> Combien coûte le transport ?</label>  
+!read oef/embed.phtml reply 3,5 
+$()&euro;.	  </li><li>	  <label for="reply4">Finalement le coût total pour 
+!insmath x
+$() $val9 transport compris est :</label>	   
+!read oef/embed.phtml reply 4,15 
+$()&euro;.	  </li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ul><li>	  Le prix supplémentaire pour chaque $val8 est 
+!insmath ($val15 - $val13)/($val14 - $val12)
+$() = $val10 &euro;.	  </li><li>	  Pour $val19 $val9 le coût total est $val10 * ($val19 - $val12) + $val13 = $val20&euro;.	  </li><li>	  Pour 
+!insmath x
+$() $val9 le coût total est $val10 * (
+!insmath x
+$() - $val12) + $val13 = $val10 * 
+!insmath x
+$() + $val11&euro;.	  </li></ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,14,15,19,20
+embedcnt=4

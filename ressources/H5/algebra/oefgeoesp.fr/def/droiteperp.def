@@ -1,0 +1,247 @@
+!set title=Paramétrisation d'une droite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=23
+prevarcnt=16
+postvarcnt=6
+replycnt=6
+choicecnt=0
+conditioncnt=4
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,6 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+val7=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,1]);print(M)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,2]);print(M)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in $(val7[1])+t*$(val8[1])
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $(val7[2])+t*$(val8[2])
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $(val7[3])+t*$(val8[3])
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val10
+
+val13=$(tmp0)
+tmp0=!texmath $val11
+
+val14=$(tmp0)
+tmp0=!texmath $val12
+
+val15=$(tmp0)
+t_=!rawmath 
+val16=!exec pari print($t_)
+t_=!rawmath 
+val17=!exec pari print($t_)
+t_=!rawmath 
+val18=!exec pari print($t_)
+t_=!rawmath $(val8[2])
+val19=!exec pari print($t_)
+t_=!rawmath -$(val8[1])
+val20=!exec pari print($t_)
+t_=!rawmath 0
+val21=!exec pari print($t_)
+oefsteps=reply 1,reply2, reply 3	reply 4,reply 5, reply 6 
+nextstep=!nosubst reply 1,reply2, reply 3	reply 4,reply 5, reply 6 
+!readproc oef/steps.proc
+replytype1=default
+replyname1=xu
+replygood1=?analyze 22
+replytype2=default
+replyname2=yu
+replygood2=?analyze 23
+replytype3=default
+replyname3=zu
+replygood3=?analyze 24
+replytype4=default
+replyname4=xB
+replygood4=?analyze 25
+replytype5=default
+replyname5=yB
+replygood5=?analyze 26
+replytype6=default
+replyname6=zB
+replygood6=?analyze 27
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la droite 
+!insmath d
+$() paramétrée par	<div class="wimscenter">	
+!insmath \left \lbrace \begin{matrix} x&=&$val13\\	y&=&$val14\\	z&=&$val15 \end{matrix}\right .
+$()	</div>	
+!if $m_step=1 
+$()	Déterminer un vecteur directeur 
+!insmath \overrightarrow{u}
+$() de cette droite.	<div class="wimscenter">	On a 
+!insmath \overrightarrow{u}=
+$()( 
+!read oef/embed.phtml reply 1,5 
+$(), 
+!read oef/embed.phtml reply 2,5 
+$(), 
+!read oef/embed.phtml reply 3,5 
+$()).	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	Soit 
+!insmath A=($val7)
+$() un point de 
+!insmath d
+$(). Déterminer les coordonnées	d'un point 
+!insmath B
+$() tel que les droites 
+!insmath AB
+$() et (d) soient perpendiculaires.<br>	<div class="wimscenter">	On a 
+!insmath B=
+$()( 
+!read oef/embed.phtml reply 4,5 
+$(), 
+!read oef/embed.phtml reply 5,5 
+$(), 
+!read oef/embed.phtml reply 6,5 
+$()).	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()On pourra déterminer une équation du plan perpnediculaire à 
+!insmath d
+$(), passant par 
+!insmath A
+$().
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!trim $val22,$val23,$val24
+val28=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val25,$val26,$val27
+val29=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in [$val28]*mattranspose([$val28])
+tmp0=!exec pari $t_
+
+t_=!rawmath $(tmp0)
+val16=!exec pari print($t_)
+t_=!replace internal \( by ( in M=[$val28;$val8];r=matrank(M);print(r)
+tmp0=!exec pari $t_
+
+t_=!rawmath $(tmp0)
+val17=!exec pari print($t_)
+t_=!replace internal \( by ( in ([$val29]-[$val7])*mattranspose([$val8])
+tmp0=!exec pari $t_
+
+t_=!rawmath $(tmp0)
+val18=!exec pari print($t_)
+val30=$[rint(($val25-$(val7[1]))^2+($val26-$(val7[2]))^2+($val27-$(val7[3]))^2)]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+condweight1=1 
+
+!ifval $val16 <> 0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=u est non nul
+condweight2=1 
+
+!ifval $val17=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=u est parallèle à P2
+condweight3=1 
+
+!ifval $val18=0
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=AB est perpendiculaire à d
+condweight4=10 
+
+!ifval $val30 <>0
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=AB différente de 0
+
+!exit
+
+:stat
+vsavelist=7,8,13,14,15,16,17,18,22,23,24,25,26,27
+embedcnt=6

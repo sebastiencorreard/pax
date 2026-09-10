@@ -1,0 +1,188 @@
+!set title=Utiliser un tableau à double entrée 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+oefcss=<style> .PaleGreen{ background-color:PaleGreen; } .yellow{ background-color:yellow; } </style>
+precision=10000
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=6ème,5ème,4ème,3ème,Total
+val7=externes, demi-pensionnaires, externes, demi-pensionnaires
+val8=filles,garçons
+val9=Nous avons fait une enquête dans le collège sur la qualité des élèves.
+val10=Donner le nombre d'élèves dans le collège
+tmp0=!randint 30, 70
+
+tmp1=!randint 30, 70
+
+tmp2=!randint 30, 70
+
+tmp3=!randint 30, 70
+
+tmp4=!randint 30, 70
+
+tmp5=!randint 30, 70
+
+tmp6=!randint 30, 70
+
+tmp7=!randint 30, 70
+
+tmp8=!randint 30, 70
+
+tmp9=!randint 30, 70
+
+tmp10=!randint 30, 70
+
+tmp11=!randint 30, 70
+
+tmp12=!randint 30, 70
+
+tmp13=!randint 30, 70
+
+tmp14=!randint 30, 70
+
+tmp15=!randint 30, 70
+
+tmp=!trim $(tmp0),$(tmp1),$(tmp2),$(tmp3)	$(tmp4),$(tmp5),$(tmp6),$(tmp7)	$(tmp8),$(tmp9),$(tmp10),$(tmp11)	$(tmp12),$(tmp13),$(tmp14),$(tmp15)
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=
+val13=
+!for val14 =1 to 4 
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+val13=$val13,$val15
+val16=$[rint($(val15[1])+$(val15[2])+$(val15[3])+$(val15[4]))]
+tmp0=!append item $val16 to $val12
+
+val12=$(tmp0)
+!next
+val17=
+!for val14 =1 to 4 
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!column $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+val16=$[rint($(val18[1])+$(val18[2])+$(val18[3])+$(val18[4]))]
+tmp0=!append item $val16 to $val17
+
+val17=$(tmp0)
+!next
+val19=$[rint($(val17[1])+$(val17[2])+$(val17[3])+$(val17[4]))]
+val20=$val10
+val21=$[rint($val19)]
+val22=On effectue la somme de tous les nombres situés dans le tableau.	<p>Il y a \($val21\) élèves dans le collège.</p>
+replytype1=numeric
+replyname1=
+replygood1=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val9	<table class="wimscenter wimsborder table-scroll">	<tr><th></th>	 
+!for m_m=0 to 4 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr>	 
+!for m_k=1 to 4 
+$()<tr>	   
+!if $m_k=1 or $m_k=3 
+$()<th colspan="1" rowspan="2">$(val8[$m_k/2+1])</th> 
+!endif
+$()	   <th>$(val7[$m_k])</th>	    
+!for m_j=1 to 4 
+$()	   <td>$(val13[$m_j+4*($m_k-1)+1])</td> 
+!next
+$()	   </tr> 
+!next
+$()	</table>	<div class="spacer"><label for="reply1">$val20</label>  
+!read oef/embed.phtml r1,4 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<table class="wimscenter wimsborder">	<tr><th></th>	 
+!for m_m=0 to 4 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr>	 
+!for m_k=1 to 4 
+$()<tr>	   
+!if $m_k=1 or $m_k=3 
+$()<th colspan="1" rowspan="2">$(val8[$m_k/2+1])</th> 
+!endif
+$()	   <th>$(val7[$m_k])</th>	    
+!for m_j=1 to 4 
+$()	   <td class="yellow">$(val13[$m_j+4*($m_k-1)+1])</td> 
+!next
+$()	   </tr> 
+!next
+$()	</table>	$val22
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,13,20,22
+embedcnt=1

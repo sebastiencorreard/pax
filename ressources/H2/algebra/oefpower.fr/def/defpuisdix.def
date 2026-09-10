@@ -1,0 +1,137 @@
+!set title=Définition puissance de 10
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=ambali@free.fr
+title_en=Definition of a power of 10
+title_es=Definición potencia de 10
+title_it=Definzione di potenza di 10
+title_nl=Van Macht naar Decimaal getal
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Déterminer la valeur du nombre 
+val8=On écrira la réponse sous la forme d'un nombre entier ou décimal.
+!if $val6=en 
+val7=Determine the value of the number 
+val8=You will write the answer as an integer or decimal number.
+!endif
+!if $val6=es 
+val7=Determinar el valor del número
+val8=On écrira la réponse sous la forme d'un nombre entier ou décimal.
+!endif
+!if $val6=it 
+val7=Scrivi il valore del numero 
+val8=Scrivi il numero come numero intero oppore come numero decimale.
+!endif
+!if $val6=nl 
+val7=Schrijf als een decimaal getal 
+val8=You will write the answer as an integer or decimal number.
+!endif
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val10=$[rint($(tmp0)*(-1))]
+val11=$[rint(((-1*$val10)-1))]
+t_=!replace internal \( by ( in  (10)^($val9)
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+val12=$val12
+tmp0=!makelist 0 for i = 1 to $val11
+
+val13=$(tmp0)
+tmp0=!items2words $val13
+
+val13=$(tmp0)
+tmp0=!nospace 0, $val13 1
+
+val13=$(tmp0)
+tmp0=!randitem $val9,$val10
+
+val14=$[rint($(tmp0))]
+!if $val14=$val9 
+val15=$val12
+!endif
+!if $val14=$val10 
+val15=$val13
+!endif
+replytype1=case
+replyname1=\(A\)
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7 
+!insmath A = 10^{$val14}
+$().	<div class="wimscenter">	<label for="reply1">
+!insmath A = 
+$()</label>  
+!read oef/embed.phtml reply1,11 
+$().	</div>	<div class="wims_instruction">$val8</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,14
+embedcnt=1

@@ -1,0 +1,87 @@
+target=oeffairetabl4
+#include "author.inc"
+\precision{10000}
+#if defined TARGET_oeffairetabl4
+# define NUM 4
+#endif
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\text{effs=randint(10..25)}
+\for{k=1 to 9}{
+  \integer{n=randint(-5..+5)}
+  \if{\effs[\k]+\n>=0 and \effs[\k]+\n<=30}
+    {\integer{b=\effs[\k]+\n}
+      \text{effs=\effs,\b}
+    }{
+    \text{effs=\effs,\effs[\k]}
+  }
+}
+
+
+\text{lig1=segment 2,\effs[1]/4,4,\effs[2]/4,red}
+\text{lig2=segment 4,\effs[2]/4,6,\effs[3]/4,red}
+\text{lig3=segment 6,\effs[3]/4,8,\effs[4]/4,red}
+\text{lig4=segment 8,\effs[4]/4,10,\effs[5]/4,red}
+\text{lig5=segment 10,\effs[5]/4,12,\effs[6]/4,red}
+\text{lig6=segment 12,\effs[6]/4,14,\effs[7]/4,red}
+\text{lig7=segment 14,\effs[7]/4,16,\effs[8]/4,red}
+\text{lig8=segment 16,\effs[8]/4,18,\effs[9]/4,red}
+\text{lig9=segment 18,\effs[9]/4,20,\effs[10]/4,red}
+
+\text{gradu=}
+ \for{k=0 to 30 step 3}{
+  \text{gradu=\gradu
+  text black,\k/1.5-0.2,-0.2,small,\k}}
+ \for{k=0 to 30 step 2}{
+  \text{gradu=\gradu
+  text black,-0.7,\k/4+0.2,small,\k}}
+
+\text{fond=fill 0,0,220,220,255}
+\text{pic=draw(506,308,
+  xrange -1,22
+  yrange -1,8
+  \fond
+  parallel 1,0,1,8,1,0,20,grey
+  parallel 0,0.5,21,0.5,0,0.5,16,grey
+  linewidth 2
+  arrow -1,0,21,0,10,black
+  arrow 0,-1,0,8,10,black
+  text black,18.6,0.8,medium,\name_day
+  text black,0.5,7.9,medium,°C
+  \gradu
+\lig1
+\lig2
+\lig3
+\lig4
+\lig5
+\lig6
+\lig7
+\lig8
+\lig9)}
+
+\statement{<div class="wims_columns">
+ <div class="medium_size img_col">
+  <img src="\pic" alt="">
+  </div>
+  <div class="medium_size text_col">
+\name_instruction:
+</div>
+</div>
+<table class="wimscenter wimsborder table-scroll">
+ <tr><th>\name_day</th>
+\for{i=3 to 30 step 3}{<td><label for="reply\i">\i</label></td>}
+ </tr><tr><th>\name_temp °C </th>
+ \for{i=1 to 10}{<td>\embed{r\i,3}</td>}
+  </tr></table>
+}
+\answer{}{\effs[1]}{type=numeric}
+\answer{}{\effs[2]}{type=numeric}
+\answer{}{\effs[3]}{type=numeric}
+\answer{}{\effs[4]}{type=numeric}
+\answer{}{\effs[5]}{type=numeric}
+\answer{}{\effs[6]}{type=numeric}
+\answer{}{\effs[7]}{type=numeric}
+\answer{}{\effs[8]}{type=numeric}
+\answer{}{\effs[9]}{type=numeric}
+\answer{}{\effs[10]}{type=numeric}

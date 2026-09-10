@@ -1,0 +1,133 @@
+\title{Diagrammes en boite I}
+\language{fr}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+\integer{offset=random(0..10)*10}
+\integer{offset5=\offset+5}
+\integer{offset10=\offset+10}
+\integer{offset15=\offset+15}
+\integer{offset20=\offset+20}
+### cadre générique ###
+\text{cadre=
+xrange -2,22
+yrange -2,4
+linewidth 2
+segment 0,0,20,0,black
+parallel 0,-0.1,0,0.1,1,0,20,black
+parallel 0,-0.2,0,0.2,5,0,5,black
+text black,0,-0.4,medium,\offset
+text black,5,-0.4,medium,\offset5
+text black,10,-0.4,medium,\offset10
+text black,15,-0.4,medium,\offset15
+text black,20,-0.4,medium,\offset20
+}
+## fin du cadre générique ##
+## choix de la bonne série
+\integer{nbsol=random(1..4)}
+\text{listgraph=}
+## liste de séries ##
+\for{i=1 to 4}
+{
+\integer{xim=random(0..15)}
+\integer{xiM=random(\xim..20)}
+\integer{Mie=random(\xim..\xiM)}
+\integer{Qi1=random(\xim..\Mie)}
+\integer{Qi3=random(\Mie..\xiM)}
+\text{graphi=
+\cadre
+segment \xim,2,\Qi1,2,black
+segment \Qi3,2,\xiM,2,black
+segment \xim,1.8,\xim,2.2,black
+segment \xiM,1.8,\xiM,2.2,black
+polygon blue,\Qi1,1,\Qi3,1,\Qi3,3,\Qi1,3
+segment \Mie,1.5,\Mie,2.5,red
+}
+\if{\i=\nbsol}
+  {
+    \integer{xmin=\xim+\offset}
+    \integer{xmax=\xiM+\offset}
+    \integer{Med=\Mie+\offset}
+    \integer{Q1=\Qi1+\offset}
+    \integer{Q3=\Qi3+\offset}
+    \text{graph=\graphi}
+  }
+\if{\i=1}
+ {\text{graph1=\graphi}}
+\if{\i=2}
+ {\text{graph2=\graphi}}
+\if{\i=3}
+ {\text{graph3=\graphi}}
+\if{\i=4}
+ {\text{graph4=\graphi}}
+
+}
+## Vérification que 2 diagrammes ne sont pas solutions
+\text{listsol=}
+\if{\graph1=\graph}
+ {
+ \text{listsol=wims(append item 1 to \listsol)}
+ }
+\if{\graph2=\graph}
+ {
+ \text{listsol=wims(append item 2 to \listsol)}
+ }
+\if{\graph3=\graph}
+ {
+ \text{listsol=wims(append item 3 to \listsol)}
+ }
+\if{\graph4=\graph}
+ {
+ \text{listsol=wims(append item 4 to \listsol)}
+ }
+####### enoncé de l'exo #######
+\statement{
+      <p>
+      On considère une série statistique dont on connait les indicateurs.
+      </p>
+<table class="wimsborder wimscenter">
+<tr><th>Premier décile</th><th>Neuvième décile</th><th>Médiane</th><th>Premier Quartile</th><th>Troisième Quartile</th></tr>
+<tr><td>\xmin</td><td>\xmax</td><td>\Med</td><td>\Q1</td><td>\Q3</td></tr>
+</table>
+      <p>
+      Indiquez dans la liste ci-dessous, le diagramme en boite de cette série.
+      </p>
+
+  <table  class="wimscenter wimsborder">
+    <tr>
+      <td>
+        \embed{reply 1,1}
+      </td>
+      <td>
+        \draw{200,200}{\graph1}
+      </td>
+      <td>
+        \embed{reply 1,2}
+      </td>
+      <td>
+        \draw{200,200}{\graph2}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        \embed{reply 1,3}
+      </td>
+      <td>
+        \draw{200,200}{\graph3}
+      </td>
+      <td>
+        \embed{reply 1,4}
+      </td>
+      <td>
+        \draw{200,200}{\graph4}
+      </td>
+    </tr>
+  </table>
+
+}
+#### soumission de réponse ####
+\reply{\rep}{\listsol;1,2,3,4}{type=radio}

@@ -1,0 +1,387 @@
+!set title=Nombre de solutions et encadrement 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=59
+prevarcnt=58
+postvarcnt=0
+replycnt=14
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<font size=+2>+</font>,<font size=+2>-</font>
+val7=\(\nearrow),\(\searrow)
+val8=\(> 0),\(< 0),0
+val9=50x50x1
+val10=3
+tmp0=!randint -3, 3
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val12=$[rint($val11+2*$(tmp0))]
+tmp0=!randint 1, 3
+
+val13=$[rint($val12+2*$(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val14*x^3-3*$val14*($val12+$val13)*x^2/2+3*$val14*$val12*$val13*x
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val16=$[rint($(tmp0))]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val13) in $evaltmp
+tmp0=($evaltmp)
+val17=$[rint($(tmp0))]
+
+!ifval $val16>$val17
+val18=$[rint($val17)]
+!else
+val18=$[rint($val16)]
+!endif
+
+!ifval $val16>$val17
+val19=$[rint($val16)]
+!else
+val19=$[rint($val17)]
+!endif
+val20=$[rint($val16*$val17)]
+val21=$[rint(0)]
+
+!ifval $val20=0
+val22=$[rint(2)]
+!else
+tmp0=!randitem 1,3
+
+val22=$[rint($(tmp0))]
+!endif
+!if $val22=1 
+
+!ifval $val20<0
+tmp0=!randint 1, 3
+
+tmp1=!randint 1, 3
+
+tmp2=!randitem -$val18+$(tmp0),-$val19-$(tmp1)
+
+val21=$[rint($(tmp2))]
+!endif
+val23=$[rint($val18+$val21)]
+
+!ifval $val23>0
+val24=$(val8[1]),$(val8[1])
+!else
+val24=$(val8[2]),$(val8[2])
+!endif
+!endif
+!if $val22=3 
+
+!ifval $val20>0
+tmp0=!randint $val18+1, $val19-1
+
+val21=$[rint(-$(tmp0))]
+!endif
+
+!ifval $val14>0
+val24=$(val8[1,2])
+!else
+val24=$(val8[2,1])
+!endif
+!endif
+!if $val22=2 
+!if $val16=0 
+
+!ifval $val14>0
+val24=$(val8[3,2])
+!else
+val24=$(val8[3,1])
+!endif
+!else
+
+!ifval $val14>0
+val24=$(val8[1,3])
+!else
+val24=$(val8[2,3])
+!endif
+!endif
+!endif
+t_=!replace internal \( by ( in $val15+$val21
+tmp0=!exec maxima $t_
+
+val25=!rawmath $(tmp0)
+tmp0=!texmath $val25
+
+val26=$(tmp0)
+
+!ifval $val14>0
+val27=1,2,1
+!else
+val27=2,1,2
+!endif
+
+!ifval $val14>0
+val28=\(L_1 < 0 < L_2) 
+!else
+val28=\(L_1 > 0 > L_2)
+!endif
+val29=$(val7[$val27])
+val30=$(val6[$val27])
+val31=$val7,$val6,$val8
+tmp0=!randint 1, 4
+
+val32=$[rint($(tmp0))]
+!if $val32=1 
+tmp0=!randint 1, 3
+
+val33=$[rint($val12-$(tmp0))]
+tmp0=!randint 1, 3
+
+val34=$[rint($val13+$(tmp0))]
+!endif
+!if $val32=2 
+tmp0=!randint 1, 3
+
+val33=$[rint($val12-$(tmp0))]
+tmp0=!randint $val12+1, $val13-1
+
+val34=$[rint($(tmp0))]
+!endif
+!if $val32=3 
+tmp0=!randint 1, 3
+
+val34=$[rint($val13+$(tmp0))]
+tmp0=!randint $val12+1, $val13-1
+
+val33=$[rint($(tmp0))]
+!endif
+!if $val32=4 
+val33=$[rint($val12+1)]
+val34=$[rint($val13-1)]
+!endif
+evaltmp=$val25
+
+evaltmp=!mathsubst x=($val33) in $evaltmp
+tmp0=($evaltmp)
+val35=$[rint($(tmp0))]
+evaltmp=$val25
+
+evaltmp=!mathsubst x=($val34) in $evaltmp
+tmp0=($evaltmp)
+val36=$[rint($(tmp0))]
+val37=$[rint($val16+$val21)]
+val38=$[rint($val17+$val21)]
+!if $val32=1 
+val39=$val35,$val36,$val37,$val38
+tmp0=!sort numeric list $val39
+
+val39=$(tmp0)
+val23=$[rint($(val39[1]))]
+val40=$[rint($(val39[-1]))]
+!endif
+!if $val32=4 
+
+!ifval $val35<$val36
+val23=$[rint($val35)]
+!else
+val23=$[rint($val36)]
+!endif
+
+!ifval $val35<$val36
+val40=$[rint($val36)]
+!else
+val40=$[rint($val35)]
+!endif
+!endif
+!if $val32=2 
+val39=$val35,$val36,$val37
+tmp0=!sort numeric list $val39
+
+val39=$(tmp0)
+val23=$[rint($(val39[1]))]
+val40=$[rint($(val39[-1]))]
+!endif
+!if $val32=3 
+val39=$val35,$val36,$val38
+tmp0=!sort numeric list $val39
+
+val39=$(tmp0)
+val23=$[rint($(val39[1]))]
+val40=$[rint($(val39[-1]))]
+!endif
+replytype1=numexp
+replyname1=singularité gauche
+replygood1=$val12
+replytype2=numexp
+replyname2=singularité droite
+replygood2=$val13
+replytype3=clickfill
+replyname3=signe dérivée gauche
+replygood3=$(val30[1]);$val31
+replytype4=clickfill
+replyname4=signe dérivée milieu
+replygood4=$(val30[2]);$val31
+replytype5=clickfill
+replyname5=signe dérivée droite
+replygood5=$(val30[3]);$val31
+replytype6=clickfill
+replyname6=sens variation gauche
+replygood6=$(val29[1]);$val31
+replytype7=numexp
+replyname7=image singularité gauche
+replygood7=$val37
+replytype8=clickfill
+replyname8=sens variation milieu
+replygood8=$(val29[2]);$val31
+replytype9=numexp
+replyname9=image singularité droite
+replygood9=$val38
+replytype10=clickfill
+replyname10=sens variation droite
+replygood10=$(val29[3]);$val31
+replytype11=numexp
+replyname11=borne gauche
+replygood11=$val23
+replytype12=numexp
+replyname12=borne droite
+replygood12=$val40
+replytype13=numeric
+replyname13=image de $val33
+replygood13=$[$val35]
+replytype14=numeric
+replyname14=image de $val34
+replygood14=$[$val36]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   On considère la fonction 
+!insmath f
+$() définie sur 
+!insmath \lbrack -10^3;10^3 \rbrack
+$() par	<div class="wimscenter"> 
+!insmath f(x)=$val26
+$() </div>	<p>	   On note 
+!insmath f(-10^3)=L_1
+$() et 
+!insmath f(10^3)=L_2
+$() avec $val28.</p>		   On veut encadrer 
+!insmath f(x)
+$() sur l'intervalle [$val33;$val34].	<ol>	<li> Calculer 
+!insmath f($val33)
+$()= 
+!read oef/embed.phtml reply13,4 
+$() et 
+!insmath f($val34)
+$()= 
+!read oef/embed.phtml reply14,4 
+$()</li>		<li> Compléter le tableau des variations de 
+!insmath f
+$()&nbsp;:	<table class="var_tab">	<tr>	  <th style="width:12%;"> 
+!insmath x
+$()</th>	      <td style="width:12%;">
+!insmath -10^3
+$()</td>	      <td style="width:12%;"></td>	      <td style="width:12%;"> 
+!read oef/embed.phtml reply1,3 
+$()</td>	      <td style="width:12%;"></td>	      <td style="width:12%;"> 
+!read oef/embed.phtml reply2,3 
+$()</td>	      <td style="width:12%;"></td>	      <td style="width:12%;text-align:right">
+!insmath +10^3
+$()</td>	</tr><tr>	  <th style="width:12%;"> sg 
+!insmath f'(x)
+$()</th>	      <td style="width:12%;text-align:left"> &nbsp;</td>	      <td style="width:12%;"> 
+!read oef/embed.phtml reply3,$val9 
+$()</td>	      <td style="width:12%;">0</td>	      <td style="width:12%;"> 
+!read oef/embed.phtml reply4,$val9 
+$()</td>	      <td style="width:12%;">0</td>	      <td style="width:12%;"> 
+!read oef/embed.phtml reply5,$val9 
+$()</td>	      <td style="width:12%;">&nbsp;</td>	</tr><tr>	  <th style="width:12%;">
+!insmath var f
+$()</th>	     <td style="width:12%;text-align:left" > 
+!insmath L_1
+$()</td>	     <td style="width:12%;vertical-align:middle">  
+!read oef/embed.phtml reply6,$val9 
+$() </td>	     <td style="width:12%;vertical-align:middle">  
+!read oef/embed.phtml reply7,$val10 
+$() </td>	     <td style="width:12%;vertical-align:middle">  
+!read oef/embed.phtml reply8,$val9 
+$() </td>	     <td style="width:12%;vertical-align:middle">  
+!read oef/embed.phtml reply9,$val10 
+$() </td>	     <td style="width:12%;vertical-align:middle">  
+!read oef/embed.phtml reply10,$val9 
+$() </td>	     <td style="width:12%;text-align:right;vertical-align:middle"> 
+!insmath L_2
+$() </td>	      </tr>	</table>	</li>		<li> En déduire l'encadrement cherché&nbsp;:	<div class="wimscenter">  
+!read oef/embed.phtml reply11,2 
+$() 
+!insmath  \leq f(x) \leq 
+$()  
+!read oef/embed.phtml reply12,2 
+$() </div></li>		</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,26,28,33,34
+embedcnt=14

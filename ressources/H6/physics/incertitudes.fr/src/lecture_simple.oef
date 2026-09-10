@@ -1,0 +1,128 @@
+\title{Incertitude de lecture simple}
+\author{Benoît Markey}
+\email{benoit.markey@ac-lille.fr}
+\format{html}
+\computeanswer{no}
+\precision{100}
+
+
+
+\real{n=random(0.1,0.5,1,2,10)}
+
+\if{\n=0.1}{\integer{cs=3}
+\text{U=slib(text/sigunits 0.1,1)}
+\real{T=random(20..70)}}
+
+\if{\n=0.5}{\integer{cs=3}
+\text{U=slib(text/sigunits 0.3,1)}
+\real{T=random(20..70)}}
+
+\if{\n=1}{\integer{cs=2}
+\text{U=slib(text/sigunits 1,1)}
+\real{T=random(20..70)}}
+
+\if{\n=2}{\integer{cs=2}
+\text{U=slib(text/sigunits 2,1)}
+\real{T=random(20..59)}}
+
+\if{\n=10}{\integer{cs=1}
+\text{U=slib(text/sigunits 10,1)}
+\real{T=random(20..25.5)}}
+
+\text{Ubis=\U}
+\text{Uter=\U}
+
+\real{T2=(\T-20)*\n+20}
+\text{T3=slib(text/sigunits \T2,\cs)}
+
+\if{\n=0.5}{
+\real{T4=\T3-floor(\T2)}
+\real{T5=floor(\T2)}
+\real{T6=\T5+0.5}
+\real{T7=\T5+1}
+\if{\T4<0.35}{\text{T3=slib(text/sigunits \T5,\cs)}}
+\if{\T4>0.35 and \T4<0.75}{\text{T3=slib(text/sigunits \T6,\cs)}}
+\if{\T4>0.75}{\text{T3=slib(text/sigunits \T7,\cs)}}
+}
+
+\if{\n=2}{
+\real{T5=floor(\T2)}
+\real{T4=\T5%2}
+\real{T7=\T5+1}
+\if{\T4=0}{\text{T3=slib(text/sigunits \T5,\cs)}}{\text{T3=slib(text/sigunits \T7,\cs)}}
+}
+
+\text{T3bis=\T3}
+
+\integer{temp_init=20+10*\n}
+\matrix{temp=\temp_init}
+\integer{pos=21}
+
+
+\text{grad=text black,25,21,small,20°C
+}
+
+\for{i=1 to 5}{
+\integer{temp_calc=20+(10*\n)*\i}
+\integer{pos=\pos+10}
+\matrix{temp=\temp,\temp_calc}
+\text{grad=\grad
+text black,25,\pos,small,\temp[\i+1]°C}
+}
+
+\text{graph=draw(100,500
+xrange -0.5, 10*4-0.5
+yrange 0, 10*8
+fill 1,1,grey
+linewidth 1
+parallel 18, 20, 22, 20, 0, 1, 10*6+1, 255,220,180
+linewidth 3
+parallel 18, 20, 22, 20, 0, 10, 10*6+1, 255,220,180
+linewidth 2
+segment 20,0,20,\T-0.4,red
+fcircle 20,5,62,red
+\grad
+)}
+
+\real{U=2*\n/sqrt(12)}
+\text{debug=T2=\T2<br>T3=\T3<br>n=\n<br>U=\U<br>T5=\T5<br>}
+
+\statement{
+
+<table>
+<tr><th><img src="\graph"></th>
+<td>
+Un élève utilise le thermomètre ci-contre pour effectuer une mesure de température T. Il obtient 
+la valeur indiquée sur ce thermomètre:<br>
+<ul>
+<li>Relever la valeur de T en tenant compte des chiffres significatifs (voir <i>indication</i>):
+ T= \embed{reply1,8}°C</li>
+<li>Calculer l'incertitude U(T) de lecture sans tenir compte des chiffres significatifs. U(T)=\embed{reply2,8}°C 
+puis en ne gardant qu'un seul chiffre significatif: U(T)=\embed{reply3,8}°C</li>
+<li>Ecrire T sous la forme T=T &plusmn; U(T): 
+T=(\embed{reply4,8}\(\pm)\embed{reply5,8})°C</li>
+</ul>
+</td></tr></table><br>
+<i>Remarque: En utilisant la combinaison des touches CTRL + +; CTRL + -, CTRL + 0, 
+il est possible d'ajuster le zoom.</i>
+}
+
+\answer{T=}{\T3}{type=sigunits}
+\answer{U(T)=}{\U}{type=numeric}
+\answer{U(T)=}{\Ubis}{type=sigunits}
+\answer{T=}{\T3bis}{type=sigunits}
+\answer{U(T)=}{\Uter}{type=sigunits}
+
+\hint{<h2>RAPPELS:</h2>
+<ul>
+<li>Pour déterminer le nombre de chiffres significatifs, il faut se poser la question suivante: avec
+quelle précision (et donc combien de chiffres) arrive-ton à effectuer la mesure.<br>
+Il ne faut pas se fier au nombre de chiffres proposés par l'échelle </li>
+<li>Lecture d’une valeur sur un système gradué : \(U_{lecture} = \frac{2\times "graduation"}{\sqrt{12}})
+ ou « graduation » représente la plus petite graduation de l’appareil.<br>
+Pour une double lecture (distance sur une règle..), 
+\(U_{double lecture} =  \sqrt{2}\times U_{lecture})
+
+<li>L'incertitude est toujours arrondie à la valeur supérieure</li>
+
+</ul>}

@@ -1,0 +1,171 @@
+!set title=Dérivée d'un polynôme
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=functions, derivative
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -2, 2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+val10=$[($val6)^2+($val7)^2+($val8)^2+($val9)^2]
+!if $val10=0 
+val6=$[rint(1)]
+!endif
+t_=!replace internal \( by ( in $val6*x^3+$val7*x^2+$val8*x+$val9
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val12=!rawmath $(tmp0)
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint -3, 3
+
+val14=$[rint($(tmp0))]
+!if $val13=1 
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+tmp0=($evaltmp)
+val15=$[rint($(tmp0))]
+!endif
+!if $val13=2 
+evaltmp=$val12
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+tmp0=($evaltmp)
+val15=$[rint($(tmp0))]
+!endif
+oefsteps=reply 1	reply 2 
+nextstep=!nosubst reply 1	reply 2 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=Fonction dérivée
+replygood1=$val12
+replytype2=default
+replyname2=reponse 2
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction 
+!insmath f
+$(), définie pour 
+!insmath x
+$() réel par 
+!insmath f(x)=$val11
+$().	
+!if $m_step=1 
+$()	<div class="wimscenter">	La fonction dérivée de la fonction 
+!insmath f
+$() est égale à  
+!read oef/embed.phtml reply 1 
+$()	</div> 
+!endif
+$()	
+!if $m_step=2 and $val13=1 
+$()	<div class="spacer">	Effectivement, on a 
+!insmath f'(x)=$val12
+$().		<div class="wimscenter">	Le point de 
+!insmath C_f
+$() d'abscisse 
+!insmath $val14
+$() a pour ordonnée  
+!read oef/embed.phtml reply 2 
+$().	</div>	 
+!endif
+$()	
+!if $m_step=2 and $val13=2 
+$()	<div class="spacer">	Effecitvement, on a 
+!insmath f'(x)=$val12
+$().</div>	<div class="wimscenter">	La tangente à 
+!insmath C_f
+$() au point d'abscisse 
+!insmath $val14
+$() a pour coefficient directeur  
+!read oef/embed.phtml reply 2 
+$().	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,14
+embedcnt=3

@@ -1,0 +1,204 @@
+!set title=Évolutions successives 2b (sans v.i.)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Fabien, Sommier
+email=regine@mangeard.fr,fabien.sommier@gmail.com
+precision=100
+
+ansorder=r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=augmenter,baisser
+val8=hausse,baisse
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1000, 3000
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val11=$[rint($(tmp0))]
+
+!ifval $val9=1
+val12=$[1+$val11/100]
+!else
+val12=$[1-$val11/100]
+!endif
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val14=$[rint($(tmp0))]
+
+!ifval $val13=1
+val15=$[1+$val14/100]
+!else
+val15=$[1-$val14/100]
+!endif
+val16=$[$val12*$val15]
+!if $val16=1 
+val13=$[rint(3-$val13)]
+
+!ifval $val13=1
+t_=!rawmath 1+$val14/100
+val15=!exec pari print($t_)
+!else
+t_=!rawmath 1-$val14/100
+val15=!exec pari print($t_)
+!endif
+t_=!rawmath $val12*$val15
+val16=!exec pari print($t_)
+!endif
+
+!ifval $val16>1
+val17=$[rint(1)]
+!else
+val17=$[rint(2)]
+!endif
+val18=$[($val16-1)*100]
+
+!ifval $val17=1
+val19=$[($val16-1)*100]
+!else
+val19=$[(1-$val16)*100]
+!endif
+t_=!rawmath $val10*$val16
+val20=!exec pari print($t_)
+val21=$[rint($val20)]
+val22=$[round($val20*100)/100]
+!readproc slib/numeration/ecriturenombre $val19,comma tex 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val16,comma tex 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val12,comma tex 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val15,comma tex 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val22,comma tex 
+tmp0=$slib_out
+val27=$(tmp0)
+!if $val22!=$val20 
+val28=euros (valeur arrondie au centime).
+!else
+val28=euros.
+!endif
+
+!ifval $val9=1
+val29=\(CM1= 1+\frac{$val11}{100}\) 
+!else
+val29= \(CM1= 1-\frac{$val11}{100}\) 
+!endif
+
+!ifval $val13=1
+val30=\(CM2= 1+\frac{$val14}{100}\) 
+!else
+val30= \(CM2= 1-\frac{$val14}{100}\) 
+!endif
+val31=<span class="nowrap">\(CM= CM1 \times CM2\).</span><br> <span class="nowrap">\(CM= $val24\).</span>
+val32=<p>Dans le cas d'évolutions successives, on peut calculer les différents coefficients multiplicateurs	associés aux différentes évolutions, puis calculer le coefficient multiplicateur global.</p>	<p>Appelons CM1 le coefficient multiplicateur correspondant à la première évolution et CM2 celui de la deuxième.</p>	<p> $val29 d'où \(CM1 = $val25\) et $val30 d'où <span class="nowrap">\(CM2 = $val26\).</span> </p>	<p> Le coefficient multiplicateur global est $val31</p>
+!readproc slib/numeration/ecriturenombre $val18,comma tex 
+tmp0=$slib_out
+val33=$(tmp0)
+
+!ifval $val17=1
+val31=\(CM > 1\) donc il s'agit d'une hausse.
+!else
+val31= \(CM < 1\) donc il s'agit d'une baisse.
+!endif
+
+!ifval $val17=1
+val34=positif, car il s'agit d'une hausse&nbsp;
+!else
+val34= négatif car il s'agit d'une baisse (de <span class="nowrap">\($val23\) %</span>)
+!endif
+val32=$val32 $val31 <br>Le taux d'évolution global en pourcentage est \(t\) avec 
+val32=$val32 \(t= (CM -1)\times 100\) ce qui donne <span class="nowrap">\(t=$val33\) %.</span> 
+val32=$val32 <br>	<i>Remarque</i> : le taux est $val34.
+replytype1=menu
+replyweight1=1 
+replyname1=évolution
+replygood1=$val17;$val8
+replytype2=numexp
+replyweight2=9 
+replyname2=taux
+replygood2=$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p>Un bien a subi une $(val8[$val9]) de <span class="nowrap">
+!insmath $val11
+$() %</span> puis une $(val8[$val13])	  de <span class="nowrap">
+!insmath $val14
+$() %.</span></p>	<div class="wimscenter"><label for="reply1">Il a subi globalement une</label>  
+!read oef/embed.phtml reply1 
+$() <label for="reply2">de</label> <span class="nowrap"> 
+!read oef/embed.phtml reply2,4 
+$() %.</span></div>	<div class="wims_instruction">Donner la valeur exacte du taux d'évolution.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$m_sol2 $val32
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,13,14,32
+embedcnt=2

@@ -1,0 +1,150 @@
+\title{Ellipses et équations.}
+\author{Paul,Byache}
+\email{paul@byache.web4me.fr}
+
+\computeanswer{ yes }
+
+
+don est le numéro (entre 1 et 7) du type de donnée
+\text{cfp2=shuffle(\confparm2),\confparm2}
+\integer{don=\cfp2[1]}
+
+dem est le numéro (entre 1 et 5) du type de question
+\text{cfp3=shuffle(\confparm3),\confparm3}
+\integer{dem= \cfp3[1]==\don ? \cfp3[2] : \cfp3[1]}
+
+\integer{don= \don==\dem ? \cfp2[2]: \don}
+
+\if{\don isin 235}{
+\text{indication=<br><br>Remarque : Les axes (ou les demi-axes) sont donnés dans ces exercices dans le même ordre que les coordonnées habituellement : <br>C'est à dire que le premier axe (ou demi-axe) est celui qui est parallèle à l'axe des abscisses du repère.<br>Le deuxième axe (ou demi-axe) est celui qui est parallèle à l'axe des ordonnées du repère.<br><br>Remarque : comme son nom l'indique, un "axe" est une longueur double d'un "demi-axe" !}
+}
+\if{(4 isin \don\dem)}{
+\text{indication=<br><br>Remarque : Les quatre sommets d'une ellipse sont les points d'intersection entre l'ellipse et ses deux axes de symétrie.<br>Deux des sommets sont les points de l'ellipse les plus proches de son centre.<br>Les deux autres sont les points les plus éloignés du centre.}
+}
+
+
+a,b : coordonnées du centre
+alp,bet : demi-axes
+\if{\don>5 or \dem>5}{
+\integer{prec=30}
+\text{listechoix=shuffle(-3,-2,-1,0,1,2,3)}
+\integer{a=\listechoix[1]}
+\integer{b=\listechoix[2]}
+\text{listechoix=shuffle(0.5,1,1.5,2)}
+\real{alp=\listechoix[1]}
+\real{bet=\listechoix[2]}
+}{
+\text{listechoix=shuffle(wims(makelist v for v=-10 to 10))}
+\integer{a=\listechoix[1]}
+\integer{b=\listechoix[2]}
+\text{listechoix=shuffle(wims(makelist v/4 for v=1 to 8))}
+\real{alp=\listechoix[1]}
+\real{bet=\listechoix[2]}
+
+\precision{30}
+}
+{
+\precision{1000}
+}
+
+équation :
+\text{eq1=wims(simplify (x-\a))}
+\text{eq2=wims(simplify (y-\b))}
+\real{alp2=\alp^2}
+\real{bet2=\bet^2}
+\text{eq=\frac{(\eq1)^2}{\alp2}+\frac{(\eq2)^2}{\bet2}=1}
+\text{soleq=(\eq1)^2/\alp2+(\eq2)^2/\bet2=1}
+
+axes :
+\real{dalp=2*\alp}
+\real{dbet=2*\bet}
+
+sommets :
+\real{xa=-\alp+\a}
+\real{ya=\b}
+\real{xb=\a}
+\real{yb=\bet+\b}
+\real{xc=\alp+\a}
+\real{yc=\b}
+\real{xd=\a}
+\real{yd=-\bet+\b}
+
+représentation paramétrique :
+\text{eqp1=wims(simplify(\alp*cos(t)+\a))}
+\text{eqp1=wims(replace internal .0 by in \eqp1)}
+\text{eqp1=wims(replace internal * by in \eqp1)}
+\text{eqp2=wims(simplify(\bet*sin(t)+\b))}
+\text{eqp2=wims(replace internal .0 by in \eqp2)}
+\text{eqp2=wims(replace internal * by in \eqp2)}
+\text{repparam=\left\{ \begin{array}{rl}   x(t)&=\eqp1 \\   y(t)&=\eqp2 \end{array} \right.} }
+
+dessin avec sommets :
+\integer{xmin=\a-4}
+\integer{xmax=\a+4}
+\integer{ymin=\b-4}
+\integer{ymax=\b+4}
+\text{dessin=slib(draw/repere 200,200,1,\xmin,\xmax,\ymin,\ymax,,,,,)}
+\text{elli=slib(draw/convpixel \a,\b,200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{coordtext=slib(draw/convpixel [0,1,0,-1,0],[0,0,1,0,-1],200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{dessin=\dessin
+ellipse \elli,\dalp*25,\dbet*25,red
+text black,\coordtext[1]+3,\coordtext[2],medium,0
+text black,\coordtext[3]+3,\coordtext[4],medium,1
+text black,\coordtext[5]+3,\coordtext[6],medium,1
+text black,\coordtext[7]+3,\coordtext[8],medium,-1
+text black,\coordtext[9]+3,\coordtext[10],medium,-1}
+
+\text{coordsomm=slib(draw/convpixel [\xa,\xb,\xc,\xd],[\ya,\yb,\yc,\yd],200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{dessin1=draw (200,200
+\dessin
+text blue,\coordsomm[1]+3,\coordsomm[2],medium,A
+text blue,\coordsomm[3]+3,\coordsomm[4],medium,B
+text blue,\coordsomm[5]+3,\coordsomm[6],medium,C
+text blue,\coordsomm[7]+3,\coordsomm[8],medium,D
+linewidth 3
+points blue,\coordsomm)}
+
+dessin avec centre et axes :
+\text{coordsomm=slib(draw/convpixel [\a,\xb,\xc],[\b,\yb,\yc],200,200,\xmin,\xmax,\ymin,\ymax,1,pixels)}
+\text{dessin2=draw (200,200
+\dessin
+text blue,\coordsomm[1]+3,\coordsomm[2],medium,C
+text blue,\coordsomm[3]+3,\coordsomm[4],medium,A
+text blue,\coordsomm[5]+3,\coordsomm[6],medium,B
+linewidth 3
+points blue,\coordsomm)}
+
+morceaux de l'énoncé :
+\text{eno1=On considère une ellipse}
+\text{eno3=dont l'équation cartésienne est \(\eq),de centre \(\omega(\a;\b)) et de demi-axes \(\alpha=\alp) et \(\beta=\bet),de centre \(\omega(\a;\b)) et d'axes \(2\alpha=\dalp) et \(2\beta=\dbet),de sommets \(A(\xa;\ya) B(\xb;\yb) C(\xc;\yc) et D(\xd;\yd)),de représentation paramétrique \(\repparam),donnée par le dessin suivant : <center><img src=\dessin1><br>(Les points sont à coordonnées entières ou demi-entières)</center>,donnée par le dessin suivant : <center><img src=\dessin2><br>(Les points sont à coordonnées entières ou demi-entières)</center>}
+\text{eno3=\eno3[\don]}
+\text{eno4=Donnez son équation cartésienne.,Donnez son centre et ses demi-axes.,Donnez son centre et ses axes.,Donnez les coordonnées de ses 4 sommets (dans l'ordre que vous voulez).,Donnez ses équations paramétriques.,Donnez son dessin en déplaçant les 4 sommets.,Donnez son dessin en déplaçant le centre et les deux points.}
+\text{eno4=<p>\eno4[\dem]}
+
+déclaration des champs de réponse :
+\text{reponses=r1,r2 r3 r4 r5,r2 r3 r6 r7,r8 r9,r10 r11}
+\text{reponses=\reponses[\dem]}
+\text{reponses=wims(words2items \reponses)}
+\steps{\reponses}
+
+
+\statement{ \eno1 \eno2 \eno3 \eno4 }
+
+\answer{Equation}{\soleq}{type=equation}
+
+\answer{Abscisse du centre}{\a}{type=numeric}{option=absolute}
+\answer{Ordonnée du centre}{\b}{type=numeric}{option=absolute}
+
+\answer{Premier demi-axe}{\alp}{type=numeric}{option=absolute}
+\answer{Deuxième demi-axe}{\bet}{type=numeric}{option=absolute}
+
+\answer{Premier axe}{\dalp}{type=numeric}{option=absolute}
+\answer{Deuxième axe}{\dbet}{type=numeric}{option=absolute}
+
+\answer{4 abscisses (séparées par des virgules)}{\xa,\xb,\xc,\xd}{type=set}{option=repeat}
+\answer{4 ordonnées (séparées par des virgules)}{\ya,\yb,\yc,\yd}{type=set}{option=repeat}
+
+\answer{x(t)}{\eqp1}{type=function}{option=absolute}
+\answer{y(t)}{\eqp2}{type=function}{option=absolute}
+
+\help{\indication}

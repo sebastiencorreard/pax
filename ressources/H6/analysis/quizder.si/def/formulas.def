@@ -1,0 +1,174 @@
+!set title=Formule
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=si
+author=XIAO Gang
+email=xiao@unice.fr
+
+ansorder=r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+!if $(tmp0)=1 
+val6=f
+val7=g
+!else
+val6=g
+val7=f
+!endif
+val8='
+val9=formulas
+tmp0=!shuffle 	 ($val6(x)*$val7(x))$val8 = $val6(x)*$val7$val8(x) + $val6$val8(x)*$val7(x),	 ($val6(x)/$val7(x))$val8 = ($val6$val8(x)*$val7(x) - $val6(x)*$val7$val8(x))/$val7^2(x),	 (1/$val6(x))$val8 = -$val6$val8(x)/$val6^2(x),	 ($val6^2(x))$val8 = 2*$val6(x)*$val6$val8(x),	 ($val6($val7(x)))$val8 = $val6$val8($val7(x))*$val7$val8(x)	
+
+val10=$(tmp0)
+tmp0=!shuffle 	 ($val6(x)*$val7(x))$val8 = $val6$val8(x)*$val7$val8(x),	 ($val6(x)*$val7(x))$val8 = $val6$val8(x) + $val7$val8(x),	 ($val6(x)*$val7(x))$val8 = 2*$val6$val8(x)*$val7$val8(x),	 ($val6(x)*$val7(x))$val8 = $val6(x)*$val7$val8(x) + $val7$val8(x)*$val6(x),	 ($val6(x)*$val7(x))$val8 = $val6$val8($val7(x))*$val7$val8(x),	 ($val6(x)/$val7(x))$val8 = ($val6(x)*$val7$val8(x) - $val6$val8(x)*$val7(x))/$val7^2(x),	 ($val6(x)/$val7(x))$val8 = $val6$val8(x)/$val7$val8(x),	 ($val6(x)/$val7(x))$val8 = -$val6$val8(x)/$val7^2(x),	 ($val6(x)/$val7(x))$val8 = ($val6$val8(x)*$val7(x) + $val6(x)*$val7$val8(x))/$val7^2(x),	 ($val6(x)/$val7(x))$val8 = ($val6$val8(x)*$val7(x) - $val6(x)*$val7$val8(x))/$val7$val8(x),	 (1/$val6(x))$val8 = $val6$val8(x)/$val6^2(x),	 (1/$val6(x))$val8 = 1/$val6$val8(x),	 (1/$val6(x))$val8 = $val6(x)/$val6$val8(x),	 (1/$val6(x))$val8 = -1/($val6$val8(x))^2,	 ($val6^2(x))$val8 = $val6(x)*$val6$val8(x),	 ($val6^2(x))$val8 = ($val6$val8(x))^2,	 ($val6^2(x))$val8 = $val6$val8$val8(x),	 ($val6($val7(x)))$val8 = $val6(x)*$val7$val8(x) + $val6$val8(x)*$val7(x),	 ($val6($val7(x)))$val8 = $val6$val8($val7(x)),	 ($val6($val7(x)))$val8 = $val6$val8($val7$val8(x)),	 ($val6($val7(x)))$val8 = $val6$val8(x)*$val7$val8(x)	
+
+val11=$(tmp0)
+tmp0=!nonempty items $val10
+
+val10=$(tmp0)
+tmp0=!nonempty items $val11
+
+val11=$(tmp0)
+tmp0=!randitem 1,1,2,2,3
+
+val12=$[rint($(tmp0))]
+val13=$[rint(4-$val12)]
+tmp0=!item 1 to $val12 of 1,1,1,1,1,1
+
+val14=$(tmp0)
+tmp0=!item 1 to 4 of $val14,0,0,0,0,0,0
+
+val15=$(tmp0)
+tmp0=!item 1 to $val12 of $val11
+
+val14=$(tmp0)
+tmp0=!item 1 to 4-$val12 of $val10
+
+val16=$(tmp0)
+tmp0=!shuffle 4
+
+val17=$(tmp0)
+tmp0=!item $val17 of $val14,$val16
+
+val18=$(tmp0)
+tmp0=!item $val17 of $val15
+
+val15=$(tmp0)
+tmp0=!positionof item 1 in $val15
+
+val11=$(tmp0)
+tmp0=!positionof item 0 in $val15
+
+val10=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$(tmp0)
+tmp0=!item 2 of $val18
+
+val20=$(tmp0)
+tmp0=!item 3 of $val18
+
+val21=$(tmp0)
+tmp0=!item 4 of $val18
+
+val22=$(tmp0)
+tmp0=!randitem 1,2
+
+!if $(tmp0) = 1 
+val23=napaène
+val24=napaène
+val25=$val11
+!else
+val23=pravilne
+val24=pravilne
+val25=$val10
+!endif
+replytype1=checkbox
+replyname1=$val24 $val9 so
+replygood1=$val25;1,2,3,4
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Naj bosta 
+!insmath f
+$() in 
+!insmath g
+$() odvedljivi funkciji.	Katere od naslednjih enakosti so $val23?	<ul>	 <li> 
+!read oef/embed.phtml reply 1,1 
+$(). 
+!insmath $val19
+$()</li>	 <li> 
+!read oef/embed.phtml reply 1,2 
+$(). 
+!insmath $val20
+$()</li>	 <li> 
+!read oef/embed.phtml reply 1,3 
+$(). 
+!insmath $val21
+$()</li>	 <li> 
+!read oef/embed.phtml reply 1,4 
+$(). 
+!insmath $val22
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20,21,22,23
+embedcnt=4

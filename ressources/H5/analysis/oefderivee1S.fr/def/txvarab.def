@@ -1,0 +1,142 @@
+!set title=Taux de variation d'une fonction entre a et b
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=bmifsud@ac-aix-marseille.fr
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -6, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val7=$[rint($val6+$(tmp0))]
+tmp0=!randint -8, 8
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand((x-$(val8[1]))*($(val9[1])-x))
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val10
+tmp0=!exec pari $t_
+
+val10=!rawmath $(tmp0)
+t_=!rawmath (($val7-$(val8[1]))*($(val9[1])-$val7)-($val6-$(val8[1]))*($(val9[1])-$val6))/($val7-$val6)
+val11=!exec pari print($t_)
+val12=$[rint(($val6-$(val8[1]))*($(val9[1])-$val6))]
+val13=$[rint(($val7-$(val8[1]))*($(val9[1])-$val7))]
+val14=$[rint($val7-$val6)]
+replytype1=numexp
+replyname1=
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction 
+!insmath f
+$() définie sur 
+!insmath \mathbb{R}
+$() par <span class="nowrap">
+!insmath f(x)=$val10
+$().</span><br>	Déterminez le taux de variation de 
+!insmath f
+$() entre les points d'abscisse 
+!insmath $val6
+$() et <span class="nowrap">
+!insmath $val7
+$().</span>	<div class="wims_question"><label for="reply1">Le taux de variation&nbsp;:</label>  
+!read oef/embed.phtml r1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>Pour calculer le taux de variation de la fonction 
+!insmath f
+$() entre 
+!insmath a
+$() et <span class="nowrap">
+!insmath b
+$(),</span>	 on utilise la formule&nbsp;: <span class="nowrap">
+!insmath (f(b)-f(a))/(b-a)
+$().</span></p>		 <ul class="wims_nopuce">	 <li> Ici :	 <div class="unbreakable">	  
+!insmath f(a)=f($val6)
+$()<br>	  
+!insmath \phantom{f(a)}=$val12
+$() <br>	  
+!insmath f(b)=f($val7)
+$()<br>	  
+!insmath \phantom{f(b)}=$val13
+$() <br>	  et 
+!insmath b-a=$val14
+$()</li>	 <li> Donc le taux de variation de 
+!insmath f
+$() entre 
+!insmath $val6
+$() et 
+!insmath $val7
+$() vaut&nbsp;: 
+!insmath $val11
+$()	</li></ul>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,13,14
+embedcnt=1

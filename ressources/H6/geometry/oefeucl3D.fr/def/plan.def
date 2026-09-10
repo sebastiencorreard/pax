@@ -1,0 +1,297 @@
+!set title=Projection orthogonale inverse
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Adeline,Grelot;Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_en=Inverted Orthogonal Projection
+title_es=Proyección ortogonal inversa
+title_ca=Projecció ortogonal inversa
+
+ansorder=r
+varcnt=47
+prevarcnt=43
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/invertible 3,2 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!item 1 of $val8
+
+val11=$[rint($(tmp0))]
+tmp0=!item 2 of $val8
+
+val12=$[rint($(tmp0))]
+tmp0=!item 3 of $val8
+
+val13=$[rint($(tmp0))]
+
+!ifval $val13=0
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+val13=$[rint($(tmp0)*($(tmp1)))]
+!endif
+tmp0=!item 1 of $val10
+
+val14=$[rint($(tmp0))]
+tmp0=!item 2 of $val10
+
+val15=$[rint($(tmp0))]
+tmp0=!item 3 of $val10
+
+val16=$[rint($(tmp0))]
+
+!ifval $val14=0 and $val15=0 
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+val14=$[rint( $(tmp0)*($(tmp1)))]
+!endif
+val16=$[rint(-(($val14)*($val11)+($val15)*($val12)))]
+val14=$[rint(($val14)*($val13))]
+val15=$[rint(($val15)*($val13))]
+val10=$val14 , $val15 , $val16
+val17=$[rint($val14*($val11)+($val15)*($val12)+($val16)*($val13))]
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+tmp1=!item 2 of $val18
+
+tmp2=!item 3 of $val18
+
+tmp=!translate ";': to $     $ in ($val14)*($(tmp0)) + ($val15)*($(tmp1)) + ($val16)*($(tmp2))
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val19=$(tmp3)
+tmp0=!item 1 of $val18
+
+tmp1=!item 2 of  $val18
+
+tmp2=!item 3 of $val18
+
+tmp=!translate ";': to $     $ in ($(tmp0))^2 + ($(tmp1))^2 + ($(tmp2))^2
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val20=$(tmp3)
+tmp0=!item 1 of $val18
+
+t_=!rawmath $val14-($val19)*($(tmp0)/$val20)
+val21=!exec pari print($t_)
+tmp0=!item 2 of $val18
+
+t_=!rawmath $val15-($val19)*($(tmp0)/$val20)
+val22=!exec pari print($t_)
+tmp0=!item 3 of $val18
+
+t_=!rawmath $val16-($val19)*($(tmp0))/$val20
+val23=!exec pari print($t_)
+val24=$val21 , $val22 , $val23
+tmp=!translate ";': to $     $ in ($val11)*x + ($val12)*y + ($val13)*z
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=$(tmp0)
+tmp0=!item 1 of $val9
+
+tmp1=!item 2 of  $val9
+
+tmp2=!item 3 of $val9
+
+tmp=!translate ";': to $     $ in ($(tmp0))*x + ($(tmp1))*y + ($(tmp2))*z
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val26=$(tmp3)
+val27=Soit \(\RR^3) muni de son produit scalaire usuel,	\(P) le plan défini par l'équation
+val28=et \(P') le plan défini par l'équation
+val29=Trouver un vecteur non nul \(v) de \(P) tel que	la projection orthogonale de \(v) sur \(P') soit	
+tmp=!trim vecteur de P	appartient à \(P) et est non nul	La projection orthogonale de (\rep) sur \(P') est 
+val30=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+val27=In \(\RR^3) with its usual scalar product,	let \(P) be the plane given by the equation
+val28=and let \(P') be the plane given by the equation
+val29=Find a non-zero vector \(v) in \(P) such that	the orthogonal projection of \(v) onto \(P') is	
+tmp=!trim vector in P	belongs to \(P) and is non-zero	the orthogonal projection of (\rep) onto \(P') is 
+val30=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=es 
+val27=Sea \(\RR^3) con su producto escalar habitual,	\(P) el plano definido por la ecuación
+val28=y \(P') el plano definido por la ecuación
+val29=Encontrar un vector no nulo \(v) de \(P) tal que	la proyección ortogonal de \(v) sobre \(P') sea	
+tmp=!trim vector de P	pertenece a \(P) y es no nulo	La proyección ortogonal de (\rep) sobre \(P') es 
+val30=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=ca 
+val27=Considerem \(\RR^3) amb el seu producte escalar habitual,	\(P) el pla definit per l'equació
+val28=i \(P') el pla definit per l'equació
+val29=Trobeu un vector no nul \(v) de \(P) tal que	la projecció ortogonal de \(v) sobre \(P') és	
+tmp=!trim vector de P	pertany a \(P) i és no nul	La projecció ortogonal de (\rep) sobre \(P') és 
+val30=!translate internal $	\
+$ to ;; in $tmp
+!endif
+replytype1=vector
+replyname1=$(val30[1;])
+replygood1=?analyze 31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val27	<div class="wimscenter">
+!insmath $val25=0
+$()</div>	$val28	<div class="wimscenter">
+!insmath $val26=0
+$().</div>	<p>	$val29 ($val21,$val22,$val23).	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!item 1 of $val31
+
+tmp1=!item 2 of $val18
+
+tmp2=!item 2 of $val31
+
+tmp3=!item 1 of $val18
+
+val32=$[($(tmp0)-($val21))*($(tmp1))	-($(tmp2)-($val22))*($(tmp3))]
+tmp0=!item 1 of $val31
+
+tmp1=!item 3 of $val18
+
+tmp2=!item 3 of $val31
+
+tmp3=!item 1 of $val18
+
+val33=$[($(tmp0)-($val21))*($(tmp1))	-($(tmp2)-($val23))*($(tmp3))]
+tmp0=!item 3 of $val31
+
+tmp1=!item 2 of $val18
+
+tmp2=!item 2 of $val31
+
+tmp3=!item 3 of $val18
+
+val34=$[($(tmp0)-($val23))*($(tmp1))	-($(tmp2)-($val22))*($(tmp3))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+tmp0=!item 1 of $val31
+
+tmp1=!item 2 of $val31
+
+tmp2=!item 3 of $val31
+
+tmp3=!item 1 of $val31
+
+tmp4=!item 2 of $val31
+
+tmp5=!item 3 of $val31
+
+
+!ifval $(tmp0)*($val11)+($(tmp1))*($val12)+	($(tmp2))*($val13)=0 and ($(tmp3))^2+($(tmp4))^2+($(tmp5))^2 !=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=($val31) $(val30[2;]) ?
+
+!ifval $val32=0 and $val33=0 and $val34=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val30[3;]) ($val24) ?
+
+!exit
+
+:stat
+vsavelist=11,12,13,18,21,22,23,24,25,26,27,28,29,30,31
+embedcnt=0

@@ -1,0 +1,121 @@
+!set title=Etat stable
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie,Lemaire
+email=Sophie.Lemaire@math.u-psud.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 95
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 5, 95
+
+val7=$[$(tmp0)/100]
+val8=$[1-$val6]
+val9=$[1-$val7]
+tmp=!trim $val8,$val6	$val7,$val9
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=xrange -8,8	yrange -3,3	circle -4,0, 16,black	circle 4,0, 16,black	text black,-4.1,0.2,,1	text black,3.9,0.2,,2	arc -5,0, 2,2, 35,335,blue	arc 5,0, 2,2, 215,515,blue	arc 0,0, 8,3.5, 15,165,blue	arc 0,0, 8,3.5, 205,345,blue	arrow -4.2,0.55,-4,0.35,10,blue	arrow 4.2,-0.55,4,-0.35,10,blue	arrow 3.8,0.45,3.9,0.35,10,blue	arrow -3.8,-0.45,-3.9,-0.35,10,blue	text navy, -0.2,2.5,,$val6	text navy, -0.2,-2,,$val7	text navy, -7.2,0.1,,$val8	text navy, 6.2,0.1,,$val9	
+!readproc oef/draw.phtml 400,150 \
+$val11 
+tmp0=$ins_url
+val12=$(tmp0)
+val13=$[$val7/($val6+$val7)]
+val14=$[$val6/($val6+$val7)]
+val15=$[rint(10000*$val13)]
+val15=$[$val15/10000]
+val16=L'évolution de l'état d'un système entre deux unités de temps	  \(n\) et \(n+1\) est décrit par le graphe probabiliste ci-dessous.<br>	  Déterminer l'état stable du système.
+val17=r1,r2
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=numeric
+replyweight1=\poids1 
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$[$val13]
+replytype2=numeric
+replyweight2=\poids1 
+replyoption2=noanalyzeprint 
+replyname2=
+replygood2=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val16	<p class="wimscenter"> <img src="$val12" alt=""></p>		  L'état probabiliste stable est : &#40;  
+!read oef/embed.phtml $(val17[1]),5 
+$()  
+!read oef/embed.phtml $(val17[2]),5 
+$() &#41;	<div class="wims_instruction">	Donner des valeurs approchées à 
+!insmath 10^{-4}
+$() près.</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'état probabiliste stable s'écrit 
+!insmath [p,  1-p]
+$() avec 
+!insmath p\simeq $val15
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,15,16,17
+embedcnt=2

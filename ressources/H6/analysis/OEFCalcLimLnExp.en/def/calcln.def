@@ -1,0 +1,563 @@
+!set title=Limit  of u(x)*ln(kx)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Véronique Royer
+email=veronique.royer@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=95
+prevarcnt=94
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val6=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val6>0
+val7=+
+!else
+val7=-
+!endif
+
+!ifval $val6>0
+val8=-
+!else
+val8=+
+!endif
+tmp0=!randitem 0,0,1,2,3,4
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val9=$[rint($(tmp0)*$val9)]
+
+!ifval $val9>0
+val10=2
+!else
+val10=-2
+!endif
+
+!ifval $val9=0
+val10=0
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val11=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in expand($val6*x + $val9)
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val6*x + $val9)^2
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+val14=!rawmath 1/($val12)
+tmp0=!randitem 1,2,3,3
+
+val15=$[rint($(tmp0))]
+!if $val15=3 
+t_=!rawmath -$val9/$val6
+val16=!exec pari print($t_)
+t_=!rawmath $val11*$val16
+val17=!exec pari print($t_)
+!if $val17=1 
+val11=$[rint(-$val11)]
+!endif
+!endif
+val18=$val11
+
+!ifval $val11=-1
+val18=-
+!endif
+
+!ifval $val11=1
+val18=
+!endif
+val12=($val12)
+tmp0=!item $val15 of $val12,$val13,$val14
+
+val19=$(tmp0)
+tmp0=!texmath $val19
+
+val19=$(tmp0)
+val20=\ln($val18 x)
+val21=!rawmath $val19 \times $val20
+val22=&#8734;
+val23=1
+!if $val11>0 
+val24=0
+val25=+$val22
+val26=\begin{array}{l}x\to 0\\x > 0\end{array}
+val27=x\to+\infty
+val28=from above
+!else
+val25=0
+val24=-$val22
+val27=\begin{array}{l}x\to 0\\x < 0\end{array}
+val26=x\to-\infty
+val28=from below
+!endif
+!if $val15=1 
+
+!ifval $val11>0
+val29=$val9,$val9,$val7 inf,$val7\infty
+!else
+val29=$val8 inf,$val8\infty,$val9,$val9
+!endif
+
+!ifval $val11>0
+val30=$val10,$val7$val23
+!else
+val30=$val8$val23,$val10
+!endif
+
+!ifval $val11>0
+val31=-inf,-\infty,+inf,+\infty
+!else
+val31=+inf,+\infty,-inf,-\infty
+!endif
+
+!ifval $val11>0
+val32=-1,1
+!else
+val32=1,-1
+!endif
+!endif
+!if $val15=2 
+val33=$[rint(($val9)^2)]
+
+!ifval $val9=0
+val34=$[rint(0)]
+!else
+val34=$[rint(2)]
+!endif
+
+!ifval $val11>0
+val29=$val33,$val33,+inf,+\infty
+!else
+val29=+inf,+\infty,$val33,$val33
+!endif
+
+!ifval $val11>0
+val30=$val34,1
+!else
+val30=1,$val34
+!endif
+
+!ifval $val11>0
+val31=-inf,-\infty,+inf,+\infty
+!else
+val31=+inf,+\infty,-inf,-\infty
+!endif
+
+!ifval $val11>0
+val32=-1,1
+!else
+val32=1,-1
+!endif
+!endif
+!if $val15=3 
+t_=!rawmath 1/($val9)
+val35=!exec pari print($t_)
+
+!ifval $val17>0
+val36=$[rint(1)]
+!else
+val36=$[rint(-1)]
+!endif
+
+!ifval $val17=0
+val36=$[rint(0)]
+!endif
+!if $val11>0 
+
+!ifval $val36>0
+val24=$val16
+!endif
+
+!ifval $val36>0
+val26=\begin{array}{l}x\to $val16\\x > $val16\end{array}
+!endif
+!else
+
+!ifval $val36>0
+val25=$val16
+!endif
+
+!ifval $val36>0
+val27=\begin{array}{l}x\to $val16\\x < $val16\end{array}
+!endif
+!endif
+!if $val11>0 
+
+!ifval $val36>=0
+val34=$val7 inf,$val7\infty
+!else
+val34=$val35,$val35
+!endif
+
+!ifval $val36>=0
+val37=$val7$val23
+!else
+val37=$val10
+!endif
+!else
+
+!ifval $val36>=0
+val34=$val8 inf,$val8\infty
+!else
+val34=$val35,$val35
+!endif
+
+!ifval $val36>=0
+val37=$val8$val23
+!else
+val37=$val10
+!endif
+!endif
+
+!ifval $val11>0
+val29=$val34,0,0
+!else
+val29=0,0,$val34
+!endif
+
+!ifval $val11>0
+val30=$val37,0
+!else
+val30=0,$val37
+!endif
+val38=ln($val17)
+val37=\ln($val17)
+
+!ifval $val17>1
+val39=2
+!else
+val39=-2
+!endif
+
+!ifval $val17=1
+val39=0
+!endif
+!if $val11>0 
+
+!ifval $val36=1
+val31=$val38,$val37,+inf,+\infty
+!else
+val31=-inf,-\infty,+inf,+\infty
+!endif
+
+!ifval $val36=1
+val32=$val39,1
+!else
+val32=-1,1
+!endif
+!else
+
+!ifval $val36=1
+val31=+inf,+\infty,$val38,$val37
+!else
+val31=+inf,+\infty,-inf,-\infty
+!endif
+
+!ifval $val36=1
+val32=1,$val39
+!else
+val32=1,-1
+!endif
+!endif
+!endif
+val40=&#93;  $val24 ; $val25 &#91; 
+tmp0=!item 1 of $val29
+
+val41=$(tmp0)
+tmp0=!item 3 of $val29
+
+val42=$(tmp0)
+tmp0=!item 2 of $val29
+
+val43=$(tmp0)
+tmp0=!item 4 of $val29
+
+val44=$(tmp0)
+tmp0=!item 1 of $val31
+
+val45=$(tmp0)
+tmp0=!item 3 of $val31
+
+val46=$(tmp0)
+tmp0=!item 2 of $val31
+
+val47=$(tmp0)
+tmp0=!item 4 of $val31
+
+val48=$(tmp0)
+tmp0=!item 1 of $val30
+
+val49=$[rint($(tmp0))]
+tmp0=!item 2 of $val30
+
+val50=$[rint($(tmp0))]
+tmp0=!item 1 of $val32
+
+val51=$[rint($(tmp0))]
+tmp0=!item 2 of $val32
+
+val52=$[rint($(tmp0))]
+val34=$[rint($val49*$val51)]
+
+!ifval $val34=0
+val53=$[rint(2)]
+!else
+val53=$[rint(1)]
+!endif
+tmp0=!item $val53 of  rules of the limits of products,compared growth properties
+
+val54=$(tmp0)
+!if $val34=0 
+val55=0,0
+!else
+!if $val34>0 
+val55=+inf,+\infty
+!else
+val55=-inf,-\infty
+!endif
+!endif
+val34=$[rint($val50*$val52)]
+
+!ifval $val34=0
+val56=$[rint(2)]
+!else
+val56=$[rint(1)]
+!endif
+!if $val34=0 
+val57=0,0
+!else
+!if $val34>0 
+val57=+inf,+\infty
+!else
+val57=-inf,-\infty
+!endif
+!endif
+tmp0=!item 1 of $val55
+
+val58=$(tmp0)
+tmp0=!item 2 of $val55
+
+val59=$(tmp0)
+tmp0=!item 1 of $val57
+
+val60=$(tmp0)
+tmp0=!item 2 of $val57
+
+val61=$(tmp0)
+oefsteps=reply1,reply2	reply3,reply4	reply5,reply6	reply7,reply8 
+nextstep=!nosubst reply1,reply2	reply3,reply4	reply5,reply6	reply7,reply8 
+!readproc oef/steps.proc
+replytype1=raw
+replyoption1=nospace nonstop 
+replyname1=limite de \(u) en $val24 égale à
+replygood1=$val41
+replytype2=raw
+replyoption2=nospace nonstop 
+replyname2=limite de \(u) en $val25 égale à
+replygood2=$val42
+replytype3=raw
+replyoption3=nospace nonstop 
+replyname3=limite de exp($val18 x) en $val24 égale
+replygood3=$val45
+replytype4=raw
+replyoption4=nospace nonstop 
+replyname4=limite de exp($val18 x) en $val25 égale
+replygood4=$val46
+replytype5=menu
+replyoption5=nonstop 
+replyname5=limite de \(f) en $val24 calculée par
+replygood5=$val53;rules of the limits of products,compared growth properties
+replytype6=raw
+replyoption6=nospace nonstop 
+replyname6=limite de \(f) en $val24 égale à
+replygood6=$val58
+replytype7=menu
+replyoption7=nonstop 
+replyname7=limite de \(f) en $val24 calculée par
+replygood7=$val56;rules of the limits of products,compared growth properties
+replytype8=raw
+replyoption8=nospace 
+replyname8=limite de \(f) en $val25 égale à
+replygood8=$val60
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  
+
+
+!goto stat
+
+!exit
+
+:question
+$()		<div style="font-family: verdana,  sans-serif ;  font-size: 11pt ; background-color: yellow ;">	<p> 		Let us consider the function 
+!insmath f : x \mapsto $val21
+$() defined over $val40. <br/> 	The aim of the exercise is to evaluate step by step the limit 	of 
+!insmath f
+$(), at  $val24 and at $val25 respectively.		</p>	<small><b> 
+!read oef/special.phtml help saisie,Typing hints 
+$()</b></small>	</div>			<ul>		 
+!if $m_step=1 
+$()	<li> Let  
+!insmath u
+$() be the function 
+!insmath  x \mapsto $val19
+$() defined over $val40.	 <br/>  	Evaluate the limits of 
+!insmath u
+$() at $val24 and at $val25 : 	<small>( 
+!read oef/special.phtml help saisie,Typing hints 
+$())</small>	<center>
+!insmath \lim_{$val26} $val19 
+$() =  
+!read oef/embed.phtml reply1,5 
+$() &nbsp; and &nbsp; 
+!insmath \lim_{$val27} $val19 
+$() =  
+!read oef/embed.phtml reply2,5 
+$()  </center>	</li>	 
+!endif
+$()	 
+!if $m_step>1 
+$()<li><font color = blue>The limits of 
+!insmath u
+$() at $val24 and at $val25 are</font>:	<center>
+!insmath \lim_{$val26} $val19 = $val43
+$() &nbsp; and &nbsp; 
+!insmath \lim_{$val27} $val19 = $val44
+$()  </center>	</li>	 
+!endif
+$()		 
+!if $m_step=2 
+$()	<li> Evaluate now  the limits of 
+!insmath $val20
+$() at  $val24 and at $val25 : 	 <small>( 
+!read oef/special.phtml help saisie,Typing hints 
+$())</small>	<center>
+!insmath \lim_{$val26} $val20 
+$() =  
+!read oef/embed.phtml reply3,5 
+$() &nbsp; and &nbsp; 
+!insmath \lim_{$val27} $val20 
+$() =  
+!read oef/embed.phtml reply4,5 
+$()  </center>	</li>	 
+!endif
+$()	 
+!if $m_step>2 
+$()<li><font color = blue>The limits of the logarithm at $val24 and at $val25 are</font>:	<center>
+!insmath \lim_{$val26} $val20 = $val47
+$()  &nbsp; and &nbsp;  
+!insmath \lim_{$val27} $val20 = $val48
+$()  </center>	</li>	 
+!endif
+$()			 
+!if $m_step=3 
+$()<li>From the preceding results, one can deduce the limit of 
+!insmath f
+$() at $val24 by applying the  
+!read oef/embed.phtml reply5 
+$() :	<center>
+!insmath  \lim_{$val26} $val21
+$()   =  
+!read oef/embed.phtml reply6,5 
+$()	</li> 	 
+!endif
+$()			 
+!if $m_step>3 
+$()<li><font color = blue>From the preceding results, by the $val54,  it comes that</font>:	<center>
+!insmath  \lim_{$val26} $val21 = $val59
+$()  	</li>	 
+!endif
+$()				 
+!if $m_step=4 
+$()<li>From the preceding results, one can deduce the limit of 
+!insmath f
+$() at $val25 by applying the  
+!read oef/embed.phtml reply7 
+$() :		<center>
+!insmath  \lim_{$val27} $val21
+$()   =  
+!read oef/embed.phtml reply8,5 
+$()	</li> 	 
+!endif
+$()			</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	  
+!if $m_help_subject issametext saisie 
+$()	<b>Typing hints :</b><br/>	type <b>+inf</b> for 
+!insmath +\infty
+$()  ;<br/>	type <b>-inf </b> for 
+!insmath -\infty
+$() ;<br/>	type <b>ln(X)</b>  for 
+!insmath \ln(X)
+$() ;	(<font color=red>do not type ln X  for  
+!insmath \ln(X)
+$() </font>)<br/>	the rational numbers must be written as irreducible fractions ;	 
+!endif
+$()		  
+!if $m_help_subject issametext produit 
+$()"by product rules" means by applying 	the theorems on the limits of products: generally the limit of a product is the product 	of the limits of multiplicands, except in case of indeterminate forms. 	 
+!endif
+$() 	
+$()
+!exit
+
+:solution
+$() 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20,21,24,25,26,27,40,43,44,47,48,54,59
+embedcnt=11

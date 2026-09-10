@@ -1,0 +1,232 @@
+!set title=Boucle conditionnelle : Lequel convient ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bruno.mifsud@laposte.net
+oefcss=<style> .ans_multipleclick {margin-left:auto;margin-right:auto} </style> 
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp=!nonempty items 1,2
+
+tmp1=!randitem $tmp
+val2= $(tmp1)
+!else
+tmp=!nonempty items $val2
+
+tmp2=!randitem $tmp
+val2=$(tmp2)
+!endif
+val6=Aucun logiciel n'est autorisé pour répondre à cet exercice,	 sans quoi il ne sert pas à grand chose pour progresser.
+!if $val2=1 
+val7=bcond_script1.png, bcond_fig1.png	bcond_script2.png,bcond_fig2.png	bcond_script3.png,bcond_fig3.png	bcond_script4.png,bcond_fig4.png	bcond_script5.png,bcond_fig5.png	bcond_script6.png,bcond_fig6.png	bcond_script7.png,bcond_fig7.png	bcond_script8.png,bcond_fig8.png	
+!endif
+!if $val2=2 
+val7=bcond_fig1.png, bcond_script1.png	bcond_fig2.png,bcond_script2.png	bcond_fig3.png,bcond_script3.png	bcond_fig4.png,bcond_script4.png	bcond_fig5.png,bcond_script5.png	bcond_fig6.png,bcond_script6.png	bcond_fig7.png,bcond_script7.png	bcond_fig8.png,bcond_script8.png
+!endif
+val8=$[rint(3)]
+!if $val2=1 
+val9=200
+!else
+val9=100
+!endif
+!if $val9 notsametext  
+tmp0=!nospace $val9 px
+
+val9=style="height:$(tmp0)"
+!endif
+tmp0=!embraced randitem $val7
+
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp0=!rowcnt $tmp
+val10=$(tmp0)
+val11=
+!while $val11 issametext  
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+val11=$(val12[2])
+!endwhile
+val13=$(val12[1])
+tmp0=!lowercase $val13
+
+tmp1=!replace internal . by , in $(tmp0)
+
+tmp2=!item 2 of $(tmp1)
+
+val14=$(tmp2)
+!if $val2=1 
+val15=Clique sur le seul script qui permet à la balle WIMS de sortir du couloir :	
+!else
+val15=Clique sur la seule figure dont le script suivant permet de faire sortir la balle WIMS du couloir :	
+!endif
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp0=!positionof item $val11 in $val17
+
+val18=$(tmp0)
+tmp0=!makelist x for x=1 to $val10
+
+val19=$(tmp0)
+tmp0=!shuffle $val19
+
+val19=$(tmp0)
+val19=$(val19[1..$val8])
+tmp0=!listintersection $val18 and $val19
+
+val20=$(tmp0)
+!if $val20= 
+tmp0=!itemcnt $val18
+
+val21=$[rint($(tmp0))]
+
+!ifval $val21 >1 
+tmp=!nonempty items $val18
+
+tmp0=!randitem $tmp
+val18= $(tmp0)
+!endif
+val19=$val18,$(val19[1..$val8-1])
+tmp0=!shuffle $val19
+
+val19=$(tmp0)
+!endif
+tmp=!trim $val7
+val7=!translate internal $	\
+$ to ;; in $tmp
+val16=$(val7[$val19;1])
+val17=$(val7[$val19;2])
+tmp0=!itemcnt $val16
+
+val8=$(tmp0)
+val22=
+!for val23 =1 to $val8 
+
+!ifval / isin $(val16[$val23]) 
+tmp0=!append item $(val16[$val23]) to $val22
+
+val22= $(tmp0)
+!else
+tmp1=!append item $val1/$(val16[$val23]) to $val22
+
+val22=	  $(tmp1)
+!endif
+!next
+tmp0=!makelist imgrename(x $val9) for x in $val22
+
+val16=$(tmp0)
+tmp0=!positionof item $val11 in $val17
+
+val18=$(tmp0)
+replytype1=click
+replyoption1=shuffle 
+replyname1=
+replygood1=$val18;$val16
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst  <b>Rappel :</b> <ul><li>L'instruction : "Pointer à <b>90</b>" signifie qu'on se dirige vers la <b>droite</b>. </li><li>L'instruction : "Pointer à <b>0</b>" signifie qu'on se dirige vers le <b>haut</b>. </li><li>L'instruction : "Pointer à <b>180</b>" signifie qu'on se dirige vers le <b>bas</b>. </li><li>L'instruction : "Pointer à <b>-90</b>" signifie qu'on se dirige vers la <b>gauche</b>. </li></ul> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div>Voici la balle WIMS :  
+!read oef/img.phtml $val1/balle_wims.png  
+$()	elle doit sortir du couloir blanc sans passer à travers les murs noirs.</div>	  <div class="instruction">$val15</div>	  <div class="wimscenter">  
+!read oef/img.phtml $val1/$val11  
+$()</div>	  <div class="wimscenter"> 
+!read oef/embed.phtml r1 
+$()</div>	  <div class="wims_instruction">	  $val6	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() <b>Rappel :</b> <ul><li>L'instruction : "Pointer à <b>90</b>" signifie qu'on se dirige vers la <b>droite</b>. </li><li>L'instruction : "Pointer à <b>0</b>" signifie qu'on se dirige vers le <b>haut</b>. </li><li>L'instruction : "Pointer à <b>180</b>" signifie qu'on se dirige vers le <b>bas</b>. </li><li>L'instruction : "Pointer à <b>-90</b>" signifie qu'on se dirige vers la <b>gauche</b>. </li></ul> 
+$()
+!exit
+
+:solution
+$()	<div class="spacer">	
+!if $val2=1 
+$()	Script  
+!read oef/img.phtml $val1/$val13  
+$()	permettant de tracer la figure	 
+!read oef/img.phtml $val1/$val11  
+$().	 
+!else
+$() 	Figure  
+!read oef/img.phtml $val1/$val13  
+$() obtenue par le script  
+!read oef/img.phtml $val1/$val11  
+$().	 
+!endif
+$()	</div>	<div>	  Remarque : l'instruction "Avancer de -10" est nécessaire	  pour se décoller du mur. Cela signifie "reculer de 10".	</div>	<div class="spacer">	<b>Rappel :</b>	<ul><li>L'instruction : "Pointer à <b>90</b>" signifie qu'on se dirige	  vers la <b>droite</b>.	</li><li>L'instruction : "Pointer à <b>0</b>" signifie qu'on se dirige	  vers le <b>haut</b>.	</li><li>L'instruction : "Pointer à <b>180</b>" signifie qu'on se dirige	  vers le <b>bas</b>.	</li><li>L'instruction : "Pointer à <b>-90</b>" signifie qu'on se dirige	  vers la <b>gauche</b>.	</li></ul>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,2,6,11,13,15
+embedcnt=1

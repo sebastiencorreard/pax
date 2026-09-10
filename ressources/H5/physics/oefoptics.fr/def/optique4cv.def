@@ -1,0 +1,228 @@
+!set title=Centre optique et foyer (cv)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint floor($val6/2), floor($val6*3/2)
+
+val7=$[rint($(tmp0))]
+
+!ifval $val7=$val6 
+val7=$[rint( $val7+1)]
+!endif
+tmp0=!randitem 10*$val7/3, 2*$val7/3*10
+
+val8=$[$(tmp0)/10]
+tmp0=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$val7)]
+tmp0=!randitem 1,-1
+
+val8=$[$(tmp0)*$val8]
+val6=$[rint(-($val6))]
+val9=$[rint(-($val6))]
+
+!ifval $val7!=$val6
+t_=!rawmath  1/(1/($val7)-1/($val6))
+val10=!exec pari print($t_)
+!else
+t_=!rawmath 100
+val10=!exec pari print($t_)
+!endif
+val11=$[$val8*($val10)/($val7)]
+val12=!rawmath ($val8)/($val7)*t
+val13=!rawmath ($val11)/(-$val6)*(t-($val6))
+val14=!rawmath ($val8)/($val6)*(t+($val6))
+
+!ifval $val7!=$val6
+val15=$[ $val10*1.2]
+!else
+val15=$[-2*$val6]
+!endif
+evaltmp=$val14
+
+evaltmp=!mathsubst t=($val15) in $evaltmp
+tmp0=($evaltmp)
+val16=$[$(tmp0)]
+
+!ifval $val7<>$val6
+tmp0=!sort numeric item $val10,$val7,$val6,-$val6
+
+val17= $(tmp0)
+!else
+tmp1=!sort numeric item $val7,$val6,-$val6
+
+val17=$(tmp1) 
+!endif
+tmp0=!item 1 of $val17
+
+val18=$[min($(tmp0),-1)]
+tmp0=!item -1 of $val17
+
+val19=$[max($(tmp0),1)]
+val18=$[floor(1.2*$val18)]
+val19=$[ceil(1.2*$val19)]
+
+!ifval $val7<>$val6 
+val20=$[ max( abs($val8),abs($val11))]
+!else
+val20=$[abs($val8)]
+!endif
+val20=$[ceil($val20*1.5)]
+val21=$[($val19-$val18)/(2*$val20)]
+val22=$[rint(600)]
+val21=$[$val22*$val21^(-1)]
+tmp0=!shuffle purple,orange,navy,skyblue
+
+val23=$(tmp0)
+tmp0=!item 1 of $val23
+
+val24=$(tmp0)
+tmp0=!item 2 of $val23
+
+val25=$(tmp0)
+val26=linewidth 1	dhline 0,$val8, grey	dhline 0,$val11,grey
+val27=$[-$val20*1.3]
+val28=xrange $val18,$val19	yrange $val27, $val20	hline 0,0,black	arrow $val18+($val19-$val18)/20,-$val20*1.2,$val18+($val19-$val18)/10,-$val20*1.2,15, black	text $val24,$val7+0.2,0,large, A	text $val25,$val10+0.2,$val11,large, B'	text $val24, $val7+0.2,$val8,large, B	text $val25, $val10+0.2,0,large, A'	text black, $val18,1,small,1	linewidth 1	arrow $val7,0,$val7,$val8,6,$val24	arrow $val10,0,$val10,$val11,6, $val25	linewidth 1	parallel 0,-$val20/20,0,$val20/20, 1,0,50, blue	parallel 0,-$val20/20,0,$val20/20, -1,0,50, blue	$val26	
+
+!ifval $val7<>$val6
+val29=	linewidth 4	vline 0,0,black	linewidth 1	text black, 0,-0.2,medium, O	trange $val18,$val19	plot green, t, $val12	
+!endif
+val30=parallel $val18,0,$val19,0, 0,($val20-$val27)/10,10 ,grey	parallel $val18,0,$val19,0, 0,-($val20-$val27)/10,10,grey	parallel 0,$val27,0, $val20, 1,0,50,grey	parallel 0,$val27,0, $val20, -1,0,50,grey
+
+!ifval $val7<>$val6
+val31=	dpolyline red,min($val7,0),$val8, 0,$val8	dpolyline red,-min(-$val7,0),$val8, 0,$val8	dpolyline red ,-($val6),0,0,$val8	dpolyline red ,$val10,$val11,0,$val8	polyline blue, 0,$val11,abs($val15),$val11	dpolyline blue, 0,$val11,$val15,$val11	dpolyline blue ,0,$val11,$val7,$val8	dpolyline blue, 0,$val11,$val6,0	trange 0,$val19	plot red , t,$val14	trange min($val7,0),0	plot red , t,$val8	trange min(-$val7,0),0	plot red , t,$val8	trange $val18,0	plot blue, t,$val13	text black,$val6,-0.2,large, F	text black,-($val6),-0.2,large, F'	
+!endif
+
+!ifval $val7=$val6
+val29=	polyline red, $val7,$val8, 0,$val8,-$val6,0,$val15,$val16	polyline blue, $val7,$val8	polyline green, $val7,$val8,	polyline red, $val7,$val8, 0,$val8,-$val6,0	polyline blue, $val6,0, $val7,$val8,0	polyline green, $val7,$val8,-($val7),-($val8)	linewidth 4	segment $val7,0,$val7,$val8,$val24	textup black,$val7,0,large, $val24	segment $val10,0, $val25	textup black,$val10,0,large, $val25	
+!endif
+val32=$[rint(-($val18))]
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val33=$(tmp0)
+
+!ifval $val2=1 
+val34= convergente
+!else
+val34=
+!endif
+
+!ifval $val2=2 
+val34= divergente
+!endif
+val35=Il s'agit d'un entier.
+val36=Voici un objet \(A B) et son image \(A'B') par un	  système optique formé d'une lentille mince convergente.
+val37=Donner l'abscisse du centre optique de la lentille&nbsp;
+val38=La lentille a été placée dans le dessin suivant.	  Calculer sa distance focale.
+val39=Centre optique,Distance focale
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$(val39[1])
+replygood1=$[$val32]
+replytype2=numeric
+replyname2=$(val39[1])
+replygood2=$[$val9]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val36	 
+!if $m_step<=1 
+$()$val37	  
+!read oef/embed.phtml r1,5 
+$()	<p class="wimscenter">	 
+!read oef/draw.phtml 600,200 \
+	$val28	text black,$val18+0.2,-0.2,medium,O	vline $val18,0,black	 
+$()	</p> 
+!endif
+$()	
+!if $m_step>=2 
+$()$val38  
+!read oef/embed.phtml r2,5 
+$()	<p class="wimscenter">	 
+!read oef/draw.phtml 600,200 \
+	  $val28	  $val30	hline black, 0,0	$val29	 
+$()	</p>	 
+!endif
+$()	<div class="wims_instruction">	$val35	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	<p class="wimscenter">	 
+!read oef/draw.phtml 600,200 \
+	$val28	$val29	$val31	 
+$()	</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,28,29,30,31,35,36,37,38
+embedcnt=2

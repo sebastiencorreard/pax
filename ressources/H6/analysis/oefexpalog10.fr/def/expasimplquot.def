@@ -1,0 +1,159 @@
+!set title=Simplification d'écriture avec une exponentielle 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 21, 95
+
+val6=$[$(tmp0)/10]
+val7=$val6^x+$val6^(-x),$val6^x-$val6^(-x),$val6^(2*x)+1,$val6^(2*x)-1,1+$val6^(-2*x),1-$val6^(-2*x)	$val6^(-x)+$val6^x,$val6^(-x)-$val6^x,$val6^(-2*x)+1,$val6^(-2*x)-1,1+$val6^(2*x),1-$val6^(2*x)	$val6^(2*x),1-$val6^(2*x),1,$val6^(-2*x)-1,$val6^x,$val6^(-x)-$val6^x	$val6^(-2*x),1-$val6^(-2*x),1,$val6^(2*x)-1,$val6^(-x),$val6^x-$val6^(-x)	
+tmp=!translate internal $	$ to ; in $val7
+
+tmp0=!rowcnt $tmp
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, $val8
+
+val9=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!itemcnt $val10
+
+val8=$[rint($(tmp0))]
+tmp0=!shuffle  $val8/2
+
+val11=$(tmp0)
+val9=$[rint($(val11[1]))]
+val12=$[rint($(val11[2]))]
+tmp0=!texmath $(val10[2*$val12-1])
+
+val13=$(tmp0)
+tmp0=!texmath $(val10[2*$val12])
+
+val14=$(tmp0)
+val15=\frac{$val13}{$val14}
+val16=$(val10[2*$val9-1])
+val17=$(val10[2*$val9])
+tmp0=!texmath $val16
+
+val18=$(tmp0)
+tmp0=!texmath $val17
+
+val19=$(tmp0)
+tmp0=!randitem 1,2
+
+val20=$[rint($(tmp0))]
+
+!ifval $val20=1
+val21=r1
+!else
+val21=r2
+!endif
+oefsteps=$val21 
+nextstep=!nosubst $val21 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=
+replygood1=$val17
+replytype2=algexp
+replyname2=
+replygood2=$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Compléter:	</p>	<div class="wimscenter">	
+!if $val20=1 
+$()	
+!insmath $val15= 
+$() 
+!read oef/special.phtml mathmlinput [\frac{$val18}{reply1}],12,noanswer	reply 1 
+$()	 
+!else
+$()	 	
+!insmath $val15= 
+$() 
+!read oef/special.phtml mathmlinput [\frac{reply2}{$val19}],12,noanswer	reply 2 
+$()	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On utilise des factorisations et on exploite les propriétés des fonctions exponentielles : 
+!insmath $val6^{a}\times $val6^{b}=$val6^{a+b}
+$(); 
+!insmath \frac{1}{$val6^{b}}=$val6^{-b}
+$(); 
+!insmath \frac{$val6^{a}}{$val6^{b}}=$val6^{a-b}
+$()	et 
+!insmath \left ($val6^{a} \right )^n=$val6^{n \times a}
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,15,18,19,20
+embedcnt=2

@@ -1,0 +1,147 @@
+!set title=Rencontre de trains 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 4, 7
+
+val7=$[rint(6*$(tmp0))]
+val8=$[rint(5*$val7)]
+tmp0=!randint 2, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 0, 2
+
+val11=$[rint($(tmp0))]
+val12=$[rint(5*$val11)]
+tmp0=!randint 3, 5
+
+val13=$[rint($(tmp0))]
+val14=$[rint(5*$val13)]
+val15=$[rint(30*$val9)]
+val16=$[rint(30*$val10)]
+val17=$[5*(2*$val7+$val9*$val11 + $val10*$val13)/($val9 + $val10)]
+val18=$[0.5*$val9*($val17 - $val12)]
+val19=$[rint(round($val12 + $val8/$val15*60))]
+val20=$[rint(round($val14 + $val8/$val16*60))]
+val21=$[rint($val12 - 60*floor($val12/60))]
+val22=$[rint($val6 + floor($val12/60))]
+val23=$[rint($val14 - 60*floor($val14/60))]
+val24=$[rint($val6 + floor($val14/60))]
+val25=$[rint($val19 - 60*floor($val19/60))]
+val26=$[rint($val6 + floor($val19/60))]
+val27=$[rint($val20 - 60*floor($val20/60))]
+val28=$[rint($val6 + floor($val20/60))]
+val29=$[$val9 / 2]
+val30=$[$val10 / 2]
+val31=$[rint(round($val17 - 60*floor($val17/60)))]
+val32=$[rint($val6 + floor($val17/60))]
+val33=$[rint($val6+1)]
+val34=$[rint(max($val19,$val20)+20)]
+val35=$[rint($val8+10)]
+val36=xrange -30,$val34	yrange -30,$val35	linewidth 1	parallel 0,0,$val34,0,0,10,20,black	parallel 0,0,0,$val8,5,0,60,black	linewidth 3	parallel 0,0,0,$val35,60,0,4,black	parallel 0,50,$val34,50,0,50,7,black	arrow 0,0,$val34,0,10,black	arrow 0,0,0,$val35,10,black	linewidth 4	segment 0,$val8,$val34,$val8,black	segment $val12,0,$val19,$val8,blue	segment $val14,$val8,$val20,0,red		text black, -3,-1,large,$val6 h	text black, 57,-1,large,$val33 h	text black, -7,2,large, 0	text black, -14,52,large,50 km	text black, -15,102,large,100 km	text black, -15,152,large,150 km	text black, -15,202,large,200 km	text black, -15,252,large,250 km	text black, $val12,-2,large,$val22 h $val21	text black, $val14,$val35,large,$val24 h $val23	text black, $val19,$val35,large,$val26 h $val25	text black, $val20,-2,large,$val28 h $val27	
+val37=Réalisez un graphique en graduant l'axe horizontal	  de 5 minutes en 5 minutes à partir de $val6 h. Puis calculez	  la vitesse en km/min du 1er train pour connaître la distance	  par rapport à Arnes.
+replytype1=default
+replyname1=Heure du croisement
+replygood1=$val32
+replytype2=range
+replyname2=Minutes du croisement
+replygood2=!rawmath $val31-5,$val31+5,$val31
+replytype3=range
+replyname3=Distance de Arnes
+replygood3=!rawmath $val18-5, $val18+5, $val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val37
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<ul><li>	Les villes Arnes et Buluc sont distantes de $val8 km.	</li><li>	Le train N°1 part de Arnes à $val22 h $val21 min et arrive à Buluc $val26 h $val25 min à	la vitesse de $val29 km/min.	</li><li>	Le train N°2 part de Buluc à $val24 h $val23 min et arrive à Arnes $val28 h $val27 min à	la vitesse de $val30 km/min.	</li></ul>	<div class="wims_question">	<ul><li>	<p>	A quelle heure les deux trains se croiseront-ils (à 5 minutes près) ?	</p>	Réponse :	<label for="reply1">Ils se croiseront à</label>  
+!read oef/embed.phtml reply1,3 
+$() h  
+!read oef/embed.phtml reply2,3 
+$()	<label for="reply2">min.</label>	</li><li>	<p>A quelle distance de Arnes se croiseront-ils (à 5 km près) ?</p>	Réponse :	<label for="reply3">Ils se croiseront à</label>	 
+!read oef/embed.phtml reply3,4 
+$() km de Arnes.	</li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()$val37
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="float_right"> 
+!read oef/draw.phtml 800,400 \
+$val36 
+$()	Les trains se croisent 
+!insmath x
+$() minutes après $val6 h avec :	<div class="wimscenter">	
+!insmath $val29(x-$val12)=$val8-$val30(x-$val14)
+$().	</div>	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,14,21,22,23,24,25,26,27,28,29,30,36,37
+embedcnt=3

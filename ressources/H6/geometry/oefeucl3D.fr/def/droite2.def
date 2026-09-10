@@ -1,0 +1,401 @@
+!set title=Distance entre deux droites 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_en=Distance Between Two Lines 2
+title_es=Distancia entre dos rectas 2
+title_ca=Distància entre dues rectes 2
+
+ansorder=c,r
+varcnt=69
+prevarcnt=68
+postvarcnt=0
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+
+!ifval ($val7)^2+($val8)^2+($val9)^2=0 
+tmp0=!randint 1, 4
+
+val9=$[rint( $(tmp0))]
+!endif
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -1, 1
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem 1,0
+
+val13=$(tmp0)
+tmp0=!randitem 1,2,3,-1,-2
+
+val14=$(tmp0)
+
+!ifval $val13=1 
+tmp0=!randint -5, 5
+
+val15=$[rint( $(tmp0))]
+!else
+val15=$[rint( ($val10)+($val14)*($val7))]
+!endif
+
+!ifval $val13=1 
+tmp0=!randint -5, 5
+
+val16=$[rint( $(tmp0))]
+!else
+val16=$[rint( ($val11)+($val14)*($val8))]
+!endif
+
+!ifval $val13=1 
+tmp0=!randint -5, 5
+
+val17=$[rint( $(tmp0))]
+!else
+val17=$[rint( ($val12)+($val14)*($val9))]
+!endif
+tmp0=!randitem 1,2
+
+val18=$(tmp0)
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val19=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val18=1 
+tmp0=!randint -10, 10
+
+val20=$[rint( $(tmp0))]
+!else
+val20=$[rint( ($val19)*($val7))]
+!endif
+
+!ifval $val18=1 
+tmp0=!randint -10, 10
+
+val21=$[rint( $(tmp0))]
+!else
+val21=$[rint( ($val19)*($val8))]
+!endif
+
+!ifval $val18=1 
+tmp0=!randint -10, 10
+
+val22=$[rint( $(tmp0))]
+!else
+val22=$[rint( ($val19)*($val9))]
+!endif
+
+!ifval ($val20)^2+($val21)^2+($val22)^2=0 
+tmp0=!randint 1, 4
+
+val20=$[rint( $(tmp0))]
+!endif
+
+!ifval $val7<>0 or $val8<>0 
+tmp=!translate ";': to $     $ in (($val8)*x - ($val10)*($val8) - ($val7)*y + ($val7)*$val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in ($val9)*x - ($val9)*($val10) - ($val7)*z + ($val7)*($val12)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val23= $(tmp0) = 0 ,	$(tmp1) = 0
+!else
+val23= x = $val10 , y = $val11
+!endif
+
+!ifval $val20<>0 or $val21<>0 
+tmp=!translate ";': to $     $ in ($val21)*x - ($val21)*($val15) - ($val20)*y + ($val20)*$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in ($val22)*x - ($val22)*($val15) - ($val20)*z + ($val20)*($val17)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val24= $(tmp0) = 0 ,	 $(tmp1) = 0
+!else
+val24= x = $val15 , y = $val16
+!endif
+val25=$[(($val20)*($val8)-($val21)*($val7))^2+(($val22)*($val8)-($val21)*($val9))^2+(($val20)*($val9)-($val22)*($val7))^2]
+tmp=!trim $val10-($val15),$val11-($val16), $val12-($val17)	$val7,$val8,$val9	$val20,$val21,$val22	
+val26=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate $	$ to ; in $val26
+
+tmp0=!exec pari matdet([$tmp])
+val27=$[$(tmp0)]
+
+!ifval $val25=0 
+val28= 1
+!else
+val28=3
+!endif
+val29=parallèles ou confondues, sécantes, non coplanaires
+
+!ifval para=2 
+val30= cosinus
+!else
+val30=distance
+!endif
+val31=Considérons les deux droites de l'espace données par les	  équations paramétriques
+tmp=!trim et	  Ces droites sont	  Calculer la distance entre ces deux droites parallèles.	  Calculer le cosinus de l'angle que forment entre elles ces deux droites sécantes.	  Calculer la distance entre ces deux droites non coplanaires.	  Elles sont 
+val32=!translate internal $	\
+$ to ;; in $tmp
+val33=Deux droites de l'espace sont soit parallèles, soit sécantes,	  soit ni l'un ni l'autre et elles sont alors non coplanaires.
+val34=Pour calculer l'angle que font deux droites sécantes	  dans l'espace, il suffit de calculer l'angle que font deux vecteurs directeurs	  de ces deux droites. 
+val35=Pour calculer la distance de deux droites gauches, on considère	  un plan parallèle aux deux droites et contenant une des deux droites.	  On calcule alors la distance d'un point de l'autre droite à ce plan.
+val36=Pour calculer la distance de deux droites parallèles,	  on calcule la distance d'un point de l'une des deux droites à l'autre droite.
+!if $val6=en 
+val29=parallel or the same, intersecting, non-coplanar
+
+!ifval para=2 
+val30= cosine
+!else
+val30=distance
+!endif
+val31=Consider the two lines in space with	parametric equations
+tmp=!trim and	These lines are	Find the distance between these two parallel lines.	Find the cosine of the angle between these two intersecting lines.	Find the distance between these two non-coplanar lines.	They are 
+val32=!translate internal $	\
+$ to ;; in $tmp
+val33=Two lines in space are either parallel, or intersecting,	or neither and then they are non-coplanar.
+val34=To find the angle between two intersecting lines	in space, it suffices to find the angle between two direction vectors	of these lines. 
+val35=To find the distance between two non-coplanar lines, one considers	 a plane parallel to the two lines and containing one of them.	 One then computes the distance between a point on the other line and that plane.
+val36=To find the distance between two parallel lines,	 one computes the distance between a point on one line and the other line.
+!endif
+!if $val6=es 
+val29=paralelas o coincidentes, secantes, no coplanarias
+
+!ifval para=2 
+val30= coseno
+!else
+val30=distancia
+!endif
+val31=Consideremos las dos rectas del espacio dadas por las	ecuaciones
+tmp=!trim y	Estas rectas son	Calcula la distancia entre estas dos rectas paralelas.	Calcula el coseno del ángulo entre estas dos rectas que se intersectan.	Calcula la distancia entre estas dos rectas no coplanarias.	Ellas son 
+val32=!translate internal $	\
+$ to ;; in $tmp
+val33=Dos rectas en el espacio son paralelas, o secantes,	o ninguno de los dos y entonces son no coplanarias (se cruzan).
+val34=Para calcular el ángulo formado por dos rectas que se intersectan	en el espacio, es suficiente calcular el ángulo que forman dos vectores directores	de estas dos rectas. 
+val35=Para calcular la distancia entre dos rectas no coplanarias (se cruzan), consideramos	 un plano paralelo a las dos rectas y que contiene una de las dos rectas.	 A continuación se calcula la distancia desde un punto de la otra recta a este plano.
+val36=Para calcular la distancia entre dos rectas paralelas,	 se calcula la distancia desde un punto de una de las dos rectas a la otra.
+!endif
+!if $val6=ca 
+val29=paral·leles o coincidents, secants, no coplanàries
+
+!ifval para=2
+val30=cosinus
+!else
+val30=distància
+!endif
+val31=Considera les dues rectes a l'espai amb	equacions
+tmp=!trim i	Aquestes rectes són	Trobeu la distància entre aquestes dues rectes paral·leles.	Trobeu el cosinus de l'angle entre aquestes dues rectes secants.	Trobeu la distància entre aquestes dues rectes no coplanàries.	Aquestes rectes són 
+val32=!translate internal $	\
+$ to ;; in $tmp
+val33=Dues rectes a l'espai són paral·leles, o secants (es tallen),	 o són no coplanàries (s'encreuen). 
+val34=Per trobar l'angle entre dues rectes que es tallen (secants)	a l'espai, només cal trobar l'angle entre dos vectors directors	d'aquestes rectes. 
+val35=Per trobar la distància entre dues rectes no coplanàries, es considera	 un pla paral·lel a les dues rectes i que en conté una d'elles.	 Llavors es calcula la distància entre un punt de l'altra recta i aquest pla.
+val36=Per trobar la distància entre dues rectes paral·leles,	 es calcula la distància entre un punt d'una recta i l'altra recta.
+!endif
+
+!ifval $val27=0 and $val25 <>0 
+val28= 2
+!endif
+tmp0=!item $val28 of $val29
+
+val37=$(tmp0)
+!if $val28=2 
+val38=$[(($val7)*($val20)+($val8)*($val21)+($val9)*($val22))/	((($val7)^2+($val8)^2+($val9)^2)*(($val20)^2+($val21)^2+($val22)^2))^(1/2)]
+!else
+val39=$val7 , $val8 , $val9
+val40=$val15 - ($val10) , $val16 - ($val11) , $val17 - ($val12)
+
+!ifval $val28=3 
+val41= $val20 , $val21 , $val22
+!endif
+
+!ifval $val28=1 
+val41= $val40
+!endif
+tmp0=!item 2 of $val39
+
+tmp1=!item 3 of $val41
+
+tmp2=!item 3 of $val39
+
+tmp3=!item 2 of $val41
+
+tmp4=!item 3 of $val39
+
+tmp5=!item 1 of $val41
+
+tmp6=!item 1 of $val39
+
+tmp7=!item 3 of $val41
+
+tmp8=!item 1 of $val39
+
+tmp9=!item 2 of $val41
+
+tmp10=!item 2 of $val39
+
+tmp11=!item 1 of $val41
+
+val42=$[(($(tmp0))*($(tmp1))-($(tmp2))*($(tmp3)))^2	+(($(tmp4))*($(tmp5))-($(tmp6))*($(tmp7)))^2	+(($(tmp8))*($(tmp9))-($(tmp10))*($(tmp11)))^2]
+
+!ifval $val28=1 
+tmp0=!item 1 of $val39
+
+tmp1=!item 2 of $val39
+
+tmp2=!item 3 of $val39
+
+val38=$[ (($val42)/(($(tmp0))^2+($(tmp1))^2+($(tmp2))^2))^(1/2)]
+!endif
+!if $val28=3 
+tmp=!trim $val39	  $val41	  $val40	  
+val26=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate $	$ to ; in $val26
+
+tmp0=!exec pari matdet([$tmp])
+val38=$[abs($(tmp0))/($val42)^(1/2)]
+!endif
+!endif
+oefsteps=choice 1	reply 1 
+nextstep=!nosubst choice 1	reply 1 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$val30
+replygood1=$[$val38]
+choicename1=$(val32[6;])
+choicegood1=$val37
+choicebad1=$val29
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val31 :	<div class="wimscenter"> 
+!insmath $val23
+$() </div>	$(val32[1;])	<div class="wimscenter">
+!insmath $val24 
+$()</div>	 
+!if $m_step <=1 
+$()$(val32[2;])  
+!read oef/embed.phtml choice 1 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()	
+!if  $val28= 1 
+$()$(val32[3;]) 
+!endif
+$()	
+!if  $val28= 2 
+$()$(val32[4;]) 
+!endif
+$()	
+!if  $val28= 3 
+$()$(val32[5;]) 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	  
+!if $m_step <=1 
+$()$val33 
+!endif
+$()	  
+!if $m_step =2 and $val28=2 
+$()name_hint2 
+!endif
+$()	  
+!if $m_step =2 and $val28=3 
+$()	$val35	   
+!endif
+$()	  
+!if $m_step =2 and $val28=3 
+$()	  name_hint4	   
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=23,24,28,31,32,33,35
+embedcnt=1

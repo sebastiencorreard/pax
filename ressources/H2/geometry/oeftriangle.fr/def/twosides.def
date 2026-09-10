@@ -1,0 +1,122 @@
+!set title=Deux côtés donnés
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefobservation=Exercice demandant de la réflexion ayant une indication après une réponse fausse.
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Combien y a-t-il de triangles \(A B C\) avec \(A C\) entier et
+val8=Pour que \(A B C\) soit un triangle, doit être au moins,et au plus
+val9=Nombre de triangles
+tmp0=!randint 10, 40
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 10, 40
+
+val11=$[rint($(tmp0))]
+val12=$[rint(max($val10,$val11))]
+val13=$[rint(min($val10,$val11))]
+
+!ifval $val10>$val11
+val14=A B
+!else
+val14=B C
+!endif
+
+!ifval $val10>$val11
+val15=B C
+!else
+val15=A B
+!endif
+val16=$[rint($val12-$val13+1)]
+val17=$[rint($val10+$val11-1)]
+val18=$[rint($val17 - $val16 + 1)]
+replytype1=default
+replyname1=$val9
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7	<div class="wimscenter">	  
+!insmath A B = $val10
+$(), 
+!insmath B C = $val11
+$() ?	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$(val8[1]), 
+!insmath A C
+$() $(val8[2]) 
+!insmath $val14-$val15+1=$val16
+$() $(val8[3]) 
+!insmath A B+B C-1=$val17
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,11,14,15,16,17
+embedcnt=0

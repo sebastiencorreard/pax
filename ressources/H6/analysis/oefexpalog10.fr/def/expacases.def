@@ -1,0 +1,150 @@
+!set title=Simplification d'écriture avec une exponentielle 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 21, 95
+
+val6=$[$(tmp0)/10]
+val7=\frac{$val6^x+$val6^{-x}}{$val6^x-$val6^{-x}},\frac{$val6^{2x}+1}{$val6^{2x}-1},\frac{1+$val6^{-2x}}{1-$val6^{-2x}},\frac{$val6^{2x}(1+$val6^{-2x})}{$val6^{2x}-1}	\frac{$val6^{-x}+$val6^{x}}{$val6^{-x}-$val6^{x}},\frac{$val6^{-2x}+1}{$val6^{-2x}-1},\frac{1+$val6^{2x}}{1-$val6^{2x}},\frac{$val6^{2x}($val6^{-2x}+1)}{1-$val6^{2x}}	\frac{$val6^{2x}}{1-$val6^{2x}},\frac{1}{$val6^{-2x}-1},\frac{$val6^x}{$val6^{-x}-$val6^{x}},\frac{1}{$val6^{-2x}(1-$val6^{2x})}	\frac{$val6^{-2x}}{1-$val6^{-2x}},\frac{1}{$val6^{2x}-1},\frac{$val6^{-x}}{$val6^{x}-$val6^{-x}},\frac{1}{$val6^{2x}(1-$val6^{-2x})}	
+val8=\frac{$val6^{-x}+$val6^{x}}{$val6^{-x}-$val6^{x}},\frac{$val6^{-2x}+1}{$val6^{-2x}-1},\frac{1+$val6^{2x}}{1-$val6^{2x}},\frac{$val6^{x}+1}{$val6^{x}-1}	\frac{$val6^x+$val6^{-x}}{$val6^x-$val6^{-x}},\frac{$val6^{2x}+1}{$val6^{2x}-1},\frac{1+$val6^{-2x}}{1-$val6^{-2x}},\frac{$val6^{-x}+1}{$val6^{-x}-1}	\frac{$val6^{-2x}}{1-$val6^{-2x}},\frac{1}{$val6^{2x}-1},\frac{$val6^{-x}}{$val6^{x}-$val6^{-x}},\frac{1}{1-$val6^{x}}	\frac{$val6^{2x}}{1-$val6^{2x}},\frac{1}{$val6^{-2x}-1},\frac{$val6^x}{$val6^{-x}-$val6^{x}},\frac{1}{$val6^{x}-1}	
+tmp=!translate internal $	$ to ; in $val7
+
+tmp0=!rowcnt $tmp
+val9=$[rint($(tmp0))]
+tmp0=!randint 1,  $val9
+
+val10=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!itemcnt $val11
+
+tmp1=!randint 1, $(tmp0)
+
+val13=$[rint($(tmp1))]
+val14=$(val11[$val13])
+tmp0=!randitem 2,3
+
+val15=$[rint($(tmp0))]
+
+!ifval $val15==2
+val16=1,2
+!else
+val16=1,2,3
+!endif
+tmp0=!replace item number $val13 by in $val11
+
+val11=$(tmp0)
+tmp0=!nonempty items $val11
+
+val11=$(tmp0)
+!if $val15==3 
+val17=\($(val11[1])),\($(val11[2])),\($(val11[3])),\($(val12[1])),\($(val12[2])),\($(val12[3]))
+!else
+tmp0=!shuffle $val11
+
+tmp1=$(tmp0)
+
+val11=$(tmp1)
+val17=\($(val11[1])),\($(val11[2])),\($(val12[1])),\($(val12[2])),\($(val12[3])),\($(val12[4]))
+!endif
+replytype1=checkbox
+replyoption1=shuffle split 
+replyname1=
+replygood1=$val16;$val17
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Parmi les expressions suivantes, cochez celles qui sont, pour tout réel 
+!insmath x
+$() non nul, égales à :	</p>	<div class="wimscenter"> 
+!insmath $val14
+$() </div>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On utilise des factorisations et on exploite les propriétés des fonctions exponentielles : 
+!insmath $val6^{a}\times $val6^{b}=$val6^{a+b}
+$(); 
+!insmath \frac{$val6^{a}}{$val6^{b}}=$val6^{a-b}
+$()	et 
+!insmath \left ($val6^{a} \right )^n=$val6^{n \times a}
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14
+embedcnt=1

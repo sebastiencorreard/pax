@@ -1,0 +1,95 @@
+\title{Aire 2 courbes}
+\language{fr}
+\range{-5..5}
+\author{Michel, Gosse}
+\email{michel.gosse@ac-poitiers.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+\integer{x0=random(-4,-3)}
+\integer{y0=random(-1,0,1)}
+\integer{x1=random(4,3)}
+\integer{y1=random(-1,0,1)}
+\integer{x2=random(\x0+1,\x1-1)}
+\integer{y2=random(2,3,4)}
+\integer{x3=random(\x0+1,\x1-1)}
+\integer{y3=random(-2,-3,-4)}
+\text{f=maxima(expand(\y2/((\x2-\x0)*(\x2-\x1))*(x-\x0)*(x-\x1)+
+\y0*(x-\x1)*(x-\x2)/((\x0-\x1)*(\x0-\x2))+
+\y1*(x-\x0)*(x-\x2)/((\x1-\x0)*(\x1-\x2))
+);)}
+\function{f=\f}
+\text{g=maxima(expand(\y3*(x-\x0)*(x-\x1)/((\x3-\x0)*(\x3-\x1))+
+\y0*(x-\x1)*(x-\x3)/((\x0-\x1)*(\x0-\x3))+
+\y1*(x-\x0)*(x-\x3)/((\x1-\x0)*(\x1-\x3))
+);)}
+\function{g=\g}
+\integer{a=random(\x0..-1)}
+\integer{b=random(0..\x1)}
+\text{diff=maxima(expand((\f)-(\g));)}
+\function{diff=\diff}
+
+\function{int=int(\diff,x)}
+\text{rep=maxima((subst(x=\b,\int)-subst(x=\a,\int));)}
+\function{derf=diff(\f,x)}
+\real{maxf=solve(\derf=0,x=\x0..\x1)}
+\function{derg=diff(\g,x)}
+\real{maxg=solve(\derg=0,x=\x0..\x1)}
+\real{ymax=evalue(\f,x=\maxf)}
+\real{ymin=evalue(\g,x=\maxg)}
+
+\text{ftex=texmath(\f)}
+\text{gtex=texmath(\g)}
+\text{difftex=texmath(\diff)}
+\text{inttex=texmath(\int)}
+
+\statement{
+Déterminer la valeur exacte de l'aire du domaine limité par les courbes représentatives
+des fonctions \(f\) et \(g\) définies par
+<div class="wimscenter">
+\(f(x)=\ftex) et \(g(x)=\gtex )
+</div>
+et les droites d'équation \(x=\a\) et <span class="nowrap">\(x=\b\).</span> <br>Une représentation graphique
+est fournie ci-dessous&nbsp;:
+<div class="wimscenter">
+\draw{300,300}{
+xrange \x0-1,\x1+1
+yrange \ymin-1,\ymax+1
+segment \x0,\ymin-1,\x0,\ymax+1,blue
+segment \a,\ymin-1,\a,\ymax+1,yellow
+segment \b,\ymin-1,\b,\ymax+1,yellow
+segment \x1,\ymin-1,\x1,\ymax+1,blue
+segment \x0-1,0,\x1+1,0,green
+plot black,\f
+plot red,\g
+text blue,\x0,0,medium,x=\x0
+text black,\a,0,medium,x=\a
+text black,\b,0,medium,x=\b
+text blue,\x1,0,medium,x=\x1
+text black,\maxf,\ymax,medium,y=f(x)
+text red,\maxg,\ymin,medium,y=g(x)
+}
+</div>
+
+}
+
+\hint{On remarque que la courbe représentative de \(f\) est toujours
+au-dessus de celle de \(g\) sur \(\lbrack\a,\b\rbrack\). L'aire cherchée est donc égale à l'intégrale&nbsp;:
+<div class="wimscenter">
+<span class="nowrap">\(integrate(f(x)-g(x),x=\a,\b)\).</span>
+</div>
+
+}
+
+\answer{Valeur de l'aire :}{\rep}{type=auto}
+\solution{On trouve tout d'abord que
+<div class="wimscenter">
+\(f(x)-g(x)=\difftex)
+</div>
+puis on intègre cette fonction entre \(\a\) et \(\b\) en prenant par exemple
+comme primitive la fonction&nbsp;:
+<div class="wimscenter">
+\(x \longmapsto \inttex\)
+</div>
+}

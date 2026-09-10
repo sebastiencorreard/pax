@@ -1,0 +1,353 @@
+!set title=2- Reconstituer une décomposition en produit de facteurs premiers
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Euler,Versailles
+email=euler.wims@ac-versailles.fr
+keywords=
+language=fr
+oefdescription=Dans cet exercice d'apprentissage, vous devez reconstituer une décomposition en produit de facteurs premiers d'un nombre entier non premier généré par le serveur en déplaçant les étiquettes proposées.
+oefobservation=Dans cet exercice d'apprentissage, il est demandé de reconstituer une décomposition en produit de facteurs premiers d'un nombre entier non premier généré aléatoirement par le serveur en déplaçant les étiquettes proposées. La décomposition fait intervenir au moins 3 facteurs parmi 2,3,5 et 7. L'écriture demandée ne fait pas intervenir les exposants. Il est possible de paramétrer la partie solution détaillée avec le confparm4 dans INTRO/CONFIG.
+computeanswer=no
+oefcss= <style> .wims_matrix1 tr:nth-child(1)>td:nth-child(2) {border-bottom:2px solid black;} .wims_matrix1 td:nth-child(1) {border-right:2px solid black;padding-right:0.3em;} .wims_matrix1 td:nth-child(2) {padding-left:0.3em;} .wims_matrix1 tr:nth-child(1)>td{padding-top:0.2em;padding-bottom:0.2em;} .wims_matrix1 tr:nth-child(2)>td{padding-top:1.2em;padding-bottom:0.3em;} .diviseur{ color: blue; font-weight: bold; background-color:#fffd94; } .wims_matrix2 td:nth-child(1) {border-right:2px solid black;} .division { -webkit-display: -webkit-box; -webkit-display: -webkit-flex; display: -webkit-box; display: -ms-flexbox; /*display: flex;*/ flex-direction:row; flex-wrap:wrap; } .item{margin-right:1.5em;} .boxsol{ line-height: 1.5em; border:solid black 1px; padding:0.3em; margin:0.2em; background-color: rgb(135, 206, 235); } .dropzo{ display:inline-block; width:11em; padding:0.4em; background-color:#ffd080; /*border:solid black 1px;*/ } .wims_button_help{ float:right; } </style> 
+
+ansorder=r
+varcnt=58
+prevarcnt=52
+postvarcnt=5
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val5!= 
+val6= $val5
+!else
+val6=3
+!endif
+val7=8,12,16,18,20,24,27,28,30,32,36,40,42,45,48,50,54,56,60,63,64,70,72,75,80,81,84,90,96,98,100,105,108,112,120,125,126,128,135,140,144,147,150,160,162,168,175,180,189,192,196,200
+tmp0=!randitem $val7
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in omega($val8)
+tmp0=!exec pari $t_
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in bigomega($val8)
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+t_=!replace internal \( by ( in factor($val8)
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+val12=$(val11[;1])
+val13=$(val11[;2])
+val14=
+!for val15 =1 to $val9 
+!for val16 =1 to $(val13[$val15]) 
+tmp0=!append item $(val12[$val15]) to $val14
+
+val14=$(tmp0)
+!next
+!next
+!readproc slib/numeration/ecriturenombre $val8,tex 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!replace internal , by ^ in $val11
+
+val18=$(tmp0)
+tmp0=!replace internal ; by \times in $val18
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in 	(PermutList(liste)=	  my(position,result,temp);	  position=vector((#liste)!,i,numtoperm(#liste, i));	  position=vecsort(position);	  result=vector((#liste)!);	  for(j=1,(#liste)!,result[j]=vector(#liste,i,liste[position[j][i]]));	  result	);	PermutList([$val14])	
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+tmp0=!listuniq $val19
+
+val19=$(tmp0)
+tmp0=!itemcnt $val19
+
+val20=$[rint($(tmp0))]
+tmp=!trim 
+val21=!translate internal $	\
+$ to ;; in $tmp
+!for val22 =1 to $val20 
+val23=
+tmp0=!declosing $(val19[$val22])
+
+val23=$(tmp0)
+tmp0=!replace internal , by ,\(times), in $val23
+
+val23=$(tmp0)
+tmp=!trim $val21	   $val23
+val21=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!replace internal ; by | in $val21
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in primes(4)
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+tmp0=!listcomplement $val12 in $val24
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in 	facteurs=[$val12];	puissances=[$val13];	sumpuis=$val10;	nb=$val8;	v=vector(sumpuis);	k=0;	for(j=1,#facteurs,for(i=1,puissances[j],v[i+k]=facteurs[j]);k=k+puissances[j]);	sol=vector(sumpuis,i,m=v[1..i];concat(m,nb/prod(t=1,#m,m[t])))	
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+val27=
+val28=
+!for val22 =1 to $val10 
+val23=
+tmp0=!declosing $(val26[$val22])
+
+val23=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val23[-1]),tex 
+tmp0=$slib_out
+tmp1=!replace internal item number -1 by $(tmp0) in $val23
+
+val23=$(tmp1)
+tmp0=!replace internal , by \times in $val23
+
+val23=$(tmp0)
+val28=$val28,$val23
+val23=$val17= $val23
+val27=$val27,$val23
+!next
+t_=!replace internal \( by ( in 	w=concat([Vec(nb)],sol);	vector(sumpuis,i,concat(w[i][#w[i]],w[i+1][-2..-1]))	
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+tmp=!trim 
+val30=!translate internal $	\
+$ to ;; in $tmp
+!for val22 =1 to $val10 
+val23=
+tmp0=!declosing $(val29[$val22])
+
+val23=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val23[1]),tex 
+tmp0=$slib_out
+!readproc slib/numeration/ecriturenombre $(val23[2]),tex 
+tmp1=$slib_out
+!readproc slib/numeration/ecriturenombre $(val23[3]),tex 
+tmp2=$slib_out
+val23=$(tmp0),$(tmp1),$(tmp2)
+tmp=!trim $val30	  $val23
+val30=!translate internal $	\
+$ to ;; in $tmp
+!next
+val31=<p>Reconstituer une décomposition du nombre <strong>\($val17 \;\)</strong> en produit de facteurs premiers en utilisant les étiquettes proposées.</p>	
+val32=<div class="unbreakable">\($val17 =\)<span class="dropzo">\(\qquad\)</span></div><div class="spacer"></div><div>
+val33=$val24
+tmp0=!append item \times to $val33
+
+val33=$(tmp0)
+!for val34 =1 to 5 
+tmp0=!append word <span class="boxsol">\($(val33[$val34])\)</span> to $val32
+
+val32=$(tmp0)
+!next
+tmp0=!append word </div><div class="spacer"></div> to $val32
+
+val32=$(tmp0)
+replytype1=clickfill
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$val21;$val25
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst  <div class="wims_instruction">Pour composer une expression, il suffit de cliquer sur les étiquettes proposées ou les glisser-déposer dans la zone rectangulaire orange.</div> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()			<div class="euler_quest">$val31</div>		<div class =
+!if $m_sc_reply1= 
+$()"euler_answer" 
+!else
+$() 
+!if $m_sc_reply1=0 
+$()"euler_rep_bad" 
+!else
+$() "euler_rep_good" 
+!endif
+$() 
+!endif
+$()>	  
+!if $m_sc_reply1!= 
+$()Vous avez proposé : 
+!endif
+$()	   
+!read oef/embed.phtml reply1,25x25x13 
+$()	</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() <div class="wims_instruction">Pour composer une expression, il suffit de cliquer sur les étiquettes proposées ou les glisser-déposer dans la zone rectangulaire orange.</div> 
+$()
+!exit
+
+:solution
+$()		<div class="euler_quest_nobg">	  $val31	  $val32	  	</div>	
+!if 3 isitemof $val6 
+$()	  <div class="euler_rep_good_nobg" >	    <div>Une décomposition du nombre 
+!insmath $val17
+$() en produit de facteurs premiers peut être obtenue en 	écrivant 
+!insmath $val17
+$() en un produit de deux entiers et en remplaçant successivement les entiers non premiers en 	produit de facteurs premiers&nbsp;: 	    </div>  	    <div class="unbreakable">	     
+!for m_lig=1 to $val10 
+$()	      
+!insmath $(val27[$m_lig])
+$()<br>	       
+!next
+$()	    </div>	 </div>	 
+!endif
+$()	
+!if 1 isitemof $val6 
+$()	  <div class="euler_rep_good_nobg " >	    <div>Une décomposition du nombre 
+!insmath $val17
+$() en produit de facteurs premiers est le produit des 	    diviseurs premiers obtenus dans les divisions successives suivantes&nbsp;:  	    </div>	    <div class="division">	     
+!for m_d=1 to $val10 
+$()	     <div class="item">	       <table class="wimsnoborder wimscenter wims_matrix1">	       <tr>	        <td>
+!insmath $(val30[$m_d;1])
+$()</td>	        <td class="diviseur">
+!insmath $(val30[$m_d;2])
+$()</td>	       </tr>	       	       <tr>	        <td>
+!insmath 0
+$()</td>	        <td>
+!insmath $(val30[$m_d;3])
+$()</td>	       </tr>	      </table>	     </div>	     
+!next
+$()	      <div class="item">	        <div class="spacer"></div>	        
+!insmath $(val27[-2])
+$()	      </div>	    </div>	   </div>	 
+!endif
+$()	   	
+!if 2 isitemof $val6 
+$()	   <div class="euler_rep_good_nobg" >	    <div>Une décomposition du nombre 
+!insmath $val17
+$() en produit de facteurs premiers est le produit des 	    diviseurs premiers obtenus dans la deuxième colonne dans les divisions successives présentées ainsi&nbsp;: 	    </div>  	    <div class="division">	      <div class="item">	        <table class="wimsnoborder wimscenter wims_matrix2">	          
+!for m_e=1 to $val10 
+$()	         <tr>	          <td>
+!insmath $(val30[$m_e;1])
+$()</td>	          <td class="diviseur">
+!insmath $(val30[$m_e;2])
+$()</td>	         </tr>	          
+!next
+$()	         <tr>	          <td>
+!insmath 1
+$()</td>	          <td></td>	         </tr>	        </table>	      </div>	      <div class="item">	        <div class="spacer"></div>	        
+!insmath $(val27[-2])
+$()	      </div>	    </div>	   </div>	 
+!endif
+$()		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val35=$m_reply1
+tmp0=!replace internal ,\(times), by * in $val35
+
+val35=$(tmp0)
+tmp0=!eval $val35
+
+val35=$(tmp0)
+tmp0=!replace internal \(times) by \times in $m_reply1
+
+val36=$(tmp0)
+tmp0=!replace internal , by  in $val36
+
+val36=$(tmp0)
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><div><span class=
+!if $m_sc_reply1=1 
+$()"oef_indgood" 
+!else
+$() "oef_indbad" 
+!endif
+$()>
+!insmath $val36
+$()</span> est 
+!if $m_sc_reply1=1 
+$()effectivement 
+!if $val9=1 
+$()la 
+!else
+$() une 
+!endif
+$() <span class="oef_indgood">bonne réponse</span> 
+!else
+$() une <span class="oef_indbad">mauvaise réponse</span>, 
+!if $val9=1 
+$()la 
+!else
+$() une 
+!endif
+$() bonne réponse est <span class="oef_indgood">
+!insmath $(val28[-2])
+$()</span> 
+!endif
+$().</div>
+$()</div>
+!endif
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'>  <div class="wims_msg warning">
+!if $val35=NaN 
+$()Vous avez commis une erreur de syntaxe. 
+!else
+$() Vous avez donné une décomposition en facteurs premiers du nombre 
+!insmath $val35
+$(). 
+!endif
+$()</div>	  
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,17,27,28,30,31,32
+embedcnt=1

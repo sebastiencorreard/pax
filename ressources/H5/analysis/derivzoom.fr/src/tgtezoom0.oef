@@ -1,0 +1,85 @@
+%%
+%% this exercise comes from module H5/analysis/derivzoom.fr with file name tgtezoom.oef
+%%
+\title{Tangente avec un zoom en x0=0.}
+
+\language{fr}
+\range{-5..5}
+\author{Paul, Byache}
+\email{paul@byache.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+
+\integer{a=(-1)*randint(1..2)}
+\integer{b=(-1)*randint(1..3)}
+\real{x=0}
+\real{xh=\x+0.005}
+
+\text{f=(x)^3+(\a)*(x)^2+(\b)*(x)+1}
+\real{fx=wims(evalsubst x=\x in \f)}
+\real{fxh=wims(evalsubst x=\xh in \f)}
+\text{f=simplify(\f)}
+
+\integer{m=(\fxh-\fx)/(\xh-\x)*10}
+\real{m=\m/10}
+\integer{p=(\fx-((\fxh-\fx)/(\xh-\x))*(\x))*10}
+\real{p=\p/10}
+
+\text{rep0=}
+\text{rep1=}
+
+\text{good=simplify(\m*x+(\p))}
+\text{good=y=\good}
+
+\text{A=slib(geo2D/jsxgraph jsxbox1,
+300 x 300,
+var brd = JXG.JSXGraph.initBoard('jsxbox1', {boundingbox:[\x-5,\fx+5,\x+5,\fx-5], axis:true, grid:true});
+p1 = brd.create('functiongraph',[function(x){ return x*x*x+(\a)*x*x+(\b)*x+1;}, -10,10] );
+p2 = brd.create('point', [\x,\fx], {face:'x',size:2,fixed:true,infoboxDigits:5});
+p3 = brd.create('point', [\xh,\fxh], {face:'x',size:2,fixed:true,infoboxDigits:5});)}
+
+
+\statement{
+<div class="float_right">
+\A
+</div>
+Voici la courbe d'une fonction \(f).
+<ul>
+<li>Le point A d'abscisse \x est dessiné en rouge.
+</li><li>
+Vous pouvez zoomer sur la courbe et voir qu'elle porte deux points A et B très proches l'un de l'autre.
+</li><li>
+Les coordonnées de ces deux points sont visibles si on clique sur eux.
+</li></ul>
+Quelle est l'équation de la tangente à la courbe au point A?
+<div>L'équation de la tangente est \embed{r1}.</div>
+<div class="wims_instruction">
+Donner des valeurs arrondies au dixième des coefficients.
+</div>
+}
+\answer{}{\good}{type=equation}{option=absolute}
+
+
+\text{rep0=wims(nospace \reply1)}
+\text{rep0=wims(replace internal = by h in \rep0)}
+\text{rep1=wims(replace internal yh by  in \rep0)}
+
+\feedback{y notin \reply1}{
+<br>Attention : l'équation d'une tangente commence par "y=...".
+}
+
+\feedback{yh isin \rep0}{Voyez ci-dessus en vert
+la tangente correcte et en rouge la droite correspondant à votre réponse quand elle est différente. \Acor
+<br>Remarque : si vous zoomez fortement, vous voyez que la tangente dessinée n'est parfois pas tout à fait correcte, à cause des arrondis...}
+
+\if{yh isin \rep0}{
+\text{A=slib(geo2D/jsxgraph jsxbox2,
+300 x 300,
+var board = JXG.JSXGraph.initBoard('jsxbox2', {boundingbox:[\x-5,\fx+5,\x+5,\fx-5], axis:true, grid:true});
+p1 = board.create('functiongraph',[function(x){ return x*x*x+(\a)*x*x+(\b)*x+1;}] );
+p3 = board.create('functiongraph',[function(x){ return \rep1;}],{color:'red'} );
+p2 = board.create('functiongraph',[function(x){ return \m*x+(\p);}],{color:'green'} );
+p4 = board.create('point', [\x,\fx], {face:'x',size:2,fixed:true},{infoboxDigits:5});)}
+}

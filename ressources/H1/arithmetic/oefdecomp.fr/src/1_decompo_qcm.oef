@@ -1,0 +1,264 @@
+\title{1- Retrouver la décomposition en facteurs premiers d'un entier (QCM)}
+\language{fr}
+
+\author{Euler,Versailles}
+%%%LG et GM %%%
+
+\email{euler.wims@ac-versailles.fr}
+
+%%% Mots clés : prendre de préférence les mots clés officiels en anglais séparés par des virgules, complétés par d'autres s'il le faut %%%
+\keywords{}
+
+
+%%% Description de l'exercice destinée à l'élève %%% 
+%%% peut apparaître dans la feuille d'exercice et au survol du titre de l'exercice %%%
+\description{Dans ce QCM, vous devez retrouver, parmi quatre propositions, la décomposition en produit de facteurs premiers d'un nombre entier 
+non premier généré par le serveur.}
+
+%%% Observations de l'exercice destinée à l'enseignant %%%
+\observation{Dans ce QCM, il est demandé de retrouver, parmi quatre propositions, la décomposition en produit de facteurs premiers d'un nombre entier 
+non premier généré aléatoirement par le serveur. Le nombre entier non premier généré est inférieur ou égal à 200 et sa décomposition en produit de 
+facteurs premiers ne fait intervenir que des nombres parmi 2, 3, 5 et 7. L'écriture demandée ne fait intervenir aucun exposant.}
+
+\computeanswer{no}
+
+%%%% Génération du nombre à décomposer %%%%
+\text{listenb=8,12,16,18,20,21,24,27,28,30,32,35,36,40,42,45,48,50,54,56,60,63,64,70,72,75,80,81,84,90,96,98,100,105,108,112,120,125,126,128,135,140,144,147,150,160,162,168,175,180,189,192,196,200}
+\integer{long=wims(itemcnt \listenb)}
+\integer{pos=randint(2..\long-1)}
+\integer{nb=wims(item \pos of \listenb)}
+\integer{avant=wims(item \pos-1 of \listenb)}
+\integer{apres=wims(item \pos+1 of \listenb)}
+
+
+%%%% Pour le nombre solution %%%%
+\integer{nbprem=pari(omega(\nb))}
+\text{sumpuis=pari(bigomega(\nb))}
+\text{factor=pari(factor(\nb))}
+\text{facteurs=\factor[;1]}
+\text{puissances=\factor[;2]}
+
+%%%% Pour le nombre avant %%%%
+\integer{nbpremavant=pari(omega(\avant))}
+\text{sumpuisavant=pari(bigomega(\avant))}
+\text{factoravant=pari(factor(\avant))}
+\text{facteursavant=\factoravant[;1]}
+\text{puissancesavant=\factoravant[;2]}
+
+%%%% Pour le nombre apres %%%%
+\integer{nbpremapres=pari(omega(\apres))}
+\text{sumpuisapres=pari(bigomega(\apres))}
+\text{factorapres=pari(factor(\apres))}
+\text{facteursapres=\factorapres[;1]}
+\text{puissancesapres=\factorapres[;2]}
+
+
+%%%% Affichage nb %%%%
+\text{nbaff=slib(numeration/ecriturenombre \nb,tex)}
+
+
+%%%% Affichage décomposition de nb sans exposant %%%%
+\text{decompsansexpo=}
+\for{l=1 to \nbprem}
+  {
+    \for{h=1 to \puissances[\l]}
+      {\text {decompsansexpo=wims(append item \facteurs[\l] to \decompsansexpo)}}
+  }
+\text{affdecompsansexpo=wims(replace internal , by \times in \decompsansexpo)}
+
+%%%% Affichage décomposition de avant sans exposant %%%%
+\text{decompavantsansexpo=}
+\for{l=1 to \nbpremavant}
+  {
+    \for{h=1 to \puissancesavant[\l]}
+      {\text {decompavantsansexpo=wims(append item \facteursavant[\l] to \decompavantsansexpo)}}
+  }
+\text{decompavantsansexpo=wims(replace internal , by \times in \decompavantsansexpo)}
+
+%%%% Affichage décomposition de apres sans exposant %%%%
+\text{decompapressansexpo=}
+\for{l=1 to \nbpremapres}
+  {
+    \for{h=1 to \puissancesapres[\l]}
+      {\text {decompapressansexpo=wims(append item \facteursapres[\l] to \decompapressansexpo)}}
+  }
+\text{decompapressansexpo=wims(replace internal , by \times in \decompapressansexpo)}
+
+%%%% Affichage sans expo de nb avec deux facteurs négatifs %%%%
+\text{position=wims(makelist x for x=1 to \sumpuis)}
+\text{posineg=slib(data/random 2,item, \position)}
+\text{decomp2negsansexpo=\decompsansexpo}
+\for{g=1 to 2}
+  {\if{\posineg[\g]!=1}
+    {\text{decomp2negsansexpo=wims(replace item number \posineg[\g] by (-\decompsansexpo[\posineg[\g]]) in \decomp2negsansexpo )}}
+    {\text{decomp2negsansexpo=wims(replace item number \posineg[\g] by -\decompsansexpo[\posineg[\g]] in \decomp2negsansexpo )}}
+  }
+
+\text{decomp2negsansexpo=wims(replace internal , by \times in \decomp2negsansexpo)}
+
+
+%%%% Pour la solution détaillée %%%%%
+\text{lignesol=pari(
+facteurs=[\facteurs];
+puissances=[\puissances];
+sumpuis=\sumpuis;
+nb=\nb;
+v=vector(sumpuis);
+k=0;
+for(j=1,#facteurs,for(i=1,puissances[j],v[i+k]=facteurs[j]);k=k+puissances[j]);
+sol=vector(sumpuis,i,m=v[1..i];concat(m,nb/prod(t=1,#m,m[t])))
+)}
+
+%%%% QCM %%%%
+\text{decompfausse=wims(declosing \lignesol[-3])}
+\text{decompfausse=wims(replace internal , by \times in \decompfausse)}
+\text{dernier=wims(declosing \lignesol[-3])}
+\integer{dernier=\dernier[-1]}
+\text{nbdivisors=pari(numdiv(\dernier))}
+\text{listdivisors=pari(divisors(\dernier))}
+\text{listdivisorspart1=\listdivisors[1..-2]}
+\integer{alea=randint(0..1)}
+\if{alea=0}{\text{choix=\decompavantsansexpo}}{\text{choix=\decompapressansexpo}}
+\if{\sumpuis>2}
+  {\matrix{data=\(\affdecompsansexpo\),\(\decomp2negsansexpo\),\(\decompfausse\),\(\choix\),1}}
+  {\matrix{data=\(\affdecompsansexpo\),\(\decomp2negsansexpo\),\(\decompavantsansexpo\),\(\decompapressansexpo\),1}}
+
+
+%%%% Affichage question %%%%
+\text{consigne=Parmi les quatre propositions suivantes, une seule est la décomposition en produit de facteurs premiers du nombre \(\nbaff\). Laquelle&nbsp;?}
+
+
+%%%% Exemples pour l'indication %%%%
+\text{listpremiers=2,3,5,7}
+\integer{ex1=wims(randitem \listpremiers)}
+\text{newlist=wims(replace item number \pos by  in \listenb)}
+\text{newlist=wims(replace item number \pos-1 by  in \listenb)}
+\text{newlist=wims(replace item number \pos+1 by  in \listenb)}
+\text{newlist=wims(nonempty item \newlist)}
+
+\integer{ex2=wims(randitem \newlist)}
+\text{divex2=pari(divisors(\ex2))}
+\text{divex2part1=\divex2[1..-2]}
+\text{nbdivex2=pari(numdiv(\ex2))}
+\integer{nbprem2=pari(omega(\ex2))}
+\text{sumpuis2=pari(bigomega(\ex2))}
+\text{factor2=pari(factor(\ex2))}
+\text{facteurs2=\factor2[;1]}
+\text{puissances2=\factor2[;2]}
+\text{decompex2=}
+\for{l=1 to \nbprem2}
+  {
+    \for{h=1 to \puissances2[\l]}
+      {\text {decompex2=wims(append item \facteurs2[\l] to \decompex2)}}
+  }
+\text{affdecompex2=wims(replace internal , by \times in \decompex2)}
+
+
+\statement{
+
+<div class="euler_quest">
+  \consigne
+</div>
+<div class =\if{\sc_reply1=}{"euler_answer"}{\if{\sc_reply1=0}{"euler_rep_bad"}{"euler_rep_good"}}>
+  \if{\sc_reply1=}{Cliquez sur la puce correspondante.}{Vous avez répondu :}
+   <div class="unbreakable">
+    <ul style="padding-left:1em;" \if{\sc_reply1=}{class="wims_nopuce"}>
+      <li>\embed{reply1,1}</li>
+      <li>\embed{reply1,2}</li>
+      <li>\embed{reply1,3}</li>
+      <li>\embed{reply1,4}</li>
+    </ul>
+   </div>
+</div>
+}
+%%% La partie answer pour analyser les réponses en fonction des types de réponses déclarés %%%
+\answer{}{\data[;-1];\data[;1..-2]}{type=radio}{option=shuffle}
+
+\integer{num=wims(positionof item \reply1 in \data)}
+
+
+%%% Pour les différents feedbacks au cours de l'exercice en fonction des réponses de l'élève %%%
+
+\feedback{\num=2}
+ {<div class="wims_msg warning">  Un nombre entier négatif n'est pas un nombre premier.</div>}
+ 
+\feedback{\num=3}
+  {\if{\sumpuis>2}
+    {<div class="wims_msg warning">Un nombre entier qui n'admet pas exactement deux diviseurs positifs (1 et lui-même) n'est pas un nombre premier.
+  <br> Le nombre \dernier n'est pas un nombre premier car il admet \(\nbdivisors\) diviseurs positifs&nbsp;:\(\listdivisorspart1\) et \(\listdivisors[-1]\).</div> }
+    {<div class="wims_msg warning">\(\decompavantsansexpo\) est la décomposition en facteurs premiers du nombre \(\avant\)</div> }
+  }
+
+\feedback{\num=4}
+    {\if{\sumpuis>2}
+    {<div class="wims_msg warning">\(\choix\) est la décomposition en facteurs premiers du nombre \if{alea=0}{\(\avant\)}{\(\apres\)}.</div>}
+      {<div class="wims_msg warning">\(\decompapressansexpo\) est la décomposition en facteurs premiers du nombre \(\apres\)</div>}
+  }
+
+
+%%% hint Pour une indication mathématique qui apparaît lorsque l'on clique sur le bouton Indication%%%
+\hint{
+
+<div class="wims_defn">
+  <h4>Définition</h4>
+  On appelle nombre premier tout entier positif qui admet exactement deux diviseurs positifs&nbsp;:&nbsp;\(1\) et lui-même.
+</div>
+
+<div class="wims_thm">
+  <h4>Théorème</h4>
+  Tout nombre entier strictement supérieur à \(1\) est premier ou se décompose de façon unique en produit de facteurs premiers, à l'ordre des facteurs près.
+</div>
+
+<div>
+  <h4>Exemple</h4>
+  <ul style="padding-left:1em;">
+    <li>\(\ex1\) admet deux diviseurs positifs&nbsp;:\(1\) et \(\ex1\). 
+        <br>\(\ex1\) est un nombre premier.
+    </li>
+    <li>\(\ex2\) admet \(\nbdivex2\) diviseurs positifs&nbsp;:&nbsp;\(\divex2part1\) et \(\divex2[-1]\).
+        <br>\(\ex2\) n'est pas un nombre premier.
+        <br>\(\ex2\) se décompose de façon unique en produit de facteurs premiers, à l'ordre des facteurs près&nbsp;:&nbsp;
+     <span class="unbreakable">\(\ex2 = \affdecompex2\).</span>
+    </li>
+  </ul>
+  
+</div>
+
+}
+
+%%% help Pour une aide plutôt technique qui apparaît lorsque l'on clique sur Aide de la barre de menu ou le bouton Aide %%%
+
+
+%%% Pour faire apparaître en fin d'exercice une solution détaillée avec possibilité de l'imprimer seule %%%
+\solution{
+
+<div class="euler_quest_nobg">
+  \consigne
+  <div class="unbreakable">
+    <ul style="padding-left:1em;">
+        <li>\data[;1]</li>
+        <li>\data[;2]</li>
+        <li>\data[;3]</li>
+        <li>\data[;4]</li>
+    </ul>
+  </div>
+</div>
+<div class="euler_rep_good_nobg " > 
+ 
+  <ul style="padding-left:1em;">
+      <li>\(\affdecompsansexpo\) est un produit qui ne fait intervenir que des nombres premiers et \(\affdecompsansexpo = \nbaff\).
+      <br> <span class="oef_indgood">\(\affdecompsansexpo \;\)</span> est la bonne réponse.</li>
+      <li>\(\decomp2negsansexpo = \nbaff\) mais un nombre entier négatif n'est pas un nombre premier.
+      <br><span class="oef_indbad">\(\decomp2negsansexpo \;\)</span> n'est donc pas une bonne réponse.</li>
+      \if{\sumpuis>2}
+      {<li>\(\decompfausse = \nbaff\) mais un nombre entier est un nombre premier si et seulement si il admet exactement deux diviseurs positifs (1 et lui-même).
+       \(\dernier\) admet\(\nbdivisors\) diviseurs positifs&nbsp;: \(\listdivisorspart1\) et \(\listdivisors[-1]\). Il n'est pas premier.
+       <br><span class="oef_indbad">\(\decompfausse \;\)</span> n'est donc pas une bonne réponse.</li>
+      <li>\(\choix\) est la décomposition en facteurs premiers du nombre \if{alea=0}{\(\avant\)}{\(\apres\).<br> <span class="oef_indbad">\(\choix \;\)</span> n'est donc pas une bonne réponse.}</li>}
+      {<li>\(\decompavantsansexpo\) est la décomposition en facteurs premiers du nombre \(\avant\).<br><span class="oef_indbad">\(\decompavantsansexpo \;\)</span> n'est donc pas une bonne réponse.</li>
+      <li>\(\decompapressansexpo\) est la décomposition en facteurs premiers du nombre \(\apres\).<br><span class="oef_indbad">\(\decompapressansexpo \;\)</span> n'est donc pas une bonne réponse.</li>}
+  </ul>
+ 
+</div>
+
+}

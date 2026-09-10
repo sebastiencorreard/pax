@@ -1,0 +1,117 @@
+!set title=Choix d'un indicateur 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Mode,Médiane,Moyenne
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val8=$[rint($(tmp0)*100)]
+tmp0=!randitem $val8/2,$val8/4
+
+val9=$[rint($(tmp0))]
+tmp0=!randint $val8/4, $val8/2
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 8, 10
+
+tmp1=!randint 0, 9
+
+val11=$[$(tmp0)+$(tmp1)/10]
+tmp0=!randint 1, 15
+
+val12=$[$val11+$(tmp0)/10]
+tmp0=!randint 1, 15
+
+val13=$[$val11-$(tmp0)/10]
+!if $val7=1 
+val14=Lors d'un concours d'entrée à l'école des statistiques,	 la moyenne générale des $val8 candidats a été de $val11 sur 20.	  Il y a $val9 places au concours. Mélanie a obtenu $val12.	 Est-elle sûre d'intégrer 
+val15=$[rint(2)]
+val16=La moyenne n'est pas l'indicateur permettant de décider si Mélanie peut intégrer ou non,	 c'est son rang de classement qui intervient:<br>	Si le nombre de places au concours est la moitié du nombre de candidats, il faut être au dessus de la médiane pour intégrer.<br>	Si le nombre de places au concours est le quart du nombre de candidats, il faut être au dessus du troisième quartile pour intégrer.<br>	  
+!else
+val14=Lors d'un concours d'entrée à l'école des statistiques,	  la moyenne générale des $val8 candidats a été de $val13 sur 20 et la barre d'admissibilité a été fixée à $val11.	  Mélanie est arrivée $val10 ème.	  Est-elle sûre d'être admissible
+val15=$[rint(2)]
+val16=Le classement n'est pas l'indicateur permettant de décider si Mélanie peut être admidssible ou non,	  c'est sa moyenne qui intervient .	  
+!endif
+val17=Oui,Non
+replytype1=radio
+replyname1=
+replygood1=$val15;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>$val14 ?</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val16
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,16
+embedcnt=1

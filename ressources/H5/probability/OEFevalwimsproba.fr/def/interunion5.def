@@ -1,0 +1,158 @@
+!set title=Union et intersection d'événements 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+val7=
+val8=0
+val9=0,5,10,100,500
+!for val10 =1 to 5 
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!append item $val11 to $val6
+
+val6=$(tmp0)
+val8=$[rint($val8+$val11)]
+!next
+tmp0=!sort reverse list $val6
+
+val6=$(tmp0)
+!for val10 =1 to 5 
+tmp0=!append item $(val6[$val10])/$val8 to $val7
+
+val7=$(tmp0)
+!next
+t_=!rawmath 1-$(val7[1])
+val12=!exec pari print($t_)
+t_=!rawmath $(val7[4])+$(val7[5])
+val13=!exec pari print($t_)
+t_=!rawmath $(val7[3])+$(val7[1])+$(val7[2])
+val14=!exec pari print($t_)
+t_=!rawmath $(val7[3])+$(val7[2])
+val15=!exec pari print($t_)
+tmp0=!randint 4, 15
+
+val11=$[rint($(tmp0)*2)]
+val16=$[rint(0)]
+!for val10 =1 to 5 
+t_=!rawmath $val16+$(val7[$val10])*($(val9[$val10])-$val11)
+val16=!exec pari print($t_)
+!next
+
+!ifval $val16>0
+val17=$[rint(1)]
+!else
+val17=$[rint(2)]
+!endif
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=Le joueur est gagnant
+replygood1=$val12
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=Le joueur a gagné au moins 100 euros
+replygood2=$val13
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=Le joueur a gagné au plus 10 euros
+replygood3=$val14
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=\(A \cap C)
+replygood4=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	La loi de probabilité ci-dessous décrit le gain possible à une loterie	 sans tenir compte du prix du billet.</p>	<table class="wimscenter wimsborder">	<tr><th>Gain en euros</th><td>0</td><td>5</td><td>10</td><td>100</td><td>500</td></tr>	<tr><th>
+!insmath P_i
+$()</th><td>$(val7[1])</td><td>$(val7[2])</td><td>$(val7[3])</td><td>$(val7[4])</td><td>$(val7[5])</td></tr>	</table>	<div class="wims_question">	  Déterminer la probabilité de chacun des événements suivants :	<ul>	<li>
+!insmath A
+$() « Le joueur est gagnant » : <label for="reply1">
+!insmath P(A)=
+$()</label> 
+!read oef/embed.phtml reply1,3 
+$()</li>	<li>
+!insmath B
+$() « Le joueur a gagné au moins 100 euros » : <label for="reply2">
+!insmath P(B)=
+$()</label> 
+!read oef/embed.phtml reply2,3 
+$()</li>	<li>
+!insmath C
+$() « Le joueur a gagné au plus 10 euros » : <label for="reply3">
+!insmath P(C)=
+$()</label> 
+!read oef/embed.phtml reply3,3 
+$()</li>	<li>
+!insmath D = A \cap C
+$() : <label for="reply4">
+!insmath P(D)=
+$()</label> 
+!read oef/embed.phtml reply4,3 
+$()</li>	</ul></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7
+embedcnt=4

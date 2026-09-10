@@ -1,0 +1,206 @@
+!set title=Etude de la convexité
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=bmifsud@ac-aix-marseille.fr
+
+ansorder=r,r,c
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=2
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=est concave, est convexe, change de convexité
+tmp0=!randint -4, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -4, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -4, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp=!translate ";': to $     $ in $val10*x^3+$val9*x^2+$val8*x+$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$(tmp0)
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val12=$(tmp0)
+tmp=!translate ;";': to $     $ in $val12,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val13=$(tmp0)
+tmp=!replace internal .. by , in $val13=0,x=-100..100 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val14=$[$(tmp0)]
+val15=$[rint(floor($val14)-1)]
+val16=$[rint(floor($val14)+1)]
+tmp0=!randint 5, 15
+
+val17=$[rint($val15-$(tmp0))]
+tmp0=!randint 5, 15
+
+val18=$[rint($val16+$(tmp0))]
+tmp0=!randint 1, 3
+
+val19=$[rint($(tmp0))]
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+!if $(tmp0)<0 
+!if $val19==1 
+val20=$[rint($val17)]
+val21=$[rint($val15)]
+val22=$(val6[1])
+!endif
+!if $val19==2 
+val20=$[rint($val17)]
+val21=$[rint($val18)]
+val22=$(val6[3])
+!endif
+!if $val19==3 
+val20=$[rint($val16)]
+val21=$[rint($val18)]
+val22=$(val6[2])
+!endif
+!endif
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+!if $(tmp0)>0 
+!if $val19==1 
+val20=$[rint($val17)]
+val21=$[rint($val15)]
+val22=$(val6[2])
+!endif
+!if $val19==2 
+val20=$[rint($val17)]
+val21=$[rint($val18)]
+val22=$(val6[3])
+!endif
+!if $val19==3 
+val20=$[rint($val16)]
+val21=$[rint($val18)]
+val22=$(val6[1])
+!endif
+!endif
+val23=Correction
+val24=
+val25=
+replytype1=function
+replyname1=dérivee
+replygood1=!rawmath $val12
+replytype2=function
+replyname2=dérivée seconde
+replygood2=!rawmath $val13
+choicename1=convexité
+choicegood1=$val22
+choicebad1=$val6
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<div class="enonce">	On considère la fonction 
+!insmath f
+$() définie par : 
+!insmath f(x)=$val11
+$().	</div>		<div class="question">Calculez des dérivées successives de 
+!insmath f
+$() :	<div class="reponse">	<ul class="wims_nopuce"><li>	<label for="reply1">Dérivée</label> 
+!insmath f'(x)={}
+$()  
+!read oef/embed.phtml r1 
+$()	</li><li>	<label for="reply2">Dérivée seconde</label> 
+!insmath f''(x)={}
+$()  
+!read oef/embed.phtml r2 
+$()	</li>	</ul>	</div>	</div>		<div class="question">Que dire de la fonction sur l'intervalle [ $val20 , $val21 ] ?	<div class="reponse">Elle  
+!read oef/embed.phtml c1 
+$()	</div>	</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p>Il faut regarder le signe de 
+!insmath f''
+$() sur l'intervalle [ $val20 , $val21 ].	</p>	<ul class="wims_nopuce"><li>	Si 
+!insmath f''
+$() est positive, la fonction 
+!insmath f
+$() est convexe.	</li><li>	Si 
+!insmath f''
+$() est négative, la fonction 
+!insmath f
+$() est concave.	</li><li>Si 
+!insmath f''
+$() n'est pas de signe constant, la fonction	
+!insmath f
+$() change de convexité.	</li></ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,20,21
+embedcnt=3

@@ -1,0 +1,142 @@
+\title{Incertitude de répétabilité}
+\author{Benoît Markey}
+\email{benoit.markey@ac-lille.fr}
+\format{html}
+\computeanswer{no}
+\precision{100}
+
+\integer{x1=randint(80..90)}
+\integer{x2=randint(80..90)}
+\integer{x3=randint(80..90)}
+\integer{x4=randint(80..90)}
+\integer{x5=randint(80..90)}
+\integer{x6=randint(80..90)}
+\integer{x7=randint(80..90)}
+\integer{x8=randint(80..90)}
+\integer{x9=randint(80..90)}
+\integer{x10=randint(80..90)}
+\integer{x11=randint(80..90)}
+\integer{x12=randint(80..90)}
+\integer{x13=randint(80..90)}
+\integer{x14=randint(80..90)}
+\integer{x15=randint(80..90)}
+\integer{x16=randint(80..90)}
+
+\integer{nb=randint(10..100)}
+\real{y1=(\x1+\nb)/10}
+\real{y2=(\x2+\nb)/10}
+\real{y3=(\x3+\nb)/10}
+\real{y4=(\x4+\nb)/10}
+\real{y5=(\x5+\nb)/10}
+\real{y6=(\x6+\nb)/10}
+\real{y7=(\x7+\nb)/10}
+\real{y8=(\x8+\nb)/10}
+\real{y9=(\x9+\nb)/10}
+\real{y10=(\x10+\nb)/10}
+\real{y11=(\x11+\nb)/10}
+\real{y12=(\x12+\nb)/10}
+\real{y13=(\x13+\nb)/10}
+\real{y14=(\x14+\nb)/10}
+\real{y15=(\x15+\nb)/10}
+\real{y16=(\x16+\nb)/10}
+\matrix{list11=\y1,\y2,\y3,\y4,\y5,\y6,\y7,\y8,\y9,\y10,\y11,\y12,\y13,\y14,\y15,\y16}
+\text{list1=slib(text/sigunits \list11[1],3)}
+\for{k=1 to 16}{
+\text{list111=slib(text/sigunits \list11[\k],3)}
+\matrix{list1=\list1,\list111}
+}
+\matrix{list=\list1[1],\list1[2],\list1[3],\list1[4]}
+\integer{tir=randint(5..16)}
+\for{i=5 to \tir}{
+\matrix{list=\list,\list1[\i]}
+}
+
+\matrix{k95=12.7,4.3,3.18,2.78,2.57,2.45,2.37,2.31,2.26,2.23,2.20,2.18,2.16,2.15,2.13}
+\matrix{k99=63.7,9.93,5.84,4.6,4.03,3.71,3.5,3.36,3.25,3.17,3.11,3.06,3.01,2.98,2.95}
+
+\text{var=slib(stat/variance \list)}
+\real{sig=sqrt(\var[1])}
+\text{moy1=slib(stat/arithmean \list)}
+\text{moy=slib(text/sigunits \moy1[1],3)}
+\text{moy2=\moy}
+
+\integer{conf=random(95,99)}
+\if{\conf=95}{\real{k=\k95[\tir-1]}}{\real{k=\k99[\tir-1]}}
+\real{U1=\k*\sig/sqrt(\tir)*10}
+#\text{U11=slib(text/sigunits \U1,1)}
+\real{U=ceil(\U1)/10}
+\real{U2=\U}
+
+\text{tableau=<table border><tr><th>L(m)</th>}
+\for{j=1 to \tir}{
+\text{tableau=\tableau<th>\list[\j]</th>}
+}
+\text{tableau=\tableau</tr></table>}
+
+\text{tab_klignesup=<table border><tr><th>n</th>}
+\for{i1=1 to 15}{
+\integer{i11=\i1+1}
+\text{tab_klignesup=\tab_klignesup<th>\i11</th>}
+}
+\text{tab_klignesup=\tab_klignesup</tr>}
+
+\text{tabk95_ligneinf=<tr><th>k<sub>95%</sub></th>}
+\for{i2=1 to 15}{
+\text{tabk95_ligneinf=\tabk95_ligneinf<th>\k95[\i2]</th>}
+}
+\text{tabk99_ligneinf=<tr><th>k<sub>99%</sub></th>}
+\for{i3=1 to 15}{
+\text{tabk99_ligneinf=\tabk99_ligneinf<th>\k99[\i3]</th>}
+}
+
+\text{tabk=\tab_klignesup\tabk95_ligneinf</tr>\tabk99_ligneinf</tr></table>}
+\text{debug=nb=\nb<br>
+x1=\x1<br>
+tir=\tir<br>
+list1=\list1<br>
+list=\list<br>
+variance=\var<br>
+écart-type=\sig<br>
+moyenne=\moy<br>
+conf=\conf<br>
+k=\k<br>
+U1=\U1<br>
+U11=\U11<br>
+U=\U<br>}
+\statement{
+
+
+Dans un lycée, \tir groupes d'élèves obtiennent les mesures suivantes d'une longueur L à l'issue de leur TP:<br><br>
+<center>\tableau</center>
+<br><br>
+ 
+On cherche à déterminer l'incertitude répétabilité U(L) pour un intervalle de confiance de
+<b> \conf %.</b><br><br>
+
+On rappelle le tableau suivant:<br>
+\tabk
+<br><br>
+<ol>
+<li>Calculer la moyenne et l'écrire en tenant compte des chiffres significatifs \(\overline{L})=\embed{reply1,10} m</li>
+<li>Calculer l'écart-type \(\sigma)=\embed{reply2,10} m</li>
+<li>En déduire l'incertitude et l'écrire en ne gardant qu'un seul chiffre significatif 
+U(L)=\embed{reply3,10} m</li>
+<li>Donner un encadrement de \(L) sous la forme \(L=\overline{L} \pm U(L)): &nbsp;  &nbsp; &nbsp;
+L=(\embed{reply4,10}\(\pm)\embed{reply5,10})m</li>
+</ol>
+}
+
+\answer{\(\overline{L})}{\moy}{type=sigunits}
+\answer{\(\sigma)=}{\sig}{type=numeric}
+\answer{U(L)=}{\U}{type=sigunits}
+\answer{\(\overline{L})}{\moy2}{type=sigunits}
+\answer{U(L)=}{\U2}{type=sigunits}
+\hint{<h2>RAPPELS:</h2>
+<ul>
+<li>L'incertitude de répétabilité U se calcule à l'aide de la formule:<br>
+\(U=k\times\frac{\sigma}{\sqrt{n}})<br>
+Avec \(\sigma) étant l'écart-type; n le nombre de mesures et k le coefficient de confiance, donné dans le 
+tableau de l'énoncé</li>
+<li>L'incertitude est toujours arrondie à la valeur supérieure</li>
+<li>Il est recommandé de ne pas arrondir \(\sigma) lors du calcul de l'incertitude U </li>
+</ul>}

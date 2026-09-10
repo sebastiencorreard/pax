@@ -1,0 +1,181 @@
+!set title=Poser 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r,r,r,r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/utilities/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randitem +,-
+
+val7=$(tmp0)
+!if $val7=+ 
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+!if $val8=3 
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+!else
+val9=$[rint(3)]
+!endif
+!else
+val8=$[rint(3)]
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+!endif
+val10=
+!for val11 =1 to 3-$val8  
+tmp0=!append item 0 to $val10
+
+val10=$(tmp0)
+!next
+!for val11 =1 to $val8  
+tmp0=!randint 1, 9
+
+val12=$[rint($(tmp0))]
+tmp0=!append item $val12 to $val10
+
+val10=$(tmp0)
+!next
+val13=
+!for val11 =1 to 3-$val9  
+tmp0=!append item 0 to $val13
+
+val13=$(tmp0)
+!next
+!for val11 =1 to $val9  
+tmp0=!randint 1, 9
+
+val12=$[rint($(tmp0))]
+tmp0=!append item $val12 to $val13
+
+val13=$(tmp0)
+!next
+val14=
+val15=
+!for val11 =1 to 3 
+val14=$val14$(val10[$val11])
+!next
+!for val11 =1 to 3 
+val15=$val15$(val13[$val11])
+!next
+val14=$[rint($val14)]
+val15=$[rint($val15)]
+val16=$[rint(6)]
+val17=25x35x1
+val18=Nous avons l'opération suivante&nbsp;,Poser l'opération
+val19=Vous devez remplir toutes les étiquettes avec des chiffres.
+
+!ifval $val7 issametext +
+val19=$val19	  Vous placerez le premier nombre sur la première ligne et le deuxième sur la deuxième ligne.
+!endif
+replytype1=clickfill
+replyname1=
+replygood1=$(val10[1]);0,1,2,3,4,5,6,7,8,9
+replytype2=clickfill
+replyname2=
+replygood2=$(val10[2]);0,1,2,3,4,5,6,7,8,9
+replytype3=clickfill
+replyname3=
+replygood3=$(val10[3]);0,1,2,3,4,5,6,7,8,9
+replytype4=clickfill
+replyname4=
+replygood4=$val7;+,-
+replytype5=clickfill
+replyname5=
+replygood5=$(val13[1]);0,1,2,3,4,5,6,7,8,9
+replytype6=clickfill
+replyname6=
+replygood6=$(val13[2]);0,1,2,3,4,5,6,7,8,9
+replytype7=clickfill
+replyname7=
+replygood7=$(val13[3]);0,1,2,3,4,5,6,7,8,9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val18[1]) $val14 $val7 $val15. $(val18[2]).	<div class="wims_instruction">$val19</div>	<table class="wimscenter wimsnoborder">	  <tr>	     
+!for m_a=1 to 2 
+$()<td></td> 
+!next
+$()	     
+!for m_a=1 to 3 
+$()<td><span class="larger"> 
+!read oef/embed.phtml r\a,$val17 
+$()</span></td> 
+!next
+$()	    <td></td>	  </tr><tr>	    <td> 
+!read oef/embed.phtml r4 
+$()</td><td></td>	     
+!for m_a=5 to 7 
+$()<td><span class="larger"> 
+!read oef/embed.phtml r\a,$val17 
+$()</span></td> 
+!next
+$()	    <td></td>	  </tr><tr>	    <td colspan="$val16"><hr></td>	  </tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,14,15,16,17,18,19
+embedcnt=3

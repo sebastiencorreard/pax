@@ -1,0 +1,290 @@
+!set title=Les planètes et leur distance au Soleil (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=chantal.causse@noos.fr
+keywords=solar_system, planet 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=50
+prevarcnt=49
+postvarcnt=0
+replycnt=20
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=Ranger les planètes de la plus proche du Soleil à la plus éloignée.<br>	 Le nom de chaque planète (au-dessus de la flèche) doit être associé à sa distance au Soleil (en dessous de la flèche).
+val7=6
+val8=blue
+val9=100
+val10=$[rint(40)]
+val11=$[rint(1)]
+val12=0
+val13=57 900 000 km,Mercure	108 200 000 km,Vénus	149 600 000 km,Terre	227 900 000 km,Mars	778 300 000 km,Jupiter	1 427 000 000 km,Saturne	2 870 000 000 km,Uranus	4 497 000 000 km,Neptune
+tmp0=!item 2 of 1 oui, 2 non
+
+val14=$(tmp0)
+tmp0=!word 1 of $val14
+
+val14=$(tmp0)
+val15=$[$val7-0.3]
+val16=-1,$val7+1
+
+!ifval $val12 iswordof 0 
+val17= -5,5
+!else
+val17=-2,5
+!endif
+
+!ifval $val12=1 
+val17= -5,2
+!endif
+
+!ifval $val12=3 
+val17= -5,4
+!endif
+tmp=!translate internal $	$ to ; in $val13
+
+tmp0=!rowcnt $tmp
+val18=$(tmp0)
+tmp0=!shuffle $val18
+
+val19=$(tmp0)
+val19=$(val19[1..$val7])
+tmp0=!sort numeric item $val19
+
+val19=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row $val19 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+
+!ifval $val14=1 
+tmp0=!embraced randitem $val13
+
+val13= $(tmp0)
+!endif
+tmp=!trim $val13
+val20=!translate internal $	\
+$ to ;; in $tmp
+val21=$[rint((1.5*$val9)*($val15+1))]
+val22=$[rint(4*$val10)]
+val21=$val21,$val22
+val23=xrange $val16	yrange $val17	polyline $val8,$val15,$val11/2,-1,$val11/2,-1,-$val11/2,$val15,-$val11/2,$val15,-$val11,$val7+0.5,0,$val15,$val11,$val15,$val11/2	fill 0,0,$val8	
+
+!ifval $val12=0 
+tmp0=!values x for x=1 to 2*$val7
+
+val24= $(tmp0)
+!endif
+
+!ifval $val12=1 
+tmp0=!values 2*x-1 for x=1 to $val7
+
+val24= $(tmp0)
+!endif
+
+!ifval $val12=2 or $val12=3
+tmp0=!values 2*x for x=1 to $val7
+
+val24= $(tmp0)
+!endif
+tmp0=!makelist r x for x in  $val24
+
+val24=$(tmp0)
+val25=
+val26=
+val27=
+!for val28 =0 to $val7-1 
+
+!ifval $val12=0 or $val12=1 or $val12=3 
+val23= $val23	  segment $val28-0.1,-$val11/2,$val28-0.1,-2*$val11,$val8
+!endif
+
+!ifval $val12=0 or $val12=2 or $val12=3
+val23= $val23	  segment $val28-0.1,$val11/2,$val28-0.1,2*$val11,$val8
+!endif
+t_=!replace internal \( by ( in [2*$val28+1,2*$val28+2]
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+!readproc slib/draw/convpixel $val28-0.5,-2,$val21,$val16,$val17,0,pixels 
+tmp0=$slib_out
+val30=$(tmp0)
+val25=$val25	 r$(val29[1]),$(val30[1]) x $(val30[2])
+!readproc slib/draw/convpixel $val28-0.5,-2,$val21,$val16,$val17,0,pixels 
+tmp0=$slib_out
+val30=$(tmp0)
+val27=$val27	 r$(val29[2]),$(val30[1]) x $(val30[2])
+!readproc slib/draw/convpixel $val28-0.5,4,$val21,$val16,$val17,0,pixels 
+tmp0=$slib_out
+val30=$(tmp0)
+val26=$val26	r$(val29[2]),$(val30[1]) x $(val30[2])
+
+!ifval $val12=3
+val23= $val23	 text black, $val28-0.2,3,medium,$(val13[$val28+1;1])
+!endif
+!next
+
+!ifval $val12=1 or $val12=0
+val31= $val25
+!endif
+
+!ifval $val12=2 or $val12=0
+val31= $val31	 $val26
+!endif
+
+!ifval $val12=3
+val31= $val27
+!endif
+!readproc oef/draw.phtml $val21 \
+$val23 
+tmp0=$ins_url
+val32=$(tmp0)
+oefsteps=$val24 
+nextstep=!nosubst $val24 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyoption1=shuffle 
+replyname1=
+replygood1=$(val20[1;1])
+replytype2=clickfill
+replyoption2=shuffle 
+replyname2=
+replygood2=$(val20[1;2])
+replytype3=clickfill
+replyoption3=shuffle 
+replyname3=
+replygood3=$(val20[2;1])
+replytype4=clickfill
+replyoption4=shuffle 
+replyname4=
+replygood4=$(val20[2;2])
+replytype5=clickfill
+replyoption5=shuffle 
+replyname5=
+replygood5=$(val20[3;1])
+replytype6=clickfill
+replyoption6=shuffle 
+replyname6=
+replygood6=$(val20[3;2])
+replytype7=clickfill
+replyoption7=shuffle 
+replyname7=
+replygood7=$(val20[4;1])
+replytype8=clickfill
+replyoption8=shuffle 
+replyname8=
+replygood8=$(val20[4;2])
+replytype9=clickfill
+replyoption9=shuffle 
+replyname9=
+replygood9=$(val20[5;1])
+replytype10=clickfill
+replyoption10=shuffle 
+replyname10=
+replygood10=$(val20[5;2])
+replytype11=clickfill
+replyoption11=shuffle 
+replyname11=
+replygood11=$(val20[6;1])
+replytype12=clickfill
+replyoption12=shuffle 
+replyname12=
+replygood12=$(val20[6;2])
+replytype13=clickfill
+replyoption13=shuffle 
+replyname13=
+replygood13=$(val20[7;1])
+replytype14=clickfill
+replyoption14=shuffle 
+replyname14=
+replygood14=$(val20[7;2])
+replytype15=clickfill
+replyoption15=shuffle 
+replyname15=
+replygood15=$(val20[8;1])
+replytype16=clickfill
+replyoption16=shuffle 
+replyname16=
+replygood16=$(val20[8;2])
+replytype17=clickfill
+replyoption17=shuffle 
+replyname17=
+replygood17=$(val20[9;1])
+replytype18=clickfill
+replyoption18=shuffle 
+replyname18=
+replygood18=$(val20[9;2])
+replytype19=clickfill
+replyoption19=shuffle 
+replyname19=
+replygood19=$(val20[10;1])
+replytype20=clickfill
+replyoption20=shuffle 
+replyname20=
+replygood20=$(val20[10;2])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val6	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val32,$(val21[1])x$(val21[2]),$val9 x $val10	$val31 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,21,31,32
+embedcnt=1

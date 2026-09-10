@@ -1,0 +1,408 @@
+!set title=Nombre de solutions et encadrement 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=57
+prevarcnt=56
+postvarcnt=0
+replycnt=15
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<font size=+2>+</font>,<font size=+2>-</font>
+val7=\(\nearrow),\(\searrow)
+val8=\(> 0),\(< 0),0
+val9=50x50x1
+val10=-6,-6,-6,-5,-5,-5,-4,-4,-4,-3,-3,-2,-2,-1,-1,1,2
+val11=-3,3,6,2,-1,-4,1,-2,-5,3,6,-1,-4,4,1,2,4
+tmp0=!itemcnt $val10
+
+tmp1=!randint 1, $(tmp0)
+
+val12=$[rint($(tmp1))]
+val13=$[rint($(val10[$val12]))]
+val14=$[rint($(val11[$val12]))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val15*x^4-4*$val15*($val13+$val14)*x^3/3+2*$val15*$val13*$val14*x^2
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+val17=$val13,$val14,0
+tmp0=!sort numeric list $val17
+
+val17=$(tmp0)
+val13=$[rint($(val17[1]))]
+val14=$[rint($(val17[2]))]
+val18=$[rint($(val17[3]))]
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val13) in $evaltmp
+tmp0=($evaltmp)
+val19=$[rint($(tmp0))]
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+tmp0=($evaltmp)
+val20=$[rint($(tmp0))]
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val18) in $evaltmp
+tmp0=($evaltmp)
+val21=$[rint($(tmp0))]
+val22=$val19,$val20,$val21
+tmp0=!sort numeric list $val22
+
+val22=$(tmp0)
+tmp0=!itemcnt $val22
+
+val23=$[rint($(tmp0))]
+!if $val23=2 
+
+!ifval $val15>0
+val22=$(val22[1,1,2])
+!else
+val22=$(val22[1,2,2])
+!endif
+!endif
+val24=$[rint($(val22[1]))]
+val25=$[rint($(val22[2]))]
+val26=$[rint($(val22[3]))]
+tmp0=!randint 0, 4
+
+val27=$[rint($(tmp0))]
+!if $val27=0 
+!if $val15>0 
+
+!ifval $val24>0
+val28=$[rint(0)]
+!else
+tmp0=!randint 1, 5
+
+val28=$[rint(-$val24+$(tmp0))]
+!endif
+val29=$(val8[1,1,1])
+!else
+
+!ifval $val26<0
+val28=$[rint(0)]
+!else
+tmp0=!randint 1, 5
+
+val28=$[rint(-$val26-$(tmp0))]
+!endif
+val29=$(val8[2,2,2])
+!endif
+!endif
+!if $val27=1 
+!if $val15>0 
+
+!ifval $val24>0
+val28=$[rint(0)]
+!else
+val28=$[rint(-$val24)]
+!endif
+
+!ifval $val19=$val24
+val29=$(val8[3,1,1])
+!else
+val29=$(val8[1,1,3])
+!endif
+
+!ifval $val24=$val25
+val27=$[rint(2)]
+!endif
+
+!ifval $val24=$val25
+val29=$(val8[3,1,3])
+!endif
+!else
+
+!ifval $val26<0
+val28=$[rint(0)]
+!else
+val28=$[rint(-$val26)]
+!endif
+
+!ifval $val19=$val26
+val29=$(val8[3,2,2])
+!else
+val29=$(val8[2,2,3])
+!endif
+
+!ifval $val25=$val26
+val27=$[rint(2)]
+!endif
+
+!ifval $val25=$val26
+val29=$(val8[3,2,3])
+!endif
+!endif
+!endif
+!if $val27=2 
+!if $val15>0 
+
+!ifval $val24=$val25
+val28=$[rint(-$val24)]
+!else
+tmp0=!randint $val24+1, $val25-1
+
+val28=$[rint(-$(tmp0))]
+!endif
+
+!ifval $val19=$val24
+val29=$(val8[2,1,1])
+!else
+val29=$(val8[1,1,2])
+!endif
+
+!ifval $val24=$val25
+val29=$(val8[3,1,3])
+!endif
+!else
+
+!ifval $val25=$val26
+val28=$[rint(-$val26)]
+!else
+tmp0=!randint $val25+1, $val26-1
+
+val28=$[rint(-$(tmp0))]
+!endif
+
+!ifval $val19=$val25
+val29=$(val8[2,2,1])
+!else
+val29=$(val8[1,2,2])
+!endif
+
+!ifval $val26=$val25
+val29=$(val8[3,2,3])
+!endif
+!endif
+!endif
+!if $val27=3 
+
+!ifval $val15>0
+val28=$[rint(-$val26)]
+!else
+val28=$[rint(-$val24)]
+!endif
+
+!ifval $val15>0
+val29=$(val8[2,3,2])
+!else
+val29=$(val8[1,3,1])
+!endif
+!endif
+!if $val27=4 
+
+!ifval $val15>0
+tmp0=!randint $val25+1, $val26-1
+
+val28=$[rint(-$(tmp0))]
+!else
+tmp1=!randint $val24+1, $val25-1
+
+val28=$[rint(-$(tmp1))]
+!endif
+
+!ifval $val15>0
+val29=$(val8[2,1,2])
+!else
+val29=$(val8[1,2,1])
+!endif
+!endif
+t_=!replace internal \( by ( in $val16+$val28
+tmp0=!exec maxima $t_
+
+val30=!rawmath $(tmp0)
+tmp0=!texmath $val30
+
+val31=$(tmp0)
+
+!ifval $val15>0
+val32=2,1,2,1
+!else
+val32=1,2,1,2
+!endif
+
+!ifval $val15>0
+val33=\(L_2 > 0) et \( L_1 > 0)
+!else
+val33=\(L_2 < 0) et \( L_1 < 0)
+!endif
+val34=$(val7[$val32])
+val35=$(val6[$val32])
+val36=$val7,$val6,$val8
+replytype1=numexp
+replyname1=singularité gauche
+replygood1=$val13
+replytype2=numexp
+replyname2=singularité milieu
+replygood2=$val14
+replytype3=numexp
+replyname3=singularité droite
+replygood3=$val18
+replytype4=clickfill
+replyname4=signe dérivée gauche
+replygood4=$(val35[1]);$val36
+replytype5=clickfill
+replyname5=signe dérivée milieu gauche
+replygood5=$(val35[2]);$val36
+replytype6=clickfill
+replyname6=signe dérivée milieu droite
+replygood6=$(val35[3]);$val36
+replytype7=clickfill
+replyname7=signe dérivée droite
+replygood7=$(val35[4]);$val36
+replytype8=clickfill
+replyname8=sens variation gauche
+replygood8=$(val34[1]);$val36
+replytype9=clickfill
+replyname9=signe image singularité gauche
+replygood9=$(val29[1]);$val36
+replytype10=clickfill
+replyname10=sens variation milieu gauche
+replygood10=$(val34[2]);$val36
+replytype11=clickfill
+replyname11=signe image singularité milieu
+replygood11=$(val29[2]);$val36
+replytype12=clickfill
+replyname12=sens variation milieu droite
+replygood12=$(val34[3]);$val36
+replytype13=clickfill
+replyname13=signe image singularité droite
+replygood13=$(val29[3]);$val36
+replytype14=clickfill
+replyname14=sens variation droite
+replygood14=$(val34[4]);$val36
+replytype15=numeric
+replyname15=nb solution
+replygood15=$[$val27]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la fonction 
+!insmath f
+$() définie sur 
+!insmath \lbrack -10^3;10^3 \rbrack
+$() par	<div class="wimscenter"> 
+!insmath f(x)=$val31
+$() </div>	<p>	On note 
+!insmath f(-10^3)=L_1
+$() et 
+!insmath f(10^3)=L_2
+$() avec $val33.	</p><p>	On veut déterminer <b>sans calculatrice </b> le nombre de solutions de l'équation.	</p>	<div class="wimscenter"> 
+!insmath f(x)=0
+$()</div>	<ol>	<li> Compléter le tableau des variations de 
+!insmath f
+$()&nbsp;:	<table class="var_tab">	<tr>	  <th style="width:10%;"> 
+!insmath x
+$()</th>	      <td style="width:10%;">
+!insmath -10^3
+$()</td>	      <td style="width:10%;"></td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply1,3 
+$()</td>	      <td style="width:10%;"></td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply2,3 
+$()</td>	      <td style="width:10%;"></td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply3,3 
+$()</td>	      <td style="width:10%;"></td>	      <td style="width:10%;text-align:right">
+!insmath +10^3
+$()</td>	</tr><tr>	  <th style="width:10%;"> sg 
+!insmath f'(x)
+$()</th>	      <td style="width:10%;text-align:left"> &nbsp;</td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply4,$val9 
+$()</td>	      <td style="width:10%;">0</td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply5,$val9 
+$()</td>	      <td style="width:10%;">0</td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply6,$val9 
+$()</td>	      <td style="width:10%;">0</td>	      <td style="width:10%;"> 
+!read oef/embed.phtml reply7,$val9 
+$()</td>	      <td style="width:10%;">&nbsp;</td>	</tr><tr>	  <th style="width:10%;">
+!insmath var f
+$()</th>	     <td style="width:10%;text-align:left" > 
+!insmath L_1
+$()</td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply8,$val9 
+$() </td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply9,$val9 
+$() </td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply10,$val9 
+$() </td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply11,$val9 
+$() </td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply12,$val9 
+$() </td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply13,$val9 
+$() </td>	     <td style="width:10%;vertical-align:middle">  
+!read oef/embed.phtml reply14,$val9 
+$() </td>	     <td style="width:10%;text-align:right;vertical-align:middle"> 
+!insmath L_2
+$() </td>	      </tr>	</table>	</li>	<li> En déduire le nombre de solutions de 
+!insmath f(x)=0
+$()&nbsp;:	<div class="wimscenter"> Nombre de solutions =  
+!read oef/embed.phtml reply15,2 
+$() </div>	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,31,33
+embedcnt=15

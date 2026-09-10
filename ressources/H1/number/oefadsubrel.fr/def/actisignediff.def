@@ -1,0 +1,197 @@
+!set title=Activité (signes contraires)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=55
+prevarcnt=53
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle +,-
+
+val6=$(tmp0)
+val7=$(val6[1])
+!if $val7=+ 
+val8=positif,positifs
+val9=\plus
+!else
+val8=négatif,négatifs
+val9=\minus
+!endif
+val10=$(val6[2])
+!if $val10=+ 
+val11=positif,positifs
+val12=\plus
+!else
+val11=négatif,négatifs
+val12=\minus
+!endif
+tmp0=!makelist x for x=1 to 10
+
+val13=$(tmp0)
+!readproc slib/data/random 2,item, $val13 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=$[rint($(val14[1]))]
+val16=$[rint($(val14[2]))]
+val17=$[$val7$val15+$val10$val16]
+!if $val17>0 
+val18=\plus
+!endif
+val19=$[rint(abs($val17))]
+val20=$[rint($val15+$val16)]
+val21=$[rint(abs($val15-$val16))]
+!if $val15>$val16 
+val22=\($val15 - $val16 = $val19 \)
+val23=$val9
+val24=$val8
+val25=<ul><li>On détermine le signe de \(A\) en comparant les distances à zéro des termes de la somme&nbsp;:	<p>Comme \($val15>$val16\) et que \($val9$val15\) est $(val8[1]) alors le signe de \(A\) est $(val24[1]).</p></li>	<li>On effectue la différence des distances à zéro $val22.</li>	</ul>
+!else
+val22=\($val16 - $val15 = $val19 \)
+val23=$val12
+val24=$val11
+val25=<ul><li>On détermine le signe de \(A\) en comparant les distances à zéro des termes de la somme&nbsp;:	<p>Comme \($val16>$val15\) et que \($val12$val16\) est $(val11[1]) alors le signe de \(A\) est $(val24[1]).</p></li>	<li>On effectue la différence des distances à zéro $val22.</li>	</ul>
+!endif
+!if $val15>$val16 and $val7=+ 
+val26=$[rint(-$val16-2)]
+val27=$[rint($val15+2)]
+!endif
+!if $val15>$val16 and $val7=- 
+val26=$[rint(-$val15-2)]
+val27=$[rint($val16+2)]
+!endif
+!if $val16>$val15 and $val7=+ 
+val26=$[rint(-$val16-2)]
+val27=$[rint($val15+2)]
+!endif
+!if $val16>$val15 and $val7=- 
+val26=$[rint(-$val15-2)]
+val27=$[rint($val16+2)]
+!endif
+val28=$[rint(600)]
+val29=$[rint(40)]
+val30=$[($val28-2*$val29)/($val27-$val26)]
+val31=$[$val26-$val29/$val30]
+val32=$[$val27+$val29/$val30]
+val33=$[rint($val27-$val26+1)]
+val34=$[rint($val27-$val26)]
+val35=$[4/$val30]
+val36=
+!for val37 =0 to $val34 
+val38=$[rint($val26+$val37)]
+val39=$[$val26+$val37-$val35]
+val40=text black,$val39,-0.75,giant,$val38
+tmp0=!append line $val40 to $val36
+
+val36=$(tmp0)
+!next
+val41=range $val31,$val32,-3,3	linewidth 2	arrow $val31,0,$val32,0,$val29/2,black	linewidth 3	parallel $val26,-0.5,$val26,0.5,1,0,$val33,black	$val36
+!readproc oef/draw.phtml 600,150 \
+$val41	arrow 0,1,$val7 $val15,1,10,blue	text blue,($val7 $val15)/2,1,giant,$val7 $val15	arrow 0,1.5,$val10 $val16,1.5,10,red	text red,($val10 $val16)/2,1.5,giant,$val10 $val16	 
+tmp0=$ins_url
+val42=$(tmp0)
+!readproc oef/draw.phtml 600,150 \
+$val41	arrow 0,1,$val7 $val15,1,10,blue	text blue,($val7 $val15)/2,1,giant,$val7 $val15	translate $val7 $val15,0	arrow 0,1.5,$val10 $val16,1.5,10,red	text red,($val10 $val16)/2,1.5,giant,$val10 $val16	killtranslate	 
+tmp0=$ins_url
+val43=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <div style="color:red" class="underline"><b>A retenir&nbsp;:</b></div> La somme de deux nombres de signes contraires a... <ul class="wims_nopuce"> <li>pour signe&nbsp;: le signe du nombre qui a la plus grande distance à zéro,</li> <li>pour distance à zéro &nbsp;: la différence des distances à zéro.</li></ul>
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On désire calculer l'expression&nbsp;:	<span class="nowrap">
+!insmath A=( \textcolor{blue}{$val9 $val15} ) + ( \textcolor{red}{$val12 $val16} )
+$().</span></p>	On illustre cette situation par un dessin.	<p><img src="$val42" alt="droite graduée avec flèches séparées" ></p>	On met une flèche au bout de l'autre.	<p><img src="$val43" alt="droite graduée avec flèches bout à bout" ></p>	On lit le résultat sur la droite graduée&nbsp;:	<div class="wims_instruction">Une réponse avec des parenthèses n'est pas acceptée.	<p>Il n'est pas obligatoire d'écrire le signe + d'un résultat positif.</p></div>	<p>
+!insmath A=( $val9 $val15 ) + ( $val12 $val16 )
+$()</p>	<label for="reply1">
+!insmath A=
+$()</label> 
+!read oef/embed.phtml r1,3 
+$().	
+$()
+!exit
+
+:hint
+$()<div style="color:red" class="underline"><b>A retenir&nbsp;:</b></div> La somme de deux nombres de signes contraires a... <ul class="wims_nopuce"> <li>pour signe&nbsp;: le signe du nombre qui a la plus grande distance à zéro,</li> <li>pour distance à zéro &nbsp;: la différence des distances à zéro.</li></ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<div style="color:red" class="underline"><b>A retenir&nbsp;:</b></div>	La somme de deux nombres de signes contraires a...	<ul>	<li>pour signe&nbsp;: le signe du nombre qui a la plus grande distance à zéro,</li>	<li>pour distance à zéro &nbsp;: la différence des distances à zéro.</li></ul>	Pour calculer l'expression <span class="nowrap">
+!insmath A=( $val9 $val15 ) + ( $val12 $val16 )
+$().</span>	$val25	<p>
+!insmath A=( $val9 $val15 ) + ( $val12 $val16 )
+$()</p>	<span class="nowrap">
+!insmath A = $val18 $val17 
+$().</span>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val21=$[rint($val15+$val16)]
+
+!exit
+
+:feedback
+!ifval ($m_reply1<0 and $val17>0) or ($m_reply1>0 and $val17<0)
+ <div class='oef_feedbacks'><div class="macss">Attention au signe de la somme, le résultat est $(val24[1]).</div>
+$()</div>
+!endif
+!ifval $m_reply1=$val21
+ <div class='oef_feedbacks'><div class="macss">Vous avez additionné les distances à zéro au lieu de les soustraire.</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,12,15,16,17,18,21,24,25,42,43
+embedcnt=1

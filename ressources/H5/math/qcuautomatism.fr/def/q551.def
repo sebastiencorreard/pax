@@ -1,0 +1,154 @@
+!set title=Question 551 T Prix après évolution
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz,percentage,percents,fraction
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-techno-2_0.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+tmp0=!randint 2, 9
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8*100)]
+tmp0=!randint 1, 9
+
+val10=$[rint($(tmp0)*10)]
+val11=$[$val10/100]
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+val13=$[1$val12$val11]
+val14=$[rint($val9*(1$val12$val11))]
+
+!ifval $val12 issametext -
+val15=baisse
+!else
+val15=augmente
+!endif
+val16=Un article coûte $val9 euros. Le prix $val15 de de <span class="nowrap">\( $val10 \%\).</span><br> Le nouveau prix est&nbsp;&#58;
+val17=$val14 euros
+
+!ifval $val12 issametext -
+val18=+
+!else
+val18=-
+!endif
+val19=$[1 $val18 $val11]
+val20=$[rint($val9$val12$val10)]
+val21=$[rint($val9*(1$val18$val10/100))]
+val22=$[rint(ceil($val14/100)*100)]
+
+!ifval $val22=$val14
+val23=$[rint($val14+100)]
+!else
+val23=$[rint($val22)]
+!endif
+val24=$val20 euros, $val21 euros,$val23 euros 
+
+!ifval $val12 issametext +
+val25=l'augmentation
+!else
+val25=la baisse
+!endif
+
+!ifval $val12 issametext +
+val26=l'addition
+!else
+val26=la soustraction
+!endif
+val27=$[rint($val10*$val8)]
+val28=<br>On peut remarquer que \($val9=100\times $val8\) ainsi $val25 sera de <span class="nowrap">\($val10 \times $val8=$val27\).</span> Il reste à faire $val26 <span class="nowrap">\($val9$val12$val27\).</span>
+val29=La bonne réponse est $val17. $val28 
+val30=$val17,$val24
+tmp0=!shuffle 4
+
+val31=$(tmp0)
+tmp0=!positionof item 1 in $val31
+
+val32=$[rint($(tmp0))]
+val33=\latexversion	    \item	    $val16	    \begin{radio}	    \item $(val30[1])	    \item $(val30[2])	    \item $(val30[3])	    \item $(val30[4])	    \end{radio}
+val33=$val33 \end{enumerate}
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val32;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val33 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val16	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val30[$(val31[1])]) </td><td>$(val30[$(val31[2])]) </td><td>$(val30[$(val31[3])]) </td><td>$(val30[$(val31[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val33 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val29!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val29	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,16,29,30,31,33
+embedcnt=1

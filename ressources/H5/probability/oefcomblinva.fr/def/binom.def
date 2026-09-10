@@ -1,0 +1,283 @@
+!set title=Combinaison linéaire de VA suivant une loi binomiale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Hubert,Proal
+email=communanute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr
+keywords=random_variable,binomial_distribution
+computeanswer=yes
+precision=1000000
+
+ansorder=r,r,r,r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=MutuWIMS
+tmp0=!randint 3, 10
+
+val6=$[rint($(tmp0))]
+val7=$[0.5]
+t_=!replace internal \( by ( in $val6*0.5
+tmp0=!exec maxima $t_
+
+val8=$[$(tmp0)]
+t_=!replace internal \( by ( in sqrt($val6/4)
+tmp0=!exec maxima $t_
+
+val9=$(tmp0)
+val10=$[$val6/4]
+tmp0=!randint 3, 50
+
+val11=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val11/10
+tmp0=!exec maxima $t_
+
+val12=$[$(tmp0)]
+tmp0=!randint 3, 20
+
+val13=$[rint($(tmp0))]
+t_=!replace internal \( by ( in ($val13/10)^2
+tmp0=!exec maxima $t_
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val14
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in sqrt($val15)
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+tmp0=!randitem 2,3,4,5
+
+val17=$[rint($(tmp0))]
+tmp0=!randitem 0,0,0,2,3,4
+
+val18=$[rint($(tmp0))]
+!if $val18=0 
+t_=!replace internal \( by ( in $val17*X
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+val20=On considère la variable aléatoire définie par \(W=$val19\).
+t_=!replace internal \( by ( in $val17*$val6*0.5
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in sqrt(($val17*$val9)^2)
+tmp0=!exec maxima $t_
+
+val22=$(tmp0)
+!else
+t_=!replace internal \( by ( in $val17*X+$val18*Y
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+val20=On considère une autre variable aléatoire \(Y\), indépendante de \(X\)	  et telle que \( E( Y ) = $val12\) et \(V(Y)=$val15\). On définit ensuite la variable aléatoire  	  \(W\) par : \(W=$val19\).
+t_=!replace internal \( by ( in $val17*$val6*0.5+$val18*$val12
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in sqrt(($val17*$val9)^2+($val18*$val16)^2)
+tmp0=!exec maxima $t_
+
+val22=$(tmp0)
+!endif
+val23=$[rint($val17*$val17)]
+val24=$[rint($val18*$val18)]
+!if $val18=0 
+val25=$val17 \times $val8
+val26=sqrt(($val17 \times $val9)^2)
+t_=!replace internal \( by ( in $val23*($val9)*($val9)
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+!else
+val25=$val17 \times $val8+$val18 \times $val12
+val26=($val17 \times $val9)^2+($val18 \times $val16)^2
+t_=!replace internal \( by ( in $val23*($val9)*($val9)+$val24*($val16)*($val16)
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+!endif
+replytype1=numeric
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$[$val8]
+replytype2=numeric
+replyoption2=noanalyzeprint 
+replyname2=
+replygood2=$[$val9]
+replytype3=numeric
+replyoption3=noanalyzeprint 
+replyname3=
+replygood3=$[$val21]
+replytype4=numeric
+replyoption4=noanalyzeprint 
+replyname4=
+replygood4=$[$val22]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On note 
+!insmath X
+$() une variable aléatoire qui donne le nombre de fois où une pièce	 équilibrée tombe sur "face" lorsqu'on la lance  
+!insmath $val6
+$() fois.	On admettra que cette variable aléatoire suit la loi binomiale de paramètres	
+!insmath $val6
+$() et 
+!insmath 0.5
+$()</p>	<div class="wims_instruction"> Vous pouvez noter dans le champ de la réponse	le calcul à effectuer,  pourvu qu'il soit bien écrit.	<br/>Rappel : saisir <span class="tt">
+!insmath x
+$()^2</span> pour 
+!insmath x^2
+$(),	<span class="tt">sqrt(20)</span> pour 
+!insmath \sqrt{20}
+$() et le point	pour séparer la partie entière de la partie décimale : 1.2 et pas 1,2</div>	<p class="wims_emph">Partie 1</p>	<div class="wims_question">	<ul class="wims_nopuce">	<li>Quelle est la valeur de son espérance mathématique ?	<br/>	<label for="reply1">
+!insmath E( X ) =
+$()</label>  
+!read oef/embed.phtml r1,20 
+$()</li>	<li>Quelle est la valeur de son écart type ?	<br/><label for="reply2">
+!insmath \sigma (X)= 
+$()</label>  
+!read oef/embed.phtml r2,20 
+$()</li>	</ul>	</div>	<p class="wims_emph">Partie 2</p>	<p>$val20</p>	<div class="wims_question">	<ul class="wims_nopuce">	<li>Quelle est la valeur de l'espérance mathématique de 
+!insmath W=$val19
+$() ?	<br/><label for="reply3"> 
+!insmath E(W) = 
+$()</label> 
+!read oef/embed.phtml r3,20 
+$()</li>	<li>Quelle est la valeur de son écart type ?	<br/><label for="reply4"> 
+!insmath  \sigma (W) =
+$() </label>  
+!read oef/embed.phtml r4,20 
+$()</li>	</ul>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p><b> Partie 1 :</b></p>	<p>On sait que pour une variable aléatoire 
+!insmath X
+$() de loi binomiale de paramètres 
+!insmath n
+$() et 
+!insmath p
+$() : </p>	<ul class="wims_nopuce">	<li>
+!insmath E(X)=n*p
+$()</li>	<li>L'écart type vaut : 
+!insmath \sigma(X)=\sqrt{n p (1-p)}
+$()</li>	<li>La variance vaut : 
+!insmath V(X)=n p (1-p)
+$()</li>	</ul>	<p>Ainsi, ici : </p>	<ul class="wims_nopuce">	<li>
+!insmath E(X)=$val6 \times $val7=$val8
+$()</li>	<li>L'écart type vaut : 
+!insmath \sigma(X)=\sqrt{$val6 \times $val7 \times (1-$val7)}=
+$()
+!insmath $val9
+$()</li>	<li>La variance vaut : 
+!insmath V(X)=$val6 \times $val7 \times (1-$val7)=
+$()
+!insmath  $val10
+$()</li>	</ul>	<p><b> Partie 2 :</b></p>	<p>$val20</p>	<p>Ici :</p>	<ul class="wims_nopuce">	<li>
+!insmath E(W)=
+$()
+!insmath $val25=
+$()
+!insmath $val21
+$()</li>	
+!if $val18=0 
+$()	<li>La variance vaut : 
+!insmath V(W)=($val17)^2 V(X)
+$()
+!insmath =$val27
+$() </li>	<li>L'écart type vaut : 
+!insmath \sigma (W)=
+$()
+!insmath \sqrt{V(W)}=
+$()
+!insmath $val22
+$()</li>	 
+!else
+$() 	<li>La variance vaut : 
+!insmath V(W)=($val17)^2 V(X)+($val18)^2 V(Y)=
+$()
+!insmath $val27
+$() </li>	<li>L'écart type vaut : 
+!insmath \sigma (W)=
+$()
+!insmath \sqrt{V(W)}=
+$()
+!insmath $val22
+$()</li>	 
+!endif
+$()	</ul>	<p> Puisque, sous les hypothèses de l'énoncé, on sait que : </p>	<ul class="wims_nopuce">	<li>
+!insmath E(a X)=a E(X)
+$()</li>	
+!if $val18!=0 
+$()	<li>
+!insmath E(X+Y)=E(X)+E(Y)
+$()</li>	<li>
+!insmath V(X+Y)=V(X)+V(Y)
+$()</li>	 
+!endif
+$()	<li>
+!insmath V(a X)=a^2 V(X)
+$(), pour tout 
+!insmath a
+$() réel.</li>	<li>
+!insmath \sigma(X)=\sqrt{V(X)}
+$()</li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,17,18,19,20,21,22,25,27
+embedcnt=4

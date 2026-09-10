@@ -1,0 +1,206 @@
+!set title=C2 - Cardinal d'un sous-ensemble du plan
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+keywords=set_theory,combinatorics
+language=fr
+oefdescription=il s'agit de calculer le nombre d'éléments d'un ensemble. Le type de l'ensemble peut varier en renouvelant l'exercice.
+computeanswer=yes
+precision=10000
+oefobservation=La question porte sur 6 types d'ensembles sauf si la valeur la plus faible du paramètre "Complexité des ensembles" est choisi. Dans ce dernier cas, la question ne porte que sur 2 types d'ensembles.
+title_it=C2 - Cardinalità di un sottoinsieme del piano
+title_es=C2 - Cardinalidad de un subconjunto del plano
+
+ansorder=r
+varcnt=35
+prevarcnt=33
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim est un sous-ensemble de	et	Avez-vous donné la bonne réponse	L'ensemble \(E\) a	élément,éléments	et non	On peut représenter \(E\) comme l'ensemble des points à coordonnées entières inclus dans	le rectangle, le carré	applications,applications bijectives,applications injectives
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=Quel est le cardinal de l'ensemble \(E\) suivant&nbsp;
+!if $val6=it 
+tmp=!trim è un sottoinsieme di	e	Hai dato la risposta corretta	L'insieme \(E\) ha	elemento,elementi	e non	Si può rappresentare \(E\) come l'insieme dei punti a coordinate intere compresi nel	rettangolo,quadrato	applicazioni,applicazioni biunivoche,applicazioni iniettive
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=Qual è la cardinalità dell'insieme \(E\) seguente
+!endif
+!if $val6=es 
+tmp=!trim es un subconjunto de	y	Ha entregado la respuesta correcta	El conjunto \(E\) tiene	elemento,elementos	y no	Podemos \(E\) como el conjunto de puntos de coordenadas enteras incluídas en	el rectángulo, el cuadrado	funciones,funciones biyectivas,funciones inyectivas
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=¿Cuál es la cardinalidad del siguiente conjunto \(E\) 
+!endif
+tmp0=!randint 0, 40
+
+val9=$[rint($(tmp0)-20)]
+tmp0=!randint 10, 50
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val10+($val9)-1)]
+val12=$val9, ..., $val11
+!if $val2=1 
+tmp0=!randitem 5,6
+
+val13=$[rint($(tmp0))]
+!else
+tmp0=!randint 1, 6
+
+val13=$[rint($(tmp0))]
+!endif
+!if $val13=1 
+tmp0=!randint ($val9-($val11)+2), ($val11-($val9)-2)
+
+val14=$[rint($(tmp0))]
+val15=\(\{ (x_1, x_2)\in\{$val12\}^2, x_1 - x_2 = $val14 \}\)
+val16=$[rint(min($val11,$val11-($val14))-max($val9, $val9-($val14))+1)]
+!endif
+!if $val13=2 
+tmp0=!randint (2*$val9+2), (2*$val11-2)
+
+val14=$[rint($(tmp0))]
+val15=\(\{ (x_1, x_2)\in\{$val12\}^2, x_1 + x_2 = $val14 \}\)
+val16=$[rint(min($val11,$val14-($val9))-max($val9, $val14-($val11))+1)]
+!endif
+!if $val13=3 
+val15=\(\{ (x_1,x_2)\in\{$val12\}^2, x_1 < x_2 \} \)
+val16=$[rint(binomial($val10,2))]
+!endif
+!if $val13=4 
+val15=\(\{ (x_1,x_2)\in\{$val12\}^2, x_1 \leq x_2 \} \)
+val16=$[rint(binomial($val10+1,2))]
+!endif
+!if $val13=5 
+tmp0=!randint 2, 5
+
+val17=$[rint($(tmp0))]
+val15=\(\{$val12\}^{2} \)
+val16=$[rint(($val10)^2)]
+!endif
+!if $val13=6 
+tmp0=!randint 0, 40
+
+val18=$[rint($(tmp0)-20)]
+tmp0=!randint 10, 50
+
+val19=$[rint($(tmp0))]
+val20=$[rint($val19+($val18)-1)]
+val21=$val18, ..., $val20
+tmp0=!randint 2, 5
+
+val17=$[rint($(tmp0))]
+val15={$val21} x {$val12} 
+val16=$[rint($val19*$val10)]
+!endif
+replytype1=numeric
+replyname1=Card( E )
+replygood1=?analyze 22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8?	<div class="wimscenter" style="background-color:#F0F0F0">
+!insmath E
+$()= $val15</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in abs($val22-$val16)
+tmp0=!exec pari $t_
+
+val23=$[$(tmp0)]
+
+!exit
+
+:feedback
+!ifval $val23==0
+ <div class='oef_feedbacks'><div class="oef_indgood">	$(val7[4;]) $val16 $(val7[5;2]).	</div>
+$()</div>
+!endif
+!ifval $val23>0
+ <div class='oef_feedbacks'><div class="oef_indbad">	$(val7[4;]) $val16 $(val7[5;2]) $(val7[6;]) $val22	
+!if $val22=1 or $val22=0 
+$()$(val7[5;1]). 
+!else
+$() $(val7[5;2]). 
+!endif
+$()	</div>
+$()</div>
+!endif
+!ifval $val23>0 and $val2=1
+ <div class='oef_feedbacks'><div class="oef_indbad">	$(val7[7;])	
+!if $val13=6 
+$()$(val7[8;1]) &#91; $val18 ; $val20 &#93; x &#91; $val9 ; $val11 &#93; 
+!else
+$() $(val7[8;2]) &#91; $val9 ; $val11 &#93;<sup>2</sup> 
+!endif
+$().</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+condoption1=hide 
+
+!ifval $val23==0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val7[3;])
+
+!exit
+
+:stat
+vsavelist=2,7,8,9,11,13,15,16,18,20,22
+embedcnt=0

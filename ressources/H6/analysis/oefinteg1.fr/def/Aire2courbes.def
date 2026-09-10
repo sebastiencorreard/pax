@@ -1,0 +1,215 @@
+!set title=Aire 2 courbes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Michel, Gosse
+email=michel.gosse@ac-poitiers.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -4,-3
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -1,0,1
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 4,3
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,0,1
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem $val6+1,$val8-1
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem 2,3,4
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem $val6+1,$val8-1
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem -2,-3,-4
+
+val13=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val11/(($val10-$val6)*($val10-$val8))*(x-$val6)*(x-$val8)+	$val7*(x-$val8)*(x-$val10)/(($val6-$val8)*($val6-$val10))+	$val9*(x-$val6)*(x-$val10)/(($val8-$val6)*($val8-$val10))	);
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+val14=!rawmath $val14
+t_=!replace internal \( by ( in expand($val13*(x-$val6)*(x-$val8)/(($val12-$val6)*($val12-$val8))+	$val7*(x-$val8)*(x-$val12)/(($val6-$val8)*($val6-$val12))+	$val9*(x-$val6)*(x-$val12)/(($val8-$val6)*($val8-$val12))	);
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+val15=!rawmath $val15
+tmp0=!randint $val6, -1
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 0, $val8
+
+val17=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand(($val14)-($val15));
+tmp0=!exec maxima $t_
+
+val18=$(tmp0)
+val18=!rawmath $val18
+tmp=!translate ;";': to $     $ in $val18,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val19=!rawmath $(tmp0)
+t_=!replace internal \( by ( in (subst(x=$val17,$val19)-subst(x=$val16,$val19));
+tmp0=!exec maxima $t_
+
+val20=$(tmp0)
+tmp=!translate ;";': to $     $ in $val14,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val21=!rawmath $(tmp0)
+tmp=!replace internal .. by , in $val21=0,x=$val6..$val8 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val22=$[$(tmp0)]
+tmp=!translate ;";': to $     $ in $val15,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val23=!rawmath $(tmp0)
+tmp=!replace internal .. by , in $val23=0,x=$val6..$val8 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val24=$[$(tmp0)]
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($val22) in $evaltmp
+tmp0=($evaltmp)
+val25=$[$(tmp0)]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+val26=$[$(tmp0)]
+tmp0=!texmath $val14
+
+val27=$(tmp0)
+tmp0=!texmath $val15
+
+val28=$(tmp0)
+tmp0=!texmath $val18
+
+val29=$(tmp0)
+tmp0=!texmath $val19
+
+val30=$(tmp0)
+replytype1=auto
+
+replyname1=Valeur de l'aire :
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Déterminer la valeur exacte de l'aire du domaine limité par les courbes représentatives	des fonctions 
+!insmath f
+$() et 
+!insmath g
+$() définies par	<div class="wimscenter">	
+!insmath f(x)=$val27
+$() et 
+!insmath g(x)=$val28 
+$()	</div>	et les droites d'équation 
+!insmath x=$val16
+$() et <span class="nowrap">
+!insmath x=$val17
+$().</span> <br>Une représentation graphique	est fournie ci-dessous&nbsp;:	<div class="wimscenter">	 
+!read oef/draw.phtml 300,300 \
+	xrange $val6-1,$val8+1	yrange $val26-1,$val25+1	segment $val6,$val26-1,$val6,$val25+1,blue	segment $val16,$val26-1,$val16,$val25+1,yellow	segment $val17,$val26-1,$val17,$val25+1,yellow	segment $val8,$val26-1,$val8,$val25+1,blue	segment $val6-1,0,$val8+1,0,green	plot black,$val14	plot red,$val15	text blue,$val6,0,medium,x=$val6	text black,$val16,0,medium,x=$val16	text black,$val17,0,medium,x=$val17	text blue,$val8,0,medium,x=$val8	text black,$val22,$val25,medium,y=f(x)	text red,$val24,$val26,medium,y=g(x)	 
+$()	</div>		
+$()
+!exit
+
+:hint
+$()On remarque que la courbe représentative de 
+!insmath f
+$() est toujours	au-dessus de celle de 
+!insmath g
+$() sur 
+!insmath \lbrack$val16,$val17\rbrack
+$(). L'aire cherchée est donc égale à l'intégrale&nbsp;:	<div class="wimscenter">	<span class="nowrap">
+!insmath integrate(f(x)-g(x),x=$val16,$val17)
+$().</span>	</div>		
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On trouve tout d'abord que	<div class="wimscenter">	
+!insmath f(x)-g(x)=$val29
+$()	</div>	puis on intègre cette fonction entre 
+!insmath $val16
+$() et 
+!insmath $val17
+$() en prenant par exemple	comme primitive la fonction&nbsp;:	<div class="wimscenter">	
+!insmath x \longmapsto $val30
+$()	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,14,15,16,17,22,24,25,26,27,28,29,30
+embedcnt=0

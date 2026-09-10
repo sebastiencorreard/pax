@@ -1,0 +1,160 @@
+!set title=Arrondi au dixième (guidé)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+precision=10000
+
+ansorder=r,r,r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On considère le nombre,On veut déterminer son arrondi 
+val7=à l'unité,au dixième,au centième
+val8=unités,dixièmes,centièmes
+val9=par défaut,par excès
+val10=Compléter les phrases suivantes&nbsp;
+val11=Vous semblez confondre les valeurs par défaut et par excès	  (par défaut...il en manque et par excès...il y en a trop).
+tmp=!trim Le chiffre des,du nombre,est	  Donc l'arrondi,du nombre,est la valeur approchée, qui est égale à
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=chiffre des,arrondi
+val14=On note
+val15=a pour arrondi au dixième
+val16=L'<b>arrondi</b> XXXX d'un nombre est la valeur approchée XXXX	  (par défaut ou par excès)<b> la plus proche</b> de ce nombre.</p>	  <p>En pratique, comment trouver l'arrondi XXXX&nbsp;:</p>	  <ul><li>Lorsque le chiffre des YYYY du nombre est 0, 1, 2, 3 ou 4,	  l'arrondi XXXX est la valeur approchée XXXX par défaut.</li>	  <li>Lorsque le chiffre des YYYY du nombre est 5, 6, 7, 8 ou 9,	  l'arrondi XXXX est la valeur approchée XXXX par excès.</li></ul>
+tmp0=!randint 0, 999
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 0, 9999
+
+val18=$[rint($(tmp0))]
+val19=$[$val17+$val18/10000]
+val20=$[rint(floor($val18/100)-(floor($val18/1000))*10)]
+tmp0=!replace internal . by , in $val19
+
+val21=$(tmp0)
+val22=$[$val17+(floor($val18/1000))/10]
+val23=$[$val22+0.1]
+tmp0=!replace internal . by , in $val22
+
+val24=$(tmp0)
+tmp0=!replace internal . by , in $val23
+
+val25=$(tmp0)
+!if $val20<5 
+val26=$[rint(1)]
+val27=$val24
+!else
+val26=$[rint(2)]
+val27=$val25
+!endif
+tmp0=!replace internal . by , in $val27
+
+val28=$(tmp0)
+val29=$(val6[1]) \($val21\).
+val30=<b><span style="color:red">$(val7[2])</span></b>
+val31=<b><span style="color:blue">$(val8[3])</span></b>
+tmp0=!replace internal XXXX by $val30 in $val16
+
+val16=$(tmp0)
+tmp0=!replace internal YYYY by $val31 in $val16
+
+val16=$(tmp0)
+replytype1=numexp
+replyname1=$(val13[1]) $val31
+replygood1=$val20
+replytype2=menu
+replyname2=
+replygood2=$val26;$val9
+replytype3=raw
+replyname3=$(val13[2])
+replygood3=$val28
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val16
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val29 $(val6[2]) $val30.<br>	  $val10:	  <ul><li>	  <label for="reply1">$(val12[1;1]) <span style="color:blue"><b>$val31</b></span>	  $(val12[1;2]) 
+!insmath $val21
+$() $(val12[1;3])</label>  
+!read oef/embed.phtml r1,3 
+$(),	  </li><li><label for="reply2">$(val12[2;1]) $val30 $(val12[2;2]) 
+!insmath $val21
+$()	  $(val12[2;3]) $val30</label>  
+!read oef/embed.phtml r2 
+$(),	    <label for="reply3"> $(val12[2;4])</label>  
+!read oef/embed.phtml r3,3 
+$().	  </ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val16
+$()
+!exit
+
+:solution
+$()$(val12[1;1]) $val31 $(val12[1;2]) 
+!insmath $val21
+$() $(val12[1;3]) 
+!insmath $val20
+$(),	  $(val12[2;1]) $val30 $(val12[2;3]) $val30 $(val9[$val26]) : 
+!insmath $val28
+$().	  <p>$val14 
+!insmath $val21 \approx $val28.
+$()</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($val26=1 and $m_reply2 issametext $(val9[2])) or ($val26=2 and $m_reply2 issametext $(val9[1]))
+ <div class='oef_feedbacks'>$val11
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,11,12,14,16,20,21,26,28,29,30,31
+embedcnt=3

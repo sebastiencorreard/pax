@@ -1,0 +1,103 @@
+target=loterie1, loterie2
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\format{html}
+\computeanswer{no}
+\precision{10000}
+
+#define TITLE Loterie
+
+\integer{n=200+100*randint(0..8)}##nombre de tickets##
+\integer{mise=randint(2,3,5,10)}
+\integer{g2=\mise+randint(1..\mise)}##un gain##
+\integer{g3=\mise*randint(3..10)}
+\integer{ga0=0-\mise}##gain algébrique##
+\integer{ga2=\g2-\mise}
+\integer{ga3=\g3-\mise}
+\real{p1=randint(25..40)/100}##probabilité##
+\real{p2=randint(20..25)/100}
+\real{p3=randint(1..3)/100}
+\real{p0=1-\p1-\p2-\p3}
+\integer{n0=\n*\p0}##Nombre de tickets perdants##
+\integer{n1=\n*\p1}
+\integer{n2=\n*\p2}
+\integer{n3=\n*\p3}
+
+
+#if defined TARGET_loterie1 
+\title{TITLE (sans espérance)}
+\text{etapes=r1,r2,r3,r4,r5,r6,r7,r8}
+#endif
+
+#if defined TARGET_loterie2
+\title{TITLE (avec espérance)}
+
+
+\real{esp=-\mise*\p0+(\g2-\mise)*\p2+(\g3-\mise)*\p3}##espérance##
+\integer{bilan=(\esp>0)?2:1}
+\integer{bilan=(\esp=0)? 3:\bilan}
+\real{espabs=abs(\esp)}
+\text{corrigeQ2=L'espérance de \(X\) est \(E(X)=\ga0 \times \p0+0 \times \p1+\ga2\times \p2+\ga3\times \p3=\esp\).}
+\text{corrigeQ3=(\esp>0)? Comme \(E(X)>0\), la loterie est avantageuse pour les joueurs (pour un grand nombre de tickets, un joueur gagnera en moyenne \(\esp\)€ par ticket).:Comme \(E(X)<0\), la loterie est avantageuse pour l'association (pour un grand nombre de tickets, un joueur perdra en moyenne \(\espabs\)€ par ticket).}
+\text{corrigeQ3=(\esp==0)? Comme \(E(X)>0\), la loterie est équitable entre l'association et les joueurs.:\corrigeQ3}
+
+\text{etapes=r1,r2,r3,r4,r5,r6,r7,r8
+r9
+r10}
+
+
+#endif
+
+\steps{\etapes}
+
+\statement{<p>Une association propose une loterie à ses adhérents. Le prix du ticket est de \mise €.
+<br>Sur les \n tickets édités, \n1 font gagner un lot d'une valeur de \mise €, \n2 un lot d'une valeur de \g2 € et \n3 un lot de \g3 €,
+les autres ne rapportent rien.</p>
+<p>On note \(X) la variable aléatoire associée au gain algébrique (<u>en tenant compte du prix du ticket</u>) d'un joueur ayant acheté un ticket.</p>
+\if{\step=1}{
+<div class="wims_question">Donner la loi de probabilité de \(X).</div>
+<div class="wimscenter">
+<table class="wimsborder">
+<tr><th>\(x)</th><td>\embed{r1,3}</td><td>\embed{r2,3}</td><td>\embed{r3,3}</td><td>\embed{r4,3}</td></tr>
+<tr><th>\(p(X=x))</th><td>\embed{r5,3}</td><td>\embed{r6,3}</td><td>\embed{r7,3}</td><td>\embed{r8,3}</td></tr>
+</table></div>
+<div class="wims_instruction"><b>Les valeurs de la première ligne doivent être rangées dans l'ordre croissant</b>.<br>
+Les probablités peuvent être données sous forme fractionnaire ou décimale (utiliser le point comme séparateur décimal).</div>}
+\if{\step=2}{<p>La loi de probabilité de \(X) est :</p>
+<div class="wimscenter">
+<table class="wimsborder">
+<tr><th>\(x)</th><td>\(\ga0)</td><td>\(0)</td><td>\(\ga2)</td><td>\(\ga3)</td></tr>
+<tr><th>\(p(X=x))</th><td>\(\p0)</td><td>\(\p1)</td><td>\(\p2)</td><td>\(\p3)</td></tr>
+</table></div>
+<div class="wims_question">Calculer l'espérance de \(X).</div>
+L'espérance de \(X) est \(E(X)=)\embed{r9,4}.}
+\if{\step=3}{<p>L'espérance de \(X) est \(E(X)=\esp).</p>
+<div class="wims_question">Qu'en déduit-on ?</div>
+La loterie est \embed{r10}. }
+}
+\answer{}{\ga0}{type=numeric}
+\answer{}{0}{type=numeric}
+\answer{}{\ga2}{type=numeric}
+\answer{}{\ga3}{type=numeric}
+\answer{}{\p0}{type=formal}
+\answer{}{\p1}{type=formal}
+\answer{}{\p2}{type=formal}
+\answer{}{\p3}{type=formal}
+\answer{}{\esp}{type=numeric}
+\answer{}{\bilan;avantageuse pour l'association,avantageuse pour les joueurs, équitable}{type=menu}
+
+\solution{D'après les données de l'énoncé, on a :
+<div class="wimscenter">
+<table class="wimscenter; wimsborder">
+<tr><th>Valeur du lot</th><td>0</td><td>\mise</td><td>\g2</td><td>\g3</td></tr>
+<tr><th>Gain algébrique</th><td>-\mise</td><td>0</td><td>\ga2</td><td>\ga3</td></tr>
+<tr><th>Nombre de tickets</th><td>\n0</td><td>\n1</td><td>\n2</td><td>\n3</td></tr>
+</table></div>
+D'où, la loi de probabilité de \(X) est :
+<div class="wimscenter">
+<table class="wimscenter; wimsborder">
+<tr><th>\(x_i)</th><td>\ga0</td><td>0</td><td>\ga2</td><td>\ga3</td></tr>
+<tr><th>\(p(X=x_i))</th><td>\n0/\n=\p0</td><td>\n1/\n=\p1</td><td>\n2/\n=\p2</td><td>\n3/\n=\p3</td></tr>
+</table></div>
+<br>\corrigeQ2
+<br>\corrigeQ3}

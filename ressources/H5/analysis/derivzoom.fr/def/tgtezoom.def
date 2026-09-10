@@ -1,0 +1,153 @@
+!set title=Tangente avec un zoom.
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul@byache.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=22
+prevarcnt=17
+postvarcnt=4
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 2
+
+val6=$[rint((-1)*$(tmp0))]
+tmp0=!randint 1, 3
+
+val7=$[rint((-1)*$(tmp0))]
+tmp0=!randint 1, 2
+
+tmp1=!randint 1, 9
+
+tmp2=!randint 0, 1
+
+val8=$[(-1)^$(tmp0)*$(tmp1)/10+$(tmp2)]
+val9=$[$val8+0.005]
+val10=(x)^3+($val6)*(x)^2+($val7)*(x)+1
+tmp0=!evalsubst x=$val8 in $val10
+
+val11=$[$(tmp0)]
+tmp0=!evalsubst x=$val9 in $val10
+
+val12=$[$(tmp0)]
+tmp=!translate ";': to $     $ in $val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val10=$(tmp0)
+val13=$[rint(($val12-$val11)/($val9-$val8)*10)]
+val13=$[$val13/10]
+val14=$[rint(($val11-(($val12-$val11)/($val9-$val8))*($val8))*10)]
+val14=$[$val14/10]
+val15=
+val16=
+tmp=!translate ";': to $     $ in $val13*x+($val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+val17=y=$val17
+!readproc slib/geo2D/jsxgraph jsxbox1,	300 x 300,	var brd = JXG.JSXGraph.initBoard('jsxbox1', {boundingbox:[$val8-5,$val11+5,$val8+5,$val11-5], axis:true, grid:true});	p1 = brd.create('functiongraph',[function(x){ return x*x*x+($val6)*x*x+($val7)*x+1;}, -10,10] );	p2 = brd.create('point', [$val8,$val11], {face:'x',size:2,fixed:true,infoboxDigits:5});	p3 = brd.create('point', [$val9,$val12], {face:'x',size:2,fixed:true,infoboxDigits:5}); 
+tmp0=$slib_out
+val18=$(tmp0)
+replytype1=equation
+replyoption1=absolute 
+replyname1=
+replygood1=!rawmath $val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right">	$val18	</div>	Voici la courbe d'une fonction 
+!insmath f
+$().	<ul>	<li>Le point A d'abscisse $val8 est dessiné en rouge.	</li><li>	Vous pouvez zoomer sur la courbe et voir qu'elle porte deux points A et B très proches l'un de l'autre.	</li><li>	Les coordonnées de ces deux points sont visibles si on clique sur eux.	</li></ul>	Quelle est l'équation de la tangente à la courbe au point A?	<div>L'équation de la tangente est  
+!read oef/embed.phtml r1 
+$().</div>	<div class="wims_instruction">	Donner des valeurs arrondies au dixième des coefficients.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!nospace $m_reply1
+
+val15=$(tmp0)
+tmp0=!replace internal = by h in $val15
+
+val15=$(tmp0)
+tmp0=!replace internal yh by  in $val15
+
+val16=$(tmp0)
+!if yh isin $val15 
+!readproc slib/geo2D/jsxgraph jsxbox2,	300 x 300,	var board = JXG.JSXGraph.initBoard('jsxbox2', {boundingbox:[$val8-5,$val11+5,$val8+5,$val11-5], axis:true, grid:true});	p1 = board.create('functiongraph',[function(x){ return x*x*x+($val6)*x*x+($val7)*x+1;}] );	p3 = board.create('functiongraph',[function(x){ return $val16;}],{color:'red'} );	p2 = board.create('functiongraph',[function(x){ return $val13*x+($val14);}],{color:'green'} );	p4 = board.create('point', [$val8,$val11], {face:'x',size:2,fixed:true},{infoboxDigits:5}); 
+tmp0=$slib_out
+val18=$(tmp0)
+!endif
+
+!exit
+
+:feedback
+!ifval y notin $m_reply1
+ <div class='oef_feedbacks'>	<br>Attention : l'équation d'une tangente commence par "y=...".	
+$()</div>
+!endif
+!ifval yh isin $val15
+ <div class='oef_feedbacks'>Voyez ci-dessus en vert	la tangente correcte et en rouge la droite correspondant à votre réponse quand elle est différente. $m_Acor	<br>Remarque : si vous zoomez fortement, vous voyez que la tangente dessinée n'est parfois pas tout à fait correcte, à cause des arrondis...
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,13,14,15,16,18
+embedcnt=1

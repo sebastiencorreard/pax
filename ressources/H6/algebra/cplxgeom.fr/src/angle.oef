@@ -1,0 +1,82 @@
+\title{Angles}
+\language{fr}
+\author{David Doyen}
+\email{david.doyen@u-pem.fr}
+\computeanswer{yes}
+\precision{10000}
+\range{-5..5}
+
+\text{cas=randint(1..1)}
+
+\text{theta=0}
+\while{\theta=0}{
+
+\if{\cas=1}{
+\text{a=randitem(-4,-3,-2,-1,1,2,3,4)}
+\text{b=randitem(-2,-1,1,2)}
+\text{w1=randitem(\a,\a*i,\a+\a*i,\a-\a*i)}
+\text{a=randitem(-4,-3,-2,-1,1,2,3,4)}
+\text{b=randitem(-2,-1,1,2)}
+\text{w2=randitem(\a+\a*i,\a-\a*i)}
+}{
+\text{a=randitem(-4,-3,-2,-1,1,2,3,4)}
+\text{b=randitem(-2,-1,1,2)}
+\text{w1=randitem(\a,\a*i,2*\b+\b*i,2*\b-\b*i,\b+2*\b*i,\b-2*\b*i)}
+\text{a=randitem(-4,-3,-2,-1,1,2,3,4)}
+\text{b=randitem(-2,-1,1,2)}
+\text{w2=randitem(2*\b+\b*i,2*\b-\b*i,\b+2*\b*i,\b-2*\b*i)}
+}
+
+\complex{w0=randitem(-2,-1,1,2)+(randitem(-2,-1,1,2)*i)}
+\complex{w1=(\w0)+(\w1)}
+\complex{w2=(\w0)+(\w2)}
+\complex{q=(\w2-(\w0))/(\w1-(\w0))}
+\text{theta=pari(round(arg(\q)/pi*12)/12)}
+\text{theta=simplify(\theta*pi)}
+}
+
+\text{affixe=\w0,\w1,\w2}
+
+/*** Correspondance quotient, angle ***/
+\text{l=shuffle(A,B,C)}
+\text{NomAngle =\((\overrightarrow{\l[1]\l[2]},\overrightarrow{\l[1]\l[3]})\)}
+
+\text{Quotient=\((z_\l[3]-z_\l[1])/(z_\l[2]-z_\l[1])\),\((z_\l[2]-z_\l[1])/(z_\l[3]-z_\l[1])\),\((z_\l[3]-z_\l[2])/(z_\l[1]-z_\l[2])),\((z_\l[3]-z_\l[1])/(z_\l[1]-z_\l[2])),\((z_\l[1]-z_\l[2])/(z_\l[3]-z_\l[2])),\((z_\l[2]-z_\l[3])/(z_\l[1]-z_\l[3])),\((z_\l[1]-z_\l[3])/(z_\l[2]-z_\l[3])),\((z_\l[2]-z_\l[3])/(z_\l[3]-z_\l[1]))}
+
+/*** Mixage des points, A est représenté par 0, B par 1 et C par 2 ***/
+\integer{nA=position(A,\l)}
+\integer{nB=position(B,\l)}
+\integer{nC=position(C,\l)}
+\integer{nAngle=1}
+
+\steps{reply 1
+reply 2
+reply 3}
+
+
+\statement{
+
+On considère les points \(A), \(B) et \(C) d'affixes respectives : <br>
+<div class="wimscenter"> \(z_A = ) \(\affixe[\nA]\), &nbsp;
+\(z_B = ) \(\affixe[\nB]\), &nbsp; et &nbsp;
+\(z_C = )\( \affixe[\nC]\)</div>
+<i>Cet exercice comprend 3 étapes.</i><br>
+1. On cherche à calculer l'angle \NomAngle[\nAngle]. De quel nombre complexe cet angle est-il un argument ?<br>
+<div class="wimscenter">\embed{reply1}</div>
+\if{\step > 1}{
+	<br>
+	2. Ecrire ce quotient sous la forme \(a+b i\).<br>
+        <div class="wimscenter">\Quotient[\nAngle] = \embed{reply2,8}</div>
+	}
+\if{\step >2}{
+	3. Déterminer une mesure de l'angle \NomAngle (en radians) ? <br>
+        <div class="wimscenter">\embed{reply3,8}</div>
+	}
+}
+
+\answer{}{\nAngle;\Quotient}{type=checkbox}{option=shuffle}
+\answer{}{\q}{type=complex}
+\answer{}{\t}{type=function}
+\real{ok=abs((\theta-\t)/(2*pi)-round((\theta-\t)/(2*pi)))}
+\condition{Bonne réponse}{(\ok<0.0001)}
+\feedback{(\ok>=0.0001)}{Bonne réponse : \(\theta\)}

@@ -1,0 +1,191 @@
+!set title=Infection virale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=Sophie.Lemaire@universite-paris-saclay.fr
+keywords=conditional_probability,modelling
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 70, 99
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, ($val6-1)
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, ($val7-1)
+
+val8=$[rint($(tmp0))]
+val9=$[($val7-$val8)/($val6-$val8)]
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val11=$[rint($(tmp0))]
+val12=$[$val6*$val9/$val7]
+val13=$[(100-$val6)*$val9/(100-$val7)]
+val14=soit, ne soit pas
+tmp0=!item $val10 of $val14
+
+val15=$(tmp0)
+tmp0=!item $val11 of $val14
+
+val16=$(tmp0)
+tmp0=!item 3-$val11 of $val14
+
+val17=$(tmp0)
+val18=I 
+
+!ifval $val3 issametext oui 
+val19= \bar{I}
+!else
+val19=I ^c
+!endif
+!if $val10=1 
+val20=$[$val9]
+!else
+val20=$[1-$val9]
+val18=$val19
+!endif
+!if $val11=1 
+val21=$[$val12]
+val22=$[1-$val13]
+val23=I
+val24=$val19
+!else
+val21=$[1-$val12]
+val22=$[$val13]
+val23=$val19
+val24=I
+!endif
+!if $val3 issametext oui 
+val25=\(P_{I}( S )\), \(P_{\bar{I}}( S )\)
+val26=\(P_{S}( $val23 )\)
+val27=\(P_{\bar{S}}( $val24 )\)
+!else
+val25=\(P( S | I )), \(P( S | I ^c)\)
+val26=\(P( $val23 | S )\)
+val27=\(P( $val24 | S^c )\)
+!endif
+tmp0=!record 1 of notations
+
+tmp1=!record 2 of notations
+
+val28=<ul><li>$(tmp0)</li><li>$(tmp1)</li></ul>
+oefsteps=reply 1	reply 2	reply 3 
+nextstep=!nosubst reply 1	reply 2	reply 3 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Question 1
+replygood1=$[$val20]
+replytype2=numeric
+replyname2=Question 2
+replygood2=$[$val21]
+replytype3=numeric
+replyname3=Question 3
+replygood3=$[$val22]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Dans une population donnée, $val6 % des victimes d'une infection virale présente un symptôme qui	n'atteint que $val8 % de la population non infectée.	On sait de plus que $val7 % de la population présente ce symptôme. 	<div class="wims_question">	<ol>	<li>Quelle est la probabilité qu'un individu choisi au hasard dans cette population $val15 infecté ?	<br>	
+!if $m_step>1 
+$()<div class="oef_indgood"> Bonne réponse,	la probabilité qu'un individu choisi au hasard dans cette population $val15 infecté est $val20.	</div>	</li><li>	 Quelle est la probabilité qu'un individu présentant le symptôme $val16 infecté ? 
+!endif
+$()	
+!if $m_step>2 
+$()<div class="oef_indgood">	Bonne réponse, la probabilité qu'un individu présentant le symptôme,	$val16 infecté  est $val21. </div>	</li><li>	Quelle est la probabilité qu'un individu ne présentant pas le symptôme, $val17 infecté ? 
+!endif
+$()	</li></ol></div>	<div class="wims_instruction"> Ecrire la probabilité en gardant quatre chiffres significatifs. </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><b> Indications pour rédiger : </b>	Notons <span style="color:#000080;font-weigth:bold;">	
+!insmath S
+$() </span> l'événement	<span style="color:#000080;font-style:italic;">	la personne considérée a le symptôme</span>	et <span style="color:#000080;font-weigth:bold;">
+!insmath I
+$()</span> l'événement	<span style="color:#000080;font-style:italic;">la personne considérée est	infectée</span>. On note <span style="color:#000080;font-weigth:bold;">
+!insmath P
+$() </span>	 l'équiprobabilité sur l'ensemble de la population étudiée.	Dans l'énoncé on vous donne les valeurs de <span style="color:#000080;font-weigth:bold;">	$val25 et 
+!insmath P( S )
+$()</span>.	<ol><li>	 On demande de calculer 
+!insmath P( $val18 )
+$().	Une façon d'obtenir une expression de 
+!insmath P( $val18 )
+$() est de décomposer 
+!insmath S
+$() suivant que l'événement	
+!insmath I
+$() est ou n'est pas réalisé,  puis d'utiliser les probabilités conditionnelles. 	
+!if $m_step>1 
+$()	</li><li> On demande de calculer $val26. 
+!endif
+$()	
+!if $m_step>2 
+$()	</li><li> On demande de calculer $val27. 
+!endif
+$()	</li></ol>	<span class="wims_emph">Rappel sur les notations :</span> $val28 
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,15,16,17,18,20,21,25,26,27,28
+embedcnt=0

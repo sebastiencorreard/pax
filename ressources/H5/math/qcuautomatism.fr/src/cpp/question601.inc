@@ -1,0 +1,100 @@
+\title{Question 601 S Lire l'équation d'une fct affine}
+\keywords{quizz,functions,affine_function}
+\observation{Question du sujet zéro sujet-specialite-1.pdf publié sur EDUSCOL en juin 2025 }
+%%% MB %%%%
+%%%%%% graduations
+\text{coeff=shuffle(2,3,5)}
+\integer{anum=\coeff[1]} 
+\integer{aden=\coeff[2]}
+\text{b=\coeff[1]}
+
+\text{signa=randomitem(-1,1)}
+
+\function{f=\signa*\anum/\aden*x+\b}
+%%%%%%%%%%%%%% graphique
+\integer{xmin=-6}
+\integer{xmax=6}
+\integer{ymin=-6}
+\integer{ymax=6}
+
+\text{grad=
+  text black,5.5,0.7,big,x
+  parallel \xmin,-0.3,\xmin,0.3,1,0,12,black
+  text black,-4.9,-0.4,big,-5
+  text black,-3.9,-0.4,big,-4
+  text black,-2.9,-0.4,big,-3
+  text black,-1.9,-0.4,big,-2
+  text black,-0.9,-0.4,big,-1
+  text black,0.1,-0.4,big,0
+  text black,1.1,-0.4,big,1
+  text black,2.1,-0.4,big,2
+  text black,3.1,-0.4,big,3
+  text black,4.1,-0.4,big,4
+  text black,5.1,-0.4,big,5
+  
+  text black,-0.5,5.8,big,y  
+  parallel -0.1,\ymin,0.1,\ymin,0,1,11,black
+  text black,0.3,-0.9,big,-1
+  text black,0.3,-2.2,big,-2
+  text black,0.3,-3.5,big,-3
+  text black,0.3,-4.5,big,-4
+  text black,0.3,-5.5,big,-5
+  text black,0.3,1.5,big,1
+  text black,0.3,2.5,big,2
+  text black,0.3,3.5,big,3
+  text black,0.3,4.5,big,4
+  text black,0.3,5.5,big,5}
+ 
+\text{img=
+range \xmin,\xmax,\ymin,\ymax
+linewidth 1
+  parallel \xmin,\ymin,\xmin,\ymax,1,0,15,grey
+  parallel \xmin,\ymin,\xmax,\ymin,0,1,15,grey
+arrow \xmin,0,\xmax,0,10,black
+arrow 0,\ymin,0,\ymax,10,black
+\grad
+linewidth 2
+  plot red,\f}
+%% image statement %%%%
+\text{imgstat0=draw(300,300
+\img)}
+
+\text{fred=\signa=-1?\(\mathcal{y}=-\frac{\anum}{\aden}\mathcal{x}+\b\):\(\mathcal{y}=\frac{\anum}{\aden}\mathcal{x}+\b\)}
+%%%% form cartes on met le x d'abord
+\integer{c=\signa*\b*\aden}
+\integer{cbis=-\c}
+\text{ctxt=\c<0?+\cbis:-\c}
+\text{ctxt1=\c<0?-\cbis:+\c}
+
+\text{fcart1=\signa=-1?\(\anum \mathcal{x}+\aden \mathcal{y} \ctxt1=0\):\(\anum \mathcal{x}-\aden \mathcal{y} \ctxt1=0\)} %%%% ax+by+c=0
+\text{fcart2=\signa=-1?\(\frac{\mathcal{x}}{\aden}+\frac{\mathcal{y}}{\anum} +1=0\):\(\frac{\mathcal{x}}{\aden}-\frac{\mathcal{y}}{\anum} +1=0\)} %%%% ax+by+c=0
+\integer{cas=randomitem(1,2,2,3,3,3)} %%%% 1: red, 2: ax+by+c=0 %%%% 3: x/a+y/b+c=0
+\if{\cas=1}{
+  \text{good=\fred}
+  \text{bad1=\signa=-1?\(\mathcal{y}=-\frac{\aden}{\anum}\mathcal{x}+\b\):\(\mathcal{y}=\frac{\aden}{\anum}\mathcal{x}+\b\)} 1 fx fausse
+  \text{bad2=\signa=1?\(\aden \mathcal{x}+\anum \mathcal{y} \ctxt=0\):\(\aden \mathcal{x}-\anum \mathcal{y} \ctxt=0\)} %%%% ax+by+c=0
+  \text{bad3=\signa=1?\(\frac{\mathcal{x}}{\anum}+\frac{\mathcal{y}}{\aden} -1=0\):\(\frac{\mathcal{x}}{\anum}-\frac{\mathcal{y}}{\aden} -1=0\)}
+  }
+\if{\cas=2}{
+   \text{good=\fcart1}
+   \text{bad1=\signa=1?\(\mathcal{y}=-\frac{\anum}{\aden}\mathcal{x}+\b\):\(\mathcal{y}=\frac{\anum}{\aden}\mathcal{x}+\b\)} red sans bon signe
+   \text{bad2=\signa=-1?\(\mathcal{y}=-\frac{\aden}{\anum}\mathcal{x}+\b\):\(\mathcal{y}=\frac{\aden}{\anum}\mathcal{x}+\b\)} red sans bons coeff
+   \text{bad3=\signa=1?\(\frac{\mathcal{x}}{\anum}+\frac{\mathcal{y}}{\aden} -1=0\):\(\frac{\mathcal{x}}{\anum}-\frac{\mathcal{y}}{\aden} -1=0\)}
+   }
+\if{\cas=3}{
+   \text{good=\fcart2}
+   \text{bad1=\signa=1?\(\mathcal{y}=-\frac{\anum}{\aden}\mathcal{x}+\b\):\(\mathcal{y}=\frac{\anum}{\aden}\mathcal{x}+\b\)} red sans bon signe
+   \text{bad2=\signa=-1?\(\mathcal{y}=-\frac{\aden}{\anum}\mathcal{x}+\b\):\(\mathcal{y}=\frac{\aden}{\anum}\mathcal{x}+\b\)} red sans bons coeff
+   \text{bad3=\signa=1?\(\aden \mathcal{x}+\anum \mathcal{y} \ctxt=0\):\(\aden \mathcal{x}-\anum \mathcal{y} \ctxt=0\)} %%%% ax+by+c=0
+   }
+\text{bads=\bad1,\bad2,\bad3}
+\text{enonce=On a représenté ci-dessous une droite \(\mathcal{D}\) dans un repère orthonormé. <div class="wimscenter"><img src="\imgstat0" alt=""></div>Une équation de la droite \(\mathcal{D}\) est&nbsp;&#58;}
+\text{croissance=\signa=-1?décroissante:croissante}
+\text{mot1=\signa=-1?négatif:positif}
+\integer{anums=\signa*\anum}
+\integer{x_0=\signa=1?-\b*\aden/\anum:\b*\aden/\anum }
+\integer{y_0=0}
+\integer{u_x=\aden}
+\integer{u_y=\signa*\anum}
+
+\text{feedback=La bonne réponse était \good. <br> On peut lire sur le graphique les informations suivantes&nbsp;&#58; <ul><li>La fonction affine associée est \croissance ce qui signifie que le coefficient directeur est \mot1.</li><li>La droite passe par le point de coordonnées \(\left(0 &#59; \b\right)\) l'ordonnée à l'origine est donc égal à \b .</li><li>Un vecteur directeur de la droite a pour coordonnées \(\left(\u_x &#59; \u_y \right)\)</li><li> La droite passe par le point de coordonnées <span class="nowrap">\(\left(\x_0 &#59; \y_0 \right)\).</span></li></ul><b>Avec toutes ces informations</b> on peut soit calculer l'équation réduite soit l'équation cartésienne&#44; soit vérifier si les coordonnées de ces deux points vérifient les équations données.}

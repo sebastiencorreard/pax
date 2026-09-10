@@ -1,0 +1,245 @@
+!set title=Arbre de probabilités
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Voici un arbre de probabilité
+val7=qu'il s'agit de compléter&nbsp;
+val8=2
+val9=3
+
+!ifval $val2= 
+tmp0=!randint 2, 3
+
+val8=$[rint( $(tmp0))]
+!else
+val8=$[rint($val2+1)]
+!endif
+val10=*
+tmp=!nonempty items 10,25,20,50
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+val12=$[rint(($val8^($val9)-1)/($val8-1)-1)]
+tmp0=!makelist 1/$val8 for x=1 to $val8-1
+
+val13=$(tmp0)
+!readproc slib/stat/multinomial $val12,$val11,[$val13] 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!lines2items $val14
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in 1.*[$val15]/$val11
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+tmp0=!values x/$val11 for x=0 to $val11
+
+val16=$val15,$(tmp0)
+!readproc slib/graph/randtree $val12,$val8,$val9,[$val10], middle perfect point 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!declosing $(val17[1])
+
+val18=$(tmp0)
+val19=$(val17[3])
+val20=$(val17[4])
+tmp0=!declosing $val19
+
+tmp=!trim $(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val20
+
+tmp=!trim $(tmp0)
+val20=!translate internal $	\
+$ to ;; in $tmp
+val21=$(val17[2])
+tmp0=!declosing $val21
+
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in $val21
+
+tmp0=!rowcnt $tmp
+val22=$(tmp0)
+tmp=!translate internal $	$ to ; in $val20
+
+tmp0=!rowcnt $tmp
+val23=$[rint($(tmp0))]
+tmp=!trim $val21 
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val18
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val24=$(tmp0)
+tmp0=!replace internal xrange by in $val24
+
+val24=$(tmp0)
+tmp=!translate internal $	$ to ; in $val18
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val25=$(tmp0)
+tmp0=!replace internal yrange by in $val25
+
+val25=$(tmp0)
+val26=
+val27=10
+val28=$[rint(($val23-1)/$val8)]
+!readproc slib/stat/random $val28, 1,$val8 
+tmp0=$slib_out
+val29=$(tmp0)
+val30=$[rint(1+$(val29[1]))]
+!for val31 =2 to $val28 
+val32=$[rint(1+($val31-1)*$val8 +$(val29[$val31]))]
+val30=$val30,$val32
+!next
+tmp0=!makelist r x for x = 1 to $val28
+
+val33=$(tmp0)
+val34=0
+tmp0=!nospace $val33
+
+val33=$(tmp0)
+val35=
+val26=
+!for val36 =2 to $val23 
+val37=$[$(val20[$val36;1])]
+val38=$[$(val20[$val36;2])]
+val39=$[$(val15[$val36-1])]
+!if $val36 isitemof $val30 
+!readproc slib/draw/convpixel $val37-0.8,$val38,800,250,$val24,$val25,10,pixels 
+tmp0=$slib_out
+val40=$(tmp0)
+val34=$val34+1
+tmp=!trim $val26	   $(val33[$val34]), $(val40[1]) x $(val40[2])
+val26=!translate internal $	\
+$ to ;; in $tmp
+val35=$val35,$val39
+!else
+val18=$val18	  text black,$val37-0.8,$val38+0.1,medium,$val39
+!endif
+!next
+tmp0=!nonempty items $val35
+
+val35=$(tmp0)
+!readproc oef/draw.phtml 800,250 \
+$val18 
+tmp0=$ins_url
+val41=$(tmp0)
+oefsteps=$val33 
+nextstep=!nosubst $val33 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=
+replygood1=$(val35[1]);$val16,$val15
+replytype2=clickfill
+replyname2=
+replygood2=$(val35[2])
+replytype3=clickfill
+replyname3=
+replygood3=$(val35[3])
+replytype4=clickfill
+replyname4=
+replygood4=$(val35[4])
+replytype5=clickfill
+replyname5=
+replygood5=$(val35[5])
+replytype6=clickfill
+replyname6=
+replygood6=$(val35[6])
+replytype7=clickfill
+replyname7=
+replygood7=$(val35[7])
+replytype8=clickfill
+replyname8=
+replygood8=$(val35[8])
+replytype9=clickfill
+replyname9=
+replygood9=$(val35[10])
+replytype10=clickfill
+replyname10=
+replygood10=$(val35[11])
+replytype11=clickfill
+replyname11=
+replygood11=$(val35[12])
+replytype12=clickfill
+replyname12=
+replygood12=$(val35[13])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   $val6		   $val7:		<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val41,800 x 250,40x20	$val26	 
+$()	</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,26,41
+embedcnt=1

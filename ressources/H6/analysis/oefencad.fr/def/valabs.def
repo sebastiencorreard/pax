@@ -1,0 +1,143 @@
+!set title=Encadrement de |x| 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Noémie,Cochi;Olivier,Dupuy
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=6
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=et
+val7=Le type d'inégalités est imposé, on ne cherche pas à savoir si les bornes	  sont atteintes.
+val8=Trouvez le meilleur encadrement de
+val9=Soit \(x\) un réel vérifiant
+val10=Votre encadrement n'a pas de sens car
+val11=Votre encadrement n'est pas correct :	  par exemple \(0) n'est pas compris entre
+val12=La valeur absolue d'un nombre est toujours positive.
+val13=Quelles sont les variations de la fonction valeur absolue sur	  les nombres positifs
+val14=Quelles sont les variations de la fonction valeur absolue	  sur les nombres négatifs
+val15=Regardez la représentation graphique de la fonction valeur absolue.	  Est-elle monotone sur
+tmp0=!randint 1, 9
+
+tmp1=!randitem -1,1,-1,-1
+
+val16=$[$(tmp0)*$(tmp1)]
+tmp0=!randint $val16+1, 20
+
+val17=$[$(tmp0)]
+val18=$[min(abs($val16),abs($val17))]
+val19=$[max(abs($val16),abs($val17))]
+
+!ifval $val16<0 and $val17>0 
+val18=$[ 0]
+!endif
+val20=$[min(-$val16,$val17)]
+val21=$[max(-$val16,$val17)]
+replytype1=numeric
+replyname1=
+replygood1=$[$val18]
+replytype2=numeric
+replyname2=
+replygood2=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val9 
+!insmath $val16 \leq x \leq $val17
+$().	  <label for="reply1">$val8 
+!insmath abs(x)
+$()&nbsp;:</label>	  <div class="wimscenter"> 
+!read oef/embed.phtml r1,3 
+$()	    <label for="reply2">
+!insmath  \leq | x | \leq \; 
+$()</label>  
+!read oef/embed.phtml r2,3 
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_reply1> $m_reply2 )
+ <div class='oef_feedbacks'>$val10 $m_reply1 > $m_reply2.
+$()</div>
+!endif
+!ifval ($m_reply1=$val20 and $m_reply2=$val21 ) and ($val16<0 and $val17>0)
+ <div class='oef_feedbacks'>$val11 $val20 $val6 $val21.
+$()</div>
+!endif
+!ifval ($m_reply1=$val16 and $m_reply2=$val17 ) and $val16<0 and $val17<=0
+ <div class='oef_feedbacks'>$val12
+$()</div>
+!endif
+!ifval ($m_reply1<>$val18 or $m_reply2<>$val19 ) and $val16>0 and $val17>0
+ <div class='oef_feedbacks'>$val13?
+$()</div>
+!endif
+!ifval ($m_reply1<>$val18 and $m_reply2<>$val19 ) and $val16<0 and $val17<=0
+ <div class='oef_feedbacks'>$val14?
+$()</div>
+!endif
+!ifval ($m_reply1<>$val18 or $m_reply2<>$val19 ) and $val16<0 and $val17>0
+ <div class='oef_feedbacks'>$val15 [$val16,$val17] ?
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,12,13,14,15,16,17,18,19,20,21
+embedcnt=2

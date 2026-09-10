@@ -1,0 +1,135 @@
+!set title=Conversions 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Convertir&nbsp;
+val8=\(\mathrm{m}^3),\(\mathrm{dm}^3),\(\mathrm{cm}^3),\(\mathrm{mm}^3)
+val9=\(\mathrm{hL}),\(\mathrm{daL}),\(\mathrm{L}),\(\mathrm{dL}),\(\mathrm{cL}),\(\mathrm{mL})
+tmp0=!randint 1, 3
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 4-$val10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1111, 9999
+
+val12=$[rint($(tmp0))]
+val12=$[floor($val12/10^($val10-1))/10^$val11]
+tmp0=!randint 1, 3
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 4-$val13
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1111, 9999
+
+val15=$[rint($(tmp0))]
+val15=$[floor($val15/10^($val13-1))/10^$val14]
+tmp0=!randint 1, 3
+
+val16=$[rint($(tmp0))]
+!if $val16=1 
+tmp0=!randint 1, 6
+
+val17=$[rint($(tmp0))]
+!else
+tmp0=!randint ($val16-1)*3, 6
+
+val17=$[rint($(tmp0))]
+!endif
+tmp0=!randint 1, 3
+
+val18=$[rint($(tmp0))]
+!if $val18=1 
+tmp0=!randint 1, 6
+
+val19=$[rint($(tmp0))]
+!else
+tmp0=!randint ($val18-1)*3, 6
+
+val19=$[rint($(tmp0))]
+!endif
+val20=$[$val12*10^($val17-3*($val16-1))]
+val21=$[$val15*10^($val19-3*($val18-1))]
+replytype1=numeric
+replyname1=
+replygood1=$[$val20]
+replytype2=numeric
+replyname2=
+replygood2=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<ul><li><label for="reply1">$val12 $(val8[$val16]) =</label>  
+!read oef/embed.phtml r1,10 
+$() $(val9[$val17])	</li><li><label for="reply2">$val15 $(val8[$val18]) =</label>  
+!read oef/embed.phtml r2,10 
+$() $(val9[$val19])	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,12,15,16,17,18,19
+embedcnt=2

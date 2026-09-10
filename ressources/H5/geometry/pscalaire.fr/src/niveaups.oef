@@ -1,0 +1,208 @@
+\title{Produit scalaire et ensemble de points*}
+\observation{utilisation d'un produit scalaire pour déterminer des ensembles de points}
+\language{fr}
+\author{René, Chaffard}
+\email{chafrene@club-internet.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+\range{-5..5}
+\text{choix=randitem(\confparm1)}
+\text{choix= \choix iswordof 1 2 3 4 5 ? \choix: randint(1..5)}
+
+\integer{a=randint(2..8)}
+\integer{a=\choix=2 ? randint(2..6)}
+   la distance AB
+
+\text{objet5=\choix = 5 ? un cercle de diamètre sur \((A B))}
+\text{objet5=\choix <> 5 ? un cercle de centre autre que \(I)}
+\text{yrange=-\a-2,\a+2}
+\text{xrange=-\a-2,\a+2}
+
+\text{rotation=randitem(0,20,30,60,90,120)}
+\text{dessin=animate 25,0.2,0
+xrange \xrange
+yrange \yrange
+rotate \rotation
+text black, -\a/2,0,medium, A
+text black, \a/2, 0,medium, B
+segment \xrange[1],0,\xrange[2],0,black
+linewidth 2
+segment -\a/2,0,\a/2,0,blue
+disk -\a/2,0,5,blue
+disk \a/2,0,5,blue
+linewidth 1
+}
+
+
+\text{listeobjet=l'ensemble vide,une droite perpendiculaire à \((A B)),une droite parallèle à (A B),un cercle de centre \( I),le seul point \( I),\objet5}
+
+   la liste proposée est commune à tous les exos
+   sauf le objet5 qui est soit un cercle de centre autre que I
+                          soit un cercle de diamètre sur (A B)
+
+
+   Exo type1 : v(AM).v(AB) = cte
+\if{\choix=1}{
+ \integer{c=randint(-4..4)}
+ \text{bforme=2}
+ \text{k=simplify(\c/(\a^2))}
+ \text{k1=\k}
+   pour préciser la position du point d'intersection avec (AB)
+ \text{STEPS=reply1
+reply2}
+ \text{enonce=\(\special{color=green} \overrightarrow{A M} \cdot \overrightarrow{A B} = \c )}
+ \text{b=\yrange[1]+s*(\yrange[2]-\yrange[1])}
+ \text{dessin=\dessin
+ segment \k*\a-\a/2,\yrange[1],\k*\a-\a/2,\yrange[2], green
+ text red, \k*\a-\a/2,\b, medium, M
+ dsegment -\a/2,0,\k*\a-\a/2,\b,red
+ }
+}
+
+   Exo type 2 : v(AM).v(BM) = cte
+\if{\choix=2}{
+ \integer{c=randint(-6..6)}
+ \integer{r2=(4*\c+\a^2)}
+ \text{rayon=\r2>0 ? simplify(sqrt(\r2)/2)}
+ \text{k1=\rayon}
+ \if {\r2>0}{\text{bforme=4}}{\text{bforme=\r2<0 ? 1 : 5}}
+   la bonne forme est définie
+   le nombre de questions
+ \text{STEPS=reply 1}
+ \text{STEPS=\r2>0 ? \STEPS
+ reply 2}
+ \text{enonce=\( \special{color=green}\overrightarrow{A M} \cdot \overrightarrow{B M} = \c )}
+
+ \text{dessin=\dessin
+ trange 0,2*pi
+ plot red, \rayon*cos(t),\rayon*sin(t)
+ text red , \rayon*cos(2*pi*s),\rayon*sin(2*pi*s),medium,M
+ dpolyline red, -\a/2,0,\rayon*cos(2*pi*s),\rayon*sin(2*pi*s),\a/2,0
+}
+}
+
+   Exo type 3 : MA^2+MB^2 = cte
+\if{\choix=3}{
+ \integer{c=randint(0..20)}
+ \integer{r2=(2*\c-\a^2)}
+   4*rayon^2
+ \text{rayon=\r2>0 ? simplify(sqrt(\r2)/2)}
+ \text{k1=\rayon}
+ \if {\r2>0} {\text{bforme=4}}
+            {\if {\r2<0} {\text{bforme=1}}
+                         {\text{bforme=5}}}
+   la bonne réponse est définie
+
+   le nombre de questions à poser est défini
+ \text{STEPS=reply 1}
+ \text{STEPS=\r2>0 ? \STEPS
+ reply 2}
+ \text{enonce=\( A M^2 + B M^2 = \c )}
+ \text{dessin=\dessin
+ trange 0,2*pi
+ plot red, \rayon*cos(t),\rayon*sin(t)
+ text red , \rayon*cos(2*pi*s),\rayon*sin(2*pi*s),medium,M
+ dpolyline red, -\a/2,0,\rayon*cos(2*pi*s),\rayon*sin(2*pi*s),\a/2,0
+}
+
+ }
+
+   Exo type 4 : MA^2 - MB^2 = cte
+\if{\choix=4}{
+ \integer{c=randint(-4..4)}
+ \text{bforme= 2}
+ \text{k1=simplify((\c+\a^2)/(2*\a^2))}
+ \text{STEPS= reply 1
+reply 2}
+ \text{enonce= \(A M^2 - B M^2 = \c)}
+ \text{b=\yrange[1]+s*(\yrange[2]-\yrange[1])}
+  \text{dessin=\dessin
+ segment \k1*\a-\a/2,\yrange[1],\k1*\a-\a/2,\yrange[2], green
+ text red, \k1*\a-\a/2,\b, medium, M
+ dpolyline -\a/2,0,\k1*\a-\a/2,\b,red
+ }
+
+}
+
+   Exo type 5 : MA = k MB
+\if{\choix=5}{
+ \integer{c=randint(2..4)}
+   la constante
+   elle est strictement positive pour éviter un pb sans intérêt
+   elle est différente de 1 pour éviter un pb trop simple
+   prolongement envisageable avec deux constantes
+
+ \text{bforme= 6}
+ \text{k1=simplify(\c/(\c+1))}
+ \text{k2=simplify(\c/(\c-1))}
+   pour préciser les positions des extrémités du diamètre sur (AB)
+ \text{STEPS= reply 1
+reply 2, reply 3}
+ \text{enonce= \( A M = \c B M )}
+ \real{H=-\a/2+\k1*\a}
+ \real{K=-\a/2+\k2*\a}
+ \real{rayon=(\K-(\H))/2}
+ \real{centre=(\H+\K)/2}
+ \text{dessin=\dessin
+ trange 0,2*pi
+ plot red, \centre+(\rayon*cos(t)),\rayon*sin(t)
+ text red , \centre+\rayon*cos(2*pi*s),\rayon*sin(2*pi*s),medium,M
+ dpolyline red, -\a/2,0,\centre+\rayon*cos(2*pi*s),\rayon*sin(2*pi*s),\a/2,0
+}
+}
+\steps{\STEPS}
+
+\text{baratin=\choix =4 or \choix=1 ? \(k)}
+\text{baratin=\choix =2 or \choix=3 ? Rayon}
+\text{baratin=\choix =5? \(k_1)}
+ étape 1 : nature de l'ensemble
+ étape 2 : éléments géométriques
+
+\statement{
+On considère deux points \(A) et \(B) du plan tels que \(A B) = \a.
+Le milieu de \([A B]) est noté \(I).
+Déterminer l'ensemble des points \(M) tels que :
+<p class="wimscenter" style="color:green">\enonce.</p>
+<br>
+\if{\step=1}
+ {Déterminons tout d'abord la nature de l'ensemble cherché.
+ C'est
+ <ul>
+ <li> \embed{reply1,1}</li>
+ <li> \embed{reply1,2}</li>
+ <li> \embed{reply1,3}</li>
+ <li> \embed{reply1,4}</li>
+ <li> \embed{reply1,5}</li>
+ <li> \embed{reply1,6}</li>
+ </ul>
+ }
+\if {\step=2 and \choix=1}
+ {Soit \(H) le point d'intersection de la droite cherchée avec \((A B)).<br>
+  On a alors <p class="wimscenter">\( \overrightarrow{A H} = k \overrightarrow{A B} )</p>
+  Déterminons \(k).
+ }
+\if {\step=2 and \n=2 and \choix=2} {Déterminons le rayon}
+\if {\step=2 and \choix=5}
+ {Un diamètre étant sur \((A B)), on note \(H) et \(K) les extrémités de ce diamètre.
+ On a alors <p class="wimscenter"> \( \overrightarrow{A H} = k_1 \overrightarrow{A B} ) et \( \overrightarrow{A K} = k_2 \overrightarrow{A B} ).</p>
+  Déterminons \( k_1) et \(k_2 ) où \( k_1 < k_2 ).
+ }
+\if {\step=2 and \choix=4}
+ {Soit \(H) le point d'intersection de la droite cherchée avec \((A B)).
+ On a alors <p class="wimscenter"> \( \overrightarrow{A H} = k \overrightarrow{A B} ) .</p>
+  Déterminons \(k).
+ }
+
+\if {\step=2 and \n=2 and \choix=3} {Déterminons le rayon du cercle.
+  <div class="wims_instruction">
+   On pourra utiliser éventuellement la fonction sqrt,
+   sqrt(2) = \( \sqrt{2}\).</div>}
+}
+
+\answer{Nature}{\bforme;\listeobjet}{type=radio}
+\answer{\baratin}{\k1}{type=formal}
+\answer{\( k_2 )}{\k2}{type=formal}
+
+\feedback{1=1}{
+<div class="wimscenter">\draw{200,200}{\dessin}</div>}

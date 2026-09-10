@@ -1,0 +1,226 @@
+!set title=Diviseur premier de deux entiers
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bruno.mifsud@laposte.net
+
+ansorder=r
+varcnt=32
+prevarcnt=26
+postvarcnt=5
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem 1,2
+
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!random 8, 20
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+val6=$[rint($val3)]
+
+!ifval $val2=1 
+val7=$[rint( 30-$val6 )]
+!else
+val7=$[rint(100-$val6)]
+!endif
+val8=<b>Définition :</b> On appelle nombre premier tout entier positif qui admet exactement deux diviseurs positifs : 1 et lui-même.	<br/>Exemple : 5 est un nombre premier	<br/>Contre exemple : 6 n'est pas un nombre premier.	Il est divisible à la fois par 1, 2, 3 et 6.	
+val9=Pensez aux critères de divisibilité par 2, 3 et 5 et essayez	  de diviser XXXX par un de ces nombres premiers.
+tmp0=!randint 1, $val7
+
+val10=$(tmp0)
+tmp0=!randint 6, $val7
+
+val10=$(tmp0)
+val11=$[rint($val10+$val6-1)]
+tmp0=!makelist x for x=$val10 to $val11
+
+val12=$(tmp0)
+tmp0=!itemcnt $val12
+
+val13=$[rint($(tmp0))]
+val14=
+!for val15 =1 to $val13 
+t_=!replace internal \( by ( in t=$(val12[$val15]); isprime(t)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1 
+tmp1=!append item $val15 to $val14
+
+val14= $(tmp1)
+!endif
+!next
+tmp0=!itemcnt $val14
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, $val16
+
+val17=$[rint($(tmp0))]
+val18=$[rint($(val14[$val17]))]
+tmp0=!randitem 2,3,5
+
+val19=$[rint($(tmp0))]
+val20=$[rint($(val12[$val18])*$val19)]
+tmp0=!randitem 2,3,5
+
+val21=$[rint($(tmp0))]
+!if $val19=$val21 
+val19=$[rint(2)]
+tmp0=!randitem 3,5
+
+val21=$[rint($(tmp0))]
+!endif
+val20=$[rint($(val12[$val18])*$val19)]
+val22=$[rint($(val12[$val18])*$val21)]
+val14=$val18
+val23=Cliquez sur le nombre premier de la liste suivante qui divise	  le nombre $val20 et le nombre $val22.
+replytype1=mark
+replyname1=
+replygood1=$val14;$val12
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val8
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val23	<div class="wimscenter">	 
+!for m_k=1 to $val13 
+$() 
+!read oef/embed.phtml r1,\k 
+$() ;  
+!next
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val8
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val24=$m_reply1
+t_=!replace internal \( by ( in isprime($val24)
+tmp0=!exec pari $t_
+
+val25=$(tmp0)
+
+!ifval $val20%$val24=0
+val26= 1
+!else
+val26=0
+!endif
+
+!ifval $val22%$val24=0
+val27= 1
+!else
+val27=0
+!endif
+tmp0=!replace internal XXXX by $val20 et $val22 in $val9
+
+val9=$(tmp0)
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	
+!if $m_sc_reply1<1 
+$()	  
+!if $val25==0 
+$()	    L'entier $val24 n'est pas un nombre premier.	   
+!endif
+$()	  
+!if $val26==0 
+$()	    Le nombre entier $val20 n'est pas divisible par $val24.	   
+!endif
+$()	  
+!if $val27==0 
+$()	    Le nombre entier $val22 n'est pas divisible par $val24.	   
+!endif
+$()	  Par contre, 
+!else
+$()	   En effet 
+!endif
+$()	  <div class="wimscenter"> 
+!insmath $val20={\special{color=red}{$(val12[$val18])}} \times $val19
+$()</div>	  <div class="wimscenter"> 
+!insmath $val22={\special{color=red}{$(val12[$val18])}} \times $val21
+$()</div>	  et $(val12[$val18]) est premier et divise à la fois $val20 et $val22.	
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>	<p>$val9</p>	<div class="wims_msg info">	
+!if $val2=1 
+$()Pour rappel, voici la liste des nombres premiers plus petits que 30 :	<br />2 ; 3 ; 5 ; 7 ; 11 ; 13 ; 17 ; 19 ; 23 ; 29  
+!else
+$()	 Pour rappel, voici la liste des nombres premiers plus petits que 100 :	<br />2 ; 3 ; 5 ; 7 ; 11 ; 13 ; 17 ; 19 ; 23 ; 29	<br />31 ; 37 ; 41 ; 43 ; 47 ; 53 ; 59	<br /> 61 ; 67 ; 71 ; 73 ; 79 ; 83 ; 89 ; 97	 
+!endif
+$()	
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>	<div class="wims_msg info">	$val8	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,8,9,12,13,18,19,20,21,22,23
+embedcnt=1

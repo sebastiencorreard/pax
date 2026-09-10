@@ -1,0 +1,157 @@
+!set title=Quelle formule de somme (1) ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+
+!ifval $val6=1
+val7= 
+!else
+val7= pour cent
+!endif
+
+!ifval $val6=1
+val8= lui ajoutant 
+!else
+val8= l'augmentant de
+!endif
+tmp0=!randint 10, 80
+
+val9=$[$(tmp0)]
+val10=$[1+0.01*$val9]
+tmp0=!randitem 0,1
+
+val11=$[rint($(tmp0))]
+val12=\(u_0),\(u_1)
+
+!ifval $val11>1
+val12=$val12,\(u_$val11)
+!endif
+tmp0=!randint 10, 30
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val13-1)]
+val15=$[rint($val13+1)]
+val16=$[rint($val11+1)]
+val17=$[rint($val13-$val11+1)]
+val18=$[rint($val13-$val11)]
+
+!ifval $val6=2 and $val11=0
+val19=\(u_0),\(\times),\(\frac{1-$val10^{$val15}}{1-$val10})|\(\frac{1-$val10^{$val15}}{1-$val10}),\(\times),\(u_0) 
+!endif
+
+!ifval $val6=2 and $val11=1
+val19=\(u_1),\(\times),\(\frac{1-$val10^{$val13}}{1-$val10})|\(\frac{1-$val10^{$val13}}{1-$val10}),\(\times),\(u_1) 
+!endif
+
+!ifval $val6=1 and $val11=0
+val19=$val15,\(\times),\(\frac{u_0+u_{$val13}}{2})|\(\frac{u_0+u_{$val13}}{2}),\(\times),$val15
+!endif
+
+!ifval $val6=1 and $val11=1
+val19=$val13,\(\times),\(\frac{u_1+u_{$val13}}{2})|\(\frac{u_1+u_{$val13}}{2}),\(\times),$val13
+!endif
+val20=\(u_0),\(u_1),\(u_$val11),\(u_$val16),+,-,\(\times),\(\frac{1-$val10^{$val15}}{1-$val10}),\(\frac{1-$val10^{$val13}}{1-$val10}),\(\frac{1-$val10^{$val18}}{1-$val10}),	\(\frac{1-$val10^{$val17}}{1-$val10}),$val15,$val14,$val18,$val17,$val16,\(\frac{u_0+u_{$val13}}{2}),\(\frac{u_1+u_{$val13}}{2}),\(\frac{u_$val11+u_{$val13}}{2}),	\(\frac{u_0+u_{$val17}}{2}),\(\frac{u_$val16+u_{$val13}}{2})	
+val21=$val19;$val20
+replytype1=integer
+
+replyname1=
+replygood1=$val17
+replytype2=menu
+replyname2=
+replygood2=$val6;arithmérique,géométrique
+replytype3=clickfill
+replyname3=
+replygood3=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="background-color:#FFFF66">	<p><font color=blue>	On  considère une  suite 
+!insmath (u_n)
+$() dans laquelle chaque terme s'obtient à partir du terme précédent	en $val8  $val9 $val7 .		<br>	On veut calculer la somme de termes successifs 
+!insmath S = u_$val11 + u_{$val16} + ... + u_{$val13}
+$().	</font>	</p>		<ol>	<li> 
+!insmath S
+$() est la somme de   
+!read oef/embed.phtml reply1,5 
+$() termes consécutifs d'une suite  
+!read oef/embed.phtml reply2 
+$().</li>	<li> Quelle formule permet de calculer la somme 
+!insmath S
+$() ?	   <center>
+!insmath S
+$() =   
+!read oef/embed.phtml reply3,90x60x3 
+$()</center>	</li>	</ol>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,13,16
+embedcnt=3

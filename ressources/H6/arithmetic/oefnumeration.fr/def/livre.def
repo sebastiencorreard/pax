@@ -1,0 +1,132 @@
+!set title=Pagination d'un livre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_it=Impaginazione di un libro
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=9,189,2889
+tmp0=!itemcnt $val6
+
+val7=$(tmp0)
+tmp0=!randint 2, $val7
+
+val8=$(tmp0)
+tmp0=!randint 10^($val8), min(3000,10^($val8+1)-1)
+
+val9=$[rint($(tmp0))]
+val10=$[rint($(val6[$val8]) + ($val8+1)*($val9 -10^($val8)))]
+tmp0=!randitem 1,2
+
+val11=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val12=$(tmp0)
+val13=On effectue la pagination d'un livre et on compte le nombre de caractères utilisés.
+tmp=!trim Le livre a $val9 pages. Combien utilise-t-on de caractères pour numéroter les pages	On a utilisé $val10 caractères pour numéroter les pages. Combien le livre a-t-il de pages
+val14=!translate internal $	\
+$ to ;; in $tmp
+val15=caractères
+val16=pages
+val17=Nombre de
+!if $val12=it 
+val13=Impaginiamo un libro e contiamo il numero di cifre utlizzate.
+tmp=!trim Il libro ha $val9 pagine. Quanti caratteri sono stati utilizzati per scrivere i numeri di pagina	Abbiamo utilizzato $val10 caratteri per scrivere i nuemri di pagina. Quante pagine ha il libro
+val14=!translate internal $	\
+$ to ;; in $tmp
+val15=caratteri
+val16=pagine
+val17=Numero di
+!endif
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row $val11 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+
+!ifval $val11=1 
+val19= $val10 
+!else
+val19= $val9
+!endif
+
+!ifval $val11=1 
+val20= $val15
+!else
+val20= $val16
+!endif
+replyname1=$val17 $val20
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val13	<div class="spacer">	$val18 ?	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,18
+embedcnt=0

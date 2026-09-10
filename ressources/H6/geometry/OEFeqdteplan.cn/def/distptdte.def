@@ -1,0 +1,200 @@
+!set title=点到直线的距离
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+author=R間ine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+precision=100
+
+ansorder=r,r,r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(3)]
+val7=$[rint(40)]
+val8=$[rint(10)]
+tmp0=!shuffle $val7
+
+val9=$(tmp0)
+tmp0=!randitem 1,-1
+
+val10=$[rint($(val9[1])*$(tmp0))]
+tmp0=!randitem 1,-1
+
+val11=$[rint($(val9[2])*$(tmp0))]
+tmp0=!randitem 1,-1
+
+val12=$[rint($(val9[3])*$(tmp0))]
+tmp0=!shuffle $val8
+
+val13=$(tmp0)
+tmp0=!randitem 1,-1
+
+val14=$[rint($(val13[1])*$(tmp0))]
+tmp0=!randitem 1,-1
+
+val15=$[rint($(val13[2])*$(tmp0))]
+tmp0=!randitem 1,2,5
+
+tmp1=!randitem 1,-1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+val17=$[rint($val10+$val14)]
+val18=$[rint($val11+$val15)]
+val19=$[rint($val12+$val16)]
+tmp0=!randitem 2,3,1/2,3/2,1/4,3/4
+
+tmp1=!randitem 1,-1
+
+val20=$[rint($(tmp0)*$(tmp1))]
+val21=$[$val10+$val20*$val14]
+val22=$[$val11+$val20*$val15]
+val23=$[$val12+$val20*$val16]
+val24=$[$val14*$val21 + $val15*$val22 + $val16*$val23]
+val25=$val14*x + $val15*y + $val16*z - $val24=0
+tmp0=!randint -$val8, $val8
+
+val26=$[rint($(tmp0))]
+tmp0=!randint -$val8, $val8
+
+val27=$[rint($(tmp0))]
+val28=$[($val24 - $val14*$val26 - $val15*$val27)/ ($val16)]
+val29=$[rint($val14*($val26) + $val15*($val27) + $val16*($val28))]
+tmp=!trim $val21,$val22,$val23
+val30=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in sqrt\(($val26-($val21))^2+($val27-($val22))^2+($val28-($val23))^2)
+tmp0=!exec pari $t_
+
+val31=$[$(tmp0)]
+oefsteps=r1	r2	r3 
+nextstep=!nosubst r1	r2	r3 
+!readproc oef/steps.proc
+replytype1=equation
+replyname1=平面 \((Q)) 的方程
+replygood1=!rawmath $val25
+replytype2=vector
+replyname2=交点
+replygood2=$val30
+replyname3=距离
+replygood3=$val31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()在 
+!insmath RR^$val6
+$() 内,	欲计算点 <font color=red>
+!insmath P($val26 , $val27 , $val28)
+$() </font> 与以下两点确定的直线的距离:	 <p><center>	 <font color=blue>
+!insmath A($val10 , $val11 , $val12)
+$()</font> 和 <font color=blue>
+!insmath B($val17 , $val18 , $val19)
+$()</font>.	 </center>	 
+!if $m_step=1 
+$()	<p>	为此, 确定通过点 
+!insmath P
+$() 且与直线 
+!insmath (AB)
+$() 垂直的平面 
+!insmath (Q)
+$() 的方程.	<p>	<center> 
+!read oef/embed.phtml reply1 
+$()	</center>	 
+!else
+$()	 	<p>	通过 
+!insmath P
+$() 且与 
+!insmath (AB)
+$() 垂直的平面 
+!insmath (Q)
+$() 的方程:	<center><font color=green> $m_reply1 </font></center>	 
+!endif
+$()	 
+!if $m_step=2 
+$()<p>	确定 
+!insmath (Q)
+$() 与 
+!insmath (AB)
+$() 的交点 
+!insmath H
+$() 的坐标:	<center>H 的坐标: 
+!read oef/embed.phtml reply2,7 
+$() </center>	 
+!endif
+$()	 
+!if $m_step=3 
+$()<p>	确定 
+!insmath (Q)
+$() 与 
+!insmath (AB)
+$() 的交点 
+!insmath H
+$() 的坐标:	<center><font color=green>($m_reply2)</font></center>	<p>	由此导出 
+!insmath P
+$() 与 
+!insmath (AB)
+$() 间的距离:	<center> 距离 =  
+!read oef/embed.phtml reply3 
+$() </center>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,12,17,18,19,26,27,28
+embedcnt=3

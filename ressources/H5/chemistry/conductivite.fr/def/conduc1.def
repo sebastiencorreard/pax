@@ -1,0 +1,165 @@
+!set title=conductivité d'une solution (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+precision=1000
+
+ansorder=r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randrecord conduc.dat
+
+val6=$(tmp0)
+tmp0=!words2items $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+!readproc slib/text/sigunits $val9,2 
+tmp0=$slib_out
+val9=$(tmp0)
+!readproc slib/text/sigunits $val9 S.m^2.mol^-1,2,,S.m^2.mol^-1 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp=!nonempty items 10,20,30,60,70
+
+tmp0=!randitem $tmp
+val11=$[$(tmp0)/10]
+val12=$[$val11/1000]
+!readproc slib/text/sigunits $val12,2 
+tmp0=$slib_out
+val12=$(tmp0)
+!readproc slib/text/sigunits $val11 mol.m^-3,2,,mol.m^-3 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=$[$val11*$val9]
+!readproc slib/text/sigunits $val14 S/m,2,,S/m 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=$[10*$val14]
+!readproc slib/text/sigunits $val16,2 
+tmp0=$slib_out
+val17=$[$(tmp0)]
+!readproc slib/text/sigunits $val14 S/m,2,,mS/cm 
+tmp0=$slib_out
+val18=$(tmp0)
+val19=$[rint(0)]
+oefsteps=r1	r2,r3 
+nextstep=!nosubst r1	r2,r3 
+!readproc oef/steps.proc
+replytype1=sigunits
+replyname1=
+replygood1=$val15
+replytype2=sigunits
+replyname2=
+replygood2=$val17
+replytype3=sigunits
+replyname3=
+replygood3=$val12
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!if $val19=1 
+$()<div style="font-size:70%; background:lightyellow;">	ligne=$val6 <br> ion=$val7 nom=$val8 
+!insmath {}$val7
+$() sig=$val10<br>	ssig=$val15<br>cmL=$val12	</div>	 
+!endif
+$()	L'ion $val8 
+!insmath {}$val7
+$() a une conductivité molaire 	
+!insmath \lambda_{$val7}
+$() = $val10.	<ol>	 
+!if $m_step >=1 
+$()	<li>Sa concentration est c = $val13&nbsp;;<br>	donnez la valeur 
+!insmath \sigma
+$() de la participation de 	l'ion $val8 	à la conductivité<br>	
+!insmath \sigma
+$() =&nbsp;:	 
+!read oef/embed.phtml r1 
+$() 	<span style="color:grey;font-size:78%">(attention au nombre de 	chiffres significatifs)</span> 
+!endif
+$()	 
+!if $m_step >=2 
+$()	<li>Convertissez cette valeur en mS.cm^-1&nbsp;:  
+!read oef/embed.phtml r2 
+$()	<span style="color:grey;font-size:78%">(attention au nombre de 	chiffres significatifs et ne répétez pas l'unité)</span>	<li>Donnez la valeur de la concentration en mol/L&nbsp:	 
+!read oef/embed.phtml r3 
+$()	<span style="color:grey;font-size:78%">(attention au nombre de 	chiffres significatifs et ne répétez pas l'unité)</span> 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()La formule qui donne la conductivité totale d'une solution	aqueuse avec n variétés différentes d'ions est donnée par la formule	
+!insmath \sigma=\Sigma_{i=1}^{n} c_i \lambda_i
+$()<p>	Dans cet exercice, il s'agit de considérer à part la contribution d'un	seul parmi les n variétés d'ions.	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p>	<ol>	<li>	 
+!insmath \sigma = c_{$val7} \times \lambda_{$val7}= $val11 \times $val9 = $val15
+$()	<span style="color:grey;font-size:78%">(deux 	chiffres significatifs)</span>	 
+!if $m_step>=2 
+$()<li>
+!insmath {}$val15 = $val18
+$()	<li>
+!insmath {}$val13 = $val12 mol.L^-1
+$() 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,15,18,19
+embedcnt=3

@@ -1,0 +1,159 @@
+!set title=Fraction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=en
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+computeanswer=no
+title_it=Frazione
+title_es=Fracción
+title_fr=Fraction
+title_nl=Breuken I
+
+ansorder=r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 10
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+t_=!rawmath $val7+i*$val8
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+t_=!rawmath $val9+i*$val10
+t_=!exec pari print($t_)
+val12=!mathsubst I=i in $t_
+tmp0=!texmath $val11
+
+val13=$(tmp0)
+tmp0=!texmath $val12
+
+val14=$(tmp0)
+
+!ifval $val8>=0
+val15=+$val8
+!else
+val15=$val8
+!endif
+
+!ifval $val10>=0
+val16=+$val10
+!else
+val16=$val10
+!endif
+val17=$[($val9)^2+($val10)^2]
+val18=$[($val7*($val9)+($val8)*($val10))/$val17]
+val19=$[($val8*($val9)-($val7)*($val10))/$val17]
+val20=Compute the real part and imaginary part of the following complex number
+val21=Real part
+val22=Imaginary part
+!if $val6=it 
+val20=Calcolare parte reale e parte immaginaria del	seguente numero complesso
+val21=Parte reale
+val22=Parte immaginaria
+!endif
+!if $val6=es 
+val20=Calcule la parte real e imaginaria del siguiente número complejo
+val21=Parte real
+val22=Parte imaginaria
+!endif
+!if $val6=fr 
+val20=Calculer la partie réelle et la partie imaginaire du nombre	complexe suivant&nbsp;
+val21=Partie réelle
+val22=Partie imaginaire
+!endif
+!if $val6=nl 
+val20=Bepaal het re&euml;le en imaginaire deel van het onderstaande complexe getal
+val21=Re&euml;le deel
+val22=Imaginaire deel
+!endif
+replyname1=$val21
+replygood1=$val18
+replyname2=$val22
+replygood2=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val20:	<div class="wimscenter">
+!insmath \frac{$val13}{$val14}
+$() </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,20
+embedcnt=0

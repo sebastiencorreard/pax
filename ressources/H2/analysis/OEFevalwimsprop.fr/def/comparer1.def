@@ -1,0 +1,123 @@
+!set title=Comparer des proportions 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Le premier,Le deuxième
+val11=grande,petite
+val12=à la campagne,en ville
+val13=Un géographe étudie le lieu d'habitation dans différents pays.
+val14=Dans un premier pays, Dans un deuxième pays, il trouve que,	  des personnes habitent
+val15=Dans quel pays la proportion de personnes vivant ,	  est-elle la plus 
+tmp0=!values v*5 for v=5 to 15
+
+val16=$(tmp0)
+tmp0=!shuffle $val16
+
+val16=$(tmp0)
+val9=$val10
+tmp0=!randint 1, 2
+
+val17=$[rint($(tmp0))]
+
+!ifval $val17=1
+val18=$(val11[1])
+!else
+val18=$(val11[2])
+!endif
+!if $val17=1 
+
+!ifval $(val16[1])<$(val16[2])
+val19=$(val9[2])
+!else
+val19=$(val9[1])
+!endif
+!else
+
+!ifval $(val16[1])<$(val16[2])
+val19=$(val9[1])
+!else
+val19=$(val9[2])
+!endif
+!endif
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val20=$(tmp0)
+choicename1=
+choicegood1=$val19
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val13<ul>	<li>$(val14[1]), $(val14[3]) $(val16[1]) % $(val14[4]) $val20.</li>	<li>$(val14[2]), $(val14[3]) $(val16[2]) % $(val14[4]) $val20.</li>	</ul>	$(val15[1]) $val20 $(val15[2]) $val18 ?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,15,16,18,20
+embedcnt=0

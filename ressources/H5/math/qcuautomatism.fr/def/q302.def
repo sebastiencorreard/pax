@@ -1,0 +1,156 @@
+!set title=Question 302 S Equation carrée bis
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz,equations,graphing
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-specialite-1.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+tmp=!nonempty items 10,20,30
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+val9=$[sqrt(10)]
+tmp=!nonempty items \geq,\leq
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+val11=x^2
+val12=-4
+val13=4
+val14=-5
+val15=15
+val16=text black,3.5,-0.5,big,x	  segment -0.1,10,0.1,10,black	  text black,0.4,10.5,big,$val8	  text black,0.4,-0.4,big,0	  text black,-0.5,14,big,y	  
+val17=linewidth 2	  trange $val12,$val13	  plot red,$val11
+val18=range $val12,$val13,$val14,$val15	linewidth 1	arrow $val12,0,$val13,0,10,black	arrow 0,$val14,0,$val15,10,black	$val16	
+!readproc oef/draw.phtml 200,200 \
+$val18	$val17	 
+tmp0=$ins_url
+val19=$(tmp0)
+val20=<img src="$val19" alt="représentation graphique">
+!if $val10 issametext \geq 
+val21=linewidth 2	  segment $val12,0,-$val9,0,blue	  segment $val9,0,$val13,0,blue	  trange $val12,-$val9	   plot red,$val11	  trange $val9,$val13	   plot red,$val11	  
+!else
+val21=linewidth 2	  segment -$val9,0,$val9,0,blue	  trange -$val9,$val9	  plot red,$val11 
+!endif
+!readproc oef/draw.phtml 200,200 \
+$val18	trange $val12,$val13	  plot green,10	$val21	 
+tmp0=$ins_url
+val22=$(tmp0)
+val23=<img src="$val22" alt="représentation graphique">
+val24=On a représenté ci-contre la parabole d’équation <span class="nowrap">\(y=x^2\).</span><br>On note \((\mathcal{I})\) l’inéquation&#44; sur \(\mathbb{R}\)&#44; <span class="nowrap">\(x^2$val10 $val8\).</span><div class="wimscenter">$val20</div>L’inéquation \((\mathcal{I})\) est équivalente à&nbsp;&#58; 
+
+!ifval $val10 issametext \geq
+val25= \(x \leq -\sqrt{$val8}\) ou \(x \geq \sqrt{$val8}\)
+!else
+val25=\(-\sqrt{$val8} \leq x \leq \sqrt{$val8}\)
+!endif
+
+!ifval $val10 issametext \leq
+val26= \(x \leq -\sqrt{$val8}\) ou \(x \geq \sqrt{$val8}\)
+!else
+val26=\(-\sqrt{$val8} \leq x \leq \sqrt{$val8}\)
+!endif
+
+!ifval $val10 issametext \geq
+val27= \(x \geq \sqrt{$val8}\)
+!else
+val27=\(x \leq \sqrt{$val8}\)
+!endif
+val28=\(x = \sqrt{$val8}\)
+val29=$val26,$val27,$val28
+
+!ifval $val10 issametext \geq
+val30=au dessus
+!else
+val30=au dessous
+!endif
+val31=La question revient à chercher toutes les solutions de <span class="nowrap">\(x^2 $val10 $val8\).</span>	<br>Ci-dessous on a tracé en rouge les points qui conviennent.	<br>Ce sont les points qui sont <b>$val30</b> de la droite (verte) d'équation <span class="nowrap">\(y=$val8\).</span>	<br>Toutes les abscisses de ces points sont en bleu ci-dessous <div class="wimscenter">$val23</div>	<br>\((\mathcal{I})\) est donc équivalente à $val25
+val32=$val25,$val29
+tmp0=!shuffle 4
+
+val33=$(tmp0)
+tmp0=!positionof item 1 in $val33
+
+val34=$[rint($(tmp0))]
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val34;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val24	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val32[$(val33[1])]) </td><td>$(val32[$(val33[2])]) </td><td>$(val32[$(val33[3])]) </td><td>$(val32[$(val33[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val31!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val31	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,24,31,32,33
+embedcnt=1

@@ -1,0 +1,374 @@
+!set title=De limiet van k*ln(ax+b) of k/ln(ax+b)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Véronique Royer
+email=veronique.royer@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=49
+prevarcnt=48
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -8, 8
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 8
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$val8
+
+!ifval $val8=-1
+val9=-
+!endif
+
+!ifval $val8=1
+val9=
+!endif
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+t_=!rawmath -$val7/$val6
+val11=!exec pari print($t_)
+val12=&#8734;
+
+!ifval $val6>0
+val13=+
+!else
+val13=-
+!endif
+
+!ifval ($val13 issametext +)
+val14=$[rint(1)]
+!else
+val14=$[rint(-1)]
+!endif
+val15=$val13$val12
+val16=$val13\infty
+
+!ifval $val6>0
+val17= &#93;  $val11 ; $val15 &#91; 
+!endif
+
+!ifval $val6>0
+val18=van boven benaderd
+!else
+val18=van onder benaderd
+!endif
+
+!ifval $val6>0
+val19=\downarrow
+!else
+val19=\uparrow
+!endif
+
+!ifval $val6>0
+val20=>
+!else
+val20=<
+!endif
+
+!ifval $val6<0
+val17= &#93;$val15 ; $val11 &#91; 
+!endif
+tmp0=!randitem 1,2
+
+val21=$[rint($(tmp0))]
+tmp0=!item $val21 of $val11,$val15
+
+val22=$(tmp0)
+tmp0=!item $val21 of $val11,$val16
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in expand($val6*x + $val7)
+tmp0=!exec maxima $t_
+
+val24=!rawmath $(tmp0)
+tmp0=!texmath $val24
+
+val24=$(tmp0)
+val25=\ln(t)
+val26=\ln(u)
+val27=\ln(u(x))
+val28=!rawmath \ln($val24)
+tmp0=!item $val10 of $val9 $val28, \frac{$val8}{$val28}
+
+val29=$(tmp0)
+tmp0=!item $val10 of  k $val26, \frac{k}{$val26}
+
+val30=$(tmp0)
+tmp0=!texmath $val29
+
+val31=$(tmp0)
+!if $val21=1 
+val32=0,0
+!else
+val32=+inf,+\infty
+!endif
+tmp0=!item 1 of $val32
+
+val33=$(tmp0)
+tmp0=!item 2 of $val32
+
+val34=$(tmp0)
+!if $val21=1 
+val35=x $val19 $val11
+val36=t $val19 0 
+!else
+val35=x\to $val23
+val36=t\to $val34
+!endif
+
+!ifval $val33 issametext 0
+val37=-inf,-\infty
+!else
+val37=+inf,+\infty
+!endif
+val38=0
+val39=0
+
+!ifval $val33 issametext 0
+val40=+inf
+!else
+val40=-inf
+!endif
+tmp0=!item 1 of $val37
+
+val41=$(tmp0)
+tmp0=!item 2 of $val37
+
+val42=$(tmp0)
+val43=$val41
+val44=$val42
+!if $val10=1 
+
+!ifval $val8>0
+val45=$val43
+!else
+val45=$val40
+!endif
+!else
+
+!ifval $val8>0
+val45=$val38
+!else
+val45=$val39
+!endif
+!endif
+oefsteps=reply1,reply2	reply3	reply4	reply5	reply6 
+nextstep=!nosubst reply1,reply2	reply3	reply4	reply5	reply6 
+!readproc oef/steps.proc
+replytype1=formal
+replyoption1=nonstop 
+replyname1=exponent u(x)
+replygood1=$val24
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=coefficient k
+replygood2=$[$val8]
+replytype3=raw
+replyoption3=nospace nonstop 
+replyname3=de limiet van u 
+replygood3=$val33
+replytype4=raw
+replyoption4=nospace nonstop 
+replyname4=de limiet van \($val25) 
+replygood4=$val41
+replytype5=raw
+replyoption5=nospace nonstop 
+replyname5=de limiet van \($val26) 
+replygood5=$val43
+replytype6=raw
+replyname6=de limiet van \(f) 
+replygood6=$val45
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="font-family: verdana,  sans-serif ;  font-size: 11pt ; background-color: yellow ;">	<p> 	Laat de functie 
+!insmath f
+$() op 
+!insmath $val17
+$() gedefinieerd zijn door: 
+!insmath f(x) = $val31 
+$()	</p><p>	De bedoeling van deze serie oefeningen is het stap voor stap bepalen van de limiet van 
+!insmath f
+$() in $val22	 
+!if $val21=1 
+$() , $val18 
+!endif
+$().	</p>	<small><b> 
+!read oef/special.phtml help saisie,Syntax tips 
+$()</b></small>	</div>		<ul>			 
+!if $m_step=1 
+$()	<li>De functie  
+!insmath f
+$() is van het type 
+!insmath $val30
+$() met:	<center>
+!insmath u(x)
+$() =  
+!read oef/embed.phtml reply1,5 
+$() <br>en<br>
+!insmath k
+$() =  
+!read oef/embed.phtml reply2,5 
+$() </center>	</li>	 
+!endif
+$()	 
+!if $m_step>1 
+$()<li><font color = blue>De functie
+!insmath f
+$() is van het type  
+!insmath $val30
+$() met	
+!insmath u(x) = $val24 
+$() en 
+!insmath k = $val8
+$().</font> 	</li>	 
+!endif
+$()			 
+!if $m_step=2 
+$()	<li>Bepaal de limiet van 
+!insmath u
+$() in $val22 : <small>( 
+!read oef/special.phtml help saisie,Syntax tips 
+$())</small>	<center>
+!insmath \lim_{$val35} $val24 
+$() =  
+!read oef/embed.phtml reply3,5 
+$()</center>	</li>	 
+!endif
+$()	 
+!if $m_step>2 
+$()<li><font color = blue> De limiet van 
+!insmath u
+$() in $val22  is</font>:  	<center>
+!insmath \lim_{$val35} u(x) = \lim_{$val35} $val24  = $val34
+$()</center>	</li>	 
+!endif
+$()		 
+!if $m_step=3 
+$()<li>Bepaal de limiet van 
+!insmath $val25
+$() in 
+!insmath $val34
+$(): <small>( 
+!read oef/special.phtml help saisie,Syntax tips 
+$())</small>	<center>
+!insmath \lim_{$val36} $val25 
+$() =  
+!read oef/embed.phtml reply4,5 
+$()</center>	</li>	 
+!endif
+$()		 
+!if $m_step>3 
+$()<li><font color = blue>Door de eigenschappen van een logaritmische functie, weten we dat</font>:  	<center>
+!insmath \lim_{$val36} $val25   = $val42
+$()</center>	</li>	 
+!endif
+$()			 
+!if $m_step=4 
+$()<li>Door substitutie van 
+!insmath t = u(x)
+$() en samenstelling van de limieten, volgt dat: <small>( 
+!read oef/special.phtml help saisie,Syntax tips 
+$())</small>	<center>
+!insmath  \lim_{$val35} $val27   =  \lim_{$val35} $val28 
+$() =  
+!read oef/embed.phtml reply5,5 
+$()</center>	</li> 	 
+!endif
+$()		 
+!if $m_step>4 
+$()<li><font color = blue>Door samenstelling volgt dat de limit van 
+!insmath $val26
+$() in $val22 is:</font>:	<center>	
+!insmath \lim_{$val35} $val27  =  \lim_{$val35} $val28  = \lim_{$val36} $val25 = $val44
+$().	</center> 	</li> 	 
+!endif
+$()		 
+!if $m_step=5 
+$()<li>En door toepassing van de rekenregels voor limieten volgt dat:<small>( 
+!read oef/special.phtml help saisie,Syntax tips 
+$())</small>	<center>
+!insmath  \lim_{$val35} $val29
+$()   =  
+!read oef/embed.phtml reply6,5 
+$()</center>	</li> 	 
+!endif
+$()		</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	  	  
+!if $m_help_subject issametext saisie 
+$()	<b>Syntax tips :</b><br/>	schrijf <b>+inf</b> voor 
+!insmath +\infty
+$()  ;<br/>schrijf  <b>-inf</b> voor 
+!insmath -\infty
+$(). 	 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$() 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,17,18,21,22,24,25,26,27,28,29,30,31,34,35,36,42,44
+embedcnt=11

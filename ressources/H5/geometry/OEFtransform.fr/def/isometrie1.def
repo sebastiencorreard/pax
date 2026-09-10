@@ -1,0 +1,180 @@
+!set title=Isométries
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard	
+email=regine@mangeard.fr	
+
+ansorder=r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1	)]
+tmp=!trim parallélogramme	parallélogramme	parallélogramme	carré	carré	carré	losange	losange	losange	rectangle	rectangle	rectangle	
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim B	C	D	B	C	D	B	C	D	B	C	D	
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rowcnt $val7
+
+val9=$[rint($(tmp0))]
+tmp=!trim Translation de vecteur \(\overrightarrow{BC})	Translation de vecteur \(\overrightarrow{AB})	Rotation de centre O et d'angle \(pi/2)	Rotation de centre O et d'angle \(pi)	Symétrie centrale de centre O	Symétrie axiale d'axe (IK)	Symétrie axiale d'axe (JL)	Symétrie axiale d'axe (AC)	Symétrie axiale d'axe (BD)	<span style="color:magenta">Choix vide</span>	
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rowcnt $val10
+
+val11=$[rint($(tmp0)-1)]
+tmp=!trim 2	4,5	1	2,3,6	4,5,9	1,7	2	4,5,9	1	2,6	4,5	1,7	
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=$[rint(0	)]
+val14=$[rint()]
+val15=$[rint()]
+val16=$[rint()]
+val17=$[rint(9	)]
+val18=lavender,wheat,turquoise
+val19=$[rint(floor(($val17+1)/2))]
+val20=$[rint((($val17+1)%2))]
+tmp0=!randint 1, $val9
+
+val21=$[rint($(tmp0))]
+val22=$(val7[$val21;])
+val23=$(val8[$val21;])
+val24=$(val12[$val21;])
+tmp0=!shuffle $val11
+
+val25=$(tmp0)
+tmp0=!item 1 to $val17 of $val25
+
+val25=$(tmp0)
+tmp0=!sort numeric item $val25
+
+val25=$(tmp0)
+val26=$[rint($val11+1)]
+tmp0=!append item $val26 to $val25
+
+val25=$(tmp0)
+val27=
+!for val28  in $val25 
+tmp0=!append line $(val10[$val28;]) to $val27
+
+val27=$(tmp0)
+!next
+tmp=!trim $val27
+val27=!translate internal $	\
+$ to ;; in $tmp
+val29=$[rint($val17+1)]
+tmp0=!values i for i=1 to $val29
+
+val30=$(tmp0)
+tmp0=!listintersect $val24 and $val25
+
+val31=$(tmp0)
+tmp0=!itemcnt $val31
+
+val32=$[rint($(tmp0))]
+!if $val32=0 
+val33=$val29
+!else
+val33=
+!for val28  in $val31 
+tmp0=!positionof item $val28 in $val25
+
+val34=$(tmp0)
+tmp0=!append item $val34 to $val33
+
+val33=$(tmp0)
+!next
+!endif
+val35=Les propriétés de $val22
+tmp0=!values i for i=1 to $val19
+
+val36=$(tmp0)
+tmp0=!values $val19+i for i=1 to $val19
+
+val37=$(tmp0)
+val38=<p>	On considère le	<b>$val22 </b> <span style="color:blue">ABCD </span> de centre O et de sens direct.	On note I, J, K, L les milieux respectifs des segments [AB], [BC], [CD] et [DA].	</p><p>	Dans la liste ci-dessous, cochez toutes les <b>isométries</b> qui transforment le point <b>A</b> en <span style="color:red">$val23</span>.	</p>	
+replytype1=checkbox
+replyname1=$val35
+replygood1=$val33;$val30
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val38	  <ul class="wims_nopuce">	   
+!for m_k=1 to $val19 
+$()	    <li>	       
+!read oef/embed.phtml reply 1,$(val36[$m_k]) 
+$() : $(val27[$m_k;])	    </li>	    
+!next
+$()	   
+!for m_k=1 to $val19 
+$()	    <li>	      
+!read oef/embed.phtml reply 1,$(val37[$m_k]) 
+$() : $(val27[($m_k+$val19);])	   </li>	     
+!next
+$()	    
+!if $val20<>0 
+$()	     <li>	       
+!read oef/embed.phtml reply 1,$val29 
+$() : $(val27[$val29;])	     </li>	     
+!endif
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20,27,29,36,37,38
+embedcnt=3

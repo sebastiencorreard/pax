@@ -1,0 +1,212 @@
+!set title=Construction d'une VA puis calculs 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Hubert,Proal
+email=communanute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr
+oefobservation=Le nombre de bonbons au départ, le nombre de bonbons perdus ou gagnés à chaque lancer et le nombre de lancers peuvent changer lorsqu'on renouvelle l'exercice
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint $val6, 50
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val9=$[rint($(tmp0))]
+val10=$val7-$val9*$val6+($val8+$val9)*X
+val11=$[rint($val7-$val9*$val6)]
+val12=$[rint($val8+$val9)]
+val13=$val12*X+$val11
+val14=$[$val7-$val9*$val6+($val8+$val9)*$val6/2]
+val15=$[$val14]
+val16=$[($val6/4)*($val8+$val9)^2]
+val17=$[$val16]
+val18=r1	r2,r3
+oefsteps=$val18 
+nextstep=!nosubst $val18 
+!readproc oef/steps.proc
+replytype1=formal
+replyoption1=nonstop 
+replyname1=\(B\)
+replygood1=$val10
+replytype2=numexp
+replyoption2=nonstop 
+replyname2=\(E(B)\)
+replygood2=$val14
+replytype3=numexp
+replyoption3=nonstop 
+replyname3=\(V(B)\)
+replygood3=$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()<p class="wims_emph">Partie 1 :</p> 
+!endif
+$()	
+!if $m_step>0 
+$()	<p>On considère le jeu suivant :</p>	<ul><li>Le joueur dispose de 
+!insmath $val7
+$() bonbons.</li>	<li>Il joue 
+!insmath $val6
+$() fois à pile ou face.</li>	<li>Dès qu'il fait pile, il gagne 
+!insmath $val8
+$() 
+!if $val8>1 
+$()bonbons. 
+!else
+$() bonbon. 
+!endif
+$()</li>	<li>Dès qu'il fait face, il perd 
+!insmath $val9
+$() 
+!if $val8>1 
+$()bonbons. 
+!else
+$() bonbon. 
+!endif
+$()</li>	</ul>	<p>On note 
+!insmath X
+$() la variable aléatoire correspondant au nombre	de fois où la pièce est tombée sur "pile" et 
+!insmath B
+$()	la variable aléatoire correspondant au nombre de	bonbons dont dispose le joueur à la fin du jeu.</p>	 
+!endif
+$()	
+!if $m_step=1 
+$()<div class="wims_question">Écrire 
+!insmath B
+$() en fonction de 
+!insmath X
+$() :	<br/><label for="reply1"> 
+!insmath B=
+$() </label> 
+!read oef/embed.phtml r1,30 
+$()</div> 
+!endif
+$()	
+!if $m_step=2 
+$()<p>
+!if $m_sc_reply1=1 
+$()Bonne réponse, 
+!else
+$() <span class="oef_indbad">Votre expression de B n'est pas correcte.</span> On a 
+!endif
+$() 
+!insmath B=$val13
+$().</p>	<p class="wims_emph">Partie 2 :</p>	<div class="wims_question">	<ul class="wims_nopuce">	<li><label for="reply2">L'espérance 
+!insmath E(B)=
+$() </label> 
+!read oef/embed.phtml r2,30 
+$()</li>	<li><label for="reply3">La variance 
+!insmath V(B)=
+$() </label> 
+!read oef/embed.phtml r3,30 
+$()</li>	</ul>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p><b>Partie 1</b></p>	<p>
+!insmath B=$val7+$val8 X-$val9($val6-X)=$val11+$val12 X
+$().	<br/>En effet : on peut écrire 
+!insmath B=$val7
+$()<i> ("bonbons au départ")</i>
+!insmath +
+$() 
+!insmath $val8 X
+$() <i>("bonbons gagnés")</i>	 
+!insmath -$val9($val6-X)
+$()<i>("bonbons perdus")</i></p>	<p><b>Partie 2</b></p>	<ul class="wims_nopuce">	<li>on a : 
+!insmath E(B)=E($val11+$val12 X)=$val11+E($val12 X)=$val11+$val12 E(X)=$val11+$val12 \times \frac{$val6}{2}=
+$()
+!insmath $val15
+$().</li>	<li>on a : 
+!insmath V(B)=V($val11+$val12 X)=V($val12 X)=$val12^2 V(X)=$val12^2 \times $val6 \times 0.5 \times 0.5=
+$()
+!insmath $val17
+$().</li>	</ul>	<p>Puisque d'après les propriétés de l'espérance et de la variance d'une v.a. 
+!insmath X
+$() </p>	<ul class="wims_nopuce">	<li>
+!insmath E(a X)=a E(X)
+$() pour tout 
+!insmath a
+$() réel.</li>	<li>
+!insmath E(X+b)=E(X)+b
+$() pour tout 
+!insmath b
+$() réel.</li>	<li>
+!insmath V(a X) = a^2 V(X)
+$() pour tout 
+!insmath a
+$() réel.</li>	<li>
+!insmath V(X+b) = V(X)
+$() pour tout 
+!insmath b
+$() réel.</li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12,13,15,17
+embedcnt=3

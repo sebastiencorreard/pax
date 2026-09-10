@@ -1,0 +1,140 @@
+!set title=Patron 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Nous avons un patron de parallélépipède rectangle avec	  les dimensions suivantes&nbsp;,	  La face jaune servira de base pour poser le parallélépipède rectangle.
+val8=Quelles sont les dimensions du parallélépipède rectangle&nbsp;
+tmp0=!randint 35, 75
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 45, 105
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val9, 380-2*$val9
+
+val11=$[rint($(tmp0))]
+val12=$val11,$val10,$val9
+tmp0=!shuffle a,b,c
+
+val13=$(tmp0)
+tmp0=!positionof item a in $val13
+
+tmp1=!item $(tmp0) of $val12
+
+val14=$[rint($(tmp1))]
+tmp0=!positionof item b in $val13
+
+tmp1=!item $(tmp0) of $val12
+
+val15=$[rint($(tmp1))]
+tmp0=!positionof item c in $val13
+
+tmp1=!item $(tmp0) of $val12
+
+val16=$[rint($(tmp1))]
+val17=$[rint((-$val11-2*$val9)/2)]
+val18=$[rint($val10+$val10-50)]
+val19=xrange -210,210	yrange -200,200	rect $val17+$val9,$val18,$val17+$val9+$val11,$val18-$val10,black	rect $val17+$val9+$val11,$val18-$val10,$val17+$val9,$val18-$val10-$val9,black	rect $val17+$val9,$val18-$val10-$val9,$val17,$val18-$val9-2*$val10,black	filledrect $val17+$val9,$val18-$val10-$val9,$val17+$val9+$val11,$val18-$val9-2*$val10,yellow	rect $val17+$val9,$val18-$val10-$val9,$val17+$val9+$val11,$val18-$val9-2*$val10,black	rect $val17+$val9+$val11,$val18-$val9-2*$val10,$val17+2*$val9+$val11,$val18-$val9-$val10,black	rect $val17+$val9+$val11,$val18-$val9-2*$val10,$val17+$val9,$val18-2*$val10-2*$val9,black	arrow2 $val17+$val9,$val18+10,$val17+$val9+$val11,$val18+10,10,black	text black,$val17+$val9+$val11/2,$val18+30,medium,$(val13[1])	arrow2 $val17+$val9-10,$val18-$val10,$val17+$val9-10,$val18-$val10-$val9,10,black	text black,$val17+$val9-25,$val18-$val10-$val9/2,medium,$(val13[3])	arrow2 $val17+$val9-10,$val18,$val17+$val9-10,$val18-$val10,10,black	text black,$val17+$val9-25,$val18-$val10/2,medium,$(val13[2])	
+!readproc oef/draw.phtml 420,400 \
+$val19	 
+tmp0=$ins_url
+val20=$(tmp0)
+!readproc oef/draw.phtml 420,400 \
+rotate 90	$val19	 
+tmp0=$ins_url
+val21=$(tmp0)
+!readproc oef/draw.phtml 420,400 \
+rotate 270	$val19	 
+tmp0=$ins_url
+val22=$(tmp0)
+val19=$val20,$val21,$val22
+tmp0=!randint 1, 3
+
+val23=$[rint($(tmp0))]
+replytype1=raw
+replyname1=
+replygood1=$val11
+replytype2=raw
+replyname2=
+replygood2=$val10
+replytype3=raw
+replyname3=
+replygood3=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"><img src="$(val19[$val23])" alt=""></div>	 <div class="medium_size text_col">	$(val7[1]):	<div class="wimscenter">a = $val14 mm, b= $val15 mm, c = $val16 mm.</div>	$(val7[2])	<p>$val8?	</p><div class="spacer"><label for="reply1">Longueur :</label>  
+!read oef/embed.phtml r1,3 
+$() mm,	<label for="reply1">largeur :</label>  
+!read oef/embed.phtml r2,3 
+$() mm,	<label for="reply1">hauteur :</label>  
+!read oef/embed.phtml r3,3 
+$() mm</div></div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,14,15,16,19,23
+embedcnt=3

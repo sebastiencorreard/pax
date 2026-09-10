@@ -1,0 +1,311 @@
+!set title=Composée d'une translation et d'une symétrie centrale 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David; Véronique, Royer
+email=Marie-Claude.DAVID@math.u-psud.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val6+$val7*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val10=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val8+$val9*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+t_=!rawmath -1
+val12=!exec pari print($t_)
+tmp=!translate ";': to $     $ in 2*($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+val14=une translation, une symétrie centrale
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+!if $val15 = 1 
+tmp=!translate ";': to $     $ in -($val10)+$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val16=!mathsubst I=i in $t_
+val17=s \circ t
+!endif
+!if $val15 = 2 
+tmp=!translate ";': to $     $ in $val10+$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val16=!mathsubst I=i in $t_
+val17=t \circ s
+!endif
+tmp=!translate ";': to $     $ in ($val16)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val18=!mathsubst I=i in $t_
+oefsteps=reply 1,	reply 2,	reply 3, reply 4, reply 5	reply 6	reply 7, reply 8 
+nextstep=!nosubst reply 1,	reply 2,	reply 3, reply 4, reply 5	reply 6	reply 7, reply 8 
+!readproc oef/steps.proc
+replytype1=complex
+
+replyoption1=nonstop 
+replyname1=translation
+replygood1=$val10
+replytype2=complex
+
+replyoption2=nonstop 
+replyname2=consth
+replygood2=$val13
+replytype3=radio
+replyname3=nature
+replygood3=2;$val14
+replytype4=complex
+
+replyoption4=nonstop 
+replyname4=coeff
+replygood4=$val12
+replytype5=complex
+
+replyoption5=nonstop 
+replyname5=constf
+replygood5=$val16
+replytype6=complex
+
+replyoption6=nonstop 
+replyname6=zI
+replygood6=$val18
+replytype7=complex
+
+replyname7=coeff1
+replygood7=$val12
+replytype8=complex
+
+replyname8=constf1
+replygood8=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<i>Cet exercice comporte cinq étapes.</i>	<p>On considère successivement plusieurs transformations du plan complexe, dont on va	 déterminer l'écriture complexe.	<ol>	<li>Soit 
+!insmath t
+$() la translation de vecteur 
+!insmath u($val10)
+$().	L'écriture complexe de la translation 
+!insmath t
+$() est	
+!insmath z' = z + 
+$()  
+!read oef/embed.phtml rep1, 7 
+$()	
+!if $m_step>1 
+$()<div class="wimscenter">	 
+!if $m_sc_reply1=1 
+$()<span class="oef_indgood"> Bonne réponse ! 
+!else
+$()	          <span class="oef_indbad"> Mauvaise réponse... 
+!endif
+$()	        L'écriture complexe de 
+!insmath t
+$() est 
+!insmath z' = z + $val10
+$().</span></div>	        </li>	 <li>	 Soit 
+!insmath s
+$() la symétrie centrale de centre 
+!insmath C($val11)
+$(). L'écriture complexe de 
+!insmath s
+$() est 
+!insmath z' = 
+$() 
+!insmath -z 
+$() +  
+!read oef/embed.phtml rep2, 7 
+$()	  
+!endif
+$()	
+!if $m_step>2 
+$()<div class="wimscenter">	 
+!if $m_sc_reply2=1 
+$()<span class="oef_indgood"> Bonne réponse ! 
+!else
+$()	          <span class="oef_indbad"> Mauvaise réponse... 
+!endif
+$()	        L'écriture complexe de 
+!insmath s
+$() est 
+!insmath  z' = -z + $val13
+$(). </span></div> </li>	 <li>	 La composée 
+!insmath f = $val17
+$() est  
+!read oef/embed.phtml reply3,1 
+$(),  
+!read oef/embed.phtml reply3,2 
+$(). <br>	 L'écriture  complexe de la transformation 
+!insmath f
+$() est	 
+!insmath z' = 
+$()  
+!read oef/embed.phtml rep4, 5 
+$()
+!insmath z 
+$()+  
+!read oef/embed.phtml rep5, 7 
+$()	  
+!endif
+$()		
+!if $m_step>3 
+$()<div class="wimscenter">	 
+!if $m_sc_reply3=1 and $m_sc_reply4=1 and $m_sc_reply5=1 
+$()<span class="oef_indgood"> Bonne réponse ! 
+!else
+$()	          <span class="oef_indbad"> Mauvaise réponse... 
+!endif
+$()	         
+!if ($m_sc_reply3=0 and $m_sc_reply4=1) or ($m_sc_reply3=1 and $m_sc_reply4=0) 
+$()<span class="oef_indbad">L'écriture complexe proposée est incompatible avec la nature de 
+!insmath f
+$(). 
+!endif
+$()	         L'écriture complexe de la symétrie centrale 
+!insmath f 
+$() est 
+!insmath  z' = -z + $val16
+$() .</span></div></li>	 <li>	 L'affixe 
+!insmath z_I
+$() du centre 
+!insmath I
+$() de 
+!insmath f
+$() est 
+!insmath z_I = 
+$() 
+!read oef/embed.phtml rep6, 7 
+$()	  
+!endif
+$()		
+!if $m_step>4 
+$()<div class="wimscenter">	 
+!if $m_sc_reply6=1 
+$()<span class="oef_indgood"> Bonne réponse ! 
+!else
+$()	          <span class="oef_indbad"> Mauvaise réponse... 
+!endif
+$()	         On a 
+!insmath z_I = $val18
+$() .</span><div class="wimscenter">	         </li>	 <li> L'écriture complexe de la symétrie 
+!insmath \sigma_I
+$() de centre 
+!insmath I
+$() est	 
+!insmath z' = 
+$()  
+!read oef/embed.phtml rep7, 5 
+$()
+!insmath z
+$() +  
+!read oef/embed.phtml rep8, 7 
+$()	  
+!endif
+$()	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply7=0 or $m_sc_reply8=0
+ <div class='oef_feedbacks'><b>Les transformations 
+!insmath f
+$() et 
+!insmath \sigma_I
+$() sont égales, donc ont même écriture complexe.</b>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,13,16,17,18
+embedcnt=9

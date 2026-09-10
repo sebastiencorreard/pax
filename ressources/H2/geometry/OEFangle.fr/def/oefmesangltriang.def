@@ -1,0 +1,172 @@
+!set title=Mesurer les angles d'un triangle 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+title_nl=Mesurer les angles d'un triangle 
+
+ansorder=r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!shuffle A,B,C,E,F,G,H,J,K,L,M,N,R,S,T
+
+val7=$(tmp0)
+tmp0=!shuffle $(val7[1]),$(val7[2]),$(val7[3])
+
+val8=$(tmp0)
+tmp=!trim le sommet opposé au côté [$(val8[1]) $(val8[2])] est le sommet,	 le côté opposé au sommet \($(val8[1])\) est le côté 
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Voici quelques informations sur le triangle
+val11=Construire le triangle \($(val7[1]) $(val7[2]) $(val7[3])\) avec les bonnes dimensions sur le brouillon,	  et mesurer les angles du triangle :
+val12=Dans le triangle \($(val7[1]) $(val7[2]) $(val7[3])\), trouver la mesure de l'angle suivant:
+val13=Pour vous aider, vous pouvez faire un dessin au brouillon avec les bonnes mesures.
+val14=Angle
+!if $val6=nl 
+tmp=!trim le sommet opposé au côté [$(val8[1]) $(val8[2])] est le sommet,	 le côté opposé au sommet \($(val8[1])\) est le côté 
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Voici quelques informations sur le triangle
+val11=Construire le triangle \($(val7[1]) $(val7[2]) $(val7[3])\) avec les bonnes dimensions sur le brouillon,	  et mesurer les angles du triangle :
+val12=Dans le triangle \($(val7[1]) $(val7[2]) $(val7[3])\), trouver la mesure de l'angle suivant:
+val13=Pour vous aider, vous pouvez faire un dessin au brouillon avec les bonnes mesures.
+val14=Hoeken
+!endif
+tmp0=!randint 20, 40
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 160, 180
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 70, $val15+140
+
+val17=$[rint($(tmp0))]
+val18=$[rint($val16)]
+tmp0=!randint $val15, $val17
+
+val19=$[rint($(tmp0))]
+tmp0=!randint $val16-140, $val16-30
+
+val20=$[rint($(tmp0))]
+val21=$[rint(rint(180*atan(($val16-$val20)/($val19-$val15))/pi))]
+val22=$[rint(rint(180*atan(($val16-$val20)/($val17-$val19))/pi))]
+val23=$[rint(180-$val21-$val22)]
+val24=$[($val17-$val15)/10]
+val25=$[rint(sqrt(($val16-$val20)^2+($val19-$val15)^2))/10]
+val26=$[rint(sqrt(($val16-$val20)^2+($val17-$val19)^2))/10]
+val27=$[rint($val21-1)]
+val28=$[rint($val21+1)]
+val29=$[rint($val23-1)]
+val30=$[rint($val23+1)]
+val31=$[rint($val22-1)]
+val32=$[rint($val22+1)]
+!readproc oef/draw.phtml 200,200 \
+segment $val15,$val16,$val19,$val20,black	text black,$val15-15,$val16,medium,$(val7[1])	segment $val15,$val16,$val17,$val18,black	text black,$val19,$val20-15,medium,$(val7[2])	segment $val19,$val20,$val17,$val18,black	text black,$val17+10,$val18,medium,$(val7[3]) 
+tmp0=$ins_url
+val33=$(tmp0)
+tmp0=!randint 1, 2
+
+val34=$[rint($(tmp0))]
+!if $val34=1 
+val35=$(val8[3])
+!else
+val35=[$(val8[2])$(val8[3])]|[$(val8[3])$(val8[2])]
+!endif
+val9=$(val9[$val34])
+val36=<img src="$val33" alt="">
+replytype1=case
+replyname1=
+replygood1=$val21|$val27|$val28
+replytype2=case
+replyname2=
+replygood2=$val23|$val29|$val30
+replytype3=case
+replyname3=
+replygood3=$val22|$val31|$val32
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	<div class="medium_size img_col">$val36</div>	<div class="medium_size text_col">	$val10 
+!insmath $(val7[1]) $(val7[2]) $(val7[3])
+$().		<ul><li>	
+!insmath $(val7[1]) $(val7[3])
+$() = $val24 cm	</li><li>
+!insmath $(val7[1]) $(val7[2])
+$() = $val25 cm	</li><li>
+!insmath $(val7[2]) $(val7[3])
+$() = $val26 cm	</li></ul>	$val11	<ul><li>	
+!insmath \widehat{$(val7[2]) $(val7[1]) $(val7[3])}
+$() =  
+!read oef/embed.phtml r1,4 
+$()°	</li><li>	
+!insmath \widehat{$(val7[1]) $(val7[2]) $(val7[3])}
+$() =  
+!read oef/embed.phtml r2,4 
+$()°	</li><li>	
+!insmath \widehat{$(val7[1]) $(val7[3]) $(val7[2])}
+$() =  
+!read oef/embed.phtml r3,4 
+$()°	</li></ul>		</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,24,25,26,36
+embedcnt=3

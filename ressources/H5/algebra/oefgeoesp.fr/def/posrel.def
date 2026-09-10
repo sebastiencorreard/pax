@@ -1,0 +1,206 @@
+!set title=Position relative d'une droite et d'un plan
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,6 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+val7=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,1]);print(M)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,2]);print(M)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,3]);print(M)
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val11=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in [$val7]+$val11*[$val10]
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in u=[$val8];v=[$val9];M=[u[2]*v[3]-u[3]*v[2],u[3]*v[1]-u[1]*v[3],u[1]*v[2]-u[2]*v[1]];print(M)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in [$val7]*mattranspose([$val13])
+tmp0=!exec pari $t_
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $(val13[1])*x+$(val13[2])*y+$(val13[3])*z
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+tmp0=!randint 1, 4
+
+val16=$[rint($(tmp0))]
+!if $val16=1 
+val17=$val8
+!endif
+!if $val16=2 
+val17=$val13
+!endif
+!if $val16=3 
+t_=!replace internal \( by ( in matrank([$val13;$val10])
+tmp0=!exec pari $t_
+
+val18=$[rint($(tmp0))]
+!if $val18=1 
+t_=!replace internal \( by ( in [$val10]+[$val8]
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+!endif
+val17=$val10
+!endif
+!if $val16=4 
+val12=$val7
+val17=$val9
+!endif
+val19=strictement parallèle au, orthogonale au, sécante et non orthogonale au,contenue dans le
+replytype1=menu
+replyname1=Position relatice
+replygood1=$val16;$val19
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère d'une part la droite 
+!insmath d
+$() passant par le point 
+!insmath M($val12)
+$()	et dirigé par le vecteur 
+!insmath \overrightarrow{u}($val17)
+$() et d'autre part le plan 
+!insmath P
+$()	d'équation 
+!insmath $val15=$val14
+$().		<div class="spacer">	On peut dire que la droite 
+!insmath d
+$() est  
+!read oef/embed.phtml reply 1 
+$() plan 
+!insmath P
+$().	</div>
+$()
+!exit
+
+:hint
+$()Si 
+!insmath \overrightarrow{u}
+$() désigne un vecteur directeur de 
+!insmath d
+$() et 
+!insmath \overrightarrow{n}
+$() un vecteur normal de 
+!insmath P
+$(),	on commence par comparer ces deux vecteurs:	<ul>	<li> Si 
+!insmath \overrightarrow{u}
+$() et 
+!insmath \overrightarrow{n}
+$() sont colinéaires, alors 
+!insmath d
+$() est orthogonal à 
+!insmath P
+$().</li>	<li> Si 
+!insmath \overrightarrow{u}
+$() et 
+!insmath \overrightarrow{n}
+$() sont orthognaux, alors 
+!insmath d
+$() est parallèle à 
+!insmath P
+$(), plus précisément:	</li>	<ul>	<li> si 
+!insmath M \in P
+$(), 
+!insmath d
+$() est contenue dans 
+!insmath P
+$()</li>	<li> si 
+!insmath n \not \in P
+$(), 
+!insmath d
+$() est strictement parallèle à 
+!insmath P
+$().</li>	</ul>	<li> sinon 
+!insmath d
+$() et 
+!insmath P
+$() sont sécants.</li>	</ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,14,15,17
+embedcnt=1

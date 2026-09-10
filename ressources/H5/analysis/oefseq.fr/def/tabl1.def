@@ -1,0 +1,141 @@
+!set title=Calcul de termes (tableur 1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=sequence
+computeanswer=no
+
+ansorder=r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+val8=$[rint(abs($val7))]
+t_=!replace internal \( by ( in $val6*x+$val7
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!texmath $val9
+
+val10=$(tmp0)
+tmp0=!replace internal x by U_n in $val10
+
+val10=$(tmp0)
+tmp0=!randint 10, 19
+
+tmp1=!randitem -1,1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+
+!ifval ($val7>0)
+val12= =$val6*B2+$val7,=$val7+$val6*B2,=B2*$val6+$val7,=$val7+B2*$val6
+!else
+val12==$val6*B2-$val8,=B2*$val6-$val8,=-$val8+$val6*B2,=-$val8+b2*$val6
+!endif
+replytype1=numeric
+replyname1=
+replygood1=$[$val11]
+replytype2=raw
+replyname2=
+replygood2=?analyze 13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>A l'aide d'un tableur, on cherche à calculer les premiers termes	  de la suite 
+!insmath (U_n)
+$() définie par	
+!insmath U_0=$val11
+$() et pour tout entier naturel 
+!insmath n
+$() : 
+!insmath U_{n+1}=$val10
+$().</p>	<div class="wimscenter">	   
+!read oef/img.phtml $val1/ExoTableur1T-02.PNG alt="Capture tableur" 
+$()	</div>	<div class="wims_question">	  <ul class="wims_nopuce"><li><p>Quelle valeur faut-il saisir dans la cellule B2?</p>	  On saisit <label for="reply1">dans B2</label> :  
+!read oef/embed.phtml r1,5 
+$().	  </li><li><p>Saisir une formule la plus simple possible dans la	  cellule B3 pour obtenir les premiers termes de la suite 
+!insmath (U_n)
+$() par copier/glisser.	  </p>	  On saisit<label for="reply1"> dans B3</label> :  
+!read oef/embed.phtml r2 
+$().	  </li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>En B2, on entre la valeur 
+!insmath U_0
+$() c'est à dire $val11.</p>	<p>Pour pouvoir exploiter le copier/glisser, B3 correspond à 
+!insmath U_{n+1}
+$() et B2 correspond à 
+!insmath U_n
+$().	On entre donc la formule : $(val12[1]) <i>(ne pas oublier le symbole <b> = </b>)</i>.</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val13 issamecase $(val12[1])) or ($val13 issamecase $(val12[2])) or ($val13 issamecase $(val12[3])) or ($val13 issamecase $(val12[4]))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=votre formule est-elle valable ?
+
+!exit
+
+:stat
+vsavelist=1,10,11,12,13
+embedcnt=2

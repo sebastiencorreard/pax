@@ -1,0 +1,141 @@
+!set title=Traduction probabiliste
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=Sophie.Lemaire@universite-paris-saclay.fr
+keywords=conditional_probability,modelling
+language=fr
+computeanswer=no
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(4)]
+tmp0=!randint 1, $val6
+
+val7=$[rint($(tmp0))]
+!if $val3 issametext oui 
+val8=\bar{A}
+val9=\bar{B}
+!else
+val8=A^c
+val9=B^c
+!endif
+tmp=!trim On dispose d'un test médical servant à détecter une maladie \(m\). On effectue le test sur une personne. 	On effectue un contrôle d'alcoolémie sur un conducteur. 	Une personne consulte pour un mal de gorge.	Une entreprise dispose de deux machines pour fabriquer des pièces métalliques. Un controleur examine une pièce provenant de cette usine.
+val10=!translate internal $	\
+$ to ;; in $tmp
+val10=$(val10[$val7;])
+val11=la personne a la maladie \(m\),le conducteur est en état d'ébriété, la patiente fume, la pièce a un défaut
+tmp0=!item $val7 of $val11
+
+val11=$(tmp0)
+val12=le test est positif, l'alcootest est positif, la patiente a une bronchite chronique, la pièce a été fabriquée par la première machine 
+tmp0=!item $val7 of $val12
+
+val12=$(tmp0)
+tmp=!trim la personne ait  la maladie si le test est positif, le conducteur soit en état débriété si l'alcotest s'est révélé positif, la patiente qui a une bronchite chronique fume, la pièce qui a été fabriquée par la 1ère machine ait un défaut, \(A\),\(\mid\),\(B\)	la personne n'ait pas la maladie lorsque le test est négatif, le conducteur ne soit pas en état d'ébriété si l'alcotest s'est révélé négatif, la patiente ne fume pas sachant qu'elle n'a pas une bronchite chronique, la pièce fabriquée par la 2ème machine soit sans défaut,\($val8\),\(\mid\),\($val9\)	le test soit positif pour une personne malade, l'alcotest soit positif lorsque le conducteur est en état d'ébriété, la patiente qui fume  ait une bronchite chronique, la pièce ait été fabriquée par la 1ère machine si elle a un défaut, \(B\),\(\mid\),\(A\)	le test soit négatif  pour une personne saine, l'alcotest soit négatif pour quelqu'un qui n'est pas en état d'ébriété, la patiente qui ne fume pas n'ait pas de bronchite chronique, la pièce qui n'a pas de défaut ait été fabriquée par la 2ème machine, \($val9\),\(\mid\),\($val8\)	le test soit négatif pour une personne malade, l'alcotest soit négatif alors que le conducteur est en état d'ébriété, la patiente n'ait pas une bronchite chronique sachant qu'elle fume, la pièce qui a un défaut ait été fabriquée par la 2ème machine,\($val9\),\(\mid\),\(A\)	le test soit positif pour une personne saine,l'alcotest se révèle positif alors que le conducteur n'est pas en état d'ébriété, la patiente ait une bronchite chronique sachant qu'elle ne fume pas, la pièce qui n'a pas de défaut ait été fabriquée par la 1ère machine, \(B\),\(\mid\),\($val8\) 	le test soit positif et que la personne soit saine,  le conducteur ne soit pas en état d'ébriété et que l'alcotest soit positif, la patiente ait une bronchite chronique et qu'elle ne fume pas,  la pièce n'ait pas de défaut et ait  été fabriquée par la 1ère machine,\(B\),\(\cap\),\($val8\)|\($val8\),\(\cap\),\(B\)	le test soit négatif et que la personne soit saine, le test soit négatif et que le conducteur ne soit pas en état d'ébriété, la patiente n'ait pas une bronchite chronique et qu'elle ne fume pas, la pièce n'ait pas  de défaut et ait  été fabriquée par la 2ème machine,\($val9\),\(\cap\),\($val8\)|\($val8\),\(\cap\),\($val9\)	le test soit négatif et que la personne soit malade, le conducteur soit en état d'ébriété et que l'alcotest soit négatif, la patiente fume et qu'elle n'ait pas une bronchite chronique, la pièce ait un défaut et ait  été fabriquée par la 2ème machine,\($val9\),\(\cap\),\(A\)|\(A\),\(\cap\),\($val9\)	le test soit positif et que la personne soit malade, l'alcotest soit positif et que le conducteur soit en état d'ébriété, la patiente ait une bronchite chronique et qu'elle fume,la pièce ait un défaut et ait  été fabriquée par la 1ère machine,\(B\),\(\cap\),\(A\)|\(A\),\(\cap\),\(B\)
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=la valeur prédictive du test, la valeur prédictive négative du test, la sensibilité du test, la spécificité du test
+tmp0=!randint 1, 10
+
+val15=$[rint($(tmp0))]
+val16=\(A\) ,\(B\) ,\($val8\) ,\($val9\),\(\cup\),\(\cap\),\(\mid\)
+val17=$(val13[$val15;])
+tmp0=!itemcnt $val17
+
+val18=$[rint($(tmp0))]
+val19=$(val17[$val7])
+val20=$(val17[$val6+1..$val18])
+!if $val15<=4 
+tmp0=!item $val15 of $val14
+
+val14=$(tmp0)
+!endif
+tmp0=!record 1 of notations
+
+tmp1=!record 2 of notations
+
+val21=$(tmp0)<p>$(tmp1)</p>
+oefsteps=reply1 
+nextstep=!nosubst reply1 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=Ensemble \(F) :
+replygood1=$val20;$val16
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val21
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val10 On note 	<ul>	<li>
+!insmath A
+$() l'événement <span class="wims_emph">"$val11",</span></li>	<li> 
+!insmath B
+$() l'événement <span class="wims_emph">"$val12".</span></li>	</ul>	<div class="wims_question">Compléter l'assertion suivante  : <b>la probabilité pour que  $val19 </b> s'écrit :	<div class="wimscenter">P( 
+!read oef/embed.phtml reply1,50x30x3 
+$())</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val21
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val7=1 and $val15<=4
+ <div class='oef_feedbacks'><span class="wims_emph">Remarque : <span>	dans le langage médical courant, la probabilité pour que $val19 s'appelle $val14.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,12,14,15,19,21
+embedcnt=1

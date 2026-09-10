@@ -1,0 +1,164 @@
+!set title=Lecture graphique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=functions, graphing
+author=Fabien, Sommier
+email=math.sommier@gmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val6*(x-$val7)^2+$val8)
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 2
+
+val10=$[rint($val7+$(tmp0)*$(tmp1))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val11=$[rint($(tmp0))]
+val12=$[rint(abs($val11))]
+!if $val12>4 
+tmp0=!randitem $val7+1,$val7-1
+
+val10=$[rint($(tmp0))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val11=$[rint($(tmp0))]
+!endif
+tmp=!translate ;";': to $     $ in $val9,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+evaltmp=$(tmp0)
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp1=($evaltmp)
+val13=$[rint($(tmp1))]
+t_=!replace internal \( by ( in expand($val13*(x-$val10)+$val11)
+tmp0=!exec maxima $t_
+
+val14=!rawmath $(tmp0)
+val15=$[rint($val10-5)]
+val16=$[rint($val10+5)]
+val17=$[rint($val11-5)]
+val18=$[rint($val11+5)]
+val19=$[rint(11)]
+val20=$[rint(11)]
+replytype1=numexp
+replyname1=
+replygood1=$val11
+replytype2=numexp
+replyname2=
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right">	 
+!read oef/draw.phtml 200,200 \
+	animate 10,0.5,0	xrange $val15,$val16	yrange $val17,$val18	linewidth 1	parallel $val15,$val17,$val16,$val17,0,1,$val19,grey	parallel $val15,$val17,$val15,$val18,1,0,$val20,grey		linewidth 2	line $val15,0,$val16,0,blue	line 0,$val17,0,$val18,blue		line 1,-0.2,1,0.2, black	line -0.2,1,0.2,1, black	text black, 0.9,-0.25,medium, 1	text black, -0.5,1.25,medium, 1	text black, -0.5,-0.25,medium, "0"		point 0,0, black	hline 0,0, black	vline 0,0, black		plot red,$val9	plot green,$val14		linewidth 5	point $val10, $val11, black		text black,$val10+0.2,$val11,large,A	 
+$()	</div>	On considère la courbe 
+!insmath C
+$(), tracée en rouge, représentant fonction polynôme de degré 2.	Sa tangente 
+!insmath d
+$() au point A d'abscisse 
+!insmath $val10
+$() a été tracée en vert.	<p>Déterminer par lecture graphique : </p>	<div class="wimscenter">	
+!insmath  f($val10) 
+$() =  
+!read oef/embed.phtml reply 1 
+$()<br />	
+!insmath  f'($val10) 
+$() =  
+!read oef/embed.phtml reply2 
+$()	</div>		
+$()
+!exit
+
+:hint
+$()		<ul>	 <li>
+!insmath  f($val10) 
+$() est l'<em>ordonnée</em> du point 
+!insmath A
+$().	 </li>	 <li>
+!insmath  f'($val10) 
+$() est le <em>coefficient directeur</em> de la tangente en 
+!insmath A
+$().	 </li>		</ul>		
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,14,15,16,17,18,19,20
+embedcnt=2

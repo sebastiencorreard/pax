@@ -1,0 +1,146 @@
+!set title=arccos(cos) linéaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_en=Linear arccos(cos)
+
+ansorder=r,r
+varcnt=21
+prevarcnt=18
+postvarcnt=2
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Pour \(x\) dans l'intervalle, on peut	  simplifier la fonction \(f\) définie par 
+val8=en une fonction affine de la forme \(a x + b\).	  Quelle est cette fonction affine&nbsp;
+val9=Écrivez, pour
+!if $val6=en 
+val7=For \(x\) within the interval, one can	  simplify the function \(f\) defined by  
+val8=to a linear function of the form \(a x + b\).	  What is this linear function
+val9=Write, for
+!endif
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0))]
+tmp0=!item $val10 of cos,sin
+
+val11=$(tmp0)
+tmp0=!randint 1, 5
+
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+!if $val10=1 
+val13=$[rint($val12*pi+1)]
+val14=$[rint(($val12+1)*pi-1)]
+
+!ifval $val12%2=0
+val15=$[rint( $val12)]
+!else
+val15=$[rint($val12+1)]
+!endif
+!else
+val13=$[rint(($val12-1/2)*pi+1)]
+val14=$[rint(($val12+1/2)*pi-1)]
+val15=$[rint($val12)]
+!endif
+
+!ifval $val12%2=0
+val16=$[rint(1)]
+!else
+val16=$[rint(-1)]
+!endif
+val17=!rawmath $val15*pi
+replyname1=\(a\)
+replygood1=$val16
+replyname2=\(b\)
+replygood2=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) [$val13,$val14], $(val7[2]) 
+!insmath f(x) = arc$val11($val11(x))
+$() $val8?	<div class="wims_instruction">	$(val9[1]) <span class="tt">pi</span> $(val9[2]) 
+!insmath pi
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val18=$m_reply1,$m_reply2
+t_=!replace internal \( by ( in vecsort([$val16*$val13+($val17),$val16*$val14+($val17),$(val18[1])*$val13+$(val18[2]),$(val18[1])*$val14+$(val18[2])])
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1 or $m_sc_reply2<1
+ <div class='oef_feedbacks'>	 
+!read oef/canvasdraw.phtml 200,200 \
+	xrange $val13,$val14	yrange $(val19[1])-1,$(val19[-1])+1	vline ($val13+$val14)/2,0,black	hline 0,0,black	plot red, $(val18[1])*x+$(val18[2])	plot blue, a$val11($val11(x))	 
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,13,14,16,17
+embedcnt=0

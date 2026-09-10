@@ -1,0 +1,126 @@
+!set title=Le canon contre le château
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+precision=10000
+
+ansorder=r,r,r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 5,8,10,12.5
+
+val6=$[$(tmp0)]
+tmp0=!randitem 16,20,25
+
+val7=$[rint($(tmp0))]
+val8=$[-10/($val6*$val7)]
+val9=$[-$val8*($val7+$val6)]
+val10=$[-10]
+val11=$val6,$val7
+val12=xrange 0,300	yrange -2,48		segment 0,0,300,0,black	rect 80,0,85,47,black	rect 280,0,285,47,black	segment 2,0,10,8,black	segment 10,8,13,5,black	segment 8,0,13,5,black	segment 5,3,8,0,black	fcircle 10,2,10,black	
+oefsteps=reply1	reply2,reply3 
+nextstep=!nosubst reply1	reply2,reply3 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Nombre de fois
+replygood1=$[2]
+replytype2=numeric
+replyname2=Distance minimale
+replygood2=$[$val6]
+replytype3=numeric
+replyname3=Distance maximale
+replygood3=$[$val7]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Les ennemis se sont regroupés dans une place fortifiée protégée par des murs de 10 mètres	de haut espacés de 40 mètres.</p>	<p>Le canon envoie des boulets dont l'altitude 
+!insmath y
+$() en mètres, en fonction de la distance	
+!insmath x
+$() en mètres par rapport au canon, est donnée par l'équation :</p>	<p class="wimscenter">
+!insmath y=$val8*x^2+$val9*x
+$()</p>	<div class="wimscenter"> 
+!read oef/draw.phtml 600,100 \
+$val12 
+$()</div>	
+!if $m_step=1 
+$()	<label for="reply1">Combien de fois le boulet dépassera-t-il la hauteur de 10 mètres ?</label>	 <div class="wimscenter"> 
+!read oef/embed.phtml reply1,5 
+$()</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<label for="reply2">	Quelle est la distance minimale du canon au premier mur pour que le boulet passe au dessus du mur ?	</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2,5 
+$()</div>	<label for="reply3">	Et quelle est la distance maximale du canon au premier mur pour que le boulet passe au dessus du mur ?	</label><div class="wimscenter"> 
+!read oef/embed.phtml reply3,5 
+$()</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ul wims_nopuce>	<li>On résoud l'équation 
+!insmath $val8*x^2+$val9*x=10
+$() qui équivaut à 
+!insmath $val8*x^2+$val9*x-10=0
+$()</li>	<li>Les solutions sont $val6 et $val7.</li>	<li>Pour que le boulet passe au dessus du premier mur, le canon doit être placé à au moins $val6 m de ce mur, et au plus à $val7 m.</li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,12
+embedcnt=3

@@ -1,0 +1,109 @@
+!set title=Établir une formule 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items A,B,C,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp=!nonempty items x,y,a,b,u,v
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp0=!randint 1, 4
+
+val8=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in 4*$val7+4*($val7+2*$val8)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+t_=!replace internal \( by ( in expand($val9);
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+val11=mètre,mètres
+
+!ifval $val8=1
+val11=$(val11[1])
+!else
+val11=$(val11[2])
+!endif
+val12=Jardin,Chemin
+val13=Un jardinier réalise des chemins de largeur $val8 $val11	  autour de jardins carrés.	  Sur les bords des chemins (des deux côtés), il place des petites barrières en bois.
+val14=Exprimer la longueur de barrière \($val6\) dont il a besoin	  en fonction de la longueur \($val7\) du côté du jardin.
+!readproc oef/draw.phtml 300,300 \
+linewidth 3	square 50,50,200,brown	square 75,75,150,brown	flood 150,150,green	flood 60,60,grey	text black,130,145,medium,$(val12[1])	text black,130,55,medium,$(val12[2])	 
+tmp0=$ins_url
+val15=$(tmp0)
+replytype1=algexp
+replyname1=\($val6\)
+replygood1=$val9,$val10
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val13	<p>$val14</p>	<div class="wimscenter">	<img src="$val15" alt="">	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,15
+embedcnt=0

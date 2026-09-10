@@ -1,0 +1,222 @@
+!set title=Frise F1lm
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+title_nl=Strookpatroongroep F1lm
+title_en=Frieze F1lm
+title_it=Fregi F1lm
+title_es=Friso F1lm
+title_ca=Fris F1lm
+
+ansorder=r
+varcnt=55
+prevarcnt=54
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=$[rint(6)]
+val8=$[rint(3)]
+tmp0=!shuffle blue,red,yellow,green,purple,blue,red,yellow,green,purple
+
+val9=$(tmp0)
+tmp0=!makelist x:y for x = 0 to $val7-1
+
+tmp1=!makelist $(tmp0) for y=1 to $val8
+
+val10=$(tmp1)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+val11=$[rint(5)]
+tmp=!trim $(val10[1..$val11])
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal , by ; in $val12
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal : by , in $val12
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=$[rint(3)]
+val14=
+val15=
+!for val16 =1 to $val11 
+val17=
+!for val18 =0 to $val13 
+!if $val18>0 
+val19=[$(val12[$val16;1]),$(val12[$val16;2])]
+t_=!replace internal \( by ( in $val19+[$val18*$val7,0]
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+tmp0=!replace internal , by : in $val20
+
+val20=$(tmp0)
+tmp0=!append item $val20 to $val17
+
+val17=$(tmp0)
+!endif
+val19=[$(val12[$val16;1]),-$(val12[$val16;2])+1]
+t_=!replace internal \( by ( in $val19+[$val18*$val7,0]
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+tmp0=!replace internal , by : in $val20
+
+val20=$(tmp0)
+tmp0=!append item $val20 to $val17
+
+val17=$(tmp0)
+tmp0=!replace internal , by : in $(val12[$val16;])
+
+val21=$(tmp0)
+!next
+tmp0=!append line square $(val9[$val16]),$val21 to $val15
+
+val15=$(tmp0)
+tmp0=!append line $(val9[$val16]),$val17 to $val14
+
+val14=$(tmp0)
+!next
+val22=$[rint(2*$val7)]
+val23=$[rint(($val13+1)*$val7)]
+val24=$[rint(100*($val13+1))]
+val25=$[rint(100)]
+val26=0,$val23
+!readproc oef/draw.phtml $val24,$val25 \
+xrange $val26	yrange -$val8,$val8	arrow 1,-$val8+1.5, 1+$val7-0.3,-$val8+1.5,10,black	transparent white	linewidth 6	\points 
+tmp0=$ins_url
+val27=$(tmp0)	
+val28=xrange $val26	yrange -$val8,$val8	$val15	background_color lightgreen	segment red,0:0,$val23:0	copy 0,0,$val27
+!readproc slib/oef/env wims_version 
+tmp0=$slib_out
+val29=$(tmp0)
+tmp0=!char 1 to 4 of $val29
+
+val29=$(tmp0)
+!if $val29 > 4.08 
+val30=Cliquer sur le bouton pour changer de couleur.
+!if $val6=en 
+val30=Click on the button to change the colour
+!endif
+!if $val6=nl 
+val30=Klik op de knop om van kleur te veranderen.
+!endif
+!if $val6=it 
+val30=Cliccare sul pulsante per cambiare il colore dei quadretti
+!endif
+!if $val6=es 
+val30=Clicar sobre el botón para cambiar el color
+!endif
+!if $val6=ca 
+val30=Clicar sobre el botó per canviar el color
+!endif
+!else
+val30=$val29 Utilisez le click droit pour changer de couleur.
+!if $val6=en 
+val30=The right mouse click changes the colour.
+!endif
+!if $val6=nl 
+val30=De rechter muisknop gebruiken om de kleur te veranderen.
+!endif
+!if $val6=it 
+val30=Utilizzare il tasto destro del mouse per cambiare il	colore dei quadretti.
+!endif
+!if $val6=es 
+val30=El clic derecho del mouse cambia el color.
+!endif
+!if $val6=ca 
+val30=El clic dret del ratolí canvia el color.
+!endif
+!endif
+val31=En cliquant sur les carrés, prolonger la figure en une frise	par translation du vecteur dessiné et par symétrie par rapport à la droite horizontale. 
+!if $val6=en 
+val31=Complete, by clicking the squares,	 the pattern [the Frieze group] by repetitive translation in the direction and distance dictated by the vector and by line mirroring in the horizontal line. 
+!endif
+!if $val6=nl 
+val31=Klik met je muis op de vierkantjes en	 maak zo het patroon [een strookpatroongroep of Frieze] verder af d.m.v. herhaalde translatie in richting en afstand met de getoonde vector en lijnspiegeling in de horizontale lijn.
+!endif
+!if $val6=it 
+val31=Utilizzando il minor numero di quadretti, prolungare la figura in un	fregio con traslazioni corrispondenti al vettore indicato e con riflessioni rispetto alla retta orizzontale indicata. 
+!endif
+!if $val6=es 
+val31=Haciendo clic en los cuadrados, extender la figura en un friso	  por traslación del vector dibujado y por simetría con respecto a la recta horizontal. 
+!endif
+!if $val6=ca 
+val31=Clicant als quadrats, estén la figura en un fris	  per translació del vector dibuixat i per simetria respecte a la recta horitzontal. 
+!endif
+replytype1=clicktile
+
+replyname1=
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val31	<div class="wimscenter">	 
+!read oef/embed.phtml r1, $val24 x $val25	[$val28] 
+$()	</div>	<div class="wims_instruction">$val30</div>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24,25,28,30,31
+embedcnt=1

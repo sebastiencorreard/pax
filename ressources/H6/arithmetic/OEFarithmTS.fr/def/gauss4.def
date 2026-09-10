@@ -1,0 +1,163 @@
+!set title=Autour du théorème de Gauss 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2,3,5,7,11
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 2,3,5,7,11
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7*$val6)]
+tmp0=!randint 2, 15
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=$val8
+val9=$[rint($val9+1)]
+!endif
+val10=$[rint(gcd($val9,$val8))]
+val11=$[rint($val9/$val10)]
+val12=$[rint($val8/$val10)]
+tmp0=!randint 2, 15
+
+tmp1=!randint 2, 15
+
+tmp2=!randint 2, 15
+
+tmp3=!randitem $(tmp0), $(tmp1), $(tmp2)*$val10
+
+val13=$[rint($(tmp3))]
+
+!ifval $val13=$val9
+val13=$[rint($val13+1)]
+!endif
+val14=$[rint($val13%$val10)]
+
+!ifval $val14=0
+val15=$val10
+!else
+val15=0
+!endif
+val16=$[rint($val13/$val10)]
+val17=PGCD($val9,$val8)=$val10 divise $val13, on est ramené à résoudre \( $val11 x \equiv $val16\) mod $val12 dans $val10 ensembles de nombres distincts. Ce genre d'équations admet $val10 solutions distinctes.
+
+!ifval $val10=1
+val17= les nombres $val9 et $val8 sont premiers entre eux, ce genre d'équation admet une solution unique.
+!endif
+
+!ifval $val14>0 and $val10>1
+val17= les nombres $val9 et $val8 ne sont pas premiers entre eux, et leur PGCD $val10 ne divise pas $val13. Ce genre d'équation n'admet aucune solution.
+!endif
+val18=$[rint($val11)]
+val19=$[rint($val12)]
+val20=$[rint(1)]
+val21=$[rint(0)]
+val22=$[rint($val18)]
+val23=$[rint(0)]
+val24=$[rint(1)]
+val25=$[rint($val19)]
+!while $val22<>0 
+val26=$[rint($val20)]
+val27=$[rint($val21)]
+val28=$[rint($val22)]
+val20=$[rint($val23-$val20*floor($val25/$val22))]
+val21=$[rint($val24-$val21*floor($val25/$val22))]
+val22=$[rint($val25-$val22*floor($val25/$val22))]
+val23=$[rint($val26)]
+val24=$[rint($val27)]
+val25=$[rint($val28)]
+!endwhile
+val29=$[rint($val23)]
+val30=$[rint($val24)]
+!while $val29<0 
+val29=$[rint($val29+$val12)]
+val30=$[rint($val30-$val11)]
+!endwhile
+t_=!replace internal \( by ( in lift(Mod($val13*$val29,$val12))
+tmp0=!exec pari $t_
+
+val31=$[rint($(tmp0))]
+val32=$val11 et $val12 sont premiers entre eux, il existe donc deux entiers \(u) et \(v) tels que \($val11 u + $val12 v= 1\).<br>	  On cherche un couple (u;v) avec \(0 < u \leq $val12) et on trouve \($val11 \times $val29 + $val12 \times ($val30) = 1).<p>	  On en déduit la solution \(x=$val29).</p>
+val33=A partir de cette solution on trouve la solution de \( $val11 x \equiv $val13 \;($val12)\) en prenant \($val13\times$val29\; ($val12)\).
+val34=A partir de cette solution on trouve la solution de \( $val11 x \equiv $val16 \;($val12)\) en prenant \($val16\times$val29\; ($val12)\).
+replytype1=numeric
+replyname1=Nombre de solutions
+replygood1=$[$val15]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val17
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	  Quel est le nombre de solutions dans 
+!insmath \lbrace 1,2,\cdots,$val8\rbrace
+$() de l'équation	</p>	<p class="wimscenter">
+!insmath  $val9*x
+$() $m_equiv $val13 mod $val8 .</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val17
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,13,17
+embedcnt=0

@@ -1,0 +1,81 @@
+target=tva
+
+\title{Facture et TVA}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{10000}
+
+\text{name_header=Produits type 1,Produits type 2,Montant Brut,
+  Taux de remise,Montant de la remise,Net HT,Taux de TVA,Montant de la TVA,
+  Net TTC}
+\text{name_condition=Calcul du prix brut,Calcul du prix Net,Calcul de la TVA,
+  Calcul du montant TTC}
+\text{name_instruction=Compléter la facture suivante&nbsp;}
+
+%%text{tval=5.5,19.6}
+\text{tval=5.5,10,20}
+\text{txremise=5,7,8,10,12,15}
+\text{brut=randint(200000..400000)/100,randint(10000..30000)/100}
+\real{b=\brut[1]}
+\text{m1=\b,randitem(\txremise)}
+\real{rem=\m1[2]*\m1[1]/100}
+\real{net=\m1[1]-\rem}
+\real{tva=randitem(\tval)}
+\real{mtva=\tva*\net/100}
+\real{ttc=\net+\mtva}
+\text{m1=\m1,\rem,\net,\tva,\mtva,\ttc}
+\text{infoar=}
+\for{i=1 to 7}{
+ \integer{x=\m1[\i]*100}
+ \real{x=\x/100}
+ \text{infoar=wims(append item \x to \infoar)}
+}
+\text{m1=\infoar}
+\real{b=\brut[2]}
+\text{m2=\b,randitem(\txremise)}
+\real{rem=\m2[2]*\m2[1]/100}
+\real{net=\m2[1]-\rem}
+\real{tva=randitem(\tval)}
+\real{mtva=\tva*\net/100}
+\real{ttc=\net+\mtva}
+\text{m2=\m2,\rem,\net,\tva,\mtva,\ttc}
+\text{infoar=}
+\for{i=1 to 7}{
+ \integer{x=\m2[\i]*100}
+ \real{x=\x/100}
+ \text{infoar=wims(append item \x to \infoar)}
+}
+\text{m2=\infoar}
+\statement{
+<p>
+\name_instruction
+</p>
+<div class="table-scroll">
+<table class="wimscenter wimsborder">
+<tr><th>&nbsp;</th><th>\name_header[1]</th><th>\name_header[2]</th></tr>
+<tr><th>\name_header[3]</th><td>\m1[1]</td><td>\embed{reply1,6}</td></tr>
+<tr><th>\name_header[4]</th><td>\m1[2] %</td><td>\m2[2] %</td></tr>
+<tr><th>\name_header[5]</th><td>\embed{reply2,6}</td><td>\m2[3]</td></tr>
+<tr><th>\name_header[6]</th><td>\embed{reply3,6}</td><td>\embed{reply4,6}</td></tr>
+<tr><th>\name_header[7]</th><td>\m1[5] %</td><td>\m2[5] %</td></tr>
+<tr><th>\name_header[8]</th><td>\embed{reply5,6}</td><td>\embed{reply6,6}</td></tr>
+<tr><th>\name_header[9]</th><td>\embed{reply7,6}</td><td>\embed{reply8,6}</td></tr>
+</table>
+</div>
+}
+\answer{}{\rep1}{type=numeric}
+\answer{}{\m1[3]}{type=numeric}
+\answer{}{\m1[4]}{type=numeric}
+\answer{}{\rep2}{type=numeric}
+\answer{}{\m1[6]}{type=numeric}
+\answer{}{\rep3}{type=numeric}
+\answer{}{\m1[7]}{type=numeric}
+\answer{}{\rep4}{type=numeric}
+\real{threm=rint(\rep1*\m2[2])/100}
+\condition{\name_condition[1]&nbsp;}{\threm=\m2[3]}
+\real{ht=rint((\rep1-\m2[3])*100)/100}
+\condition{\name_condition[2]&nbsp;}{\rep2=\ht}
+\real{taxe=rint(\rep2*\m2[5])/100}
+\condition{\name_condition[3]&nbsp;}{\rep3=\taxe}
+\condition{\name_condition[4]&nbsp;}{\rep4=\taxe+\ht}

@@ -1,0 +1,147 @@
+!set title=Terminologie 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Choisir le bon terme dans les énoncés suivants.
+tmp=!trim &#171; <span style="color:blue"> \(UUUU = (VVVV)^2\)</span> &#187; est une	 &#171; <span style="color:blue">il existe un seul réel \(x\), tel que \( UUUU = VVVV\)</span> &#187; est une	 Dans &#171; <span style="color:blue">\(VVVV\) est une somme</span> &#187;, le sujet est une	 Dans &#171; <span style="color:blue">calculer les racines de \(WWWW\)</span> &#187;, le complément du mot "racines" est une	 Dans &#171; <span style="color:blue">l'ensemble des solutions de \(E\) est vide</span> &#187;, la lettre E doit désigner une	 &#171; <span style="color:blue">\(w\) change de signe deux fois</span> &#187; est une	 &#171; <span style="color:blue"> \( UUUU = VVVV\) \(\Longleftrightarrow \)\( x = \sol\) </span> &#187; est une	 le premier membre de l'égalité &#171; <span style="color:blue"> \(f(x) = 0\)</span> &#187; est une	 écrire &#171; <span style="color:blue"> \(WWWW\) \(\Longleftrightarrow\) 0</span> &#187; est incorrect, car \(WWWW) est une	
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=expression, équation, proposition 
+tmp0=!randint 2, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 5
+
+val10=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randint 2, 5
+
+val11=$[rint((-1)*$(tmp0))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 5
+
+val12=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val13=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+val14=$[rint($val13 + $(tmp0))]
+val15=!rawmath $val9*x + $val10
+val16=!rawmath $val12+$val11*x
+val17=!rawmath $val9*x^2 + $val10*x + $val11
+t_=!rawmath ($val12-$val10)/($val9-$val11)
+val18=!exec pari print($t_)
+val19=2,3,1,1,2,3,3,1,1
+tmp0=!shuffle 9
+
+val20=$(tmp0)
+tmp0=!replace internal UUUU by $val15 in $val7
+
+val7=$(tmp0)
+tmp0=!replace internal VVVV by $val16 in $val7
+
+val7=$(tmp0)
+tmp0=!replace internal WWWW by $val17 in $val7
+
+val7=$(tmp0)
+replytype1=menu
+replyname1=
+replygood1=$(val19[$(val20[1])]) ; $val8
+replytype2=menu
+replyname2=
+replygood2=$(val19[$(val20[2])]) ; $val8
+replytype3=menu
+replyname3=
+replygood3=$(val19[$(val20[3])]); $val8
+replytype4=menu
+replyname4=
+replygood4=$(val19[$(val20[4])]) ; $val8
+replytype5=menu
+replyname5=
+replygood5=$(val19[$(val20[5])]) ; $val8
+replytype6=menu
+replyname6=
+replygood6=$(val19[$(val20[6])]) ; $val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="monenonce">	$val6	<ol>	 
+!for m_i = 1 to 6 
+$()<li> $(val7[$(val20[$m_i]);])  
+!read oef/embed.phtml reply\i 
+$()</li> 
+!next
+$()	</ol>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,20
+embedcnt=1

@@ -1,0 +1,208 @@
+!set title=Produit avec exponentielle (guidé)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+
+ansorder=r,r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 	 $val6*x+$val7,	 $val6*x,	 $val6*x^2+$val7*x+$val10	
+
+tmp0=!randitem $tmp
+val11=!rawmath $(tmp0)
+tmp=!nonempty items e^($val8*x),	e^($val8*x+$val9),	e^($val8*x^2)
+
+tmp0=!randitem $tmp
+val12=!rawmath $(tmp0)
+val13=!rawmath ($val11)*($val12)
+tmp0=!texmath $val13
+
+val14=$(tmp0)
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val15=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val12,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val16=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+t_=!replace internal \( by ( in factor($val17)
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val17)
+tmp0=!exec maxima $t_
+
+val19=!rawmath $(tmp0)
+val20=u' v + u v'
+val21=u' v - u v'
+val22=u v' - u' v
+val23=v^2
+val24=\((u v)' = $val20)
+val25=\((u v)'=u' v') , \((u v)' = $val21), \((u v)' = \frac{$val21}{$val23}),\((u v)' = \frac{u'}{v'}),\((u v)' = \frac{$val20}{$val23}),\((u v)' = \frac{$val22}{$val23})
+tmp0=!shuffle $val25
+
+val26=$(tmp0)
+val26=$(val26[1..3])
+val26=$val24,$val26
+tmp0=!shuffle $val26
+
+val26=$(tmp0)
+tmp0=!positionof item $val24 in $val26
+
+val27=$[rint($(tmp0))]
+replytype1=formal
+replyname1=\(u'(x))
+replygood1=$val15
+replytype2=formal
+replyname2=\(v'(x))
+replygood2=$val16
+replytype3=radio
+replyname3=Formule de dérivation
+replygood3=$val27;$val26
+replytype4=formal
+replyname4=\(f'(x))
+replygood4=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter">	<p style = "background-color: #FFCC66">	 Méthode pour calculer la dérivée de la fonction définie 	sur $m_RR par 
+!insmath f(x) = $val14
+$() 	</p></div>		
+!insmath f
+$() est le produit des fonctions 
+!insmath u
+$() et 
+!insmath v
+$() définies par :	<p class="wimscenter">
+!insmath u(x) = $val11 
+$()<br />
+!insmath v(x) = $val12 
+$()</p>	Les fonctions 
+!insmath u
+$() et 
+!insmath v
+$() sont dérivables sur 
+!insmath \RR
+$() et :	<div class="wimscenter"><label for="reply1">
+!insmath u'(x)
+$() = </label> 
+!read oef/embed.phtml reply1,20 
+$() <br />	<label for="reply2">
+!insmath v'(x)
+$() = </label>  
+!read oef/embed.phtml reply2,20 
+$() </div>	Cocher la formule exacte dans cette liste <b>(toutes les autres sont fausses)</b> :<div class="wimscenter"> 
+!read oef/embed.phtml reply3 
+$()</div>	En utilisant cette formule,<label for="reply4"> on obtient la dérivée de 
+!insmath f
+$()  :</label>	<div class="wimsenter"><label for="reply4">
+!insmath f'(x)
+$() = </label> 
+!read oef/embed.phtml reply4, 30 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <div class='oef_feedbacks'><b>Solution.</b> <br/>	La forme développée de  
+!insmath f'(x)
+$()  est  
+!insmath $val19
+$(). <br/>	La forme factorisée de  
+!insmath f'(x)
+$()  est  
+!insmath $val18
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14,18,19
+embedcnt=4

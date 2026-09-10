@@ -1,0 +1,253 @@
+!set title=Mouvement d'un solide : isolé ou non ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=80
+prevarcnt=79
+postvarcnt=0
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!random 3, 5
+
+val6=$[$(tmp0)/10]
+val7=$[3.1415927]
+tmp0=!random 0, 2
+
+val8=$[$(tmp0)*$val7]
+tmp0=!random -0.2, 0.2
+
+val9=$[$val8+$(tmp0)*$val7]
+tmp0=!random 10, 15
+
+val10=$[$(tmp0)*$val6]
+tmp=!nonempty items 0.04,0.06
+
+tmp0=!randitem $tmp
+val11=$[$(tmp0)]
+val12=$[0.2]
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+tmp0=!random 0.5, 1.5
+
+val14=$[$val8+$(tmp0)*$val7]
+!if $val13=2 
+tmp0=!random 3, 5
+
+val15=$[$(tmp0)]
+!else
+val15=$[0]
+!endif
+val16=$[rint(450)]
+val17=$[rint(20)]
+val18=$[rint(7)]
+val19=
+val20=
+val21=
+val22=$[0]
+val23=$[0]
+val24=$[0]
+val25=$[0]
+!for val26 =1 to $val18 
+val27=$[sin($val8)*$val6*$val26*$val11+0.5*$val15*sin($val14)*($val26*$val11)^2]
+val28=$[cos($val8)*$val6*$val26*$val11+0.5*$val15*cos($val14)*($val26*$val11)^2]
+val19=$val19 $val27,$val28,
+val22=$[min($val22,$val27)]
+val23=$[min($val23,$val28)]
+val24=$[max($val24,$val27)]
+val25=$[max($val25,$val28)]
+val29=$[$val27+$val12*sin($val10*$val26*$val11+$val9)]
+val30=$[$val28+$val12*cos($val10*$val26*$val11+$val9)]
+val20=$val20 $val29,$val30,
+val22=$[min($val22,$val29)]
+val23=$[min($val23,$val30)]
+val24=$[max($val24,$val29)]
+val25=$[max($val25,$val30)]
+val29=$[$val27-$val12*sin($val10*$val26*$val11+$val9)]
+val30=$[$val28-$val12*cos($val10*$val26*$val11+$val9)]
+val21=$val21 $val29,$val30,
+val22=$[min($val22,$val29)]
+val23=$[min($val23,$val30)]
+val24=$[max($val24,$val29)]
+val25=$[max($val25,$val30)]
+!next
+val31=$[$val24-$val22]
+val32=$[$val25-$val23]
+val33=$[max($val31,$val32)]
+val29=$[0.5*($val22+$val24-$val33)*$val16/($val16-2*$val17)]
+val34=$[0.5*($val22+$val24+$val33)*$val16/($val16-2*$val17)]
+val30=$[0.5*($val23+$val25-$val33)*$val16/($val16-2*$val17)]
+val35=$[0.5*($val23+$val25+$val33)*$val16/($val16-2*$val17)]
+val36=xrange $val29,$val34	yrange $val30,$val35	
+val37=
+val38=
+val39=
+val40=$[rint(0)]
+!for val41 =1 to 1+2*$val18 step 2 
+tmp0=!items $val41 to $val41+1 of $val20
+
+val42=$(tmp0)
+tmp0=!items $val41 to $val41+1 of $val21
+
+val43=$(tmp0)
+val37=$val37	  segment $val42, $val43, blue	  
+val38=$val38	  text blue, $val42, medium, A$val40	  text blue, $val43, medium, B$val40	  
+val39=$val39 $val40;
+val40=$[rint($val40+1)]
+!next
+val44=points blue, $val20	points blue, $val21	
+val45=
+val46=
+val47=
+!for val48 =1 to $val18 
+tmp0=!items 1 to 2*$val48-2 of $val19
+
+val49=$(tmp0)
+tmp0=!items 2*$val48-1 to 2*$val48 of $val19
+
+val50=$(tmp0)
+tmp0=!item 1 of $val50
+
+val27=$[$(tmp0)]
+tmp0=!item 2 of $val50
+
+val28=$[$(tmp0)]
+val51=$[rint(($val16-1)*($val27-$val29)/($val34-$val29))]
+val52=$[rint(($val16-1)*($val35-$val28)/($val35-$val30))]
+val47=$val47 circle,$val51,$val52,25;
+!readproc oef/draw.phtml $val16,$val16 \
+    $val36	    linewidth 1	    $val37	    $val38	    linewidth 5	    $val44	    points red, $val49	   
+tmp0=$ins_url
+val45=$val45	   $(tmp0)	  ;	  
+val46=$val46 r$val48;	  
+!next
+val53=<p><img src="$val1/Majoret5.gif" 	alt="chronophotographie d'un bâton de majorette, (c) INRP"	title="chronophotographie d'un bâton de majorette, (c) INRP"	align="left" style="padding:10px;">	Cet exercice est basé sur l'enregistrement de deux points 	<b>A</b> et <b>B</b> d'un solide qui est lancé puis	laissé à lui-même, dans diverses conditions. Il peut être isolé par rapport au référentiel 	d'étude ou il peut subir une force. Voyez ci-contre un enregistrement par	<a href="http://fr.wikipedia.org/wiki/Chronophotographie">chronophotographie</a>	du mouvement d'un bâton de majorette, qui est soumis à son propre poids.	<p>	En fait le solide dont on enregistre deux points peut aussi bien être posé sur une tab le à 	coussin d'air qui compense son poids.	<p>	Vous verrez successivement $val18 images cliquables, où vous devrez pointer les positions	successives du centre de gravité (qui se trouve au milieu du segment <b>AB</b>).	Restez attentif au numéro qui est indiqué.  Les positions correctes des centres de gravité 	qu'on aurait du pointer aux étapes précédentes sont affichées en rouge à mesure qu'on avance.	Évidemment, votre score dépend de la qualité de vos pointages.	<p>	<a href="#question">Cliquez ici</a> pour aller directement au travail.	
+val54=<div style="color:grey;border:1px solid grey;">	Conseil&nbsp;: tracez au crayon deux points A et B au bord d'une 	feuille de papier, qui coïncideront avec A<sub>1</sub> et 	B<sub>1</sub> sur l'écran. Puis traces sur le ford de cette 	même feuille le centre de gravité G de la barre. 	Ensuite, la feuille de papier aide à pointer facilement 	les positions successives du centre de gravité à l'aide 	de la souris.	</div>	
+val55=$[rint(0)]
+oefsteps=$val46;r8, r9, r10 
+nextstep=!nosubst $val46;r8, r9, r10 
+!readproc oef/steps.proc
+replytype1=coord
+replyoption1=nonstop 
+replyname1=
+replygood1=$(val45[1;]);$(val47[1;])
+replytype2=coord
+replyoption2=nonstop 
+replyname2=
+replygood2=$(val45[2;]);$(val47[2;])
+replytype3=coord
+replyoption3=nonstop 
+replyname3=
+replygood3=$(val45[3;]);$(val47[3;])
+replytype4=coord
+replyoption4=nonstop 
+replyname4=
+replygood4=$(val45[4;]);$(val47[4;])
+replytype5=coord
+replyoption5=nonstop 
+replyname5=
+replygood5=$(val45[5;]);$(val47[5;])
+replytype6=coord
+replyoption6=nonstop 
+replyname6=
+replygood6=$(val45[6;]);$(val47[6;])
+replytype7=coord
+replyoption7=nonstop 
+replyname7=
+replygood7=$(val45[7;]);$(val47[7;])
+replytype8=menu
+replyoption8=shuffle 
+replyname8=
+replygood8=$val13;le mouvement du centre de gravité est rectiligne et uniforme, le mouvement du centre de gravité n'est pas rectiligne et uniforme, je ne sais pas
+replytype9=menu
+replyoption9=shuffle 
+replyname9=
+replygood9=$val13;la somme des forces reçues par le solide est nulle, la somme des forces reçues par le solide est non nulle, je ne sais pas
+replytype10=menu
+replyoption10=shuffle 
+replyname10=
+replygood10=$val13;le solide est isole, le solide n'est pas isolé, je ne sais pas
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val55=1 
+$()<b>Debug</b><br>	accelere=$val13<br>	pg=$val19<br>acc=$val15<br>alphacc=$val14<br>	 
+!endif
+$()	
+!if $m_step=1 
+$()	<div style="background:lightyellow;border:solid 2px  black;">$val53</div>	 
+!endif
+$()		
+!if $m_step <=$val18 
+$()	<h3>Cliquez sur la position du centre de gravité pour la position numéro $(val39[$m_step;])</h3>	<a name="question" /> 	<table><tr><td> 
+!read oef/embed.phtml r\step 
+$()</td><td width="35%">$val54</td></tr></table>	 
+!else
+$() 	<h3>D'après les enregistrements précédents, que pouvez-vous affirmer ?</h3>	 
+!read oef/embed.phtml r8 
+$()	 
+!read oef/embed.phtml r9 
+$()	 
+!read oef/embed.phtml r10 
+$()	 
+!endif
+$()			
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,15,18,19,39,53,54,55
+embedcnt=4

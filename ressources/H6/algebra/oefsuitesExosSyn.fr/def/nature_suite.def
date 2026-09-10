@@ -1,0 +1,295 @@
+!set title=Suite arithmétique ou géométrique ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle Exact,Bien,Juste,Bravo,Bonne réponse,Oui
+
+val6=$(tmp0)
+tmp0=!shuffle Erreur,Faux,Inexact,Mauvaise réponse,Non
+
+val7=$(tmp0)
+tmp0=!randint 10, 100
+
+val8=$[rint($(tmp0))]
+tmp=!nonempty items 0,0.5,0.5
+
+tmp0=!randitem $tmp
+val8=$[$(tmp0)+$val8*0.01]
+tmp0=!randint 1, 10
+
+tmp1=!randint 1, 9
+
+val9=$[$(tmp0)+$(tmp1)*0.1]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0))]
+
+!ifval $val10>0
+val11= + 
+!else
+val11= - 
+!endif
+val12=$[$val10*$val9]
+tmp0=!randint 1, 100
+
+val13=$[rint($(tmp0))]
+val14=arithmétique, géométrique, ni arithmétique ni géométrique
+val15=$val13+$val12*(n-1),$val13*$val8^(n-1),$val13*$val8^n+$val12*(n-1)
+tmp=!nonempty items 1,1,1,2,2,2,3
+
+tmp0=!randitem $tmp
+val16=$[rint($(tmp0))]
+tmp0=!item $val16 of $val12,$val8
+
+val17=$[$(tmp0)]
+
+!ifval $val17>0
+val18=+ $val17
+!else
+val18= $val17
+!endif
+tmp0=!item $val16 of $val14
+
+val19=!rawmath $(tmp0)
+tmp0=!item $val16 of $val15
+
+val20=!rawmath $(tmp0)
+tmp0=!item $val16 of  en ajoutant, en multipliant par, ni en ajoutant ni en multipliant par
+
+val21=$(tmp0)
+evaltmp=$val20
+
+evaltmp=!mathsubst n=(2) in $evaltmp
+tmp0=($evaltmp)
+val22=$[$(tmp0)]
+evaltmp=$val20
+
+evaltmp=!mathsubst n=(3) in $evaltmp
+tmp0=($evaltmp)
+val23=$[$(tmp0)]
+evaltmp=$val20
+
+evaltmp=!mathsubst n=(4) in $evaltmp
+tmp0=($evaltmp)
+val24=$[$(tmp0)]
+evaltmp=$val20
+
+evaltmp=!mathsubst n=(5) in $evaltmp
+tmp0=($evaltmp)
+val25=$[$(tmp0)]
+t_=!replace internal \( by ( in 0.001*round(1000*$val25)
+tmp0=!exec pari $t_
+
+val26=$[$(tmp0)]
+tmp0=!randint 10, 20
+
+val27=$[rint($(tmp0))]
+evaltmp=$val20
+
+evaltmp=!mathsubst n=($val27) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+t_=!replace internal \( by ( in 0.001*round(1000*$val28)
+tmp0=!exec pari $t_
+
+val29=$[$(tmp0)]
+
+!ifval $val16!=3
+val30=reply1	reply2	reply3,reply4
+!endif
+
+!ifval $val16=3
+val30=reply1
+!endif
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=radio
+replyoption1=nonstop 
+replyname1=Nature
+replygood1=$val16;$val14
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=Raison
+replygood2=$[$val17]
+replytype3=numeric
+replyname3=\(u_4)
+replygood3=$[$val26]
+replytype4=numeric
+replyname4=\(u_$val27)
+replygood4=$[$val29]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="background-color:#FFFF66">		<p>On donne les quatre nombres suivants :	 <center><font color=blue>
+!insmath u_1
+$() = $val13 ; 
+!insmath u_2
+$() = $val22 ; 
+!insmath u_3
+$() = $val23 ; 
+!insmath u_4
+$() = $val24</font> </center>	</p>	<ul>	
+!if $m_step>=1 
+$()	<li>Ce sont les quatre premiers termes d'une suite :  
+!read oef/embed.phtml reply1 
+$().</li>	 
+!endif
+$()	
+!if $m_step>=2 
+$()	   
+!if $m_reply1=$val19 
+$()<font color=green> $(val6[1]) !</font><p> 
+!else
+$()	      <font color=red> $(val7[1])... Ce sont  les premiers termes d'une suite $val19, car on passe d'un terme au suivant $val21 un nombre constant.</font><p> 
+!endif
+$()	   <li>La raison de cette suite est :  
+!read oef/embed.phtml reply2,5 
+$().</li>	 
+!endif
+$()		
+!if $m_step>=3 
+$()	   
+!if $m_reply2=$val17 
+$()<font color=green>$(val6[2]) !</font> 
+!else
+$()	       <font color=red>$(val7[2])... La raison de cette  suite est 
+!insmath $val17
+$().	        
+!if $val16=1 
+$()On a  :  
+!insmath u_2 = u_1 $val11 $val9
+$() ; 
+!insmath u_3 = u_2 $val11 $val9
+$() ; 
+!insmath u_4 = u_3 $val11 $val9
+$() ; etc.  
+!endif
+$()	        
+!if $val16=2 
+$()On a  :  
+!insmath u_2 = u_1 \times $val17
+$() ; 
+!insmath u_3 = u_2 \times $val17
+$() ; 
+!insmath u_4 = u_3 \times $val17
+$() ; etc. 
+!endif
+$()	      </font> 
+!endif
+$()	   <li> En continuant la suite, on aurait :	<center> 
+!insmath u_5
+$() =  
+!read oef/embed.phtml reply3, 10 
+$()  &nbsp; et &nbsp; 
+!insmath u_{$val27}
+$() =  
+!read oef/embed.phtml reply4, 10 
+$()	 
+!if $val16=2 
+$() &nbsp;(valeurs arrondies au millième) 
+!else
+$()  &nbsp;(valeurs exactes) 
+!endif
+$()	</center>	</li>	 
+!endif
+$()	</ul>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_step=3 and ($m_reply3!=$val26 or $m_reply4!=$val29)
+ <div class='oef_feedbacks'>	  <font color=red>$(val7[3]) à la dernière question... <br>La suite étant $val19 de raison $val17 on applique la formule  :	  
+!if $val16=1 
+$()
+!insmath u_n = u_1 $val11 (n-1)\times$val9
+$() 
+!else
+$() 
+!insmath u_n = u_1 \times $val8^{n-1}
+$() 
+!endif
+$(). <br>		  
+!if $val16=1 
+$()
+!insmath u_5 = u_1 $val11 4\times$val9=$val26
+$()  &nbsp;et&nbsp; 
+!insmath u_{$val27} = u_1 $val11 ($val27-1)\times$val9=$val29
+$() 
+!else
+$()	               
+!insmath u_5 = u_1 \times $val8^{4} \simeq $val26
+$() &nbsp;et&nbsp; 
+!insmath u_{$val27} = u_1 \times $val8^{$val27-1} \simeq $val29
+$()  en arrondissant au millième. 
+!endif
+$()	 </font>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,13,16,17,19,21,22,23,24,26,27,29
+embedcnt=4

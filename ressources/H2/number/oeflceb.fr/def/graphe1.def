@@ -1,0 +1,512 @@
+!set title=Opérations et graphe (I)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+oefcss=<style> table.lceb th {background-color:lightgreen;padding:10px;width:60px;border:3px solid;} table.lceb td {border:3px solid;padding:10px;font-size:130%;} td.goal {border:3px solid; padding:10px;background-color:#CCFFCC;font-weight:bold;font-size:130%; } td.answer {border:3px solid;padding:10px;background-color:orange; } pre { left:100px; right:100px; width:200px; padding:20px; text-align:left; border:1px solid } .wims_oef_input {font-size:120%;} </style> 
+title_en=Operations and tree (I)
+title_it=Operazioni e diagrammi (I)
+
+ansorder=r
+varcnt=154
+prevarcnt=109
+postvarcnt=44
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Voici un graphe permettant de résoudre ce problème de	  <i>le compte est bon</i> ou de trouver une solution proche.	  Écrire les équations correspondantes
+val8=Les équations sont justes,	  Les équations sont celles demandées
+val9=La suite des opérations est,	  Vous avez oublié des équations.
+!if $val6=en 
+val7=Here is a tree that can be use to obtain the target in this	  <i>le compte est bon</i> game, or to arrive near the target.	  Write down the corresponding equations
+val8=The equalities are correct,	  These are the required equalities
+val9=The operation sequence is,	  You missed some calculations.
+!endif
+!if $val6=it 
+val7=Ecco un diagramma per risolvere questo gioco	  <i>Il conto è giusto</i> o per trovare una soluzione vicina.	  Scrivi le eguaglianze corrispondenti
+val8=Le eguaglianze sono corrette,	  Le eguaglianze sono quelle richieste
+val9=La serie di operazioni è,	  Hai dimenticato alcuni passaggi.
+!endif
+!if $val2=1 
+val10=4
+tmp0=!randint 20, 50
+
+val11=$(tmp0)
+tmp0=!shuffle 3,3,4,5,6,2,2,6,4
+
+val12=$(tmp0)
+val12=$(val12[1..4]),0,0
+val10=4
+!else
+val10=6
+tmp0=!shuffle 1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,25,50,75,100
+
+val12=$(tmp0)
+tmp0=!randint 100, 999
+
+val11=$(tmp0)
+!endif
+val13=$(val12[1..6])
+tmp0=!items2words $val13
+
+val14=$(tmp0)
+tmp0=!replace internal ,0 by in $val13
+
+val13=$(tmp0)
+tmp0=!nonempty items $val13
+
+val13=$(tmp0)
+val15=$val13
+tmp0=!exec lceb $val11 $val14
+
+val16=$(tmp0)
+tmp0=!line 3 to -1 of $val16
+
+val16=$(tmp0)
+tmp0=!linecnt $val16
+
+val17=$(tmp0)
+val18=
+val19=
+val20=$[rint(0)]
+val21=
+val22=
+val23=
+val24=
+val25=
+val26=
+val27=
+tmp0=!makelist 0 for x=1 to 20
+
+val23=$(tmp0)
+tmp0=!items2lines $val23
+
+val23=$(tmp0)
+val28=$val15	$val19
+!for val29 =1 to $val17 
+tmp0=!line $val29 of $val16
+
+val30=$(tmp0)
+tmp0=!words2items $val30
+
+val30=$(tmp0)
+tmp0=!positionof item $(val30[1]) in $val19
+
+val31=$(tmp0)
+tmp0=!positionof item $(val30[3]) in $val19
+
+val32=$(tmp0)
+tmp0=!positionof item $(val30[1]) in $val15
+
+val33=$(tmp0)
+val20=$[rint($val20+1)]
+val34=$val20
+tmp0=!append item $(val30[5]) to $val19
+
+val19=$(tmp0)
+tmp0=!append item $(val30[5]) to $val25
+
+val25=$(tmp0)
+tmp0=!append item $(val30[2]) to $val26
+
+val26=$(tmp0)
+tmp0=!append item $val20 to $val21
+
+val21=$(tmp0)
+!if $val31 notsametext  
+!if $val33 notsametext 
+
+!ifval $(val33[-1])!= 
+tmp0=!replace item number $(val33[-1]) by in $val15
+
+val15= $(tmp0) 
+!else
+tmp1=!replace item number $(val33[1]) by in $val15
+
+val15=	      $(tmp1)
+!endif
+!endif
+!endif
+!if $val31= or $val33 notsametext 
+
+!ifval $val33 notsametext
+tmp0=!replace item number $(val33[1]) by in $val15
+
+val15= $(tmp0)
+!endif
+val20=$[rint($val20+1)]
+tmp0=!append item $val20 to $val27
+
+val27=$(tmp0)
+val31=$val20
+tmp0=!append item $val20 to $val21
+
+val21=$(tmp0)
+tmp0=!append item $(val30[1]) to $val19
+
+val19=$(tmp0)
+tmp0=!append item $(val30[1]) to $val25
+
+val25=$(tmp0)
+tmp0=!append item $(val30[1]) to $val26
+
+val26=$(tmp0)
+!endif
+tmp0=!positionof item $(val30[3]) in $val15
+
+val35=$(tmp0)
+!if $val32 notsametext  
+!if $val35 notsametext 
+
+!ifval $(val35[-1])!= 
+tmp0=!replace item number $(val35[-1]) by in $val15
+
+val15= $(tmp0) 
+!else
+tmp1=!replace item number $(val35[1]) by in $val15
+
+val15=	      $(tmp1)
+!endif
+!endif
+!endif
+!if $val32= or $val35 notsametext 
+
+!ifval $val35 notsametext 
+tmp0=!replace item number $(val35[1]) by in $val15
+
+val15= $(tmp0)
+!endif
+val20=$[rint($val20+1)]
+tmp0=!append item $val20 to $val27
+
+val27=$(tmp0)
+val32=$val20
+tmp0=!append item $val20 to $val21
+
+val21=$(tmp0)
+tmp0=!append item $(val30[3]) to $val19
+
+val19=$(tmp0)
+tmp0=!append item $(val30[3]) to $val25
+
+val25=$(tmp0)
+tmp0=!append item $(val30[3]) to $val26
+
+val26=$(tmp0)
+!endif
+val28=$val28	Data=$val15	noeud=$val19	h=$val34,h1=$val31,h2=$val32
+!if , isin $val32 
+val32=$(val32[-1])
+!endif
+!if , isin $val31 
+val31=$(val31[1])
+!endif
+tmp=!trim $val18	$val34,$val31,$val32	
+val18=!translate internal $	\
+$ to ;; in $tmp
+val22=$val22	  $val31 -> $val34;	  $val32 -> $val34;
+tmp0=!makelist 0 for x=1 to $val20
+
+val36=$(tmp0)
+tmp0=!replace internal item number $val31 by 1 in $val36
+
+val36=$(tmp0)
+tmp0=!replace internal item number $val32 by 1 in $val36
+
+val36=$(tmp0)
+tmp0=!replace internal line number $val34 by $val36 in $val23
+
+val23=$(tmp0)
+!next
+val23=$val23
+tmp=!trim $val23
+val23=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in M=matrix($val20,$val20)
+tmp0=!exec pari $t_
+
+val37=$(tmp0)
+!for val38 =1 to $val20 
+!for val29 =1 to $val20 
+val39=$(val23[$val38;$val29])
+t_=!replace internal \( by ( in M[$val38,$val29]=$val39
+tmp0=!exec pari $t_
+
+val37=$(tmp0)
+!next
+!next
+val40=$val25
+t_=!replace internal \( by ( in mattranspose(M)
+tmp0=!exec pari $t_
+
+val37=$(tmp0)
+!for val41 =1 to $val20 
+!if  $val41 notitemof $val27 
+tmp0=!replace item number $val41 by ? in $val40
+
+val40=$(tmp0)
+!endif
+!next
+!readproc slib/graph/graphviz [$val37],[$val26],url,[rankdir="LR" ;node [fontsize=14,width=".5", height=".5", margin=0 shape=box];] 
+tmp0=$slib_out
+val42=$(tmp0)
+!readproc slib/draw/graphvizpoints 25 
+tmp0=$slib_out
+val43=$(tmp0)
+tmp=!trim $val43
+val44=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val45=$(tmp0)
+
+!ifval NOTFOUND isin $val45
+tmp0=!word 1 of \lecb1
+
+val46= $(tmp0) 
+!else
+val46= $val11
+!endif
+tmp0=!itemcnt $val27
+
+val47=$[rint($(tmp0))]
+val48=
+val49=
+val50=
+val51=
+val52=0
+val53=
+!for val41 =1 to $val20 
+!if  $val41 notin $val27 
+val52=$[rint($val52+1)]
+val51=$val51	  r$val52,$(val44[$val41+1;1]) x $(val44[$val41+1;2])
+val54=$(val26[$val41])
+tmp0=!replace internal " by in $val54
+
+val54=$(tmp0)
+tmp0=!append item $val54 to $val53
+
+val53=$(tmp0)
+!endif
+!next
+tmp0=!makelist <span class="large">x</span> for x in $val53
+
+val53=$(tmp0)
+replytype1=equation2
+
+replyoption1=limit=6 
+replyname1=
+replygood1=?analyze 55
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	$val7:	</p>	<table class="wimscenter lceb">	<tr> 
+!for m_v=1 to $val10 
+$()<th>$(val13[$m_v])</th> 
+!next
+$()	</tr>	<tr><td class="goal" colspan="$val10">$val11</td></tr>	</table>	<table class="wimscenter"><tr><td>	<img src="$val42" alt="">	</td><td>	 
+!read oef/embed.phtml r1,12	default 
+$()	</td></tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val56=$val13
+tmp=!translate internal $	$ to ; in $m_reply1
+
+tmp0=!rowcnt $tmp
+val57=$[rint($(tmp0))]
+tmp=!trim $m_reply1
+val58=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal <pre> by in $val58
+
+val58=$(tmp0)
+tmp0=!replace internal </pre> by in $val58
+
+val58=$(tmp0)
+tmp=!trim $val16
+val45=!translate internal $	\
+$ to ;; in $tmp
+val59=$(val45[;1])
+tmp0=!itemcnt $val59
+
+val59=$[rint($(tmp0))]
+val60=
+!for val61 = 1 to $val59 
+val62=$(val45[$val61;])
+tmp0=!replace internal = by , in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal + by ,+, in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal - by ,-, in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal * by ,*, in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal / by ,/, in $val62
+
+val62=$(tmp0)
+tmp0=!sort items $val62
+
+val62=$(tmp0)
+tmp0=!replace internal , by xx in $val62
+
+val62=$(tmp0)
+tmp0=!nospace $val62
+
+val60=$val60,$(tmp0)
+!next
+tmp0=!nonempty items $val60
+
+val60=$(tmp0)
+val63=$(val58[;1])
+tmp0=!itemcnt $val63
+
+val63=$[rint($(tmp0))]
+val64=
+val65=
+!for val61 = 1 to $val63 
+val62=$(val58[$val61;])
+tmp0=!replace internal = by == in $val62
+
+val62=$(tmp0)
+t_=!replace internal \( by ( in $val62
+tmp0=!exec pari $t_
+
+val64=$val64,$(tmp0)
+tmp0=!replace internal == by , in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal + by ,+, in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal - by ,-, in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal * by ,*, in $val62
+
+val62=$(tmp0)
+tmp0=!replace internal / by ,/, in $val62
+
+val62=$(tmp0)
+tmp0=!sort items $val62
+
+val62=$(tmp0)
+tmp0=!replace internal , by xx in $val62
+
+val62=$(tmp0)
+tmp0=!nospace $val62
+
+val65=$val65,$(tmp0)
+!next
+tmp0=!nonempty items $val65
+
+val65=$(tmp0)
+tmp0=!nonempty items $val64
+
+val62=$(tmp0)
+val64=1
+
+!ifval 0 isin $val62 or $val62 issametext 
+val64= 0
+!endif
+tmp0=!listcomplement $val60 in $val65
+
+val66=$(tmp0)
+tmp0=!itemcnt $val66
+
+val66=$[rint($(tmp0))]
+tmp0=!listcomplement $val65 in $val60
+
+val67=$(tmp0)
+tmp0=!itemcnt $val67
+
+val67=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+!ifval $val67=0 or $val66=0 or $val64<1
+ <div class='oef_feedbacks'>	$(val9[1])	<div class="wimscenter">	 
+!read oef/special.phtml expandlines	$val16 
+$()	</div	
+!if $val67>0 and $val66=0 
+$()$(val9[2]) 
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val64=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val8[1])
+
+!ifval $val67=0 and $val66=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val8[2])
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,13,16,42,45,55
+embedcnt=2

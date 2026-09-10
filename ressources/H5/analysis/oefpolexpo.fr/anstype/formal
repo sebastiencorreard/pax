@@ -1,0 +1,102 @@
+option:symbols=" "
+
+!if $wims_read_parm!=sub
+  good=!item 1 of $(replygood$i)
+  var=!item 2 of $(replygood$i)
+  good=!rawmath $good
+  replyGood$i=!item 1 of $good
+  good=!row 1 of $good
+  dd=!replace internal , by . in $(reply$i)
+  wims_rawmath_variables=$var
+  dd=!rawmath $dd
+!endif
+
+vars_=!varlist nofn $dd
+vars_=!replace e by  in $vars_
+vars_=!replace E by  in $vars_
+vars_=!replace pi by  in $vars_
+vars_=!replace PI by  in $vars_
+vars_=!replace Pi by  in $vars_
+vars_=!nospace $vars_
+!set test=!listcomplement $var in $vars_
+
+!if $test!=$empty 
+  test=NaN bad_variable
+  !exit
+!endif
+
+ptinterr=
+!if ? isin $dd
+  dd=!replace internal ? by ptInt in $dd
+  ptinterr=yes
+!endif
+
+primetrans=
+!if ' isin $good$dd
+  good=!replace internal ' by djkz in $good
+  dd=!replace internal ' by djkz in $dd
+  primetrans=yes
+!endif
+goodcnt=!itemcnt $good
+!if $goodcnt>1
+  test=
+  !for t=1 to $goodcnt
+    test=$test($(good[$t])-($dd))
+  !next t
+  test=!rawmath $test
+  good1=[$good]
+!else
+  test=$good-($dd)
+  good1=$good
+!endif
+
+!if $wims_read_parm=nocompare
+  !if NaN isin $test
+    !exit
+  !endif
+  !exit
+!endif
+
+!if % isin $dd
+  test=NaN badform
+  !exit
+!endif
+
+mres=!exec maxima print($good1);\
+	print($dd);\
+	print(ratsimp(trigreduce(trigsimp($test))));\
+	keepfloat:false;\
+	print(ratsimp(trigreduce(trigsimp($test))));
+!if $primetrans=yes
+  mres=!replace internal djkz by ' in $mres
+!endif
+!if $ptinterr=yes
+  mres=!replace internal ptInt by ? in $mres
+!endif
+!distribute lines $mres into t1,t2,t3,bidon,t4
+t1=!declosing $t1
+
+m_reply$i=$t2
+!if $wims_read_parm=nocompare
+  !if $t2=$empty or $t3=$empty
+    test=NaN
+  !endif
+  !exit
+!endif
+
+!if $t1=$empty
+  Test=bad $i
+  !exit
+!endif
+!if $t2=$empty or $t3=$empty
+  test=NaN
+  !exit
+!endif
+
+!if $t3=0 or $t3=0.0 or $t4=0 or $t4=0.0
+  diareply$i=good
+  !advance freegot
+!else
+  diareply$i=bad
+!endif
+

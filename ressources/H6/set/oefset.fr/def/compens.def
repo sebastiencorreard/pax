@@ -1,0 +1,170 @@
+!set title=B1 - Comparer deux ensembles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+keywords=set_theory
+oefcss=<style> .color1 {color:#000080;} .color2 {color:#008000;} </style>
+oefdescription=exercice de type QCM sur les notations ensemblistes.
+oefobservation=Les données variables sont les deux ensembles. 
+title_it=B1 - Confronto tra due insiemi
+title_es=B1 - Comparación entre dos conjuntos
+
+ansorder=r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim On considère les deux ensembles suivants&nbsp;	Cochez toutes les propriétés satisfaites par ces ensembles&nbsp;
+val7=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=it 
+tmp=!trim Si considerino i due insiemi seguenti	Selezionate tra le seguenti tutte le affermazioni valide per questi due insiemi
+val7=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=es 
+tmp=!trim Considere los dos conjuntos siguientes	Seleccione todas las propiedades que estos conjuntos satisfacen
+val7=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint 5, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, ($val8-1)
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, $val9
+
+val10=$[rint($(tmp0))]
+tmp0=!randint ($val9+1), $val8
+
+val11=$[rint($(tmp0))]
+tmp0=!makelist x for x=1 to 20
+
+val12=$(tmp0)
+!readproc slib/data/random $val8, item, $val12 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=$(val13[1..$val9])
+val15=$(val13[($val9+1)..$val8])
+val16=$(val13[$val10..$val11])
+tmp0=!sort numeric list $val13
+
+val13=$(tmp0)
+tmp0=!sort numeric list $val14
+
+val14=$(tmp0)
+tmp0=!sort numeric list $val15
+
+val15=$(tmp0)
+tmp0=!sort numeric list $val16
+
+val16=$(tmp0)
+val17=\(A\) = \(B\), \(A \subseteq B\),\(B \subseteq A\),\(A\cap B=\emptyset\),\(A\cap B\neq \emptyset\), \(A\setminus B\neq \emptyset\), \(B\setminus A\neq \emptyset\)
+tmp0=!randint 1, 5
+
+val18=$[rint($(tmp0))]
+!if $val18=1 
+val19=$val13
+val20=$val13
+val21=1,2,3,5
+!endif
+!if $val18=2 
+val19=$val14
+val20=$val13
+val21=2,5,7
+!endif
+!if $val18=3 
+val19=$val13
+val20=$val14
+val21=3,5,6
+!endif
+!if $val18=4 
+val19=$val14
+val20=$val15
+val21=4,6,7
+!endif
+!if $val18=5 
+val19=$val14
+val20=$val16
+val21=5,6,7
+!endif
+replytype1=checkbox
+replyname1=
+replygood1=$val21;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="color1">$(val7[1;]):	<ul><li>
+!insmath A
+$() = {$val19}</li>	    <li> 
+!insmath B
+$() = {$val20} </li></ul>	</div>	<div class="wims_question">	$(val7[2;]):	<ul>  
+!for m_i=1 to 7 
+$()<li> 
+!read oef/embed.phtml reply1,\i 
+$()</li> 
+!next
+$()</ul>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,19,20
+embedcnt=1

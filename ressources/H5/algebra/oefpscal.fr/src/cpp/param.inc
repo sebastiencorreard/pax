@@ -1,0 +1,166 @@
+\integer{al=random(1..6)}
+
+\integer{a=random(-1,1)*random(1..5)}
+
+\integer{k=random(-1,1)*randint(1..10)}
+
+\integer{xu=random(-1,1)*randint(1..5)}
+\integer{yu=\a*\xu}
+
+\integer{b=randint(-5..5)}
+
+\function{eqd=maxima(\a*x+\b)}
+
+y=ax+b est l'équation d'une droite dirigée par vectu
+
+  \integer{xn=(-1)*\yu}
+\integer{yn=\xu}
+
+\integer{alv=random(1,2)}
+\if{\alv=1}{
+  \text{vec=directeur}
+  \text{v=\overrightarrow{u}}
+  \integer{xv=\xu}
+  \integer{yv=\yu}
+}
+
+\if{\alv=2}{
+  \text{vec=normal}
+  \text{v=\overrightarrow{n}}
+  \integer{xv=\xn}
+  \integer{yv=\yn}
+}
+
+Le vecteur normal xn,yn
+
+\integer{x0=randint(-5..5)}
+
+\integer{y0=\a*\x0+\b}
+
+xO,yO est sur d
+
+\integer{x1=\x0+random(-1,1)*randint(1..4)}
+
+\integer{y1=\a*\x1+\b}
+
+x1,y1 aussi
+
+\integer{x2=\x1-\a*\k}
+
+\integer{y2=\y1+\k}
+
+x2,y2 se projette orthogonalement en x1,y1 sur d
+
+\rational{a1=-1/\a}
+\rational{b1=\y1-\a1*\x1}
+
+\rational{x3=2*\x1-\x0}
+
+\rational{y3=2*\y1-\y0}
+
+x3,y3 est tel que x1,y1 soit le milieu de x0,y0 x3,y3
+
+y=a1x+b1 est l'équation de la normale à d en x1,y1
+
+\text{dist=maxima(sqrt((\x1-\x2)^2+(\y1-\y2)^2))}
+
+la distance de x2,y2 à d
+
+\integer{xm=abs(\x2)+4}
+\integer{ym=abs(\y2)+4}
+
+\integer{k=random(3..6)}
+
+\integer{x4=\x0+\k*\xu}
+\integer{y4=\y0+\k*\yu}
+
+\rational{x5=(\x0+\x4)/2}
+\rational{y5=(\y0+\y4)/2}
+
+x4,y4 est un point de la droite passant par x0,y0 et dirigé par u
+x5,y5 est le milieu de x0,y0 x4,y4
+
+\function{mediane=maxima(expand((\y5-\y2)/(\x5-\x2)*(x-\x2)+\y2))}
+\function{hauteur=maxima(expand((\y1-\y2)/(\x1-\x2)*(x-\x2)+\y2))}
+\function{mediatrice=maxima(expand((\x4-\x0)/(\y0-\y4)*(x-\x5)+\y5))}
+
+\function{equcertan=maxima(expand((x-\x2)^2+(y-\y2)^2-(\dist)^2))}
+
+\if{\al=1 or \al=2}{
+\text{droite=médiane issue de A}
+\function{dr=\mediane}
+}
+\if{\al=3 or \al=4}{
+\text{droite=hauteur issue de A}
+\function{dr=\hauteur}
+}
+\if{\al=5 or \al=6}{
+\text{droite=médiatrice de &#91; BC &#93;}
+\function{dr=\mediatrice}
+}
+
+\text{valeurs=wims(sort numeric item 19,\xm,\ym)}
+\text{M=item(-1,\valeurs)}
+\integer{M=(floor(\M/5)+1)*5}
+\integer{n=2*\M/5+1}
+\integer{rayon=200*\dist/(\M)}
+\text{cercle=
+  draw(200,200
+	xrange -\M,\M
+	yrange -\M,\M
+	parallel -\M,-\M,\M,-\M,0,5,\n,green
+	parallel -\M,-\M,-\M,\M,5,0,\n,green
+	linewidth 2
+	line -1*\M,0,\M,0,blue
+	line 0,-1*\M,0,\M,blue
+	linewidth 1
+	plot red,\a*x+\b
+	fcircle \x2,\y2,5,red
+	text green,5,0.5,normal,5
+	text green,0.5,5,normal,5
+	text red,\x2,\y2,normal,M
+
+  )
+}
+\text{cerct=
+  draw(200,200
+	xrange -\M,\M
+	yrange -\M,\M
+	parallel -\M,-\M,\M,-\M,0,5,\n,green
+	parallel -\M,-\M,-\M,\M,5,0,\n,green
+	linewidth 2
+	line -1*\M,0,\M,0,blue
+	line 0,-1*\M,0,\M,blue
+	linewidth 1
+	plot red,\a*x+\b
+	fcircle \x2,\y2,5,red
+	text green,5,0.5,normal,5
+	text green,0.5,5,normal,5
+	text red,\x2,\y2,normal,M
+	circle \x2,\y2,\rayon,red
+  )
+}
+
+\text{med=
+  draw(200,200
+	xrange -\M,\M
+	yrange -\M,\M
+	parallel -\M,-\M,\M,-\M,0,5,\n,green
+	parallel -\M,-\M,-\M,\M,5,0,\n,green
+	linewidth 2
+	line -1*\M,0,\M,0,blue
+	line 0,-1*\M,0,\M,blue
+	linewidth 1
+	text green,5,0.5,normal,5
+	text green,0.5,5,normal,5
+	text red,\x0,\y0,normal,A
+       text red,\x3,\y3,normal,B
+       fcircle \x0,\y0,5,red
+       fcircle \x3,\y3,5,red
+       line \x0,\y0,\x3,\y3,red
+
+  )
+}
+
+\real{t1=}
+\real{t2=}

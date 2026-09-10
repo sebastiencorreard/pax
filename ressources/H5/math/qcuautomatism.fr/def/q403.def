@@ -1,0 +1,135 @@
+!set title=Question 403 T Prix après évolution
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz,percentage,percents,fraction
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-specialité-2_0.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+val8=300,500,200,400
+val9=20,30,40,40
+tmp0=!itemcnt $val8
+
+tmp1=!randint 1, $(tmp0)
+
+val10=$(tmp1)
+val8=$(val8[$val10])
+val11=$(val9[$val10])
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+
+!ifval $val12 issametext -
+val13=diminue
+!else
+val13=augmente
+!endif
+
+!ifval $val12 issametext -
+val14=diminution
+!else
+val14=augmentation
+!endif
+val15=Une tablette coûte $val8 euros. <br>Son prix $val13 de <span class="nowrap">\($val11 \%\).</span><br> Le prix après cette $val14 est&nbsp;&#58;
+val16=$[rint($val8*(1 $val12 $val11/100))]
+val17=$[rint($val8 $val12 $val11)]
+val18=$[rint($val8 $val12 $val11/10)]
+val19=$[rint($val8 $val12 $val8/100*$val11/10)]
+val20=\( $val16 \) euros
+val21=\( $val17 \) euros,\($val18 \) euros,\( $val19 \) euros
+val22=$[$val11/100]
+val23=$[rint($val8*$val11/100)]
+val24=La bonne réponse est $val20 puisque le coefficient multiplicateur est <span class="nowrap">\( 1 $val12 \frac{$val11}{100}=1 $val12 $val22\).</span><br> Le calcul à produire est donc <span class="nowrap">\($val8$val12$val22\times$val8=$val8$val12$val23\).</span> 
+val25=$val20,$val21
+tmp0=!shuffle 4
+
+val26=$(tmp0)
+tmp0=!positionof item 1 in $val26
+
+val27=$[rint($(tmp0))]
+val28=\latexversion	    \item	    $val15	    \begin{radio}	    \item $(val25[1])	    \item $(val25[2])	    \item $(val25[3])	    \item $(val25[4])	    \end{radio}
+val28=$val28 \end{enumerate}
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val27;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val28 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val15	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val25[$(val26[1])]) </td><td>$(val25[$(val26[2])]) </td><td>$(val25[$(val26[3])]) </td><td>$(val25[$(val26[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val28 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val24!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val24	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,15,24,25,26,28
+embedcnt=1

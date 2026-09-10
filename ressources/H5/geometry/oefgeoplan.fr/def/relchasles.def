@@ -1,0 +1,273 @@
+!set title=Relation de Chasles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=56
+prevarcnt=55
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=A,B,C,D,E,F,G,H,I,J
+tmp0=!randint 1, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11=$val7
+val11=$[rint($val11+1)]
+!else
+val11=$[rint($val11)]
+!endif
+
+!ifval $val11>10
+val11=$[rint(1)]
+!else
+val11=$[rint($val11)]
+!endif
+val12=
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+
+!ifval $val13=1
+val14=+\overrightarrow{$(val6[$val7]) $(val6[$val8])}
+!else
+val14=-\overrightarrow{$(val6[$val8]) $(val6[$val7])}
+!endif
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+tmp0=!randitem +,-
+
+val13=$(tmp0)
+
+!ifval $val13=1
+val14=+\overrightarrow{$(val6[$val8]) $(val6[$val9])}
+!else
+val14=-\overrightarrow{$(val6[$val9]) $(val6[$val8])}
+!endif
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+tmp0=!randitem +,-
+
+val13=$(tmp0)
+
+!ifval $val13=1
+val14=+\overrightarrow{$(val6[$val9]) $(val6[$val10])}
+!else
+val14=-\overrightarrow{$(val6[$val10]) $(val6[$val9])}
+!endif
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+tmp0=!randitem +,-
+
+val13=$(tmp0)
+
+!ifval $val13=1
+val14=+\overrightarrow{$(val6[$val10]) $(val6[$val11])}
+!else
+val14=-\overrightarrow{$(val6[$val11]) $(val6[$val10])}
+!endif
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+tmp0=!shuffle 4
+
+val15=$(tmp0)
+val16=$(val12[$val15])
+tmp0=!items2lines $val16
+
+val17=$(tmp0)
+tmp0=!char 1 of $val17
+
+val18=$(tmp0)
+!if $val18=+ 
+tmp0=!replace internal char number 1 by  in $val17
+
+val17=$(tmp0)
+!endif
+val19=$(val6[$val7])
+val20=$(val6[$val11])
+val21=
+!for val22 =1 to 4 
+val23=$(val12[$(val15[$val22])])
+tmp0=!char 18 to 20 of $val23
+
+val24=$(tmp0)
+tmp0=!text reverse $val24
+
+val25=$(tmp0)
+!if - isin $val23 
+tmp0=!replace internal - by + in $val23
+
+val23=$(tmp0)
+tmp0=!text insert $val25 into $val23 mask 000000000000000001110
+
+val23=$(tmp0)
+!endif
+!if $val24=$val25 
+val23=+\overrightarrow{0}
+!endif
+tmp0=!append item $val23 to $val21
+
+val21=$(tmp0)
+!next
+tmp0=!items2lines $val21
+
+val26=$(tmp0)
+tmp0=!char 1 of $val26
+
+val27=$(tmp0)
+!if $val27=+ 
+tmp0=!replace internal char number 1 by  in $val26
+
+val26=$(tmp0)
+!endif
+val28=
+!for val29 =1 to 4 
+tmp0=!positionof item $val29 in $val15
+
+val30=$(tmp0)
+tmp0=!append item $val30 to $val28
+
+val28=$(tmp0)
+!next
+val31=$(val21[$val28])
+val32=
+!for val33 =1 to 4 
+val34=$(val31[$val33])
+!if $val34=+\overrightarrow{0} 
+val34=
+!endif
+tmp0=!append item $val34 to $val32
+
+val32=$(tmp0)
+!next
+tmp0=!nonempty item $val32
+
+val32=$(tmp0)
+tmp0=!items2lines $val32
+
+val35=$(tmp0)
+tmp0=!char 1 of $val35
+
+val36=$(tmp0)
+!if $val36=+ 
+tmp0=!replace internal char number 1 by  in $val35
+
+val35=$(tmp0)
+!endif
+tmp0=!itemcount $val32
+
+val37=$[rint($(tmp0))]
+replytype1=case
+replyname1=origine
+replygood1=$val19
+replytype2=case
+replyname2=extrémité
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		Simplifiez au maximum la relation suivante&nbsp;:	<div class="wimscenter unbreakable">	 
+!read oef/special.phtml mathmlinput [$val17 = \overrightarrow{ reply1 reply2}], 2,noanswer	reply1	reply2 
+$()	</div>	<div class="wims_instruction">	Entrez séparément l'origine et l'extrémité du vecteur.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	En utilisant la relation de Chasles, on peut obtenir successivement les égalités suivantes&nbsp;:		<div class="unbreakable">	
+!insmath $val17 = $val26
+$()<br>	
+!if $val26 notsametext $val35 
+$()
+!insmath \phantom{$val17}=$val35 
+$()<br> 
+!endif
+$()	
+!if $val37 >2 
+$()
+!insmath \phantom{$val17}=\overrightarrow{$(val6[$val7]) $(val6[$val9])} + \overrightarrow{$(val6[$val9]) $(val6[$val11])}
+$()<br> 
+!endif
+$()	
+!if $val37 >1 
+$()
+!insmath \phantom{$val17}= \overrightarrow{$val19 $val20}
+$() 
+!endif
+$()	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,17,19,20,26,35,37
+embedcnt=1

@@ -1,0 +1,154 @@
+!set title=Borne sup 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Menini
+email=chantal.menini@math.u-bordeaux.fr
+title_en=Upper bound 4
+
+ansorder=r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+credits=
+val7=il n'y a plus rien à faire c'est une conséquence de la définition de la borne supérieure,	  il n'y a plus rien à faire c'est une conséquence de la définition de la borne inférieure,	  ce cas ne peut pas se produire,	  il reste à montrer que
+val8=est un majorant de,est un minorant de,et on veut montrer que
+val9=Si \(A\) est un ensemble non vide et,	  on note,sa borne, On sait que
+val10=Choisir parmi les propositions suivantes (une seule bonne réponse).
+val11=La réponse
+!if $val6=en 
+val7=There is nothing more to do &#59; it is a consequence of the definition of the least upper bound,	  There is nothing more to do &#59; it is a consequence of the definition of the least lower bound,	  this case cannot occur,	  it remains to show that
+val8=is bounded above by,is bounded below by,and we want to show that
+val9=Let \(A\) be a non-empty set that is bounded and,	  We denote by,its bound, We know that
+val10=Choose among the following proposals (only one correct answer)
+val11=The answer
+!endif
+tmp0=!randint -2, 2
+
+val12=$[rint($(tmp0))]
+tmp=!trim $val12 $(val8[1]) \(A) $(val8[3]) \(\sup(A)=$val12\),0,0,0,0,1,0,0	\($val12) $(val8[1]) \(A\) $(val8[3]) \(\sup(A)\leq$val12\),1,0,0,0,0,0,0	\($val12) $(val8[1]) \(A\) $(val8[3]) \(\sup(A)\geq$val12\),0,0,0,0,1,0,0	\($val12) $(val8[1]) \(A\) $(val8[3]) \(\sup(A)< $val12\),0,0,0,0,0,0,1	\($val12) $(val8[1]) \(A\) $(val8[3]) \(\sup(A)> $val12\),0,1,0,0,0,0,0	\($val12) $(val8[2]) \(A\) $(val8[3]) \(\inf(A)=$val12\),0,0,0,0,1,0,0	\($val12) $(val8[2]) \(A\) $(val8[3]) \(\inf(A)\geq$val12\),1,0,0,0,0,0,0	\($val12) $(val8[2]) \(A\) $(val8[3]) \(\inf(A)\leq$val12\),0,0,0,0,1,0,0	\($val12) $(val8[2]) \(A\) $(val8[3]) \(\inf(A)> $val12\),0,0,0,0,0,0,1	\($val12) $(val8[2]) \(A\) $(val8[3]) \(\inf(A)< $val12\),0,1,0,0,0,0,0	
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val7[1])	$(val7[3])	$(val7[4]) \($val12\in A)	$(val7[4]) \(\forall x\in A\quad x\leq $val12)	$(val7[4]) \(\forall \varepsilon>0\ \exists x\in A ,\ $val12-\varepsilon<x)	$(val7[4]) \(\exists \varepsilon>0\ \exists x\in A ,\ $val12-\varepsilon<x)	$(val7[4]) \(\exists \varepsilon>0\ \forall x\in A ,\ $val12-\varepsilon\geq x)	$(val7[2])	$(val7[3])	$(val7[4]) \($val12\in A)	$(val7[4]) \(\forall x\in A\quad x\geq $val12)	$(val7[4]) \(\forall \varepsilon>0\ \exists x\in A ,\ $val12+\varepsilon>x)	$(val7[4]) \(\exists \varepsilon>0\ \exists x\in A ,\ $val12+\varepsilon>x)	$(val7[4]) \(\exists \varepsilon>0\ \forall x\in A ,\ $val12+\varepsilon\leq x)	
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp0=!rowcnt $tmp
+val15=$[rint($(tmp0)/2)]
+tmp=!translate internal $	$ to ; in $val14
+
+tmp0=!rowcnt $tmp
+val16=$[rint($(tmp0)/2)]
+tmp0=!randint 1, $val15
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 0, 1
+
+val18=$[rint($(tmp0))]
+
+!ifval $val18==0 
+val19= majoré 
+!else
+val19= minoré
+!endif
+
+!ifval $val18==0 
+val20= \sup(A) 
+!else
+val20= \inf(A)
+!endif
+
+!ifval $val18==0 
+val21= supérieure 
+!else
+val21= inférieure
+!endif
+val22=$[rint($val17+$val18*$val15)]
+val23=$[rint(1+ $val18*$val16)]
+val24=$[rint($val16+ $val18*$val16)]
+val25=$(val13[$val22 ;2..-1])
+val26=$(val13[$val22 ;1])
+tmp0=!positionof item 1 in $val25
+
+val27=$(tmp0)
+tmp0=!item 1 to $val16 of A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+
+val28=$(tmp0)
+replytype1=checkbox
+replyoption1=split 
+replyname1=$val11
+replygood1=$val27;$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="oef_explain">$(val9[1]) $val19,	$(val9[2]) 
+!insmath $val20
+$() $(val9[3]) $val21. $(val9[4])	<div class="wimscenter">	 $val26 .	</div>	$val10	</div>	   
+!for m_i=1 to $val16 
+$()<div class="oefreply"> 
+!read oef/embed.phtml reply 1,\i, $(val28[$m_i]) : $(val14[$m_i+$val18*$val16;]) 
+$()</div> 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,14,16,18,19,20,21,26,28
+embedcnt=1

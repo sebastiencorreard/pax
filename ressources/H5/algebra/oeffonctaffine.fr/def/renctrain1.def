@@ -1,0 +1,143 @@
+!set title=Rencontre de trains 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 10
+
+val6=$[rint($(tmp0))]
+val7=$[rint(30)]
+val8=$[rint(5*$val7)]
+tmp0=!randint 2, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val10=$[rint($(tmp0))]
+val11=$[rint(0)]
+val12=$[rint(5*$val11)]
+val13=$[rint(1)]
+val14=$[rint((2*$val7+$val9*$val11+$val10*$val13))]
+val15=$[rint($val9+$val10)]
+val16=$[rint($val14 - $val15*floor($val14 / $val15) )]
+!while  ($val13<7) and ($val16 >0) 
+val13=$[rint($val13+1)]
+val14=$[rint((2*$val7+$val9*$val11+$val10*$val13))]
+val15=$[rint($val9+$val10)]
+val16=$[rint($val14 - $val15*floor($val14 / $val15) )]
+!endwhile
+!if  ($val16 > 0) or (60*$val8<\t2*\v1) 
+val10=$[rint(1)]
+val14=$[rint((2*$val7+$val9*$val11))]
+val15=$[rint($val9+1)]
+val16=$[rint($val14 - $val15*floor($val14 / $val15) )]
+val13=$[rint($val9+1-$val16)]
+!endif
+val17=$[rint(5*$val13)]
+val18=$[rint(30*$val9)]
+val19=$[rint(30*$val10)]
+val20=$[rint(5*(2*$val7+$val9*$val11 + $val10*$val13)/($val9 + $val10))]
+val21=$[rint($val18*($val20 - $val12)/60)]
+val22=$[rint($val12 + $val8/$val18*60)]
+val23=$[rint($val17 + $val8/$val19*60)]
+val24=$[rint($val17 - 60*floor($val17/60))]
+val25=$[rint($val6 + floor($val17/60))]
+val26=$[rint($val22 - 60*floor($val22/60))]
+val27=$[rint($val6 + floor($val22/60))]
+val28=$[rint($val23 - 60*floor($val23/60))]
+val29=$[rint($val6 + floor($val23/60))]
+val30=$[rint($val20 - 60*floor($val20/60))]
+val31=$[rint($val6 + floor($val20/60))]
+val32=$[rint($val6+1)]
+val33=$[rint(max($val22,$val23)+20)]
+val34=xrange -50,$val33	yrange -50,160	linewidth 1	parallel 0,0,$val33,0,0,10,20,black	parallel 0,0,0,160,5,0,40,black	linewidth 3	parallel 0,0,0,160,60,0,4,black	parallel 0,50,$val33,50,0,50,2,black	arrow 0,0,$val33,0,10,black	arrow 0,0,0,160,10,black	linewidth 4	segment 0,150,$val33,150,black	segment 0,0,$val22,150,blue	segment $val17,150,$val23,0,red	text black, -3,-1,large,$val6 h	text black, 57,-1,large,$val32 h	text black, -7,2,large, 0	text black, -13,52,large,50 km	text black, -14,102,large,100 km	text black, -14,152,large,150 km	text black, $val17,160,large,$val25 h $val24	text black, $val22,160,large,$val27 h $val26	text black, $val23,-2,large,$val29 h $val28	
+val35=Réalisez un graphique en graduant l'axe horizontal de 5 minutes	  en 5 minutes à partir de $val6 h. Puis calculez la vitesse en km/min	  du 1er train pour connaître la distance par rapport à Arnes.
+replytype1=default
+replyname1=Heure du croisement
+replygood1=$val31
+replytype2=default
+replyname2=Minutes du croisement
+replygood2=$val30
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val35
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <ul><li>	  Les villes Arnes et Buluc sont distantes de $val8 km.	  </li><li>	  Le train N°1 part de Arnes à $val6 h et arrive à Buluc $val27 h $val26 min.	  </li><li>	  Le train N°2 part de Buluc à $val25 h $val24 min et arrive à Arnes $val29 h $val28 min.	  </li></ul>	  <div class="wims_question">	  <ul class="wims_nopuce"><li>	  A quel instant les deux trains se croiseront-ils ? <br>	  Réponse : <label for="reply1">Ils se croiseront à</label>  
+!read oef/embed.phtml reply1,3 
+$() h  
+!read oef/embed.phtml reply2,3 
+$()	  <label for="reply2">min.</label>	  	  </li></ul>	  </div>	
+$()
+!exit
+
+:hint
+$()$val35
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() 
+!read oef/draw.phtml 800,400 \
+$val34 
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,24,25,26,27,28,29,34,35
+embedcnt=2

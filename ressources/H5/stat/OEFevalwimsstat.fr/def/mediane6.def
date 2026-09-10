@@ -1,0 +1,332 @@
+!set title=Calculer, interpréter une médiane 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=88
+prevarcnt=87
+postvarcnt=0
+replycnt=21
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 100
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,0
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 4, 7
+
+val9=$[rint(2*$(tmp0)+$val8)]
+tmp0=!makelist x for x=$val7 to $val7+$val6
+
+val10=$(tmp0)
+tmp0=!shuffle $val6
+
+val11=$(tmp0)
+tmp0=!item 1 to $val9 of $val11
+
+val11=$(tmp0)
+tmp0=!item $val11 of $val10
+
+val10=$(tmp0)
+tmp0=!sort numeric list $val10
+
+val12=$(tmp0)
+val13=$val12
+val7=$[rint($(val13[1]))]
+val14=$[rint(100)]
+val15=
+val16=$[rint(0)]
+val17=$[rint($val14/100)]
+val18=$[rint(round($val14/($val9-$val17)))]
+!for val19 =1 to $val9-$val17 
+tmp0=!randint 5, $val18
+
+val20=$[rint($(tmp0))]
+val16=$[rint($val16+$val20)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+!next
+!for val19 =1 to $val17-1 
+val20=$[rint(($val14-$val16)/$val17)]
+val16=$[rint($val16+$val20)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+!next
+val20=$[rint($val14-$val16)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+val21=<table class="wimsborder"><tr><th>Valeurs</th>
+!for val19 =1 to $val9 
+val21=$val21 <td>$(val13[$val19])</td>
+!next
+val21=$val21</tr><tr><th>Effectifs</th>
+!for val19 =1 to $val9 
+val21=$val21 <td>$(val15[$val19])</td>
+!next
+val21=$val21 </tr></table>
+val22=
+val23=$[rint(0)]
+val24=$[rint(-1)]
+t_=!rawmath $val14/2
+val25=!exec pari print($t_)
+!for val19 =1 to $val9 
+val23=$[rint($val23+$(val15[$val19]))]
+!if $val23>$val25 and $val24=-1 
+val24=$[rint($val19)]
+!endif
+tmp0=!append item $val23 to $val22
+
+val22=$(tmp0)
+!next
+val26=$[rint($(val13[$val24]))]
+
+!ifval $(val22[$val24-1])=$val25
+t_=!rawmath ($(val13[$val24-1])+$(val13[$val24]))/2
+val26=!exec pari print($t_)
+!endif
+val27=Effectifs cumulés croissants
+val28=$val22
+tmp0=!makelist r x for x=1 to $val9+2
+
+val29=$(tmp0)
+tmp0=!nospace $val29
+
+val29=$(tmp0)
+tmp0=!item -1 of $val13
+
+val30=$[rint($(tmp0)+10)]
+tmp0=!append item $val30 to $val13
+
+val13=$(tmp0)
+val21=<table class="wimsborder"><tr><th>Classe</th><th>Effectif</th></tr>
+!for val19 =1 to $val9 
+val21=$val21	<tr><td>&#91; $(val13[$val19]) ; $(val13[$val19+1]) &#91; </td><td>$(val15[$val19])</td></tr>	
+!next
+val21=$val21 </table>
+val24=$[rint(-1)]
+val31=$[rint(0)]
+val32=$[rint(0)]
+!for val19 =1 to $val9 
+!if $val24=-1 
+!if $(val22[$val19])>$val14/2 and $val24=-1 
+val24=$[rint($val19)]
+val32=$[rint($(val22[$val19]))]
+val31=$[rint($val32-$(val15[$val19]))]
+val33=$[rint($(val13[$val24]))]
+val34=$[rint($(val13[$val24+1]))]
+!endif
+!endif
+!next
+val35=$[$val33+($val14/2 - $val31)*($val34-$val33)/($val32-$val31)]
+val27=Effectifs cumulés croissants
+val28=$val22
+tmp0=!item -1 of $val13
+
+val30=$[rint($(tmp0)+10)]
+tmp0=!append item $val30 to $val13
+
+val13=$(tmp0)
+val21=<table class="wimsborder"><tr><th>Classe</th><th>Effectif</th></tr>
+!for val19 =1 to $val9 
+val21=$val21	  <tr><td>&#91; $(val13[$val19]) ; $(val13[$val19+1]) &#91; </td><td>$(val15[$val19])</td></tr>
+!next
+val21=$val21 </table>
+val24=$[rint(-1)]
+val31=$[rint(0)]
+val32=$[rint(0)]
+!for val19 =1 to $val9 
+!if $val24=-1 
+!if $(val22[$val19])>$val14/2 and $val24=-1 
+val24=$[rint($val19)]
+val32=$[rint($(val22[$val19]))]
+val31=$[rint($val32-$(val15[$val19]))]
+val33=$[rint($(val13[$val24]))]
+val34=$[rint($(val13[$val24+1]))]
+!endif
+!endif
+!next
+val35=$[$val33+($val14/2 - $val31)*($val34-$val33)/($val32-$val31)]
+tmp0=!makelist r x for x=1 to $val9+6
+
+val29=$(tmp0)
+tmp0=!nospace $val29
+
+val29=$(tmp0)
+val36=$[rint($val34-$val33)]
+val37=$[rint($(val15[$val24]))]
+val38=$[rint($(val22[$val24])-$val14/2)]
+oefsteps=$val29 
+nextstep=!nosubst $val29 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Classe médiane borne gauche
+replygood1=$[$val33]
+replytype2=numeric
+replyname2=Classe médiane borne droite
+replygood2=$[$val34]
+replytype3=numeric
+replyname3=Amplitude de la classe médiane
+replygood3=$[$val36]
+replytype4=numeric
+replyname4=Effectif de la classe mediane
+replygood4=$[$val37]
+replytype5=numeric
+replyname5=Écart
+replygood5=$[$val38]
+replytype6=numeric
+replyname6=Médiane
+replygood6=$[$val35]
+replytype7=numeric
+replyname7=ecc1
+replygood7=$[$(val22[1])]
+replytype8=numeric
+replyname8=ecc2
+replygood8=$[$(val22[2])]
+replytype9=numeric
+replyname9=ecc3
+replygood9=$[$(val22[3])]
+replytype10=numeric
+replyname10=ecc4
+replygood10=$[$(val22[4])]
+replytype11=numeric
+replyname11=ecc5
+replygood11=$[$(val22[5])]
+replytype12=numeric
+replyname12=ecc6
+replygood12=$[$(val22[6])]
+replytype13=numeric
+replyname13=ecc7
+replygood13=$[$(val22[7])]
+replytype14=numeric
+replyname14=ecc8
+replygood14=$[$(val22[8])]
+replytype15=numeric
+replyname15=ecc9
+replygood15=$[$(val22[9])]
+replytype16=numeric
+replyname16=ecc10
+replygood16=$[$(val22[10])]
+replytype17=numeric
+replyname17=ecc11
+replygood17=$[$(val22[11])]
+replytype18=numeric
+replyname18=ecc12
+replygood18=$[$(val22[12])]
+replytype19=numeric
+replyname19=ecc13
+replygood19=$[$(val22[13])]
+replytype20=numeric
+replyname20=ecc14
+replygood20=$[$(val22[14])]
+replytype21=numeric
+replyname21=ecc15
+replygood21=$[$(val22[15])]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Voici le tableau des effectifs d'une série statistique regroupée par classe :	</p><table class="wimscenter wimsborder"><tr><th>Valeur</th>	 
+!for m_n=1 to $val9 
+$()	  <td>&#91;$(val13[$m_n]) ; $(val13[$m_n+1])&#91;</td>	 
+!next
+$()	</tr>	<tr><th>Effectif</th>	 
+!for m_n=1 to $val9 
+$()	  <td>$(val15[$m_n])</td>	 
+!next
+$()	</tr>	<tr><th>E.C.C</th>	 
+!for m_j=7 to $val9+6 
+$()	 <td> 
+!read oef/embed.phtml reply\j,4 
+$()</td>	 
+!next
+$()	</tr></table>	<ol>	<li>Remplir la ligne des effectifs cumulés croissants (E.C.C).</li>	<li>Déterminer la classe médiane de cette série :	<div class="wimscenter"><label for="reply1">Classe médiane : </label>&#91;  
+!read oef/embed.phtml reply1,3 
+$();  
+!read oef/embed.phtml reply2,3 
+$() &#91;</div>	</li><li>	Quels sont l'amplitude et l'effectif de cette classe :	<div class="wimscenter"><label for="reply3">Amplitude de la classe médiane :</label>  
+!read oef/embed.phtml reply3,4 
+$()</div>	<div class="wimscenter"><label for="reply4">Effectif de la classe médiane :</label>  
+!read oef/embed.phtml reply4,4 
+$()</div>	</li><li>	Quel est l'écart entre l'effectif cumulé de la classe médiane et l'effectif médian :	<div class="wimscenter"><label for="reply5">Écart :</label>  
+!read oef/embed.phtml reply5,4 
+$()</div>	</li><li>	Par interpolation, déterminer précisément la médiane de cette série :	<div class="wimscenter"><label for="reply6">Médiane :</label>  
+!read oef/embed.phtml reply6 
+$()</div>	</li>	</ol>	
+$()
+!exit
+
+:hint
+$()Si la classe médiane est [a;b],	 notons 
+!insmath ecart
+$() l'écart entre l'effectif cumulé de la classe médiane et l'effectif médian,	 
+!insmath amp
+$() l'amplitude de la classe médiane	et 
+!insmath eff
+$() l'effectif de cette classe.<p>	La médiane s'obtient par<br>	
+!insmath med= b- \frac{ecart}{eff}\times amp
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,13,15
+embedcnt=7

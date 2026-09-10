@@ -1,0 +1,88 @@
+target=composesvar1 composesvar2 composesvar3
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{100}
+\text{size=\confparm1=1 ? :x-large}
+
+\integer{a=randint(1..9)*randint(1,-1)}
+\integer{b=randint(1..9)*randint(1,-1)}
+\integer{c=randint(1..9)*randint(1,-1)}
+#if defined TARGET_composesvar1
+\title{Opération et sens de variation}
+\integer{d=0}
+\text{thm=de somme de fonctions}
+#else
+\integer{d=randint(1..9)*randint(1,-1)}
+#if defined TARGET_composesvar2
+\title{Composition et sens de variation}
+\text{thm=de composition de fonctions}
+#else
+\title{Opération, composition et sens de variation}
+\text{thm=de somme et de composition de fonctions}
+#endif
+#endif
+#if defined TARGET_composesvar2
+\text{lstfct=(\b*x-\d*\b)^2,x,&#91;\d &#59;\(+\infty) &#91;,1,1
+(\b*x-\d*\b)^2,x,&#93;\(-\infty) &#59;\d &#93;,2,2
+1/(\b*x-\d*\b),x,&#93;\d &#59;\(+\infty) &#91;,2,1
+1/(\b*x-\d*\b),x,&#93;\(-\infty) &#59;\d &#91;,2,1
+(\b*x-\d*\b)^3,x,&#91;\d &#59;\(+\infty) &#91;,1,2}
+\if{\b>0}
+ {
+\text{lstfct=\lstfct
+sqrt(\b*x-\d*\b),x,&#91;\d &#59;\(+\infty) &#91;,1,2
+}
+ }
+ {
+\text{lstfct=\lstfct
+sqrt(\b*x-\d*\b),x,&#93;\(-\infty) &#59;\d &#93;,1,2
+}
+ }
+#else
+\text{lstfct=sqrt(x-\d),x,&#91;\d &#59;\(+\infty) &#91;,1,2,3,3
+(x-\d)^2,x,&#91;\d &#59;\(+\infty) &#91;,1,2,3,3
+(x-\d)^2,x,&#93;\(-\infty) &#59;\d &#93;,3,3,2,1
+1/(x-\d),x,&#93;\d &#59;\(+\infty) &#91;,3,3,2,1
+1/(x-\d),x,&#93;\(-\infty) &#59;\d &#91;,3,3,2,1
+1/(x-\d),(x-\d)^2,&#93;\d &#59;\(+\infty) &#91;,3,3,2,1
+1/(x-\d),(x-\d)^2,&#93;\(-\infty) &#59;\d &#91;,2,1,3,3
+1/(x-\d),sqrt(x-\d),&#93;\d &#59;\(+\infty) &#91;,3,3,2,1
+(x-\d)^3,x,&#91;\d &#59;\(+\infty) &#91;,1,2,3,3
+(x-\d)^3,x,&#93;\(-\infty) &#59;\d &#93;,1,2,3,3
+(x-\d)^3,(x-\d)^2,&#91;\d &#59;\(+\infty) &#91;,1,2,3,3
+(x-\d)^3,(x-\d)^2,&#93;\(-\infty) &#59;\d &#93;,3,3,1,2
+sqrt(x-\d),(x-\d)^2,&#91;\d &#59;\(+\infty) &#91;,1,2,3,3
+}
+#endif
+\integer{nf=rows(\lstfct)}
+\integer{i=randint(1..\nf)}
+
+\text{cedata=row(\i,\lstfct)}
+\text{Df=\cedata[3]}
+\integer{ab=\a*\b}
+\text{lstrep=Oui&#44; \(f) est croissante, Oui&#44; \(f) est décroissante,Non&#44; on ne peut rien dire}
+#if defined TARGET_composesvar2
+\text{f=texmath(maxima(\a*\cedata[1]))}
+ \integer{rep=\b>0?\cedata[4]:\cedata[5]}
+ \integer{rep=\a>0?\rep:3-\rep}
+#else
+\text{f=texmath(maxima(\a*\cedata[1]+\b*\cedata[2]+\c))}
+\if{\ab>0}
+ {
+ \integer{rep=\a>0?\cedata[4]:\cedata[5]}
+ }
+ {
+ \integer{rep=\a>0?\cedata[6]:\cedata[7]}
+ }
+#endif
+\statement{
+On considère une fonction \(f) définie sur \Df par:
+<div class="wimscenter">\(f(x)=\f) .</div>
+<p>
+En utilisant simplement les théorèmes sur le sens de variation \thm, peut-on
+connaître le sens de variation de \(f)?
+</p>
+<div class="wimscenter">\embed{reply1}</div>
+}
+\answer{}{\rep;\lstrep}{type=radio}

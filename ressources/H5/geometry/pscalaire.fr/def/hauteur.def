@@ -1,0 +1,135 @@
+!set title=Produit scalaire et hauteur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=René Chaffard
+email=chafrene@club-internet.fr
+language=fr
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem a,b,c
+
+val6=$(tmp0)
+tmp0=!shuffle A,B,C
+
+val7=$(tmp0)
+val8=$(val7[1])
+val9=$(val7[2])
+val10=$(val7[3])
+tmp0=!randint 2, 8
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val12=$[rint($(tmp0))]
+val13=$[rint(abs($val11-$val12)+1)]
+val14=$[rint($val11+$val12-1)]
+tmp0=!randint $val13, $val14
+
+val15=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in ($val11^2+$val12^2-$val15^2)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+t_=!replace internal \( by ( in ($val16)/($val12^2)
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+tmp0=!shuffle \($val8 $val9 = $val11 ) , \($val9 $val10 = $val12) ,  \($val10 $val8 = $val15)
+
+val18=$(tmp0)
+replytype1=formal
+replyname1=\(k)
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère un triangle 
+!insmath A B C
+$() tel que :	<p class="wimscenter">	$(val18[1]),  $(val18[2]), $(val18[3]). </p>	Soit 
+!insmath H
+$() le pied de la hauteur issue de 
+!insmath $val8
+$().	Calculer 
+!insmath k
+$()  tel que :	<p class="wimscenter">
+!insmath  \overrightarrow{$val9 H} = k	\overrightarrow{$val9 $val10} 
+$()</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	Trois définitions du produit scalaire: <br>	<p class="wimscenter">
+!insmath  \overrightarrow{A B} \cdot \overrightarrow{A C}	= \frac{1}{2} ( A B^2 + A C^2 - B C^2 ) 
+$()	</p>	<p class="wimscenter">( $m_overrightarrow{AB} $m_cdot $m_overrightarrow{A C} = A B . A C $m_cos( $m_hat{A} ) )	</p>	Si 
+!insmath H
+$() est le pied de la bauteur issue de 
+!insmath C
+$() alors :<br>	<p class="wimscenter">
+!insmath  \overrightarrow{A B} \cdot \overrightarrow{A C}	= \overrightarrow{AH} \cdot \overrightarrow{A B} = k A B^2 
+$()	</p>	<i>à adapter à la question posée</i>	
+$()
+!exit
+
+:solution
+$()	On calcule le produit scalaire :	<p class="wimscenter">	
+!insmath  \overrightarrow{$val9 $val8} \cdot \overrightarrow{$val9 $val10}
+$()</p>	qui est égal à $val16.	Donc : <p class="wimscenter">
+!insmath $val16 = k * $val12^2
+$()</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,12,16,18
+embedcnt=0

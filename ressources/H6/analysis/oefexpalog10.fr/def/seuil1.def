@@ -1,0 +1,156 @@
+!set title=Recherche de seuil 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 11, 32
+
+tmp1=!randint 1, 9
+
+tmp=!nonempty items $(tmp0)/10,$(tmp1)/10
+
+tmp2=!randitem $tmp
+val6=$[$(tmp2)]
+
+!ifval ($val6>1)
+tmp0=!randint 500, 9990
+
+val7=$[ $(tmp0)*1000]
+!else
+tmp1=!randint 1, 100
+
+val7=$[$(tmp1)/100000]
+!endif
+
+!ifval ($val6>1)
+val8= >
+!else
+val8=<
+!endif
+!readproc slib/numeration/ecriturenombre $val7,tex 
+tmp0=$slib_out
+val9=$(tmp0)
+val10=$[log($val7)/log($val6)]
+val11=$[floor($val10)+1]
+
+!ifval (floor($val10)<$val10)
+val12=$[rint( 1)]
+!else
+val12=$[rint(0)]
+!endif
+tmp0=!exec moneyprint $val10 3
+
+val13=$(tmp0)
+replytype1=formal
+replyname1=\(n)
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question">Déterminer le plus petit entier naturel 
+!insmath n
+$() tel que 
+!insmath $val6^n $val8 $val9
+$().</div>	
+!insmath n=
+$() 
+!read oef/embed.phtml r1,3 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val6^n $val8 $val9
+$() &hArr; 
+!insmath log($val6^n) $val8 log($val9)
+$() &hArr; 
+!insmath n \times log($val6) $val8 log($val9) 
+$()	&hArr; 
+!insmath \n > \frac{log($val9)}{log($val6)}
+$() car 
+!if $val6>1 
+$()
+!insmath log($val6)>0
+$() 
+!else
+$() 
+!insmath log($val6)<0
+$() 
+!endif
+$().<br/>	
+!if $val12=1 
+$()
+!insmath \frac{log($val9)}{log($val6)}\simeq $val13
+$() donc la 
+!else
+$() La 
+!endif
+$() valeur de 
+!insmath n
+$() est 
+!insmath $val11
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,11,12,13
+embedcnt=1

@@ -1,0 +1,172 @@
+!set title=Changement de base dans le plan
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss=<style> .enonce { margin:2% 2%; padding:1em;} </style> 
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 2
+
+val6=$[rint($(tmp0))]
+!readproc slib/matrix/orthogonal 2,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val7[1;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val7[2;])
+val9=!translate internal $	\
+$ to ;; in $tmp
+!if $(val8[1])=0 or $(val8[2])=0 
+t_=!replace internal \( by ( in print([3/5,4/5])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([4/5,-3/5])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+
+!ifval $val10=0
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+!else
+tmp2=!randitem -5,5
+
+val11=$[rint($(tmp2))]
+!endif
+t_=!replace internal \( by ( in print([$val8]*($val10)+ [$val9]*($val11))
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=$[rint($(val8[1])*$(val9[1])+$(val8[2])*$(val9[2]))]
+
+!ifval $val13=0
+val6=$[rint(1)]
+!else
+val6=$[rint(2)]
+!endif
+val14=La base \( (\overrightarrow{e_1},\overrightarrow{e_1})) étant orthonormale, les coordonnées dans la nouvelle base s'obtiennent à l'aide du produit scalaire par la formule:<br>	\(\overrightarrow{u})= \((\overrightarrow{u}| \overrightarrow{e_1})\overrightarrow{e_1}+(\overrightarrow{u}| \overrightarrow{e_2})\overrightarrow{e_2})<br>	Soit \(\overrightarrow{u})= \((($(val12[1]))\times ($(val8[1]))+($(val12[2]))\times ($(val8[2])))\overrightarrow{e_1})<br>	\(+(($(val12[1]))\times ($(val9[1]))+($(val12[2]))\times ($(val9[2])))\overrightarrow{e_2})<br>	\(=$val10 \overrightarrow{e_1}+($val11) \overrightarrow{e_2})	
+replytype1=numeric
+replyname1=abscisse
+replygood1=$[$val10]
+replytype2=numeric
+replyname2=ordonnée
+replygood2=$[$val11]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val14
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	On considère trois vecteurs 
+!insmath \overrightarrow{e_1}
+$(),
+!insmath \overrightarrow{e_2}
+$() et	 
+!insmath \overrightarrow{u}
+$() dont les coordonnées dans la base canonique	 
+!insmath (\overrightarrow{i},\overrightarrow{j})
+$() sont respectivement:	 <div class="wimscenter">	 
+!insmath \overrightarrow{e_1}\left(\begin{array}{c} $(val8[1]) \\	 $(val8[2]) \end{array}\right)
+$() ,
+!insmath \overrightarrow{e_2}\left(\begin{array}{c} $(val9[1]) \\ $(val9[2])\end{array}\right)
+$() et	 
+!insmath \overrightarrow{u}\left(\begin{array}{c} $(val12[1]) \\ $(val12[2]) \end{array}\right)
+$().	 </div></div>	<div class="wims_question">	Donner les cordonnées du vecteur 
+!insmath \overrightarrow{u}
+$()	dans la base 
+!insmath (\overrightarrow{e_1},\overrightarrow{e_2})
+$().	<div class="wimscenter">	<label for="reply1">
+!insmath \overrightarrow{u}
+$()=</label>	 
+!read oef/embed.phtml reply1,4 
+$()
+!insmath \overrightarrow{e_1}
+$()+ 
+!read oef/embed.phtml reply2,4 
+$()<label for="reply2">
+!insmath \overrightarrow{e_2}
+$()	</label>.	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val14
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,12,14
+embedcnt=2

@@ -1,0 +1,134 @@
+target=distptplan1 distptplan2 distplan3
+#define TITLE Distance d'un point à un plan
+#if defined TARGET_distptplan1
+\title{TITLE 1}
+#endif
+#if defined TARGET_distptplan2
+\title{TITLE 2}
+#endif
+#if defined TARGET_distplan3
+\title{Distance entre deux plans parallèles}
+#endif
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{1000}
+
+\matrix{V=slib(matrix/invertible 3,3)}
+\matrix{u=\V[1;]}
+\matrix{v=\V[2;]}
+\matrix{w=\V[3;]}
+
+\integer{ux=\V[1;1]}
+\integer{uy=\V[1;2]}
+\integer{uz=\V[1;3]}
+\integer{vx=\V[2;1]}
+\integer{vy=\V[2;2]}
+\integer{vz=\V[2;3]}
+\integer{wx=\V[3;1]}
+\integer{wy=\V[3;2]}
+\integer{wz=\V[3;3]}
+\integer{xa=randint(-9..9)}
+\integer{ya=randint(-9..9)}
+\integer{za=randint(-9..9)}
+
+///// equation paramétrique de P(A,u,v)
+\text{eqx=simplify(\xa+\ux*t+\vx*s)}
+\text{eqy=simplify(\ya+\uy*t+\vy*s)}
+\text{eqz=simplify(\za+\uz*t+\vz*s)}
+
+///// equation du plan (A,u,v)
+\integer{nx=\uy*(\vz)-(\uz)*(\vy)}
+\integer{ny=(\uz)*(\vx)-(\ux)*(\vz)}
+\integer{nz=(\ux)*(\vy)-(\uy)*(\vx)}
+\integer{d1=(\xa)*(\nx)+(\ya)*(\ny)+(\za)*(\nz)}
+\text{eqpl1=texmath(simplify(\nx*x+\ny*y+\nz*z-\d1)=0)}
+
+\integer{d2=\d1+randint(5..20)*randint(1,-1)}
+\text{eqpl2=texmath(simplify(\nx*x+\ny*y+\nz*z-\d2)=0)}
+
+
+\text{txtsol=}
+\text{eqxx=texmath(\eqx)}
+\text{eqyy=texmath(\eqy)}
+\text{eqzz=texmath(\eqz)}
+
+///// coordonnées du point B
+\integer{xb=randint(-9..9)}
+\integer{yb=randint(-9..9)}
+\integer{zb=randint(-9..9)}
+#if defined TARGET_distplan3
+\if{\nx=0}
+   {
+   \if{\ny=0}
+     {
+     \integer{xb=0}
+     \integer{yb=0}
+     \rational{zb=\d2 / (\nz)}
+     }
+     {
+     \integer{xb=0}
+     \integer{zb=0}
+     \rational{yb=\d2 / (\ny)}
+     }
+   }
+   {
+    \integer{yb=0}
+    \integer{zb=0}
+    \rational{xb=\d2 / (\nx)}
+   }
+#endif
+
+///// distance de P au plan
+\real{dist=pari(abs(\nx*(\xb) + (\ny)*(\yb) + (\nz)*(\zb) -(\d1)) /sqrt((\nx)^2+(\ny)^2+(\nz)^2))}
+
+#if defined TARGET_distptplan1
+\statement{
+On considère un plan \((P)) défini par une représentation paramétrique de variables \(t) et \(s)&nbsp;:
+
+<div class="wimscenter">
+\( \left\lbrace
+\begin{array}{l}
+x = \eqxx \\ y = \eqyy \\ z = \eqzz
+\end{array}
+\)
+</div>
+Calculer la distance du point \(B(\xb,\yb,\zb)) au plan \((P))
+<div class="wimscenter">distance = \embed{reply1,7}</div>
+}
+\answer{distance}{\dist}{type=numeric}
+\hint{Il faut d'abord établir une équation cartésienne de \((P))}
+#endif
+#if defined TARGET_distptplan2
+\statement{
+On considère un plan \((P)) défini par l'équation cartésienne&nbsp;:
+<div class="wimscenter">
+\( \eqpl1).
+</div>
+Calculer la distance du point \(B(\xb,\yb,\zb)) au plan \((P)).
+
+<div class="wimscenter">distance = \embed{reply1,7}</div>
+
+}
+\answer{distance}{\dist}{type=numeric}
+#endif
+#if defined TARGET_distplan3
+\statement{
+On considère un plan \((P)) défini par l'équation cartésienne
+<div class="wimscenter">
+\( \eqpl1).
+</div>
+et un plan parallèle \((Q)) défini par l'équation cartésienne
+<div class="wimscenter">
+\( \eqpl2).
+</div>
+Calculer la distance du plan \((P)) au plan \((Q)).
+
+<div class="wimscenter">distance = \embed{reply1,7}</div>
+
+}
+\answer{distance}{\dist}{type=numeric}
+\hint{ Soit un point \(A) de \((P)). La distance de \(A) à \((Q))
+est constante quel que soit ce point \(A).}
+
+#endif

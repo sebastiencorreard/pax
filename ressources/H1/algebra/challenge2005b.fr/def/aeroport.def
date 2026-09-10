@@ -1,0 +1,156 @@
+!set title=Aéroport
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem Paris,Londres,New York,Los Angeles, Beijing, Tokyo, Hong	Kong, Rome, Nice, Moscou, Shanghaï, Singapour, Genève, Zurich, Bruxelles,	Berlin, Montréal
+
+val6=$(tmp0)
+val7=h
+tmp0=!randint 9, 15
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 11
+
+val9=$[rint($(tmp0)*5)]
+val10=$[rint($val8*60+$val9)]
+tmp0=!char -2,-1 of 0$val9
+
+val9=$(tmp0)
+tmp0=!randitem 30,35,40,45,50
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val10-$val11)]
+tmp0=!randint 6, 11
+
+val13=$[rint($(tmp0)*5)]
+tmp0=!randint 3, 5
+
+val14=$[rint($(tmp0)*5)]
+tmp0=!randint 2, 5
+
+val15=$[rint($(tmp0)*5)]
+val16=$[rint($val13+$val14)]
+val17=$[rint($val16+$val15)]
+tmp0=!randint 1, 4
+
+val18=$[rint($(tmp0))]
+tmp0=!randint $val17+2, $val17+20
+
+tmp1=!randint $val16+2, $val17-2
+
+tmp2=!randint $val13+2, $val16-2
+
+tmp3=!randint $val13-15, $val13-2
+
+tmp4=!item $val18 of $(tmp0),	      $(tmp1),	      $(tmp2),	      $(tmp3)
+
+val19=$[rint($(tmp4))]
+val20=$[rint($val12-$val19)]
+val21=$[rint(floor($val20/60))]
+val22=$[rint($val20-60*$val21)]
+tmp0=!char -2,-1 of 0$val22
+
+val22=$(tmp0)
+val23=$[rint(160)]
+!readproc slib/draw/clock $val21:$val22,160,1,nosecond 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/lang/fname boy 
+tmp0=$slib_out
+val25=$(tmp0)
+tmp0=!randint 3, 10
+
+val26=$[rint($(tmp0))]
+tmp0=!randint ($val26+1)*1.2, ($val26+1)*1.8
+
+val27=$[rint($(tmp0))]
+tmp0=!randint $val27*1.6, $val27*3
+
+val28=$[rint($(tmp0))]
+val29=$[rint(floor($val12/60))]
+val30=$[rint($val12-60*$val29)]
+tmp0=!char -2,-1 of 0$val30
+
+val30=$(tmp0)
+replytype1=menu
+replyname1=La réponse
+replygood1=$val18;Le bus de ville, Le bus de l'aéroport,	Le taxi, Aucun : il est déjà trop tard
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst Il est $val21$val7$val22. $val25 doit arriver à l'aéroport à $val29$val7$val30. Il a donc $val19 minutes pour faire le trajet.
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val25 doit prendre un avion pour $val6 à $val8$val7$val9.	Il doit se présenter à l'aéroport au moins $val11 minutes	avant le décollage.	Pour aller à l'aéroport, il a le choix entre :	<ul>	<li>le bus de ville qui prend $val17 minutes. Prix : $val26 euros.</li>	<li>le bus de l'aéroport qui prend $val16 minutes. Prix : $val27 euros.</li>	<li>le taxi qui prend $val13 minutes. Prix : $val28 euros.</li>	</ul>	<div class="wimscenter">	 
+!read oef/draw.phtml $val23,$val23 \
+$val24 
+$()	</div>	Quel est le moyen le plus économique pour aller à l'aéroport, sans rater	l'avion ?	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Il est $val21$val7$val22. $val25 doit arriver à l'aéroport à $val29$val7$val30. Il a donc $val19 minutes pour faire le trajet.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,13,16,17,19,21,22,23,24,25,26,27,28,29,30
+embedcnt=0

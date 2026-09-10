@@ -1,0 +1,205 @@
+!set title=Évènements (sports)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Yvon,Charbonnière
+email=yvon.charbonniere@ac-lyon.fr
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 6000,6500,7000
+
+val6=$[$(tmp0)]
+val7=$[10000-$val6]
+val8=$[$val7-2050]
+val9=$[$val7-2050+1250]
+val10=$[$val6-6000]
+val11=$[$val6-6000+200]
+val12=$[$val7/10000]
+val13=$[$val6/10000]
+val14=$[$val9/10000]
+val15=$[($val6+$val8)]
+val16=$[($val6+$val8)/10000]
+val17=Être un homme et une femme,Être un homme ou une femme,Être un homme et faire du sport exactement une fois par semaine,Être un homme ou faire du sport exactement une fois par semaine,Être une femme et faire du sport exactement une fois par semaine,Être une femme ou faire du sport exactement une fois par semaine
+oefsteps=reply1, reply2, reply3	    reply4, reply6, reply7	    reply5, reply8, reply9 
+nextstep=!nosubst reply1, reply2, reply3	    reply4, reply6, reply7	    reply5, reply8, reply9 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=comma 
+replyname1=1
+replygood1=$[$val14]
+replytype2=numeric
+replyoption2=comma 
+replyname2=2
+replygood2=$[$val13]
+replytype3=numeric
+replyoption3=comma 
+replyname3=3
+replygood3=$[$val12]
+replytype4=checkbox
+replyoption4=shuffle 
+replyname4=4
+replygood4=4;$val17
+replytype5=checkbox
+replyoption5=shuffle 
+replyname5=5
+replygood5=2;$val17
+replytype6=numeric
+replyoption6=comma 
+replyname6=6
+replygood6=$[$val15]
+replytype7=numeric
+replyoption7=comma 
+replyname7=7
+replygood7=$[$val16]
+replytype8=raw
+replyname8=8
+replygood8=10000
+replytype9=raw
+replyname9=9
+replygood9=1
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<span class="float_left"><img src="$val1/sport.jpg" alt="sport"></span>		<p>Le tableau suivant donne les résultats d'une enquête auprès de	10 000 personnes portant sur leur pratique d'une activité sportive.</p>	 <table class="wimsborder">	  <tr>	    <td> </td><th colspan="4">Nombre de fois par semaine</th> <td> </td>	    </tr>	    <tr>	        <td> </td> <td>jamais </td> <td> 1</td> <td>2 </td> <td>3 </td> <td>total</td>	   </tr>	   <tr>	        <td>femmes</td> <td>200 </td> <td> $val8</td> <td>850 </td> <td>1000 </td> <td>$val7</td>	   </tr>	   <tr>	       <td>hommes</td> <td>$val10 </td> <td> 1250</td> <td>4000 </td> <td>750 </td> <td>$val6</td>	   </tr>	   <tr>	      <td>total</td> <td>$val11 </td> <td> $val9</td> <td>4850 </td> <td>1750 </td> <td>10000</td>	   </tr>	  </table>		<p>On considère les évènements </p>	   <ul class="wims_emph">	    <li>  A:  Pratiquer un sport exactement une fois par semaine</li>	    <li>  B:  Être un homme</li>	    <li>  C:  Être une femme</li>	  </ul>	
+!if  $m_step = 1  
+$() <div class="bold"> Première partie</div>	          Calculez 
+!insmath p(A)
+$() : 
+!read oef/embed.phtml reply1,5 
+$(), 
+!insmath p(B)
+$() :  
+!read oef/embed.phtml reply2,5 
+$(), 
+!insmath p(C)
+$():  
+!read oef/embed.phtml reply3,5 
+$() 
+!endif
+$()		
+!if  $m_step = 2  
+$()<div class="oef_indgood"> Bien :  
+!insmath p(A)=$val14 
+$();  
+!insmath p(B)=$val13 
+$();  
+!insmath p(C)=$val12 
+$() </div>	        <div class="bold"> Seconde partie</div>		         Choisissez la (ou les) phrase(s) définissant l'évènement 
+!insmath A \cup B
+$().	  <ul>	    <li>  
+!read oef/embed.phtml r4,1 
+$()</li>	    <li> 
+!read oef/embed.phtml r4,2 
+$()</li>	    <li> 
+!read oef/embed.phtml r4,3 
+$()</li>	    <li>  
+!read oef/embed.phtml r4,4 
+$()</li>	    <li>  
+!read oef/embed.phtml r4,5 
+$()</li>	    <li> 
+!read oef/embed.phtml r4,6 
+$()</li>	  </ul>	       Combien cela concerne-t-il de personnes ?   
+!read oef/embed.phtml reply6,5 
+$()	       </br>	      Calculez 
+!insmath p( A \cup B)
+$() : 
+!read oef/embed.phtml reply7,5 
+$()  
+!endif
+$()		
+!if  $m_step = 3  
+$() <div class="oef_indgood"> Bien :  
+!insmath p(A)=$val14 
+$();  
+!insmath p(B)=$val13 
+$();  
+!insmath p(C)=$val12 
+$(); 
+!insmath p( A \cup B) = $val16 
+$() </div>	        <div class="bold"> Troisième partie</div></P>	  Choisissez la (ou les) phrase(s) définissant l'évènement: 
+!insmath B \cup C
+$().	  <ul>	    <li>  
+!read oef/embed.phtml r5,1 
+$()</li>	    <li>  
+!read oef/embed.phtml r5,2 
+$()</li>	    <li>  
+!read oef/embed.phtml r5,3 
+$()</li>	    <li>  
+!read oef/embed.phtml r5,4 
+$()</li>	    <li>  
+!read oef/embed.phtml r5,5 
+$()</li>	    <li>  
+!read oef/embed.phtml r5,6 
+$()</li>	                   </ul>	 Combien cela concerne-t-il de personnes? :  
+!read oef/embed.phtml reply8,5 
+$()<br \>	    Calculez 
+!insmath p( B \cup C)
+$() :  
+!read oef/embed.phtml reply9,5 
+$() 
+!endif
+$()	   
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,9,10,11,12,13,14,16
+embedcnt=19

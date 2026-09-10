@@ -1,0 +1,368 @@
+!set title=Inversion d'un arbre pondéré
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=86
+prevarcnt=85
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Voici un arbre de probabilités. Compléter son arbre inverse&nbsp;
+
+!ifval $val2=
+val7=$[rint( 2)]
+!else
+val7=$[rint( min(3,$val2+1))]
+!endif
+!if $val7 = 2 
+tmp=!trim 1,2,3	2,4,5	3,6,7	
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val8
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=*,A,A^c,B,B^c,B,B^c
+val11=*,B,B^c,A,A^c,A,A^c
+!endif
+!if $val7 = 3 
+tmp=!trim 1,2,3	2,4,5,6	3,7,8,9	
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,3,4	2,5,6	3,7,8	4,9,10	
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=*,A1,A2,B1,B2,B3,B1,B2,B3
+val11=*,B1,B2,B3,A1,A2,A1,A2,A1,A2
+!endif
+val12=600
+val13=250
+tmp0=!randint 1, 2
+
+val14=$(tmp0)
+tmp=!nonempty items 10,20,50
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+val16=
+
+!ifval $val7=2 
+val17= 2,2,2
+!else
+val17=2,3,3
+!endif
+!for val18  in $val17 
+tmp0=!makelist 1/$val18 for x=1 to $val18-1
+
+val19=$(tmp0)
+!readproc slib/stat/multinomial  1,$val15,[$val19] 
+tmp0=$slib_out
+val20=$(tmp0)
+tmp0=!lines2items $val20
+
+val20=$(tmp0)
+t_=!replace internal \( by ( in 1.*[$val20]/$val15
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+val16=$val16,$val21
+!next
+tmp0=!nonempty items $val16
+
+val16=$(tmp0)
+
+!ifval $val7=3 
+val22= 2
+!endif
+
+!ifval $val7=3 
+val23= 3
+!endif
+
+!ifval $val7=2 
+val22= 2
+!endif
+
+!ifval $val7=2 
+val23= 2
+!endif
+val24=
+!for val25 =1 to $val23 
+val26=$[$(val16[$val22+$val25])*$(val16[1])+$(val16[$val25+$val23+$val22])*$(val16[2])]
+val24=$val24,$val26
+!next
+tmp0=!nonempty items $val24
+
+val24=$(tmp0)
+!for val25 =1 to $val23 
+val26=$[round(1000*($(val16[$val25+$val22])*$(val16[1])/$(val24[$val25])))/1000]
+val24=$val24,$val26
+val26=$[1-$val26]
+val24=$val24,$val26
+!next
+!readproc slib/graph/drawtree [$val8],[$val10], middle point 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!declosing $(val17[1])
+
+val27=$(tmp0)
+val28=$(val17[3])
+val29=$(val17[4])
+tmp0=!declosing $val28
+
+tmp=!trim $(tmp0)
+val28=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val29
+
+tmp=!trim $(tmp0)
+val29=!translate internal $	\
+$ to ;; in $tmp
+val8=$(val17[2])
+tmp0=!declosing $val8
+
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp0=!rowcnt $tmp
+val30=$(tmp0)
+tmp=!translate internal $	$ to ; in $val29
+
+tmp0=!rowcnt $tmp
+val31=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val27
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val32=$(tmp0)
+tmp0=!replace internal xrange by in $val32
+
+val32=$(tmp0)
+tmp=!translate internal $	$ to ; in $val27
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val33=$(tmp0)
+tmp0=!replace internal yrange by in $val33
+
+val33=$(tmp0)
+!readproc slib/graph/drawtree [$val9],[$val11], middle point 
+tmp0=$slib_out
+val34=$(tmp0)
+tmp0=!declosing $(val34[1])
+
+val35=$(tmp0)
+val36=$(val34[3])
+val37=$(val34[4])
+tmp0=!declosing $val36
+
+tmp=!trim $(tmp0)
+val36=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val37
+
+tmp=!trim $(tmp0)
+val37=!translate internal $	\
+$ to ;; in $tmp
+val9=$(val34[2])
+tmp0=!declosing $val9
+
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp0=!rowcnt $tmp
+val38=$(tmp0)
+tmp=!translate internal $	$ to ; in $val37
+
+tmp0=!rowcnt $tmp
+val39=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val40=$(tmp0)
+tmp0=!replace internal xrange by in $val40
+
+val40=$(tmp0)
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41=$(tmp0)
+tmp0=!replace internal yrange by in $val41
+
+val41=$(tmp0)
+val42=$val16,$val24
+
+!ifval $val14=1 
+val43= $val24
+!else
+val43=$val16
+!endif
+
+!ifval $val14=1 
+tmp0=!makelist r x for x=1 to $val39-1
+
+val44= $(tmp0)
+!else
+tmp1=!makelist r x for x=1 to $val31-1
+
+val44=$(tmp1)
+!endif
+val45=
+!for val25 =2 to $val31 
+val46=$[$(val29[$val25;1])]
+val47=$[$(val29[$val25;2])]
+val48=$(val16[$val25-1])
+!if $val14=1 
+val27=$val27	  text black,$val46-0.8,$val47+0.1,medium,$val48
+!else
+!readproc slib/draw/convpixel $val46-0.8,$val47,$val12,$val13,$val32,$val33,10,pixels 
+tmp0=$slib_out
+val49=$(tmp0)
+tmp=!trim $val45	 $(val44[$val25-1]) , $(val49[1]) x $(val49[2])
+val45=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!next
+!for val25 =2 to $val39 
+val46=$[$(val37[$val25;1])]
+val47=$[$(val37[$val25;2])]
+val48=$(val24[$val25-1])
+!if $val14=2 
+val35=$val35	  text black,$val46-0.8,$val47+0.1,medium,$val48
+!else
+!readproc slib/draw/convpixel $val46-0.8,$val47,$val12,$val13,$val40,$val41,10,pixels 
+tmp0=$slib_out
+val49=$(tmp0)
+tmp=!trim $val45	 $(val44[$val25-1]) , $(val49[1]) x $(val49[2])
+val45=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!next
+!readproc oef/draw.phtml $val12,$val13 \
+$val35 
+tmp0=$ins_url
+val50=$(tmp0)
+!readproc oef/draw.phtml $val12,$val13 \
+$val27 
+tmp0=$ins_url
+val51=$(tmp0)
+oefsteps=$val44 
+nextstep=!nosubst $val44 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=
+replygood1=$(val43[1]);$val42
+replytype2=clickfill
+replyname2=
+replygood2=$(val43[2])
+replytype3=clickfill
+replyname3=
+replygood3=$(val43[3])
+replytype4=clickfill
+replyname4=
+replygood4=$(val43[4])
+replytype5=clickfill
+replyname5=
+replygood5=$(val43[5])
+replytype6=clickfill
+replyname6=
+replygood6=$(val43[6])
+replytype7=clickfill
+replyname7=
+replygood7=$(val43[7])
+replytype8=clickfill
+replyname8=
+replygood8=$(val43[8])
+replytype9=clickfill
+replyname9=
+replygood9=$(val43[9])
+replytype10=clickfill
+replyname10=
+replygood10=$(val43[10])
+replytype11=clickfill
+replyname11=
+replygood11=$(val43[11])
+replytype12=clickfill
+replyname12=
+replygood12=$(val43[12])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val6:	<div class="wimscenter">	
+!if $val14=1 
+$()	 <img src="$val51" alt=""></div><div class="wimscenter">	  
+!read oef/special.phtml imagefill $val50,$val12 x $val13,40x20	$val45 
+$()	  
+!else
+$() 	 <img src="$val50" alt=""></div><div class="wimscenter">	 
+!read oef/special.phtml imagefill $val51,$val12 x $val13,40x20	$val45 
+$()	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,14,45,50,51
+embedcnt=2

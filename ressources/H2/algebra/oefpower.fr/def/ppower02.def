@@ -1,0 +1,166 @@
+!set title=Puissance de 2 à 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+oefobservation=nombres inférieurs à 9, puissance de 2, 3 ou 4 selon la taille du nombre
+title_en=Power from 2 to 4
+title_es=Potencia de 2 a 4
+title_it=Potenze da 2 a 4
+title_nl=Power from 2 to 4
+
+ansorder=r,r,r,r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Calculer sans calculatrice
+!if $val6=en 
+val7=Compute without calculator
+!endif
+!if $val6=es 
+val7=Calcular sin calculadora
+!endif
+!if $val6=it 
+val7=Esegui i calcoli senza calcolatrice
+!endif
+!if $val6=nl 
+val7=Berekenen zonder calculator
+!endif
+
+!ifval $val2 iswordof 1 2 3 4 5
+val8= $val2
+!else
+val8=3
+!endif
+tmp0=!makelist x for x=2 to 10
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val9=$(val9[1..$val8])
+val10=
+!for val11 =1 to $val8 
+
+!ifval $(val9[$val11])<4 
+tmp0=!randint 2, 4
+
+val12= $(tmp0)
+!else
+tmp1=!randint 2, 3
+
+val12=$(tmp1)
+!endif
+
+!ifval $(val9[$val11])>5 
+val12= 2
+!endif
+tmp0=!append item $val12 to $val10
+
+val10=$(tmp0)
+!next
+t_=!replace internal \( by ( in A=[$val9]; B=[$val10]; vector($val8,i,A[i]^B[i])
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+tmp0=!makelist r x for x=1 to $val8
+
+val14=$(tmp0)
+oefsteps=$val14 
+nextstep=!nosubst $val14 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=
+replygood1=$(val13[1])
+replytype2=numexp
+replyname2=
+replygood2=$(val13[2])
+replytype3=numexp
+replyname3=
+replygood3=$(val13[3])
+replytype4=numexp
+replyname4=
+replygood4=$(val13[4])
+replytype5=numexp
+replyname5=
+replygood5=$(val13[5])
+replytype6=numexp
+replyname6=
+replygood6=$(val13[6])
+replytype7=numexp
+replyname7=
+replygood7=$(val13[7])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() $val7:	<ul>	 
+!for m_j=1 to $val8 
+$()	<li>	<label for="reply$m_j">
+!insmath $(val9[$m_j])^$(val10[$m_j]) 
+$() =</label>  
+!read oef/embed.phtml r \j,5 
+$()	</li>	 
+!next
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10
+embedcnt=1

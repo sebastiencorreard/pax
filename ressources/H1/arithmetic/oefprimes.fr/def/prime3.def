@@ -1,0 +1,229 @@
+!set title=Reconnaitre le premier nombre premier plus grand que
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bruno.mifsud@laposte.net
+
+ansorder=r
+varcnt=28
+prevarcnt=18
+postvarcnt=9
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem 1,2
+
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!random 8, 20
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+val6=$[rint($val3)]
+
+!ifval $val2=1 
+val7=$[rint( 30-$val6 )]
+!else
+val7=$[rint(100-$val6)]
+!endif
+val8=<b>Définition :</b> On appelle nombre premier tout entier positif qui admet exactement deux diviseurs positifs : 1 et lui-même.	<br/>Exemple : 5 est un nombre premier	<br/>Contre exemple : 6 n'est pas un nombre premier.	Il est divisible à la fois par 1, 2, 3 et 6.	
+tmp0=!randint 1, $val7
+
+val9=$(tmp0)
+val10=$[rint($val9+$val6-1)]
+tmp0=!makelist x for x=$val9 to $val10
+
+val11=$(tmp0)
+tmp0=!itemcnt $val11
+
+val12=$[rint($(tmp0))]
+val13=
+!for val14 =1 to $val12 
+t_=!replace internal \( by ( in t=$(val11[$val14]); isprime(t)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1 
+tmp1=!append item $val14 to $val13
+
+val13= $(tmp1)
+!endif
+!next
+tmp0=!randint $val9, $val10-8
+
+val15=$[rint($(tmp0))]
+t_=!replace internal \( by ( in isprime($val15)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1 
+t_=!replace internal \( by ( in nextprime($val15+1)
+tmp1=!exec pari $t_
+
+val16=$[rint( $(tmp1))]
+!else
+t_=!replace internal \( by ( in nextprime($val15)
+tmp2=!exec pari $t_
+
+val16=$[rint( $(tmp2))]
+!endif
+val13=
+!for val14 =1 to $val12 
+
+!ifval $(val11[$val14])=$val16 
+tmp0=!append item $val14 to $val13
+
+val13= $(tmp0)
+!endif
+!next
+val17=Cliquer sur le premier nombre premier	  qui est strictement plus grand que $val15.
+replytype1=mark
+replyname1=
+replygood1=$val13;$val11
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val8
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val17	<div class="wimscenter">	 
+!for m_k=1 to $val12 
+$() 
+!read oef/embed.phtml r1,\k 
+$() ;  
+!next
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val8
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val18=$m_reply1
+!if $m_sc_reply1<1 
+val19=
+!for val14  in $val18 
+t_=!replace internal \( by ( in isprime($val14)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=0
+tmp1=!append item $val14 to $val19
+
+val19= $(tmp1)
+!endif
+!next
+tmp0=!itemcnt $val19
+
+val20=$[rint($(tmp0))]
+!endif
+!if $m_sc_reply1<1 
+val21=
+!for val14  in $val18 
+t_=!replace internal \( by ( in isprime($val14)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1
+tmp1=!append item $val14 to $val21
+
+val21= $(tmp1)
+!endif
+!next
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+!endif
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	  
+!if $m_sc_reply1<1 and $val20>0 
+$()<div class="feedback">	    
+!if $val20>1 
+$()Les nombres $val19 ne sont pas premiers 
+!else
+$()	       Le nombre $val19 n'est pas premier. 
+!endif
+$()</div> 
+!endif
+$()	    
+!if $m_sc_reply1<1 and $val22>0 
+$()	    <div class="feedback">
+!if $val22>1 
+$()Les nombres $val21 sont premiers 
+!else
+$()	       Le nombre $val21 est premier. 
+!endif
+$()	      <br /> Mais seul le <b>premier</b> nombre premier était demandé.	  </div> 
+!endif
+$()	
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>	<div class="wims_msg info">	$val8	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,12,14,17
+embedcnt=1

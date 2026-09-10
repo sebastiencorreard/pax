@@ -1,0 +1,175 @@
+!set title=Simplifier une addition ou une soustraction de nombres relatifs 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=20
+prevarcnt=18
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem +,-
+
+val6=$(tmp0)
+tmp0=!randitem +,-
+
+val7=$(tmp0)
+tmp0=!randitem +,-
+
+val8=$(tmp0)
+tmp0=!randitem +,-
+
+val9=$(tmp0)
+tmp0=!randitem +,-
+
+val10=$(tmp0)
+tmp0=!randint 1, 100
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 100
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 100
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 100
+
+val14=$[rint($(tmp0))]
+val15=correspond
+tmp=!trim \((+$val11)+(-$val12)),\($val11-$val12)	\((-$val11)+(+$val12)),\(-$val11+$val12)	\((-$val11)+(-$val12)),\(-$val11-$val12)	\((+$val11)+(+$val12)),\($val11+$val12)	\((+$val11)-(-$val12)),\($val11+$val12)
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim \((-$val11)-(+$val12)),\(-$val11-$val12)	\((-$val11)-(-$val12)),\(-$val11+$val12)	\((+$val11)-(+$val12)),\($val11-$val12)
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val16
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)
+
+val18=$(tmp1)
+tmp=!translate internal $	$ to ; in $val17
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)
+
+val19=$(tmp1)
+tmp=!trim $(val16[$(val18[1..2]);])	$(val17[$(val19[1..2]);])
+val20=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val20
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)
+
+val21=$(tmp1)
+tmp=!trim $(val20[$(val21[1..4]);])
+val22=!translate internal $	\
+$ to ;; in $tmp
+val23=Associer chaque expression de gauche à son expression simplifiée de droite.
+replytype1=$val15
+
+replyoption1=split 
+replyname1=
+replygood1=$(val22[;1]);$(val22[;2])
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$m_char<p>$val23	<div class="wims_instruction">Simplifier une somme ou une différence de deux nombres relatifs revient à l'écrire sans parenthèses.</div>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()<p>Pour simplifier une expression, on utilise les régles suivantes&nbsp;:</p>	<ul><li>On peut supprimer les parenthèses du premier nombre et son signe s'il est positif.</li>	<li>Lorsqu'il s'agit d'une addition, on supprime le signe + de l'addition et les parenthèses du nombre qui suit.	<dl><dt>Concrètement, on retiendra que, par exemple&nbsp;:</dt>	<dd>
+!insmath {+} ( +$val14 ) 
+$() s'écrit 
+!insmath  {+} $val14 
+$()</dd>	<dd>
+!insmath {+} ( -$val14 ) 
+$() s'écrit 
+!insmath  - $val14 
+$()</dd></dl></li>	<li>Lorsqu'il s'agit d'une soustraction, on la transforme en addition de l'opposé puis on supprime le signe + de l'addition et les parenthèses du nombre qui suit.	<dl><dt>Concrètement, on retiendra que, par exemple&nbsp;:</dt>	<dd>
+!insmath {-} ( +$val14 ) 
+$() devient 
+!insmath  {+} (-$val14) 
+$() qui s'écrit 
+!insmath  - $val14 
+$()</dd>	<dd>
+!insmath {-} ( -$val14 ) 
+$() devient 
+!insmath  {+} (+$val14) 
+$() qui s'écrit 
+!insmath  {+} $val14 
+$()</dd></dl></li></ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!char 1 of $m_reply1
+
+val24=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val24 issametext +
+ <div class='oef_feedbacks'><div class="macss">Le signe + du premier nombre est inutile.<p>Vous pouvez le supprimer.</p></div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,23
+embedcnt=1

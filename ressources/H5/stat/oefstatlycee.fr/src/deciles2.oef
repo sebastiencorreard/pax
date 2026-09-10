@@ -1,0 +1,189 @@
+\title{Médiane, quartiles et déciles II}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard; Sara, Brofferio}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+
+\integer{n=randint(20..50)}
+\text{listval=}
+\integer{valmin=20}
+\integer{xmax=\valmin}
+\integer{valmax=50}
+\integer{xmin=\valmax}
+\integer{nbval=randint(5..6)}
+\text{valposs=shuffle(\valmax-\valmin)}
+
+\text{listeff=}
+\integer{efftotal=0}
+\text{xlistval=}
+\integer{skip=randint(6..18)}
+### valuers modalités
+\for{i=1 to \nbval}
+{\integer{val=\i+\skip}
+ \text{xlistval=wims(append item \val to \xlistval)}}
+\text{xlistval=wims(sort numeric list \xlistval)}
+
+## effectif
+\for{i=1 to \nbval}
+  {
+   \integer{eff0=floor(binomial(9 ,1+ \i)/5)}
+      \integer{eff=binomial(9, 1+ \i)+randint(-\eff0..\eff0)}
+   \integer{efftotal=\efftotal+\eff}
+   \text{listeff=wims(append item \eff to \listeff)}
+   \integer{val=\xlistval[\i]}
+   \for{j=1 to \eff}
+    {
+     \text{listval=wims(append item \val to \listval)}
+    }
+   \integer{\xmin=\val<\xmin?\val}
+   \integer{\xmax=\val>\xmax?\val}
+  }
+
+## choix effectif ou fréquence
+\integer{choix=random(1,2)}
+
+
+## Calcul des pourcentages
+\real{pcttotal=0}
+\text{listpct=}
+\for{i=1 to \nbval}
+{
+\integer{pct=round(\listeff[\i]*10000/\efftotal)}
+\real{pct2=\pct/100}
+\real{pcttotal=\pcttotal+\pct2}
+\if{\i=\nbval}{\real{pct2=\pct2+100-\pcttotal}}
+\text{listpct=wims(append item \pct2 to \listpct)}
+}
+
+## Calcul des indicateurs
+\if{choix=2}{\real{efftotal=100}\text{listeff=\listpct}}
+\integer{ecc=0}
+\integer{Q1=-1}
+\integer{Q3=-1}
+\integer{D1=-1}
+\integer{D9=-1}
+\integer{Med=-1}
+\real{effMed=\efftotal/2}
+\real{effQ1=\efftotal/4}
+\real{effQ3=3*\efftotal/4}
+\real{effD1=\efftotal/10}
+\real{effD9=9*\efftotal/10}
+\integer{rangMed=\effMed}
+\integer{rangQ1=\effQ1}
+\integer{rangQ3=\effQ3}
+\integer{rangD1=\effD1}
+\integer{rangD9=\effD9}
+\for{i=1 to \nbval}
+ {
+ \integer{ecc=\ecc+\listeff[\i]}
+ \if{\ecc>=\effD1 and \D1<0}{\integer{D1=\xlistval[\i]}}
+ \if{\ecc>=\effQ1 and \Q1<0}{\integer{Q1=\xlistval[\i]}}
+ \if{\ecc>=\effMed and \Med<0}{
+    \real{Med=\ecc=\effMed?(\xlistval[\i]+\xlistval[\i+1])/2:\xlistval[\i]}}
+ \if{\ecc>=\effQ3 and \Q3<0}{\integer{Q3=\xlistval[\i]}}
+ \if{\ecc>=\effD9 and \D9<0}{\integer{D9=\xlistval[\i]}}
+ }
+
+\text{slistval=shuffle(\listval)}
+\integer{rangeval=\xmax - \xmin}
+\text{table=<table class="wimscenter wimsborder" style="background-color:skyblue">
+	 <tr>}
+
+\integer{nn=ceil(\efftotal/10)}
+\for{i=0 to \nn-1}
+ {\text{table=\table <tr>}
+ \for{j=1 to 10}
+ {\text{a=item(\i*10+\j,\slistval)}
+\text{table=\table <td> \a </td>}
+ }
+\text{table=\table </tr>}
+}
+\text{table=\table </table>}
+\text{tableau=<table class="wimscenter wimsborder">}
+\text{tableau=\tableau<tr><th> Ages </th>}
+\for{j=1 to \nbval}
+{
+ \text{tableau=\tableau<td> \xlistval[\j] </td>}
+}
+
+####Texte solution
+
+\if{\choix=1}
+{
+  \text{efffeed=effectifs cumulés croissants}
+  \text{tableau=\tableau</tr><tr><th>Effectif</th>}
+  \for{j=1 to \nbval}
+  {
+   \text{tableau=\tableau<td> \listeff[\j] </td>}
+  }
+  \text{tablefeed=\tableau</tr><tr><td>E.C.C</td>}
+  \integer{effcum=0}
+  \for{j=1 to \nbval}
+   {
+    \integer{effcum=\effcum+\listeff[\j]}
+    \text{tablefeed=\tablefeed<td> \effcum </td>}
+   }
+   \text{tablefeed=\tablefeed</tr></table>}
+   \text{feedeff=L'effectif total de cette série est de \efftotal<br>
+Le premier âge dont l'ECC dépasse \rangMed est \Med, la médiane vaut donc \Med<br>
+Le premier âge dont l'ECC dépasse \rangQ1 est \Q1, Q1 vaut donc \Q1<br>
+Le premier âge dont l'ECC dépasse \rangQ3 est \Q3, Q3 vaut donc \Q3<br>
+Le premier âge dont l'ECC dépasse \rangD1 est \D1, D1 vaut donc \D1<br>
+Le premier âge dont l'ECC dépasse \rangD9 est \D9, D9 vaut donc \D9<br>}
+}
+{
+  \text{efffeed=fréquences cumulées croissantes}
+  \text{tableau=\tableau</tr><tr><th>Fréquence en %</th>}
+  \for{j=1 to \nbval}
+  {
+   \text{tableau=\tableau<td> \listpct[\j] </td>}
+  }
+  \text{tablefeed=\tableau</tr><tr><td>F.C.C</td>}
+  \integer{effcum=0}
+  \for{j=1 to \nbval}
+   {
+    \real{effcum=\effcum+\listpct[\j]}
+    \text{tablefeed=\tablefeed<td> \effcum </td>}
+   }
+   \text{tablefeed=\tablefeed</tr></table>}
+   \text{feedeff=
+Le premier âge dont la FCC dépasse 50 % est \Med, la médiane vaut donc \Med<br>
+Le premier âge dont la FCC dépasse 25 % est \Q1, Q1 vaut donc \Q1<br>
+Le premier âge dont la FCC dépasse 75 % est \Q3, Q3 vaut donc \Q3<br>
+Le premier âge dont la FCC dépasse 10 % est \D1, D1 vaut donc \D1<br>
+Le premier âge dont la FCC dépasse 90 % est \D9, D9 vaut donc \D9}
+
+}
+\text{tableau=\tableau</tr></table>}
+
+
+\statement{<p>
+Voici la répartition des âges recensés dans une population à la suite d'une étude:
+</p>
+
+\tableau
+
+<ol><li> Quelle est la médiane de cette série: \embed{reply1}</li>
+<li> Que vaut Q1:\embed{reply2}</li>
+<li> Que vaut Q3:\embed{reply3}</li>
+<li> Que vaut D1:\embed{reply4}</li>
+<li> Que vaut D9:\embed{reply5}</li>
+</ol>
+}
+
+\answer{Médiane}{\Med}{type=numeric}
+\answer{Q1}{\Q1}{type=numeric}
+\answer{Q3}{\Q3}{type=numeric}
+\answer{D1}{\D1}{type=numeric}
+\answer{D9}{\D9}{type=numeric}
+\feedback{1=1}
+{ On commence par calculer les \efffeed:
+\tablefeed
+<p>
+\feedeff
+</p>
+}

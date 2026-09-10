@@ -1,0 +1,347 @@
+!set title=Lieux de points (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Hélène, Brion; Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=73
+prevarcnt=72
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 1 to 4 of formulaire
+
+val6=$(tmp0)
+tmp0=!randint -3, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -3, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -3, -1,1..3
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -3, -1,1..3
+
+val10=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val7+$val8*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val7+$val9+($val8+$val10)*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val12=!mathsubst I=i in $t_
+tmp0=!randint 1, 3
+
+val13=$[rint($(tmp0))]
+val14=\(\frac{z-z_A}{z-z_B}),\(\frac{z-z_B}{z-z_A}),\(\frac{z-z_A}{z_B-z_A})
+val15=$(val14[$val13])
+val16=\(\frac{\pi}{2} + 2k\pi),\(\frac{\pi}{2} + k\pi),\(0 + k\pi),\(\pi + 2k\pi)
+tmp0=!randint 1, 4
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val20=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19 >1 
+val21= $val19
+!endif
+val22=\(z_A),\(z_B),\(z_C)
+val23=\([0;2\pi]),\([0;\pi]),\([0;\pi/2])
+val24=$(val22[$val18]) + $val21 \(e^{i\theta}) avec \(\theta) appartenant à $(val23[$val20])
+tmp0=!randint 1, 5
+
+val25=$[rint($(tmp0))]
+val25=$[rint(2)]
+val26=$val15 est réel, $val15 est imaginaire pur, Module de $val15 = 1, Argument de $val15 = $(val16[$val17]) où \(k) est un entier relatif,z = $val24
+val27=une droite,un cercle
+!if ($val13<3 and $val25=2) or ($val13=3 and $val25=3) or ($val13<3 and $val25=4 and $val17 < 3) or $val25=5 
+val28=$[rint(2)]
+!else
+val28=$[rint(1)]
+!endif
+val29=un cercle, un cercle privé d'un point, un cercle privé de deux points, un demi-cercle,un quart de cercle
+val30=une droite, une droite privée d'un point, une droite privée de deux points, un segment, une demi-droite
+!if $val28=1 
+val31=$val30
+!if ($val13=3 and $val25<3) or $val25=3 
+val32=$[rint(1)]
+!endif
+!if ($val13<3 and $val25=1) or	   ($val25=4 and $val13 = 3 and ($val17=2 or $val17=3)) 
+val32=$[rint(2)]
+!endif
+!if $val13<3 and $val25=4 and $val17=3 
+val32=$[rint(3)]
+!endif
+!if $val13<3 and $val25=4 and $val17=4 
+val32=$[rint(4)]
+!endif
+!if $val13=3 and $val25=4 and ($val17=4 or $val17=1) 
+val32=$[rint(5)]
+!endif
+!else
+val31=$val29
+!if $val25=3 or ($val25=5 and $val20=1) 
+val32=$[rint(1)]
+!endif
+!if $val25=2 
+val32=$[rint(2)]
+!endif
+!if $val25=4 and $val17=2 
+val32=$[rint(3)]
+!endif
+!if ($val25=4 and $val17 = 1) or ($val25=5 and $val20=2) 
+val32=$[rint(4)]
+!endif
+!if $val25=5 and $val20=3 
+val32=$[rint(5)]
+!endif
+!endif
+val33=A,B,C,aucun
+val34=$[rint(4)]
+!if $val25=1 and $val13=1 
+val34=1,3
+!endif
+!if $val25=1 and $val13=2 
+val34=2,3
+!endif
+!if $val25=1 and $val13=3 
+val34=1,2,3
+!endif
+!if $val25=2 and $val13<>2 
+val34=1
+!endif
+!if ($val25=2 and $val13=2) or ($val25=3 and $val13=3) 
+val34=2
+!endif
+!if  $val13<3 and ($val25=3 or ($val25=4 and $val17>2)) 
+val34=3
+!endif
+!if  $val13=3 and $val25=4 and $val17=3 
+val34=2,3
+!endif
+!if $val28=1 
+t_=!rawmath ($val10)/($val9)
+val35=!exec pari print($t_)
+t_=!rawmath -1/($val35)
+val36=!exec pari print($t_)
+t_=!rawmath ($val8) - ($val7)*($val35)
+val37=!exec pari print($t_)
+t_=!rawmath ($val8) - ($val7)*($val36)
+val38=!exec pari print($t_)
+t_=!rawmath ($val8)+($val10)*(.5) - (($val7)+($val9)*.5)*($val36)
+val39=!exec pari print($t_)
+val40=!rawmath $val35*x+$val37
+val41=!rawmath $val36*x+$val38
+val42=!rawmath $val36*x+$val39
+val43=\(y = $val40), \(y = $val41), \(y = $val42)
+!if $val25=1 or ($val25=4 and $val17>2) 
+val44=$[rint(1)]
+!endif
+!if $val25=2 or ($val25=4 and $val17<3) 
+val44=$[rint(2)]
+!endif
+!if $val25=3 
+val44=$[rint(3)]
+!endif
+!else
+val45=$[sqrt(($val9)^2+($val10)^2)]
+val46=$[($val45)/2]
+!if $val25=5 
+val47=$(val33[$val18])
+!else
+!if $val13<3 
+val47=C
+!else
+val47=A
+!endif
+!endif
+val43=centre $val47 et rayon $val19,	   centre A et rayon $val45, centre C et rayon $val46 
+!if $val25=5 
+val44=$[rint(1)]
+!else
+!if $val13<3 
+val44=$[rint(3)]
+!else
+val44=$[rint(2)]
+!endif
+!endif
+!endif
+tmp0=!shuffle Exact,Bien,Juste,Bravo,Bonne réponse,Oui
+
+val48=$(tmp0)
+tmp0=!shuffle Erreur,Faux,Hélas,Inexact,Mauvaise réponse,Non
+
+val49=$(tmp0)
+oefsteps=reply 1	reply 2	reply 3	reply 4 
+nextstep=!nosubst reply 1	reply 2	reply 3	reply 4 
+!readproc oef/steps.proc
+replytype1=checkbox
+replyoption1=nonstop 
+replyname1=L'ensemble (E) est tout ou partie d'
+replygood1=$val28;$val27
+replytype2=checkbox
+replyoption2=nonstop 
+replyname2=l'ensemble (E) est
+replygood2=$val32;$val31
+replytype3=checkbox
+replyoption3=nonstop 
+replyname3=Les points de (E) sont
+replygood3=$val34;$val33
+replytype4=checkbox
+replyoption4=shuffle 
+replyname4=
+replygood4=$val44;$val43
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val6
+
+
+!goto stat
+
+!exit
+
+:question
+$()		Soient A(
+!insmath z_A
+$()) &nbsp;et&nbsp; B(
+!insmath z_B
+$()) deux points distincts du plan complexe. On appelle C(
+!insmath z_C
+$()) le milieu de [AB].<br>	On pose : <div class="wimscenter"> 
+!insmath z_A = $val11
+$() &nbsp;et&nbsp; 
+!insmath z_B = $val12
+$()</div>	On appelle (E) l'ensemble des points M(z) tels que :	<div class="wimscenter"> $(val26[$val25])</div>		<ul><li><b>ETAPE 1</b> : L'ensemble (E) est tout ou partie de :	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	<br>	
+!if $m_step>1 
+$()
+!if $m_reply1=$(val27[$val28]) 
+$()<span style="color:green"> $(val48[1]) ! </span> 
+!else
+$()	                   <span style="color:red"> $(val49[1])... L'ensemble (E) est tout ou partie d'$(val27[$val28]).</span> 
+!endif
+$()	  <br>	  </li><li><b>ETAPE 2</b> : L'ensemble (E) est plus précisément :	  <div class="wimscenter"> 
+!read oef/embed.phtml reply2 
+$()</div>		   
+!endif
+$()	
+!if $m_step>2 
+$()<br>	  
+!if $m_reply2=$(val31[$val32]) 
+$()<span style="color:green"> $(val48[2]) !</span>  
+!else
+$()	    <span style="color:red"> $(val49[2])...(E) est $(val31[$val32])</span> 
+!endif
+$()	  <br>	  </li><li><b>ETAPE 3</b> : Cocher dans la liste suivante tous les points appartenant à (E) :	  <div class="wimscenter"> 
+!read oef/embed.phtml reply3 
+$()</div>	   
+!endif
+$()	
+!if $m_step>3 
+$()<br>	  
+!if $m_reply3=$(val33[$val34]) 
+$()<span style="color:green"> $(val48[3]) !</span>  
+!else
+$()	    <span style="color:red"> $(val49[3])... Le(s) point(s) appartenant à (E) sont : $(val33[$val34])</span> 
+!endif
+$()	  <br>	  </li><li><b>ETAPE 4</b>: On rappelle que les points A et B ont pour affixe :	  <div class="wimscenter"> 
+!insmath z_A = $val11
+$() &nbsp;et&nbsp; 
+!insmath z_B = $val12
+$()</div>	  
+!if $val28=1 
+$()La droite support de (E) a pour équation : 
+!else
+$()	            Le cercle support de (E) a pour : 
+!endif
+$()	                   <div class="wimscenter"> 
+!read oef/embed.phtml reply 4 
+$()</div>	   
+!endif
+$()	  </li></ul>		
+$()
+!exit
+
+:hint
+$()<i>Faire le lien entre le quotient et une mesure de l'angle	orienté 
+!insmath  ( \vec{MA}; \vec {MB}) 
+$().	<br>	Un complexe 
+!insmath z
+$() est imaginaire pur ssi 
+!insmath z = 0 
+$() ou 
+!insmath arg(z) = \pi/2 \; [\pi]
+$().	</i>
+$()
+!exit
+
+:help
+$()$val6
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,12,25,26,27,28,31,32,33,34,48,49
+embedcnt=4

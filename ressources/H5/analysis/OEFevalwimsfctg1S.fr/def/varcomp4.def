@@ -1,0 +1,473 @@
+!set title=Sens de variation d'une composée 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard; Maguy, Bruno
+email=regine@mangeard.fr
+precision=1000
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=55
+prevarcnt=54
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=$val8*(x+$val10)^2+$val9,	$val8*x^2+$val10,	$val8*($val7*x+$val6)^2
+tmp0=!randint 1, 3
+
+val14=$[rint($(tmp0))]
+tmp0=!item $val14 of $val13
+
+val15=!rawmath $(tmp0)
+val16=!rawmath $val11*x+$val12
+val17=!rawmath (x-$val12)/($val11)
+tmp0=!texmath $val16
+
+val18=$(tmp0)
+
+!ifval $val14==1
+t_=!rawmath -($val10) 
+val19=!exec pari print($t_)
+!endif
+
+!ifval $val14==2
+t_=!rawmath 0 
+val19=!exec pari print($t_)
+!endif
+
+!ifval $val14==3
+t_=!rawmath -($val6/$val7) 
+val19=!exec pari print($t_)
+!endif
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val21=!exec pari print($t_)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($(tmp0)) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)
+val22=!exec pari print($t_)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val20) in $evaltmp
+tmp0=($evaltmp)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($(tmp0)) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)
+val23=!exec pari print($t_)
+tmp0=!randint 1, 10
+
+val24=$[rint($val19-$(tmp0))]
+tmp0=!randint 1, 10
+
+val25=$[rint($val19+$(tmp0))]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val26=!exec pari print($t_)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val26) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val28=!exec pari print($t_)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($val27) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val29=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val30=$[rint($(tmp0))]
+!if $val11>0 
+
+!ifval $val30=1
+tmp=!translate ";': to $     $ in ($val24-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val31=!exec pari print($t_)
+!else
+tmp=!translate ";': to $     $ in ($val19-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+val31=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+tmp=!translate ";': to $     $ in ($val19-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val32=!exec pari print($t_)
+!else
+tmp=!translate ";': to $     $ in ($val25-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+val32=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val26
+val33=!exec pari print($t_)
+!else
+t_=!rawmath $val21
+val33=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val21
+val34=!exec pari print($t_)
+!else
+t_=!rawmath $val27
+val34=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val24
+val35=!exec pari print($t_)
+!else
+t_=!rawmath $val19
+val35=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val19
+val36=!exec pari print($t_)
+!else
+t_=!rawmath $val25
+val36=!exec pari print($t_)
+!endif
+
+!ifval $val35<$val36
+t_=!rawmath $val35
+val37=!exec pari print($t_)
+!else
+t_=!rawmath $val36
+val37=!exec pari print($t_)
+!endif
+
+!ifval $val35<$val36
+t_=!rawmath $val36
+val38=!exec pari print($t_)
+!else
+t_=!rawmath $val35
+val38=!exec pari print($t_)
+!endif
+!else
+
+!ifval $val30=1
+tmp=!translate ";': to $     $ in ($val24-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val32=!exec pari print($t_)
+!else
+tmp=!translate ";': to $     $ in ($val19-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+val32=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+tmp=!translate ";': to $     $ in ($val19-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val31=!exec pari print($t_)
+!else
+tmp=!translate ";': to $     $ in ($val25-$val12)/($val11)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+val31=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val26
+val34=!exec pari print($t_)
+!else
+t_=!rawmath $val21
+val34=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val21
+val33=!exec pari print($t_)
+!else
+t_=!rawmath $val27
+val33=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val24
+val36=!exec pari print($t_)
+!else
+t_=!rawmath $val19
+val36=!exec pari print($t_)
+!endif
+
+!ifval $val30=1
+t_=!rawmath $val19
+val35=!exec pari print($t_)
+!else
+t_=!rawmath $val25
+val35=!exec pari print($t_)
+!endif
+
+!ifval $val35<$val36
+t_=!rawmath $val35
+val37=!exec pari print($t_)
+!else
+t_=!rawmath $val36
+val37=!exec pari print($t_)
+!endif
+
+!ifval $val35<$val36
+t_=!rawmath $val36
+val38=!exec pari print($t_)
+!else
+t_=!rawmath $val35
+val38=!exec pari print($t_)
+!endif
+!endif
+val39=croissante,décroissante
+val40=\(\nearrow),\(\searrow)
+
+!ifval $val8*$val11>0
+val41=2,1
+!else
+val41=1,2
+!endif
+val42=$(val40[$val41])
+val43=$(val40[$val41])
+
+!ifval $val8>0
+val44=2,1
+!else
+val44=1,2
+!endif
+val45=$(val40[$val44])
+
+!ifval $val11>0
+val46=1
+!else
+val46=2
+!endif
+val47=$[rint(-1*$val8)]
+
+!ifval $val8>0
+val48=top,bottom,top
+!else
+val48=bottom,top,bottom
+!endif
+val49=$[rint($(val41[$val30]))]
+replyname1=abscisse du sommet pour gof
+replygood1=$val19
+replyname2=borne gauche pour gof
+replygood2=$val28
+replytype3=clickfill
+replyoption3=shuffle 
+replyname3=monotonie 1
+replygood3=$(val42[1]) 
+replyname4=ordonnée du sommet
+replygood4=$val22
+replytype5=clickfill
+replyoption5=shuffle 
+replyname5=monotonie 2
+replygood5=$(val42[2]) 
+replyname6=borne droite pour gof
+replygood6=$val29
+replytype7=menu
+replyname7=sens de variation de fog
+replygood7=$val49;$val39
+replyname8=borne gauche pour fog
+replygood8=$val33
+replyname9=borne droite pour fog
+replygood9=$val34
+replytype10=numeric
+replyname10=borne inf de g(x)
+replygood10=$[$val37]
+replytype11=numeric
+replyname11=borne sup de g(x)
+replygood11=$[$val38]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soit 
+!insmath g
+$() la fonction affine définie par 
+!insmath g(x)=$val18
+$()	 et 
+!insmath f
+$() une fonction définie sur [$val24;$val25] dont le tableau des variations	 est donné ci-dessous	<table class="tab_var">	<tr>	  <th>
+!insmath x
+$()</th>	      <td style="text-align:left">$val24</td>	      <td></td>	      <td>$val19</td>	      <td></td>	      <td style="text-align:right">$val25</td>	</tr>	<tr>	  <th>
+!insmath var f
+$()</th>	     <td style="text-align:left" valign="$(val48[1])">$val26 </td>	     <td>$(val45[1]) </td>	     <td valign="$(val48[2])">$val21 </td>	     <td>$(val45[2])</td>	     <td style="text-align:right" valign="$(val48[3])">$val27 </td>	      </tr>	</table>	<ol>	<li>	Compléter le tableau des variations de la fonction 
+!insmath g\circ f
+$() sur [$val24;$val25]:	<table class="tab_var">	<tr>	<th>
+!insmath x
+$()</th>	<td style="text-align:left">
+!insmath $val24
+$()</td>	<td> 
+!read oef/embed.phtml reply1,5 
+$() </td>	<td style="text-align:right">
+!insmath $val25
+$()</td>	</tr><tr>	<th>
+!insmath var g\circ f
+$()</th>	<td> 
+!read oef/embed.phtml reply2,5 
+$() 
+!read oef/embed.phtml reply3 
+$() </td>	<td> 
+!read oef/embed.phtml reply4,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply5 
+$() 
+!read oef/embed.phtml reply6,5 
+$() </td>	</tr>	</table>	</li>	<li>	Compléter la phrase: Pour tout 
+!insmath x \in 
+$() [$val31;$val32], 
+!insmath g(x) \in 
+$()	[ 
+!read oef/embed.phtml reply10,3 
+$(); 
+!read oef/embed.phtml reply11,3 
+$()]<br>	En déduire les variations de la fonction 
+!insmath f\circ g
+$() sur [$val31;$val32]:<br>	
+!insmath f \circ g
+$() est  
+!read oef/embed.phtml reply7 
+$() de  
+!read oef/embed.phtml reply8,5 
+$() à  
+!read oef/embed.phtml reply9,5 
+$()	</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,21,24,25,26,27,31,32,45,48
+embedcnt=11

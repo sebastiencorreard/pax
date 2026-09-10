@@ -1,0 +1,210 @@
+target=oefcompltabl5
+
+#include "author.inc"
+\precision{10000}
+#define NUM 5
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\text{means=randint(0..4)}
+\for{k=2 to 11}{\text{means=\means,randint(0..4)}}
+
+\text{scale=}
+\for{k=0 to 20 step 2}{
+  \text{scale=\scale
+  text black,\k+0.9,-0.2,small,\k
+  }
+}
+\for{k=1 to 5}{
+  \text{scale=\scale
+ text black,-0.5,\k+0.2,small,\k
+ }
+}
+\text{fond=fill 0,0,220,220,255}
+\text{pic=draw(506,154,
+ xrange -1,22
+ yrange -1,6
+ \fond
+ parallel 1,0,1,6,1,0,20,grey
+ parallel 0,1,21,1,0,1,5,grey
+ linewidth 2
+ arrow -1,0,22,0,10,black
+ arrow 0,-1,0,6,10,black
+ text black,21.6,0.8,medium,notes
+ text black,-0.6,5.9,medium,M
+ \scale
+)}
+\text{fillist=}
+\integer{y=11}
+\for{k=1 to 11}{
+  \integer{s=\k+4}
+  \integer{x=\k*44-7}
+  \text{fillist=\fillist
+r\k,\x,\y}
+}
+\text{smallgrill=
+ \fond
+ segment 8,0,8,120,grey
+ parallel 0,11,16,11,0,22,5,grey
+}
+\text{bat0=draw(16,120,
+ \smallgrill
+)}
+\text{bat0b=draw(16,120,
+\smallgrill
+frect 0,110,15,119,red
+)}
+\text{bat1=draw(16,120,
+\smallgrill
+ frect 0,99,15,119,red
+ )}
+\text{bat1b=draw(16,120,
+ \smallgrill
+ frect 0,88,15,119,red
+ )}
+\text{bat2=draw(16,120,
+ \smallgrill
+ frect 0,77,15,119,red
+ )}
+\text{bat2b=draw(16,120,
+ \smallgrill
+ frect 0,66,15,119,red
+ )}
+\text{bat3=draw(16,120,
+ \smallgrill
+ frect 0,55,15,119,red
+ )}
+\text{bat3b=draw(16,120,
+ \smallgrill
+ frect 0,44,15,119,red
+ )}
+\text{bat4=draw(16,120,
+ \smallgrill
+ frect 0,33,15,119,red
+ )}
+\text{bat4b=draw(16,120,
+ \smallgrill
+ frect 0,22,15,119,red
+ )}
+\text{bat5=draw(16,120,
+ \smallgrill
+ frect 0,11,15,119,red
+ )}
+\text{batons=<img name="0" src="\bat0" alt="0">,
+<img name="1" src="\bat1" alt="1">,
+<img name="2" src="\bat2" alt="2">,
+<img name="3" src="\bat3" alt="3">,
+<img name="4" src="\bat4" alt="4">,
+<img name="5" src="\bat5" alt="5">,
+<img name="0b" src="\bat0b" alt="0b">,
+<img name="1b" src="\bat1b" alt="1b">,
+<img name="2b" src="\bat2b" alt="2b">,
+<img name="3b" src="\bat3b" alt="3b">,
+<img name="4b" src="\bat4b" alt="4b">
+}
+
+\text{rrr=\batons[\means[1]+1]}
+\for{k=1 to 11}{\text{rrr=\rrr,\batons[\means[\k+1]+1]}}
+\text{rrr=\rrr}
+
+ %%Creation de la solution
+ \text{listsol=frect 0.7,0.1,1.3,\means[1],green}
+ \for{k=2 to 20 step 2}{
+  \real{x1=0.7+\k}
+  \real{x2=1.3+\k}
+  \integer{aux=\k/2+1}
+  \text{baton=frect \x1,0,\x2,\means[\aux],green}
+  \text{listsol=\listsol
+  \baton}}
+  \text{solu=draw(506,154,
+  xrange -1,22
+  yrange -1,6
+  \fond
+  parallel 1,0,1,6,1,0,20,grey
+  parallel 0,1,21,1,0,1,5,grey
+  linewidth 2
+  arrow -1,0,22,0,10,black
+  arrow 0,-1,0,6,10,black
+  text black,21.6,0.8,medium,notes
+  text black,-0.6,5.9,medium,M
+  \scale
+  \listsol)}
+
+%%Creation d'une liste des réponses possibles
+ \text{s=\batons[1]}
+ \for{k=2 to 11}{\text{s=\s,\batons[\k]}}
+
+\text{rrs=""}
+
+\statement{\name_instruction:
+  <table class="wimscenter wimsborder table-scroll">
+  <tr><th>\name_header[1;]</th>
+  \for{i=0 to 20 step 2}{<td>\i</td>}
+  </tr><tr><th>\name_header[2;]</th>
+  \for{i=1 to 11}{<td>\means[\i]</td>}
+  </tr></table>
+  <p>\name_question</p>
+  <div class="wimscenter">
+  \special{imagefill \pic,506x154,16x120
+  \fillist
+  }
+   </div>
+}
+\reply{\name_answer 0}{\rr1;\batons}{type=clickfill}
+\reply{\name_answer 2}{\rr2}{type=clickfill}
+\reply{\name_answer 4}{\rr3}{type=clickfill}
+\reply{\name_answer 6}{\rr4}{type=clickfill}
+\reply{\name_answer 8}{\rr5}{type=clickfill}
+\reply{\name_answer 10}{\rr6}{type=clickfill}
+\reply{\name_answer 12}{\rr7}{type=clickfill}
+\reply{\name_answer 14}{\rr8}{type=clickfill}
+\reply{\name_answer 16}{\rr9}{type=clickfill}
+\reply{\name_answer 18}{\rr10}{type=clickfill}
+\reply{\name_answer 20}{\rr11}{type=clickfill}
+
+\text{test=0}
+\text{rrs=\rr1,\rr2,\rr3,\rr4,\rr5,\rr6,\rr7,\rr8,\rr9,\rr10,\rr11}
+
+\for{k=1 to 11}{
+  \if{\rrs[\k] notsametext \rrr[\k]}{\text{test=\k}}
+}
+\condition{Le diagramme est correct}{\test=0}
+
+%%Récupération de la hauteur des batons des réponses données par l'utilisateur
+\for{i=1 to 11}{\if{\rrs[1] issametext \s[\i]}{\integer{tmp=\i-1}
+  \text{hautreput=\tmp}
+ \text{listcom=\hautreput}}}
+\for{k=2 to 11}{\for{i=1 to 11}{
+  \if{\rrs[\k] issametext \s[\i]}{\integer{tmp=\i-1}
+    \text{hautreput=\tmp}
+    \text{listcom=\listcom,\hautreput}}}}
+\text{listcom2=\listcom}
+\for{i=1 to 11}{\if{\listcom[\i]>5}{\real{u=\listcom[\i]-5.5}
+  \text{\listcom2=wims(replace internal \listcom[\i] by \u in \listcom2)}}}
+%%%%ReCreation de la réponse donnée par l'utilisateur
+\text{listrep=frect 0.7,0.1,1.3,\listcom2[1],red}
+\for{z=2 to 20 step 2}{
+  \real{x1=0.7+\z}
+  \real{x2=1.3+\z}
+  \integer{aux=\z/2+1}
+  \text{baton=frect \x1,0,\x2,\listcom2[\aux],red}
+  \text{listrep=\listrep
+  \baton}}
+\text{rep=draw(506,154,
+  xrange -1,22
+  yrange -1,6
+  \fond
+  parallel 1,0,1,6,1,0,20,grey
+  parallel 0,1,21,1,0,1,5,grey
+  linewidth 2
+  arrow -1,0,22,0,10,black
+  arrow 0,-1,0,6,10,black
+  text black,21.6,0.8,medium,notes
+  text black,-0.6,5.9,medium,M
+  \scale
+  \listrep)}
+
+#include "solution.inc"
+\solution{\solution_exercise:<div class="wimscenter"><img src="\solu" alt="solution"></div>}
+
+\feedback{1=1}{\your_answer:<div class="wimscenter"><img src="\rep" alt="reponse"></div>}

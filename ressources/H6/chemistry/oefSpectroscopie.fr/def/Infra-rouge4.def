@@ -1,0 +1,221 @@
+!set title=Spectroscopie Infra rouge -nom molecule(2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoit Markey
+email=benoit.markey@ac-lille.fr
+
+ansorder=r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 1 of IR-table-long-onde
+
+val6=$(tmp0)
+val7=$[rint(800)]
+tmp0=!record 1 of IR-liste2
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle $val8
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val9[1])
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!record 1 of $(val10[1])
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val12
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $(val13[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!record 1 of $(val14[1])
+
+tmp=!trim $(tmp0)
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val15
+
+tmp0=!rowcnt $tmp
+val16=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val15
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp=!translate internal $	$ to ; in $val15
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+val19=$val7*(1-$(val17[1])/4000)
+val20=$val7*(1-$(val17[1])/4000),2*(100-$(val18[1])*$(val14[2]))
+!for val21 =2 to $val16 
+val19=$val19,$val7*(1-$(val17[$val21])/4000)
+val20=$val20,$(val19[$val21]),2*(100-$(val18[$val21])*$(val14[2]))
+!next
+tmp=!trim $(val9[2])
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!record 1 of $(val22[1])
+
+tmp=!trim $(tmp0)
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val23
+
+tmp0=!rowcnt $tmp
+val24=$[rint($(tmp0))]
+tmp0=!shuffle $val24
+
+tmp=!trim $(tmp0)
+val25=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val23
+
+tmp=!row $(val25[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+tmp=!trim $(val9[3])
+val27=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!record 1 of $(val27[1])
+
+tmp=!trim $(tmp0)
+val28=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val28
+
+tmp0=!rowcnt $tmp
+val29=$[rint($(tmp0))]
+tmp0=!shuffle $val29
+
+tmp=!trim $(tmp0)
+val30=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row $(val30[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+val32=polyline green,$val20
+val33=arrow 910,200,2,200,10,black	parallel 0,198,0,202,$val7/20,0,19,black	text blue,7,185,small,s (cm )	text blue,33,180,small,-1	text blue,0,205,small,4000	text blue,$val7/10-10,205,small,3600	text blue,2*$val7/10-10,205,small,3200	text blue,3*$val7/10-10,205,small,2800	text blue,4*$val7/10-10,205,small,2400	text blue,5*$val7/10-10,205,small,2000	text blue,6*$val7/10-10,205,small,1600	text blue,7*$val7/10-10,205,small,1200	text blue,8*$val7/10-10,205,small,800	text blue,9*$val7/10-10,205,small,400	text blue,$val7/2,180,small,nombre d'onde	arrow 2,200,2,2,10,black	parallel 0,200,4,200,0,-20,10,black	text red,8,155,small,20	text red,8,115,small,40	text red,8,75,small,60	text red,8,35,small,80	textup red,20,150,small,transmittance (%)	
+!readproc oef/draw.phtml $val7 + 10,220 \
+$val32	$val33	 
+tmp0=$ins_url
+val34=$(tmp0)
+!readproc oef/draw.phtml $val7 + 10,220 \
+\spectrebis	$val33	 
+tmp0=$ins_url
+val35=$(tmp0)
+!readproc oef/draw.phtml $val7 + 10,220 \
+\spectreter	$val33	 
+tmp0=$ins_url
+val36=$(tmp0)
+val37=<img src="$val34">
+val38=<img src="$val35">
+val39=<img src="$val36">
+val40=<img src=$val1/../$(val14[4])>
+val41=<img src=$val1/../$(val26[4])>
+val42=<img src=$val1/../$(val31[4])>
+val43=$(val14[3]),$(val26[3]),$(val31[3])
+tmp0=!shuffle $val43
+
+val44=$(tmp0)
+tmp0=!positionof item $(val14[3]) in $val44
+
+val45=$[rint($(tmp0))]
+replytype1=click
+replyname1=
+replygood1=$val45 ; $val44 
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val6
+
+
+!goto stat
+
+!exit
+
+:question
+$()	Voici le spectre d'une molécule:<br>	<center>	$val37</center>	<br>	Ci dessous, voici 3 molécules différentes, cliquer sur la molécule correspondant à ce spectre	<div class="wimscenter">	    
+!read oef/embed.phtml  reply1,1 
+$()<br>	    
+!read oef/embed.phtml  reply1,2 
+$()	   <br> 
+!read oef/embed.phtml  reply1,3  
+$() </div> 	<br>	Vous trouverez une table de bandes d’absorption caractéristiques en cliquant sur le bouton 	<b>Aide.</b>	<br>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val6
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,37
+embedcnt=3

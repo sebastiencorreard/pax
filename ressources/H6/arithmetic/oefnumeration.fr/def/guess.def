@@ -1,0 +1,142 @@
+!set title=Devinez le nombre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David;Bernadette,Perrin-Riou
+email=mcld@math.u-psud.fr,bpr@math.u-psud.fr
+language=fr
+title_it=Indovina il numero
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+t_=!replace internal \( by ( in A = matrix(6,32) ; B =vector(6) ;	for(i = 1, 63, u = binary(i) ;	  for (j = 1 , 6,	    if ( j <= #u && u[#u + 1 - j] !=0,	      B[j] ++ ; A[j,B[j]] = i )	  )	) ;	for( j = 1, 6 , B[j] = matrix(4,8,n,m,A[j, 8*(n-1) + m])) ;print(B)	
+tmp0=!exec pari $t_
+
+val6=$(tmp0)
+tmp0=!randint 1, 63
+
+val7=$(tmp0)
+t_=!replace internal \( by ( in u = binary($val7) ; B =vector(6) ;	  for (j = 1 , 6,	    if ( j <= #u && u[#u + 1 - j] == 1, B[j] = 1 )	  ) ;	  B	 
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+val9=skyblue,yellow
+tmp=!trim 
+val10=!translate internal $	\
+$ to ;; in $tmp
+!for val11  = 1 to 6  
+val12=$(val6[$val11])
+tmp0=!declosing $val12
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=<table><tr><th colspan="8">
+
+!ifval $(val8[$val11])+1=2
+val13=$val13 \(X\)
+!else
+val13=$val13\(\phantom{X}\)
+!endif
+val13=$val13</th></tr>
+!for val14  = 1 to 4 
+val13=$val13<tr>
+!for val15  = 1 to 8 
+val13=$val13<td style="background-color:$(val9[$(val8[$val11])+1])"> $(val12[$val14;$val15])</td>
+!next
+val13=$val13 </tr>
+!next
+tmp=!trim $val10	  $val13</table>
+val10=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!shuffle 6
+
+val16=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val17=$(tmp0)
+val18=L'ordinateur a choisi un nombre entre 1 et 63.	  Vous devez le deviner. Pour vous aider, il vous indique que ce nombre	  se trouve uniquement sur les cartes marquées. Quel est ce nombre ?
+val19=Le nombre est
+val20=Quels nombres se trouvent sur chacune des cartes ?
+!if $val17=it 
+val18=Il computer ha scelto un numero tra 1 e 63.	  Dovete indovinare questo numero. Per aiutarti ti indica che questo numero	  si trova solamente sulle cartelle gialle. Qual è questo numero?
+val19=Il numero è
+val20=Quali numeri si trovano su ognuna cartella?
+!endif
+replyname1=$val19
+replygood1=$val7
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val20
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val18	<table class="wimscenter wimsborder">	  <tr> 
+!for m_r = 1 to 3 
+$()<td>$(val10[$(val16[$m_r]);])</td> 
+!next
+$()	  </tr><tr>	   
+!for m_r = 4 to 6 
+$()<td>$(val10[$(val16[$m_r]);])</td> 
+!next
+$()	  </tr></table>	
+$()
+!exit
+
+:hint
+$()$val20
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,16,18,20
+embedcnt=0

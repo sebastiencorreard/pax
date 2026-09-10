@@ -1,0 +1,90 @@
+target=oefpaveparaperp5
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\matrix{som=A,B,C,D,E,F,G,H
+J,K,L,M,N,O,P,Q
+R,S,T,U,V,W,X,Y}
+\text{som=randrow(\som)}
+\text{som=shuffle(\som)}
+\integer{a=randint(1..6)}
+
+\matrix{cot=2,4,5
+1,3,6
+2,4,7
+1,3,8
+1,6,8
+2,5,7
+3,6,8
+4,5,7}
+\matrix{faces=1,2,3,4,5,6,7,8
+5,6,7,8,1,2,3,4
+1,2,6,5,3,4,8,7
+3,4,8,7,1,2,6,5
+1,4,8,5,2,3,7,6
+2,3,7,6,1,4,8,5}
+
+\text{quest=}
+\for{i=1 to 4}
+  {\text{quest=\som[item(\i,row(\a,\faces))]\quest}}
+\text{face=row(\a,\faces)}
+\text{facep=item(5..8,\face)}
+\text{facep=shuffle(\facep)}
+\text{c1=row(\facep[1],\cot)}
+\text{c2=row(\facep[2],\cot)}
+
+\text{rep=}
+\for{i=1 to 3}
+    {\text{r=\som[\facep[1]]\som[\c1[\i]]}
+      \text{rep=wims(append item \r to \rep)}}
+\for{i=1 to 3}
+    {\text{r=\som[\facep[2]]\som[\c2[\i]]}
+      \text{rep=wims(append item \r to \rep)}}
+\for{i=1 to 3}
+   {\if{\c1[\i]=\face[1] or \c1[\i]=\face[2] or \c1[\i]=\face[3] or \c1[\i]=\face[4]}
+      {\integer{rp1=\i}}}
+\for{i=1 to 3}
+   {\if{\c2[\i]=\face[1] or \c2[\i]=\face[2] or \c2[\i]=\face[3] or \c2[\i]=\face[4]}
+      {\integer{rp2=\i+3}}}
+\text{rps=}
+\for{i=1 to 6}
+   { \if{\i<>\rp1 and \i<>\rp2}
+        {\text{rps=wims(append item \i to \rps)}}}
+
+\integer{lo=randint(80..200)}
+\integer{la=randint(50..160)}
+\integer{ha=randint(20..80)}
+\integer{xo=\lo+\ha}
+\integer{yo=\la+\ha}
+\text{pave=draw(340,300
+rect 170-\xo/2,130+\yo/2,170+\xo/2-\ha,130-\yo/2+\ha,black
+segment 170+\xo/2-\lo,130-\yo/2,170+\xo/2,130-\yo/2,black
+segment 170+\xo/2-\lo,130-\yo/2,170+\xo/2-\lo-\ha,130-\yo/2+\ha,black
+segment 170+\xo/2,130-\yo/2,170+\xo/2-\ha,130-\yo/2+\ha,black
+segment 170+\xo/2,130-\yo/2,170+\xo/2,130-\yo/2+\la,black
+segment 170+\xo/2-\ha,130-\yo/2+\ha+\la,170+\xo/2,130-\yo/2+\la,black
+dsegment 170+\xo/2-\lo,130-\yo/2+\la,170+\xo/2,130-\yo/2+\la,black
+dsegment 170+\xo/2-\lo,130-\yo/2+\la,170+\xo/2-\lo-\ha,130-\yo/2+\la+\ha,black
+dsegment 170+\xo/2-\lo,130-\yo/2+\la,170+\xo/2-\lo,130-\yo/2,black
+text red,170-\xo/2-8,130+\yo/2+5,medium,\som[1]
+text red,170+\xo/2-\ha,130-\yo/2+\ha+\la+5,medium,\som[2]
+text red,170+\xo/2-\ha+5,130-\yo/2+\ha,medium,\som[3]
+text red,170+\xo/2-\lo-\ha-10,130-\yo/2+\ha-5,medium,\som[4]
+text red,170+\xo/2-\lo+3,130-\yo/2+\la+3,medium,\som[5]
+text red,170+\xo/2+3,130-\yo/2+\la+3,medium,\som[6]
+text red,170+\xo/2+5,130-\yo/2-10,medium,\som[7]
+text red,170+\xo/2-\lo-12,130-\yo/2-10,medium,\som[8]
+)}
+\statement{<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\pave" alt=""></div>
+ <div class="medium_size text_col">
+<ul>
+<li>Donner un côté parallèle à la face \quest:
+\embed{r1}
+</li><li> Donner un côté perpendiculaire à la face \quest:
+\embed{r2}
+</li></ul>
+</div></div>
+}
+\answer{}{\rps;\rep}{type=radio}
+\answer{}{\rp1,\rp2;\rep}{type=radio}

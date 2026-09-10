@@ -1,0 +1,142 @@
+!set title=Associer nom et image du matériel de verrerie
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-joëlle, Ramage
+email=marie-joelle.ramage@u-psud.fr
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=https://commons.wikimedia.org/wiki
+val6=$[rint(5)]
+val7=$[rint(200)]
+val8=$[rint(250)]
+val9=$[rint(200)]
+val10=
+val11=Etablir la correspondance entre le nom de l'objet et	  son image.
+tmp=!trim <img src="$val1/Erlenmeyer.jpg" height="92%">, Erlenmeyer	<img src="$val1/Ballon.jpg" height="90%">, Ballon	<img src="$val1/Becher.jpg" height="90%">, Bécher	<img src="$val1/Cristallisoir.jpg">, Cristallisoir	<img src="$val1/Eprouvette.jpg" height="90%">, Eprouvette	<img src="$val1/Pipetteplastique.jpg" height="90%">, Pipette	<img src="$val1/Pissette.jpg" height="90%">, Pissette	<img src="$val1/Tubeaessai.jpg" height="92%">, Tube à essai	<img src="$val1/Verreapied.jpg" height="90%">, Verre à pied	
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!item 1 of 1 oui, 2 non
+
+val13=$(tmp0)
+tmp0=!word 1 of $val13
+
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val14=$[rint($(tmp0))]
+
+!ifval $val6>$val14
+val6=$[rint($val14)]
+!endif
+tmp0=!shuffle $val14
+
+tmp1=!item 1 to $val6 of $(tmp0)
+
+val15=$(tmp1)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+
+!ifval $val13=1
+tmp0=!embraced randitem $val12
+
+val12= $(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+val18=$(val7[])x$(val8[])x$val9
+
+!ifval $val13=1
+tmp0=!embraced randitem $val11
+
+val11= $(tmp0)
+!endif
+replytype1=correspond
+replyname1=La réponse
+replygood1=$val16;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div>$val11</div>	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,$val18 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val10 notsametext 
+ <div class='oef_feedbacks'><p class="feedback">$val10</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,18
+embedcnt=1

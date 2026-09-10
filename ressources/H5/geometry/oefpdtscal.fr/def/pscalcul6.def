@@ -1,0 +1,126 @@
+!set title=Calcul avec les normes 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 3, 8
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, ($val6+$val7-1)
+
+val8=$[rint($(tmp0))]
+tmp=!trim AB,BC,AC,$val6,$val8,$val7,BA	AC,CB,AB,$val8,$val6,$val7,CA	BA,AC,BC,$val6,$val7,$val8,AB	BC,CA,BA,$val8,$val6,$val7,CB	CA,AB,CB,$val6,$val7,$val8,AC	CB,BA,CA,$val6,$val8,$val7,BC
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items 1,1,2,2,3,3,4,5,6
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0))]
+val11=\overrightarrow{ $(val9[$val10;1])}
+val12=\overrightarrow{ $(val9[$val10;2])}
+val13=\overrightarrow{ $(val9[$val10;3])}
+val14=$[0.5*($val8^2-$val6^2-$val7^2)]
+val15=$[$val14]
+val16=\overrightarrow{ $(val9[$val10;1])}
+val17=$[rint($(val9[$val10;4]))]
+val18=$[rint($(val9[$val10;5]))]
+val19=$[rint($(val9[$val10;6]))]
+replytype1=numeric
+replyname1=
+replygood1=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Dans un triangle 
+!insmath ABC
+$(), on donne 
+!insmath AB=$val17
+$(), 
+!insmath AC=$val18
+$() et 
+!insmath BC=$val19
+$().	<div class="wims_question">Calculer 
+!insmath $val11.$val12
+$().</div>	
+!insmath $val11.$val12=
+$()  
+!read oef/embed.phtml r1,4 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$m_corrige71	<table><tr><td valign="top">
+!insmath $val16.$val12
+$()</td><td valign="top">
+!insmath =\frac{1}{2}\left ( \|| $val16+$val12||^2-\||$val16\||^2-\||$val12\||^2\right)
+$()</td></tr>	<tr><td></td><td>
+!insmath =\frac{1}{2}\left ( || $val13||^2-\||$val16\||^2-\||$val12\||^2\right)
+$()</td></tr>	<tr><td></td><td>
+!insmath =\frac{1}{2}\left ( $(val9[$val10;3])^2-$(val9[$val10;1])^2-$(val9[$val10;2])^2 \right)
+$()</td></tr>	<tr><td></td><td>
+!insmath =\frac{1}{2}\left ( $val8^2-$val6^2-$val7^2 \right)=$val15
+$().</td></tr></table>	$m_corrige72	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,15,16,17,18,19
+embedcnt=1

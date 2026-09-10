@@ -1,0 +1,152 @@
+!set title=Somme de proportions 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=C'est possible,C'est impossible
+tmp0=!randint 1, 5
+
+tmp1=!randint 1, 5
+
+tmp2=!randint 1, 5
+
+val7=15,3,5,$(tmp0),	12,3,2,$(tmp1),	21,3,7,$(tmp2)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+tmp=!translate ";': to $     $ in $(val8[2]) / $val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val10=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $(val8[3]) / $val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $(val8[4]) / $val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+tmp=!translate ";': to $     $ in 1-$val10-$val11-$val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val13=!exec pari print($t_)
+tmp0=!shuffle $val10,$val11,$val12,$val13
+
+val14=$(tmp0)
+t_=!rawmath $(val14[1])
+val15=!exec pari print($t_)
+t_=!rawmath $(val14[2])
+val16=!exec pari print($t_)
+t_=!rawmath $(val14[3])
+val17=!exec pari print($t_)
+t_=!rawmath $(val14[4])
+val18=!exec pari print($t_)
+t_=!rawmath $val15+$val17
+val19=!exec pari print($t_)
+t_=!rawmath $val18+$val16
+val20=!exec pari print($t_)
+val21=<p>Puisque les proportions portent sur le même ensemble de référence, on peut les ajouter.</p>	<ul class="wims_nopuce">	<li>Part de légumes rouges&nbsp;: \($val15+$val17=$val19\).</li>	<li>Part de légumes verts&nbsp;: \($val18+$val16=$val20\).</li>	</ul>	
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$val19
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val21
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	  Dans une recette de cuisine dans laquelle il faut mélanger des tomates,	  des poivrons et des courgettes, il est indiqué les proportions suivantes&nbsp;:	</p>	<div class="table-scroll">	<table class="wimscenter wimsborder">	<caption>Tableau des proportions</caption>	<tr><th>Légumes</th><th>Proportions</th></tr>	<tr><th>Tomates</th><td>
+!insmath $val15
+$()</td></tr>	<tr><th>Poivrons verts</th><td>
+!insmath $val16
+$()</td></tr>	<tr><th>Poivrons rouges</th><td>
+!insmath $val17
+$()</td></tr>	<tr><th>Courgettes</th><td>
+!insmath $val18
+$()</td></tr>	</table>	</div>	  <ul><li>	  <label for="reply1">	  Quelle est la part des légumes rouges (tomates et poivrons rouges)&nbsp;?	  </label> 
+!read oef/embed.phtml reply1 
+$().	  </li><li>	  <label for="reply2">	  Quelle est la part des légumes verts (courgettes et poivrons verts)&nbsp;?	  </label>  
+!read oef/embed.phtml reply2 
+$().	  </li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val21
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,16,17,18,21
+embedcnt=2

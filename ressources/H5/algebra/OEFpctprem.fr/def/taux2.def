@@ -1,0 +1,138 @@
+!set title=Taux d'évolution 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=hausse,baisse
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1000, 3000
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val10=$[rint($(tmp0))]
+
+!ifval $val8=1
+t_=!rawmath 1+$val10/100
+val11=!exec pari print($t_)
+!else
+t_=!rawmath 1-$val10/100
+val11=!exec pari print($t_)
+!endif
+
+!ifval $val8=1
+val12=1+\frac{$val10}{100}
+!else
+val12=1-\frac{$val10}{100}
+!endif
+t_=!rawmath $val9*$val11
+val13=!exec pari print($t_)
+val14=$[$val13]
+val15=$[round(10*$val13)/10]
+val16=$[rint(round($val13))]
+!readproc slib/numeration/ecriturenombre $val9,tex 
+tmp0=$slib_out
+val17=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val14,comma tex 
+tmp0=$slib_out
+val18=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val15,comma tex 
+tmp0=$slib_out
+val19=$(tmp0)
+
+!ifval $val8=1
+val20= 
+!else
+val20=-
+!endif
+val21=Rappel du cours&nbsp;:	    <p>Le taux d'évolution (ou taux de variation), en pourcentage, d'une grandeur qui évolue de AV (ancienne valeur)	      à NV (nouvelle valeur) est <span class="nowrap">\(t\) %</span>, avec \(t= \frac{NV-AV}{AV} \times 100\).<br>	    <i>Remarque</i> : \(t>0\) lorsqu'il s'agit d'une augmentation et \(t<0\)	    lorsqu'il s'agit d'une diminution.	    </p>	    <p class="spacer">	    \(\frac{$val18-$val17}{$val17} \times 100 = $val20 $val10\)<br>	    Le prix a subi une $(val7[$val8]) de <span class="nowrap">\($val10\) %.</span>	    </p>	  
+replytype1=menu
+replyweight1=1 
+replyname1=évolution
+replygood1=$val8;$val7
+replytype2=numexp
+replyweight2=9 
+replyname2=taux
+replygood2=$val10
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val21
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	    Un bien coûte 
+!insmath $val17
+$() euros.<br>	    Son prix passe à 
+!insmath $val18
+$() euros.	  </p>	  <div class="wimscenter"><label for="reply1">	  Il a subi une</label>  
+!read oef/embed.phtml reply1 
+$() <label for="reply2">de</label> <span class="nowrap"> 
+!read oef/embed.phtml reply2,4 
+$() %.</span>	  </div>	  
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val21
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,18,21
+embedcnt=2

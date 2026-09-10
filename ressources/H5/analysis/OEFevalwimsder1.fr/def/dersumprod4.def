@@ -1,0 +1,132 @@
+!set title=Dérivée somme ou produit par un réel 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Maguy, Bruno ; Régine, Mangeard
+email=regine@mangeard.Fr
+precision=100
+computeanswer=yes
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -6, 6
+
+val6=$[rint($(tmp0))]
+val7=\a
+tmp0=!randint 2, 6
+
+tmp1=!randitem 1,-1
+
+tmp2=!randint 2, 6
+
+tmp3=!randitem 1,-1
+
+tmp4=!randint 2, 6
+
+tmp5=!randitem 1,-1
+
+tmp6=!shuffle $(tmp0)*$(tmp1),$(tmp2)*$(tmp3),$(tmp4)*$(tmp5)
+
+val8=$(tmp6)
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[2]))]
+val11=$[rint($(val8[3]))]
+tmp0=!randint 1, 6
+
+tmp1=!randint 2, 6
+
+tmp=!translate ";': to $     $ in $(tmp0)/$(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp3=!randitem $val6,$(tmp2)
+
+t_=!rawmath $(tmp3)
+val6=!exec pari print($t_)
+val12=!rawmath x^2/$val9+x/$val10+$val11/x+$val6
+t_=!replace internal \( by ( in $val12
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val13=$(tmp1)
+tmp=!translate ;";': to $     $ in $val12,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val14=!rawmath $(tmp0)
+replytype1=formal
+replyname1=\(f'(x))
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   Calculer 
+!insmath f'(x)
+$() pour 
+!insmath f(x)=$val13
+$()&nbsp;:	<div class="wimscenter"><label for="reply1">
+!insmath f'(x)=
+$()</label> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13
+embedcnt=1

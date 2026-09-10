@@ -1,0 +1,258 @@
+!set title=Calcul et parenthèses 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_en=Calcul et parenthèses 
+title_es=Cálculo y paréntesis 
+title_nl=Calcul et parenthèses 
+
+ansorder=r,r,r,r
+varcnt=47
+prevarcnt=39
+postvarcnt=7
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Calcule
+val8=et
+val9=La bonne réponse est,	  Ton premier résultat vaut,	  Ton second résultat vaut
+val10=et non
+val11=Premier,Second
+val12=Tu ne dois rentrer que des entiers.
+!if $val6=en 
+val7=Calcule
+val8=et
+val9=La bonne réponse est,	  Ton premier résultat vaut,	  Ton second résultat vaut
+val10=et non
+val11=Premier,Second
+val12=Tu ne dois rentrer que des entiers.
+!endif
+!if $val6=es 
+val7=Calcule
+val8=y
+val9=La buena respuesta es,	  Tu primer resultado vale,	  Tu segundo resultado vale
+val10=y no
+val11=Primero,Segundo
+val12=Sólo debe escribir números enteros.
+!endif
+!if $val6=nl 
+val7=Calcule
+val8=et
+val9=La bonne réponse est,	  Ton premier résultat vaut,	  Ton second résultat vaut
+val10=et non
+val11=Premier,Second
+val12=Tu ne dois rentrer que des entiers.
+!endif
+tmp0=!randint 1, 10
+
+val13=$(tmp0)
+tmp0=!randint 2, 10
+
+val14=$(tmp0)
+tmp0=!randint 3, 10
+
+val15=$(tmp0)
+tmp=!trim \($val13 + $val14 \times $val15),\(($val13 + $val14) \times $val15)	\($val13 \times $val14+$val15),\($val13 \times ($val14+$val15))	 \($val13 + \frac{$val14}{$val15}),\(\frac{$val13+$val14}{$val15})	 \(\frac{$val13}{$val14+$val15}),\(\frac{$val13}{$val14}+$val15)
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val13 + $val14 * $val15, ($val13 + $val14)* $val15	$val13*$val14+$val15,$val13*($val14+$val15)	$val13 + $val14/$val15, ($val13+$val14)/$val15	$val13/($val14+$val15),$val13/$val14+$val15
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 4
+
+val18=$(tmp0)
+val19=$(val16[$val18;])
+tmp0=!shuffle 1,2
+
+val20=$(tmp0)
+t_=!rawmath $(val17[$val18;$(val20[1])])
+val21=!exec pari print($t_)
+t_=!rawmath $(val17[$val18;$(val20[2])])
+val22=!exec pari print($t_)
+val17=$val21,$val22
+val23=$(val19[$(val20[1])])
+val24=$(val19[$(val20[2])])
+
+!ifval $val18<=2
+val25= reply1,reply3
+!else
+val25=reply1,reply2,reply3,reply4
+!endif
+oefsteps=$val25 
+nextstep=!nosubst $val25 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$(val11[1])
+replygood1=?analyze 26
+replytype2=numeric
+replyname2=$(val11[2])
+replygood2=?analyze 27
+replytype3=numeric
+replyname3=$(val11[1])
+replygood3=?analyze 28
+replytype4=numeric
+replyname4=$(val11[2])
+replygood4=?analyze 29
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val18<=2 
+$()	  $val7	  <div class="wimscenter"><label for="reply1">$val23= </label> 
+!read oef/embed.phtml reply1,8 
+$()</div>	  $val8	  <div class="wimscenter"><label for="reply3">$val24=</label>  
+!read oef/embed.phtml reply3,8 
+$()</div>	 
+!else
+$() 	  $val7	  <table class="wimscenter"><tr><td></td><td></td><td> 
+!read oef/embed.phtml reply1,8 
+$()</td></tr>	  <tr><td>$val23 </td><td>=</td><td><hr></td></tr>	  <tr><td></td><td></td><td> 
+!read oef/embed.phtml reply2,8 
+$()</td>	  </tr></table>	  $val8	  <table class="wimscenter"><tr><td></td><td></td><td> 
+!read oef/embed.phtml reply3,8 
+$()</td></tr>	  <tr><td>$val24</td><td>=</td><td><hr></td></tr>	  <tr><td></td><td></td><td> 
+!read oef/embed.phtml reply4,8 
+$()</td>	  </tr></table>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val18<=2
+val27= 1
+!endif
+
+!ifval $val18<=2
+val29= 1
+!endif
+
+!ifval $val26=round($val26) and $val27=round($val27) and	$val28=round($val28) and $val29=round($val29) 
+val30= 1
+!else
+val30=0
+!endif
+t_=!rawmath $val26/$val27
+val31=!exec pari print($t_)
+t_=!rawmath $val28/$val29
+val32=!exec pari print($t_)
+
+!ifval $val31 isitemof $val17 
+tmp0=!positionof item $val31 in $val17
+
+val33=$(tmp0) 
+!else
+val33=100 
+!endif
+
+!ifval $val32 isitemof $val17 
+tmp0=!positionof item $val32 in $val17
+
+val34=$(tmp0)
+!else
+val34=100
+!endif
+
+!exit
+
+:feedback
+!ifval $val30=0
+ <div class='oef_feedbacks'>$val12 
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>$(val9[1]) $val23=$val21 $val8 $val24=$val22
+$()</div>
+!endif
+!ifval $val30=1 and $val26/$val27 !=$val21 and $val33<>100
+ <div class='oef_feedbacks'>$(val9[2])  
+!for m_i in $val33 
+$()$(val19[$(val20[$m_i])]),  
+!next
+$()	$val10 $val23.
+$()</div>
+!endif
+!ifval $val30=1 and $val28/$val29 !=$val22 and $val34<>100
+ <div class='oef_feedbacks'>$(val9[3])  
+!for m_i in $val34 
+$()$(val19[$(val20[$m_i])]),  
+!next
+$()	$val10 $val24.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val26=round($val26) and $val26/$val27=$val21
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val11[1]) ?
+
+!ifval $val28=round($val28) and $val28/$val29=$val22
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val11[2]) ?
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,17,18,19,20,21,22,23,24,26,27,28,29
+embedcnt=6

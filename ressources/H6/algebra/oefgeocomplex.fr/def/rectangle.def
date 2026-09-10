@@ -1,0 +1,242 @@
+!set title=Rectangle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal,Causse
+email=chantal.causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=23
+prevarcnt=20
+postvarcnt=2
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 9
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+
+!ifval $val8=$val6 and $val9=$val7
+val9=$[rint( $val9+1)]
+!endif
+val10=$[rint($val8-($val6))]
+val11=$[rint($val9-($val7))]
+val12=$[$val6-($val11)]
+val13=$[$val6+($val11)]
+val14=$[$val7+ ($val10)]
+val15=$[$val7-($val10)]
+tmp0=!randint 2, 4
+
+t_=!rawmath $(tmp0)
+val16=!exec pari print($t_)
+
+!ifval $val16 = 2 
+val17= double
+!else
+val17=triple
+!endif
+
+!ifval $val16 = 4 
+val17= quadruple
+!endif
+t_=!rawmath $val6 + ($val7)*i
+t_=!exec pari print($t_)
+val18=!mathsubst I=i in $t_
+t_=!rawmath $val8 + ($val9)*i
+t_=!exec pari print($t_)
+val19=!mathsubst I=i in $t_
+t_=!rawmath $val18 + $val16*($val19-($val18))*i
+t_=!exec pari print($t_)
+val20=!mathsubst I=i in $t_
+t_=!rawmath $val18 -$val16*($val19-($val18))*i
+t_=!exec pari print($t_)
+val21=!mathsubst I=i in $t_
+t_=!rawmath $val18 + ($val19-($val18))*i/$val16
+t_=!exec pari print($t_)
+val22=!mathsubst I=i in $t_
+t_=!rawmath $val18 - ($val19-($val18))*i/$val16
+t_=!exec pari print($t_)
+val23=!mathsubst I=i in $t_
+replytype1=default
+replyname1=\(Re(z_M))
+replygood1=?analyze 24
+replytype2=default
+replyname2=\(Im(z_M))
+replygood2=?analyze 25
+replytype3=default
+replyname3=\(Re(z_N))
+replygood3=?analyze 26
+replytype4=default
+replyname4=\(Im(z_N))
+replygood4=?analyze 27
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Si 
+!insmath A
+$() et 
+!insmath B
+$() sont des points du plan d'affixes 
+!insmath $val18
+$()	et 
+!insmath $val19
+$(), trouver l'affixe de points 
+!insmath M
+$() et 
+!insmath N
+$() tels que	
+!insmath ABNM
+$() soit un rectangle dont la longueur d'un côté soit le $val17 de l'autre.
+$()
+!exit
+
+:hint
+$()
+!insmath M
+$() est l'image de 
+!insmath B
+$() par une similitude. Laquelle ?
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath M
+$() est l'image de 
+!insmath B
+$() par une des similitudes suivantes :	<ul><li>la similitude de centre 
+!insmath A
+$(), d'angle + $m_pi/2 et de rapport $val16 ;</li>	<li>la similitude de centre 
+!insmath A
+$(), d'angle -$m_pi/2 et de rapport $val16 ;</li>	<li>la similitude de centre 
+!insmath A
+$(), d'angle + $m_pi/2 et de rapport 1/$val16 ;</li>	<li>la similitude de centre 
+!insmath A
+$(), d'angle - $m_pi/2 et de rapport 1/$val16 .</li></ul>		L'affixe de 
+!insmath M
+$() se calcule donc par une des  formules suivantes :	<p class="wimscenter"> 
+!insmath  z - ($val18)
+$() = $val16 
+!insmath (\cos(\pi/2) + i\sin(\pi/2))
+$()	
+!insmath (($val19) - ($val18)) = $val16 i(($val19) - ($val18))
+$() </p>	ou bien	<p class="wimscenter">	
+!insmath  z - ($val18)
+$()  = $val16 
+!insmath (\cos(-\pi/2) + i\sin(-\pi/2))
+$()
+!insmath (($val19) - ($val18)) = -$val16 i(($val19) - ($val18))
+$().	</p>	ou bien	<p class="wimscenter">	
+!insmath  z - ($val18)
+$()  = (1/$val16) 
+!insmath (\cos(-\pi/2) + i\sin(-\pi/2))
+$()
+!insmath (($val19) - ($val18)) = i(($val19) - ($val18))/$val16
+$().	</p>	ou bien	<p class="wimscenter">	
+!insmath  z - ($val18)
+$()  = (1/$val16) 
+!insmath (\cos(-\pi/2) + i\sin(-\pi/2))
+$()
+!insmath (($val19) - ($val18)) = -i(($val19) - ($val18))/$val16
+$().	</p>		Ce qui donne 
+!insmath z_M = $val20
+$() ou 
+!insmath z_M = $val21
+$() ou 
+!insmath z_M = $val22
+$() ou 
+!insmath z_M = $val23
+$(). <br>	Quand à 
+!insmath z_N
+$(), il se calcule par la formule :	<p class="wimscenter"> 
+!insmath z_N -($val18) = ($val19 - ($val18)) + (z_M - ($val18))
+$(). </p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in zrepM = $val24 + I*$val25 ; test=if(zrepM == $val20 ||zrepM == $val21 ||	zrepM == $val22 || zrepM == $val23,1,0); test
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in zrepN = $val26 + I*$val27 ;	  test=if(zrepM + $val19  == zrepN +$val18,1,0); test
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+condweight1=7 
+
+!ifval $val28=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(z_M = $val24 + $val25 i) convient
+condweight2=3 
+
+!ifval $val29=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(ABNM) est un parallélogramme
+
+!exit
+
+:stat
+vsavelist=16,17,18,19,20,21,22,23,24,25,26,27
+embedcnt=0

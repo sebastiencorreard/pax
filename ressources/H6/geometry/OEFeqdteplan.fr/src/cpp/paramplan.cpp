@@ -1,0 +1,167 @@
+target=paramplan1 paramplan2 paramplan3
+#define TITLE Représentation paramétrique de plan
+#if defined TARGET_paramplan1
+\title{TITLE 1}
+#endif
+#if defined TARGET_paramplan2
+\title{TITLE 2}
+#endif
+#if defined TARGET_paramplan3
+\title{TITLE 3}
+#endif
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{1000}
+
+\matrix{V=slib(matrix/invertible 3,3)}
+\matrix{u=\V[1;]}
+\matrix{v=\V[2;]}
+\matrix{w=\V[3;]}
+
+\integer{ux=\V[1;1]}
+\integer{uy=\V[1;2]}
+\integer{uz=\V[1;3]}
+\integer{vx=\V[2;1]}
+\integer{vy=\V[2;2]}
+\integer{vz=\V[2;3]}
+\integer{wx=\V[3;1]}
+\integer{wy=\V[3;2]}
+\integer{wz=\V[3;3]}
+\integer{xa=randint(-9..9)}
+\integer{ya=randint(-9..9)}
+\integer{za=randint(-9..9)}
+
+%%%% equation paramétrique de P(A,u,v)
+\text{eqx=simplify(\xa+\ux*t+\vx*s)}
+\text{eqy=simplify(\ya+\uy*t+\vy*s)}
+\text{eqz=simplify(\za+\uz*t+\vz*s)}
+
+%%%% equation du plan (A,u,v)
+\integer{nx=\uy*\vz-\uz*\vy}
+\integer{ny=\uz*\vx-\ux*\vz}
+\integer{nz=\ux*\vy-\uy*\vx}
+\integer{d1=\xa*\nx+\ya*\ny+\za*\nz}
+\text{eqpl1=texmath(\nx*x+\ny*y+\nz*z-\d1=0)}
+
+\text{txtsol=}
+\text{eqxx=texmath(\eqx)}
+\text{eqyy=texmath(\eqy)}
+\text{eqzz=texmath(\eqz)}
+
+#if defined TARGET_paramplan1
+
+\integer{k=random(1,1,2)}
+\integer{it=random(0,1,2,3,1/2,3/2)*randint(1,-1)}
+\integer{is=random(0,1,2,3,1/2,3/2)*randint(1,-1)}
+\real{xb=evaluate(\eqx,t=\it,s=\is)}
+\real{yb=evaluate(\eqy,t=\it,s=\is)}
+\real{zb=evaluate(\eqz,t=\it,s=\is)}
+\if{\k=2}
+  {
+%%%% on casse le point
+\integer{k2=randint(1..3)}
+ \if{\k2=1}
+  {
+  \integer{it2=\it+random(1,-1,2,-2)}
+  \real{xb=evaluate(\eqx,t=\it2,s=\is)}
+  \integer{k=\ux=0?1:2}
+  }
+ \if{\k2=2}
+  {
+  \integer{it2=\it+random(1,-1,2,-2)}
+  \real{yb=evaluate(\eqy,t=\it2,s=\is)}
+  \integer{k=\uy=0?1:2}
+  }
+ \if{\k2=3}
+  {
+  \integer{is2=\is+random(1,-1,2,-2)}
+  \real{zb=evaluate(\eqz,t=\it,s=\is2)}
+  \integer{k=\vz=0?1:2}
+  }
+ }
+\integer{rep=\k}
+
+\statement{<p>
+On considère un plan \((P)) défini par une représentation paramétrique de variables \(t) et \(s):
+</p>
+<div class="wimscenter">
+\(\left\lbrace
+\begin{array}{l}
+ x = \eqxx \\ y = \eqyy \\ z = \eqzz \end{array}
+\)
+</div>
+
+Le point \(B(\xb,\yb,\zb)) appartient-il au plan \((P)) ?
+<br>
+\embed{reply1}
+
+}
+\answer{}{\rep;Oui,Non}{type=radio}
+\feedback{\rep=1}{Il suffit de prendre \(t=\it) et \(s=\is)}
+#endif
+#if defined TARGET_paramplan2
+\statement{<p>
+On considère un plan \((P)) défini par une représentation paramétrique de variables
+\(t) et \(s):
+</p>
+<div class="wimscenter">
+\(\left\lbrace
+\begin{array}{l} x = \eqxx \\ y = \eqyy \\ z = \eqzz \end{array}
+\)
+</div>
+Donner une équation cartésienne du plan \((P)).
+<p>
+\embed{reply1}
+</p>
+}
+\answer{Équation cartésienne}{\eqpl1}{type=equation}
+#endif
+#if defined TARGET_paramplan3
+\statement{<p>
+Donner une représentation paramétrique de variables \(t) et \(s) du plan \((P)),
+définie par l'équation cartésienne:
+</p>
+<div class="wimscenter">
+\( \eqpl1).
+</div>
+Équation en \(x) ,\(t) et \(s) : \(x\) = \embed{reply1}<br>
+Équation en \(y) ,\(t) et \(s) : \(y\) = \embed{reply2}<br>
+Équation en \(z) ,\(t) et \(s) : \(z\) = \embed{reply3}
+}
+
+
+\answer{Équation en x}{\repx}{weight=0}
+\answer{Équation en y}{\repy}{weight=0}
+\answer{Équation en z}{\repz}{weight=0}
+\real{hx=evaluate(\reply1,t,s,t=0,s=0)}
+\real{hy=evaluate(\reply2,t,s,t=0,s=0)}
+\real{hz=evaluate(\reply3,t,s,t=0,s=0)}
+\real{vxa=evaluate(\reply1,t,s,t=1,s=0)-\hx}
+\real{vya=evaluate(\reply2,t,s,t=1,s=0)-\hy}
+\real{vza=evaluate(\reply3,t,s,t=1,s=0)-\hz}
+\real{vxb=evaluate(\reply1,t,s,t=0,s=1)-\hx}
+\real{vyb=evaluate(\reply2,t,s,t=0,s=1)-\hy}
+\real{vzb=evaluate(\reply3,t,s,t=0,s=1)-\hz}
+%%%% il faut va et n orthogonaux
+\integer{cond1=\vxa*\nx+\vya*\ny+\vza*\nz}
+%%%% il faut vb et n orthogonaux
+\integer{cond2=\vxb*\nx+\vyb*\ny+\vzb*\nz}
+%%%% il faut va et vb indépendants
+\real{colin1=\vxb*\vya - \vyb*\vxa}
+\real{colin2=\vyb*\vza - \vzb*\vya}
+\real{colin3=\vzb*\vxa - \vxb*\vza}
+\integer{cond3=\colin1=0 and \colin2=0 and \colin3=0?1:0}
+%%%% il faut que le point h vérifie l'équation du plan
+\integer{cond4=\hx*\nx+\hy*\ny+\hz*\nz-\d1}
+\integer{macondition=\cond1=0 and \cond2=0 and \cond3=0 and \cond4=0?1:0}
+\text{col=\macondition=1?oef_indgood:oef_indbad}
+\text{txtsol=\macondition=1? est bonne</span>: est mauvaise</span><br>}
+\text{txtsol=\cond1=0?\txtsol: \txtsol les coefficients devant \(t) ne définissent pas un vecteur de ce plan,<br>}
+\text{txtsol=\cond2=0?\txtsol: \txtsol les coefficients devant \(s) ne définissent pas un vecteur de ce plan,<br>}
+\text{txtsol=\cond3=0?\txtsol: \txtsol, les coefficients devant \(t) et \(s) ne définissent pas deux vecteurs indépendants de ce plan,<br>}
+\text{txtsol=\cond4=0?\txtsol: \txtsol, le point obtenu pour \(t=0) et \(s=0) n'appartient pas à \((P)):\cond4=\hx*\nx+\hy*\ny+\hz*\nz-\d1}
+
+\condition{Votre solution}{\macondition=1}{weight=100000}{option=hide}
+\feedback{1=1}{ <span class="\col">Votre solution \txtsol}
+#endif

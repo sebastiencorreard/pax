@@ -1,0 +1,170 @@
+!set title=Écriture d'un nombre 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=zero,un,deux,trois,quatre,cinq,six,sept,huit,neuf
+val7=dix,onze,douze,treize,quatorze,quinze,seize,dix-sept,dix-huit,dix-neuf
+val8=,vingt,trente,quarante,cinquante,soixante,soixante,quatre-vingt,quatre-vingt
+val9=Réponse
+val10=Écrire en chiffres le nombre
+val11=$[rint(3)]
+tmp0=!randint 0, 9
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 0, 9
+
+val13=$[rint($(tmp0))]
+
+!ifval $val11>2
+tmp0=!randint 1, 9
+
+val14=$[rint($(tmp0))]
+!else
+val14=$[rint(0)]
+!endif
+!if $val12==0 
+tmp0=!item $val13+1 of $val6
+
+val15=$(tmp0)
+!else
+!if $val12 isin 1,7,9 
+
+!ifval $val12!=1
+tmp0=!item $val13+1 of $val7
+
+val16=-$(tmp0)
+!else
+tmp1=!item $val13+1 of $val7
+
+val16=$(tmp1)
+!endif
+!if $val12==7 and $val13==1 
+val16=-et-onze
+!endif
+tmp0=!item $val12 of $val8
+
+val15=$(tmp0)$val16
+!else
+
+!ifval $val13!=0
+tmp0=!item $val13+1 of $val6
+
+val16=-$(tmp0)
+!endif
+!if $val13==1 and $val12 <8 
+val16=-et-un
+!endif
+!if $val13==0 and $val12==8 
+val16=s
+!endif
+tmp0=!item $val12 of $val8
+
+val15=$(tmp0)$val16
+!endif
+!endif
+!if $val14>1 
+
+!ifval ($val13+$val12==0)
+tmp0=!item $val14+1 of $val6
+
+val17=$(tmp0) cents
+!else
+tmp1=!item $val14+1 of $val6
+
+val17=$(tmp1) cent $val15
+!endif
+!else
+
+!ifval ($val13+$val12==0)
+val17=zéro
+!else
+val17= cent $val15
+!endif
+!if $val14==0 
+val17=$val15
+!endif
+!endif
+val18=$[rint($val14*100+$val12*10+$val13)]
+val19=$[rint($val18)]
+val20=$val17
+val21=$val10 $val20.
+val22=$val19
+val23=$[rint(20)]
+replyname1=
+replygood1=$val22
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val21 \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val21  
+!read oef/embed.phtml r1,$val23 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val21 $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,23
+embedcnt=1

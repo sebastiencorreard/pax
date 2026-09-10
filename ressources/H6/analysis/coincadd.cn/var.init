@@ -1,0 +1,48 @@
+
+!read defaults
+
+score_coef1=!item $severity of  35,  30,  25,  20,  15
+score_coef2=!item $severity of 0.6,   1, 1.4, 1.7, 2.1
+fcnt	=2
+
+mf=<i>f</i>
+!default plotrange=2.5
+
+!read Exindex
+exocnt=!itemcnt $exolist
+
+exo=!listintersect $exo and $exolist
+nn=!itemcnt $exo
+wims_intro_parm=$exo
+!if $nn<=0
+ exo=$exolist
+!endif
+
+wims_print_precision=5
+thisexo=!randitem $exo
+imagedir=$module_dir/images/$thisexo
+deffile=def/$thisexo.def
+!read $deffile
+title=!word 2 to -1 of $title
+
+fs=!item 1 to $fcnt of $f1,$f2,$f3,$f4,$f5,$f6,$f7,$f8
+sh=!shuffle $fcnt
+fs=!items $sh of $fs
+!distribute items $fs into f1,f2,f3,f4,f5,f6,f7,f8
+goodf=
+fx=
+!for i=1 to $fcnt
+ C$i=$[(random(1.75)+0.25)*(randint(2)*2-1)]
+ goodf=$goodf+($(C$i))*($(f$i))
+ fx= $fx + $(C$i)*f$i(x)
+!next i
+fx=!htmlmath $fx
+fx=!replace f by $mf in $fx
+wims_print_precision=8
+
+status=waiting
+replycnt=0
+bestdiff=1000
+bestreply=0
+wims_module_log=$cmd: $thisexo
+

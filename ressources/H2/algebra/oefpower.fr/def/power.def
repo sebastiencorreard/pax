@@ -1,0 +1,183 @@
+!set title=Puissance d'un nombre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_en=Power of a number
+title_es=Potencia de un número
+title_it=Potenze di un numero
+title_nl=Machten van een getal
+
+ansorder=r,r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Écrire
+val8=sous la forme d'une puissance	  d'un entier (avec la plus grande puissance possible)
+val9=Simplifiez d'abord la fraction.
+val10=Avez-vous bien appliqué la règle&nbsp;
+val11=Il ne faut pas confondre
+val12=et
+!if $val6=en 
+val7=Write
+val8=as a power of an integer	 (with the largest possible power)
+val9=First simplify the fraction.
+val10=Did you apply the rule
+val11=Don't confuse
+val12=and
+!endif
+!if $val6=es 
+val7=Escribir
+val8=en forma de una potencia	  de un entero (con la mayor potencia posible)
+val9=Simplifica en primer lugar la fracción.
+val10=¿respetaste bien la regla?&nbsp;
+val11=No se debe confundir
+val12=and
+!endif
+!if $val6=it 
+val7=Scrivi
+val8=in forma di potenza di un	  intero (con il più grande esponente possibile)
+val9=Come prima cosa puoi ridurre la frazione ai minimi termini.
+val10=Hai applicato correttamente la regola
+val11=Non confondere
+val12=e
+!endif
+!if $val6=nl 
+val7=Schrijf
+val8=als een macht van een geheel getal (integer)
+val9=vereenvoudig eerst de breuk.
+val10=Heb je de regel
+val11=niet door elkaar halen
+val12=and
+!endif
+tmp0=!randint 2, 5
+
+val13=$[rint($(tmp0))]
+tmp0=!randitem 2,3,5,4
+
+val14=$[$(tmp0)]
+tmp0=!randitem 2,3,6,5,7,11
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val14*$val15)]
+tmp0=!randint 2, 5
+
+val17=$[rint($(tmp0))]
+val18=$[rint($val15)]
+val19=$[rint($val13*$val17)]
+t_=!replace internal \( by ( in $val14^($val19)
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+t_=!replace internal \( by ( in $val13+$val17
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+val22=$[rint($val14^($val21))]
+replytype1=numeric
+replyname1=
+replygood1=$[$val18]
+replytype2=numeric
+replyname2=
+replygood2=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val9
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val7 
+!insmath (\frac{$val16^{$val13}}{$val14^{$val13}})^{$val17}
+$() $val8:	<div class="wimscenter">
+!insmath (\frac{$val16^{$val13}}{$val14^{$val13}})^$val17
+$() =  
+!read oef/embed.phtml reply 1, 4 
+$()<sup><sup>	 
+!read oef/embed.phtml reply 2,4 
+$()</sup></sup></div>	
+$()
+!exit
+
+:hint
+$()$val9
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply2<>$val19
+ <div class='oef_feedbacks'>$val10: 
+!insmath (a^n)^m=a^(n*m)
+$() ?
+$()</div>
+!endif
+!ifval $m_reply2=$val21 and $m_reply2 <> $val19 
+ <div class='oef_feedbacks'>$val11	<div class="wimscenter">
+!insmath ($val14^$val13)^$val17 = $val14^{$val13\times $val17}=$val14^{$val19} =$val20 
+$() </div> $val12	<div class="wimscenter">
+!insmath $val14^$val13
+$() $m_times 
+!insmath $val14^$val17
+$() = 
+!insmath $val14^($val13+$val17)
+$() = 
+!insmath $val14^$val21 = $val22
+$()	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,16,17,19,20,21,22
+embedcnt=2

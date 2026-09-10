@@ -1,0 +1,244 @@
+!set title=Vecteurs coplanaires dans un cube 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+oefcss=<style> .special1 {font-size:x-large;background-color:lightblue;} .special2 {font-size:x-large;background-color:MistyRose;} .nonspecial {} </style> 
+
+ansorder=c
+varcnt=55
+prevarcnt=54
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2!=1 
+val6= wims_question
+!else
+val6=wimscenter special1
+!endif
+
+!ifval $val2!=1 
+val7= wims_question
+!else
+val7=wimscenter special2
+!endif
+val8=Les vecteurs, sont-ils coplanaires
+val9=et
+val10=oui, non
+tmp=!trim [0;0;0]
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [0;1;0]
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [0;1;1]
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [0;0;1]
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [1;0;0]
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [1;1;0]
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [1;1;1]
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim [1;0;1]
+val18=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,0,0,1,1,1,1	0,1,1,0,0,1,1,0	0,0,1,1,0,0,1,1
+val19=!translate internal $	\
+$ to ;; in $tmp
+val20=A,B,C,D,E,F,G,H
+tmp0=!shuffle 56
+
+val21=$(tmp0)
+val22=
+val23=
+val24=
+val25=
+val26=
+val27=
+!for val28  = 1 to 3 
+val29=$[rint($(val21[$val28]))]
+tmp0=!append item $val29 to $val23
+
+val23=$(tmp0)
+val30=$[rint($val29 / 8 )]
+
+!ifval $val30*8>$val29
+val30=$[rint($val30-1)]
+!endif
+val31=$[rint($val29 - $val30*8)]
+
+!ifval $val31=0
+val30=$[rint($val30)]
+!else
+val30=$[rint($val30+1)]
+!endif
+
+!ifval $val31=0
+val31=$[rint(8)]
+!endif
+tmp0=!append item $val30 to $val24
+
+val24=$(tmp0)
+tmp0=!append item $val31 to $val25
+
+val25=$(tmp0)
+val32=$(val20[$val31])
+tmp0=!positionof item $val32 in $val20
+
+val33=$[rint($(tmp0))]
+tmp0=!append item $val33 to $val26
+
+val26=$(tmp0)
+
+!ifval ($val30 >= $val31 and $val31<8)
+val30=$[rint($val30+1)]
+!endif
+!if $val30==8 and $val31==8 
+val30=$[rint(7)]
+!endif
+val34=$(val20[$val30])
+tmp0=!positionof item $val34 in $val20
+
+val35=$[rint($(tmp0))]
+tmp0=!append item $val35 to $val27
+
+val27=$(tmp0)
+val36=$val32$val34
+tmp0=!append item $val36 to $val22
+
+val22=$(tmp0)
+tmp=!trim $(val19[;$val33])
+val37=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val19[;$val35])
+val38=!translate internal $	\
+$ to ;; in $tmp
+!if $val28==1 
+t_=!replace internal \( by ( in print([$val38]-[$val37])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val39=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val28==2 
+t_=!replace internal \( by ( in print([$val38]-[$val37])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val40=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val28==3 
+t_=!replace internal \( by ( in print([$val38]-[$val37])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val41=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!next
+tmp=!trim $val39;$val40;$val41
+val42=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in matrank([$val42])
+tmp0=!exec pari $t_
+
+val43=$[rint($(tmp0))]
+
+!ifval $val43==3
+val44=$(val10[2])
+!else
+val44=$(val10[1])
+!endif
+val45=lightblue
+val46=xrange -3,15	yrange -3,15	linewidth 3	polyline black,0,0,0,10,10,10,10,0,0,0	polyline black,0,10,2,13,12,13,10,10	dpolyline black,0,0,2,3,12,3	dsegment 2,3,2,13,black	polyline black,10,0,12,3,12,13	points red,0,0,0,10,10,10,10,0,2,13,12,13,2,3,12,3	text red,-0.4,-1,medium,A	text red,10.1,-1,medium,B	text red,2.6,3,medium,D	text red,12.1,3,medium,C	text red,-1,11,medium,E	text red,11,11,medium,F	text red,2.6,14.2,medium,H	text red,12.1,14.2,medium,G	
+val47=180
+!readproc oef/draw.phtml $val47,$val47 \
+    $val46 
+tmp0=$ins_url
+val48=<img src="$(tmp0)" alt="">
+choicename1=
+choicegood1=$val44
+choicebad1=$val10
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> $val48</div>	 <div class="medium_size text_col">	  $(val8[1]) 
+!insmath \overrightarrow{$(val22[1])}
+$(), 
+!insmath \overrightarrow{$(val22[2])}
+$()	  $val9 
+!insmath \overrightarrow{$(val22[3])}
+$() $(val8[2])?  
+!read oef/embed.phtml choice 1 
+$()	 </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,22,48
+embedcnt=1

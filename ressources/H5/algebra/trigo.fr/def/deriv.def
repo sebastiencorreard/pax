@@ -1,0 +1,175 @@
+!set title=Dérivée des fonctions trigonométriques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frederic, Pitoun
+email=frederic.pitoun@free.fr
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+val6=$[rint(2)]
+tmp0=!item $val6 of sin,cos
+
+val7=$(tmp0)
+tmp0=!randint -10, 10
+
+val8=$[$(tmp0)/10]
+tmp0=!randint -10, 10
+
+val9=$[$(tmp0)/10]
+val10=$[$val8+$val9]
+val11=$[$val8*$val9]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=$[4*($val12)]
+t_=!replace internal \( by ( in $val13*t^2 -($val8+($val9))*($val13)*t + $val13*($val8)*($val9)
+tmp0=!exec pari $t_
+
+val14=!rawmath $(tmp0)
+val15=!rawmath 4*$val12*(\tirg(x)-$val8)*($val7(x)-$val9)
+t_=!replace internal \( by ( in expand($val15)
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+val17=$[2*($val12)+4*($val12)*($val11)]
+val18=$[4*($val10)*($val12)]
+!if $val6=1 
+tmp0=!randint -10, 10
+
+t_=!replace internal \( by ( in -($val12)*sin(2*x)+($val18)*cos(x)+($val17)*x+$(tmp0)
+tmp1=!exec maxima $t_
+
+val19=!rawmath $(tmp1)
+!endif
+!if $val6=2 
+tmp0=!randint -10, 10
+
+t_=!replace internal \( by ( in $val12*sin(2*x)-($val18)*sin(x)+($val17)*x+$(tmp0)
+tmp1=!exec maxima $t_
+
+val19=!rawmath $(tmp1)
+!endif
+tmp=!translate ;";': to $     $ in $val19,x,1
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val20=!rawmath $(tmp1)
+oefsteps=reply 1	reply 2 
+nextstep=!nosubst reply 1	reply 2 
+!readproc oef/steps.proc
+replytype1=default
+replyname1=der
+replygood1=$val20
+replytype2=default
+replyname2=pol
+replygood2=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$m_pol1	On considère la fonction 
+!insmath f
+$() définie sur 
+!insmath \R
+$() par la relation	<div class="wimscenter">	
+!insmath f(x)=$val19
+$()	</div>	
+!if $m_step=1 
+$()Calculer la dérivée de la fonction 
+!insmath f
+$().	<p>	La dérivée de la fonction 
+!insmath f
+$() est définie par la relation 
+!insmath f'(x)=
+$()  
+!read oef/embed.phtml reply 1 
+$().	</p>	 
+!endif
+$()	
+!if $m_step=2 
+$()On a vu que 
+!insmath f'(x)=$val20
+$().	<p>	Déterminer un polynôme 
+!insmath P
+$() de degré 2 tel que 
+!insmath f'(x)=P($val7(x))
+$().	</p>	<div class="wimscenter">	On a  
+!insmath P(t)=
+$()  
+!read oef/embed.phtml reply 2 
+$()	</div>	<div class="wims_instruction">	Attention : 
+!insmath P
+$() est un polynôme en 
+!insmath t
+$().	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,19,20
+embedcnt=2

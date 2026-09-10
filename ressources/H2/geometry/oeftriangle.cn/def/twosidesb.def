@@ -1,0 +1,124 @@
+!set title=两条锐角边
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+leftrange=-5.000000
+rightrange=5.000000
+author=Gang XIAO
+email=xiao@unice.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 40
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 40
+
+val7=$[rint($(tmp0))]
+val8=$[rint(max($val6,$val7))]
+val9=$[rint(min($val6,$val7))]
+
+!ifval $val6>$val7
+val10=AB
+!else
+val10=BC
+!endif
+
+!ifval $val6>$val7
+val11=BC
+!else
+val11=AB
+!endif
+val12=$[sqrt($val8^2+$val9^2)]
+val13=$[sqrt($val8^2-$val9^2)]
+val14=$[rint((ceil($val12)-1) - (floor($val13)+1) + 1)]
+val15=$[rint(($val6+$val7-1) - (floor($val12)+1) + 1)]
+val16=$[rint((ceil($val13)-1) - ($val8-$val9+1) + 1)]
+
+!ifval $val16<0
+val16=$[rint(0)]
+!endif
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+tmp0=!item $val17 of 锐角, 钝角
+
+val18=$(tmp0)
+tmp0=!item $val17 of $val14,$val15+$val16
+
+val19=$[rint($(tmp0))]
+
+!ifval $val17=1
+val20=为使 ABC 成为锐角三角形, 根据勾股定理, AC 必须大于	sqrt($val10<sup>2</sup>-$val11<sup>2</sup>)=$val13 且小于	sqrt(AB<sup>2</sup>+BC<sup>2</sup>)=$val12.	
+!endif
+
+!ifval $val17=2
+val20=为使 ABC 成为三角形, AC 至少是	$val8-$val9+1 至多是 $val6+$val7-1. <p>	当三角形的最大边是 $val10 时, 根据勾股定理, AC 必须小于 $val13. 	当 AC 是最大边时, 再次根据勾股定理, 它必须大于 $val12. <p>	所以有 $val16 (相应地, $val15) 个钝角三角形其最大边是	$val10 (相应地, AC)
+!endif
+replytype1=default
+replyname1=三角形个数
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val20
+
+
+!goto stat
+
+!exit
+
+:question
+$()有多少个$val18三角形 ABC 满足以下条件	<p><center>	    AB = $val6 , BC = $val7 , AC = 整数 ?	</center>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val20
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,18,20
+embedcnt=0

@@ -1,0 +1,177 @@
+!set title=Prévoir la phase de la Lune 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+
+ansorder=r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oui,non
+val7=aucune
+val8=Pour s'aider, il est possible de tracer un segment.	  Il n'en sera pas tenu compte dans la notation.
+val9=Nord, Sud
+val10=On est dans l'hémisphère
+tmp=!trim Aujourd'hui, on voit la Lune comme cela&nbsp;	  Comment la verra-t-on dans, jours&nbsp;
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=2
+t_=!replace internal \( by ( in [[1,1],[sqrt(2)/2,1],[0,1],[-sqrt(2)/2,1],[-1,-1],[-sqrt(2)/2,-1],[0,-1],[sqrt(2)/2,-1]]
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+val14=grey
+val15=yellow
+val16=grey
+val17=black
+val18=grey
+val19=red
+val20=0,0
+val21=2
+val22=-90,90,270
+val23=3
+val24=$[rint($val23%2)]
+val25=$[rint(($val23-$val24)/2)]
+val26=0,-1,1,0
+val27=
+val28=
+val29=1
+val30=80
+val31=
+val32=xrange -$val21,$val21	yrange -$val21,$val21
+!for val33 =1 to 8 
+val34=
+val35=$(val13[$val33])
+tmp0=!declosing $val35
+
+val35=$(tmp0)
+val36=$(val35[2])
+
+!ifval $val36>0
+val37=$(val22[1,2])
+!else
+val37=$(val22[2,3])
+!endif
+val38=$(val35[1])
+val34=$val34	  frect $(val20[1])-1.5*$val12,$(val20[2])-1.5*$val12,$(val20[1])+1.5*$val12,$(val20[2])+1.5*$val12,$val17
+!if $val38!=1 or $val36!=1 
+!if $val25=0 
+val34=$val34	arc $val20,2*$val12,2*($val38)*$val12,$val37,$val16	arc $val20,2*$val12,2*$val12,$val37,$val16	filltoborder $(val20[1]),$(val20[2])+$val36*($val38+1)*$val12/2,$val16,$val16	      
+!endif
+!if $val25=1 
+val34=$val34	arc $val20,2*($val38)*$val12,-2*$val12,$val37,$val16	arc $val20,2*$val12,2*$val12,$val37,$val16	filltoborder $(val20[1])+($val36)*($val38+1)*$val12/2,$(val20[2]),$val16,$val16	      
+!endif
+!else
+!endif
+!readproc oef/draw.phtml $val30,$val30 \
+$val32	$val34 
+tmp0=$ins_url
+val39=$(tmp0)
+val31=$val31 <img src="$val39" alt="">,
+!next
+tmp0=!nonempty items $val31
+
+val31=$(tmp0)
+val40=$val2
+
+!ifval $val40=
+val40=1
+!endif
+
+!ifval $val40=3
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val40=$(tmp0)
+!endif
+val41=$(val9[$val40])
+
+!ifval $val40=2
+val31=$(val31[1,8,7,6,5,4,3,2])
+!endif
+val42=$val30 x$val30
+tmp0=!shuffle 8
+
+val43=$(tmp0)
+val43=$(val43[1,2])
+val44=$(val43[2])
+
+!ifval $(val43[1])<$(val43[2]) 
+val45=$[rint( $(val43[2])-$(val43[1]))]
+!else
+val45=$[rint(8+$(val43[2])-$(val43[1]))]
+!endif
+val46=$[28/8*$val45]
+tmp0=!values x for x=1 to 8
+
+val47=$(tmp0)
+replytype1=clickfill
+replyoption1=keeporder 
+replyname1=
+replygood1=$(val31[$val44]);$val31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_question">	  $val10 $val41. $(val11[1;]):	  <div class="wimscenter">	  $(val31[$(val43[1])]).	</div>	  $(val11[2;1]) $val46 $(val11[2;2])?	   
+!read oef/embed.phtml r1,$val42 
+$()	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,31,41,42,43,46
+embedcnt=1

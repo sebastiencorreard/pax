@@ -1,0 +1,142 @@
+!set title=Moyenne mobile 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Aôut,Septembre,Octobre,Novembre,Décembre
+val7=Jan.,Fév.,Mars,Avril,Mai,Juin,Juil.,Août,Sept.,Oct.,Nov.,Déc.
+val8=10,8,8,14,18,20,24,23,20,18,14,12
+val9=
+!for val10 =1 to 12 
+tmp0=!randitem -1,-0.5,0,0.5,1
+
+val11=$[$(tmp0)]
+val12=$[$(val8[$val10])+$val11]
+tmp0=!append item $val12 to $val9
+
+val9=$(tmp0)
+!next
+val13=&nbsp;,&nbsp;
+!for val14 =2 to 11 
+t_=!rawmath ($(val9[$val14-1])+$(val9[$val14])+$(val9[$val14+1]))/3
+val15=!exec pari print($t_)
+val15=$[round(10*$val15)/10]
+tmp0=!append item $val15 to $val13
+
+val13=$(tmp0)
+!next
+val13=$val13,&nbsp;,&nbsp;
+val16=<table class="wimscenter wimsborder">	<tr><th>Mois</th>	
+!for val14 =1 to 12 
+val16=$val16<td> $(val7[$val14]) </td>
+!next
+val17=$val16</tr><tr><th> Moyenne mobile d'ordre 3 en ° </th>
+val16=$val16</tr><tr><th> Température en ° </th>
+replytype1=numexp
+replyname1=MM3 $(val7[2])
+replygood1=$(val13[3])
+replytype2=numexp
+replyname2=MM3 $(val7[3])
+replygood2=$(val13[4])
+replytype3=numexp
+replyname3=MM3 $(val7[4])
+replygood3=$(val13[5])
+replytype4=numexp
+replyname4=MM3 $(val7[5])
+replygood4=$(val13[6])
+replytype5=numexp
+replyname5=MM3 $(val7[6])
+replygood5=$(val13[7])
+replytype6=numexp
+replyname6=MM3 $(val7[7])
+replygood6=$(val13[8])
+replytype7=numexp
+replyname7=MM3 $(val7[8])
+replygood7=$(val13[9])
+replytype8=numexp
+replyname8=MM3 $(val7[9])
+replygood8=$(val13[10])
+replytype9=numexp
+replyname9=MM3 $(val7[10])
+replygood9=$(val13[11])
+replytype10=numexp
+replyname10=MM3 $(val7[11])
+replygood10=$(val13[12])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On a relevé les températures moyennes à Nice pendant l'année :	</p>	$val16	 
+!for m_k=1 to 12 
+$()<td>$(val9[$m_k])</td> 
+!next
+$()	</tr></table>	<p>	Compléter le tableau des moyennes mobiles d'ordre 3 :	</p>	$val17	<td>&nbsp;</td>	 
+!for m_k=1 to 10 
+$()	  <td> 
+!read oef/embed.phtml reply\k,4 
+$() </td>	 
+!next
+$()	<td>&nbsp;</td>	</tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,16,17
+embedcnt=1

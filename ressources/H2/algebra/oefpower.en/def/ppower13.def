@@ -1,0 +1,200 @@
+!set title=Power 2; multiplication and subtraction or addition
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+oefobservation=nombres inférieurs à 9, puissance 2,avec addition ou soustraction
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=15
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Compute without calculator
+
+!ifval $val2 iswordof 1 2 3 4 5
+val8= $val2
+!else
+val8=3
+!endif
+tmp0=!makelist x for x=2 to 5
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val10=$(tmp0)
+val10=$(val10[1..$val8])
+tmp0=!shuffle $val9
+
+val11=$(tmp0)
+tmp0=!shuffle $val9
+
+val12=$(tmp0)
+tmp0=!makelist 2 for x=1 to $val8
+
+val13=$(tmp0)
+tmp0=!makelist + for x=1 to $val8
+
+tmp1=!makelist - for x=1 to $val8
+
+val14=$(tmp0),$(tmp1)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+val14=$(val14[1..$val8])
+tmp0=!replace internal + by +1 in $val14
+
+val15=$(tmp0)
+tmp0=!replace internal - by -1 in $val15
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in A=[$val10]; B=[$val13]; C=[$val11];D=[$val12];H=[$val15];
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in vector($val8,i, C[i] + (H[i])* D[i]*A[i]^B[i])
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in vector($val8,i,(C[i] + (H[i])* D[i])*A[i]^B[i])
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+t_=!replace internal \( by ( in vector($val8,i, C[i] + (H[i])*(D[i]*A[i])^B[i])
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+tmp0=!makelist r x for x=1 to 3*$val8
+
+val19=$(tmp0)
+tmp0=!makelist x for x=1 to 3*$val8
+
+val20=$(tmp0)
+oefsteps=$val19 
+nextstep=!nosubst $val19 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=
+replygood1=$(val16[1])
+replytype2=numexp
+replyname2=
+replygood2=$(val17[1])
+replytype3=numexp
+replyname3=
+replygood3=$(val18[1])
+replytype4=numexp
+replyname4=
+replygood4=$(val16[2])
+replytype5=numexp
+replyname5=
+replygood5=$(val17[2])
+replytype6=numexp
+replyname6=
+replygood6=$(val18[2])
+replytype7=numexp
+replyname7=
+replygood7=$(val16[3])
+replytype8=numexp
+replyname8=
+replygood8=$(val17[3])
+replytype9=numexp
+replyname9=
+replygood9=$(val18[3])
+replytype10=numexp
+replyname10=
+replygood10=$(val16[4])
+replytype11=numexp
+replyname11=
+replygood11=$(val17[4])
+replytype12=numexp
+replyname12=
+replygood12=$(val18[4])
+replytype13=numexp
+replyname13=
+replygood13=$(val16[5])
+replytype14=numexp
+replyname14=
+replygood14=$(val17[5])
+replytype15=numexp
+replyname15=
+replygood15=$(val18[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<ul>	 
+!for m_j=1 to $val8 
+$()	<li>	 <ul class="inline"><li class="spacer">	<label for="reply$(val20[3*($m_j-1)+1])">
+!insmath $(val11[$m_j]) $(val14[$m_j]) $(val12[$m_j])*$(val10[$m_j])^$(val13[$m_j]) 
+$()</label> =  
+!read oef/embed.phtml $(val19[3*($m_j-1)+1]),5 
+$()	</li><li>	<label for="reply$(val20[3*($m_j-1)+2])">
+!insmath ($(val11[$m_j]) $(val14[$m_j]) $(val12[$m_j]))*$(val10[$m_j])^$(val13[$m_j]) 
+$()</label> =  
+!read oef/embed.phtml $(val19[3*($m_j-1)+2]),5 
+$()	</li><li>	<label for="reply$(val20[3*($m_j-1)+3])">
+!insmath $(val11[$m_j]) $(val14[$m_j]) ($(val12[$m_j])*$(val10[$m_j]))^$(val13[$m_j])
+$()</label> =  
+!read oef/embed.phtml $(val19[3*($m_j-1)+3]),5 
+$()	</li></ul>	</li>	 
+!next
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,11,12,13,14,19,20
+embedcnt=3

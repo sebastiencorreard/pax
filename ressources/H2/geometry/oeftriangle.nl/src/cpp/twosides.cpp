@@ -1,0 +1,28 @@
+target=twosides
+#include "lang_titles.inc"
+\language{fr}
+\range{-5..5}
+\author{Gang XIAO}
+\email{xiao@unice.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+\observation{Exercice demandant de la réflexion ayant une indication après une réponse fausse.}
+#include "lang.inc"
+\integer{ab=random(10..40)}
+\integer{bc=random(10..40)}
+\integer{max=max(\ab,\bc)}
+\integer{min=min(\ab,\bc)}
+\text{long=\ab>\bc?A B:B C}
+\text{short=\ab>\bc?B C:A B}
+\integer{least=\max-\min+1}
+\integer{most=\ab+\bc-1}
+\integer{n=\most - \least + 1}
+\statement{\name_instruction
+<div class="wimscenter">
+  \(A B = \ab\), \(B C = \bc\) ?
+</div>}
+
+\answer{\name_answer}{\n}{type=default}
+
+\solution{\name_sol[1], \(A C\) \name_sol[2] \(\long-\short+1=\least\) \name_sol[3] \(A B+B C-1=\most\).}

@@ -1,0 +1,119 @@
+!set title=Niveau sonore 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[1e-12]
+tmp0=!randint 1, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -12, 1
+
+val8=$[rint($(tmp0))]
+val9=$[$val7*10^$val8]
+val10=$[10*log10($val9/$val6)]
+!if $val10<=30 
+val11=calme
+!endif
+!if $val10>30 and $val10<=61 
+val11=bruits courants
+!endif
+!if $val10>61 and $val10<=67 
+val11=bruyant
+!endif
+!if $val10>67 and $val10<=90 
+val11=pénible
+!endif
+!if $val10>90 and $val10<=115 
+val11=dangereux
+!endif
+!if $val10>115 
+val11=seuil de douleur
+!endif
+val12=calme,bruits courants,bruyant,pénible,dangereux,seuil de douleur
+tmp0=!positionof item $val11 in $val12
+
+val13=$[rint($(tmp0))]
+replytype1=numeric
+replyname1=reponse 1
+replygood1=$[$val10 ]
+replytype2=radio
+replyoption2=shuffle 
+replyname2=reponse 2
+replygood2=$val13;calme,bruits courants,bruyant,pénible,dangereux,seuil de douleur
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<h2>Le niveau d'intensité sonore</h2>	L'intensité sonore perçue par une personne s'élève à $val7&times;10<sup>$val8</sup> W.m<sup>-2</sup>.	 Sachant que le seuil d'audibilité est de 1,0&times;10<sup>-12</sup> W.m<sup>-2</sup>,	calculer le niveau d'intensité sonore L correspondant.<br>	L= 
+!read oef/embed.phtml reply1, 10 
+$()dB<br>	A l'aide du document fourni ci-dessous, comment qualifieriez-vous le son perçu?	<br> 
+!read oef/embed.phtml reply2, 10 
+$()<br>	 
+!read oef/img.phtml $val1/fleche-echelle.jpg height="40%" width="40%" alt="Décrivez ici votre image à un mal voyant" 
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8
+embedcnt=2

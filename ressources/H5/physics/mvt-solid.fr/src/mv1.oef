@@ -1,0 +1,189 @@
+\title{Mouvement d'un solide : isolé ou non ?}
+
+\real{vg=random(3..5)/10}
+\real{pi=3.1415927}
+\real{alpha=random(0..2)*\pi}
+\real{phi=\alpha+random(-0.2..0.2)*\pi}
+\real{omega=random(10..15)*\vg}
+\real{dt=randitem(0.04,0.06)}
+\real{r=0.2}
+
+\integer{accelere=randint(1..2)}
+\real{alphacc=\alpha+random(0.5..1.5)*\pi}
+\if{\accelere=2}{
+  \real{acc=random(3..5)}
+}{
+  \real{acc=0}
+}
+
+\integer{size=450}   // maximum size of the drawing.
+\integer{margin=20}  // margins in px around the drawing.
+
+\integer{npoints=7}
+
+\text{pg=}
+\text{pa=}
+\text{pb=}
+\real{xmin=0}
+\real{ymin=0}
+\real{xmax=0}
+\real{ymax=0}
+\for{i1=1 to \npoints}{
+  \real{x=sin(\alpha)*\vg*\i1*\dt+0.5*\acc*sin(\alphacc)*(\i1*\dt)^2}
+  \real{y=cos(\alpha)*\vg*\i1*\dt+0.5*\acc*cos(\alphacc)*(\i1*\dt)^2}
+  \text{pg=\pg \x,\y,}
+  \real{xmin=min(\xmin,\x)}
+  \real{ymin=min(\ymin,\y)}
+  \real{xmax=max(\xmax,\x)}
+  \real{ymax=max(\ymax,\y)}
+  \real{x1=\x+\r*sin(\omega*\i1*\dt+\phi)}
+  \real{y1=\y+\r*cos(\omega*\i1*\dt+\phi)}
+  \text{pa=\pa \x1,\y1,}
+  \real{xmin=min(\xmin,\x1)}
+  \real{ymin=min(\ymin,\y1)}
+  \real{xmax=max(\xmax,\x1)}
+  \real{ymax=max(\ymax,\y1)}
+  \real{x1=\x-\r*sin(\omega*\i1*\dt+\phi)}
+  \real{y1=\y-\r*cos(\omega*\i1*\dt+\phi)}
+  \text{pb=\pb \x1,\y1,}
+  \real{xmin=min(\xmin,\x1)}
+  \real{ymin=min(\ymin,\y1)}
+  \real{xmax=max(\xmax,\x1)}
+  \real{ymax=max(\ymax,\y1)}
+
+}
+
+\real{xspan=\xmax-\xmin}
+\real{yspan=\ymax-\ymin}
+\real{span=max(\xspan,\yspan)}
+\real{x1=0.5*(\xmin+\xmax-\span)*\size/(\size-2*\margin)}
+\real{x2=0.5*(\xmin+\xmax+\span)*\size/(\size-2*\margin)}
+\real{y1=0.5*(\ymin+\ymax-\span)*\size/(\size-2*\margin)}
+\real{y2=0.5*(\ymin+\ymax+\span)*\size/(\size-2*\margin)}
+
+\text{range=xrange \x1,\x2
+yrange \y1,\y2
+}
+
+\text{segments=}
+\text{labels=}
+\text{positionnumero=}
+\integer{n=0}
+\for{i2=1 to 1+2*\npoints step 2}{
+  \text{a=wims(items \i2 to \i2+1 of \pa)}
+  \text{b=wims(items \i2 to \i2+1 of \pb)}
+  \text{segments=\segments
+  segment \a, \b, blue
+  }
+  \text{labels=\labels
+  text blue, \a, medium, A\n
+  text blue, \b, medium, B\n
+  }
+  \text{positionnumero=\positionnumero \n;}
+  \integer{n=\n+1}
+}
+
+\text{traj=points blue, \pa
+points blue, \pb
+}
+
+\text{drawings=}
+\text{replys=}
+\text{good=}
+\for{i3=1 to \npoints}{
+  \text{pg1=wims(items 1 to 2*\i3-2 of \pg)}        // list of i3-1 previous positions of G
+  \text{pg0=wims(items 2*\i3-1 to 2*\i3 of \pg)} // position of the i3th G
+  \real{x=item(1,\pg0)}
+  \real{y=item(2,\pg0)}
+  \integer{pixx=(\size-1)*(\x-\x1)/(\x2-\x1)}
+  \integer{pixy=(\size-1)*(\y2-\y)/(\y2-\y1)}
+  \text{good=\good circle,\pixx,\pixy,25;}
+  \text{drawings=\drawings
+   draw(\size,\size
+    \range
+    linewidth 1
+    \segments
+    \labels
+    linewidth 5
+    \traj
+    points red, \pg1
+  )
+  ;
+  }
+  \text{replys=\replys r\i3;
+  }
+}
+
+\text{preambule=
+<p><img src="\imagedir/Majoret5.gif" 
+alt="chronophotographie d'un bâton de majorette, (c) INRP"
+title="chronophotographie d'un bâton de majorette, (c) INRP"
+align="left" style="padding:10px;">
+Cet exercice est basé sur l'enregistrement de deux points 
+<b>A</b> et <b>B</b> d'un solide qui est lancé puis
+laissé à lui-même, dans diverses conditions. Il peut être isolé par rapport au référentiel 
+d'étude ou il peut subir une force. Voyez ci-contre un enregistrement par
+<a href="http://fr.wikipedia.org/wiki/Chronophotographie">chronophotographie</a>
+du mouvement d'un bâton de majorette, qui est soumis à son propre poids.
+<p>
+En fait le solide dont on enregistre deux points peut aussi bien être posé sur une tab le à 
+coussin d'air qui compense son poids.
+<p>
+Vous verrez successivement \npoints images cliquables, où vous devrez pointer les positions
+successives du centre de gravité (qui se trouve au milieu du segment <b>AB</b>).
+Restez attentif au numéro qui est indiqué.  Les positions correctes des centres de gravité 
+qu'on aurait du pointer aux étapes précédentes sont affichées en rouge à mesure qu'on avance.
+Évidemment, votre score dépend de la qualité de vos pointages.
+<p>
+<a href="#question">Cliquez ici</a> pour aller directement au travail.
+}
+
+\text{conseil=<div style="color:grey;border:1px solid grey;">
+Conseil&nbsp;: tracez au crayon deux points A et B au bord d'une 
+feuille de papier, qui coïncideront avec A<sub>1</sub> et 
+B<sub>1</sub> sur l'écran. Puis traces sur le ford de cette 
+même feuille le centre de gravité G de la barre. 
+Ensuite, la feuille de papier aide à pointer facilement 
+les positions successives du centre de gravité à l'aide 
+de la souris.
+</div>
+}
+
+\steps{\replys;r8, r9, r10}
+
+\integer{debug=0}
+
+\statement{
+\if{\debug=1}{<b>Debug</b><br>
+accelere=\accelere<br>
+pg=\pg<br>acc=\acc<br>alphacc=\alphacc<br>
+}
+\if{\step=1}{
+<div style="background:lightyellow;border:solid 2px  black;">\preambule</div>
+}
+
+\if{\step <=\npoints}{
+<h3>Cliquez sur la position du centre de gravité pour la position numéro \positionnumero[\step;]</h3>
+<a name="question" /> 
+<table><tr><td>\embed{r\step}</td><td width="35%">\conseil</td></tr></table>
+}{
+<h3>D'après les enregistrements précédents, que pouvez-vous affirmer ?</h3>
+\embed{r8}
+\embed{r9}
+\embed{r10}
+}
+
+
+}
+
+\reply{}{\drawings[1;];\good[1;]}{type=coord}{option=nonstop}
+\reply{}{\drawings[2;];\good[2;]}{type=coord}{option=nonstop}
+\reply{}{\drawings[3;];\good[3;]}{type=coord}{option=nonstop}
+\reply{}{\drawings[4;];\good[4;]}{type=coord}{option=nonstop}
+\reply{}{\drawings[5;];\good[5;]}{type=coord}{option=nonstop}
+\reply{}{\drawings[6;];\good[6;]}{type=coord}{option=nonstop}
+\reply{}{\drawings[7;];\good[7;]}{type=coord}{option=nonstop}
+
+\reply{}{\accelere;le mouvement du centre de gravité est rectiligne et uniforme, le mouvement du centre de gravité n'est pas rectiligne et uniforme, je ne sais pas}{type=menu}{option=shuffle}
+\reply{}{\accelere;la somme des forces reçues par le solide est nulle, la somme des forces reçues par le solide est non nulle, je ne sais pas}{type=menu}{option=shuffle}
+\reply{}{\accelere;le solide est isole, le solide n'est pas isolé, je ne sais pas}{type=menu}{option=shuffle}

@@ -1,0 +1,69 @@
+\title{Schéma de Bernoulli 1}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\computeanswer{yes}
+\integer{n=randitem(3,3,3,4,4)}##Nombre d'épreuves##
+\rational{p=randitem(0.05*randint(5..9),0.05*randint(11..15))}##Probabilité du succès##
+\rational{q=1-\p}
+
+##Choix du succès##
+\integer{q1=randint(1,2)}
+\text{succes=pile,face}
+\integer{qc=3-\q1}
+
+##Paramètres questions##
+\integer{q2=randint(1,2)}
+\integer{m=randint(1..(\n-1))}
+\text{questions=(\m==1)? \n \succes[\q1]s, toujours le même résultat,1 \succes[\q2],\m seul côté \succes[\q1]:\n \succes[\q1]s, toujours le même résultat,une fois \succes[\q2],\m \succes[\q1]s}
+
+##Réponses##
+\function{rep1=\p^\n}
+\function{rep2=\rep1+\q^\n}
+\function{rep3=(\q2==\q1)? 1-\q^\n:1-\rep1}
+\integer{coeff=binomial(\n,\m)}
+\integer{puis=\n-\m}
+\function{rep4=\coeff*(\p^\m)*(\q^\puis)}
+
+##Pour le corrigé##
+\integer{prec=3}##arrondi dans corrigé##
+\real{rep11=maxima(round(10^\prec*\rep1)/(10^\prec))}
+\real{rep21=maxima(round(10^\prec*\rep2)/(10^\prec))}
+\real{rep31=maxima(round(10^\prec*\rep3)/(10^\prec))}
+\real{rep41=maxima(round(10^\prec*\rep4)/(10^\prec))}
+\text{S=\succes[\q1]}
+\text{E=\succes[\qc]}
+\matrix{cas3=(\S-\E-\E), (\E-\S-\E), (\E-\E-\S)
+(\S-\S-\E), (\S-\E-\S), (\E-\S-\S)}
+\matrix{cas4=(\S-\E-\E-\E), (\E-\S-\E-\E), (\E-\E-\S-\E), (\E-\E-\E-\S)
+(\S-\S-\E-\E), (\S-\E-\S-\E), (\S-\E-\E-\S), (\E-\S-\S-\E), (\E-\S-\E-\S), (\E-\E-\S-\S)
+(\S-\S-\S-\E), (\S-\S-\E-\S), (\S-\E-\S-\S), (\E-\S-\S-\S)}
+
+\integer{n4=\n-\m}
+\integer{cb=slib(stat/binomialpdf [\m],\n,\p)/(\p^\m*\q^(\n-\m))}
+
+\statement{On dispose d'une pièce truquée qui, à chaque fois qu'on la lance, donne "\succes[\q1]" avec une probabilité égale à \(\p\). On lance cette pièce \n fois de suite.
+<div class="wims_question">
+<ol><li>
+Calculer la probabilité d'avoir \questions[1] : \embed{reply1,6}</li><li>
+Calculer la probabilité d'avoir \questions[2]  : \embed{reply2,6}</li><li>
+Calculer la probabilité d'avoir au moins \questions[3] : \embed{reply3,6}</li><li>
+Calculer la probabilité d'avoir exactement \questions[4] : \embed{reply4,6}</li></ol>
+</div>
+<div class="wims_instruction">On donnera le calcul (par exemple 4*0.8^6) ou la valeur exacte des probabilités. <u>Pas de valeur approchée</u>. </div>
+}
+\hint{Il peut être judicieux de dessiner un arbre pondéré représentant la situation.}
+
+\answer{}{\rep1}{type=formal}
+\answer{}{\rep2}{type=formal}
+\answer{}{\rep3}{type=formal}
+\answer{}{\rep4}{type=formal}
+
+\solution{<p>La probabilité d'avoir "\succes[\q1]" lors d'un lancer est \(\p\) donc la probabilité d'avoir "\succes[\qc]" est \(1-\p=\q\)
+<p>1&#41; La probabilité d'avoir \questions[1] est \(\p^\n\)\if{\rep11=\rep1}{\(=\rep11\)}{\(\simeq \rep11\)}.</p>
+<p>2&#41; L'événement "avoir \questions[2]"  est formé des issues "que des \succes[\q1]s" de probabilité
+\(\p^{\n}) et "que des \succes[\qc]s" de probabilité \(\q^{\n}) donc sa probabilité est \(\p^{\n}+\q^{\n})\if{\rep21=\rep2}{\(=\rep2)}{\(\simeq \rep21)}.</p>
+<p>3&#41; L'événement "au moins \questions[3]" est l'événement contraire de l'événement "avoir \n \succes[\qc]"
+donc sa probabilité est \if\(1-(\p)^\n\)\if{\rep31=\rep3}{\(=\rep3)}{\(\simeq \rep31\)}.</p>
+<p>4&#41; L'événement "avoir exactement \questions[4]"  est formé des issues \if{\n==3}{\cas3[\m;]}\if{\n==4}{\cas4[\m;]},
+ chacune de probabilité égale à \(\p^\m \times \q^\n4\). La probabilité d'"avoir exactement \questions[4]" est donc \(\cb \times \p^\m \times \q^\n4\)\if{\rep41=\rep4}{\(=\rep4)}{\(\simeq \rep41)}.</p>
+}

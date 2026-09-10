@@ -1,0 +1,29 @@
+target=phase
+#include "lang_titles.inc"
+
+#include "author.inc"
+#include "lang.inc"
+
+\real{a=randint(1..20)}
+\real{b=randint(2..20)*random(-1,1)}
+\real{mod= sqrt((\a)^2+(\b)^2)}
+\real{ar = \b > 0? -pi/2:pi/2}
+\real{at = \a = 0? \ar: arctan(\b/(\a))}
+\real{Arg= \a < 0? \at + pi:\at}
+\statement{
+\name_instruction[1] \(\a * cos(x) + \b * sin(x))
+\name_instruction[2] \(A * cos(x - u))
+\name_instruction[3] \(A > 0).
+}
+
+\hint{\name_hint \((a - i*b) exp( i x)) ?}
+\answer{\(A)}{\mod}{type=numeric}
+\answer{\(u)}{\arg}{type=numeric}
+
+\condition{\name_cond
+\(u) = \arg modulo 2*pi }{abs((\arg-\Arg)/(2*pi)-round((\arg-\Arg)/(2*pi)))
+<0.0001}
+\solution{\(A) \name_feed
+<div class="wimscenter">
+\(A = \mod) ,  \(u) \equiv \Arg  mod  2 \pi.
+</div> }

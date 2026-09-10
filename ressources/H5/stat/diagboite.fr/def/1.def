@@ -1,0 +1,155 @@
+!set title=Dessiner un diagramme en boîte
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10
+
+ansorder=r
+varcnt=14
+prevarcnt=12
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Premier Décile,Premier Quartile,Médiane,Troisième Quartile,Neuvième Décile
+val7=On considère une série statistique dont on connait les indicateurs suivants.
+val8=A l'aide de la souris, déplacer les points sur le graphique pour dessiner le	  diagramme correspondant à la série.
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint $val9+5, 20
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val9+2, $val10-3
+
+val11=$[rint($(tmp0))]
+tmp0=!randint $val9+1, $val11-1
+
+val12=$[rint($(tmp0))]
+tmp0=!randint $val11+1, $val10-1
+
+val13=$[rint($(tmp0))]
+t_=!replace internal \( by ( in [$val9+2,$val9+3,$val9+4]
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+t_=!replace internal \( by ( in [max($val9-5,0), $val10+3]
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+!readproc slib/stat/boxplot [$val15],[$val14],,anstype 
+tmp0=$slib_out
+val16=$(tmp0)
+tmp0=!getopt Y in $val16
+
+val17=$(tmp0)
+replytype1=jsxgraph
+
+replyoption1=absolute precision=2 
+replyname1=
+replygood1=$val12;$val11;$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7	<table class="wimsborder wimscenter">	<tr><th>$(val6[3])</th><th>$(val6[2])</th><th>$(val6[4])</th></tr>	<tr><td>$val11</td><td>$val12</td><td>$val13</td></tr>	</table>	$val8	<div class="wimscenter">	 
+!read oef/embed.phtml reply1,600x150	$val16	 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal ; by , in $m_reply1
+
+val18=$(tmp0)
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><ul>	<li>
+!if (abs($(val18[1])-$val12)<0.2) 
+$()Le premier quartile est bien placé en 
+!insmath Q_1
+$() = <span class="oef_indgood">$val12</span> 
+!else
+$() Le premier quartile est mal placé ; 
+!insmath Q_1
+$() = <span class="oef_indgood">$val12</span> et non <span class="oef_indbad">$(val18[1])</span> 
+!endif
+$()</li>	<li>
+!if (abs($(val18[2])-$val11)<0.2) 
+$()La médiane est bien placée en 
+!insmath M_e
+$() = <span class="oef_indgood">$val11</span> 
+!else
+$() La médiane est mal placée ; 
+!insmath M_e
+$() = <span class="oef_indgood">$val11</span> et non <span class="oef_indbad">$(val18[2])</span> 
+!endif
+$()</li>	<li>
+!if (abs($(val18[3])-$val13)<0.2) 
+$()Le troisième quartile est bien placé en 
+!insmath Q_3
+$() = <span class="oef_indgood">$val13</span> 
+!else
+$() Le troisième quartile est mal placé ; 
+!insmath Q_3
+$() = <span class="oef_indgood">$val13</span> et non <span class="oef_indbad">$(val18[3])</span> 
+!endif
+$()</li>	</ul>	<script type="text/javascript">	brd.suspendUpdate();	brd.create('point',[$val12,$val17], {face:'o', name:'Q<sub>1</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});	brd.create('point',[$val11,$val17], {face:'o', name:'M<sub>e</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});	brd.create('point',[$val13,$val17], {face:'o', name:'Q<sub>3</sub>', size:'4',fixed:true,strokeColor:'green',fillColor:'none'});	</script>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,12,13,16,17
+embedcnt=1

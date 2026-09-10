@@ -1,0 +1,836 @@
+!set title=Intersection Plan / Objet de l'espace II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+oefcss=<style> .special1 {font-size:x-large;background-color:lightblue;} .special2 {font-size:x-large;background-color:MistyRose;} .nonspecial {} </style> 
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=255
+prevarcnt=253
+postvarcnt=1
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2!=1 
+val6= wims_question
+!else
+val6=wimscenter special1
+!endif
+
+!ifval $val2!=1 
+val7= wims_question
+!else
+val7=wimscenter special2
+!endif
+tmp=!trim sphère, cylindre de révolution, cône de révolution
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim ensemble vide, point, cercle, 1 droite, 2 droites
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Donner les coordonnées de ce point.	Donner l'équation de ce cercle dans le plan (P).	Donner l'équation de cette droite dans le plan (P).	Donner l'équation de chacune des droites dans le plan (P).
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=nature de l'intersection,	  abscisse, ordonnée, côte,cercle,droite,	  première droite,deuxième droite 
+tmp=!trim (Ox),(Oy),(Oz)
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=\frac{1}{3},1, 3
+val14=sqrt(3)/3,1,sqrt(3)
+val15=30, 45, 60
+val16=
+val17=
+val18=
+tmp0=!randint 1, 3
+
+val19=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val20=$[rint($(tmp0))]
+val21=x=$val20, y=$val20, z=$val20, x=0, y=0, z=0
+val22=$(val21[$val19 +3])
+val23=$[rint(20)]
+tmp0=!randint 1, $val23
+
+val24=$[rint($(tmp0))]
+val25=$(val21[$val19])
+tmp0=!randint 2, 5
+
+val26=$[rint($(tmp0))]
+val27=$[rint(-$val26)]
+tmp0=!randint -5, 5
+
+val28=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val29=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val30=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val31=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val32=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val33=$[rint($(tmp0))]
+t_=!rawmath ($val28)/($val31)
+val34=!exec pari print($t_)
+t_=!rawmath ($val28)
+val34=!exec pari print($t_)
+t_=!rawmath ($val29)/($val32)
+val35=!exec pari print($t_)
+t_=!rawmath ($val29)
+val35=!exec pari print($t_)
+t_=!replace internal \( by ( in ($val30)/($val33);
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val36=!exec pari print($t_)
+t_=!rawmath ($val30)
+val36=!exec pari print($t_)
+val37=1,2,3,1,2,3,1,2,3
+tmp0=!randint 1, 3
+
+val38=$[rint($(tmp0))]
+!if $val24<6 
+val39=$[rint(1)]
+t_=!rawmath $val34
+val40=!exec pari print($t_)
+t_=!rawmath $val35
+val41=!exec pari print($t_)
+t_=!rawmath $val36
+val42=!exec pari print($t_)
+t_=!rawmath $val26
+val43=!exec pari print($t_)
+tmp=!translate ";': to $     $ in (x-$val34)^2+(y-$val35)^2+(z-$val36)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val44=$(tmp0)
+val45=sphère de centre ($val34;$val35;$val36) et de rayon $val26
+!if $val19==1 
+t_=!rawmath $val34-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val34 
+val47=!exec pari print($t_)
+!if $val46> $val26 or $val46 < $val27 
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!if $val26==$val47 or $val26==$val46 
+val48=Point ($val20;$val35;$val36)
+t_=!rawmath $val20
+val50=!exec pari print($t_)
+t_=!rawmath $val35
+val51=!exec pari print($t_)
+t_=!rawmath $val36
+val52=!exec pari print($t_)
+val49=$[rint(2)]
+!endif
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in ($val20-$val34)^2+(y-$val35)^2+(z-$val36)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!endif
+!endif
+!if $val19==2 
+t_=!rawmath $val35-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val35 
+val47=!exec pari print($t_)
+!if $val46> $val26 or $val46 < $val27 
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!if $val26==$val47 or $val26==$val46 
+val48=Point($val34;$val20;$val36)
+t_=!rawmath $val20
+val51=!exec pari print($t_)
+t_=!rawmath $val34
+val50=!exec pari print($t_)
+t_=!rawmath $val36
+val52=!exec pari print($t_)
+val49=$[rint(2)]
+!endif
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in (x-$val34)^2+($val20-$val35)^2+(z-$val36)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!endif
+!endif
+!if $val19==3 
+t_=!rawmath $val36-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val36 
+val47=!exec pari print($t_)
+!if $val46> $val26 or $val46 < $val27 
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!if $val26==$val47 or $val26==$val46 
+val48=Point($val34;$val35;$val20)
+t_=!rawmath $val20
+val52=!exec pari print($t_)
+t_=!rawmath $val34
+val50=!exec pari print($t_)
+t_=!rawmath $val35
+val51=!exec pari print($t_)
+val49=$[rint(2)]
+!endif
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in (x-$val34)^2+(y-$val35)^2+($val20-$val36)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!endif
+!endif
+!endif
+!if $val24>5 and $val24<12 
+val39=$[rint(2)]
+!if $val24==6 or $val24==7 
+val38=$[rint(1)]
+tmp=!translate ";': to $     $ in (y-$val35)^2+(z-$val36)^2-($val26)^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val44=$(tmp0)
+tmp0=!texmath y=$val35
+
+val54=$(tmp0)
+tmp0=!texmath z=$val36
+
+val55=$(tmp0)
+!endif
+!if $val24==8 or $val24==9 
+val38=$[rint(2)]
+tmp=!translate ";': to $     $ in (x-$val34)^2+(z-$val36)^2-($val26)^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val44=$(tmp0)
+tmp0=!texmath x=$val34
+
+val54=$(tmp0)
+tmp0=!texmath z=$val36
+
+val55=$(tmp0)
+!endif
+!if $val24==10 or $val24==11 
+val38=$[rint(3)]
+tmp=!translate ";': to $     $ in (x-$val34)^2+(y-$val35)^2-($val26)^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val44=$(tmp0)
+tmp0=!texmath x=$val34
+
+val54=$(tmp0)
+tmp0=!texmath y=$val35
+
+val55=$(tmp0)
+!endif
+val56=$(val12[$val38])
+t_=!rawmath $val26
+val57=!exec pari print($t_)
+val45=cylindre d'axe parallèle à $val56 d'équations $val54 et $val55 et de rayon $val26
+!if $val38==1 
+!if $val19==1 
+tmp=!translate ";': to $     $ in (y-$val35)^2+(z-$val36)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!endif
+!if $val19==2 
+t_=!rawmath $val35-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val35 
+val47=!exec pari print($t_)
+!if $val46 < $val26 and $val46 > $val27 
+t_=!rawmath ($val26)^2-($val20-$val35)^2
+val58=!exec pari print($t_)
+tmp=!translate ";': to $     $ in z-$val36-sqrt($val58)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+tmp=!translate ";': to $     $ in z-$val36+sqrt($val58)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val60=$(tmp0)
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!else
+!if $val26==$val47 or $val26==$val46 
+tmp=!translate ";': to $     $ in z-$val36=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+val48=droite \($val59) 
+val49=$[rint(4)]
+!else
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!endif
+!endif
+!if $val19==3 
+t_=!rawmath $val36-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val36 
+val47=!exec pari print($t_)
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in y-$val35-sqrt(($val26)^2-($val20-$val36)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+tmp=!translate ";': to $     $ in y-$val35+sqrt(($val26)^2-($val20-$val36)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val60=$(tmp0)
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!else
+!if $val26==$val47 or $val26==$val46 
+tmp=!translate ";': to $     $ in y-$val35=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+val48=droite \($val59) 
+val49=$[rint(4)]
+!else
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!endif
+!endif
+!endif
+!if $val38==2 
+!if $val19==2 
+tmp=!translate ";': to $     $ in (x-$val34)^2+(z-$val36)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!endif
+!if $val19==1 
+t_=!rawmath $val34-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val34 
+val47=!exec pari print($t_)
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in z-$val36-sqrt(($val26)^2-($val20-$val34)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+tmp=!translate ";': to $     $ in z-$val36+sqrt(($val26)^2-($val20-$val34)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val60=$(tmp0)
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!else
+!if $val26==$val47 or $val26==$val46 
+tmp=!translate ";': to $     $ in z-$val36=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+val48=droite \($val59) 
+val49=$[rint(4)]
+!else
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!endif
+!endif
+!if $val19==3 
+t_=!rawmath $val36-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val36 
+val47=!exec pari print($t_)
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in x-$val34-sqrt(($val26)^2-($val20-$val36)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+tmp=!translate ";': to $     $ in x-$val34+sqrt(($val26)^2-($val20-$val36)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val60=$(tmp0)
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!else
+!if $val26==$val47 or $val26==$val46 
+tmp=!translate ";': to $     $ in x-$val34=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+val48=droite \($val59) 
+val49=$[rint(4)]
+!else
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!endif
+!endif
+!endif
+!if $val38==3 
+!if $val19==3 
+tmp=!translate ";': to $     $ in (x-$val34)^2+(y-$val35)^2-$val26^2=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!endif
+!if $val19==2 
+t_=!rawmath $val35-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val35 
+val47=!exec pari print($t_)
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in x-$val34-sqrt(($val26)^2-($val20-$val35)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+tmp=!translate ";': to $     $ in x-$val34+sqrt(($val26)^2-($val20-$val35)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val60=$(tmp0)
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!else
+!if $val26==$val47 or $val26==$val46 
+tmp=!translate ";': to $     $ in x-$val34=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+val48=droite \($val59) 
+val49=$[rint(4)]
+!else
+val48=\(\emptyset)
+val49=$[rint(1)]
+!endif
+!endif
+!endif
+!if $val19==1 
+t_=!rawmath $val34-$val20
+val46=!exec pari print($t_)
+t_=!rawmath $val20-$val34 
+val47=!exec pari print($t_)
+!if $val46 < $val26 and $val46 > $val27 
+tmp=!translate ";': to $     $ in y-$val35-sqrt(($val26)^2-($val20-$val34)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+tmp=!translate ";': to $     $ in y-$val35+sqrt(($val26)^2-($val20-$val34)^2)=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val60=$(tmp0)
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!else
+!if $val26==$val47 or $val26==$val46 
+tmp=!translate ";': to $     $ in y-$val35=0
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val59=$(tmp0)
+val48=droite \($val59\) 
+val49=$[rint(4)]
+!else
+val48=\(\emptyset\)
+val49=$[rint(1)]
+!endif
+!endif
+!endif
+!endif
+!endif
+!if $val24>11 
+val39=$[rint(3)]
+val61=$[rint($(val37[$val24 - 11]))]
+val62=$(val13[$val61])
+val63=$(val14[$val61])
+!if $val62=1 
+tmp=!translate ";': to $     $ in ($val20)^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val64=$(tmp0)
+!else
+!if $val62=3 
+tmp=!translate ";': to $     $ in ($val20)^2*3
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val64=$(tmp0)
+!else
+tmp=!translate ";': to $     $ in ($val20)^2/3
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val64=$(tmp0)
+!endif
+!endif
+val65=$(val15[$val61])
+val66=$val65
+!if $val24==12 or $val24==13 or $val24==14 
+val38=$[rint(1)]
+
+!ifval $val62=1
+val44=y^2+z^2=x^2
+!else
+val44=y^2+z^2=$val62 x^2
+!endif
+!endif
+!if $val24==15 or $val24==16 or $val24==17 
+val38=$[rint(2)]
+
+!ifval $val62=1
+val44=x^2+z^2=y^2
+!else
+val44=x^2+z^2=$val62 y^2
+!endif
+!endif
+!if $val24==18 or $val24==19 or $val24==20 
+val38=$[rint(3)]
+
+!ifval $val62=1
+val44=x^2+y^2=z^2
+!else
+val44=x^2+y^2=$val62 z^2
+!endif
+!endif
+val67=$(val12[$val38])
+val45=cône d'axe parallèle à $val67 et d'angle $val65 degré
+!if $val38==1 
+!if $val19==1 
+val53=y^2+z^2=$val64
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!if $val20==0 
+val48=Point(0;0;0)
+t_=!rawmath 0
+val52=!exec pari print($t_)
+t_=!rawmath 0
+val50=!exec pari print($t_)
+t_=!rawmath 0
+val51=!exec pari print($t_)
+val49=$[rint(2)]
+!endif
+!endif
+!if $val19==2 
+val25=$val22
+
+!ifval $val62=1
+val59=z-x=0
+!else
+val59=z-$val63 *x=0
+!endif
+
+!ifval $val62=1
+val60=z+x=0
+!else
+val60=z+$val63 *x=0
+!endif
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!endif
+!if $val19==3 
+val25=$val22
+
+!ifval $val62=1
+val59=y-x=0
+!else
+val59=y-$val63 *x=0
+!endif
+
+!ifval $val62=1
+val60=y+x=0
+!else
+val60=y+$val63 *x=0
+!endif
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!endif
+!endif
+!if $val38==2 
+!if $val19==2 
+val53=x^2+z^2=$val64
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!if $val20==0 
+val48=Point(0;0;0)
+t_=!rawmath 0
+val52=!exec pari print($t_)
+t_=!rawmath 0
+val50=!exec pari print($t_)
+t_=!rawmath 0
+val51=!exec pari print($t_)
+val49=$[rint(2)]
+!endif
+!endif
+!if $val19==1 
+val25=$val22
+
+!ifval $val62=1
+val59=z-y=0
+!else
+val59=z-$val63 *y=0
+!endif
+
+!ifval $val62=1
+val60=z+y=0
+!else
+val60=z+$val63 *y=0
+!endif
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!endif
+!if $val19==3 
+val25=$val22
+
+!ifval $val62=1
+val59=x-y=0
+!else
+val59=x-$val63 *y=0
+!endif
+
+!ifval $val62=1
+val60=x+y=0
+!else
+val60=x+$val63 *y=0
+!endif
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!endif
+!endif
+!if $val38==3 
+!if $val19==3 
+val53=x^2+y^2=$val64
+val48=cercle d'équation \($val53)
+val49=$[rint(3)]
+!if $val20==0 
+val48=Point(0;0;0)
+t_=!rawmath 0
+val52=!exec pari print($t_)
+t_=!rawmath 0
+val50=!exec pari print($t_)
+t_=!rawmath 0
+val51=!exec pari print($t_)
+val49=$[rint(2)]
+!endif
+!endif
+!if $val19==2 
+val25=$val22
+
+!ifval $val62=1
+val59=x-z=0
+!else
+val59=x-$val63 *z=0
+!endif
+
+!ifval $val62=1
+val60=x+z=0
+!else
+val60=x+$val63 *z=0
+!endif
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!endif
+!if $val19==1 
+val25=$val22
+
+!ifval $val62=1
+val59=y-z=0
+!else
+val59=y-$val63 *z=0
+!endif
+
+!ifval $val62=1
+val60=y+z=0
+!else
+val60=y+$val63 *z=0
+!endif
+val48=droite \($val59) et droite \($val60)
+val49=$[rint(5)]
+!endif
+!endif
+!endif
+!if $val49=2 
+val68=$(val10[1;])
+val69=r2,r3,r4
+!endif
+!if $val49=3 
+val68=$(val10[2;])
+val69=r5
+!endif
+!if $val49=4 
+val68=$(val10[3;])
+val69=r6
+!endif
+!if $val49=5 
+val68=$(val10[4;])
+val70=La première équation sera de la forme : <span class="tt">t-sqrt(a)+/-b=0</span>	  et la deuxième de la forme : <span class="tt">t+sqrt(a)+/-b=0</span>	  où t représente une des 3 variables x, y ou z
+val69=r7,r8
+!endif
+val71=100 x 350
+val72=r1
+dynsteps=yes
+oefsteps=$val72 
+nextstep=!nosubst $val72 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=$(val11[1])
+replygood1=$val49;$val9
+replytype2=numeric
+replyname2=$(val11[2])
+replygood2=$[$val50]
+replytype3=numeric
+replyname3=$(val11[3])
+replygood3=$[$val51]
+replytype4=numeric
+replyname4=$(val11[4])
+replygood4=$[$val52]
+replytype5=equation
+replyname5=$(val11[5])
+replygood5=!rawmath $val53
+replytype6=equation
+replyname6=$(val11[6])
+replygood6=!rawmath $val59
+replytype7=equation
+replyname7=$(val11[7])
+replygood7=!rawmath $val59
+replytype8=equation
+replyname8=$(val11[8])
+replygood8=!rawmath $val60
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="$val6">	  Dans l'espace muni d'un repère orthonormé 
+!insmath (O,\vec{i},\vec{j},\vec{k})
+$(), on considère un plan (P)	  d'équation 
+!insmath $val25
+$() et un objet (Q) d'équation 
+!insmath $val44
+$().	</div>	
+!if $m_step==1 
+$()	<div class="$val7">	Déterminez la nature de leur intersection.	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val71 
+$()	</div>	</div>	 
+!else
+$() 	<div class="$val7">	$val68	</div>	
+!if $val49=5 
+$()	<div class="wims_instruction">$val70</div> 
+!endif
+$() 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $m_step=2
+val72=$val69
+!else
+val72=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,25,44,49,68,69,70,71
+embedcnt=1

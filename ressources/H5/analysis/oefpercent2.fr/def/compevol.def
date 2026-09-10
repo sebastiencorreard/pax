@@ -1,0 +1,275 @@
+!set title=Comparaison d'évolutions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+oefcss=<style> .myred {color:red} .myblue {color:blue} </style>
+oefdescription=Choisir parmi 5 graphiques pour comparer et comment calculer.
+
+ansorder=r,r,r
+varcnt=98
+prevarcnt=97
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 12, 15
+
+val6=$[rint($(tmp0))]
+val7=$[rint(10)]
+val8=la liste 1
+val9=la liste 2
+tmp0=!randint 15, 20
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val11=$[rint($val6*$val10+10+$(tmp0))]
+val12=$[100/$val11]
+val13=$[100/$val10]
+val14=$[rint($val11)]
+val15=$[rint($val10)]
+val16=$val11
+val17=$val10
+val18=$val8,100
+val19=$val9,100
+val20=Année 2010 +,0
+val21=polyline red, 0,$val11
+val22=polyline blue, 0,$val10
+val23=polyline red, 0,100
+val24=polyline blue, 0,100
+val25=$[$val11/$val7]
+val26=polyline red, 0,$val25
+val27=$[rint($val11)]
+val28=$[rint($val10)]
+!for val29 =1 to 9 
+tmp0=!randint -2, 5
+
+val15=$[rint($val15+$(tmp0))]
+tmp0=!randint 0, $val6
+
+val14=$[rint($val6*$val15+4*$(tmp0))]
+val25=$[$val14/$val7]
+val26=$val26,$val29,$val25
+val27=$[rint(max($val27,$val14))]
+val28=$[rint(max($val28,$val15))]
+val30=$[rint($val12*$val14)]
+val31=$[rint($val13*$val15)]
+val20=$val20,$val29
+val16=$val16,$val14
+val17=$val17,$val15
+val21=$val21,$val29,$val14
+val22=$val22,$val29,$val15
+val23=$val23,$val29,$val30
+val24=$val24,$val29,$val31
+!if $val29=1 
+val18=$val18,$val30
+!else
+val18=$val18, xxx
+!endif
+val19=$val19, xxx
+!next
+val32=$val8,$val16
+val33=$val9,$val17
+tmp=!trim $val20;$val32;$val33
+val34=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val34],wimscenter wimsborder,TH=[;1] CAPTION="Tableau initial" 
+tmp0=$slib_out
+val35=$(tmp0)
+tmp=!trim $val20;$val18;$val33
+val36=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val36],wimscenter wimsborder,TH=[;1] CAPTION="Tableau des indices de base 100 en 2010" 
+tmp0=$slib_out
+val37=$(tmp0)
+val28=$[rint(1.15*$val28)]
+val27=$[rint(1.1*$val27)]
+val38=$[rint(max(110*$val27/$val11,$val28))]
+val39=$[rint(max($val27/$val7,$val28))]
+val40=$[rint(-0.1*$val28)]
+val41=$[rint(floor($val27*0.0018)*50+50)]
+val42=$[rint(floor($val38*0.002)*25+25)]
+val43=$[rint(ceil($val39*0.005)*5)]
+val44=$[0.5*$val42]
+val45=$[rint(ceil($val28*0.005)*5)]
+val46=$[0.15*$val43]
+val47=$[0.4*$val45]
+val48=$[0.2*$val43]
+val49=text black, 0,-1,large, 0
+val50=text black, -1, $val44, large,0
+val51=text black, -1,2,large,0 %
+val52=text red, -1,$val46,large,0
+val53=text blue, -1,0.2*$val45,large,0
+val54=text blue, 9.1,0.2*$val43,large,0
+!for val29 =1 to 10 
+val55=$[rint($val41*$val29)]
+val56=$[rint($val42*$val29)]
+val57=$[$val55/$val7]
+val58=$[rint($val45*$val29)]
+val59=$[rint($val43*$val29)]
+val49=$val49;text black, $val29,-1,large, $val29
+val50=$val50;text black, -1,$val55+$val44, large,$val55
+val51=$val51;text black, -1.5, $val56+5, large,$val56 %
+val52=$val52;text red, -1, $val57+$val46,large,$val55
+val53=$val53;text blue, -1,$val58+$val47,large,$val58
+val54=$val54;text blue, 9.1,$val59+$val48,large,$val59
+!next
+val60=xrange -2,11	yrange -0.1*$val27,$val27	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val27,10,black	linewidth 4	$val49	$val50	
+val61=$val60		$val21	$val22	
+val62=xrange -2,11	yrange -0.1*$val38,$val38	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val38,10,black	linewidth 4	$val49	$val51	$val23	$val24	
+val63=$val60	$val21	
+val64=xrange -2,11	yrange $val40,$val28	linewidth 3	arrow 0,0,11,0,10,black	arrow 0,0,0,$val28,10,black	linewidth 4	$val49	$val53	$val22	
+val65=xrange -2,10	yrange -0.1*$val39,$val39	linewidth 3		arrow 0,0,10,0,10,black	arrow 9,0,9,$val39,10,blue	arrow 0,0,0,$val39,10,red	linewidth 4		$val49	$val52	$val54		$val22	$val26	
+val66=text red, -10,-1,large, 0
+val67=text blue, -30,0.2*$val45,large, 0
+val68=points black, $val11,$val10
+!for val29 =1 to 10 
+val55=$[rint($val41*$val29)]
+val57=$[rint(5*$val29)]
+val66=$val66;text red, $val55-15, -1, large,$val55
+val67=$val67;text blue, -30,$val57+0.2*$val45,large,$val57
+val68=$val68,$(val16[$val29]),$(val17[$val29])
+!next
+val69=xrange -0.1*$val27,$val27	yrange $val40,$val28	linewidth 3	arrow 0,0,$val27,0,10,black	arrow 0,0,0,$val28,10,black		linewidth 4	$val66	$val67	$val68	
+tmp=!trim Données brutes dans un même repère.	  Pourcentage par rapport à la valeur de 2010.	  Chaque série dans un repère adapté<br />l'un en dessous de l'autre.	  Un seul graphique avec un axe pour chaque liste	  Les coordonnées des points sont les nombres <br />de chaque série correspondant à la même année
+val70=!translate internal $	\
+$ to ;; in $tmp
+val71=Voici deux séries statistiques&nbsp;:
+oefsteps=reply1	reply2,reply3 
+nextstep=!nosubst reply1	reply2,reply3 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=Graphique
+replygood1=2;A,B,C,D,E
+replytype2=numeric
+replyname2=Coefficient pour $val8
+replygood2=$[$val12]
+replytype3=numeric
+replyname3=Coefficient pour $val9
+replygood3=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val71	$val35	
+!if $m_step=1 
+$()	  <p>Déterminer parmi les graphiques ci-dessous celui qui permet le mieux de comparer	  les évolutions des deux séries statistiques à partir de 2010.	  </p>	  Dans les graphiques, $val8 est en rouge et $val9 en bleu.	  <ul class="inline">	  <li> 
+!read oef/draw.phtml 400,400 \
+$val61 
+$()<br /> 
+!read oef/embed.phtml reply1,1,$(val70[1;]) 
+$()</li>	  <li> 
+!read oef/draw.phtml 400,400 \
+$val62 
+$()<br /> 
+!read oef/embed.phtml reply1,2,$(val70[2;]) 
+$()</li>	  <li> 
+!read oef/draw.phtml 400,200 \
+$val63 
+$()<br /> 
+!read oef/draw.phtml 400,200 \
+$val64 
+$()<br /> 
+!read oef/embed.phtml reply1,3,$(val70[3;]) 
+$()</li>	  <li> 
+!read oef/draw.phtml 400,400 \
+$val65 
+$()<br /> 
+!read oef/embed.phtml reply1,4,$(val70[4;]) 
+$()</li>		  <li> 
+!read oef/draw.phtml 400,400 \
+$val69 
+$()<br /> 
+!read oef/embed.phtml reply1,5,$(val70[5;]) 
+$()</li>		  </ul>	   
+!endif
+$()	
+!if $m_step=2 
+$()	  <p>	  Vous avez choisi le bon graphique !	  </p><p>	  Pour le réaliser, on doit compléter le tableau ci-dessous, obtenu à partir	  du tableau initial par proportionnalité.	  </p>	  $val37	  <ul><li><label for="reply2">	  Par quel nombre doit-on multiplier $val8 pour calculer l'indice de base 100 en 2010 ?  
+!read oef/embed.phtml reply2,10 
+$()<br />		  </li><li>	  <label for="reply3">Par quel nombre doit-on multiplier $val9	pour calculer son indice de base 100 en 2010 ? </label> 
+!read oef/embed.phtml reply3,10 
+$()		  </li></ul>	   
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <p>	  B : Remplacer les données brutes par leur pourcentage par rapport à	  leur valeur de 2010 permet de bien comparer les évolutions des deux séries depuis 2010.	  </p><p>	  On appelle ces pourcentages les indices de base 100 en 2010.	  </p>	  <p>	  Les indices de base 100 en 2010 sont calculés par proportionnalité.<br />	  Pour obtenir l'indice de base 100 en 2010 d'une série de termes, il suffit de diviser	  chaque terme de la série par la valeur de l'année 2010 et de le multiplier par 100,	   par exemple pour  $val8 de multiplier chaque terme par 100/$val11.	  </p>									  <div class="wimscenter"> 
+!read oef/draw.phtml 400,400 \
+$val62 
+$()</div>	  <ul class="inline wimscenter">	  <li class="myred">$val8 en rouge</li>	  <li class="myblue">$val9 en bleu</li>	  </ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 issametext A 
+ <div class='oef_feedbacks'>	<p class="myred">	A : Ce graphique est facile à faire parce qu'il utilise les données brutes et n'utilise qu'un axe.<br />	Mais les valeurs des deux séries sont disproportionnées ce qui fait que les évolutions de la petite série sont écrasées et peu visibles.<br />	</p>	
+$()</div>
+!endif
+!ifval $m_reply1 issametext C 
+ <div class='oef_feedbacks'>	<p class="myred">	C : Utiliser un repère adapté à chaque série et les placer l'un en dessous de l'autre est une bonne idée.<br />	Mais la distance entre les deux courbes ne facilite pas la comparaison.	</p>	
+$()</div>
+!endif
+!ifval $m_reply1 issametext D 
+ <div class='oef_feedbacks'>	<p class="myred">	D : Réaliser un seul graphique avec deux axes est une bonne idée.<br />	Mais c'est difficile à réaliser et à lire et le point de départ en 2010	n'est pas automatiquement le même ce qui peut fausser la comparaison.	</p>	
+$()</div>
+!endif
+!ifval $m_reply1 issametext E 
+ <div class='oef_feedbacks'>	<p class="myred">	E : Utiliser les nombres de chaque série comme des coordonnées de points est une bonne idée.<br />	Mais cela permet surtout de déceler s'il y a une corrélation entre les nombres plutôt que leurs évolutions.	</p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,35,37,61,62,63,64,65,69,70,71
+embedcnt=7

@@ -1,0 +1,509 @@
+!set title=2. Geolocalisation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=66
+prevarcnt=65
+postvarcnt=0
+replycnt=24
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/media/video [ogg="https://tube-sciences-technologies.apps.education.fr/download/videos/d1c0d23f-ca86-4316-9402-c4c3691601cc-240.ogv"] 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!makelist r x for x = 4 to 9
+
+val7=$(tmp0)
+tmp=!trim reply1, reply2	reply3	$val7	reply10	reply11, reply12	reply13, reply14, reply15	reply16, reply17	reply18, reply19	reply20	reply21, reply22, reply23, reply24	
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val9=$[rint($(tmp0))]
+val10=$[rint(5*$val9)]
+val11=$[331.5+0.6*$val10]
+val12=1,2,3
+val13=
+val14=
+val15=
+!for val16 =1 to 3 
+val17=$[$val11*$val16]
+val18=$[rint(($val16+1)*60+4)]
+val19=$[rint((6-1)*60-($val16)*60-3)]
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val18,$val19 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val16,$val17 to $val15
+
+val15=$(tmp0)
+!next
+val20=Pierre,Paul,Jacques,Pinocchio
+val21=Temps,Distance,1 cm pour 1 s,1 cm pour $val11 m
+val22=<img src="$val1/pierre.gif" alt="Pierre" />,<img src="$val1/paul.gif" alt="Paul" />,<img src="$val1/jacques.gif" alt="Jacques" />
+tmp=!trim Pierre,rue Monge,51,706,Paul,rue du vieux collège,750,600,Jacques,à l'intersection de la rue Devosge et de la rue Courtepée,364,53	Pierre,place Saint Michel,678,574,Paul,rue de Berbisey,116,797,Jacques,rue Alfred de Musset,900,1083	
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val24=$[rint($(tmp0))]
+val25=$[$(val23[$val24;3])/50]
+val26=$[$(val23[$val24;7])/50]
+val27=$[$(val23[$val24;11])/50]
+val28=$[(1098-$(val23[$val24;4])-30)/50]
+val29=$[(1098-$(val23[$val24;8])-30)/50]
+val30=$[(1098-$(val23[$val24;12])-30)/50]
+!if $val24=1 
+val31=$[1]
+!else
+val31=$[-1]
+!endif
+val32=$[(($val25+0.3)^2-($val26+0.3)^2+($val28+0.3)^2-($val29+0.3)^2+3*($val11*9.5/607)^2)/2/($val28-$val29)]
+val33=$[(($val25+0.3)^2-($val27+0.3)^2+($val28+0.3)^2-($val30+0.3)^2+8*($val11*9.5/607)^2)/2/($val28-$val30)]
+val34=$[-($val25-$val26)/($val28-$val29)]
+val35=$[-($val25-$val27)/($val28-$val30)]
+val36=$[($val33-$val32)/($val34-$val35)]
+val37=$[($val34*$val33-$val32*$val35)/(-$val35+$val34)]
+val38=$[(2)]
+tmp0=!randint 1, 2
+
+val39=$[rint($(tmp0))]
+!if $val39=1 
+val40=$[$val31*sqrt((9.5*2.5*$val11/607)^2-($val38+0.3-$val36)^2)-0.3+$val37]
+!else
+val40=$[$val31*sqrt((9.5*2.5*$val11/607)^2-($val38+0.3-$val36)^2)-0.3+$val37-2]
+!endif
+val41=$[607/9.5*sqrt(($val38+0.3-$val36)^2+($val40+0.3-$val37)^2)]
+val42=$[rint($val41*10)]
+val43=$[$val42/10]
+val44=$[2.5]
+val45=$[rint(($val44+1)*60+4)]
+val46=$[$val41/$val11]
+val47=$[rint((6-1)*60-($val46)*60+21)]
+!readproc slib/millimetre 7,6,,,1,$val11,[255,255,255],[190,190,190],,style:grad=xy 
+tmp0=$slib_out
+val48=$(tmp0)
+!readproc slib/millimetre 7,6,,,1,$val11,[255,255,255],[190,190,190],,style:grad=xy,style:dot=+,$val15 
+tmp0=$slib_out
+val49=$(tmp0)
+!readproc slib/graphpaper/func_milli 7,6,,,1,$val11,[255,255,255],[190,190,190],,$val11*x,[],$val15 
+tmp0=$slib_out
+val50=$(tmp0)
+!readproc slib/graphpaper/func_milli 7,6,,,1,$val11,[255,255,255],[190,190,190],,$val11*x,[],$val15,$val44,$val41 
+tmp0=$slib_out
+val51=$(tmp0)
+val21=linewidth 1	text red,25,59,giant,Distance	text red,20,56,giant,  1 cm pour $val11 m	text red,50,6,giant,  Temps 	text red,45,3,giant,  1 cm pour 1 s
+val52=$val48	$val21
+val53=$val49	$val21
+val54=$val50	$val21
+val55=$val51	$val21
+!readproc oef/draw.phtml 420,360 \
+$val52 
+tmp0=$ins_url
+val56=$(tmp0)
+!readproc oef/draw.phtml 420,360 \
+$val53 
+tmp0=$ins_url
+val57=$(tmp0)
+!readproc oef/draw.phtml 420,360 \
+$val54 
+tmp0=$ins_url
+val58=$(tmp0)
+!readproc oef/draw.phtml 420,360 \
+$val55 
+tmp0=$ins_url
+val59=$(tmp0)
+val60=Où se trouve l'orage? "besoin d'un chasseur d'orage"
+val61=On va déterminer simplement le lieu où se trouve la foudre.
+val62=
+!readproc slib/geo2D/jsxgraph jsxbox,1300 x 1300,	var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 50, originY: 1249, unitX: 50, unitY: 50, axis:true,shownavigation:false, grid:true});	var urlImg = "$val1/map.jpg";	var im = board.create('image',[urlImg, [0,0], [22.9,21.96]],{fixed:true});		var urlpierre = "$val1/pierre.gif";	var impi = board.create('image',[urlpierre, [$val25,$val28], [0.6,0.6] ]);	var pi = board.createElement('point',[$val25+0.3,$val28+0.3], {name:'Pierre',style:12,fixed:true});		var urlpaul = "$val1/paul.gif";	var impa = board.create('image',[urlpaul, [$val26,$val29], [0.6,0.6] ]);	var pa = board.createElement('point',[$val26+0.3,$val29+0.3], {name:'Paul',style:12,fixed:true});		var urljacques = "$val1/jacques.gif";	var imj = board.create('image',[urljacques, [$val27,$val30], [0.6,0.6] ]);	var j = board.createElement('point',[$val27+0.3,$val30+0.3], {name:'Jacques',style:12,fixed:true});		var plpa = board.createElement('point',[$val26+2.3,$val29+2.3], {name:'A',style:5,strokeColor:'#2900fb'});	var plj = board.createElement('point',[$val27+2.3,$val30+2.3], {name:'B', style:5,strokeColor:'#2900fb'});		var f = board.createElement('point',[12,22.5], {name:'Foudre', style:6, strokeColor:'#2900fb'});		var cpi = board.createElement('circle',["Pierre",$(val13[1])*9.5/607], {strokeColor:'#990000',strokeWidth:6});	var cpa = board.createElement('circle',["Paul","A"], {strokeColor:'#990000',strokeWidth:6});	var cj = board.createElement('circle',["Jacques","B"], {strokeColor:'#990000',strokeWidth:6});		var dfp = board.createElement('text',[14,24.5,function(){	    return 'Distance entre Paul et la Foudre = ' + (pa.Dist(plpa)*607/9.5).toFixed(1) +' m';	  }],{fontSize:'20px'});		var dfp = board.createElement('text',[14,23.5,function(){	    return 'Distance entre Jacques et la Foudre = ' + (j.Dist(plj)*607/9.5).toFixed(1) +' m';	  }],{fontSize:'20px'});		var dfp = board.createElement('text',[14,22.5,function(){	    return 'La Foudre a pour coordonnées : ' +'('+ f.X() +';'+f.Y()+')';}],{fontSize:'20px'});	 
+tmp0=$slib_out
+val63=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox,1300 x 1300,	var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 50, originY: 1249, unitX: 50, unitY: 50, axis:true,shownavigation:false, grid:true});	var urlImg = "$val1/map.jpg";	var im = board.create('image',[urlImg, [0,0], [22.9,21.96]],{fixed:true});		var urlpierre = "$val1/pierre.gif";	var impi = board.create('image',[urlpierre, [$val25,$val28], [0.6,0.6] ]);	var pi = board.createElement('point',[$val25+0.3,$val28+0.3], {name:'Pierre',style:12,fixed:true});		var urlpaul = "$val1/paul.gif";	var impa = board.create('image',[urlpaul, [$val26,$val29], [0.6,0.6] ]);	var pa = board.createElement('point',[$val26+0.3,$val29+0.3], {name:'Paul',style:12,fixed:true});		var urljacques = "$val1/jacques.gif";	var imj = board.create('image',[urljacques, [$val27,$val30], [0.6,0.6] ]);	var j = board.createElement('point',[$val27+0.3,$val30+0.3], {name:'Jacques',style:12,fixed:true});		var urlPinocchio = "$val1/Pinocchio.png";	var imPin = board.create('image',[urlPinocchio, [$val38,$val40], [0.6,0.6] ]);	var j = board.createElement('point',[$val38+0.3,$val40+0.3], {name:'Pinocchio',style:12,fixed:true});			var plpa = board.createElement('point',[12,23.5], {name:'A',style:5,strokeColor:'#2900fb'});	var plj = board.createElement('point',[13,23.5], {name:'B', style:5,strokeColor:'#2900fb'});	var li = board.createElement('line',[plpa,plj],{straightFirst:false, straightLast:false, strokeWidth:3, dash:0});		var f = board.createElement('point',[$val36,$val37], {name:'Foudre', style:6,fixed:true});		var cpi = board.createElement('circle',["Pierre",$(val13[1])*9.5/607], {strokeColor:'#990000',strokeWidth:6});	var cpa = board.createElement('circle',["Paul",$(val13[2])*9.5/607], {strokeColor:'#990000',strokeWidth:6});	var cj = board.createElement('circle',["Jacques",$(val13[3])*9.5/607], {strokeColor:'#990000',strokeWidth:6});		var dfp = board.createElement('text',[14,24.5,function(){	    return 'La Foudre a pour coordonnées : ' +'('+ f.X().toFixed(1) +';'+f.Y().toFixed(1)+')';	  }],{fontSize:'20px'});	var dfp = board.createElement('text',[14,23.5,function(){	    return 'La Distance entre les points A et B est de ' + (plpa.Dist(plj)*607/9.5).toFixed(1) +' m';	  }],{fontSize:'20px'});	 
+tmp0=$slib_out
+val64=$(tmp0)
+oefsteps=$val8 
+nextstep=!nosubst $val8 
+!readproc oef/steps.proc
+replytype1=radio
+replyoption1=shuffle split 
+replyname1=Existe-il
+replygood1=1;oui,non
+replytype2=radio
+replyoption2=shuffle split 
+replyname2=Le phénomène le plus rapide est
+replygood2=1;la lumière,le son
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=La vitesse du son est de
+replygood3=$[$val11]
+replytype4=clickfill
+replyoption4=shuffle 
+replyname4=
+replygood4=$(val12[1])
+replytype5=clickfill
+replyoption5=shuffle 
+replyname5=
+replygood5=$(val12[2])
+replytype6=clickfill
+replyoption6=shuffle 
+replyname6=
+replygood6=$(val12[3])
+replytype7=numeric
+replyoption7=nonstop 
+replyname7=La distance Pi-F est de
+replygood7=$[$(val13[1])]
+replytype8=numeric
+replyoption8=nonstop 
+replyname8=La distance Pa-F est de
+replygood8=$[$(val13[2])]
+replytype9=numeric
+replyoption9=nonstop 
+replyname9=La distance J-F est de
+replygood9=$[$(val13[3])]
+replytype10=jsxgraphcurve
+
+replyoption10=nonstop color1=blue color2=red 
+replyname10=
+replygood10=$val56;points,$val14
+replytype11=clickfill
+replyoption11=shuffle nonstop 
+replyname11=
+replygood11=droite;droite,origine,point,axe,repère,ordonnée,abscisse
+replytype12=clickfill
+replyoption12=shuffle nonstop 
+replyname12=
+replygood12=origine
+replytype13=clickfill
+replyoption13=shuffle 
+replyname13=
+replygood13=$(val22[1]);$val22
+replytype14=clickfill
+replyoption14=shuffle 
+replyname14=
+replygood14=$(val22[2])
+replytype15=clickfill
+replyoption15=shuffle 
+replyname15=
+replygood15=$(val22[3])
+replytype16=range
+replyoption16=nonstop 
+replyname16=abscisse de la foudre :
+replygood16=!rawmath $val36-0.3,$val36+0.3,$val36
+replytype17=range
+replyoption17=nonstop 
+replyname17=L'ordonnée de la foudre est de
+replygood17=!rawmath $val37-0.3,$val37+0.3,$val37
+replytype18=numeric
+replyname18=Pinocchio entend le tonnerre au bout de
+replygood18=$[$val44]
+replytype19=range
+replyoption19=nonstop 
+replyname19=Distance entre Pinocchio et la foudre
+replygood19=!rawmath $val41-20,$val41+20,$val41
+replytype20=jsxgraphcurve
+
+replyoption20=nonstop color1=blue color2=red 
+replyname20=
+replygood20=$val58;points,$val45,$val47
+replytype21=radio
+replyoption21=shuffle split 
+replyname21=Le point est-il sur la droite
+replygood21=$val39;oui,non
+replytype22=radio
+replyoption22=shuffle split 
+replyname22=A-t-il menti
+replygood22=$val39;non,oui
+replytype23=radio
+replyoption23=shuffle split 
+replyname23=Est-ce-que son nez c'est allongé
+replygood23=$val39;non,oui
+replytype24=numeric
+replyname24=De combien de cm
+replygood24=?analyze 65
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br />	<div class="consigne">		<div id="boiteg">	<img src="$val1/orage.jpeg" alt="Orage" />	</div>	<p class="problematique"> $val60</p>	<p class="special_letter">$val61<br /><br /><br /><br /><br /></p>		
+!if $m_step==1 
+$()	<br />	<div class="consigne">	<div class="wimscenter">$val6</div>	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	Après avoir regardé la vidéo, Déterminez s'il existe un décalage	 temporel entre le son et la lumière de la foudre.	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply1,\h 
+$()</li> 
+!next
+$()	</ul>	 	Quelle est l'information qui est transmise la plus rapidement?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply2,\h 
+$()</li> 
+!next
+$()	</ul>	</div> 
+!endif
+$()		
+!if $m_step==2 
+$()	<br />	<div class="consigne">	<p class="special_letter">	En effet la lumière se déplace à la vitesse de 300 000 km/s donc elle	 met moins de 30 &#956;s pour faire 10 km. Par conséquent on peut	 considérer que le phénomène est quasi-instantané.	Par contre le son se déplace à une vitesse d'environ 340 m/s.	 En utilisant le décalage temporel entre la lumière et le son,	on détermine la distance entre l'éclair et une personne.</p>	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	<table class="wimscenter wimsborder">	<tr>	<td>La vitesse du son dans l'air est donnée	 par la formule suivante :	 <b> V<sub>son dans l'air</sub> = 331,5 + 0,6 &#952;</b></td>	<td>&nbsp;&nbsp;</td>	<td>	avec <b>&#952;</b> : la température de l'air en degrés Celcius °C	<br />	et <b>V<sub>son dans l'air</sub></b> : vitesse du son dans l'air en m/s	<br />	</td>	</tr>	</table>	<br /> 	Lorsque l'orage a éclaté la température de l'air était de $val10 °C. 	La vitesse du son dans l'air est donc de  
+!read oef/embed.phtml reply3,4 
+$() m/s.	</div>	 
+!endif
+$()		
+!if $m_step==3 
+$()	
+!if $m_reply3!=$val11 
+$()<div class="solution">Votre réponse précédente	 était erronée. Vous auriez dû réaliser le calcul suivant :	<br />	 <b> V<sub>son dans l'air</sub> = 331,5 + 0,6 
+!insmath times
+$() $val10 = $val11 m/s</b></td>	<br />	<img src="$val1/attention.png" alt="Attention" /> La multiplication est l'opération	 prioritaire.	</div> 
+!endif
+$()	<br />	<div class="consigne">	<p class="special_letter">	La vitesse du son est donc de $val11 m/s à la température de $val10 °C.</p>	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	Au même instant 3 élèves voient le même éclair mais ils entendent le	 tonnerre au bout d'un temps différent.	<br />	<ul>	<li>$(val22[1]) Pierre entend le tonnerre au bout de $(val12[1]) secondes.</li> 	<li>$(val22[2]) Paul entend le tonnerre au bout de $(val12[2]) secondes.</li>	<li>$(val22[3]) Jacques entend le tonnerre au bout de $(val12[3]) secondes.</li>	</ul>	Complétez le tableau suivant:	<br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 3 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en secondes (s)</b></td>	 
+!for m_j=4 to 6 
+$()<td> 
+!read oef/embed.phtml reply\j, 50x40 
+$()</td> 
+!next
+$()	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres (m)</b></td>	 
+!for m_k=7 to 9 
+$()<td> 
+!read oef/embed.phtml reply\k, 4 
+$()</td> 
+!next
+$()	</tr>	</table>	</div> 
+!endif
+$()		
+!if $m_step==4 
+$()	
+!if $m_reply7!=$(val13[1]) or $m_reply8!=$(val13[2]) or $m_reply9!=$(val13[3]) 
+$()	<div class="solution">Votre réponse précédente était erronée.	 Vous auriez dû réaliser les calcul suivants :	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 3 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en	 secondes (s) <br /> Axes des abscisses x</b></td>	 
+!for m_j=1 to 3 
+$()<td>$(val12[$m_j])</td> 
+!next
+$()	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres	 (m) <br />Axes des ordonnées y</b></td>	 
+!for m_j=1 to 3 
+$()	<td> $m_j 
+!insmath times
+$() $val11 = $(val13[$m_j])</td> 
+!next
+$()	</tr>	</table>	</div> 
+!endif
+$()		<br />	<div class="consigne">	<p class="special_letter">	La vitesse du son est donc de $val11 m/s à la température de $val10 °C.</p>	Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 3 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en	 secondes (s) <br /> Axes des abscisses x</b></td>	 
+!for m_j=1 to 3 
+$()<td> $(val12[$m_j]) </td> 
+!next
+$()	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres	 (m) <br />Axes des ordonnées y</b></td>	 
+!for m_j=1 to 3 
+$()	<td> $(val13[$m_j]) </td> 
+!next
+$()	</tr>	</table>	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	<div class="wimscenter"> Placez les points Pierre, Paul, Jacques en cliquant sur le graphique.</div>	<br />	 
+!read oef/embed.phtml reply10, 420 x 360 
+$()	</div> 
+!endif
+$()		
+!if $m_step==5 
+$()	
+!if 1,2,3 notin $m_reply10 
+$()<div class="solution">Votre réponse	 précédente était erronée. Travaillez le placement de points.</div> 
+!endif
+$()	<br />	<div class="consigne">	<div class="wimscenter">	<img src="$val57" alt="Graphique"/>	</div>	</div>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	<span class="bold" style="font-style:italic">	Conclusion :</span><span class="bold">L'ensemble des points de cette fonction linéaire</span>	 <span class="bold" style="color:#fbf80a">
+!insmath  D(t)= $val11 times t
+$()</span><span class="bold"> est	 une  
+!read oef/embed.phtml reply11, 100x30 
+$() qui passe par l'  
+!read oef/embed.phtml reply12, 100x30 
+$() du repère.</span>	</div> 
+!endif
+$()		
+!if $m_step==6 
+$()	
+!if $m_reply11 notwordof droite or $m_reply12  notwordof origine 
+$()	<div class="solution">Votre réponse précédente était erronée.	<br />	<span class="bold" style="font-style:italic">	Conclusion :</span><span class="bold">L'ensemble des points de cette fonction linéaire</span>	<span class="bold" style="color:#fbf80a">
+!insmath  D(t)= $val11 times t
+$() </span><span class="bold"> est </span>	<span class="bold" style="font-style:italic">une droite</span><span class="bold">  qui passe par </span>	<span class="bold" style="font-style:italic">l'origine</span><span class="bold">  du repère.</span> 	</div> 
+!endif
+$()	<div class="consigne">	En route vers la géolocalisation de la foudre.	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	<ul>	<li>$(val22[1]) Pierre habite $(val23[$val24;2]).</li> 	<li>$(val22[2]) Paul réside $(val23[$val24;6]).</li>	<li>$(val22[3]) Jacques se trouve $(val23[$val24;10]).</li>	</ul>	Positionnez chacun des élèves sur le plan fourni ci-dessous. On	 pourra cliquer simultanément sur les touches Ctrl et - (touche6)	 pour zoomer.	<br /><br />	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val1/map.jpg,1145x1098,30x30	reply13, $(val23[$val24;3])x$(val23[$val24;4])	reply14, $(val23[$val24;7])x$(val23[$val24;8])	reply15, $(val23[$val24;11])x$(val23[$val24;12]) 
+$()	</div>	<br />	</div> 
+!endif
+$()		
+!if $m_step==7 
+$()	<div class="consigne">	<p class="special_letter">	La vitesse du son est donc de $val11 m/s à la température de $val10 °C.</p>	Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 3 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en	 secondes (s) <br /> Axes des abscisses x</b></td>	 
+!for m_j=1 to 3 
+$()<td>$(val12[$m_j])</td> 
+!next
+$()	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres	 (m) <br />Axes des ordonnées y</b></td>	 
+!for m_j=1 to 3 
+$()	<td> $(val13[$m_j])</td> 
+!next
+$()	</tr>	</table>	<br />	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	A l'aide du tableau de valeurs qui donne les distances entre l'éclair	et l'élève, réalisez des cercles centrés sur l'élève qui ont pour	 rayon la distance éclair-élève.	<br />	Dans la construction ci-dessous le cercle pour Pierre a déjà été réalisé.	<br />	Tracez les cercles de Paul et Jacques en déplaçant les points A et B.	Vous pouvez lire la distance élève-éclair sur le haut du graphique. 	</div>	<br />	<br />	$val63	<br /><br />	<div class="question">	En déplaçant le point F pour Foudre situé en haut du graphique,	 déterminez les coordonnées de la foudre.	<br />	<div class="wimscenter">F( 
+!read oef/embed.phtml reply16, 4 
+$();  
+!read oef/embed.phtml reply17, 4 
+$())</div>	</div> 
+!endif
+$()			
+!if $m_step==8 
+$()	
+!if $m_reply16<=$val36-0.3 or $m_reply16>=$val36+0.3 or $m_reply17<=$val37-0.3 or $m_reply17>=$val37+0.3 
+$()<div class="solution">Soyez plus précis dans vos constructions.</div> 
+!endif
+$()	<div class="consigne">	<p class="special_letter">	La vitesse du son est donc de $val11 m/s à la température de $val10 °C.</p>	<br />	<img src="$val1/Pinocchio.png" alt="Pinocchio" />Pinocchio entend le tonnerre au bout de $val44 s. 	<br />	</div>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	En déplaçant les points A et B qui se trouvent sur le graphique,	 déterminez la distance entre Pinocchio est l'éclair.	</div>	<br />	<br />	$val64	<br /><br />	<div class="question">	Complétez le tableau suivant :	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en	 secondes (s) <br /> Axes des abscisses x</b></td>	 
+!for m_j=1 to 3 
+$()<td>$(val12[$m_j])</td> 
+!next
+$()	 <td> 
+!read oef/embed.phtml reply18, 4 
+$()</td>	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres	 (m) <br />Axes des ordonnées y</b></td>	 
+!for m_j=1 to 3 
+$()	<td> $(val13[$m_j])</td> 
+!next
+$()	 <td> 
+!read oef/embed.phtml reply19, 4 
+$()</td>	</tr>	</table>	</div> 
+!endif
+$()		
+!if $m_step==9 
+$()	
+!if $m_reply19<=$val41-20 or $m_reply19>=$val41+20 
+$()<div class="solution">Soyez plus précis dans vos constructions.</div> 
+!endif
+$() 	<div class="consigne">	<p class="special_letter">	La vitesse du son est donc de $val11 m/s à la température de $val10 °C.</p>	<br />	<img src="$val1/Pinocchio.png" alt="Pinocchio" />Pinocchio entend le tonnerre au bout de $val44 s à une ditance de $val43 m. 	<br />	Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en	 secondes (s) <br /> Axes des abscisses x</b></td>	 
+!for m_j=1 to 3 
+$()<td>$(val12[$m_j])</td> 
+!next
+$()	 <td>$val44</td>	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres	 (m) <br />Axes des ordonnées y</b></td>	 
+!for m_j=1 to 3 
+$()	<td> $(val13[$m_j])</td> 
+!next
+$()	 <td>$val43</td>	</tr>	</table>	</div>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	<div class="wimscenter"> Placez le point $(val20[4]) en cliquant sur le graphique.</div>	<br />	 
+!read oef/embed.phtml reply20, 420 x 420 
+$()	</div>	<br />	 
+!endif
+$()		
+!if $m_step==10 
+$()	
+!if 0,1,1 isin $m_reply20 
+$()<div class="solution">Votre réponse	 précédente était erronée. Retournez travail sur la feuille	 travail sur le placement de points.</div> 
+!endif
+$()	<div class="consigne">	<p class="special_letter">	La vitesse du son est donc de $val11 m/s à la température de $val10 °C.</p>	<br />	<img src="$val1/Pinocchio.png" alt="Pinocchio" />Pinocchio entend le tonnerre au bout de $val44 s à une ditance de $val43 m. 	<br />	Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;<b>$(val20[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Décalage entre l'éclair et le tonnerre en	 secondes (s) <br /> Axes des abscisses x</b></td>	 
+!for m_j=1 to 3 
+$()<td>$(val12[$m_j])</td> 
+!next
+$()	 <td>$val44</td>	</tr>	<tr>	<td><b>Distance entre l'éclair et la foudre en mètres	 (m) <br />Axes des ordonnées y</b></td>	 
+!for m_j=1 to 3 
+$()	<td> $(val13[$m_j])</td> 
+!next
+$()	 <td>$val43</td>	</tr>	</table>	<br />	<div class="wimscenter">	<img src="$val59" alt="Droite" />	</div>	</div>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 10</div>	Le point est-il sur la droite ?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply21,\h 
+$()</li> 
+!next
+$()	</ul>	Pinocchio certifie qu'il a vu le même éclair que Pierre, Paul,	 Jacques. A-t-il menti?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply22,\h 
+$()</li> 
+!next
+$()	</ul>	Est-ce-que son nez, c'est allongé?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply23,\h 
+$()</li> 
+!next
+$()	</ul>	Si oui de combien de cm?	<ul><li> 
+!read oef/embed.phtml reply24,4 
+$() cm</li></ul>	</div> 
+!endif
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,10,11,12,13,20,22,23,24,36,37,41,43,44,57,59,60,61,63,64,65
+embedcnt=18

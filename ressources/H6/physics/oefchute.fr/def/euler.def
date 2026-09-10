@@ -1,0 +1,217 @@
+!set title=Méthode d'Euler
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît,Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 20
+
+val6=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val6,2 
+tmp0=$slib_out
+val7=$(tmp0)
+val8=$[$val6/1000]
+val9=$[4/3*pi*($val8/2)^3]
+tmp0=!randint 8000, 9000
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 900, 1200
+
+val11=$[rint($(tmp0))]
+val12=$[$val10*$val9]
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 8, 20
+
+val14=$[rint($(tmp0))]
+val15=$[$val14/100]
+
+!ifval $val13=1
+val16=$[ 3*pi*$val15*$val8 ]
+!else
+val16=$[ 44/100*pi*($val8*$val8)*$val11/8]
+!endif
+
+!ifval $val13=1
+val17= 3*\pi*\eta*d 
+!else
+val17=0,44*\pi*d^2*\rho liq/8
+!endif
+
+!ifval $val13=1
+val18= kg/s
+!else
+val18=kg/m
+!endif
+
+!ifval $val13=1
+val19= v
+!else
+val19=v^2
+!endif
+tmp0=!texmath a*$val19+b
+
+val20=$(tmp0)
+tmp0=!randint 3, 8
+
+val21=$[rint($(tmp0))]
+val22=$[$val21/100]
+val23=$[-$val16/($val10*$val9)]
+!readproc slib/text/sigunits $val23,2 
+tmp0=$slib_out
+val24=$(tmp0)
+val25=$[9.81*(1-$val11/$val10)]
+!readproc slib/text/sigunits $val25,2 
+tmp0=$slib_out
+val26=$(tmp0)
+
+!ifval $val13=1
+val27=$[-$val26/$val24]
+!else
+val27=$[(-$val26/$val24)^0.5]
+!endif
+
+!ifval $val13=1
+val28= s^-1
+!else
+val28=m^-1
+!endif
+val29=$[rint(0)]
+val30=$[rint(0)]
+val31=$[rint(0)]
+val32=$[rint(0)]
+val33=$[rint(0)]
+!for val34 =1 to 10 
+val29=$[$val29+$val22]
+val31=$val31,$val29
+val30=$[$val30+($val23*$val30^$val13+$val25)*$val22]
+!readproc slib/text/sigunits $val30,2 
+tmp0=$slib_out
+val30=$(tmp0)
+val33=$val33,$val30
+val32=$val32,$val30
+!next
+!readproc slib/text/sigunits $(val33[4]),2 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/text/sigunits $(val33[8]),2 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/text/sigunits $(val33[10]),2 
+tmp0=$slib_out
+val37=$(tmp0)
+replytype1=sigunits
+replyname1=v4
+replygood1=$val35
+replytype2=sigunits
+replyname2=v8
+replygood2=$val36
+replytype3=sigunits
+replyname3=v10
+replygood3=$val37
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p><span style="color:#0000FF;">Soit l'équation différentielle suivante:
+!insmath \frac{dv}{dt} = $val20
+$(). On cherche à la résoudre la méthode d'Euler.	<br>En prenant 
+!insmath a=$val24
+$() et 
+!insmath b=$val26
+$(), 	compléter le tableau suivant (avec 2 chiffres significatifs):</span></p>	<table class="wimsborder wimscenter">	    <tr><th>
+!insmath t
+$() (s)</th><th>
+!insmath v \ (\textrm{m}\cdot \textrm{s}^{-1})
+$()</th></tr>	 
+!for m_j=1 to 3 
+$()	<tr><td>$(val31[$m_j])</td><td>
+!insmath $(val32[$m_j])
+$()</td></tr> 
+!next
+$()	<tr><td>$(val31[4])</td><td> 
+!read oef/embed.phtml reply1,7 
+$()</td></tr>	 
+!for m_j2=5 to 7 
+$()	<tr><td>$(val31[$m_j2])</td><td>
+!insmath $(val32[$m_j2])
+$()</td></tr>	 
+!next
+$()	<tr><td>$(val31[8])</td><td> 
+!read oef/embed.phtml reply2,7 
+$()</td></tr>	<tr><td>$(val31[9])</td><td>
+!insmath $(val32[9])
+$()</td></tr>	<tr><td>$(val31[10])</td><td> 
+!read oef/embed.phtml reply3,7 
+$()</td></tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>La notation 2e-2 signifie 
+!insmath 2.10^{-2}
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,24,26,31,32
+embedcnt=3

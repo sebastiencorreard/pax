@@ -1,0 +1,180 @@
+!set title=Pourquoi une fonction est continue 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=real_function,continuity
+oefobservation=Aux fonctions de base de l'exercice Pourquoi une fonction est continue 2, s'ajoutent les fonctions exp et ln.
+
+ansorder=r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Rappel: la fonction partie entière, notée \(E(x)\), est la fonction	  qui à tout \(x \in \RR\) associe l'entier relatif \(z\) tel que:	  <div class="wimscenter"> \(z \leq x < z+1\).</div>
+val7=Oui,Non
+val8=la somme,le produit,le quotient,la composée
+val9=La fonction, est continue (sur son domaine de définition) parce que c'est&nbsp;,	  des deux fonctions continues
+val10=Cocher la bonne réponse et compléter les expressions de	  \(u\) et \(v\) en déplaçant les bonnes étiquettes.
+val7=$(val8[1]) \(u+v\), $(val8[2]) \(u \times v\),$(val8[3]) \(\frac{u}{v}\),	  $(val8[4]) \(u \circ v\)
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val12=$[rint($(tmp0))]
+val13=80x50x1
+val14=abs(x),$val11*x+$val12,cos(x),sin(x),1/x,sqrt(x),(x+1)^2,x^7,exp(x),ln(x)
+tmp0=!itemcnt $val14
+
+val15=$[rint($(tmp0))]
+tmp0=!shuffle $val15
+
+val16=$(tmp0)
+val17=$(val14[$(val16[1])])
+val18=$(val14[$(val16[2])])
+t_=!replace internal \( by ( in $val17
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+t_=!replace internal \( by ( in $val18
+tmp0=!exec maxima $t_
+
+val18=$(tmp0)
+tmp0=!randitem 1,2,3,4,4,4
+
+val19=$[rint($(tmp0))]
+!if $val19=1 
+tmp0=!texmath $val17+$val18
+
+val20=$(tmp0)
+val21=$val20
+!endif
+!if $val19=2 
+tmp0=!texmath ($val17)*($val18)
+
+val20=$(tmp0)
+val21=$val20
+!endif
+!if $val19=3 
+tmp0=!texmath $val17
+
+val22=$(tmp0)
+tmp0=!texmath $val18
+
+val23=$(tmp0)
+val21=\frac{$val22}{$val23}
+!endif
+!if $val19=4 
+tmp0=!replace internal x by ($val18) in $val17
+
+val20=$(tmp0)
+tmp0=!texmath $val20
+
+val20=$(tmp0)
+val21=$val20
+!endif
+val24=&#124; x &#124;
+!for val25 = 2 to $val15 
+t_=!replace internal \( by ( in $(val14[$val25])
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val26=$(tmp1)
+tmp0=!append item \($val26) to $val24
+
+val24=$(tmp0)
+!next
+replytype1=radio
+replyname1=raison
+replygood1=$val19;$val7
+replytype2=clickfill
+replyname2=u
+replygood2=?analyze 27;$val24
+replytype3=clickfill
+replyname3=u
+replygood3=?analyze 28;$val24
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $(val9[1]) 
+!insmath x \mapsto $val21
+$() $(val9[2]):	<div class="wimscenter">  
+!read oef/embed.phtml reply1 
+$()</div>	  $(val9[3])<ul><li>	
+!insmath u : x \mapsto
+$()  
+!read oef/embed.phtml reply2,$val13 
+$()</li><li>	
+!insmath v : x \mapsto
+$()   
+!read oef/embed.phtml reply3,$val13 
+$()</li></ul>	<div class="wims_instruction">$val10</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val27 issametext $(val24[$(val16[1])]) and $val28 issametext $(val24[$(val16[2])])) or ($val19<3 and $val27 issametext $(val24[$(val16[2])]) and $val28 issametext $(val24[$(val16[1])]))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonnes expressions pour \(u\) et \(v\)
+
+!exit
+
+:stat
+vsavelist=9,10,13,16,19,21,24,27,28
+embedcnt=3

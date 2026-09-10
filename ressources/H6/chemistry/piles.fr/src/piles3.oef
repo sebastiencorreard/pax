@@ -1,0 +1,119 @@
+\title{Calculs de quantité d'électricité}
+\author{Benoit Markey}
+\email{benoit.markey@ac-lille.fr}
+
+\integer{nreac=wims(recordcnt couples_piles.dat)}
+\integer{i=randint(1..\nreac-1)}
+\integer{j=randint(\i+1..\nreac)}
+
+\text{reac1=wims (record \i of couples_piles.dat)}
+\text{reac2=wims (record \j of couples_piles.dat)}
+
+
+\text{plus1=draw(20,20
+frect 0,0,20,20,232,232,232
+text black,8,3,medium,+
+circle 10,10,18,black)}
+\text{plus=<img src="\plus1">}
+
+\text{moins1=draw(20,20
+frect 0,0,20,20,232,232,232
+text black,8,3,medium,-
+circle 10,10,18,black)}
+\text{moins=<img src="\moins1">}
+
+\text{eq_moins=slib(chemistry/chemeq_rev \reac2[;1])}
+
+
+
+///////////////////////////////////////////////////
+// comptage des électrons, calcul des coefficients.
+// la fonction gcd() permet de connaître le PGCD.
+///////////////////////////////////////////////////
+\integer{oxyel=slib(chemistry/chemeq_el \reac1[;1])}
+\integer{redel=slib(chemistry/chemeq_el \reac2[;1])}
+\integer{gcd=gcd(\oxyel,\redel)}
+\integer{ppcm=lcm(\oxyel,\redel)}
+\integer{oxycoeff=\redel/\gcd}
+\integer{redcoeff=\oxyel/\gcd}
+
+///////////////////////////////////////////////////
+// application des coefficients.
+///////////////////////////////////////////////////
+\text{oxymulr=slib(chemistry/chemeq_add \oxycoeff,\reac1[;1])}
+\text{oxymultex=slib(chemistry/chemeq_tex \oxymulr)}
+
+\text{redmulr=slib(chemistry/chemeq_add -\redcoeff,\reac2[;1])}
+\text{redmultex=slib(chemistry/chemeq_tex \redmulr)}
+
+////////////////////////////////////////////////////
+// fabrication de l'équation-bilan.
+////////////////////////////////////////////////////
+\text{eqbilan=slib(chemistry/chemeq_add \oxycoeff,\reac1[;1],-\redcoeff,\reac2[;1])}
+
+\text{equationplus=slib(chemistry/chemeq_tex \reac1[;1])}
+\text{equationmoins=slib(chemistry/chemeq_tex \eq_moins)}
+\text{equationbilan=slib(chemistry/chemeq_tex \eqbilan)}
+\text{masseplus=slib(chemistry/chemeq_mass \reac1[;5])}
+\text{massemoins=slib(chemistry/chemeq_mass \reac2[;5])}
+\integer{t=randint(10..35)}
+\integer{I=randint(10..45)}
+\real{F=9.65e4}
+\real{rep1=\I*1e-3*\t*3600/\F}
+\real{rep2=\rep1/\oxyel}
+\real{rep3=\rep2*\masseplus}
+\real{rep4=\rep1/\redel*\massemoins}
+\text{rep1=slib(text/sigunits \rep1 mol,2)}
+\text{rep2=slib(text/sigunits \rep2 mol,2)}
+\text{rep3=slib(text/sigunits \rep3 g,2)}
+\text{rep4=slib(text/sigunits \rep4 g,2)}
+\statement{
+
+
+On considère la pile électrochimique suivante:
+\moins \(\reac2[;5]/\reac2[;4]//\reac1[;4]/\reac1[;5]) \plus <br>
+<ul>
+<li>La réaction se produisant au pôle \plus est: \(\equationplus)<br>
+
+<li>La réaction se produisant au pôle \moins est: \(\equationmoins) <br>
+<li>L'équation de la réaction globale de la pile est: \(\equationbilan)
+</ul> <br>
+<i>Données</i>:  F=9,65 &times;10<sup>4</sup> C&bull;mol<sup>-1</sup> <br>
+M(\reac1[;5])=\masseplus g&bull;mol<sup>-1</sup>; M(\reac2[;5])=\massemoins g&bull;mol<sup>-1</sup><br><br>
+Cette pile débite pendant une durée &Delta;t=\t h dans un circuit électrique dans lequel 
+circule un courant d'intensité I= \I mA.<br>
+<i><font color="blue"> On tiendra compte des unités et des chiffres significatifs</font></i>
+<ol>
+<li>Calculez la quantité de matiére n(e<sup>-</sup>) d'électrons transférés<br>
+<br>
+n(e<sup>-</sup>)=\embed{reply1}<br><br>
+<li>En s'aidant d'un ou plusieurs tableau(x) d'avancement, calculer la
+ quantité de matière de \reac1[;5] formé. <i>(Il est conseillé de 
+construire le tableau d'avancement de la  demi-réaction se réalisant à
+ l'électrode considérée. Voir l'aide à ce sujet.)</i><br>
+n(\reac1[;5])=\embed{reply2}<br><br>
+<li>En déduire la masse de \reac1[;5] formée:<br>
+m(\reac1[;5])=\embed{reply3}<br><br>
+<li>De la même manière, calculer la masse de \reac2[;5] consommée:
+<br>
+m(\reac2[;5])=\embed{reply4}<br><br></ol>
+}
+\answer{n(e<sup>-</sup>)}{\rep1}{type=sigunits}
+\answer{n(\reac1[;5])}{\rep2 }{type=sigunits}
+\answer{m(\reac1[;5])}{\rep3 }{type=sigunits}
+\answer{m(\reac2[;5])}{\rep4 }{type=sigunits}
+
+\help{
+Soit le couple [M<sup>n+</sup>/M], et sa demi-équation:
+M<sup>n+</sup> + n e<sup>-</sup> &rarr; M.<br>
+En construisant le tableau d'avancement, on a:<br>
+<table border=1><tr><th colspan=2>equation</th><td colspan=3>M<sup>n+</sup> + n e<sup>-</sup> &rarr; M</td></tr>
+<tr><th>Etat></th><th>Avancement</th><td>n(M<sup>n+</sup>)</td><td> n e<sup>-</sup></td><td>n(M)</td></tr>
+<tr><th>initial</th><th>x=0</th><td>n<sub>i</sub>(M<sup>n+</sup>)</td><td>n<sub>i</sub>e<sup>-</sup></td><td>n<sub>i</sub>(M)</td></tr>
+<tr><th>initial</th><th>x</th><td>n<sub>i</sub>(M<sup>n+</sup>)-x</td><td>n<sub>i</sub>e<sup>-</sup>-n&times;x</td><td>n<sub>i</sub>(M)+x</td></tr>
+</table>
+
+<br>On voit donc que le nombre de M <i>formées</i> est x. Comme le nombre de moles d'électrons transférées
+lors de la réaction est n&times;x, on en déduit la relation entre le nombre de moles de M formées et le nombre
+d'électrons transférées: N<sub>formé</sub>(M)=n(e<sup>-</sup><sub>transféré</sub>)/n
+}

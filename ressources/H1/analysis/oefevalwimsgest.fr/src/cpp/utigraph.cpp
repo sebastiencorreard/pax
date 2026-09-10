@@ -1,0 +1,124 @@
+target=oefutigraph2 oefutigraph3 oefutigraph4
+#if defined TARGET_oefutigraph2
+# define NUM 2
+#endif
+#if defined TARGET_oefutigraph3
+# define NUM 3
+#endif
+#if defined TARGET_oefutigraph4
+# define NUM 4
+#endif
+#include "lang_titles.inc"
+#include "author.inc"
+#if defined TARGET_oefutigraph3 || defined TARGET_oefutigraph4
+\integer{mm=50}
+#endif
+#if defined TARGET_oefutigraph2
+\integer{mm=0}
+#endif
+#include "lang.inc"
+\precision{10000}
+\matrix{v=50,50,50,60,70,60,40,50,50,50,50,50
+80,60,60,70,50,40,20,20,80,140,100,90
+50,40,50,50,60,60,60,40,50,60,50,60
+50,50,40,50,40,30,15,30,50,80,60,60
+30,40,40,40,80,80,70,60,60,50,50,40
+60,40,60,50,60,70,60,50,60,70,70,70}
+\integer{ch=randint(1..6)}
+\text{ville=\ville[\ch]}
+\text{v=row(\ch,\v)}
+
+\text{a=}
+\text{t=}
+#if defined TARGET_oefutigraph2
+\for{i=1 to 12}{
+  \integer{a=randint(\v[\i]-10..\v[\i]+10)}
+  \text{t=wims(append item \a to \t)}
+}
+#endif
+#if defined TARGET_oefutigraph3 || TARGET_oefutigraph4
+\for{i=1 to 12}{
+  \integer{a=randint(\v[\i]-10..\v[\i]+10)}
+  \integer{a=\a=50? \a+ randitem(1,-1)*6}
+  \integer{a=\a - 50 <4 and \a > 50 ? \a+6}
+  \integer{a=\a - 50 >-4 and \a < 50 ? \a-6}
+  \text{t=wims(append item \a to \t)}
+}
+#endif
+\text{bat1=frect 1,0,2,\t[1],red}
+\text{bat2=frect 3,0,4,\t[2],red}
+\text{bat3=frect 5,0,6,\t[3],red}
+\text{bat4=frect 7,0,8,\t[4],red}
+\text{bat5=frect 9,0,10,\t[5],red}
+\text{bat6=frect 11,0,12,\t[6],red}
+\text{bat7=frect 13,0,14,\t[7],red}
+\text{bat8=frect 15,0,16,\t[8],red}
+\text{bat9=frect 17,0,18,\t[9],red}
+\text{bat10=frect 19,0,20,\t[10],red}
+\text{bat11=frect 21,0,22,\t[11],red}
+\text{bat12=frect 23,0,24,\t[12],red}
+
+\integer{rp=\effs[1]}
+\for{i=2 to 6}{\integer{rp=\rp+\effs[\i]}}
+
+\text{gradu=}
+\for{k=1 to 12}{
+  \text{gradu=\gradu
+  text black,\k*2-0.5,-1,small,\k}}
+\for{k=10 to 150 step 10}{
+  \text{gradu=\gradu
+  text black,-1.5,\k+3.5,small,\k}}
+
+\text{fond=fill 0,0,220,220,255}
+\text{pic=draw(506,308,
+  xrange -2,25
+  yrange -20,160
+  \fond
+  parallel 1,0,1,150,1,0,25,grey
+  parallel -0.5,0.5,25,0.5,0,10,16,grey
+  linewidth 2
+  arrow -1,0,25,0,10,black
+  arrow 0,-1,0,160,10,black
+  text black,23,-9,medium,\name_header[1]
+  text black,0.5,159.9,medium,\name_header[2]
+  \gradu
+\bat1
+\bat2
+\bat3
+\bat4
+\bat5
+\bat6
+\bat7
+\bat8
+\bat9
+\bat10
+\bat11
+\bat12 )}
+\text{rp=}
+#if defined TARGET_oefutigraph2
+\for{j=1 to 12}{\integer{mm=max(\t[\j],\mm)}}
+\for{j=1 to 12}{
+  \if{\mm=\t[\j]}{\text{rp=wims(append item \j to \rp)}}}
+#endif
+#if defined TARGET_oefutigraph3
+\for{j=1 to 12}{
+  \if{\mm>\t[\j]}{\text{rp=wims(append item \j to \rp)}}}
+#endif
+#if defined TARGET_oefutigraph4
+\for{j=1 to 12}{
+  \if{\mm<\t[\j]}{\text{rp=wims(append item \j to \rp)}}}
+#endif
+\text{rp=\rp;\mois}
+
+\statement{<div class="wims_columns">
+  <div class="medium_size img_col">
+   <img src="\pic" alt="">
+  </div>
+  <div class="medium_size text_col">
+    \name_question \ville.
+  <div>\enonc1.
+  <div  class="spacer">\embed{r1}.</div></div>
+  </div>
+  </div>
+}
+\answer{}{\rp}{type=mark}

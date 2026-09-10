@@ -1,0 +1,176 @@
+target=suitebacST2Sn1
+#define NUM 1
+#include "author.inc"
+#include "lang_titles.inc"
+\precision{100}
+
+\integer{an1=randint(2005..2009)}
+\integer{an2=\an1+1}
+\integer{an3=\an1+2}
+\integer{an4=\an1+3}
+\integer{an5=\an1+4}
+\integer{an6=\an1+5}
+\integer{an7=\an1+6}
+\integer{anplus=randint(10..13)}
+\integer{aninf=randint(15..20)}
+\integer{anm=\an5+\anplus}
+\integer{anb=\an5+\aninf}
+
+\integer{nbrm1=randint(100000..250000)}
+\real{t2=randint(50..600)/-100}
+\integer{nbrm2=round((1+\t2/100)*\nbrm1)}
+\real{t3=randint(50..600)/-100}
+\integer{nbrm3=round((1+\t3/100)*\nbrm2)}
+\real{t4=randint(50..80)/100}
+\integer{nbrm4=round((1+\t4/100)*\nbrm3)}
+\real{t5=randint(50..600)/-100}
+\integer{nbrm5=round((1+\t5/100)*\nbrm4)}
+\real{tg=(\nbrm5-\nbrm1)/\nbrm1*100}
+\real{tmy=randint(200..400)/100}
+\real{r=1-\tmy/100}
+\integer{u1=round(\nbrm5*\r)}
+\integer{u2=round(\nbrm5*\r^2)}
+\function{explicite=\nbrm5*\r^n}
+\integer{nbrmanplus=round(\nbrm5*\r^(\anplus))}
+\integer{nbrmainf=round(\nbrm5*\r^(\aninf)/10000)*10000}
+\integer{ancher=round(ln(\nbrmainf/\nbrm5)/ln(\r))}
+\if{\nbrm5*\r^(\ancher)>\nbrmainf} {\integer{repseuil=\an5+\ancher+1}} {\integer{repseuil=\an5+\ancher}}
+\integer{mariages= round( \nbrm5*(1-\r^(\anplus+1))/(1-\r))}
+
+\text{data= ?? =(C2-B2)/B2,=(C2-B2)/C2, =C2/B2,=(C2-$B2)/$B2??
+
+?? le multiplier par , lui ajouter, lui soustraire??
+
+??géométrique,arithmétique, excentrique , cyclique ??
+
+??x,+, - ,/??
+
+??explicite,par récurrence , par errance , illicite, ?? }
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\text{data=wims(singlespace \data)}
+\text{data=wims(embraced randitem \data)}
+\text{data=slib(text/cutchoice2 \data)}
+\integer{qs=17}
+
+\text{good=}
+\text{field=}
+\for{i=1 to \qs}{
+ \text{f=\data[2*\i;]}
+ \text{g=\f[1]}
+ \text{f=wims(sort items \f)}
+ \text{g=positionof(\g,\f)}
+ \text{good=\good\g,}
+ \text{field=\field\f;}
+}
+
+\text{pre=wims(embraced randitem \pre)}
+\text{post=wims(embraced randitem \post)}
+\text{qlist=wims(makelist reply x for x=1 to \qs)}
+\steps{\qlist}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement {<div class="wims_msg info">
+Cet exercice est une adaptation d'un problème donné lors d'une épreuve du baccalauréat de la série ST2S.
+</div>
+<p>
+Le tableau ci-dessous, extrait d'une feuille de tableur,
+donne l'évolution du nombre de mariages en république du Mathland de \an1 à \an5.
+</p>
+<table class="wimscenter wimsborder">
+<tr><th style="width:30px"></th><th style="width:200px">A</th><th style="width:100px">B</th>
+<th style="width:100px">C</th><th style="width:100px">D</th><th style="width:100px">E</th><th style="width:100px">F</th></tr>
+<tr><th>1</th><td>Année</td><td>\an1</td><td>\an2</td><td>\an3</td><td>\an4</td><td>\an5</td></tr>
+<tr><th>2 </th><td>nombre de mariages</td><td>\nbrm1</td><td>\nbrm2</td><td>\nbrm3</td><td>\nbrm4</td><td>\nbrm5</td></tr>
+<tr><th>3</th><td>Taux d'évolution par rapport à l'année précédente</td><td>X</td><td>\t2%</td><td>\t3%</td><td>\t4%</td><td>\t5%</td></tr>
+</table>
+
+On précise que les cellules C3 à F3 sont au format pourcentage avec deux décimales.
+
+<div class="wims_instruction">FAIRE ATTENTION A BIEN RESPECTER LES APPROXIMATIONS DEMANDEES.</div>
+
+<ol><li>Une formule a été saisie dans la cellule C3 puis recopiée vers la droite
+jusqu'à la cellule F3 pour calculer le taux
+d'évolution du nombre de mariages en Mathland entre
+deux années consécutives de \an1 à \an5.
+
+<label for="reply1">La formule saisie dans la cellule C3 est :</label>
+
+\data[1;]
+\embed{r 1,\len} \data[2*1+1;]
+</li><li>
+  Calculer le taux global d'évolution arrondi au centième du nombre de mariages entre les années \an1 et \an5:
+  <label for="reply2">réponse=</label> \embed{reply 2,3}%
+</li><li>
+  On considère qu'à partir de \an5, le nombre de mariages continue à baisser chaque année de \tmy %. Pour tout entier
+n positif ou nul, on note \(u_n\) le nombre de mariages en Mathland pour l'année \(\an5+n\).
+Ainsi \(u_0= \nbrm5\).
+<ul><li>
+  <label for="reply3">À l'aide de ce modèle, estimer le nombre de mariages en Mathland en \an6
+  (arrondi à l'unité) :</label>
+  \embed{reply 3,10}.
+</li><li>
+  <label for="reply4">À l'aide de ce modèle, estimer le nombre de mariages en Mathland en \an7
+  (arrondi à l'unité) :</label>
+  \embed{reply 4,10}.
+</li><li>
+  Pour obtenir la valeur d'un terme de rang supérieur ou égal à 1, on peut prendre
+  le terme qui le précède et \embed{r 5,\len} \data[2*\5+1;]
+  <label for="reply6">le nombre</label> \embed{reply 6,4}.
+<div class="wims_instruction">Mettre tous les chiffres.</div>
+</li><li>
+  C'est donc une suite \embed{r 7,\len} \data[2*7+1;] <label for="reply8">de raison</label>
+  \embed{reply 8,4} (mettre tous les chiffres) <label for="reply9">et de premier terme</label>
+  <label for="reply9">\(u_0\) =</label> \embed{reply 9,10}.
+</li><li>
+  Par récurrence, on peut écrire <label for="reply10">\(u_(n+1)\)=</label>
+  \embed{reply 10,3}\embed{r 11,\len} \data[2*(11+1);] \(u_n\).
+</li><li>
+  Pour tout entier \(n\), exprimer \(u_n\) en fonction de \(n\).
+  Il s'agit de donner la forme \embed{r 12,\len} \data[5;] qui est :
+<label for="reply13">\(u_n\) =</label> \embed{reply 13,18}
+<div class="wims_instruction">Pour la puissance utiliser le symbole ^ et pour la multiplication utiliser *.</div>
+</li><li>
+ En suivant ce modèle, combien peut-on prévoir de mariages en \anm&nbsp;? On recherche le terme
+ <label for="reply14">de rang</label> \embed{reply 14,3}
+ qui arrondi à l'unité <label for="reply15">vaut</label> \embed{reply 15,12} mariages.
+</li><li>
+  Selon ce modèle, à partir de quelle année le nombre de mariages en Mathland
+  deviendrait-il inférieur à \nbrmainf&nbsp;?
+<div>
+  <label for="reply16">C'est à partir de l'année</label> \embed{reply 16,8}.
+</div>
+</li><li>
+  Selon ce modèle, combien peut-on prévoir de mariages
+  entre le 1er janvier \an5 et le 31 décembre \anm&nbsp;?
+<div>
+  <label for="reply17">On peut prévoir (arrondi à l'unité) qu'il y aura </label>
+  \embed{reply 17,12} mariages.
+</div>
+</li></ul>
+</li>
+</ol>
+}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%
+
+\answer{Champ 1}{\good[1];\field[1;]}{type=menu}
+\answer{2}{\tg}{numeric}{option=absolute}
+\answer{3}{\u1}{numeric}{option=absolute}
+\answer{4}{\u2}{numeric}{ }
+\answer{Champ 5}{\good[2];\field[2;]}{type=menu}
+\answer{6}{\r}{numeric}{option=absolute}
+\answer{Champ 7}{\good[3];\field[3;]}{type=menu}
+\answer{8}{\r}{numeric}{option=absolute}
+\answer{9}{\nbrm5}{numeric}{option=absolute}
+\answer{10}{\r}{numeric}{option=absolute}
+\answer{Champ 11}{\good[4];\field[4;]}{type=menu}
+\answer{Champ 12}{\good[5];\field[5;]}{type=menu}
+\answer{13}{\explicite}{function}
+\answer{14}{\anplus}{numeric}{option=absolute}
+\answer{15}{\nbrmanplus}{numeric}{option=absolute}
+\answer{16}{\repseuil}{numeric}{option=absolute}
+\answer{17}{\mariages}{numeric}{option=absolute}

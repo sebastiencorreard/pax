@@ -1,0 +1,200 @@
+!set title=Produit scalaire et cosinus
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+oefcss=<style> .enonce { margin:2% 2%; padding:1em;} </style> 
+
+ansorder=r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1/6,1/4,1/3,1/2,2/3,3/4,5/6,1
+val7=sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1
+val8=\frac{\sqrt{3}}{2},\frac{\sqrt{2}}{2},\frac{1}{2},0,-\frac{1}{2},-\frac{\sqrt{2}}{2},-\frac{\sqrt{3}}{2},-1
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 1,1,1,2,2,3
+
+t_=!rawmath $val9 /$(tmp0)
+val9=!exec pari print($t_)
+tmp0=!randint 1, 10
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem 1,1,1,2,2,3
+
+t_=!rawmath $val10/$(tmp0)
+val10=!exec pari print($t_)
+val11=$val9
+tmp0=!replace internal / by , in $val11
+
+val11=$(tmp0)
+tmp0=!itemcnt $val11
+
+
+!ifval $(tmp0)=1
+val11=$val11
+!else
+val11=\frac{$(val11[1])}{$(val11[2])}
+!endif
+val12=$val10
+tmp0=!replace internal / by , in $val12
+
+val12=$(tmp0)
+tmp0=!itemcnt  $val12
+
+
+!ifval $(tmp0)=1
+val12=$val12
+!else
+val12=\frac{$(val12[1])}{$(val12[2])}
+!endif
+tmp0=!randint 1, 8
+
+val13=$[rint($(tmp0))]
+t_=!rawmath $val9*$val10
+val14=!exec pari print($t_)
+val15=$val14*$(val7[$val13])
+tmp0=!texmath $val15
+
+val16=$(tmp0)
+t_=!rawmath $val15
+val17=!exec pari print($t_)
+val15=$[$val15]
+tmp0=!randitem  ,-
+
+val18=$(tmp0)
+tmp0=!text select 0123456789 in $val15
+
+val19=$(tmp0)
+tmp0=!charcnt $val19
+
+
+!ifval $(tmp0)<4 
+val19= 1
+!else
+val19=0
+!endif
+val20=$(val6[$val13])
+tmp0=!replace internal / by , in $val20
+
+val20=$(tmp0)
+
+!ifval $(val20[1])=1
+val21=\pi
+!else
+val21=$(val20[1]) \pi
+!endif
+
+!ifval $(val20[1])=-1
+val21=-\pi
+!endif
+tmp0=!itemcnt $val20
+
+
+!ifval $(tmp0)=1
+val20=$val21
+!else
+val20=\frac{$val21}{$(val20[2])}
+!endif
+val22=\overrightarrow{u} \cdot \overrightarrow{v} 
+val23=La formule du produit scalaire est:
+
+!ifval $val15==0 or $val19 =1
+val24= = 
+!else
+val24= \approx
+!endif
+val25=\( $val22= \Vert \overrightarrow{u} \Vert \times \Vert \overrightarrow{v}	\Vert \times cos \theta	= $val11 \times $val12 \times ($(val8[$val13])) = $val16 $val24 $val15)
+replytype1=numeric
+replyname1=\( $val22 )
+replygood1=$[$val15]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  $val23 <div class="wimscenter">$val25</div> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	On note 
+!insmath \ \theta
+$() une mesure de l'angle 
+!insmath (\overrightarrow{u},\overrightarrow{v})
+$()	en radians.	</div>	<div class="wims_question">	Déterminer la valeur exacte du produit scalaire	  
+!insmath  \overrightarrow{u} \cdot \overrightarrow{v}
+$() lorsque:	<div class="wimscenter"> 
+!insmath  \Vert \overrightarrow{u} \Vert = $val11
+$(),	  
+!insmath  \Vert \overrightarrow{v} \Vert = $val12
+$()	  et 
+!insmath \theta= $val18$val20
+$()	</div>	<label for="reply1">
+!insmath  \overrightarrow{u} \cdot \overrightarrow{v}
+$() =</label>  
+!read oef/embed.phtml reply 1,10 
+$().	</div>	<div class="wims_instruction">	<h2>Aide à la saisie</h2>	<p>	Pour saisir une racine carrée, taper sqrt(..), ex pour 
+!insmath \frac{\sqrt{2}}{2}
+$(), taper	<span class="tt">sqrt(2)/2</span>.	</p>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() $val23 <div class="wimscenter">$val25</div> 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,18,20,23,25
+embedcnt=1

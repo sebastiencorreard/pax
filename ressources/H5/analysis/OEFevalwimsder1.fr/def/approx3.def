@@ -1,0 +1,190 @@
+!set title=Approximation affine 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard ; Maguy, Bruno
+email=regine@mangeard.fr
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=\(-\infty)
+val7=\(+\infty)
+val8=\(\emptyset)
+val9=&#59;
+tmp0=!randitem 0,1
+
+tmp1=!randint -3, 3
+
+tmp=!translate internal $	$ to ; in 	1/(x+1)^2,$(tmp0),\(\RR \setminus) &#123;-1 &#125;	(x+1)^2,$(tmp1),\(\RR)	
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp2=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp2),2
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+val11=$[rint($(tmp0))]
+tmp0=!shuffle $val11
+
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $(val12[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+val14=$(val13[1])
+val15=$[rint($(val13[2]))]
+val16=$(val13[3])
+tmp=!nonempty items 0.001,0.002,0.003,0.005,0.006,0.008,0.01,0.015,0.02,0.03,0.05
+
+tmp0=!randitem $tmp
+tmp1=!randitem 1,-1
+
+val17=$[$(tmp0)*$(tmp1)]
+val18=$[-($val17)]
+val19=$[1+$val17]
+val20=$[1-$val17]
+val21=$[2+$val17]
+val22=$[2-$val17]
+
+!ifval $val17>0
+val23=[0,$val17]
+!else
+val23=[$val17,0]
+!endif
+tmp0=!replace internal x+1 by $val19 in $val14
+
+val24=$(tmp0)
+tmp0=!replace internal x+2 by $val21 in $val24
+
+val24=$(tmp0)
+tmp0=!mathsubst x=$val17 in $val24
+
+val24=$(tmp0)
+val25=!rawmath $val14
+val26=!rawmath $val24
+evaltmp=$val25
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+val27=$[$(tmp0)]
+val28=$[$val15+($val17)]
+tmp=!translate ;";': to $     $ in $val25,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val29=!rawmath $(tmp0)
+evaltmp=$val29
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+val31=$[$val30*$val17 +($val27)]
+replytype1=formal
+replyname1=Étape 1
+replygood1=$val29
+replytype2=numeric
+replyname2=Étape 2
+replygood2=$[$val30]
+replytype3=numeric
+replyname3=Étape 3
+replygood3=$[$val27]
+replytype4=numeric
+replyname4=Étape 4
+replygood4=$[$val31]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soit la fonction 
+!insmath f
+$() définie sur $val16 par 
+!insmath f(x)= $val25
+$().<br>	  Déterminer par approximation affine, une valeur approchée de 
+!insmath f($val28)
+$().	<ol>	<li><label for="reply1">Donner l'expression de 
+!insmath f'(x)
+$()&nbsp;:</label>  
+!read oef/embed.phtml reply1 
+$()</li>	<li>Puis calculer <label for="reply2">
+!insmath f'($val15)
+$()&nbsp;:</label> 
+!read oef/embed.phtml reply2 
+$() et	  <label for="reply3">
+!insmath f($val15)
+$()&nbsp;: </label> 
+!read oef/embed.phtml reply3 
+$()</li>	<li> En déduire	<label for="reply4">une valeur approchée de 
+!insmath f($val28)
+$()&nbsp;:</label>  
+!read oef/embed.phtml reply4 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()Une valeur approchée par approximation affine s'obtient par	<div class="wimscenter">
+!insmath f(x_0+h) \simeq f(x_0)+f'(x_0)h
+$()</div>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath f($val28) \simeq f($val15) + f'($val15)($val28-($val15)) \simeq $val27 + $val30 \times ($val17) \simeq $val31 
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,16,17,25,27,28,30,31
+embedcnt=4

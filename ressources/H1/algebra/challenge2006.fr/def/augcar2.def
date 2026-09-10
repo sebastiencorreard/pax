@@ -1,0 +1,125 @@
+!set title=Augmentation d'un carré
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+
+ansorder=c
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+val6=$[rint(-1)]
+tmp0=!randint 1, 4
+
+val7=$[rint($(tmp0)*10)]
+!if $val6=1 
+val8=augmenté
+val9=l'augmentation
+val10=$[((1+$val7/100)^2-1)*100]
+!else
+val8=diminué
+val9=la diminution
+val10=$[(1-(1-$val7/100)^2)*100]
+!endif
+val11=$[rint(sqrt($val10)*10)/10]
+val12=$[$val10/2]
+val13=$val11 %,$val12 %,$val10 %
+val7=$val7 %
+tmp0=!shuffle $val7,$val13
+
+val14=$(tmp0)
+val15=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val14
+
+val16=$[rint($(tmp0))]
+val17=
+val18=
+!for val19 =1 to $val16 
+tmp0=!item $val19 of $val14
+
+val20=$(tmp0)
+val21=R&eacute;ponse $(val15[$val19])
+!if $val20 isitemof $val7 
+tmp0=!append item $val21 to $val17
+
+val17=$(tmp0)
+!else
+tmp0=!append item $val21 to $val18
+
+val18=$(tmp0)
+!endif
+!next
+choicename1=Choisissez
+choicegood1=$val17
+choicebad1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	L'aire d'un carré a $val8 de $val10 %. <br>	Quel a été le pourcentage de $val9 de la longueur des côtés de ce carré ?	<ul>	 
+!for m_l=1 to $val16 
+$()	 <li>$(val15[$m_l]) : $(val14[$m_l])</li>	 
+!next
+$()	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,14,15,16
+embedcnt=0

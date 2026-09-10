@@ -1,0 +1,214 @@
+!set title=4. Le concessionnaire : + ou - de %
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of style.css
+
+val6=$(tmp0)
+val7=Quel sera le salaire d'Emmanuelle en fin de mois ?
+val8=https://www.onisep.fr/Ressources/Univers-Metier/Metiers/chef-cheffe-des-ventes
+tmp0=!randint 10, 50
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1200, 2100
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val11=$(tmp0)
+val12=d'augmenter,de diminuer
+
+!ifval $val11=1 
+tmp0=!item 1 of $val12
+
+val13= $(tmp0)
+!else
+tmp1=!item 2 of $val12
+
+val13=$(tmp1)
+!endif
+val14=$[(100+($val11)*$val9)]
+val15=$val14 % =>
+val16=$[rint((100+($val11)*$val9)*$val10/100)]
+val17=$[($val11)*$val9]
+val18=200x80x1
+val19=\( \frac {$val10 \times  $val14 } {100} )
+val20=\( \frac {$val10 \times  $val9 } {100} )
+val21=\( \frac {$val10 \times  100} {$val9} )
+val22=\( \frac {$val10 \times  100 } {$val9} )
+val23=Animateur,Entraineur,Coach,Manageur
+val24=Augmenter le chiffre d'affaire,Recruter des commerciaux,Encadrer ses collaborateurs,Concevoir des produits,Élaborer une stratégie marketing
+val25=Horaire variable, Sur les routes,A l'intérieur,Sous pression,Horaire fixe,Dans un bureau,A l'extérieur,Sans pression
+val26=BTS,BUT,Diplôme d'école supérieure de commerce ou de gestion,Master en marketing ou en vente
+val27=$val9,$val9 % =>,$val20,$val21,$val22
+tmp=!trim reply1, reply2, reply3, reply4, reply5	reply6	reply7, reply8, reply9, reply10, reply11	reply12	
+val28=!translate internal $	\
+$ to ;; in $tmp
+val29=Emmanuelle travaille en tant que commerciale	 chez un concessionnaire de voiture. Elle a un salaire fixe de $val10 &euro;.	 À chaque fin de mois, elle est conviée par <a class="lien" href="$val8" target="_blank"> le chef des ventes <span>la fiche métier</span></a>	 pour connaître le pourcentage des objectifs atteints.	En fonction des ventes réalisées,	 le chef décide $val13 son salaire de $val9 %.
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=radio
+replyoption1=shuffle split 
+replyname1=Son rôle est :
+replygood1=2,3,4;$val23
+replytype2=checkbox
+replyoption2=shuffle split 
+replyname2=Son but est :
+replygood2=1,2,3;$val24
+replytype3=checkbox
+replyoption3=shuffle split 
+replyname3=Ses conditions de travail sont :
+replygood3=1,2,3,4;$val25
+replytype4=range
+replyname4=Son salaire est de
+replygood4=!rawmath 3000,3300,3500
+replytype5=dragfill
+replyname5=Son diplôme minimum est de type
+replygood5=BTS;$val26
+replytype6=numeric
+replyweight6=5 
+replyname6=Le nouveau pourcentage est
+replygood6=$[$val14 ]
+replytype7=dragfill
+replyname7=Tableau 1
+replygood7=$val15;$val27
+replytype8=dragfill
+replyname8=Tableau 2
+replygood8=$val14
+replytype9=dragfill
+replyname9=Tableau 3
+replygood9=100
+replytype10=dragfill
+replyname10=Tableau 5
+replygood10=$val19
+replytype11=dragfill
+replyname11=Tableau 6
+replygood11=$val10
+replytype12=numeric
+replyweight12=5 
+replyname12=Votre nouveau salaire est de
+replygood12=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br>	<div class="consigne">	<div id="boited">	<img src="$val1/cons.jpg" alt="Voiture">	</div>	<div id="boiteg">	<img src="$val1/directeur.jpg" alt="Directeur">	</div>	<p class="problematique"> $val7</p>	<div class="consigne">$val29</div>	<br> 		 	
+!if $m_step==1 
+$()	<br>	<div class="consigne">	Après avoir consulté, la fiche métier	 en cliquant sur le lien <a class="lien" href="$val8" target="_blank"> le chef des ventes <span>la fiche métier</span></a>	 , répondez aux questions posées.	</div>	<br>	<div class="etape">ÉTAPE $m_step sur 4</div>	<div class="question">	Quel est le rôle d'un chef de ventes ? </div>	<ul>	 
+!for m_h = 1 to 4 
+$()<li> 
+!read oef/embed.phtml reply1,\h 
+$()</li> 
+!next
+$()	</ul>		<div class="question">Quel est le but d'un chef des ventes ? </div>	 
+!read oef/embed.phtml reply2 
+$()	<br>	<div class="question">Quelles sont ses conditions de travail ? </div>	  
+!read oef/embed.phtml reply3,$val18 
+$()	<br>	<div class="question">Quel est le salaire brut d'un débutant ? </div> 
+!read oef/embed.phtml reply4,4 
+$()	<br>	<div class="question">Quel est le diplôme minimum qu'il doit posséder ?</div>  
+!read oef/embed.phtml reply5,200x90x1 
+$()	 
+!endif
+$()	  	
+!if $m_step==2 
+$()	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	Le pourcentage lié au nouveau salaire est  de  
+!read oef/embed.phtml reply6, 4 
+$() %.	</div> 
+!endif
+$()		
+!if $m_step=3 
+$() 	<br>	<div class="consigne">	Le pourcentage vient $val13 de <b>$val14 %.</b></div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	Complètez le tableau ci-dessous pour calculer le nouveau salaire. 	<br>	<table class="wimscenter">	<tr>	<td> 
+!read oef/embed.phtml reply7,$val18 
+$()</td>	<td> 
+!read oef/embed.phtml reply8,$val18 
+$()pour</td>	<td> 
+!read oef/embed.phtml reply9,$val18 
+$()</td>	</tr><tr>	<td></td>	<td> 
+!read oef/embed.phtml reply10,$val18 
+$()</td>	<td> 
+!read oef/embed.phtml reply11,$val18 
+$()</td>	</tr></table>	<br>	</div>	 
+!endif
+$()			
+!if $m_step==4 
+$() 	<div class="consigne">Le calcul à réaliser est donc le suivant : <b>$val19</b>.</div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 4</div>	Le montant de son nouveau salaire est donc égale à  
+!read oef/embed.phtml reply12, 6 
+$() &#128;.	<br>	 Arrondissez votre résultat à l'euro près. 	</div>	   
+!endif
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="solution">	
+!if $m_step=2 
+$()	Pour calculer le pourcentage lié au nouveau salaire, il suffit de réaliser l'opération suivante :	100 + $val17 = $val14 
+!endif
+$()	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8,13,14,17,18,19,29
+embedcnt=12

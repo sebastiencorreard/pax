@@ -1,0 +1,76 @@
+\title{Schéma de Bernoulli 3}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+
+\css{<style>table {
+  width: 60%;
+}</style>}
+
+\integer{n=randint(3,4)}##Nombre de valeurs##
+\rational{p=randitem(0.05*randint(5..9);0.05*randint(11..15))}##Probabilité du succès##
+\rational{q=1-\p}
+
+##Choix du succès##
+\integer{q1=randint(1,2)}
+\text{succes=pile,face}
+
+##Réponses##
+\integer{prec=3}##Nombre de décimales voulues##
+\real{rep1=slib(stat/binomialpdf [0],\n,\p)}
+\real{rep2=slib(stat/binomialpdf [1],\n,\p)}
+\real{rep3=slib(stat/binomialpdf [2],\n,\p)}
+\real{rep4=slib(stat/binomialpdf [3],\n,\p)}
+\real{rep5=(\n=4)? slib(stat/binomialpdf [4],\n,\p):0}
+##Gestion des arrondis##
+\real{rep11=maxima(floor(10^\prec*\rep1)/(10^\prec))}
+\real{rep12=\rep11+10^(-\prec)}
+\real{rep1p=(maxima(mod(10^(\prec+1)*\rep1,10))>=5)? \rep12:\rep11}
+\real{rep21=maxima(floor(10^\prec*\rep2)/(10^\prec))}
+\real{rep22=\rep21+10^(-\prec)}
+\real{rep2p=(maxima(mod(10^(\prec+1)*\rep2,10))>=5)? \rep22:\rep21}
+\real{rep31=maxima(floor(10^\prec*\rep3)/(10^\prec))}
+\real{rep32=\rep31+10^(-\prec)}
+\real{rep3p=(maxima(mod(10^(\prec+1)*\rep3,10))>=5)? \rep32:\rep31}
+\real{rep41=maxima(floor(10^\prec*\rep4)/(10^\prec))}
+\real{rep42=\rep41+10^(-\prec)}
+\real{rep4p=(maxima(mod(10^(\prec+1)*\rep4,10))>=5)? \rep42:\rep41}
+\real{rep51=maxima(floor(10^\prec*\rep5)/(10^\prec))}
+\real{rep52=\rep51+10^(-\prec)}
+\real{rep5p=(maxima(mod(10^(\prec+1)*\rep5,10))>=5)? \rep52:\rep51}
+
+##Pour le corrigé##
+\text{S=\succes[\q1]}
+\text{E=\succes[3-\q1]}
+\matrix{cas3=\S-\E-\E, \E-\S-\E, \E-\E-\S
+\S-\S-\E, \S-\E-\S, \E-\S-\S}
+\matrix{cas4=\S-\E-\E-\E, \E-\S-\E-\E, \E-\E-\S-\E, \E-\E-\E-\S
+\S-\S-\E-\E, \S-\E-\S-\E, \S-\E-\E-\S, \E-\S-\S-\E, \E-\S-\E-\S, \E-\E-\S-\S
+\S-\S-\S-\E, \S-\S-\E-\S, \S-\E-\S-\S, \E-\S-\S-\S}
+
+\text{etapes=(\n=3)? r1,r2,r3,r4:r1,r2,r3,r4,r5}
+\steps{\etapes}
+
+\statement{On dispose d'une pièce truquée qui, à chaque fois qu'on la lance, donne "\succes[\q1]" avec une probabilité égale à \(\p\). On lance cette pièce \n fois de suite.  On note \(X\) la variable aléatoire qui donne le nombre de "\succes[\q1]s" obtenues.
+<div class="wims_question">Compléter la loi de probabilité de \(X\).</div>
+<div class="wims_scrollable" >
+<table class="wimsborder">
+   <tr><th>\(x)</th><td>\(0)</td><td>\(1)</td><td>\(2)</td>\if{\n>=3}{<td>\(3)</td>}\if{\n=4}{<td>\(4)</td>}</tr>
+   <tr><th>\(p(X=x))</th><td>\embed{r1,4}</td><td>\embed{r2,4}</td><td>\embed{r3,4}</td>\if{\n>=3}{<td>\embed{r4,4}</td>}\if{\n=4}{<td>\embed{r5,4}</td>}</tr>
+</table></div><br>
+<div class="wims_instruction">On pourra donner une valeur approchée à 10<sup>-\prec</sup> près des probabilités. Utiliser le point comme séparateur décimal.</div>}
+
+\answer{}{\rep11,\rep12,\rep1p}{type=range}
+\answer{}{\rep21,\rep22,\rep2p}{type=range}
+\answer{}{\rep31,\rep32,\rep3p}{type=range}
+\answer{}{\rep41,\rep42,\rep4p}{type=range}
+\answer{}{\rep51,\rep52,\rep5p}{type=range}
+
+\solution{<p>\(p(X=0)=(1-\p)^\n=\q^\n\)\if{\rep1p=\rep1}{\(=\rep1\)}{\(\simeq\rep1p\)}.</p>
+<p>L'événement \(X=1\) est formé des issues \if{\n=3}{\cas3[1;]}{\cas4[1;]}, chacune de probabilité \if{\n=3}{\(\p \times \q^2\)}{\(\p \times \q^3\)} donc sa probabilité est
+\if{\n=3}{\(3 \times \p \times \q^2\)}{\(4 \times \p \times \q^3\)}\if{\rep2p=\rep2}{\(=\rep2\)}{\(\simeq\rep2p\)}.</p>
+<p>L'événement \(X=2\) est formé des issues \if{\n=3}{\cas3[2;]}{\cas4[2;]}, chacune de probabilité \if{\n=3}{\(\p^2 \times \q\)}{\(\p^2 \times \q^2\)} donc sa probabilité est
+\if{\n=3}{\(3 \times \p^2 \times \q\)}{\(6 \times \p^2 \times \q^2\)}\if{\rep3p=\rep3}{\(=\rep3\)}{\(\simeq\rep3p\)}.</p> 
+<p>\if{\n=3}{\(p(X=3)=\p^\n\)}{L'événement \(X=3) est formé des issues \cas4[3;], chacune de probabilité \(\p^3 \times \q\) donc sa probabilité est
+\(4 \times \p^3 \times \q\)}\if{\rep4p=\rep4}{\(=\rep4\)}{\(\simeq\rep4p\)}.</p>
+\if{\n=4}{<p>\(p(X=4)=\p^\n\)\if{\rep5p=\rep5}{\(=\rep5\)}{\(\simeq\rep5p\)}.</p>}
+ }

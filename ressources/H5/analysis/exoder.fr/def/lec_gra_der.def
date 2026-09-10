@@ -1,0 +1,216 @@
+!set title=Etude de fonction 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=roots,functions
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -40, 40
+
+val7=$[rint($(tmp0))]
+!if $val6<$val7 
+val8=$[rint($val6)]
+val9=$[rint($val7)]
+!else
+val9=$[rint($val6)]
+val8=$[rint($val7)]
+!endif
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+val12=!rawmath $val11*(x-$val8)*(x-$val9)
+tmp=!translate ;";': to $     $ in $val12 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+t_=!replace internal \( by ( in 6*$(tmp0)
+tmp1=!exec maxima $t_
+
+val13=!rawmath $(tmp1)
+!readproc slib/function/bounds $val13, x,-5,5 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$[rint($(tmp0))]
+tmp0=!item 2 of $val14
+
+val16=$[rint($(tmp0))]
+tmp0=!randitem $val15,$val16
+
+val17=$[rint($(tmp0))]
+!if $val10=1 
+!if $val11>0 
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val8) in $evaltmp
+tmp0=($evaltmp)
+val17=$[rint(-$(tmp0))]
+!endif
+!if $val11<0 
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val9) in $evaltmp
+tmp0=($evaltmp)
+val17=$[rint(-$(tmp0))]
+!endif
+!endif
+val13=!rawmath $val13+$val17
+!if $val8=$val9 
+val18=$[rint(1)]
+!else
+val18=$[rint(2)]
+!endif
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val8) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val19=!exec pari print($t_)
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val9) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+!if $val19>0 
+val21=$[rint(0)]
+!endif
+!if $val19=0 
+val21=$[rint(1)]
+!endif
+!if $val19<0 
+val21=$[rint(2)]
+!endif
+!if $val20>0 
+val22=$[rint(0)]
+!endif
+!if $val20=0 
+val22=$[rint(1)]
+!endif
+!if $val20<0 
+val22=$[rint(2)]
+!endif
+val23=$[rint($val21*3+$val22+1)]
+!if $val11>0 
+val24=1,2,3,Imp,1,2,Imp,Imp,1
+!endif
+!if $val11<0 
+val24=1,Imp,Imp,2,1,Imp,3,2,1
+!endif
+tmp0=!item $val23 of $val24
+
+val25=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val26=$[rint($(tmp0))]
+val26=$[rint(1)]
+!if $val26=1 
+val27=la fonction \(f)
+val28=$[rint($val25)]
+!endif
+!if $val26=2 
+val27=la dérivée de la fonction \(f)
+val28=$[rint($val18)]
+!endif
+val29=$[rint(-10)]
+val30=$[rint(10)]
+val31=$[rint(1)]
+val32=$[rint(($val30-$val29)/$val31)]
+replytype1=default
+replyname1=Nombre
+replygood1=$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère une fonction 
+!insmath f
+$(), définie sur 
+!insmath \mathbb{R}
+$() par la	relation 
+!insmath f(x)=$val13
+$(). Construire le tableau de variations de la	fonction 
+!insmath f
+$() et	en déduire le nombre de solutions de l'équation 
+!insmath f(x)=0
+$().	<div class="spacer">	La fonction 
+!insmath f
+$() s'annule  
+!read oef/embed.phtml reply 1,10 
+$() fois sur 
+!insmath \mathbb{R}
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13
+embedcnt=1

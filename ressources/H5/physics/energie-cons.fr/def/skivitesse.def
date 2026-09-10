@@ -1,0 +1,200 @@
+!set title=ski de vitesse
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+val7=$[565]
+val8=$[1740]
+val9=$[asin($val7/$val8)]
+val10=$[180/pi*$val9]
+!readproc slib/text/sigunits $val10,3 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!randint 200, 240
+
+val11=$[$(tmp0)]
+val12=$[$val11/3.6]
+val6=$val6 vklms (1ere affectation)= $val12 ;
+val13=$[100/$val12]
+!readproc slib/text/sigunits $val13,4 
+tmp0=$slib_out
+val14=$(tmp0)
+val6=$val6 t= $val13 ts= $val14 ;
+val12=$[100/$val14]
+val6=$val6 vklms (2eme affectation)= $val12 ;
+!readproc slib/text/sigunits $val12,4 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!randint 45, 50
+
+val15=$[$(tmp0)*10]
+tmp0=!randint 14, 17
+
+val16=$[$(tmp0)/10]
+val17=$[$val16*$val15*$val7/$val8]
+!readproc slib/text/sigunits $val17,2 
+tmp0=$slib_out
+val17=$(tmp0)
+val18=$[-1*$val17]
+val19=$[asin($val17/$val15)]
+val20=$[180/pi*$val19]
+!readproc slib/text/sigunits $val20,3 
+tmp0=$slib_out
+val20=$(tmp0)
+val21=$[9.8]
+tmp0=!randint 65, 80
+
+val22=$[$(tmp0)]
+val23=$[sqrt(-2*$val21*$val18)]
+!readproc slib/text/sigunits $val23,3 
+tmp0=$slib_out
+val24=$(tmp0)
+val25=$[0.5*$val22*$val23^2]
+val26=$[0.5*$val22*$val12^2]
+val27=$[$val25-$val26]
+!readproc slib/text/sigunits $val27,3 
+tmp0=$slib_out
+val28=$(tmp0)
+val29=$[rint(0)]
+oefsteps=r1,r2	r3,r4,r5 
+nextstep=!nosubst r1,r2	r3,r4,r5 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=
+replygood1=$val10 °
+replytype2=units
+replyname2=
+replygood2=$val20 °
+replytype3=units
+replyname3=
+replygood3=$val12 m/s
+replytype4=units
+replyname4=
+replygood4=$val23 m/s
+replytype5=units
+replyname5=
+replygood5=$val27 J
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!if $val29=1 
+$()	<h3>debug</h3>	$val6<br>	
+!insmath \alpha
+$()=$val10°<br>	incpente=$val16<br>	dz= $val18 m<br>	vmax = $val23 m/s<br>	Vkl= $val12 m/s <br>	<p>	 
+!endif
+$()	<div style="float:left;">	<div style="width:300px;border:1px solid grey; padding:2px;margin-right:2em;">	<img src="$val1/ski-800px.jpg" width=300px">	<br>	photo placée sur <a href="http://en.wikipedia.org/wiki/Skiing">Wikipedia</a> par Charles J. Sharp, 	sous licence <a href="http://fr.wikipedia.org/wiki/Licence_de_documentation_libre_GNU">GFDL</a>.	</div>	<div style="background:lightyellow;width:300px;border:1px solid grey; padding:2px;margin-right:2em;">	Vous pouvez consulter des articles de Wikipedia au sujet	<ul>	<li> <a target="_new" href="http://fr.wikipedia.org/w/index.php?title=Ski_de_vitesse&oldid=36804284#Piste">	des pistes</a> de ski de vitesse&nbsp;; </li>	<li> <a target="_new" href="http://fr.wikipedia.org/w/index.php?title=Ski_de_vitesse&oldid=36804284#Records">	des records</a> réalisés en ski de vitesse.</li>	</ul>	</div>	</div>		Au <i>Stade de vitesse de l'Aiguille Rouge</i>, dans la station des ski alpine des Arcs, un record à la vitesse	de 250,70 km/h  a été enregistré par Philippe Goitschel le 23 avril 2002. Le profil de la piste est énoncé ainsi&nbsp;:	<br>altitude de départ : 2710 m, altitude d'arrivée : 2145 m, dénivelé : 565 m, longueur effective : 1740 m.	<hr>	Une skieuse passionnée s'entraîne dans le stade de vitesse de l'Aiguille Rouge&nbsp;; elle accélère sur	une distance de $val15 m pour s'élancer 	(le dénivelé étant 
+!insmath $val17
+$() m pour cette piste d'accélération), après	quoi elle parcourt cent mètres en $val14 s&nbsp;; sa vitesse au kilomètre lancé est déterminée sur ce tronçon de cent mètres.	<h4>Questions</h4>	<ol>	<li>En supposant que la pente soit constante tout au long du stade de vitesse, 	déterminez l'angle 
+!insmath \alpha
+$() que forme le sol de la piste du stade de vitesse avec	l'horizontale&nbsp;:<br>	
+!insmath \alpha
+$()= 
+!read oef/embed.phtml r1 
+$()<br>	<span style="color:green;font-size:70%">Précisez l'unité (° pour degré, rien pour radian).</span></li>	<li>En supposant que la pente soit constante tout au long de la piste d'accélération longue de $val15 m, 	déterminez l'angle 
+!insmath \alpha_1
+$() que forme le sol de la piste d'accélération avec	l'horizontale&nbsp;:<br>	
+!insmath \alpha_1
+$()= 
+!read oef/embed.phtml r2 
+$()<br>	<span style="color:green;font-size:70%">Précisez l'unité (° pour degré, rien pour radian).</span></li>	 
+!if $m_step>1 
+$()	<li>Calculez la vitesse v<sub>KL</sub> (kilomètre lancé) atteinte par la skieuse&nbsp;:	<br>v<sub>KL</sub>= 
+!read oef/embed.phtml r3 
+$()	<br><span style="color:green;font-size:70%">Précisez l'unité .</span></li>	<li>Quelle serait la vitesse maximale v<sub>max</sub>du skieur 	au bout des $val15 m la piste d'accélération, si aucun frottement n'avait dissipé d'énergei&nbsp;?	<br>v<sub>max</sub>= 
+!read oef/embed.phtml r4 
+$()	<br><span style="color:green;font-size:70%">Précisez l'unité . On prendra g = $val21 N.kg<sup>-1</sup></span>	</li>	<li>Comme la vitesse v<sub>KL</sub> est inférieure à la vitesse v<sub>max</sub>, on constate que des frottements	ont dissipé de l'énergie. Calculez la valeur E<sub>d</sub> de l'énergie dissipée par les frottements,	sachant que la skieuse avec son équippement a une masse m = $val22 kg&nbsp;:	<br>E<sub>d</sub>= 
+!read oef/embed.phtml r5 
+$()	<br><span style="color:green;font-size:70%">Précisez l'unité .</span>	</li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ol>	<li>
+!insmath \alpha = ArcSin(1740/565)
+$() = 
+!insmath $val10
+$()°</li>	<li>
+!insmath \alpha_1 = ArcSin($val15/$val17)
+$() = 
+!insmath $val20
+$()°</li>	 
+!if $m_step>1 
+$()	<li>Le skieur parcourt une distance de 100 m en 
+!insmath $val14
+$() s, d'où sa vitesse v<sub>KL</sub>= 100 / 
+!insmath $val14
+$()  = 
+!insmath $val12
+$()&nbsp;m/s	ou encore $val11 km/h</li>	<li>En l'absence de frottements, l'énergie mécanique se conserve, donc comme la skieuse est immobile au départ de	la piste d'accélération, 
+!insmath 1/2mv_{max}^2=E_c=\Delta E_c= - \Delta E_p = - mg \Delta z
+$()&nbsp;;<br>	donc 
+!insmath v_{max}=\sqrt{-2g\Delta z} = \sqrt{2\times 9,8 \times $val17}
+$() = 
+!insmath $val23
+$()&nbsp;m/s.</li>	<li>L'énergie dissipée est l'opposé de la variation de l'energie mécanique (car celle-ci diminue). 	
+!insmath E_d=-\Delta E_m=-(\Delta E_c+\Delta E_p)
+$()<br>	Donc 
+!insmath E_d = -1/2mv^2-mg\Delta z = m (-v_{KL}^2/2-g\Delta z) = $val22 (-$val12^2/2+9.8\times $val17)
+$() = 
+!insmath $val28
+$() J.	</li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,10,11,12,14,15,16,17,18,20,21,22,23,28,29
+embedcnt=5

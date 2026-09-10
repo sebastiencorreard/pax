@@ -1,0 +1,24 @@
+target=poissons
+
+#include "header.inc"
+
+\title{Poissons}
+
+\text{sh=shuffle(3)}
+\text{l1=item(\sh[1],sardines,anchois,harengs)}
+\text{l2=item(\sh[2],de sardines,d'anchois,de harengs)}
+\text{l3=item(\sh[3],de sardines,d'anchois,de harengs)}
+\integer{first=random(7..57)}
+\integer{second=random(5..92-\first)}
+\integer{third=100-\first-\second}
+\integer{t=\first%2=0?\first/2:\first}
+\integer{t=\t%5=0?\t/5}
+\integer{k=\t*randint(4..37)}
+\integer{r=100*\k/\first}
+
+\statement{
+ Les pêcheurs ont ramené \k \l1,  \second% \l2 et \third% \l3.
+ Combien y a-t-il de poissons ?
+}
+
+\reply{Nombre de poissons}{\r}{type=number}

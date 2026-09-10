@@ -1,0 +1,218 @@
+!set title=Variation d'une composée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+title_en=Variation d'une composée
+
+ansorder=r,r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=L'expression de la dérivée est
+val8=Sens de variation sur
+val9=strictement croissante, strictement décroissante, non définie
+val10=La fonction \(f\) est définie sur,par
+val11=Sur l'intervalle,la fonction \(f\) est
+val12=La fonction racine \( sqrt(u)\) est dérivable sur tout intervalle \(I\)	  où la fonction \(u\) est strictement positive et dérivable.	<br> La fonction \(u\) et sa racine carrée \( sqrt(u)\) ont	  donc les mêmes sens de variation sur \(I\).
+val13=La fonction inverse \( 1 / u \) est dérivable sur tout intervalle \(I\)	  où la fonction \(u\) ne s'annule pas et est dérivable.	<br> La fonction \(u\) et son inverse \( 1/u\) ont	  donc des sens de variation contraires sur \(I\).
+val14=Les fonctions \(u^2\) et \(u\) ont les mêmes sens de variation	  sur tout intervalle \(I\) où la fonction \(u\) est positive.	<br> Les fonctions \(u^2\) et \(u\) ont des sens de variation	  contraires sur tout intervalle \(I\) où la fonction \(u\) est négative.
+!if $val6=en 
+val7=The derivative is
+val8=Sens de variation sur
+val9=strictly increasing, strictly decreasing, not defined
+val10=The function \(f\) is defined on,by
+val11=On the interval,the function \(f\) is
+val12=The function square root \( sqrt(u)\) is differentiable at any interval \(I\)	  where the function \(u\) is strictly positive and differentiable.	<br>The function \(u\) and its square root \( sqrt(u)\) have	 les mêmes sens de variation sur \(I\).
+val13=The inverse function \( 1 / u \) is differentiable at any interval \(I\)	  where the function \(u\) does not vanish and is differentiable.	<br>The function \(u\) and its inverse \( 1/u\) have	  donc des sens de variation contraires sur \(I\).
+val14=The functions \(u^2\) and \(u\) ont les mêmes sens de variation	  on any interval \(I\) where the function \(u\) is positive.	<br> The functions \(u^2\) and \(u\) ont des sens de variation contraires	on any interval \(I\) where the function \(u\) is negative.
+!endif
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+val17=$[rint(($val16)^2)]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val18=$[rint($(tmp0)*$(tmp1))]
+val19=!rawmath $val15*x+$val16
+t_=!rawmath -$val16/$val15 
+val20=!exec pari print($t_)
+val21=!rawmath sqrt($val19), 1/($val19) , ($val19)^2
+tmp0=!randint 1, 3
+
+val22=$[rint($(tmp0))]
+tmp0=!item $val22 of $val21
+
+val23=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val23,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val24=!rawmath $(tmp0)
+
+!ifval $val15>0
+val25=$val20
+!else
+val25=-\infty
+!endif
+
+!ifval $val15>0
+val26=+\infty
+!else
+val26=$val20
+!endif
+
+!ifval $val15>0
+val27=-\infty
+!else
+val27=$val20
+!endif
+
+!ifval $val15>0
+val28=$val20
+!else
+val28=+\infty
+!endif
+val29=\( &#93; $val25 ; $val26 &#91; )
+val30=\( &#93; $val27 ; $val28 &#91; )
+
+!ifval $val22==1
+val31= \( &#93; $val25 ; $val26 &#91; \) 
+!endif
+
+!ifval $val22==2
+val31= \(\RR \setminus \{$val20\}\) 
+!endif
+
+!ifval $val22==3
+val31= \(\,\RR\) 
+!endif
+!if $val22==1 
+
+!ifval $val15>0 
+val32=$[rint( 1)]
+!endif
+
+!ifval $val15<0 
+val32=$[rint( 2)]
+!endif
+val33=$[rint(3)]
+!endif
+!if $val22==2 
+
+!ifval $val15>0 
+val32=$[rint( 2)]
+!endif
+
+!ifval $val15<0 
+val32=$[rint( 1)]
+!endif
+val33=$[rint($val32)]
+!endif
+!if $val22==3 
+
+!ifval $val15>0 
+val32=$[rint( 1)]
+!endif
+
+!ifval $val15<0 
+val32=$[rint( 2)]
+!endif
+
+!ifval $val15>0 
+val33=$[rint( 2)]
+!endif
+
+!ifval $val15<0 
+val33=$[rint( 1)]
+!endif
+!endif
+replytype1=radio
+replyname1=$val8 I
+replygood1=$val32 ; $val9
+replytype2=radio
+replyname2=$val8 J
+replygood2=$val33 ; $val9
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  <p>$val12</p> <p>$val13</p> <p>$val14</p>
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_question">	  $(val10[1]) $val31 $(val10[2]) 
+!insmath f(x) = $val23
+$().	  <div>	  $(val11[1]) $val29, $(val11[2])  
+!read oef/embed.phtml reply1 
+$().</div>	  <div>$(val11[1]) $val30,	  $(val11[2])  
+!read oef/embed.phtml reply2 
+$().</div>	  </div>	
+$()
+!exit
+
+:hint
+$() <p>$val12</p> <p>$val13</p> <p>$val14</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,14,23,29,30,31
+embedcnt=2

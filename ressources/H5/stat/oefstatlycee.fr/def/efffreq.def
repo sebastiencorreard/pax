@@ -1,0 +1,235 @@
+!set title=Effectif et fréquence
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 50
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 30, 40
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7+4)]
+!readproc slib/stat/random $val6, $val7,$val8 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!values x for x= $val7 to $val8+1
+
+val10=$(tmp0)
+!readproc slib/stat/effectif [$val9],[$val10] 
+tmp0=$slib_out
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val11=$(tmp0)
+tmp0=!declosing $val11
+
+val11=$(tmp0)
+!readproc slib/stat/arithmean [$val9] 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val12=$(tmp0)
+!readproc slib/stat/variance [$val9] 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val13=$(tmp0)
+!readproc slib/stat/freq [$val9],[$val10] 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val14=$(tmp0)
+tmp0=!declosing $val14
+
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$[round($(tmp0)*1000)/10]
+tmp0=!item 2 of $val14
+
+val16=$[round($(tmp0)*1000)/10]
+tmp0=!item 3 of $val14
+
+val17=$[round($(tmp0)*1000)/10]
+tmp0=!item 4 of $val14
+
+val18=$[round($(tmp0)*1000)/10]
+tmp0=!item 5 of $val14
+
+val19=$[round($(tmp0)*1000)/10]
+val20=$[$val15+$val16+$val17+$val18+$val19]
+tmp0=!item 1 of $val11
+
+val21=$(tmp0)
+tmp0=!item 2 of $val11
+
+val22=$(tmp0)
+tmp0=!item 3 of $val11
+
+val23=$(tmp0)
+tmp0=!item 4 of $val11
+
+val24=$(tmp0)
+tmp0=!item 5 of $val11
+
+val25=$(tmp0)
+val26=<table class="wimscenter wimsborder" style="background-color:skyblue">
+val27=$[rint(ceil($val6/10))]
+!for val28 =0 to $val27-1 
+val26=$val26 <tr>
+!for val29 =1 to 10 
+tmp0=!item $val28*10+$val29 of $val9
+
+val30=$(tmp0)
+val26=$val26 <td> $val30 </td>
+!next
+val26=$val26 </tr>
+!next
+val26=$val26 </table>
+tmp0=!item 1 of $val10
+
+val31=$[$(tmp0)]
+tmp0=!item 2 of $val10
+
+val32=$[$(tmp0)]
+tmp0=!item 3 of $val10
+
+val33=$[$(tmp0)]
+tmp0=!item 4 of $val10
+
+val34=$[$(tmp0)]
+tmp0=!item 5 of $val10
+
+val35=$[$(tmp0)]
+val36=<table class="wimscenter wimsborder">
+val36=$val36<tr><th> Ages </th>	<td> $val31 </td>	<td> $val32 </td>	<td> $val33 </td>	<td> $val34 </td>	<td> $val35 </td>	
+val36=$val36</tr>
+replytype1=numeric
+replyname1=Effectif 1
+replygood1=$[$val21]
+replytype2=numeric
+replyname2=Effectif 2
+replygood2=$[$val22]
+replytype3=numeric
+replyname3=Effectif 3
+replygood3=$[$val23]
+replytype4=numeric
+replyname4=Effectif 4
+replygood4=$[$val24]
+replytype5=numeric
+replyname5=Effectif 5
+replygood5=$[$val25]
+replytype6=numeric
+replyname6=Fréquence 1
+replygood6=$[$val15]
+replytype7=numeric
+replyname7=Fréquence 2
+replygood7=$[$val16]
+replytype8=numeric
+replyname8=Fréquence 3
+replygood8=$[$val17]
+replytype9=numeric
+replyname9=Fréquence 4
+replygood9=$[$val18]
+replytype10=numeric
+replyname10=Fréquence 5
+replygood10=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici les âges recensés dans une population à la suite d'une étude:		$val26	<p>	Compléter le tableau suivant	</p>	$val36	<tr><th>Effectif</th>	<td> 
+!read oef/embed.phtml reply 1,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 2,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 3,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 4,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 5,8 
+$() </td>	</tr>		<tr><th>Fréquence</th>	<td> 
+!read oef/embed.phtml reply 6,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 7,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 8,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 9,8 
+$() </td>	<td> 
+!read oef/embed.phtml reply 10,8 
+$() </td>		</tr>	</table>	<div class="wims_instruction"> Arrondir les fréquences à	
+!insmath 10^{-1}
+$() près, le total des fréquences attendu est $val20.</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,26,36
+embedcnt=10

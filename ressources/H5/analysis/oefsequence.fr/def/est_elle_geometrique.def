@@ -1,0 +1,178 @@
+!set title=La suite est-elle géométrique ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+
+ansorder=r,r
+varcnt=35
+prevarcnt=33
+postvarcnt=1
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -100, 100
+
+val6=$[$(tmp0)/10]
+!if $val6=0 
+val6=$[rint(1)]
+!endif
+tmp0=!randint 2, 25
+
+val7=$[rint($(tmp0))]
+val8=$[$val7*$val6]
+val9=$[$val7*$val8]
+val10=$[$val7*$val9]
+val11=$[$val7*$val6+1]
+val12=$[$val7*$val8+1]
+val13=$[$val7*$val9+1]
+tmp=!trim $val6,$val8,$val9,$val10;$val6,$val11,$val12,$val13
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val15=$[rint($(tmp0))]
+val16=$(val14[$val15;])
+val17=r1
+val18=La population d'un certain pays, Le prix d'un article, Le nombre d'abonnés à une revue, Le capital de M. X,	Le taux de chômage, La production d'une usine 
+val19=la population , le prix de cet article , le nombre d'abonnés, son capital, le taux de chômage,	la production de cette usine
+tmp0=!randint 1, 6
+
+val20=$[rint($(tmp0))]
+val21=croît, augmente, décroît, diminue
+tmp0=!randint 1, 4
+
+val22=$[rint($(tmp0))]
+tmp=!nonempty items 2000,2002,2004,2006,2008,2010,2012
+
+tmp0=!randitem $tmp
+val23=$(tmp0)
+tmp0=!randint 1, 50
+
+val24=$[$(tmp0)/10]
+val25=$(val18[$val20]) $(val21[$val22]) de $val24 % par an.<br> On note	u<sub>n</sub> $(val19[$val20]) l'année $val23+n	. On définit ainsi une suite numérique (u<sub>n</sub>).
+val26=On donne les premiers termes d'une suite :<br>	<table width=100%>	<tr>	<td>u<sub>0</sub>=$(val16[1])</td>	<td>u<sub>1</sub>=$(val16[2])</td>	<td>u<sub>2</sub>=$(val16[3])</td>	</tr>	</table>	
+tmp0=!randint 1, 2
+
+val27=$[rint($(tmp0))]
+!if $val27=1 
+val28=$val25
+!else
+val28=$val26
+!endif
+!if $val27=1 
+val29=1
+!else
+!if $val15=2 
+val29=3
+!else
+val29=2
+!endif
+!endif
+val30=est,semble,n'est pas
+val31=$(val30[$val15])
+!if $val29=1 and ($val22=1 or $val22=2) 
+val32=$[1+$val24/100]
+!endif
+!if $val29=1 and ($val22=3 or $val22=4) 
+val32=$[1-$val24/100]
+!endif
+!if $val29=2 
+val32=$[$val7]
+!endif
+dynsteps=yes
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val29;$val30
+replytype2=numeric
+replyname2=q
+replygood2=$[$val32]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<div id="enonce">	$val28	</div>			
+!if $m_step=1 
+$()	<div class="question">	<p class="reponse">Cette suite  
+!read oef/embed.phtml r1 
+$() géométrique.</p>	</div>	 
+!endif
+$()			
+!if $m_step=2 and ($val29=1 or $val29=2) 
+$()	<div class="question">	
+!if $val29=1 
+$()<p class="oui">Effectivement cette suite est géométrique.	</p> 
+!else
+$()	 <p class="consigne">On suppose que cette suite est géométrique.</p> 
+!endif
+$()<br>	Quelle est sa raison ?	<p class="reponse">q= 
+!read oef/embed.phtml r2 
+$()</p>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 and ($val29=1 or $val29=2) 
+val17=r2
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=28,29
+embedcnt=2

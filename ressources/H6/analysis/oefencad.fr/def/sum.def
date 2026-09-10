@@ -1,0 +1,207 @@
+!set title=Somme 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gérard, Lauton
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=et
+val7=Le type d'inégalités est imposé, on ne cherche pas à savoir si les bornes	  sont atteintes.
+val8=Soient \(x\) et \(y\) deux réels vérifiant
+val9=Les valeurs possibles de \(x\) et \(y\) sont figurées ci-dessous	  en <span style="color:red">rouge</span> pour \(x\) et	  <span style="color:green">en vert</span> pour \(y\).
+val10=Trouvez le meilleur encadrement de la somme de \(x\) et de \(y\)
+val11=La réponse n'a pas de sens car
+val12=Votre encadrement est juste, mais n'est pas le meilleur possible.
+tmp0=!randint 1, 8
+
+tmp1=!randitem -1,1
+
+val13=$[$(tmp0)*$(tmp1)]
+tmp0=!randint $val13+2, 10
+
+val14=$[$(tmp0)]
+tmp0=!randint 1, 8
+
+tmp1=!randitem -1,1
+
+val15=$[$(tmp0)*$(tmp1)]
+!while $val15=$val13 
+tmp0=!randint 0, 8
+
+tmp1=!randitem -1,1
+
+val15=$[$(tmp0)*$(tmp1)]
+!endwhile
+tmp0=!randint $val15+2, 10
+
+val16=$[$(tmp0)]
+val17=$[rint($val13+$val15)]
+val18=$[rint($val14+$val16)]
+val19=$[rint($val17)]
+val20=$[rint($val18)]
+t_=!replace internal \( by ( in vecmin([$val19,0,$val13,$val15])-2
+tmp0=!exec pari $t_
+
+val21=$[rint($(tmp0))]
+t_=!replace internal \( by ( in vecmax([$val20,0,$val14,$val16])+2
+tmp0=!exec pari $t_
+
+val22=$[rint($(tmp0))]
+val23=-x+$val19,-x+$val20
+val24=17
+val25=12
+val26=0.18
+val27=0
+val28=3
+val29=text blue,-10-0.25,-1.5,medium,-10
+!for val30 = -9 to -1 
+val29=$val29	text blue,$val30-0.25,-1.5,medium,$val30
+!next
+val31=text blue,0,-1.5,medium,0
+!for val30 = 1 to 10 
+val31=$val31	text black,$val30,-1.5,medium,$val30
+!next
+val32=range -12,12,-8,8	linewidth 1	parallel -12,-1,-12,1,1,0,25,red	parallel -12,-0.5,-12,0.5,0.5,0,48,red	linewidth 3	arrow -12.0,0,12.0,0,20,blue	fcircle 0,0,$val24,blue	$val29	$val31	hline 0,0,black
+
+!ifval $val13>0
+val33=$[$val13]
+!else
+val33=$[$val13-0.25]
+!endif
+
+!ifval $val14>0
+val34=$[$val14]
+!else
+val34=$[$val14-0.25]
+!endif
+
+!ifval $val15>0
+val35=$[$val15]
+!else
+val35=$[$val15-0.25]
+!endif
+
+!ifval $val16>0
+val36=$[$val16]
+!else
+val36=$[$val16-0.25]
+!endif
+val37=$val32	fcircle 0,0,$val25,blue	fcircle $val13,$val27,$val25,red	fcircle $val14,$val27,$val25,red	fcircle $val15,-0.5,$val25,green	fcircle $val16,-0.5,$val25,green	linewidth 4	segment $val13,$val26,$val14,$val26,red	segment $val15,-0.5,$val16,-0.5,green	text red,$val33,$val28,medium,$val13	text red,$val34,$val28,medium,$val14	text green,$val35,5,medium,$val15	text green,$val36,5,medium,$val16	
+val38=$[rint($val22-$val21+1)]
+val39=xrange $val21,$val22	   yrange $val21,$val22	   parallel $val21,$val21,$val22,$val21,0,1,$val38, grey	   parallel $val21,$val21,$val21,$val22,1,0,$val38, grey	   fpoly red,$val13,$val15,$val14,$val15,$val14,$val16,$val13,$val16	   arrow $val21,0,$val22,0,8,black	   arrow 0,$val21,0,$val22,8,black	   arrow 0,0,1,0,8, black	   arrow 0,0,0,1,8, black	   plot green, $(val23[1])	   plot green, $(val23[2])	   fcircle 0,0,10,black	   fcircle $val19,0,10,green	   fcircle $val20,0,10,green	   text black,-0.3,-0.5,times, O	   text black,$val22-0.5,1,times, x	   text black,0.5,$val22-0.25,times, y	   text black,$val19 -0.3,-0.5,times,$val19	   text black,$val20 -0.3,-0.5,times,$val20	
+val40=<p>Dans le plan muni d'un repère	  \(( O \overrightarrow{x}\textrm{,} O \overrightarrow{y} )\),	  l'ensemble des points de coordonnées \((x,y)\) vérifiant les inégalités	  \({$val13 < x < $val14}\) et \({$val15 < y <$val16}\)	  est le rectangle <span style="color:red";>rouge</span>	  situé dans la bande délimitée par les deux droites vertes	  d'équations \(x + y = $val17\) et \(x + y = $val18\).</p>	  <p>Ces droites sont parallèles à la droite d'équation \(x + y = 0\),	  seconde bissectrice de l'angle	  \(( O \overrightarrow{x}\textrm{,} O \overrightarrow{y} )\).	  Leurs ordonnées en \(0\) sont les bornes \(m\) et \(M\)	  qui encadrent la somme \(x+y\) pour tous les points \((x,y)\) du rectangle rouge.</em>	  </p>	
+replytype1=numexp
+replyname1=
+replygood1=$val17
+replytype2=numexp
+replyname2=
+replygood2=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val7
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val8:	  
+!insmath {$val13 < x < $val14}
+$() $val6 
+!insmath {$val15 < y < $val16}
+$().	  <p>$val9</p>	  <p class="wimscenter"> 
+!read oef/draw.phtml 900,100 \
+$val37 
+$()</p>	  <label for="reply1">$val10:</label>	  <div class="wimscenter"> 
+!read oef/embed.phtml r1,3 
+$()	  <label for="reply2">
+!insmath {< x + y <}
+$()</label>  
+!read oef/embed.phtml r2,3 
+$().	  </div>
+$()
+!exit
+
+:hint
+$()$val7
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>En additionnant terme à terme les bornes de l'encadrement	
+!insmath {$val13 < x < $val14}
+$() de 
+!insmath x
+$() et de celui 
+!insmath {$val15 < y < $val16}
+$() de 
+!insmath y
+$(), on obtient :	</p>	<p class="wimscenter">
+!insmath {$val17 < x + y < $val18}
+$().</p>	<p><em>On peut visualiser cet encadrement de la somme 
+!insmath x + y
+$()	par la figure ci-dessous.</em>	$val40</p>	<p class="wimscenter"> 
+!read oef/draw.phtml 400,400  \
+$val39 
+$()</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1>$m_reply2
+ <div class='oef_feedbacks'>$val11 $m_reply1 > $m_reply2.
+$()</div>
+!endif
+!ifval $m_reply1<$val17 and $m_reply22$val18
+ <div class='oef_feedbacks'>$val11
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,13,14,15,16,17,18,37,39,40
+embedcnt=2

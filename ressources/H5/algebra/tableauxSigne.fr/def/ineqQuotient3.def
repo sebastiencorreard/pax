@@ -1,0 +1,502 @@
+!set title=Inéquation avec quotient (3)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=132
+prevarcnt=131
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Numérateur,Forme canonique,Signe du numérateur,Intervalles de solutions
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val7=$(tmp0)
+val8=Résoudre algébriquement sur \(\RR\;\) l'inéquation (1)
+val9=avec
+val10=L'inéquation (1) équivaut à l'inéquation suivante 
+val11=On a montré que résoudre (1) équivaut à résoudre l'inéquation (2)
+val12=forme développée,forme factorisée
+val13=Faire <span class="enrouge">sur papier libre</span> l'étude des signes du quotient
+val14=Ensuite, dans la liste suivante, cocher tous les intervalles	  dont la réunion est l'ensemble des solutions de l'inéquation (1)
+val15=On peut réécrire le numérateur \(u(x)\) sous forme canonique 
+val16=Que peut-on dire du numérateur
+tmp=!trim On constate que le numérateur,ne se factorise pas et garde un signe constant.	  On constate que le numérateur se factorise en
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 4
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val20=$[rint($(tmp0)*$(tmp1))]
+!if $val19 == $val20 
+val20=$[rint(-$val20)]
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val21=$[rint($val20 + $(tmp0)*$(tmp1))]
+t_=!rawmath ($val19+$val18+$val21)/2
+val22=!exec pari print($t_)
+t_=!rawmath floor(($val19+$val18+$val21)/2)
+val23=!exec pari print($t_)
+!if $val23 != $val22 
+val21=$[rint($val21 +1)]
+!endif
+!if $val21 ==$val20 
+val21=$[rint($val21 +2)]
+!endif
+!if $val19*$val21+$val20*$val18 == 0 
+val18=$[rint($val18 -1)]
+!endif
+val24=!rawmath x - $val19
+val25=!rawmath x - $val20
+!if $val21==0 
+val26=!rawmath x 
+!else
+val26=!rawmath x - $val21
+!endif
+val27=$[rint(- ($val19 +$val18+$val21))]
+val28=$[rint($val27/2)]
+val29=$[rint($val19*$val21 + $val18*$val20)]
+tmp=!translate ";': to $     $ in x^2 +$val27*x + $val29
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=!rawmath $(tmp0) 
+val31=$[rint($val29 - (($val28)^2))]
+val32=$[rint(abs($val31))]
+val33=$[sqrt($val32)]
+val34=$[rint(floor($val33))]
+val35=$[rint(-$val28)]
+!if $val33 == $val34  
+val36=$[rint($val35 -$val33)]
+val37=$val36
+val38=$[rint($val35 +$val33)]
+val39=$val38
+tmp=!translate ";': to $     $ in (x - $val36)(x - $val38)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val40=!rawmath $(tmp0)
+!else
+val36=$[$val35 -$val33]
+val38=$[$val35 +$val33]
+!if $val28==0 
+val37=- sqrt($val32)
+!else
+val37=$val35 - sqrt($val32)
+!endif
+!if $val28==0 
+val39=sqrt($val32)
+!else
+val39=$val35 + sqrt($val32)
+!endif
+!if $val28==0 
+val40=(x - sqrt($val32) )(x + sqrt($val32))
+!else
+val40=(x + $val28 - sqrt($val32) )(x + $val28 + sqrt($val32))
+!endif
+!endif
+val41=$[rint($val28+$val32)]
+val42=$[rint($val28-$val32)]
+!if $val28==0 
+val43=!rawmath x^2 + $val31
+!else
+val43=!rawmath (x + $val28)^2 + $val31
+!endif
+val44=!rawmath ($val25)($val26)
+val45=!rawmath ($val30) / ($val44)
+val46=!rawmath ($val43) / ($val44)
+val47=<,>,\leq,\geq
+tmp0=!shuffle $val47
+
+tmp1=!item 1 of $(tmp0)
+
+val48=$(tmp1)
+val49=($val24) / ($val25) $val48 $val18 / ($val26) 
+val50=\(u(x)) ne se factorise pas et garde un signe constant, \(u(x)) ne garde pas un signe constant,	\(u(x)) se factorise en \($val40) , \(u(x)) se factorise en \((x -$val41 )(x -$val42 )) 
+
+!ifval $val31>0
+val51=1
+!else
+val51=2,3
+!endif
+!if $val31 <0 
+val52=$val36,$val38,$val20,$val21
+val53=$[$val36]
+val54=$[rint(1)]
+!for val55  = 2 to 4 
+!if $val53 > $(val52[$val55]) 
+val53=$[$(val52[$val55])]
+val54=$[rint($val55)]
+!endif
+!next
+!if $val54==1 
+tmp0=!item 2 to 4 of $val52
+
+val56=$(tmp0)
+!else
+!if $val54==4 
+tmp0=!item 1 to 3 of $val52
+
+val56=$(tmp0)
+!else
+tmp0=!item 1 to ($val54-1) of $val52
+
+tmp1=!item ($val54+1) to 4 of $val52
+
+val56=$(tmp0),$(tmp1)
+!endif
+!endif
+val57=$val53
+val53=$[$(val56[1])]
+val54=$[rint(1)]
+!for val55  = 2 to 3 
+!if $val53 > $(val56[$val55]) 
+val53=$[$(val56[$val55])]
+val54=$[rint($val55)]
+!endif
+!next
+val57=$val57,$val53
+!if $val54==1 
+tmp0=!item 2 to 3 of $val56
+
+val58=$(tmp0)
+!else
+!if $val54==3 
+tmp0=!item 1 to 2 of $val56
+
+val58=$(tmp0)
+!else
+val58=$(val56[1]),$(val56[3])
+!endif
+!endif
+!if $(val58[1])>$(val58[2]) 
+val58=$(val58[2]),$(val58[1])
+!endif
+val57=$val57,$val58
+tmp0=!item 1 of $val57
+
+val59=$(tmp0)
+!if $val59 == $val36 
+val59=$val37
+!endif
+!if $val59 == $val38 
+val59=$val39
+!endif
+tmp0=!item 2 of $val57
+
+val60=$(tmp0)
+!if $val60 == $val36 
+val60=$val37
+!endif
+!if $val60 == $val38 
+val60=$val39
+!endif
+tmp0=!item 3 of $val57
+
+val61=$(tmp0)
+!if $val61 == $val36 
+val61=$val37
+!endif
+!if $val61 == $val38 
+val61=$val39
+!endif
+tmp0=!item 4 of $val57
+
+val62=$(tmp0)
+!if $val62 == $val36 
+val62=$val37
+!endif
+!if $val62 == $val38 
+val62=$val39
+!endif
+val63=&#93; -&#8734; &#44; \( $val59) &#93; 
+val64=&#93; -&#8734; &#44; \( $val59) &#91; 
+val65=&#91;\( $val59 ) &#44; \( $val60 ) &#93; 
+val66=&#93; \( $val59 ) &#44; \( $val60 ) &#91; 
+val67=&#93;\( $val59 ) &#44; \( $val60 ) &#93; 
+val68=&#91; \( $val59 ) &#44; \( $val60 ) &#91; 
+val69=&#91; \( $val60 ) &#44; \( $val61 ) &#93; 
+val70=&#93; \( $val60 ) &#44; \( $val61 ) &#91; 
+val71=&#93; \( $val60 ) &#44; \( $val61 ) &#93; 
+val72=&#91; \( $val60 ) &#44;\( $val61 ) &#91; 
+val73=&#91; \( $val61 ) &#44; \( $val62 ) &#93; 
+val74=&#93; \( $val61 ) &#44; \( $val62 ) &#91; 
+val75=&#93; \( $val61 ) &#44; \( $val62 ) &#93; 
+val76=&#91; \( $val61 ) &#44; \( $val62 ) &#91; 
+val77=&#91; \( $val62) &#44; +&#8734; &#91; 
+val78=&#93; \( $val62) &#44; +&#8734; &#91; 
+val79=$val64,$val63,$val65,$val66,$val67,$val68,$val69,$val70,$val71,$val72,$val73,$val74,$val75,$val76,$val77,$val78
+
+!ifval ($val48 issametext < )
+val80=4,12
+!endif
+
+!ifval ($val48 issametext \leq )
+val80=6,13
+!endif
+
+!ifval ($val48 issametext > )
+val80=1,8,16
+!endif
+
+!ifval ($val48 issametext \geq )
+val80=2,8,15
+!endif
+!endif
+!if $val31 >0 
+val57=$val20,$val21
+tmp0=!sort items $val57
+
+val57=$(tmp0)
+tmp0=!item 1 of $val57
+
+val59=$(tmp0)
+tmp0=!item 2 of $val57
+
+val60=$(tmp0)
+val63=&#93; -&#8734; &#44; $val59 &#93; 
+val64=&#93; -&#8734; &#44; $val59 &#91; 
+val65=&#91;$val59 &#44; $val60 &#93; 
+val66=&#93; $val59 &#44; $val60 &#91; 
+val67=&#93; $val59 &#44; $val60 &#93; 
+val68=&#91; $val59 &#44; $val60 &#91; 
+val72=&#91; $val60 &#44; +&#8734; &#91; 
+val70=&#93; $val60 &#44; +&#8734; &#91; 
+val79=$val64,$val63,$val65,$val66,$val67,$val68,$val72,$val70
+
+!ifval ($val48 issametext < )
+val80=4
+!endif
+
+!ifval ($val48 issametext \leq )
+val80=4
+!endif
+
+!ifval ($val48 issametext > )
+val80=1,8
+!endif
+
+!ifval ($val48 issametext \geq )
+val80=1,8
+!endif
+!endif
+oefsteps=reply1	 reply2	 reply3	 reply4 
+nextstep=!nosubst reply1	 reply2	 reply3	 reply4 
+!readproc oef/steps.proc
+replytype1=algexp
+replyoption1=nonstop 
+replyname1=$(val6[1])
+replygood1=$val30
+replytype2=integer
+
+replyoption2=nonstop 
+replyname2=$(val6[2])
+replygood2=$val31
+replytype3=checkbox
+replyoption3=shuffle 
+replyoption3=nonstop 
+replyname3=$(val6[3])
+replygood3=$val51 ; $val50
+replytype4=checkbox
+replyname4=$(val6[4])
+replygood4=$val80 ; $val79
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_question">$val8: 
+!insmath $val49
+$().</div>	  <ol><li>	
+!if $m_step==1 
+$()	  $val10: 
+!insmath \frac{u(x)}{($val25)($val26)} $val48 0
+$() $val9	<div class="wimscenter">
+!insmath u(x)
+$() =  
+!read oef/embed.phtml reply1, 20 
+$() ($(val12[1])).</div>	 
+!else
+$() 	$val11: 
+!insmath $val45
+$() 
+!insmath $val48 0
+$().	  
+!endif
+$()	</li>	
+!if $m_step==2 
+$()	<li>$val15:	 <p class="wimscenter">
+!insmath u(x)
+$() = 
+!insmath $val30
+$() = 
+!insmath  (x + $val28)^2 + \beta
+$()	 $val9 
+!insmath \beta = 
+$() 
+!read oef/embed.phtml reply2, 6 
+$().</p>	</li>	 
+!endif
+$()	
+!if $m_step >2 
+$()	  <li>$val10 :	  
+!insmath $val46
+$() &nbsp; 
+!insmath $val48
+$() &nbsp; 0.</li>	 
+!endif
+$()	
+!if $m_step==3 
+$()	  <li>$val16 
+!insmath $val43
+$() ?	 <p> 
+!read oef/embed.phtml reply3 
+$()</p>	 </li>	 
+!endif
+$()	
+!if $m_step==4 
+$()	  <li>
+!if $val31>0 
+$()$(val17[1;1]) 
+!insmath $val43
+$() $(val17[1;2]) 
+!else
+$()	    \name_enonce2[2;] 
+!insmath $val40
+$().  
+!endif
+$()	   </li>	  <li>$val13 
+!insmath  $val46 
+$() .	  <br>	  $val14:	  <div class="wimscenter">	  
+!if $val31>0 
+$()	  <table class="tablesansbord">	  <tr> 
+!for m_k=1 to 2 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$() 
+!for m_k=7 to 8 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=3 to 6 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$()</tr>	  </table>	   
+!else
+$() 	  <table class="tablesansbord">	  <tr> 
+!for m_k=1 to 2 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$() 
+!for m_k=15 to 16 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=3 to 6 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=7 to 10 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$()</tr>	  <tr> 
+!for m_k=11 to 14 
+$()<td> 
+!read oef/embed.phtml reply4,\k 
+$()</td> 
+!next
+$()</tr>	  </table>	   
+!endif
+$()</div>	  </li>	   
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,14,15,16,17,25,26,28,30,31,40,43,45,46,48,49
+embedcnt=11

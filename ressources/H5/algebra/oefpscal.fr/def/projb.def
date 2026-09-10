@@ -1,0 +1,178 @@
+!set title=Projeté orthogonal
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 10
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val9=$[rint($(tmp0)*$(tmp1))]
+val10=$[rint($val7*$val9)]
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+val12=$[rint(-1*$val10)]
+val13=$[rint($val9)]
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+!if $val14=1 
+val15=directeur
+val16=\overrightarrow{u}
+val17=$[rint($val9)]
+val18=$[rint($val10)]
+!endif
+!if $val14=2 
+val15=normal
+val16=\overrightarrow{n}
+val17=$[rint($val12)]
+val18=$[rint($val13)]
+!endif
+tmp0=!randint -5, 5
+
+val19=$[rint($(tmp0))]
+val20=$[rint($val7*$val19+$val11)]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val21=$[rint($val19+$(tmp0)*$(tmp1))]
+val22=$[rint($val7*$val21+$val11)]
+val23=$[rint($val21-$val7*$val8)]
+val24=$[rint($val22+$val8)]
+t_=!rawmath -1/$val7
+val25=!exec pari print($t_)
+t_=!rawmath $val22-$val25*$val21
+val26=!exec pari print($t_)
+t_=!rawmath 2*$val21-$val19
+val27=!exec pari print($t_)
+t_=!rawmath 2*$val22-$val20
+val28=!exec pari print($t_)
+t_=!replace internal \( by ( in sqrt(($val21-$val23)^2+($val22-$val24)^2)
+tmp0=!exec maxima $t_
+
+val29=$(tmp0)
+val30=$[rint(abs($val23)+4)]
+val31=$[rint(abs($val24)+4)]
+tmp0=!sort numeric item 19,$val30,$val31
+
+val32=$(tmp0)
+tmp0=!item -1 of $val32
+
+val33=$(tmp0)
+val33=$[rint((floor($val33/5)+1)*5)]
+val34=$[rint(2*$val33/5+1)]
+val35=$[rint(200*$val29/($val33))]
+!readproc oef/draw.phtml 200,200 \
+		        xrange -$val33,$val33	        yrange -$val33,$val33	        parallel -$val33,-$val33,$val33,-$val33,0,5,$val34,green	        parallel -$val33,-$val33,-$val33,$val33,5,0,$val34,green	        linewidth 2	        line -1*$val33,0,$val33,0,blue	        line 0,-1*$val33,0,$val33,blue	        linewidth 1	        plot red,$val7*x+$val11	        fcircle $val23,$val24,5,red	        text green,5,0.5,normal,5	        text green,0.5,5,normal,5	        text red,$val23,$val24,normal,M		   
+tmp0=$ins_url
+val36=$(tmp0)	
+!readproc oef/draw.phtml 200,200 \
+		        xrange -$val33,$val33	        yrange -$val33,$val33	        parallel -$val33,-$val33,$val33,-$val33,0,5,$val34,green	        parallel -$val33,-$val33,-$val33,$val33,5,0,$val34,green	        linewidth 2	        line -1*$val33,0,$val33,0,blue	        line 0,-1*$val33,0,$val33,blue	        linewidth 1	        plot red,$val7*x+$val11	        fcircle $val23,$val24,5,red	        text green,5,0.5,normal,5	        text green,0.5,5,normal,5	        text red,$val23,$val24,normal,M	        circle $val23,$val24,$val35,red	   
+tmp0=$ins_url
+val37=$(tmp0)	
+!readproc oef/draw.phtml 200,200 \
+		        xrange -$val33,$val33	        yrange -$val33,$val33	        parallel -$val33,-$val33,$val33,-$val33,0,5,$val34,green	        parallel -$val33,-$val33,-$val33,$val33,5,0,$val34,green	        linewidth 2	        line -1*$val33,0,$val33,0,blue	        line 0,-1*$val33,0,$val33,blue	        linewidth 1	        text green,5,0.5,normal,5	        text green,0.5,5,normal,5	        text red,$val19,$val20,normal,A	       text red,$val27,$val28,normal,B	       fcircle $val19,$val20,5,red	       fcircle $val27,$val28,5,red	       line $val19,$val20,$val27,$val28,red	   
+tmp0=$ins_url
+val38=$(tmp0)	
+val39=$[]
+val40=$[]
+replytype1=default
+replyname1=abs
+replygood1=$val21
+replytype2=default
+replyname2=ord
+replygood2=$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"><img src="$val36" alt=""></div>	  On a représenté ci-contre, une droite d passant par A($val19;$val20) et admettant	  le vecteur 
+!insmath \overrightarrow{n}
+$()($val12;$val13) pour vecteur normal.	  Déterminer les coordonnées du point H	  projeté orthogonal de M($val23;$val24) sur d.	<div class="wimscenter">	  H( 
+!read oef/embed.phtml reply 1,6 
+$(); 
+!read oef/embed.phtml reply 2,6 
+$())	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,19,20,23,24,36
+embedcnt=2

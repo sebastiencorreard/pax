@@ -1,0 +1,126 @@
+\title{Produit d'un vecteur par un réel}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\css{
+<style>
+.disp_columns{
+  display: flex;
+  flex-wrap: wrap;
+}
+</style>
+}
+## abscisses des points de la première ligne
+\text{x1= randint(0..3),randint(4..5),randint(6..8)}
+## abscisses des points de la deuxième ligne
+\text{y2= randint(0..3),randint(4..5),randint(6..8)}
+\text{x2=}
+\for{i=1 to 3}{
+\integer{x=\y2[\i]+4}
+\text{x2= wims (append item \x to \x2)}
+}
+
+## nom des points
+\text{pt1=A,B,C}
+\text{pt2=E,F,G}
+\text{ind1=shuffle(3)}
+\text{ind2=shuffle(3)}
+
+## noms des vecteurs
+\text{v1=\overrightarrow{\pt1[\ind1[1]]\pt1[\ind1[2]]}}
+\text{v2=\overrightarrow{\pt2[\ind2[1]]\pt2[\ind2[2]]}}
+
+## calcul du coefficient de colinéarité
+\rational{k=(\x1[\ind1[2]]-\x1[\ind1[1]])/(\x2[\ind2[2]]-\x2[\ind2[1]])}
+\rational{mk=1/(\k)}
+\text{k1=texmath(\k)}
+\text{mk1=texmath(\mk)}
+
+\text{textsup=abs(\k)>1? C'est \(\v1) qui a la plus grande norme.}
+\text{textsup=abs(\k)<1? C'est \(\v2) qui a la plus grande norme.}
+\text{textsup2=abs(\k)>1? La valeur absolue du coefficient doit donc être supérieure à 1.}
+\text{textsup2=abs(\k)<1? La valeur absolue du coefficient doit donc être inférieure à 1.}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=400}
+\text{dimv=400}
+
+\text{xmin=0}
+\text{xmax=12}
+\text{ymin=0}
+\text{ymax=8}
+\integer{finl1x=\xmin + \ymax -(\ymin)}
+\integer{debl2x=\xmin+4}
+\integer{finl2x=\debl2x+\ymax-\ymin}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+\text{groscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+\text{cadre=
+xrange \xmin-1,\xmax+1
+yrange \ymin-1,\ymax+1
+\groscarreaux
+segment \xmin,\ymin,\finl1x,\ymax,red
+segment \debl2x,\ymin,\finl2x,\ymax,blue
+linewidth 5
+points red,\x1[1],\x1[1],\x1[2],\x1[2],\x1[3],\x1[3]
+points blue,\x2[1],\y2[1],\x2[2],\y2[2],\x2[3],\y2[3]
+text red,\x1[\ind1[1]]-0.5,\x1[\ind1[1]],medium,\pt1[\ind1[1]]
+text red,\x1[\ind1[2]]-0.5,\x1[\ind1[2]],medium,\pt1[\ind1[2]]
+text red,\x1[\ind1[3]]-0.5,\x1[\ind1[3]],medium,\pt1[\ind1[3]]
+text blue,\x2[\ind2[1]]-0.5,\y2[\ind2[1]],medium,\pt2[\ind2[1]]
+text blue,\x2[\ind2[2]]-0.5,\y2[\ind2[2]],medium,\pt2[\ind2[2]]
+text blue,\x2[\ind2[3]]-0.5,\y2[\ind2[3]],medium,\pt2[\ind2[3]]
+}
+## fin du cadre générique ##
+
+## traçage du dessin ##
+\text{graph=\cadre}
+
+####### enoncé de l'exo #######
+\statement{
+<div class="disp_columns">
+  <div class="medium_size">
+   <div>
+    Les droites portant les points
+    <span class="nowrap">\(A\),</span> <span class="nowrap">\(B\),</span> \(C\) et <span class="nowrap">\(E\),</span> <span class="nowrap">\(F\),</span> \(G\) sont parallèles.<br>
+    Complétez l'égalité vectorielle suivante&nbsp;:
+   </div>
+   <div class="wimscenter">
+      <label for="reply1">\( \v1 =\)</label>  \embed{r1,4} \(\v2 )
+   </div>
+  </div>
+  <div class="medium_size">
+   \draw{\dimh,\dimv}{
+   \graph
+   }
+  </div>
+</div>
+}
+##### collecte de la réponse de l'utilisateur #####
+\reply{coeff}{\k}{type=numexp}
+
+\feedback{\reply1>0 and \k<0}{Attention : les vecteurs \(\v1) et \(\v2) sont de sens opposés,
+le coefficient doit donc être négatif.}
+\feedback{\reply1<0 and \k>0}{Attention : les vecteurs \(\v1) et \(\v2) sont de même sens,
+le coefficient doit donc être positif.}
+\feedback{\reply1==\mk and abs(\k)!=1 }{ Attention : on a \(\v1= \k1 \v2\) et \(\v2 =  \mk1 \v1\).
+\textsup
+\textsup2}

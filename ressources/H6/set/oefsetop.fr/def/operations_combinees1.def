@@ -1,0 +1,196 @@
+!set title=Opérations combinées 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David, Doyen
+email=david.doyen@u-pem.fr
+language=fr
+title_it=Operazioni combinate 1
+title_es=Operaciones combinadas 1
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=0,1,2,3,4,5,6,7,8,9,10
+val8=a,b,c,d,e,f,g,h,i,j,k
+!if $val2=1 
+val9=$val7
+!endif
+!if $val2=2 
+val9=$val8
+!endif
+!if ($val2=3) or ($val2=) 
+tmp0=!randitem 1,2
+
+!if $(tmp0)=1 
+val9=$val7
+!else
+val9=$val8
+!endif
+!endif
+tmp0=!randint 3, 7
+
+val10=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val11=$(val9[1..$val10])
+tmp0=!randint 3, 7
+
+val12=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val13=$(val9[1..$val12])
+tmp0=!randint 3, 7
+
+val14=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val15=$(val9[1..$val14])
+tmp0=!randint 1, 4
+
+val16=$(tmp0)
+!if $val16=1 
+val17=(A \cap B ) \cup C
+tmp0=!listintersect $val11 and $val13
+
+val18=$(tmp0)
+tmp0=!listunion $val18 and $val15
+
+val19=$(tmp0)
+!endif
+!if $val16=2 
+val17=(A \cup B ) \cap C
+tmp0=!listunion $val11 and $val13
+
+val20=$(tmp0)
+tmp0=!listintersect $val20 and $val15
+
+val19=$(tmp0)
+!endif
+!if $val16=3 
+val17=A \cap (B \cup C)
+tmp0=!listunion $val13 and $val15
+
+val21=$(tmp0)
+tmp0=!listintersect $val21 and $val11
+
+val19=$(tmp0)
+!endif
+!if $val16=4 
+val17=A \cup (B \cap C)
+tmp0=!listintersect $val13 and $val15
+
+val22=$(tmp0)
+tmp0=!listunion $val22 and $val11
+
+val19=$(tmp0)
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val23=vide
+val24=et
+val25=On considère les ensembles
+val26=Déterminer
+val27=Pour désigner l'ensemble vide, écrire le mot <span class="tt">$val23</span> dans le champ de réponse.
+!if $val6=it 
+val23=vuoto
+val24=e
+val25=Si considerino gli insiemi
+val26=Determinare
+val27=Se si desidera inserire l'insieme vuoto, scrivere la parola <span class="tt">$val23</span> nello spazio designato per la risposta.
+!endif
+!if $val6=es 
+val23=vacío
+val24=y
+val25=Considere los conjuntos
+val26=Determine
+val27=Para denotar el conjunto vacío, escriba la palabra <span class="tt">$val23</span> en el campo de respuesta.
+!endif
+!if $val19= 
+val19=$val23
+!endif
+replytype1=set
+replyname1=
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val25	<div class="wimscenter">	
+!insmath A=\{$val11\}
+$(), &nbsp; 
+!insmath B=\{$val13\}
+$() &nbsp; $val24 &nbsp; 
+!insmath C=\{$val15\}
+$().	</div>	$val26 
+!insmath $val17
+$().	<div class="spacer">	
+!insmath $val17=
+$() 
+!read oef/embed.phtml r1,20 
+$()	</div>	<div class="wims_instruction">$val27</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,15,17,24,25,26,27
+embedcnt=1

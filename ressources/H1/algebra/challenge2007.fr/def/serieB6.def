@@ -1,0 +1,123 @@
+!set title=Série B 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+language=fr
+
+ansorder=c
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 9
+
+val6=$[rint($(tmp0))]
+val7=1
+tmp=!translate ";': to $     $ in $val6+1
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val8=0,$val6,$(tmp0),2
+tmp0=!listcomplement $val7 in $val8
+
+val8=$(tmp0)
+tmp0=!shuffle $val7,$val8
+
+val9=$(tmp0)
+val10=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val9
+
+val11=$[rint($(tmp0))]
+val12=
+val13=
+!for val14 =1 to $val11 
+tmp0=!item $val14 of $val9
+
+val15=$(tmp0)
+val16=Réponse $(val10[$val14])
+!if $val15 isitemof $val7 
+tmp0=!append item $val16 to $val12
+
+val12=$(tmp0)
+!else
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+!endif
+!next
+choicename1=Choisissez
+choicegood1=$val12
+choicebad1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Dans cet énoncé, E(x) désigne l'entier immédiatement inférieur au réel x, c'est-à-dire que l'on a :	<div class="wimscenter">	
+!insmath E(x) \leq x < E(x) +1
+$()</div>	On considère la fonction :	<div class="wimscenter">	
+!insmath f(x) = E(\frac{2x^2}{1+x^2})
+$()</div>	Quelle est la valeur de f($val6) ?	<ul>	 
+!for m_l=1 to $val11 
+$()	 <li>$(val10[$m_l]) : $(val9[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,11
+embedcnt=1

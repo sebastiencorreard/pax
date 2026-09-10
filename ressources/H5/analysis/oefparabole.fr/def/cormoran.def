@@ -1,0 +1,167 @@
+!set title=Le vol parabolique du Cormoran
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+precision=10000
+
+ansorder=r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=&#123;
+val7=&#125;
+tmp0=!randint 0, 2
+
+val8=$[rint($(tmp0))]
+!if $val8=1 
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9)]
+tmp0=!randint 1, 9
+
+val11=$[rint($(tmp0))]
+val12=$[rint(-$val11*($val9+$val10))]
+val13=$[rint($val11*$val9*$val10)]
+val14=$val9
+val15=a 1 solution.<br> \(S=) $val6 $val14 $val7.
+!endif
+!if $val8=2 
+tmp0=!randint 1, 9
+
+val9=$[0.1*$(tmp0)]
+tmp0=!randint 10, 20
+
+val10=$[$val9+0.1*$(tmp0)]
+tmp0=!randint 1, 9
+
+val11=$[10*$(tmp0)]
+val12=$[-$val11*($val9+$val10)]
+val13=$[$val11*$val9*$val10]
+val14=$val9,$val10
+val15=a 2 solutions.<br> \(S=) $val6 $val14 $val7.
+!endif
+!if $val8=0 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 9
+
+val16=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val11=$[rint($(tmp0))]
+val12=$[rint(-2*$val11*$val16)]
+val13=$[rint($val11*(($val16)^2+($val17)^2))]
+val14=vide
+val15=n'a pas de solution.
+!endif
+val18=$[($val12)^2-4*$val11*$val13]
+
+!ifval $val8=1
+val19= A quelle distance
+!else
+val19= A quelles distances
+!endif
+val19=$val19 de l'observateur touchera-t-il la surface de l'eau ?
+val20=reply1
+!if $val8>0 
+val20=$val20;reply2
+!endif
+oefsteps=$val20 
+nextstep=!nosubst $val20 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Nombre de solutions S1
+replygood1=$[$val8]
+replytype2=fset
+replyname2=S
+replygood2=$val14
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Un cormoran vole selon une parabole d'équation 
+!insmath y=$val11*x^2+$val12*x+$val13
+$() où	
+!insmath x
+$() désigne la position horizontale par rapport à l'observateur et 
+!insmath y
+$() l'altitude en mètres.		
+!if $m_step=1 
+$()<p>	<label for="reply1">Combien de fois le cormoran touchera-t-il la surface de l'eau (altitude 0) ?</label>	</p><div class="wimscenter">	  
+!read oef/embed.phtml reply1,5 
+$()	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<p>	<label for="reply2">À quelles distances de l'observateur touchera-t-il la surface de l'eau ?</label>	</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2,20 
+$().</div>	<div class="wims_instruction">	<p>Les nombres décimaux s'écrivent avec un point.</p>	<p>Si nécessaire, séparez les réponses par une virgule.</p>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Le discriminant est $val18 donc l'équation 
+!insmath $val11*x^2+$val12*x+$val13=0
+$() $val15	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,15,18
+embedcnt=2

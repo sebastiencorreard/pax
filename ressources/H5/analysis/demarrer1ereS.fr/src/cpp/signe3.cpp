@@ -1,0 +1,60 @@
+target=signe3
+%%# cas de signe évident
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\integer{a = (-1)^random(0,1)*random(1..10)}
+\integer{b = (-1)^random(0,1)*random(1..10)}
+\integer{k = (-1)^random(0,1)*random(1..10)}
+\integer{signk=\k<0?1:3}
+\integer{signku2=\k<0?2:4}
+\integer{k1=random(1..10)}
+\integer{k2=random(1..10)}
+
+\rational{zero=-\b/\a}
+\function{u=\a *x + \b}
+\function{u=\a==1?x + \b}
+\function{u=\a==-1?-x + \b}
+\text{ff=\k,\k(\u)^2,\k1(\u)^2 + \k2,-\k1(\u)^2 - \k2}
+
+\integer{cas=random(1..4)}
+\text{f=item(\cas,\ff)}
+\text{rep1= item(\cas,1,2,3,4)}
+\text{signes=\signk,\signku2,3,1}
+\text{rep2=item(\cas,\signes)}
+\statement{
+<div class="monenonce">
+\name_enonce[1] \(f(x) = \f\) \name_enonce[2] \(x\) :
+</div>
+<div class="wims_question">
+<ul class="wims_nopuce">
+<li>\name_enonce2[1] \embed{reply1}.</li>
+<li>\name_enonce2[2] \embed{reply2}.</li>
+</ul>
+</div>
+}
+
+\answer{forme}{\rep1 ; \choix1}{type=menu}
+\answer{signe}{\rep2 ; \choix2}{type=menu}
+
+\feedback{0==0}{
+<div class="macorrection">
+<b>Explications :</b>
+\if{\cas==1}{On a \(f(x) = \f) pour tout réel \(x), donc \(f(x)) est toujours du signe de \(\k) et ne s'annule jamais. }
+\if{\cas==2}{On a \(f(x) = \f) pour tout réel \(x).<br> Or le carré \((\u)^2) est toujours positif, ou nul si \(x = \zero),
+donc \(f(x)) est toujours du signe de \(\k) ou nul en \(\zero).}
+\if{\cas==3}{ \(\k1(\u)^2) est toujours
+positif, ou nul si \(x = \zero).<br>
+Le nombre \(\k2) est strictement positif, donc la somme
+\(f(x) = \k1(\u)^2 + \k2) est strictement positive, pour tout réel \(x).}
+\if{\cas==4}{ \((\u)^2) est toujours
+positif, ou nul si \(x = \zero).
+ Donc \(-\k1(\u)^2) est toujours négatif ou nul.<br> Le nombre \(-\k2) est strictement négatif et on peut écrire
+\(f(x) = -\k1(\u)^2 + (-\k2)). Donc \(f(x)) est strictement négatif pour tout réel \(x).}
+</div>}

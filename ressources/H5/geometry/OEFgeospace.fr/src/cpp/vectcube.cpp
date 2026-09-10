@@ -1,0 +1,101 @@
+target=vectcube
+#include "lang_titles.inc"
+#include "author.inc"
+#include "css.inc"
+#include "lang.inc"
+%% coordonnées des points dans l'espace
+\matrix{a=[0;0;0]}
+\matrix{b=[0;1;0]}
+\matrix{c=[0;1;1]}
+\matrix{d=[0;0;1]}
+\matrix{e=[1;0;0]}
+\matrix{f=[1;1;0]}
+\matrix{g=[1;1;1]}
+\matrix{h=[1;0;1]}
+\matrix{vectors=0,0,0,0,1,1,1,1
+0,1,1,0,0,1,1,0
+0,0,1,1,0,0,1,1}
+\text{listpoint=A,B,C,D,E,F,G,H}
+\text{indlst=shuffle(56)}
+\text{selvect=}
+\text{klist=}
+\text{mrowlist=}
+\text{mcollist=}
+\text{indorilist=}
+\text{inddestlist=}
+**** forcage
+   text{indlst=1,9,17}
+****
+\for{i = 1 to 3}{
+  \integer{k=\indlst[\i]}
+  \text{klist= wims (append item \k to \klist)}
+  \integer{mrow=\k / 8 }
+  \integer{mrow=\mrow*8>\k?\mrow-1}
+  \integer{mcol=\k - \mrow*8}
+  \integer{mrow=\mcol=0?\mrow:\mrow+1}
+  \integer{mcol=\mcol=0?8}
+  \text{mrowlist= wims ( append item \mrow to \mrowlist)}
+  \text{mcollist= wims ( append item \mcol to \mcollist)}
+
+  \text{vectori=\listpoint[\mcol]}
+  \integer{indori= wims (positionof item \vectori in \listpoint)}
+  \text{indorilist= wims ( append item \indori to \indorilist)}
+
+  \integer{mrow=(\mrow >= \mcol and \mcol<8)?\mrow+1}
+  \if{\mrow==8 and \mcol==8}{\integer{mrow=7}}
+  \text{vectdest=\listpoint[\mrow]}
+  \integer{inddest = wims (positionof item \vectdest in \listpoint)}
+  \text{inddestlist= wims ( append item \inddest to \inddestlist)}
+
+  \text{bipoint=\vectori\vectdest}
+  \text{selvect= wims (append item \bipoint to \selvect)}
+  \matrix{v1= \vectors[;\indori]}
+  \matrix{v2= \vectors[;\inddest]}
+
+  \if{\i==1}{\matrix{u= pari(print([\v2]-[\v1]))}}
+  \if{\i==2}{\matrix{v= pari(print([\v2]-[\v1]))}}
+  \if{\i==3}{\matrix{w= pari(print([\v2]-[\v1]))}}
+}
+\matrix{ma_matrice=\u;\v;\w}
+\integer{rang=pari(matrank([\ma_matrice]))}
+
+\text{rep=\rang==3?\replist[2]:\replist[1]}
+%% couleur des grilles
+\text{gridcolor=lightblue}
+
+%%# cadre générique ###
+\text{cadre=
+xrange -3,15
+yrange -3,15
+linewidth 3
+polyline black,0,0,0,10,10,10,10,0,0,0
+polyline black,0,10,2,13,12,13,10,10
+dpolyline black,0,0,2,3,12,3
+dsegment 2,3,2,13,black
+polyline black,10,0,12,3,12,13
+points red,0,0,0,10,10,10,10,0,2,13,12,13,2,3,12,3
+text red,-0.4,-1,medium,A
+text red,10.1,-1,medium,B
+text red,2.6,3,medium,D
+text red,12.1,3,medium,C
+text red,-1,11,medium,E
+text red,11,11,medium,F
+text red,2.6,14.2,medium,H
+text red,12.1,14.2,medium,G
+}
+%% fin du cadre générique ##
+\text{size=180}
+\text{graph=<img src="draw(\size,\size
+    \cadre)" alt="">}
+%%##### enoncé de l'exo #######
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col"> \graph</div>
+ <div class="medium_size text_col">
+  \name_enonce[1] \(\overrightarrow{\selvect[1]}), \(\overrightarrow{\selvect[2]})
+  \name_and \(\overrightarrow{\selvect[3]}) \name_enonce[2]? \embed{choice 1}
+ </div>
+</div>
+}
+\choice{}{\rep}{\replist}

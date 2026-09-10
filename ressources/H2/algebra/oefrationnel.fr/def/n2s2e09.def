@@ -1,0 +1,123 @@
+!set title=Palmarès
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=ambali@free.fr
+author=Jean-Baptiste, Frondas
+oefobservation=Exercices pour le début de la cinquieme avec des positifs
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 20
+
+val6=$[rint($(tmp0))]
+!readproc slib/stat/posdiscretelaw 3,$val6,Q 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!randitem Sophie, Alexandra, Marie, Anne, Judith, Augustine
+
+val8=$(tmp0)
+tmp0=!randitem Florence, Justine, Gaëlle, Élodie, Guillemette, Anna
+
+val9=$(tmp0)
+tmp0=!randitem Patricia, Corinne, Magali, Laure, Armelle, Laurence
+
+val10=$(tmp0)
+t_=!replace internal \( by ( in max($(val7[1]),$(val7[2]),$(val7[3]))
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+!if $val11=$(val7[1]) and $(val7[1])<>$(val7[2]) and  $(val7[1])<>$(val7[3]) 
+val12=$val8
+!endif
+!if $val11=$(val7[1]) and $(val7[1])=$(val7[2])  and  $(val7[1])<>$(val7[3]) 
+val12=$val8,$val9
+!endif
+!if $val11=$(val7[1]) and $(val7[1])<>$(val7[2]) and  $(val7[1])=$(val7[3]) 
+val12=$val8,$val10
+!endif
+!if $val11=$(val7[1]) and $(val7[1])=$(val7[2])  and  $(val7[1])=$(val7[3]) 
+val12=$val8,$val9,$val10
+!endif
+!if $val11=$(val7[2]) and $(val7[2])<>$(val7[1]) and  $(val7[2])<>$(val7[3]) 
+val12=$val9
+!endif
+!if $val11=$(val7[2]) and $(val7[2])<>$(val7[1]) and  $(val7[2])=$(val7[3]) 
+val12=$val9,$val10
+!endif
+!if $val11=$(val7[3]) and $(val7[3])<>$(val7[1]) and  $(val7[3])<>$(val7[2]) 
+val12=$val10
+!endif
+replytype1=case
+replyname1=Personne élue
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst Il faut calculer combien $val10 a remporté de voix
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="text-align : center;	background-color : #FFFFF0;	padding : 1%;	margin : 5% 15%; ">		À l'élection de <i>Miss Math</i>, $val8 a remporté $(val7[1]) des suffrages, $val9 $(val7[2]) et $val10 tous les autres. Qui a été élue ?	</div>	<div class="wims_instruction">	Pour les ex aequo, mettre les prénoms des élues dans le même ordre que celui de l'énoncé,	séparés par des virgules.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()Il faut calculer combien $val10 a remporté de voix
+$()
+!exit
+
+:solution
+$()Pour calculer combien $val10 a remporté de voix, on fait 
+!insmath 1-$(val7[1])-$(val7[2])=$(val7[3])
+$(). Celle qui a le plus de suffrage est $val12, qui a obtenu $val11 des voix
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12
+embedcnt=0

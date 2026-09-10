@@ -1,0 +1,110 @@
+!set title=Placer une fraction 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=1000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim Nous avons une demi-droite graduée. Placer la fraction	en cliquant sur la demi-droite graduée.
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=$[rint(1)]
+tmp0=!randint 2, 10
+
+val8=$[rint($(tmp0)*2)]
+val9=$[rint(1)]
+val10=$[rint(0)]
+val11=0
+val12=
+!for val13 =$val10 to $val9 
+val11=$[rint($val13*1)]
+val14=$[rint($val13)]
+val12=$val12	    text blue, $val14,-1, medium,$val11
+!next
+val15=2
+val16=1
+t_=!rawmath $val16/$val15
+val11=!exec pari print($t_)
+!readproc oef/draw.phtml 600,80 \
+xrange $val10-0.1,$val9+0.1	yrange -2,2.2	segment 0,0,2.2,0,black	parallel $val10,-0.8,$val10,0.4,1/$val7,0, 40, blue	parallel $val10,-0.3,$val10,0.3,1/$val8,0, 200, blue	parallel $val10,-0.8,$val10,0.6,1,0, 40, red	$val12 
+tmp0=$ins_url
+val17=$(tmp0)	
+val18=$[rint(600/($val9*10+2))]
+val19=$[rint($val18+(600-2*$val18)*$val16/($val9*$val15))]
+replytype1=coord
+replyname1=numérateur
+replygood1=$val17;rectangle,$val19-3,35,$val19+3,45
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val6[1;])	
+!insmath \frac{$val16}{$val15}
+$() $(val6[2;])	<div class="wimscenter">	 
+!read oef/embed.phtml r1 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,15,16
+embedcnt=1

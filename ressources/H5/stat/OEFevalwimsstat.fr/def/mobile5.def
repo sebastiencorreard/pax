@@ -1,0 +1,206 @@
+!set title=Moyenne mobile 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r
+varcnt=49
+prevarcnt=48
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Aôut,Septembre,Octobre,Novembre,Décembre
+val7=Jan.,Fév.,Mars,Avril,Mai,Juin,Juil.,Août,Sept.,Oct.,Nov.,Déc.
+val8=10,8,8,14,18,20,24,23,20,18,14,12
+val9=
+!for val10 =1 to 12 
+tmp0=!randitem -1,-0.5,0,0.5,1
+
+val11=$[$(tmp0)]
+val12=$[$(val8[$val10])+$val11]
+tmp0=!append item $val12 to $val9
+
+val9=$(tmp0)
+!next
+val13=&nbsp;,&nbsp;
+!for val14 =2 to 11 
+t_=!rawmath ($(val9[$val14-1])+$(val9[$val14])+$(val9[$val14+1]))/3
+val15=!exec pari print($t_)
+val15=$[round(10*$val15)/10]
+tmp0=!append item $val15 to $val13
+
+val13=$(tmp0)
+!next
+val13=$val13,&nbsp;,&nbsp;
+val16=<table class="wimscenter wimsborder">	<tr><th>Mois</th>	
+!for val14 =1 to 12 
+val16=$val16<td> $(val7[$val14]) </td>
+!next
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+
+!ifval $val17=1
+val18=!rawmath -0.1(x-11)^2+35
+!else
+val18=!rawmath 0.1(x-11)^2+15
+!endif
+val19=
+!for val10 =1 to 4 
+evaltmp=$val18
+
+evaltmp=!mathsubst x=($val10*2) in $evaltmp
+tmp0=($evaltmp)
+val20=$[$(tmp0)]
+tmp0=!append item $val20 to $val19
+
+val19=$(tmp0)
+!next
+val21=
+tmp0=!randint 2, 5
+
+val11=$[rint($(tmp0))]
+!for val10 =1 to 6 
+evaltmp=$val18
+
+evaltmp=!mathsubst x=($val10*2) in $evaltmp
+tmp0=($evaltmp)
+val20=$[$(tmp0)]
+val20=$[rint($val20+(-1)^$val10*$val11*(6-$val10))]
+tmp0=!append item $val20 to $val21
+
+val21=$(tmp0)
+!next
+val21=
+tmp0=!randint 10, 15
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val22=$[rint($(val19[1])+$val11*$(tmp0))]
+val23=$[rint($(val19[1]))]
+val24=$[rint(3*$(val19[1])-$val23-$val22)]
+val25=$[rint(3*$(val19[2])-$val24-$val23)]
+val26=$[rint(3*$(val19[3])-$val25-$val24)]
+val27=$[rint(3*$(val19[4])-$val26-$val25)]
+val21=$val22,$(val19[1]),$val24,$val25,$val26,$val27
+!for val10 =1 to 6 
+evaltmp=$val18
+
+evaltmp=!mathsubst x=($val10*2) in $evaltmp
+tmp0=($evaltmp)
+val20=$[$(tmp0)]
+val20=$[rint($val20+(-1)^$val10*$val11*(6-$val10))]
+tmp0=!append item $val20 to $val21
+
+val21=$(tmp0)
+!next
+val28=Le CA semble en hausse,Le CA semble en baisse
+val13=
+!for val14 =2 to 5 
+t_=!rawmath ($(val21[$val14-1])+$(val21[$val14])+$(val21[$val14+1]))/3
+val15=!exec pari print($t_)
+val15=$[round(10*$val15)/10]
+tmp0=!append item $val15 to $val13
+
+val13=$(tmp0)
+!next
+replytype1=numexp
+replyname1=MM3 1
+replygood1=$(val13[1])
+replytype2=numexp
+replyname2=MM3 2
+replygood2=$(val13[2])
+replytype3=numexp
+replyname3=MM3 3
+replygood3=$(val13[3])
+replytype4=numexp
+replyname4=MM3 4
+replygood4=$(val13[4])
+replytype5=radio
+replyname5=tendance
+replygood5=$val17;$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère le chiffre d'affaires réalisé par une entreprise sur	une période de 6 mois.	<table class="wimscenter wimsborder">	<tr><th>Mois</th>	 
+!for m_k=1 to 6 
+$()<th> Mois $m_k </th> 
+!next
+$()	</tr><tr><th> CA en Milliers d'euros</th>	 
+!for m_k=1 to 6 
+$()	  <td> $(val21[$m_k]) </td>	 
+!next
+$()	</tr></table>	Compléter le tableau des moyennes mobiles d'ordre 3 (MM3):	<table class="wimscenter wimsborder">	<tr><th>Mois</th>	 
+!for m_k=1 to 6 
+$()<th>Mois $m_k </th> 
+!next
+$()	</tr><tr><th>MM3</th>	<td> &nbsp;</td>	 
+!for m_k=1 to 4 
+$()	 <td> 
+!read oef/embed.phtml reply\k,4 
+$() </td>	 
+!next
+$()	<td>&nbsp;</td>	</tr></table>	<div>	Peut-on alors dégager une tendance ?<br>	 
+!read oef/embed.phtml reply5,1 
+$()<br>	 
+!read oef/embed.phtml reply5,2 
+$()<br>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21
+embedcnt=3

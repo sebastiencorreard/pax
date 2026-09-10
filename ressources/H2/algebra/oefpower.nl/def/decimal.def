@@ -1,0 +1,133 @@
+!set title=Decimale getallen en machten van 10
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 8
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+tmp1=!randint 1, 5
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val7=$[rint($(tmp2))]
+tmp0=!randint 10^($val6), 10^($val6+1)-1
+
+val8=$[$(tmp0)]
+val9=$[$val8/10^($val7)]
+val10=$[$val8]
+val11=$[rint(0)]
+!for val12 =1 to $val6 
+val13=$[10*floor($val10/10)]
+!if $val13=$val10 
+val10=$[$val10/10]
+val11=$[rint($val11+1)]
+!endif
+!next
+val14=$[$val8/10^($val6)]
+val15=$[$val6-($val7)]
+t_=!replace internal \( by ( in $val10
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+val17=$[$val11-$val7]
+replytype1=numeric
+replyname1=exponent
+replygood1=$[$val14]
+replytype2=numeric
+replyname2=exponent
+replygood2=$[$val15]
+replytype3=numeric
+replyname3=exponent
+replygood3=$[$val16]
+replytype4=numeric
+replyname4=exponent
+replygood4=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Schrijf het getal 
+!insmath $val9
+$() op twee manieren : 	<ul><li>	wetenschappelijke notatie	 <center> 
+!insmath $val9
+$()	=  
+!read oef/embed.phtml reply 1, 12 
+$()  $m_times 10<sup><sup> 
+!read oef/embed.phtml reply 2,4 
+$()</sup></sup></center>	</li>	<li> 	als 
+!insmath a  \times 10^p
+$() met 
+!insmath a
+$()  integers en geen veelvoud van  10  :	<center> 
+!insmath $val9
+$()	=  
+!read oef/embed.phtml reply 3, 12 
+$()  $m_times 10<sup><sup> 
+!read oef/embed.phtml reply 4,4 
+$()</sup></sup></center>	</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9
+embedcnt=4

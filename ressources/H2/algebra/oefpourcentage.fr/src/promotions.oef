@@ -1,0 +1,184 @@
+\title{2. Les soldes - Calcul de pourcentage}
+\language{fr}
+\range{-5..5}
+\author{Julien LYOTARD}
+\email{Julien.Lyotard@ac-dijon.fr}
+
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{style=wims(record 0 of style.css)} 
+\text{pc=wims(record 0 of help/ProduitenCroix.txt)} 
+\text{Arc=wims(record 0 of help/Arrondicentieme.txt)} 
+
+\text{size=200x80x1}
+\text{sizep=}
+
+\text{listesimage=image1,image2,image3,image4,image5,image6}
+\text{image=randomitem(\listesimage)}
+
+\matrix{nstep= reply1, reply2, reply3
+reply4
+}
+
+\nextstep{\nstep}
+
+\text{enonce=Ouvrez un nouvel onglet de votre navigateur en appuyant simultanément 
+sur les touches Ctrl + t. A l'aide de votre moteur de recherche
+ favori, allez sur un site marchand. Trouvez un article en promotion. Les informations
+ sur ce produit doivent vous permettre de répondre aux questions suivantes :
+ }
+
+\statement{
+<br>
+<div class="consigne">
+<div id="haut"><div class="wimscenter">
+<img src="\imagedir/\image.jpg" alt="Pub">
+</div></div>
+<p class="problematique"> Quel est le prix de l'article soldé ?</p>
+<div class="consigne">\enonce</div>
+<br> 
+
+\if{\step = 1}{ 
+<br>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 5</div>
+Relevez les informations suivantes :
+<br>
+le nom de l'article : \embed{reply1}
+<br>
+le prix de l'article : \embed{reply2} 
+<br>
+le pourcentage de la remise : \embed{reply3, 4} %
+</div>
+<br>
+} 
+\if{\step==2}{
+<br>
+<div class="consigne">Le prix de l'article est donc de \prix € et la réduction est de
+ \pourcentage %.</div>
+<br>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 5</div>
+Complétez le tableau suivant pour calculer la réduction. Vous devez
+ arrondir le résultat aux centimes donc à 0,01 près.
+<br>
+<table class="wimscenter wimsborder">
+<tr>
+<td>\reply3 % =></td>
+<td>\reply3 pour</td>
+<td>100</td>
+</tr><tr>
+<td></td>
+<td>\embed{reply4,\size}</td>
+<td>\reply2 </td>
+</tr></table>
+<br>
+</div>
+\special{help Aide, Super Aide}
+}
+\if{\step==3}{
+<br>
+<div class="consigne">Le prix de l'article est donc de \reply2 € et
+ la remise est donc de \operation €.</div>
+<br>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 5</div>
+Le prix avec la remise est de : \embed{reply5, 4} € .</div>
+\special{help Prixremise, Super Aide}
+}
+\if{\step==4}{
+<br>
+<div class="consigne">Une autre méthode plus rapide permet
+ d'arriver au même résultat. Il suffit de calculer le pourcentage
+ du prix avec la remise. Le prix de l'article est donc toujours 
+de \reply2 € et la réduction est de \reply3 %. </div>
+
+<br>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 5</div>
+\draw{1024,120}{
+frect 10,10,410,30,blue
+text blue,420,13,large, 100 % du prix
+frect 10,50,410*\reply3/100,70,green
+text green,410*\reply3/100+10,53,large, \reply3 % de remise
+frect 10,90,410*\reply3/100,110,green
+frect 410*\reply3/100,90,410,110,blue
+text black,420,93,large,  Le rectangle bleu indique le pourcentage du prix avec la remise.
+}
+<br>
+Le pourcentage du prix avec la remise est donc de \embed{reply6, 4} %.
+</div>
+\special{help PourcentagePrixremise, Super Aide}
+}
+
+\if{\step==5}{
+<div class="consigne">Le prix de l'article est donc de \reply2 €
+et le pourcentage du prix avec la remise est donc \reply6 %.</div>
+<br>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 5</div>
+Complétez le tableau suivant pour calculer la réduction. Vous devez
+ arrondir le résultat aux centimes donc à 0,01 près.
+<br>
+<table class="wimscenter wimsborder">
+<tr>
+<td>\reply6 % =></td>
+<td>\reply6 pour</td>
+<td>100</td>
+</tr><tr>
+<td></td>
+<td>\embed{reply7,\size}</td>
+<td>\reply2 </td>
+</tr></table>
+</div>
+\special{help Aide, Super Aide}
+}
+
+</div>}
+
+\help{ \style
+  \if{ \help_subject issametext Aide}{<div class="aide">\pc
+<br><br>
+\Arc
+</div>}
+ \if{ \help_subject issametext Prixremise}{<div class="aide">
+Le prix avec la remise se calcule en réalisant la différence entre
+ le prix "normal" et la remise.
+<center><b>Prix avec la remise = Prix - Remise</b></center>
+</div>}
+\if{ \help_subject issametext PourcentagePrixremise}
+{<div class="aide">Le pourcentage avec la remise se calcule en
+ réalisant la différence entre le pourcentage "normal", 100 %, et le 
+pourcentage de remise.
+<center><b>Pourcentage du prix avec la remise = 100 - Poucentage de Remise</b></center>
+</div>}
+}
+
+\answer{}{\nomarticle}{type=atext}{option=noanalyzeprint}
+\answer{}{\prix}{type=numeric}{option=noanalyzeprint}
+\answer{}{\pourcentage}{type=numeric}{option=noanalyzeprint}
+
+\answer{}{\operation}{type=numeric}{option=noanalyzeprint}
+\integer{Ope=\prix*\pourcentage}
+\real{Operation=\Ope/100}
+\condition{la bonne réponse est de \Operation € }{\operation=\Operation}
+
+\answer{}{\prixremise}{type=numeric}{option=noanalyzeprint}
+\real{Prixremise=\prix-\Operation}
+\condition{la bonne réponse est \Prixremise € }{\prixremise=\Prixremise}
+
+\answer{}{\pourcentageremise}{type=numeric}{option=noanalyzeprint}
+\real{Pourcentageremise=100-\pourcentage}
+\condition{la bonne réponse est de \Pourcentageremise % }{\pourcentageremise=\Pourcentageremise}
+
+\answer{}{\final}{type=numeric}{option=noanalyzeprint}
+\real{Final=\prix-\Operation}
+\condition{le prix de l'article avec la remise est de \Final € }{\final=\Final}
+
+\text{nstep=}
+\text{nstep=(\step=3 and \operation=\Operation) ? reply5}
+\text{nstep=(\step=4 and \prixremise=\Prixremise) ? reply6}
+\text{nstep=(\step=5 and \pourcentageremise=\Pourcentageremise) ? reply7}
+\text{nstep=(\step=6 and \final=\Final) ? }

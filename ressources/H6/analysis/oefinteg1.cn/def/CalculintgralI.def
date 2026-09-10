@@ -1,0 +1,177 @@
+!set title=积分学 I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+leftrange=-5.000000
+rightrange=5.000000
+author=Michel Gosse
+email=michel.gosse@ac-poitiers.fr
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -2,-1,1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val8=$[rint($(tmp0))]
+val9=$[rint(-$val8/$val6)]
+tmp0=!randitem 2,3
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val11*($val6)^2)]
+val13=$[rint($val11*$val8*$val6)]
+val14=$[rint(($val6)^2)]
+val15=$[rint(2*$val8*$val6)]
+val16=$[rint(($val8)^2)]
+
+!ifval ($val6>0)
+tmp0=!randint $val9+1, 5
+
+val17=$[rint($(tmp0))]
+!else
+tmp1=!randint -5, $val9-1
+
+val17=$[rint($(tmp1))]
+!endif
+
+!ifval ($val6>0)
+tmp0=!randint $val9+1, 5
+
+val18=$[rint($(tmp0))]
+!else
+tmp1=!randint -5, $val9-1
+
+val18=$[rint($(tmp1))]
+!endif
+
+!ifval ($val6>0)
+tmp0=!randint $val9+1, 5
+
+val19=$[rint($(tmp0))]
+!else
+tmp1=!randint -5, $val9-1
+
+val19=$[rint($(tmp1))]
+!endif
+
+!ifval ($val18=$val17)
+val18=$[rint($val19)]
+!else
+val18=$[rint($val18)]
+!endif
+tmp0=!randitem ($val6*x+$val8)^$val10,1/($val6*x+$val8)^$val10,$val7/($val6*x+$val8),	($val12*x+$val13)/($val14*x^2+$val15*x+$val16),$val7/sqrt($val6*x+$val8),$val7*e^($val6*x),	$val7*e^($val6*x+$val8),($val12*x+$val13)*e^($val14*x^2+$val15*x+$val16),	$val6*x^2+$val8*x+$val7	
+
+val20=!rawmath $(tmp0)
+tmp0=!texmath $val20
+
+val21=$(tmp0)
+tmp=!translate ;";': to $     $ in $val20,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val22=!rawmath $(tmp0)
+tmp0=!texmath $val22
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in subst(x=$val18,$val22)-subst(x=$val17,$val22);
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+tmp0=!texmath $val24
+
+val25=\$(tmp0)
+replytype1=auto
+
+replyname1=I 的值
+replygood1=$val24
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()计算以下积分的精确值 :	<center>	
+!insmath I=\int_{$val17}^{$val18} $val21 \, dx
+$()	</center><br>	在输入回答时, 可利用以下的协定:<br>	自然对数写成 <i>log</i>. 例如, 输入	<i>log(2)</i> 代表实数 <i>ln(2)</i>. 反之, 软件用 <i>log</i> 代表 <i>ln</i>. <br>	平方根函数写成 <i>sqrt</i>. 例如, 输入	<i>sqrt(2)</i> 代表实数 
+!insmath \sqrt{2}
+$(). <br>	最后, 指数函数写成 <i>exp</i>. 例如, 输入	<i>exp(2)</i> 代表实数 
+!insmath e^2
+$(). 	也可以记为 <i>e^2</i>.	
+$()
+!exit
+
+:hint
+$()回想求导公式 :<br>	
+!insmath (\frac{1}{u})'=-\frac{u'}{u^2}
+$() <br>	
+!insmath \texmath(e^u)'=u'e^u
+$()<br>	
+!insmath \texmath(\ln u)'=\frac{u'}{u}
+$()<br>	
+!insmath \texmath(u^n)'=nu^{n-1}u'
+$()<br>	
+!insmath \texmath(\sqrt{u})'=\frac{u'}{2\sqrt{u}}
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()函数	<center>	
+!insmath x \rightarrow $val21
+$()	</center>	的原函数是 :	<center>	
+!insmath x \rightarrow $val23
+$()	</center>	这样就能求出积分的值.	
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,18,21,23
+embedcnt=0

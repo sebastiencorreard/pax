@@ -1,0 +1,320 @@
+!set title=Dioden en Lampen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+
+ansorder=c,c
+varcnt=73
+prevarcnt=72
+postvarcnt=0
+replycnt=0
+choicecnt=2
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+tmp=!trim g,0,L,l,0,dl,0	g,d,L,l,0,l,0	g,0,dL,l,0,l,0	g,0,dl,0,0,dl,0	g,0,l,0,0,dl,0
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val8
+
+tmp0=!rowcnt $tmp
+val9=$(tmp0)
+tmp0=!randint 1, $val9
+
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+val12=2,0.5,0,0.5,0,5,5,5,5,0.5,3,0.5
+val13=lines black ,$val12	line 0,3,5,3, black 
+val14=2,0.5,3,0.5
+val15=5,1,5,2
+val16=4,3,3,3
+val17=2,3,1,3
+val18=0,1,0,2
+val19=1,5,2,5
+val20=3,5,4,5
+tmp=!trim 2,0.5,3,0.5	2,0.5,3,0.5	5,1,5,2	5,1,5,2	4,3,3,3	2,3,1,3	0,1,0,2	0,2,0,1	0	0	 2,5,1,5,	 4,5,3,5
+val21=!translate internal $	\
+$ to ;; in $tmp
+val22=0
+!for val23 =1 to 7 
+tmp0=!item $val23 of  $val11
+
+!if  d isin $(tmp0)  
+val22=$[rint($val22+1)]
+val24=$val7
+!if $val22=2  
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val25=$(tmp0)
+val24=$val25
+!endif
+tmp=!translate internal $	$ to ; in $val21
+
+tmp=!row 2*$val23-1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+
+!ifval $val24=-1
+tmp0=!item 3 of $val26
+
+tmp1=!item 4 of $val26
+
+tmp2=!item 1 of $val26
+
+tmp3=!item 2 of $val26
+
+val26= $(tmp0),$(tmp1),$(tmp2),$(tmp3)
+!endif
+tmp0=!item 1 of $val26
+
+val27=$[$(tmp0)]
+tmp0=!item 2 of $val26
+
+val28=$[$(tmp0)]
+tmp0=!item 3 of $val26
+
+val29=$[$(tmp0)]
+tmp0=!item 4 of $val26
+
+val30=$[$(tmp0)]
+val31=$[($val27+($val29))/2]
+val32=$[($val28+($val30))/2]
+val33=$[$val29-($val27)]
+val34=$[$val30-($val28)]
+val13=$val13	line $val27+($val34)/2,$val28-($val33)/2,$val27-($val34)/2,$val28+($val33)/2, black	fpoly black,$val27,$val28,$val29+($val34)/2,$val30-($val33)/2, $val29-($val34)/2,$val30+($val33)/2
+!endif
+tmp0=!item $val23 of  $val11
+
+!if  g isin $(tmp0)  
+tmp=!translate internal $	$ to ; in $val21
+
+tmp=!row 2*$val23-1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+val35=black
+
+!ifval $val6=-1
+tmp0=!item 3 of $val26
+
+tmp1=!item 4 of $val26
+
+tmp2=!item 1 of $val26
+
+tmp3=!item 2 of $val26
+
+val26= $(tmp0),$(tmp1),$(tmp2),$(tmp3)
+!endif
+!endif
+tmp0=!item $val23 of  $val11
+
+!if l isin $(tmp0)  
+tmp=!translate internal $	$ to ; in $val21
+
+tmp=!row 2*$val23 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+
+!ifval $val23<5 
+val35= blue
+!else
+val35= red
+!endif
+!endif
+tmp0=!item 1 of $val26
+
+val27=$[$(tmp0)]
+tmp0=!item 2 of $val26
+
+val28=$[$(tmp0)]
+tmp0=!item 3 of $val26
+
+val29=$[$(tmp0)]
+tmp0=!item 4 of $val26
+
+val30=$[$(tmp0)]
+val31=$[($val27+$val29)/2]
+val32=$[($val28+$val30)/2]
+val36=$[(($val29-$val27)^2+($val30-$val28)^2)^(1/2)]
+tmp0=!item $val23 of  $val11
+
+!if l isin $(tmp0)  
+val13=$val13	ellipse $val31,$val32,$val36,$val36,$val35	line  $val27,$val28,$val29,$val30,$val35	linewidth 5	line (3*($val27)+($val29))/4,(3*($val28)+($val30))/4,(3*($val29)+($val27))/4,(3*($val30)+($val28))/4, $val35	linewidth 1	
+!endif
+tmp0=!item $val23 of  $val11
+
+!if g isin $(tmp0)  
+
+!ifval $val27<$val29 
+val37= +
+!else
+val37=-
+!endif
+!if $val37=+ 
+val38=red
+!else
+val38=blue
+!endif
+
+!ifval $val27<$val29 
+val39= -
+!else
+val39=+
+!endif
+!if $val39=+ 
+val40=red
+!else
+val40=blue
+!endif
+val41=$[max($val27,$val29)+ 1]
+val24=$[min($val27,$val29)- 1]
+val13=$val13	ellipse $val31,$val32,$val36,$val36,$val35	text black, $val31-0.1,$val32+0.3, medium, B	text $val38, $val41,$val32,huge,$val37	text $val40, $val24,$val32,huge,$val39	
+!endif
+tmp0=!item $val23 of  $val11
+
+!if L isin $(tmp0)  
+tmp=!translate internal $	$ to ; in $val21
+
+tmp=!row 2*$val23 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val26=$(tmp0)
+tmp0=!item 1 of $val26
+
+val27=$[$(tmp0)]
+tmp0=!item 2 of $val26
+
+val28=$[$(tmp0)]
+tmp0=!item 3 of $val26
+
+val29=$[$(tmp0)]
+tmp0=!item 4 of $val26
+
+val30=$[$(tmp0)]
+val31=$[($val27+$val29)/2]
+val32=$[($val28+$val30)/2]
+val36=$[(($val29-$val27)^2+($val30-$val28)^2)^(1/2)]
+val13=$val13	ellipse $val31,$val32,$val36,$val36,black	line  $val27,$val28,$val29,$val30,$val35	linewidth 5	line (3*($val27)+($val29))/4,(3*($val28)+($val30))/4,(3*($val29)+($val27))/4,(3*($val30)+($val28))/4, $val35	linewidth 1	
+!endif
+!next
+tmp=!trim g00l0dl0, 2,$val6-($val7)	gd0l0l0,$val6-($val7),$val6-($val7)	g0dl0l0,2,2	g0dl00dl0, $val6-($val7),$val6-($val25)	g0l00dl0, 2, $val6-($val7)
+val42=!translate internal $	\
+$ to ;; in $tmp
+val43=uit,aan
+tmp=!translate internal $	$ to ; in $val42
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0)
+
+val44=$(tmp1)
+val45=$[rint(abs($val44)/2+1)]
+tmp0=!item $val45 of $val43
+
+val44=$(tmp0)
+tmp=!translate internal $	$ to ; in $val42
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 3 of $(tmp0)
+
+val46=$(tmp1)
+val47=$[rint(abs($val46)/2+1)]
+tmp0=!item $val47 of $val43
+
+val46=$(tmp0)
+choicename1=rode lamp
+choicegood1=$val46
+choicebad1=$val43
+choicename2=blauwe lamp
+choicegood2=$val44
+choicebad2=$val43
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Hier zie je een electrisch schema van een stroombron (Batterij), lampjes en	 
+!if $val22=2 
+$()een paar dioden 
+!else
+$() een diode 
+!endif
+$() :<center> 
+!read oef/draw.phtml 300,300 \
+transparent white	xrange -2,7	yrange -2,7	$val13	 
+$()	</center>	De<font color=red> rode lamp is   
+!read oef/embed.phtml choice 1 
+$()  </font><br>	De<font color=blue> blauwe lamp is   
+!read oef/embed.phtml choice 2 
+$() </font>.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,22
+embedcnt=2

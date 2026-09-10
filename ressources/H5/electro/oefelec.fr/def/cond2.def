@@ -1,0 +1,173 @@
+!set title=Conducteurs en série ou parallèle II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+precision=100
+
+ansorder=r,r
+varcnt=23
+prevarcnt=20
+postvarcnt=2
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env \lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=série,parallèle
+val8=On dispose de quatre résistances. Leurs valeurs sont
+tmp=!trim Ces quatre résistances sont branchées en	  entre les bornes d'une alimentation continue dont la tension est 
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Calculer la résistance équivalente du montage en ohms.
+tmp=!trim La résistance équivalente est	  Calculer l'intensité du courant	  qui les traverse,du circuit
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=Résistance équivalente,Intensité
+val13=Il s'agit ici de résistances en série et non pas en parallèle.
+val14=Il s'agit ici de résistances en parallèle et non pas en série.
+tmp0=!randint 100, 1000
+
+val15=$[$(tmp0)/10]
+tmp0=!randint 100, 1000
+
+val16=$[$(tmp0)/10]
+tmp0=!randint 100, 1000
+
+val17=$[$(tmp0)/10]
+tmp0=!randint 100, 1000
+
+val18=$[$(tmp0)/10]
+tmp0=!randint 6, 24
+
+val19=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val20=$(tmp0)
+tmp0=!item $val20 of $val7
+
+val21=$(tmp0)
+
+!ifval $val20=1 
+val22=$[ $val15+$val16+$val17+$val18]
+!else
+val22=$[(1/$val15+1/$val16+1/$val17+1/$val18)^(-1) ]
+!endif
+val22=$[round(1000*$val22)/1000]
+val23=$[$val19/$val22]
+val23=$[round(1000*$val23)/1000]
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=$(val12[1])
+replygood1=$val22 ohm
+replytype2=units
+replyname2=$(val12[2])
+replygood2=$val23 A
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val8 $val15 ohms,	$val16 ohms, $val17 ohms, $val18 ohms.	$(val9[1;]) $val21 $(val9[2;]) $val19 V.	<div class="wimscenter">	
+!if $val20=1 
+$() 
+!read oef/draw.phtml 150,150 \
+xrange 0,5	yrange 0,5	segment 1,2.8,1,2,black	segment 4,2,4,2.7,black	segment 4,3.5,4,4,black	segment 4,4,2.9,4,black	segment 2.1,4,1,4,black	segment 1,4,1,3,black	segment 1,2.8,1,2,black	segment 1,2,1.4,2,black	segment 2.2,2,2.8,2,black	segment 0.5,3,1.5,3,black	segment 0.8,2.8,1.2,2.8,black	segment 3.6,2,4,2,black	polyline black,2.1,3.9,2.1,4.1,2.9,4.1,2.9,3.9,2.1,3.9	polyline black,1.4,1.9,1.4,2.1,2.2,2.1,2.2,1.9,1.4,1.9	polyline black,2.8,1.9,2.8,2.1,3.6,2.1,3.6,1.9,2.8,1.9	polyline black,3.9,2.7,4.1,2.7,4.1,3.5,3.9,3.5,3.9,2.7	\RR1	\RR2	\RR3	\RR4	text red,2.1,4.5,medium,$val15	text red,1.5,1.8,medium,$val16	text red,2.9,1.8,medium,$val17	text red,4.3,3.2,medium,$val18	 
+$()	 
+!else
+$() 	 
+!read oef/draw.phtml 200,200 \
+xrange 0.5,6	yrange 1,6.5	polyline black,1,3.3,1,2,5,2,5,5,1,5,1,3.5	segment 2,2,2,3.1,black	segment 2,3.9,2,5,black	segment 3,2,3,3.1,black	segment 3,3.9,3,5,black	segment 4,2,4,3.1,black	segment 4,3.9,4,5,black	segment 5,2,5,3.1,black	segment 5,3.9,5,5,black	segment 0.5,3.5,1.5,3.5,black	segment 0.8,3.3,1.2,3.3,black	polyline black,1.9,3.1,2.1,3.1,2.1,3.9,1.9,3.9,1.9,3.1	polyline black,2.9,3.1,3.1,3.1,3.1,3.9,2.9,3.9,2.9,3.1	polyline black,3.9,3.1,4.1,3.1,4.1,3.9,3.9,3.9,3.9,3.1	polyline black,4.9,3.1,5.1,3.1,5.1,3.9,4.9,3.9,4.9,3.1	segment 5,3.1,5,3.9,white	\RR1	\RR2	\RR3	\RR4	text red,4.7,2.8,medium,$val15	text red,1.7,2.8,medium,$val16	text red,2.7,2.8,medium,$val17	text red,3.7,2.8,medium,$val18	 
+$()	 
+!endif
+$()	</div>	  
+!if $m_step=1 
+$()$val10 
+!endif
+$()	  
+!if $m_step=2 
+$()$(val11[1;]) $val22 ohms. $(val11[2;])	    
+!if $val20=1 
+$()$(val11[3;1]). 
+!else
+$() $(val11[3;2]).  
+!endif
+$()	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val24=$[-1/$m_reply1+1/$val15+1/$val16+1/$val17+1/$val18]
+val25=$[-$m_reply1+$val15+$val16+$val17+$val18]
+
+!exit
+
+:feedback
+!ifval $val24=0 and $val20=1
+ <div class='oef_feedbacks'>$val13
+$()</div>
+!endif
+!ifval $val25=0 and $val20=2
+ <div class='oef_feedbacks'>$val14
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,13,14,15,16,17,18,19,20,21,22
+embedcnt=0

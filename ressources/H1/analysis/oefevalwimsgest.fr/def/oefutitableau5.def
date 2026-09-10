@@ -1,0 +1,143 @@
+!set title=Utiliser un tableau 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Août,Septembre,Octobre,Novembre,Décembre
+val7=de janvier,de février,de mars,d'avril,de mai,de juin,	  de juillet,d'août,de septembre,d'octobre,de novembre,de décembre
+val8=Toulouse,Nice,Paris,Marseille,Strasbourg,Lille
+val9=Nous avons le total des précipitations en mm par mois pour la ville de
+val10=Vous n'oublierez pas de préciser l'unité à votre résultat.
+val11=Donner la somme des précipitations pour l'année.
+tmp=!trim 50,50,50,60,70,60,40,50,50,50,50,50	80,60,60,70,50,40,20,20,80,140,100,90	50,40,50,50,60,60,60,40,50,60,50,60	50,50,40,50,40,30,15,30,50,80,60,60	30,40,40,40,80,80,70,60,60,50,50,40	60,40,60,50,60,70,60,50,60,70,70,70
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val13=$[rint($(tmp0))]
+val8=$(val8[$val13])
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val13 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+val14=
+val15=
+val16=$[rint(0)]
+val17=$[rint(0)]
+!for val18 =1 to 6 
+tmp0=!randint $(val12[$val18])-10, $(val12[$val18])+10
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val16+$val15)]
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+!next
+!for val18 =7 to 12 
+tmp0=!randint $(val12[$val18])-10, $(val12[$val18])+10
+
+val15=$[rint($(tmp0))]
+val17=$[rint($val17+$val15)]
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+!next
+val19=\rp mm
+val20=$[rint(20)]
+val21=units
+val19=$[rint($val16+$val17)]
+val19=$val19 mm
+val20=$[rint(20)]
+replytype1=$val21
+
+replyoption1=nocase 
+replyname1=
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val9 $val8.	<table class="wimscenter wimsborder table-scroll">	<tr>	 
+!for m_m=1 to 12 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr><tr>	 
+!for m_k=1 to 12 
+$()<td>$(val14[$m_k])</td> 
+!next
+$()	</tr></table>	<div class="spacer"><label for="reply1">$val11</label>	<div> 
+!read oef/embed.phtml r1,$val20 
+$().</div></div>	
+!if $val10!= 
+$()<div class="wims_instruction">$val10</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,14,20
+embedcnt=1

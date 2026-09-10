@@ -1,0 +1,194 @@
+target=objspaequa
+#include "lang_titles.inc"
+#include "author.inc"
+\precision{10000}
+#include "lang.inc"
+
+\precision{100}
+
+\integer{kangle=random(1..3)}
+***test integer{kangle=2}
+\integer{k=random(1..3)}
+*** test integer{k=2}
+\integer{axe=random(1..3)}
+*** test integer{axe=1}
+
+\matrix{axeliste= (Ox),(Oy),(Oz)}
+****matrix{axeliste= texmath(\(\vec{i}),(\vec{i}),(\vec{i}))}
+\integer{r=random(1..5)}
+\integer{x=random(-5..5)}
+\integer{y=random(-5..5)}
+\integer{z=random(-5..5)}
+\integer{d1=random(1..3)}
+\integer{d2=random(1..3)}
+\integer{d3=random(1..3)}
+\rational{xc=(\x)/(\d1)}
+\rational{xc=(\x)}
+\rational{yc=(\y)/(\d2)}
+\rational{yc=(\y)}
+\rational{zc=maxima((\z)/(\d3);)}
+\rational{zc=(\z)}
+\integer{r=random(1..5)}
+**** Réponses ****
+\text{rep1=\oliste[\k]}
+**** Pour la sphère *****
+\rational{rep2=\xc}
+\rational{rep3=\yc}
+\rational{rep4=\zc}
+\rational{rep5=\r}
+**** Pour le cylindre *****
+\text{rep6=\axeliste[\axe]}
+\if{\axe==1}{
+  \text{rep7= texmath(y=\yc)}
+  \text{rep8= texmath(z=\zc)}
+}
+\if{\axe==2}{
+  \text{rep7= texmath(x=\xc)}
+  \text{rep8= texmath(z=\zc)}
+}
+\if{\axe==3}{
+  \text{rep7= texmath(x=\xc)}
+  \text{rep8= texmath(y=\yc)}
+}
+\rational{rep9=\r}
+**** Pour le cone *****
+\text{coeflist=\frac{1}{3},1, 3}
+\text{anglelist= 30, 45, 60}
+\text{coef=\coeflist[\kangle]}
+\text{deg=\anglelist[\kangle]}
+\text{rep10=\axeliste[\axe]}
+\text{rep11=\deg}
+\text{feed2=maxima(expand((x-\xc)^2-(\xc)^2))}
+\text{feed3=maxima(expand((y-\yc)^2-(\yc)^2))}
+\text{feed4=maxima(expand((z-\zc)^2-(\zc)^2))}
+\rational{const=(\xc)^2+(\yc)^2+(\zc)^2-(\r)^2}
+\text{feed5=texmath(\const - (\xc)^2+(\yc)^2+(\zc)^2)}
+
+\if{\k==1}
+{
+  \text{equat=simplify((x-\xc)^2+(y-\yc)^2+(z-\zc)^2-\r^2=0)}
+  \text{question2= Preciser son centre et son rayon}
+  \text{mstep2=r2,r3,r4,r5}
+}
+
+\if{\k==2}
+{
+ \if{\axe==1}
+ {
+  \text{equat=simplify((y-\yc)^2+(z-\zc)^2-(\r)^2=0)}
+ }
+ \if{\axe==2}
+ {
+  \text{equat=simplify((x-\xc)^2+(z-\zc)^2-(\r)^2=0)}
+ }
+ \if{\axe==3}
+ {
+  \text{equat=simplify((x-\xc)^2+(y-\yc)^2-(\r)^2=0)}
+ }
+ \text{question2= Preciser son axe par sa direction et ses équations ainsi que son rayon}
+ \text{mstep2=r6,r7,r8,r9}
+}
+
+\if{\k==3}
+{
+ \if{\axe==1}
+ {
+  \text{equat=\coef=1?y^2+z^2=x^2:y^2+z^2=\coef x^2}
+ }
+ \if{\axe==2}
+ {
+  \text{equat=\coef=1?x^2+z^2=y^2:x^2+z^2=\coef y^2}
+ }
+ \if{\axe==3}
+ {
+  \text{equat=\coef=1?x^2+y^2=z^2:x^2+y^2=\coef z^2}
+ }
+ \text{question2= Preciser son axe par sa direction, et son angle}
+ \text{mstep2=r10,r11}
+}
+
+\text{\mstep=r1}
+\nextstep{\mstep}
+
+\statement{
+On considère un objet de l'espace donné par son équation :
+<p class="wimscenter"> \(\equat)</p>
+\if{\step=1}{
+Quelle est la nature de cet objet: \embed{r1}}
+{\question2}
+}
+\text{mstep=\step=2?\mstep2:}
+
+\answer{nature}{\k;\oliste}{type=menu}
+\answer{abscisse du centre}{\rep2}{type=numeric}
+\answer{ordonnée du centre}{\rep3}{type=numeric}
+\answer{côte du centre}{\rep4}{type=numeric}
+\answer{rayon de la sphère}{\rep5}{type=numeric}
+\answer{direction de l'axe du cylindre}{\axe;\axeliste}{type=menu}
+\answer{Première équation de l'axe}{\rep7}{type=equation}
+\answer{Deuxième équation de l'axe}{\rep8}{type=equation}
+\answer{rayon du cylindre}{\rep9}{type=numeric}
+\answer{direction de l'axe du cône}{\axe;\axeliste}{type=menu}
+\answer{angle du cône en degré}{\rep11}{type=numeric}
+
+\feedback{\reply1 notsametext \rep1}
+{\if{\k==1}
+{la présence de \(x^2),\(y^2) et\(z^2) du même côté du signe égal indique qu'il s'agit d'une sphère
+}
+\if{\k==2}
+{il manque une des trois variables \(x^2),\(y^2),\(z^2). Ceci indique qu'il s'agit d'un cylindre
+}
+\if{\k==3}
+{les variables \(x^2),\(y^2) et\(z^2) sont réparties de part et
+ d'autre du signe égal, 2 d'un côté, et la troisième de l'autre.
+ Ceci indique qu'il s'agit d'un cône
+}
+}
+\feedback{\k==1 and \step==2 and \reply2 <> \xc}
+{Pour trouver l'abscisse du centre: On regroupe les termes en x et on fait apparaître le début d'un carré:<p>
+\(\feed2)...=\((x-\xc)^2)....
+}
+\feedback{\k==1 and \step==2 and \reply3 <> \yc}
+{Pour trouver l'ordonnée du centre: On regroupe les termes en y et on fait apparaître le début d'un carré:<p>
+\(\feed3)...=\((y-\yc)^2)....
+}
+\feedback{\k==1 and \step==2 and \reply4 <> \zc}
+{Pour trouver la côte du centre: On regroupe les termes en z et on fait apparaître le début d'un carré:<p>
+\(\feed4)...=\((z-\zc)^2)....
+}
+\feedback{\k==1 and \step==2 and \reply5 <> \r}
+{Pour calculer le rayon de la sphère, on fait:<br>
+\(r^2)=\feed5
+}
+\feedback{\k==2 and \step==2 and \reply6 notsametext \rep6}
+{l'axe du cylindre correspond à la variable manquante}
+
+\feedback{\k==2 and \step==2 and \reply7 notsametext \rep7}
+{
+\if {\axe==3 or \axe==2}{
+Pour trouver l'abscisse de l'axe: On regroupe les termes en x et on fait apparaître le début d'un carré:<p>
+\(\feed2)...=\((x-\xc)^2)....
+}
+\if {\axe==1}{
+Pour trouver l'ordonnée de l'axe: On regroupe les termes en y et on fait apparaître le début d'un carré:<p>
+\(\feed3)...=\((y-\yc)^2)....
+}
+}
+
+\feedback{\k==2 and \step==2 and \reply8 notsametext \rep8}
+{
+\if {\axe==3}{
+Pour trouver l'ordonnée de l'axe: On regroupe les termes en y et on fait apparaître le début d'un carré:<p>
+\(\feed3)...=\((y-\yc)^2)....
+}
+\if {\axe==1 or \axe==2}{
+Pour trouver la côte de l'axe: On regroupe les termes en z et on fait apparaître le début d'un carré:<p>
+\(\feed4)...=\((z-\zc)^2)....
+}
+}
+\feedback{\k==3 and \step==2 and \reply10 notsametext \rep10}
+{l'axe du cône correspond à la variable qui se trouve seule d'un côté de l'égalité}
+
+\feedback{\k==3 and \step==2 and \reply11 <> \deg}
+{le coefficient \(\coef) est la tangente de l'angle \deg degré!
+}

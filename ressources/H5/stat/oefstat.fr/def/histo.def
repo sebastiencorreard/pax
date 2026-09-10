@@ -1,0 +1,284 @@
+!set title=Statistiques : Histogrammes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Adeline, Grelot;Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_es=Estadística : Histogramas
+title_ca=Estadística : Histogrames
+title_it=Statistica: Istogrammi
+title_nl=Statistiek : Histogram
+
+ansorder=r
+varcnt=73
+prevarcnt=72
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Intervalles,Effectifs,Histogramme
+val8=Voici une série statistique&nbsp;
+val9=Déterminer parmi les histogrammes ci-dessous l'histogramme	  représentant la série statistique.
+!if $val6=es 
+val7=Intervalos,Frecuencias,Histograma
+val8=A continuación se muestra una serie de datos&nbsp;
+val9=Entre los histogramas siguientes, escoja el que representa la serie de datos.
+!endif
+!if $val6=ca 
+val7=Intervals, Freqüències, Histograma
+val8=A continuació es mostra una sèrie de dades&nbsp;
+val9=Entre els histogrames següents, trieu el qual representa la sèrie de dades.
+!endif
+!if $val6=it 
+val7=Intervallo,Frequenze,Istogramma
+val8=Ecco una serie di dati
+val9=Selezionare tra i grafici qui sotto l'istogramma che rappresenta questa serie di dati.
+!endif
+tmp0=!randint 4, 7
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 10, 20
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 20, 90
+
+val12=$[rint($(tmp0))]
+!readproc slib/list/selshuf $val11,$val10 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!sort numeric item $val13
+
+val14=$(tmp0)
+tmp0=!item $val10 of $val14
+
+val15=$[rint($(tmp0)+1)]
+tmp0=!replace item number $val10 by $val15 in $val14
+
+val14=$(tmp0)
+!readproc slib/list/selshuf $val12,$val10-1 
+tmp0=$slib_out
+val16=$(tmp0)
+!readproc slib/stat/histo [$val16],[$val14],ytics 5,xtics 
+tmp0=$slib_out
+val17=$(tmp0)
+!for val18 =1 to $val10-1 
+tmp0=!item $val18 of $val16
+
+val19=$(tmp0)
+tmp0=!item $val18+1 of $val14
+
+val20=$(tmp0)
+tmp0=!item $val18 of $val14
+
+val21=$(tmp0)
+t_=!rawmath $val19*($val20-$val21)
+val22=!exec pari print($t_)
+!if $val18=1 
+val23=$val22
+!else
+val23=$val23,$val22
+!endif
+!next
+tmp0=!randint 1, floor($val10/2)
+
+val24=$[rint($(tmp0))]
+tmp0=!randint floor($val10/2)+1, $val10-1
+
+val25=$[rint($(tmp0))]
+val26=$val16
+tmp0=!item $val24 of $val16
+
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+t_=!rawmath $val27+10
+val27=!exec pari print($t_)
+tmp0=!item $val25 of $val16
+
+t_=!rawmath $(tmp0)
+val28=!exec pari print($t_)
+t_=!rawmath max(0,$val28-10)
+val28=!exec pari print($t_)
+tmp0=!replace item number $val24 by $val27 in $val26
+
+val26=$(tmp0)
+tmp0=!replace item number $val25 by $val28 in $val26
+
+val26=$(tmp0)
+!readproc slib/stat/histo [$val26],[$val14],ytics 5,xtics 
+tmp0=$slib_out
+val29=$(tmp0)
+val30=$val14
+val31=$val16
+val32=$[rint(0)]
+val33=$[rint(0)]
+!for val18 =1 to $val10-1 
+!if $val32=0 
+tmp0=!item $val18 of $val14
+
+val34=$(tmp0)
+tmp0=!item $val18+1 of $val14
+
+val35=$(tmp0)
+!if $val35-$val34>1 
+val33=$[rint($val34+1)]
+tmp0=!item $val18 of $val16
+
+t_=!rawmath $(tmp0)*($val35-$val34)
+val36=!exec pari print($t_)
+tmp0=!replace item number $val18 by $val33 in $val30
+
+val30=$(tmp0)
+tmp0=!replace item number $val18 by $val36 in $val31
+
+val31=$(tmp0)
+val32=$[rint(1)]
+!endif
+!endif
+!next
+!readproc slib/stat/histo [$val16],[$val30],ytics 5,xtics 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/stat/histo [$val23],[$val14],ytics 5,xtics 
+tmp0=$slib_out
+val38=$(tmp0)
+val39=
+val40=
+!for val18 =1 to $val10-1 
+tmp0=!item $val18 of $val14
+
+val41=$(tmp0)
+tmp0=!item $val18+1 of $val14
+
+val42=$(tmp0)
+tmp0=!item $val18 of $val16
+
+t_=!rawmath $(tmp0)
+val43=!exec pari print($t_)
+tmp0=!append word <th scope="col">\($val41\leq x <$val42\)</th> to $val39
+
+val39=$(tmp0)
+tmp0=!append word <td>$val43</td> to $val40
+
+val40=$(tmp0)
+!next
+tmp0=!shuffle 4
+
+val44=$(tmp0)
+tmp0=!positionof item 1 in $val44
+
+val45=$(tmp0)
+val46=($val17),($val29),($val37),($val38)
+tmp0=!item $(val44[1]) of $val46
+
+val47=$(tmp0)
+tmp0=!item $(val44[2]) of $val46
+
+val48=$(tmp0)
+tmp0=!item $(val44[3]) of $val46
+
+val49=$(tmp0)
+tmp0=!item $(val44[4]) of $val46
+
+val50=$(tmp0)
+tmp0=!declosing $val47
+
+val47=$(tmp0)
+tmp0=!declosing $val48
+
+val48=$(tmp0)
+tmp0=!declosing $val49
+
+val49=$(tmp0)
+tmp0=!declosing $val50
+
+val50=$(tmp0)
+replytype1=radio
+replyname1=$(val7[3])
+replygood1=$val45;A,B,C,D
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="spacer">	$val8:	</div>	<table class="wimscenter wimsborder">	<tr><th scope="col">$(val7[1])</th>	 $val39	</tr><tr><th>$(val7[2])</th>	 $val40	</tr></table>	<div class="wims_question">	  $val9	<table class="wimscenter">	<tr>	<th scope="col"> 
+!read oef/draw.phtml 220,150 \
+$val47 
+$()</td>	<th scope="col"> 
+!read oef/draw.phtml 220,150 \
+$val48 
+$()</td>	<th scope="col"> 
+!read oef/draw.phtml 220,150 \
+$val49 
+$()</td>	<th scope="col"> 
+!read oef/draw.phtml 220,150 \
+$val50 
+$()</td>	</tr><tr>	<td> 
+!read oef/embed.phtml reply1,1 
+$()</td>	<td> 
+!read oef/embed.phtml reply1,2 
+$()</td>	<td> 
+!read oef/embed.phtml reply1,3 
+$()</td>	<td> 
+!read oef/embed.phtml reply1,4 
+$()</td>	</tr>	</table>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,39,40,47,48,49,50
+embedcnt=4

@@ -1,0 +1,183 @@
+!set title=Produit de matrices
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r
+varcnt=18
+prevarcnt=12
+postvarcnt=5
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 3
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 3
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, $val6
+
+val10=$(tmp0)
+tmp0=!randint 1, $val9
+
+val11=$(tmp0)
+!readproc slib/matrix/random $val6,$val7,5 
+tmp0=$slib_out
+val12=$(tmp0)
+!readproc slib/matrix/random $val8,$val9,5 
+tmp0=$slib_out
+val13=$(tmp0)
+!if $val7=$val8 
+t_=!replace internal \( by ( in [$val12]*[$val13]
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+!endif
+
+!ifval $val7=$val8
+val15=1
+!else
+val15=2
+!endif
+val16=$(val14[$val10;$val11])
+val17=r1
+dynsteps=yes
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=calcul possible
+replygood1=$val15;oui,non
+replytype2=numeric
+replyname2=format
+replygood2=$[$val6]
+replytype3=numeric
+replyname3=format
+replygood3=$[$val9]
+replytype4=numeric
+replyname4=
+replygood4=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div id="enonce">	On considère les matrices A=
+!insmath [$val12]
+$() et B=
+!insmath [$val13]
+$()<br>	</div>		
+!if $val17 issametext r1 
+$()	<div class="question">	Le produit A
+!insmath \times
+$()B est-il possible ?	<div class="reponse">	 
+!read oef/embed.phtml r1 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $val17 issametext r2,r3 
+$()	<div class="question">	Quel est le format du produit A
+!insmath \times
+$()B ?	<div class="reponse">	( 
+!read oef/embed.phtml r2,5 
+$(); 
+!read oef/embed.phtml r3,5 
+$())	</div>	</div>	 
+!endif
+$()		
+!if $val17 issametext r4 
+$()	<div class="question">	Soit C=A
+!insmath \times
+$() B. Que vaut le coefficient 
+!insmath c$val10$val11
+$() ?	<div class="reponse">	
+!insmath c$val10$val11
+$()= 
+!read oef/embed.phtml r4 
+$()	</div>	</div>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_sc_reply1=1 and $val15=1 
+val17=r2,r3
+!endif
+!if ($m_sc_reply1=1 and $val15=2) or ($m_sc_reply1=0) 
+val17=
+!endif
+!if $m_sc_reply2=1 and $m_sc_reply3=1 
+val17=r4
+!endif
+!if $m_sc_reply2=0 or $m_sc_reply3=0 
+val17=
+!endif
+!if $m_step>3 
+val17=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,15,17
+embedcnt=4

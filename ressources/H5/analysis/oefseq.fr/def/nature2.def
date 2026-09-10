@@ -1,0 +1,291 @@
+!set title=Nature de la suite ? (concret)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=sequence,geometric_sequence,arithmetic_sequence
+oefobservation=En fonction de la configuration de l'exercice sur le module, le vocabulaire utilisé est : <ul><li>Que celui des suites arithmétiques</li> <li>Que celui des suites géométriques</li> <li>Aléatoirement l'un ou l'autre</li> </ul> 
+
+ansorder=r,r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem A,G,AG
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+!if $val3 == A 
+val6=est arithmétique,n'est pas arithmétique, je n'en sais rien
+!endif
+!if $val3 == G 
+val6=n'est pas géométrique,est géométrique, je n'en sais rien
+!endif
+!if $val3 == AG 
+val6=est arithmétique,est géométrique, je n'en sais rien
+!endif
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val8=$[rint($(tmp0))]
+!if $val8=1 
+tmp0=!randint 15, 100
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 10, 200
+
+val10=$[$val9+$(tmp0)]
+tmp0=!randint 2, 20
+
+val11=$[$(tmp0)]
+val12=Un vidéaste,Une vidéaste
+!endif
+!if $val8=2 
+tmp0=!randitem 8,14
+
+val9=$[rint(1600+5*$(tmp0))]
+tmp=!nonempty items 2017,2018,2019,2020
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+val14=Un employé,Une employée
+val15=cet employé,cette employée
+tmp0=!randint 0, 5
+
+val10=$[25+5*$(tmp0)]
+tmp0=!randint 1, 6
+
+val11=$[0.5*$(tmp0)]
+!endif
+!if $val8=3 or $val8=5 
+tmp0=!randint 0, 18
+
+val9=$[rint(300+100*$(tmp0))]
+tmp=!nonempty items 2017,2018,2019,2020
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 7
+
+val10=$[40*$(tmp0)]
+tmp0=!randint 1, 10
+
+val11=$[$(tmp0)]
+!endif
+!if $val8=4 or $val8=6 
+tmp0=!randint 0, 50
+
+val9=$[rint(15000+1000*$(tmp0))]
+tmp=!nonempty items 2017,2018,2019,2020
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+tmp0=!randint (0.02*$val9), (0.1*$val9)
+
+val10=$[$(tmp0)]
+tmp0=!randint 1, 10
+
+val11=$[$(tmp0)]
+!endif
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+
+!ifval ($val8<5)
+val17=$[ 1+$val11/100]
+!else
+val17=$[1-$val11/100]
+!endif
+
+!ifval ($val8<5)
+val18=$[rint( $val10)]
+!else
+val18=$[rint(-$val10)]
+!endif
+val19=$val18,$val17
+tmp=!trim $(val12[$val16]) publie une vidéo sur le web . Le jour de la publication&sbquo; la vidéo a été vue $val9 fois. Chaque jour&sbquo; le nombre de visionnages de la vidéo augmente de,vues,le nombre de vues \(n\) jours après la publication	Le salaire mensuel en $val13 d'$(val14[$val16]) s'élève à $val9 euros . Chaque année&sbquo; ce salaire est augmenté de ,euros,le salaire mensuel de $(val15[$val16]) en $val13+\(n)	Le nombre de spectateurs à un festival en $val13 était de $val9. Chaque année&sbquo; le nombre de spectateurs augmente de,spectateurs,le nombre de spectateurs en $val13+\(n)	Le bénéfice d'une entreprise s'élève à $val9 euros . Chaque année&sbquo; ce chiffre d'affaire augmente de,euros,,le chiffre d'affaire de l'entreprise en $val13+\(n)	Le nombre de spectateurs à un festival en $val13 était de $val9. Chaque année&sbquo; le nombre de spectateurs baisse de,spectateurs,le nombre de spectateurs en $val13+\(n)	Le bénéfice d'une entreprise s'élève à $val9 euros . Chaque année&sbquo; ce chiffre d'affaire baisse de,euros,le chiffre d'affaire de l'entreprise en $val13+\(n)		
+val20=!translate internal $	\
+$ to ;; in $tmp
+!if $val3 == A 
+!if $val7=1 
+val21=reply 1	reply 2
+!else
+val21=reply 1
+!endif
+!endif
+!if $val3 == G 
+!if $val7=1 
+val21=reply 1
+!else
+val21=reply 1	reply 2
+!endif
+!endif
+!if $val3 == AG 
+val21=reply 1	reply 2
+!endif
+
+!ifval $val7=1
+val22=arithmétique
+!else
+val22=géométrique
+!endif
+oefsteps=$val21 
+nextstep=!nosubst $val21 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val7;$val6
+replytype2=formal
+replyname2=
+replygood2=$(val19[$val7])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val20[$val8;1]) 
+!if $val7=1 
+$()$val10 $(val20[$val8;2]) 
+!else
+$() $val11 % 
+!endif
+$().	On note 
+!insmath u_n
+$() $(val20[$val8;3]).	
+!if $m_step=1 
+$()	<div class="wims_question">Quelle est la nature  de la suite 
+!insmath u
+$() ? <label for="reply1">La suite 
+!insmath u
+$()</label>   
+!read oef/embed.phtml r1 
+$()</div> 
+!endif
+$()		
+!if $m_step>1 
+$()<p>La suite est $val22.</p>	<div class="wims_question"> Sa <label for="reply2">raison est égale à :</label>  
+!read oef/embed.phtml r2,3 
+$().</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Pour tout entier naturel non nul n, 
+!if $val7=1 
+$()
+!if $val8<5 
+$()
+!insmath u_{n+1}=u_n+$val10
+$() 
+!else
+$() 
+!insmath u_{n+1}=u_n-$val10
+$() 
+!endif
+$() 
+!else
+$() 
+!insmath u_{n+1}=u_n
+$()
+!if $val8<5 
+$() 
+!insmath \times \left ( 1+\frac{$val11}{100} \right )
+$() 
+!else
+$() 
+!insmath \times \left ( 1-\frac{$val11}{100} \right )
+$() 
+!endif
+$()
+!insmath =u_n \times $val17
+$() 
+!endif
+$()	donc la suite $(val6[$val7]). 	
+!if $val3==A 
+$()
+!if $val7=1 
+$()de raison 
+!insmath $(val19[$val7])
+$(). 
+!endif
+$() 
+!endif
+$()	
+!if $val3==G 
+$()
+!if $val7=2 
+$()de raison 
+!insmath $(val19[$val7])
+$(). 
+!endif
+$() 
+!endif
+$()	
+!if $val3==AG 
+$()de raison 
+!insmath $(val19[$val7])
+$(). 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,7,8,10,11,17,19,20,22
+embedcnt=2

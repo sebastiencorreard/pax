@@ -1,0 +1,108 @@
+target=qcmcarre1 qcmcarre2 qcminv1 qcminv2
+
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+
+\integer{a=randint(1..5)*randint(1,-1)}
+\integer{b=randint(1..5)*randint(1,-1)}
+\integer{b=abs(\b)=abs(\a)?2*\b}
+\integer{c=randint(1..5)*randint(1,-1)}
+
+#if (defined TARGET_qcmcarre1  || defined TARGET_qcminv1 )
+#if defined TARGET_qcmcarre1
+\title{QCM1 sur fonction carré}
+\text{tf=texmath((x+\a)^2+\b)}
+\text{typecourbe=la parabole \(\displaystyle{\mathcal{P}}) d'équation \(y=x^2)}
+#else
+\title{QCM1 sur fonction inverse}
+\text{tf=texmath(\b+1/(x+\a))}
+\text{typecourbe=l'hyperbole \(\displaystyle{\mathcal{H}}) d'équation \(y=texmath(1/x))}
+#endif
+\integer{aa=-\a}
+\integer{bb=-\b}
+\text{prop1=texmath( \aa*x+ \b*y)}
+\text{prop1=wims(replace internal x by \vec{i} in \prop1)}
+\text{prop1=wims(replace internal y by \vec{j} in \prop1)}
+text{prop1=\prop1[1] \vi \prop1[2] \vj}
+\text{prop2=texmath( \aa*x+ \bb*y)}
+\text{prop2=wims(replace internal x by \vec{i} in \prop2)}
+\text{prop2=wims(replace internal y by \vec{j} in \prop2)}
+\text{prop3=texmath( \a*x+ \b*y)}
+\text{prop3=wims(replace internal x by \vec{i} in \prop3)}
+\text{prop3=wims(replace internal y by \vec{j} in \prop3)}
+\text{prop4=texmath( \a*x+ \bb*y)}
+\text{prop4=wims(replace internal x by \vec{i} in \prop4)}
+\text{prop4=wims(replace internal y by \vec{j} in \prop4)}
+\text{prop5=texmath( \b*x+ \aa*y)}
+\text{prop5=wims(replace internal x by \vec{i} in \prop5)}
+\text{prop5=wims(replace internal y by \vec{j} in \prop5)}
+\text{prop6=texmath( \bb*x+ \aa*y)}
+\text{prop6=wims(replace internal x by \vec{i} in \prop6)}
+\text{prop6=wims(replace internal y by \vec{j} in \prop6)}
+\text{prop7=texmath( \b*x+ \a*y)}
+\text{prop7=wims(replace internal x by \vec{i} in \prop7)}
+\text{prop7=wims(replace internal y by \vec{j} in \prop7)}
+\text{prop8=texmath( \bb*x+ \a*y)}
+\text{prop8=wims(replace internal x by \vec{i} in \prop8)}
+\text{prop8=wims(replace internal y by \vec{j} in \prop8)}
+\text{lstprop=\(\prop1),\(\prop2),\(\prop3),\(\prop4),\(\prop5),\(\prop6),\(\prop7),\(\prop8)}
+\statement{<p>
+On considère la fonction \(f: x \mapsto \tf).
+</p>
+Sa courbe représentative \(\displaystyle{\mathcal{C}_f}) est la translatée de
+\typecourbe par la translation de vecteur:
+
+<table class="wimscenter wimsnoborder"><tr>
+\for{i=1 to 4}{<td>\embed{reply1,\i}</td>}
+</tr><tr>
+\for{j=5 to 8}{<td>\embed{reply1,\j}</td>}
+</tr></table>
+
+}
+\answer{translation}{1;\lstprop}{type=checkbox}{option=shuffle}
+#endif
+
+#if (defined TARGET_qcmcarre2  || defined TARGET_qcminv2 )
+\integer{aa=-\a}
+\integer{bb=-\b}
+#if defined TARGET_qcmcarre2
+\title{QCM2 sur fonction carré}
+\text{tf1=texmath((x+\a)^2+\b)}
+\text{tf2=texmath((x+\aa)^2+\b)}
+\text{tf3=texmath((x+\a)^2+\bb)}
+\text{tf4=texmath((x+\aa)^2+\bb)}
+\text{tf5=texmath((x+\b)^2+\a)}
+\text{tf6=texmath((x+\b)^2+\aa)}
+\text{tf7=texmath((x+\bb)^2+\a)}
+\text{tf8=texmath((x+\bb)^2+\aa)}
+\text{typecourbe=la parabole \(\displaystyle{\mathcal{P}}) d'équation \(y=x^2)}
+#else
+\title{QCM2 sur fonction inverse}
+\text{tf1=texmath(\b+1/(x+\a))}
+\text{tf2=texmath(\b+1/(x+\aa))}
+\text{tf3=texmath(\bb+1/(x+\a))}
+\text{tf4=texmath(\bb+1/(x+\aa))}
+\text{tf5=texmath(\a+1/(x+\b))}
+\text{tf6=texmath(\aa+1/(x+\b))}
+\text{tf7=texmath(\a+1/(x+\bb))}
+\text{tf8=texmath(\aa+1/(x+\bb))}
+\text{typecourbe=l'hyperbole \(\displaystyle{\mathcal{H}}) d'équation \(y=texmath(1/x))}
+#endif
+\text{prop=texmath( \aa*x+ \b*y)}
+\text{prop=wims(replace internal x by \vec{i} in \prop)}
+\text{prop=wims(replace internal y by \vec{j} in \prop)}
+\text{lstf=\(f(x)=\tf1),\(f(x)=\tf2),\(f(x)=\tf3),\(f(x)=\tf4),\(f(x)=\tf5),\(f(x)=\tf6),\(f(x)=\tf7),\(f(x)=\tf8)}
+\statement{<p>
+La fonction \(f) dont la courbe représentative \(\displaystyle{\mathcal{C}_f}) est la translatée de
+\typecourbe par la translation de vecteur \(\prop) est donnée par:
+</p>
+<table class="wimscenter wimsnoborder"><tr>
+\for{i=1 to 4}{<td>\embed{reply1,\i}</td>}
+</tr><tr>
+\for{j=5 to 8}{<td>\embed{reply1,\j}</td>}
+</tr></table>
+}
+\answer{translation}{1;\lstf}{type=checkbox}{option=shuffle}
+
+#endif

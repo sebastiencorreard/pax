@@ -1,0 +1,189 @@
+!set title=Acoustique musicale 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6*100)]
+val8=
+!for val9 =1 to 25 
+val8=$val8	segment $val9*100,-3,$val9*100,3,black	segment -10,$val9*4,10,$val9*4,3,black
+!next
+val8=$val8	arrow 0,0,0,100,10,black	arrow 0,0,2600,0,10,black	text black,450,-2,small,500	text black,950,-2,small,1000	text black,1450,-2,small,1500	text black,1950,-2,small,2000	text black, 2500,-3,small, f(Hz)
+val10=segment $val7,0,$val7,50,green
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val10	$val8	 
+tmp0=$ins_url
+val11=$(tmp0)
+val12=0.2,0.3,0.5,0.7,1,1.1,1.3,1.5,1.7,1.9
+tmp0=!shuffle $val12
+
+val13=$(tmp0)
+tmp0=!randint 2, 10
+
+val14=$[rint($(tmp0))]
+val15=segment $val7,0,$val7,50,green
+val16=$[rint(1)]
+!for val17 =2 to $val14 
+!if $val7*$val17<2501 
+val16=$[rint($val16+1)]
+!endif
+val15=$val15	segment $val7*$val17,0,$val7*$val17,50*$(val13[$val17]),green
+!next
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val15	$val8	 
+tmp0=$ins_url
+val18=$(tmp0)
+val12=0.1,0.3,0.5,0.7,1,1.1,1.3,1.5,1.7,1.9
+tmp0=!shuffle $val12
+
+val13=$(tmp0)
+tmp0=!randint 2, 10
+
+val19=$[rint($(tmp0))]
+val20=segment $val7,0,$val7,50,green
+val21=1,2.5,2.8,3.3,4.7,5.5,6.3,6.6,7.5,8.5
+tmp0=!shuffle $val21
+
+val22=$(tmp0)
+!for val23 =2 to $val19 
+val6=$val7*$(val22[$val23])/4
+val20=$val20	segment $val6,0,$val6,50*$(val13[$val23]),green
+!next
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val20	$val8	 
+tmp0=$ins_url
+val24=$(tmp0)
+val25=segment $val7*3,0,$val7*3,50,green
+!readproc oef/draw.phtml 400,200 \
+xrange -100, 2700	yrange -10, 100	$val25	$val8	 
+tmp0=$ins_url
+val26=$(tmp0)
+tmp=!trim <img src = "$val11">,spectre 1	<img src = "$val18">,spectre 2	<img src = "$val24">,spectre 3	<img src = "$val26">,spectre 4
+val27=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 4
+
+val28=$(tmp0)
+tmp=!trim $(val27[$(val28[1]);])	$(val27[$(val28[2]);])	$(val27[$(val28[3]);])	$(val27[$(val28[4]);])
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!positionof item 1 in $val28
+
+val30=$(tmp0)
+tmp0=!positionof item 2 in $val28
+
+val31=$(tmp0)
+tmp0=!positionof item 3 in $val28
+
+val32=$(tmp0)
+tmp0=!positionof item 4 in $val28
+
+val33=$(tmp0)
+replytype1=case
+replyname1=
+replygood1=$val30
+replytype2=case
+replyname2=
+replygood2=$val31
+replytype3=case
+replyname3=
+replygood3=$val30,$val33|$val33,$val30
+replytype4=case
+replyname4=
+replygood4=$val33
+replytype5=case
+replyname5=
+replygood5=$val32
+replytype6=case
+replyname6=
+replygood6=$val31
+replytype7=case
+replyname7=
+replygood7=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<h3>	Le spectre A du son obtenu avec un instrument de musique se présente sous la forme:<br></h3>	<center>Spectre A: <br>$(val27[1;1])</center><br>	<h4>On souhaite comparer ce son avec celui obtenu avec d'autres instruments. Voici quelques spectres:</br></h4>	<table>	<tr><th>$(val29[1;1])</th><th>$(val29[2;1])</th></tr>	<tr><th>Spectre1</th><th>Spectre2</th></tr>	<tr><th>$(val29[3;1])</th><th>$(val29[4;1])</th></tr>	<tr><th>Spectre3</th><th>Spectre4</th></tr>	</table>	<br>	Parmi les  4 spectres numérotés présentés, (<i>Compléter les champs de réponse uniquement avec des chiffres	 correspondants au numéro du spectre</i>)	<ul>	<li>Le spectre A et le spectre  
+!read oef/embed.phtml r1,2 
+$() sont égaux</li>	<li>Le spectre A et le spectre  
+!read oef/embed.phtml r2,2 
+$() sont de même hauteur, mais non égaux.</li>	<li>Les spectres  
+!read oef/embed.phtml r3,2 
+$() (<i>compléter en séparant par une virgule</i>)	correspondent à des sons purs.</li>	<li>Le spectre correspondant au son le plus aigu est le spectre  
+!read oef/embed.phtml r4,2 
+$().</li>	<li>Le spectre  
+!read oef/embed.phtml r5,2 
+$() correspond à du bruit.</li>	<li>Le spectre  
+!read oef/embed.phtml r6,2 
+$() correspond à un son complexe et comprend  
+!read oef/embed.phtml r7,2 
+$() harmoniques (dont la	fondamentale).</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=27,29
+embedcnt=7

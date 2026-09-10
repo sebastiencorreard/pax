@@ -1,0 +1,140 @@
+!set title=Linear arccos(cos)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=en
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=14
+prevarcnt=11
+postvarcnt=2
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp0=!item $val6 of cos,sin
+
+val7=$(tmp0)
+tmp0=!randint 1, 5
+
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+!if $val6=1 
+val9=$[rint($val8*pi+1)]
+val10=$[rint(($val8+1)*pi-1)]
+
+!ifval $val8%2=0
+val11=$[rint( $val8)]
+!else
+val11=$[rint($val8+1)]
+!endif
+!else
+val9=$[rint(($val8-1/2)*pi+1)]
+val10=$[rint(($val8+1/2)*pi-1)]
+val11=$[rint($val8)]
+!endif
+
+!ifval $val8%2=0
+val12=$[rint(1)]
+!else
+val12=$[rint(-1)]
+!endif
+val13=!rawmath $val11*pi
+replyname1=\(a\)
+replygood1=$val12
+replyname2=\(b\)
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()For 
+!insmath x
+$() within the interval [$val9,$val10], one can	simplify the function 
+!insmath f
+$() defined by 
+!insmath f(x) = arc$val7($val7(x))
+$() to a	linear function of the form 
+!insmath a x + b
+$(). What is this linear function?	<div class="wims_instruction">	Write <span class="tt">pi</span> for 
+!insmath pi
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val14=$m_reply1,$m_reply2
+t_=!replace internal \( by ( in vecsort([$val12*$val9+($val13),$val12*$val10+($val13),$(val14[1])*$val9+$(val14[2]),$(val14[1])*$val10+$(val14[2])])
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1 or $m_sc_reply2<1
+ <div class='oef_feedbacks'>	 
+!read oef/canvasdraw.phtml 200,200 \
+	xrange $val9,$val10	yrange $(val15[1])-1,$(val15[-1])+1	vline ($val9+$val10)/2,0,black	hline 0,0,black	plot red, $(val14[1])*x+$(val14[2])	plot blue, a$val7($val7(x))	 
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,12,13
+embedcnt=0

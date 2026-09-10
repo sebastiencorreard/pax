@@ -1,0 +1,264 @@
+!set title=Image par homothétie ou translation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Hélène, Brion; Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val6+$val7*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val10=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val8+$val9*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+!if $val12 = 1 
+val13=$[1]
+t_=!rawmath $val10
+t_=!exec pari print($t_)
+val14=!mathsubst I=i in $t_
+!endif
+!if $val12 = 2 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+t_=!rawmath $(tmp0)*$(tmp1)/2
+val13=!exec pari print($t_)
+
+!ifval $val13=1
+t_=!rawmath  2
+val13=!exec pari print($t_)
+!endif
+tmp=!translate ";': to $     $ in ($val10)*(1-($val13))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val14=!mathsubst I=i in $t_
+!endif
+t_=!rawmath ($val13)*($val11)+($val14)
+t_=!exec pari print($t_)
+val15=!mathsubst I=i in $t_
+tmp0=!item $val12 of la translation,l'homothétie
+
+val16=$(tmp0)
+tmp0=!item $val12 of t,h
+
+val17=$(tmp0)
+oefsteps=reply1, reply2	reply3 
+nextstep=!nosubst reply1, reply2	reply3 
+!readproc oef/steps.proc
+replytype1=default
+replyweight1=7 
+replyoption1=nonstop 
+replyname1=coeff z
+replygood1=$val13
+replytype2=default
+replyweight2=7 
+replyoption2=nonstop 
+replyname2=constante
+replygood2=$val14
+replytype3=default
+replyweight3=6 
+replyname3=Image de A
+replygood3=$val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<i>Cet exercice comporte 2 étapes.</i>	<p>	
+!if $val12=1 
+$()	Soit le vecteur 
+!insmath \vec{u}
+$()(
+!insmath $val10
+$()) et le point 
+!insmath A($val11)
+$(). Soit 
+!insmath t
+$()	la translation de vecteur 
+!insmath \vec{u}
+$(). 
+!else
+$()	   	Soit le point 
+!insmath C($val10)
+$() et le point 
+!insmath A($val11)
+$(). Soit 
+!insmath h
+$()	l'homothétie de centre C et de rapport $val13. 
+!endif
+$()	</p>	<ol>	<li class="bold">Donner l'écriture complexe de $val16 
+!insmath $val17
+$() .	<div class="wimscenter">
+!insmath z' = 
+$()  
+!read oef/embed.phtml reply1, 5 
+$()
+!insmath z 
+$()+  
+!read oef/embed.phtml reply2, 10 
+$() </div>	
+!if $m_step=2 
+$()	  <div class="wimscenter">	  
+!if $m_sc_reply1=1 and $m_sc_reply2=1  
+$()<span style="color:green"> Bien ! 
+!else
+$()	   <span style="color:red"> Erreur... 
+!endif
+$()	  L'expression complexe de 
+!insmath $val17
+$() est 
+!insmath z' = $val13*z + $val14
+$() </span>	  </div>	 </li>	<li><b>	Soit 
+!insmath A'
+$() l'image du point 
+!insmath A
+$() par 
+!insmath $val17
+$(). Quelle est l'affixe du point 
+!insmath A'
+$() ?	</b>	<div class="wimscenter"> 
+!insmath  A'
+$()( 
+!read oef/embed.phtml reply3,10 
+$()) </div>	 
+!endif
+$()	</li></ol>	
+$()
+!exit
+
+:hint
+$()	<p>Soit 
+!insmath f
+$() une transformation du plan complexe. Soit 
+!insmath M(z)
+$() un point	du plan complexe et 
+!insmath M'(z')
+$() son image par 
+!insmath f
+$().	L'<i>écriture complexe</i> ou <i>expression complexe</i>	de 
+!insmath f
+$() est la relation qui permet d'exprimer 
+!insmath z'
+$() en fonction de 
+!insmath z
+$().	</p><p>	Pour déterminer cette relation (si l'on n'a pas mémorisé les formules du cours !)	on écrit une condition géométrique définissant le point 
+!insmath M'
+$() en fonction du point 
+!insmath M
+$()	et on la traduit à l'aide des affixes des points.	</p>	<table class="wimsborder">	<tr><th>Nature de 
+!insmath f
+$() </th><th>Condition géométrique </th> <th>Traduction complexe </th></tr>	<tr><td>translation de vecteur 
+!insmath \vec{u}
+$()
+!insmath ( \alpha ; \beta)
+$() </td>	    <td> 
+!insmath \vec{MM'} = \vec{u} 
+$()</td>	    <td> 
+!insmath  z' - z = \alpha + i \beta 
+$()</td>	</tr>	<tr><td> homothétie de centre 
+!insmath \Omega(\omega)
+$() et de rapport 
+!insmath k
+$() </td>	    <td> 
+!insmath \vec{\Omega M'} = k \vec{\Omega M} 
+$()</td>	   <td> 
+!insmath  z' - \omega = k(z - \omega)
+$()</td>	</tr>	<tr><td> rotation de centre 
+!insmath \Omega(\omega)
+$() et d'angle 
+!insmath \displaystyle{\theta}
+$() </td>	    <td> 
+!insmath \Omega M' = \Omega M 
+$() et &nbsp;
+!insmath (\vec{\Omega M} , \vec{\Omega M'}) = \theta \quad [2\pi] 
+$()</td>	    <td> 
+!insmath  z' - \omega = e^{i\theta}(z - \omega)
+$()</td>	</tr>	</table>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,14,16,17
+embedcnt=3

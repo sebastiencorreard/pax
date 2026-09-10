@@ -1,0 +1,43 @@
+target=oefvocabfract1 oefvocabfract2
+#define TITRE Vocabulaire
+\langage{fr}
+\author{Jean-Luc,Donadoni}
+\email{jluc.donadoni@laposte.net}
+\format{html}
+
+\integer{f=randint(1..3)}
+\if{\f<3}{
+\integer{d2=random(2,4,5,8,10,16)}
+\integer{d1=randint(1..9)}
+\if{\d1=\d2}{\integer{d1=\d1+1}}
+}
+{\integer{d2=randint(2..9)}
+\integer{d1=randint(2..9)}
+\if{\d1=\d2}{\integer{d2=\d2+1}}
+\integer{d1=\d2*\d1}}
+\real{q=\d1/\d2}
+\text{mot=numérateur,dénominateur,quotient}
+\text{nomb=\d1,\d2,\q}
+
+#if defined TARGET_oefvocabfract1
+\title{TITRE 1}
+\integer{a=randint(1..3)}
+\text{enonc=Le \mot[\a] de la fraction est le nombre }
+\text{rep=\nomb[\a]}
+\integer{large=5}
+#endif
+
+#if defined TARGET_oefvocabfract2
+\title{TITRE 2}
+\integer{a=randint(1..3)}
+\text{enonc=Pour la fraction, le nombre \nomb[\a] se nomme le }
+\text{rep=\mot[\a]}
+\integer{large=12}
+#endif
+
+\statement{
+Nous avons le calcul suivant :
+<div class="wimscenter"> \(\frac{\d1}{\d2} = \q) </div>
+<div>\enonc \embed{r1,\large}.</div>}
+
+\answer{}{\rep}

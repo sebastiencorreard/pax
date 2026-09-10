@@ -1,0 +1,100 @@
+!set title=Construire des arbres
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=0
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=rankdir = LR	nodesep=0.1	ranksep="3"	bgcolor= grey80	node0 [label="" shape=point];
+val7=
+val8=
+val9=
+val10=$val6
+!for val11 =1 to 6 
+val9=$val9	"node$val11"
+val10=$val10	"node0"->"node$val11"[color=black, arrowsize=2, label="1/6"];	node$val11 [color=black,shape=box,style=rounded,label="$val11"];
+!for val12 =1 to 3 
+val13=$[rint(6+$val12+3*($val11-1))]
+val14=$[rint(24+$val12+3*($val11-1))]
+val8=$val8	"node$val13"
+val7=$val7	"node$val14"
+val10=$val10	"node$val11"->"node$val13"[color=red, arrowsize=2, label="1/3"];	node$val13 [color=red,shape=box,style="rounded",label="$val12"];	"node$val13"->"node$val14"[arrowhead=none,color=yellow,style=bold, label=""];	node$val14 [color=yellow,shape=box,style="rounded",label="1/18"];
+!next
+!next
+val15=$val10	subgraph cluster_cache1 {	  label = "Lancé du premier dé bleu" fontcolor =blue4	  style="rounded, filled"	  color =blue4	  fillcolor=deepskyblue1	        $val9	        }	subgraph cluster_cache2 {	  label = "Lancé du deuxième dé" fontcolor = darkgreen	  style="rounded, filled"	  color = darkgreen	  fillcolor= darkolivegreen3	  $val8	        }	subgraph cluster_cache3 {	  label = "Conclusion"fontcolor =violetred3	  style="rounded, filled"	  color = violetred3	  fillcolor = darksalmon	  $val7	  } 	
+!readproc slib/draw/graphviz digraph  { $val10	},png dot url 
+tmp0=$slib_out
+val16=$(tmp0)
+!readproc slib/draw/graphviz digraph  { $val15	},png dot url 
+tmp0=$slib_out
+val17=$(tmp0)
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<br>	$val16	<br>	<br>	$val17	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16,17
+embedcnt=0

@@ -1,0 +1,120 @@
+\title{Moyenne de fonction}
+\language{fr}
+\range{-5..5}
+\author {Chantal,Causse}
+\email  {Chantal.Causse@noos.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\steps{reply1
+reply2}
+
+
+\real{a=randint(-5..2)}
+\real{b=randint(\a+1..\a+5)}
+\integer{a1=randint(1..5)*random(-1,1)}
+\integer{a2=randint(1..5)*random(-1,1)}
+\integer{a3=randint(1..5)*random(-1,1)}
+
+
+\function{flist=\a1*x^2+\a2 *x+\a3,
+ \a1 *x^3+\a2* x+\a3,
+ \a2*x^2+\a3
+}
+
+\integer{it=random(1..items(\flist))}
+\function{f=item(\it,\flist)}
+\text{ft=texmath(\f)}
+\function{ff=evalue(\f,x=t)}
+
+\text{B=slib(function/bounds \f, x,\a-0.5,\b+0.5)}
+\text{I=slib(function/integrate \f,x,\a,\b,fast)}
+\rational{\mean=(\I)/(\b-(\a))}
+
+\text{BB=slib(function/bounds \f, x,\a,\b)}
+\real{m=max(\BB[1],floor((\BB[1]+2*\mean)/3))}
+\real{M=min(\BB[2],ceil((\BB[2]+2*\mean)/3))}
+
+\real{xmin=min(-1,\a-0.5)}
+\real{xmax=max(\b+0.5,1)}
+\real{ymin=min(0,\B[1])}
+\real{ymax=max(\B[2],0)}
+
+\integer{pas = max(1,5*round((\ymax-\ymin)/50))}
+\real{ymin=min(-\pas,\B[1]-\pas)}
+\real{ymax=max(\B[2]+\pas,\pas)}
+
+\integer{ymi=\pas*floor(\ymin/\pas)}
+\integer{yma=\pas*floor(\ymax/\pas)}
+\integer{xmi=floor(\xmin)+1}
+\integer{xma=floor(\xmax)}
+
+\function{ya=wims(mathsubst  x=(\a)  in  \f)}
+\function{ya=simplify(\ya)}
+
+
+\function{yb=wims(mathsubst  x=(\b)  in  \f)}
+\function{yb=simplify(\yb)}
+
+\text{dessin= xrange  \xmin, \xmax
+        yrange \ymin,\ymax
+
+ parallel \xmi,\ymin,\xmi,\ymax,1,0,\xma-(\xmi)+1,grey
+ parallel \xmin,\ymi,\xmax,\ymi,0,\pas,\yma-(\ymi)+1,grey
+hsegment 0,0,black
+arrow  0,0,1,0,6,black
+
+vsegment 0,0,black
+plot blue, \f
+fcircle \a,\ya,7, green
+fcircle \b,\yb,7 , green
+fcircle 0,0,7 , black
+text black,0.1,0,medium,O
+text black,1,0,medium,1
+text black,0,\pas,medium,\pas
+text green,0.1,\ya,medium,\ya
+text green,0.1,\yb,medium,\yb
+
+text green,\a,0,medium,\a
+text green,\b,0,medium,\b
+
+dsegment \a,0,\a,\ya,green
+dsegment \b,0,\b,\yb,green
+dsegment 0,\ya,\a,\ya,green
+dsegment 0,\yb,\b,\yb,green
+trange \a,\b
+linewidth 3
+plot green,t, \ff}
+
+
+\statement{
+\if{\step=1}{La courbe représentative d'une fonction \(f) est dessinée ci-dessous :
+<br>\draw{500,300}{\dessin}
+<p>Déterminer graphiquement l'ordre de grandeur de la valeur moyenne
+sur l'intervalle [\a,\b] de la fonction \(f).</p>}
+\if{\step=2}{
+\draw{500,300}{\dessin}<p>
+Vous avez trouvé que l'ordre de grandeur de la
+valeur moyenne sur l'intervalle [\a,\b] de la fonction \(f) est \reply1.
+</p><p>
+Pour faire le calcul exact de la valeur moyenne sur l'intervalle
+[\a,\b] de la fonction \(f), on donne l'expression de la fonction \(f) :\(f(x)=\ft).
+</p>
+
+Calculez la valeur moyenne sur l'intervalle [\a,\b] de la fonction \(f).
+}}
+
+\answer{Ordre de grandeur de la valeur moyenne}{\m,\M}{type = range}{option=noanalyzeprint}
+\answer{Valeur moyenne}{\mean}{type = numexp}
+
+\hint{
+\if{\step=1}{C'est uniquement l'ordre de grandeur de la valeur moyenne
+qui est demandé. La réponse est considérée comme juste dans un intervalle
+assez large autour de la valeur exacte.}{
+La valeur moyenne de \(f) sur l'intervalle [a ; b] est égale à \(\frac{1}{b - a}\) \(integrate(f(x),x=a..b) \)}}
+\feedback{1=1}{
+La valeur moyenne de cette fonction sur l'intervalle [\a;\b] est \mean.
+<br>
+Toute valeur comprise entre \m et \M était acceptée comme ordre de grandeur.
+}

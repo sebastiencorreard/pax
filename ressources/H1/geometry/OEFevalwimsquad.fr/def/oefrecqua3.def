@@ -1,0 +1,115 @@
+!set title=Reconnaître un quadrilatère 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@gmail.com
+email=jluc.donadoni@laposte.net
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=carré,rectangle,carré,losange,quadrilatère quelconque
+val7=Le centre du cercle est le point
+val8=Donner la nature du quadrilatère
+tmp0=!shuffle A,B,C,E,F,G,H,J,K,L,M,N,R,S,T
+
+val9=$(tmp0)
+val10=$val6
+val11=xrange -150,150	yrange -150,150	circle 0,0,200,black	rect 0,0,-120,100,black	square 0,0,100,black	poly black,0,100,100,0,0,-100,-100,0	poly black,0,140,100,0,0,-140,-100,0	text black,5,-5,medium,$(val9[1])	text black,5,115,medium,$(val9[2])	text black,-125,115,medium,$(val9[3])	text black,-125,-5,medium,$(val9[4])	text black,105,5,medium,$(val9[5])	text black,105,-100,medium,$(val9[6])	text black,5,-102,medium,$(val9[7])	text black,-107,-5,medium,$(val9[8])	text black,10,145,medium,$(val9[9])	text black,10,-137,medium,$(val9[10])
+tmp=!trim $(val9[1])$(val9[5])$(val9[6])$(val9[7])	$(val9[1])$(val9[2])$(val9[3])$(val9[4])	$(val9[2])$(val9[5])$(val9[7])$(val9[8])	$(val9[9])$(val9[5])$(val9[10])$(val9[8])
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 4
+
+val13=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val13 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+val8=$val8 $val12
+!readproc oef/draw.phtml 300,300 \
+$val11 
+tmp0=$ins_url
+val14=$(tmp0)
+!readproc oef/drawtikz.phtml 300,300 \
+$val11 
+tmp0=$ins_tikz
+val15=$(tmp0)
+val16=<img src="$val14" alt="">
+val17=
+!for val18  in $val10 
+val17=$val17	\item $val18
+!next
+replytype1=clickfill
+replyname1=
+replygood1=$(val10[$val13]);$val10
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $(val7[1]) $(val9[1]) $(val7[2]) \par $val8: \begin{center} $val15 \end{center} \begin{radio} $val17 \end{radio} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col">$val16</div>	 <div class="medium_size text_col">	$val7 $(val9[1]).	$val8:	<div class="wimscenter">		 
+!read oef/embed.phtml r1,150x40 
+$()		</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $(val7[1]) $(val9[1]) $(val7[2]) $m_par $val8: $m_begin{center} $val15 $m_end{center} $m_begin{radio} $val17 $m_end{radio} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,15,16,17
+embedcnt=1

@@ -1,0 +1,112 @@
+target=retard villes bit
+
+\author{Sophie,Lemaire}
+\email{Sophie.Lemaire@math.u-psud.fr}
+
+
+#if defined TARGET_retard
+\title{Les jours de retard}
+\text{nom1=H}
+\text{nom2=R}
+\integer{a12=randint(5..40)}
+\integer{a21=randint(60..95)}
+\integer{a11=100-\a12}
+\integer{a22=100-\a21}
+\text{hyp1=s'il est en retard un jour alors il a \a22 % de chance d'être en retard le
+  lendemain, s'il est en retard un jour alors il a \a21 % de chance d'être à l'heure le
+  lendemain}
+\text{hyp2=s'il est à l'heure un jour alors il a \a12 % de chance d'être
+  en retard le lendemain, s'il est à l'heure un jour alors il a \a11 % de chance d'être
+  encore à l'heure le lendemain}
+\text{enonce=Un employé arrive en retard à son travail suivant les probabilité suivantes :}
+#endif
+
+#if defined TARGET_villes
+\title{Mouvement de populations}
+\text{nom1=A}
+\text{nom2=B}
+\integer{a12=randint(5..50)}
+\integer{a21=randint(2..30)}
+\integer{a11=100-\a12}
+\integer{a22=100-\a21}
+\integer{nb=randint(10..50)*1000}
+\text{enonce= Deux villes A et B totalisent une population de \nb habitants.
+  La ville A est plus agréable, mais la ville B offre de meilleures perspectives de carrières.
+  On observe que : }
+\text{hyp1=\a12 % des habitants de A partent chaque année habiter B, \a11 % des habitants de A habitent encore en A l'année suivante}
+\text{hyp2= \a21 % des habitants de B partent chaque année habiter A, \a22 % des habitants de B habitent encore en B l'année suivante}
+#endif
+#if defined TARGET_bit
+\title{Transmission d'un message binaire}
+precision{100000}
+\text{nom1=0}
+\text{nom2=1}
+\real{a12=randint(1..50)/10}
+\real{a21=randint(1..50)/10}
+\real{a11=100-\a12}
+\real{a22=100-\a21}
+\integer{nb=randint(10..50)*1000}
+\text{enonce=Un message écrit à l'aide des bits 0 ou 1 est transmis par un canal de transmission ayant n relais. A chaque relais et pour chaque bit, on observe que : }
+\text{hyp1=le bit 0 a \a12 % de chance d'être mal transmis au relais suivant, le bit 0 a \a11 % de chance d'être correctement transmis au relais suivant}
+\text{hyp2= le bit 1 a \a21 % de chance d'être mal transmis au relais suivant, le bit 1 a \a22 % de chance d'être correctement transmis au relais suivant}
+#endif
+
+/* Choix de la variante dans les hypothèses */
+\integer{c1=randint(1,2)}
+\integer{c2=randint(1,2)}
+\integer{c3=randint(1,2)}
+\if{\c3=1}{
+   \text{h1=item(\c1,\hyp1)}
+   \text{h2=item(\c2,\hyp2)}
+   }
+   {
+   \text{h1=item(\c1,\hyp1)}
+   \text{h2=item(\c2,\hyp2)}
+   }
+/* Matrice de transition */
+\real{p1=\a12/100}
+\real{q1=1-\p1}
+\real{p2=\a21/100}
+\real{q2=1-\p2}
+\matrix{T=\q1, \p1
+\p2, \q2}
+
+/* Dessin du graphe*/
+\text{graphe=
+xrange -6,6
+yrange -2,2
+circle -4,0, 16,black
+circle 4,0, 16,black
+text black,-4.15,0.2,,\nom1
+text black,3.9,0.2,,\nom2
+arc -5,0, 2,2, 35,335,blue
+arc 5,0, 2,2, 215,515,blue
+arc 0,0, 8,3.5, 15,165,blue
+arc 0,0, 8,3.5, 205,345,blue
+arrow -4.2,0.55,-4,0.35,10,blue
+arrow 4.2,-0.55,4,-0.35,10,blue
+arrow 3.8,0.45,3.9,0.35,10,blue
+arrow -3.8,-0.45,-3.9,-0.35,10,blue
+}
+\text{dessin = draw(200,100
+\graphe)}
+
+\statement{\enonce
+<ul><li>\h1,</li>
+<li> \h2.</li></ul>
+<p>
+  Entrer les poids des arêtes du graphe suivant afin d'obtenir le graphe probabiliste
+  associé à ce modèle.
+</p>
+<table class="wimscenter">
+<tr><td></td><td> \embed{reply1,6}</td><td></td></tr>
+<tr><td>\embed{reply2,6}</td><td>
+<img src="\dessin" alt=""></td><td>\embed{reply3,6}</td></tr>
+<tr><td></td><td> \embed{reply4,6}</td><td></td></tr>
+</table>
+}
+
+\answer{}{\p1}{type=formal}
+\answer{}{\q1}{type=formal}
+\answer{}{\q2}{type=formal}
+\answer{}{\p2}{type=formal}

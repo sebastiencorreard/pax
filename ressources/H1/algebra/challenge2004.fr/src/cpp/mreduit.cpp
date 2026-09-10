@@ -1,0 +1,29 @@
+target=mreduit
+
+#include "header.inc"
+
+\title{Modèle réduit}
+
+\integer{h=random(10..20)*10}
+\integer{w=random(200..500)*20}
+\real{rr=\h*100/(\w*1000)^(1/3)}
+\integer{r1=floor(\rr)}
+\integer{r2=ceil(\rr)}
+\integer{r3=rint(\rr)}
+
+\statement{
+  L'architecte Caius Babel veut réaliser
+  un grand monument qui mesurera \h mètres de haut et pèsera \w
+  tonnes, en matériaux composites.
+<p>
+  Auparavant, il fait réaliser dans les mêmes matériaux un modèle réduit
+  pesant un kilo.
+  Quelle sera sa hauteur ?
+</p>
+<div class="wimscenter">
+\embed{r1,6} cm (arrondis au centimètre près).
+</div>
+}
+
+\reply{Hauteur en cm}{\r1,\r2,\r3}{type=range}
+

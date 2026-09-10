@@ -1,0 +1,134 @@
+!set title=Borne sup 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Menini
+email=chantal.menini@math.u-bordeaux.fr
+title_en=Upper bound 1
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=l'énoncé ne permet pas de savoir si ,existe
+val8=Si \(A) est un ensemble non vide,	  on note \(\sup(A)) sa borne supérieure et \(\inf(A)) sa borne inférieure	  si elles existent.
+val9=On sait que&nbsp;
+val10=La réponse
+val11=On peut en déduire (il peut y avoir une ou plusieurs bonnes réponses).
+!if $val6=en 
+val7=the statement does not make it possible to know if,exists
+val8=Let \(A) be a non-empty set,	  we denote \(\sup(A)) its supremum (least upper bound) and \(\inf(A)) its infimum (greatest lower bound)	  if they exist.
+val9=We know that
+val10=The answer
+val11=We can deduce (there can be one or several good answers)
+!endif
+tmp0=!randint -2, 2
+
+val12=$[rint($(tmp0))]
+tmp=!trim \(A) majoré par $val12,0,0,0,1,0,0	\(\forall x\in A\quad x\leq $val12),0,0,0,1,0,0	\(\exists x\in A\quad x\leq $val12),0,0,0,0,0,1	\(\exists x\in A\quad x< $val12),0,0,0,0,0,1	\(A\subset \rbrack -\infty, $val12 \rbrack),0,0,0,1,0,0	\(A\subset \rbrack-\infty, $val12 \lbrack),0,0,0,1,0,0	\($val12\in A),0,0,0,0,0,1	\(A) minoré par $val12,0,0,0,1,0,0	\(\forall x\in A\quad x\geq $val12),0,0,0,1,0,0	\(\exists x\in A\quad x\geq $val12),0,0,0,0,0,1	\(\exists x\in A\quad x> $val12),0,0,0,0,0,1	\(A\subset \rbrack $val12 ,+\infty, \lbrack),0,0,0,1,0,0	\(A\subset \lbrack $val12 , +\infty\lbrack),0,0,0,1,0,0	\($val12\in A),0,0,0,0,0,1	
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim \(\sup(A)\geq $val12)	\(\sup(A)>$val12)	\(\sup(A)= $val12)	 \(\sup(A)\leq $val12)	\(\sup(A)< $val12)	$(val7[1]) \(\sup(A)) $(val7[2])	\(\inf(A)\leq $val12)	\(\inf(A)<$val12)	\(\inf(A)= $val12)	 \(\inf(A)\geq $val12)	\(\inf(A)> $val12)	$(val7[1]) \(\inf(A)) $(val7[2])	
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp0=!rowcnt $tmp
+val15=$[rint($(tmp0)/2)]
+tmp=!translate internal $	$ to ; in $val14
+
+tmp0=!rowcnt $tmp
+val16=$[rint($(tmp0)/2)]
+tmp0=!randint 1, $val15
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 0, 1
+
+val18=$[rint($(tmp0))]
+val19=$[rint($val17+$val18*$val15)]
+val20=$[rint(1+ $val18*$val16)]
+val21=$[rint($val16+ $val18*$val16)]
+val22=$(val13[$val19 ;2..-1])
+val23=$(val13[$val19 ;1])
+tmp0=!positionof item 1 in $val22
+
+val24=$(tmp0)
+tmp0=!item 1 to $val16 of A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+
+val25=$(tmp0)
+replytype1=checkbox
+replyoption1=split 
+replyname1=$val10
+replygood1=$val24;$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="oef_explain">$val8	  $val9 :	  <div class="wimscenter">	   $val23 .	  </div>	  $val11	  </div>	   
+!for m_i=1 to $val16 
+$()<div class="oefreply"> 
+!read oef/embed.phtml reply 1,\i, $(val25[$m_i]) : $(val14[$m_i+$val18*$val16;]) 
+$()</div> 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,14,16,18,23,25
+embedcnt=1

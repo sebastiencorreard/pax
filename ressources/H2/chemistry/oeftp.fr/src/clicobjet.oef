@@ -1,0 +1,112 @@
+type=imaudio
+textarea="data instruction"
+iEdit="instruction"
+:Réponse à choisir parmi une liste d'images.
+<p>
+Pour construire un exercice avec ce modèle, il suffit de taper la liste des images et
+de leur caractérisation. Cette caractérisation peut être mise dans l'instruction
+sous la forme <span class="tt wims_code_variable">\name</span>
+Si l'on désire mettre une image apparaissant comme perturbateur sans définition,
+ne mettez pas de caractérisation. Plusieurs images peuvent avoir la même caractérisation.
+</p>
+<p class="wims_credits">
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Reconnaitre l'image de matériel de verrerie}
+:\author{Marie-joëlle, Ramage}
+:\email{marie-joelle.ramage@u-psud.fr}
+:\credits{https://commons.wikimedia.org/wiki}
+:Données
+Les images peuvent soit être dans l'exercice (mettre alors simplement le nom de
+l'image, ne pas oublier de les charger dans l'exercice),
+soit dans un module de données d'images
+(voir l'exemple).
+\text{data=Erlenmeyer.jpg, erlenmeyer,l'
+Ballon.jpg, ballon, le
+Becher.jpg, bécher,le
+Cristallisoir.jpg, cristallisoir,le
+Eprouvette.jpg, éprouvette,l'
+Pipetteplastique.jpg, pipette,la
+Pissette.jpg, pissette,la
+Tubeaessai.jpg, tube à essai,le
+Verreapied.jpg, verre à pied,le}
+
+:Nombre d'images présentées.
+
+\integer{cnt=4}
+
+:La taille verticale des images en pixels
+
+\text{sizev=100}
+
+:%%%%%%%%%%%%%%
+ne pas mettre de ; dans sizev
+\if{\sizev notsametext }{
+  \text{sizev= style="height:wims(nospace \sizev px)"}
+}
+\text{data=wims(embraced randitem \data)}
+\text{tot=rows(\data)}
+\text{name=}
+\while{\name issametext }{
+ \text{mot = randrow(\data)}
+
+ \text{name=\mot[2]}
+}
+\text{image=\mot[1]}
+\text{ext=item(2,wims(replace internal . by , in wims(lowercase \image)))}
+
+:Consigne
+Ici <span class="wims_emph">\name</span> représente le nom de l'image qui sera à cliquer
+(à placer en 2e item dans les données).
+\text{article=\mot[3]}
+\text{name0=\article \name}
+\text{name0=\article \name}
+\if{\article issametext l'}{\text{name0=wims(nospace \name0)}}
+\text{name0=slib(lang/frapostrophe de \name0)}
+\text{instruction=Cliquer sur l'image <span class="wims_emph">\name0</span>.}
+
+:%%%%%%%%%%%%%%
+\css{<style>
+.ans_multipleclick {margin-left:auto;margin-right:auto}
+</style>
+}
+\text{liste=column(1,\data)}
+\text{listename=column(2,\data)}
+\text{rep=position(\name,\listename)}
+\text{perturb=wims(makelist x for x=1 to \tot)}
+\text{perturb=shuffle(\perturb)}
+\text{perturb=\perturb[1..\cnt]}
+\text{inter=wims(listintersection \rep and \perturb)}
+\if{\inter=}{
+  \integer{repcnt=items(\rep)}
+  \text{rep= \repcnt >1 ? randitem(\rep)}
+  \text{perturb=\rep,\perturb[1..\cnt-1]}
+  \text{perturb=shuffle(\perturb)}
+}
+\matrix{data=\data}
+\text{liste=\data[\perturb;1]}
+\text{listename=\data[\perturb;2]}
+\text{cnt=items(\liste)}
+\text{Image=}
+\for{j=1 to \cnt}{
+  \text{Image=/ isin \liste[\j] ? wims(append item \liste[\j] to \Image):
+  wims(append item \imagedir/\liste[\j] to \Image)}
+}
+\text{liste=wims(makelist imgrename(x \sizev) for x in \Image)}
+\text{rep=position(\name,\listename)}
+
+\statement{
+  <div class="instruction">\instruction</div>
+  <div class="wimscenter">\embed{r1}</div>
+}
+
+\answer{}{\rep;\liste}{type=multipleclick}{option=shuffle}

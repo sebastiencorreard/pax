@@ -1,0 +1,235 @@
+!set title=Calculer, interpréter une médiane 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=49
+prevarcnt=48
+postvarcnt=0
+replycnt=16
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 100
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,0
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 4, 7
+
+val9=$[rint(2*$(tmp0)+$val8)]
+tmp0=!makelist x for x=$val7 to $val7+$val6
+
+val10=$(tmp0)
+tmp0=!shuffle $val6
+
+val11=$(tmp0)
+tmp0=!item 1 to $val9 of $val11
+
+val11=$(tmp0)
+tmp0=!item $val11 of $val10
+
+val10=$(tmp0)
+tmp0=!sort numeric list $val10
+
+val12=$(tmp0)
+val13=$val12
+val7=$[rint($(val13[1]))]
+val14=$[rint(100)]
+val15=
+val16=$[rint(0)]
+val17=$[rint($val14/100)]
+val18=$[rint(round($val14/($val9-$val17)))]
+!for val19 =1 to $val9-$val17 
+tmp0=!randint 5, $val18
+
+val20=$[rint($(tmp0))]
+val16=$[rint($val16+$val20)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+!next
+!for val19 =1 to $val17-1 
+val20=$[rint(($val14-$val16)/$val17)]
+val16=$[rint($val16+$val20)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+!next
+val20=$[rint($val14-$val16)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+val21=<table class="wimsborder"><tr><th>Valeurs</th>
+!for val19 =1 to $val9 
+val21=$val21 <td>$(val13[$val19])</td>
+!next
+val21=$val21</tr><tr><th>Effectifs</th>
+!for val19 =1 to $val9 
+val21=$val21 <td>$(val15[$val19])</td>
+!next
+val21=$val21 </tr></table>
+val22=
+val23=$[rint(0)]
+val24=$[rint(-1)]
+t_=!rawmath $val14/2
+val25=!exec pari print($t_)
+!for val19 =1 to $val9 
+val23=$[rint($val23+$(val15[$val19]))]
+!if $val23>$val25 and $val24=-1 
+val24=$[rint($val19)]
+!endif
+tmp0=!append item $val23 to $val22
+
+val22=$(tmp0)
+!next
+val26=$[rint($(val13[$val24]))]
+
+!ifval $(val22[$val24-1])=$val25
+t_=!rawmath ($(val13[$val24-1])+$(val13[$val24]))/2
+val26=!exec pari print($t_)
+!endif
+val27=Effectifs cumulés croissants
+val28=$val22
+tmp0=!makelist r x for x=1 to $val9+1
+
+val29=$(tmp0)
+tmp0=!nospace $val29
+
+val29=$(tmp0)
+oefsteps=$val29 
+nextstep=!nosubst $val29 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Médiane
+replygood1=$[$val26]
+replytype2=numeric
+replyname2=ecc1
+replygood2=$[$(val22[1])]
+replytype3=numeric
+replyname3=ecc2
+replygood3=$[$(val22[2])]
+replytype4=numeric
+replyname4=ecc3
+replygood4=$[$(val22[3])]
+replytype5=numeric
+replyname5=ecc4
+replygood5=$[$(val22[4])]
+replytype6=numeric
+replyname6=ecc5
+replygood6=$[$(val22[5])]
+replytype7=numeric
+replyname7=ecc6
+replygood7=$[$(val22[6])]
+replytype8=numeric
+replyname8=ecc7
+replygood8=$[$(val22[7])]
+replytype9=numeric
+replyname9=ecc8
+replygood9=$[$(val22[8])]
+replytype10=numeric
+replyname10=ecc9
+replygood10=$[$(val22[9])]
+replytype11=numeric
+replyname11=ecc10
+replygood11=$[$(val22[10])]
+replytype12=numeric
+replyname12=ecc11
+replygood12=$[$(val22[11])]
+replytype13=numeric
+replyname13=ecc12
+replygood13=$[$(val22[12])]
+replytype14=numeric
+replyname14=ecc13
+replygood14=$[$(val22[13])]
+replytype15=numeric
+replyname15=ecc14
+replygood15=$[$(val22[14])]
+replytype16=numeric
+replyname16=ecc15
+replygood16=$[$(val22[15])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère la série statistique suivante :</p>	<table class="wimscenter wimsborder"><tr><th>Valeur</th>	 
+!for m_n=1 to $val9 
+$()	  <td>$(val13[$m_n])</td>	 
+!next
+$()	</tr>	<tr><th>Effectif</th>	 
+!for m_n=1 to $val9 
+$()	  <td>$(val15[$m_n])</td>	 
+!next
+$()	</tr>	<tr><th>E.C.C</th>	 
+!for m_j=2 to $val9+1 
+$()	  <td> 
+!read oef/embed.phtml reply\j,4 
+$()</td>	 
+!next
+$()	</tr></table>	<p>	Remplir la ligne des effectifs cumulés croissants (E.C.C), puis déterminer la médiane de cette série :	</p>	<div class="wimscenter"><label for="reply1">Médiane :</label>  
+!read oef/embed.phtml reply1,4 
+$() </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,13,15
+embedcnt=2

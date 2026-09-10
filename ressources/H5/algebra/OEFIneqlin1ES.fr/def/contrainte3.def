@@ -1,0 +1,315 @@
+!set title=Traduire trois contraintes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=72
+prevarcnt=71
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange -1,10	 yrange -1,10	
+val7=parallel -1,1,10,1,0,1,10,gray	 parallel 1,-1,1,10,1,0,10,gray	 arrow -1,0,10,0,10,black	 arrow 0,-1,0,10,10,black	 segment -0.2,1,0.2,1,black	 segment 1,-0.2,1,0.2,black	 text black,-0.5,1,medium,10	 text black,0.7,-0.3,medium,10	
+val8=red,blue,green,orange,purple
+val9=rouge,bleue,verte,orange,violette
+tmp0=!shuffle 5
+
+val10=$(tmp0)
+val11=>,<,=
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val13=$[rint($val12+$(tmp0))]
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=$val14
+val17=$[rint(3-$val15)]
+!else
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+!endif
+
+!ifval $val15=2
+val18=$[rint($val13)]
+!else
+val18=$[rint($val12)]
+!endif
+
+!ifval $val15=2
+val19=$[rint($val12)]
+!else
+val19=$[rint($val13)]
+!endif
+val20=$[rint(10*$val18)]
+val21=$[rint(10*$val19)]
+val22=1,2,<,au double du,>,à la moitié du,>,au double du,<,à la moitié du	1,3,<,au triple du,>,au tiers du,>,au triple du,<,au tiers du	1,4,<,au quadruple du,>,au quart du,>,au quadruple du,<,au quart du	2,1,>,au double du,<,à la moitié du,<,au double du,>,moitié du	3,1,>,au triple du,<,au tiers du,<,au triple du,>,au tiers du	4,1,>,au quadruple du,<,au quart du,<,au quadruple du,>,au quart du	1,1,<,au,>,au,>,au,<,au	
+val22=1,2,<,1,>,1,>,1,<,1	1,3,<,2,>,2,>,2,<,2	1,4,<,3,>,3,>,3,<,3	2,1,>,1,<,1,<,1,>,1	3,1,>,2,<,2,<,2,>,2	4,1,>,3,<,3,<,3,>,3	1,1,>,4,<,4,<,4,>,4	
+val23=Produit A,Produit B
+val24=Produit B,Produit A
+tmp0=!randitem 0,1
+
+val25=$[rint($(tmp0))]
+
+!ifval $val25=0
+val26=au double du,au triple du,au quadruple du,au
+!else
+val26=à la moitié du,au tiers du,au quart du,au
+!endif
+tmp0=!makelist x for x=1 to 7
+
+val27=$(tmp0)
+tmp0=!shuffle $val27
+
+val27=$(tmp0)
+val27=2,4,4,4,5,6,7
+
+!ifval $val14=1
+val28= segment $val18,-1,$val18,10,$(val8[$(val10[1])])
+!else
+val28= segment -1,$val18,10,$val18,$(val8[$(val10[1])])	
+!endif
+!if $val15=2 
+
+!ifval $val14=1
+val29=fpoly yellow,$val18,-1,$val18,10,10,10,10,-1
+!else
+val29=fpoly yellow,-1,$val18,10,$val18,10,10,-1,10
+!endif
+!else
+
+!ifval $val14=1
+val29=fpoly yellow,$val18,-1,$val18,10,-1,10,-1,-1
+!else
+val29=fpoly yellow,-1,$val18,10,$val18,10,-1,-1,-1
+!endif
+!endif
+val30=$[rint($val14)]
+val31=$[rint($val15)]
+
+!ifval $val16=1
+val32= segment $val19,-1,$val19,10,$(val8[$(val10[4])])
+!else
+val32= segment -1,$val19,10,$val19,$(val8[$(val10[4])])	
+!endif
+!if $val17=2 
+
+!ifval $val16=1
+val33=fpoly yellow,$val19,-1,$val19,10,10,10,10,-1
+!else
+val33=fpoly yellow,-1,$val19,10,$val19,10,10,-1,10
+!endif
+!else
+
+!ifval $val16=1
+val33=fpoly yellow,$val19,-1,$val19,10,-1,10,-1,-1
+!else
+val33=fpoly yellow,-1,$val19,10,$val19,10,-1,-1,-1
+!endif
+!endif
+val34=$[rint($val16)]
+val35=$[rint($val17)]
+tmp=!translate internal $	$ to ; in $val22
+
+tmp=!row $(val27[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val36=$(tmp0)
+val37=$[rint($(val36[1]))]
+val38=$[rint($(val36[2]))]
+val39=plot $(val8[$(val10[2])]),$val37/$val38*x
+
+!ifval $val37>$val38
+val40=$[10*$val38/$val37]
+!else
+val40=$[10]
+!endif
+
+!ifval $val37>$val38
+val41=$[10]
+!else
+val41=$[10*$val37/$val38]
+!endif
+
+!ifval $val37>$val38
+val42=fpoly yellow,0,0,10,0,10,10,$val40,$val41
+!else
+val42=fpoly yellow,0,0,10,0,$val40,$val41
+!endif
+tmp0=!positionof item $(val36[3+2*$val25]) in $val11
+
+val43=$(tmp0)
+val44=$(val36[4+2*$val25])
+tmp=!translate internal $	$ to ; in $val22
+
+tmp=!row $(val27[2]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val45=$(tmp0)
+val46=$[rint($(val45[1]))]
+val47=$[rint($(val45[2]))]
+tmp0=!randint 3, 5
+
+val48=$[rint($(tmp0)+$val18)]
+val49=$[$val37*$val48/$val38]
+val50=$[$val47*$val49+$val48*$val46]
+val51=plot $(val8[$(val10[3])]),$val50/$val47-$val46*x/$val47
+val52=$[$val50/$val47-10*$val46/$val47]
+
+!ifval $val52<-1
+val53=$[($val50+$val47)/$val46]
+!else
+val53=$[10]
+!endif
+
+!ifval $val52<-1
+val54=$[-1]
+!else
+val54=$[$val52]
+!endif
+val55=$[$val50/$val47+$val46/$val47]
+val56=$[rint($val46*$val38)]
+val57=$[rint($val47*$val38)]
+val58=$[rint($val50*$val38)]
+tmp0=!texmath $val56*x+$val57*y=$val58
+
+val59=$(tmp0)
+
+!ifval $val52<-1
+val60=fpoly yellow,$val53,$val54,10,-1,10,10,-1,10,-1,$val55
+!else
+val60=fpoly yellow,$val53,$val54,10,10,-1,10,-1,$val55
+!endif
+tmp0=!positionof item $(val45[5+2*$val25]) in $val11
+
+val61=$(tmp0)
+val61=2
+val62=$(val45[6+2*$val25])
+tmp0=!randint 2, 5
+
+val63=$[rint($(tmp0))]
+val64=$[rint($val46*$val63)]
+val65=$[rint($val47*$val63)]
+val66=$[$val50*$val63]
+val67=$[rint(3)]
+val32=
+val33=
+val6=$val6	  fpoly yellow,-1,-1,-1,10,0,10,0,0,10,0,10,-1	 $val29	 $val42	 $val60	 $val33	 $val7	 linewidth 2	 $val28	 $val39	 $val51	 $val32	
+replytype1=menu
+replyname1=Question 0: produit
+replygood1=$val30;Produit A, Produit B
+replytype2=menu
+replyname2=Question 0: symbole
+replygood2=$val31;supérieur,inférieur,égal
+replytype3=numeric
+replyname3=Question 0: borne
+replygood3=$[$val20]
+replytype4=menu
+replyname4=Question 1: symbole
+replygood4=$val43;supérieur,inférieur,égal
+replytype5=menu
+replyname5=Question 1: proportion
+replygood5=$val44;$val26
+replytype6=menu
+replyname6=Question 2: symbole
+replygood6=$val61;supérieur,inférieur,égal
+replytype7=numeric
+replyname7=Question 2: borne
+replygood7=$[$val66]
+replytype8=numeric
+replyname8=Question 2: heure Produit B
+replygood8=$[$val65]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	 
+!read oef/draw.phtml 300,300 \
+$val6 
+$()	</div>	 <div class="medium_size text_col">	 On a représenté ci-contre un polygone d'acceptabilité pour $val67 contraintes	  concernant une entreprise fabriquant	 des produits A (représentés en abscisse) et des produits B (représentés en ordonnées).	 <p>	  Exprimer la contrainte que représente chaque droite frontière du polygone.	 </p>	<ol>	<li> La droite $(val9[$(val10[1])]) traduit la contrainte:<br>	 Le nombre de  
+!read oef/embed.phtml reply1 
+$() doit être  
+!read oef/embed.phtml reply2 
+$()  
+!read oef/embed.phtml reply3,3 
+$().</li>		<li> La droite $(val9[$(val10[2])]) traduit la contrainte:<br>	 Le nombre de $(val23[$val25+1]) doit être  
+!read oef/embed.phtml reply4 
+$()  
+!read oef/embed.phtml reply5 
+$() nombre de $(val24[$val25+1]).</li>		<li> La droite $(val9[$(val10[3])]) a pour équation 
+!insmath $val59
+$() et traduit une contrainte sur le total d'heures de fabrication des produits A et B:<br>	 Ce total doit être  
+!read oef/embed.phtml reply6 
+$()  
+!read oef/embed.phtml reply7,3 
+$().<br>	 La répartition des heures de fabrication par unité de produit est:	<table class="wimscenter wimsborder"><tr><th>Produit A</th><th>Produit B</th></tr>	<tr><td><label for="reply8">$val64 h</label></td><td> 
+!read oef/embed.phtml reply8,3 
+$()h</td></tr></table>	</li>		</ol>	 </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,23,24,25,59,64,67
+embedcnt=8

@@ -1,0 +1,29 @@
+\text{dessin=draw(500,500
+xrange -10,10
+yrange -10,10
+gridfill 0,0,10,10,\col
+translate 0.2,0.2
+linewidth 2
+vline 2,0,\col
+vline 4,0,\col
+vline 6,0,\col
+vline 8,0,\col
+vline 10,0,\col
+vline -2,0,\col
+vline -4,0,\col
+vline -6,0,\col
+vline -8,0,\col
+vline -10,0,\col
+hline 0,2,\col
+hline 0,4,\col
+hline 0,6,\col
+hline 0,8,\col
+hline 0,10,\col
+hline 0,-2,\col
+hline 0,-4,\col
+hline 0,-6,\col
+hline 0,-8,\col
+hline 0,-10,\col
+segment \x1+0.2,\y1+0.2,\x1-0.2,\y1-0.2,black
+segment \x1-0.2,\y1+0.2,\x1+0.2,\y1-0.2,black
+\dessinmod)}

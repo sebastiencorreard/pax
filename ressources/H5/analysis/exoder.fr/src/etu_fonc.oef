@@ -1,0 +1,135 @@
+\title{Etude de fonction 2}
+\keywords{roots,functions, derivative}
+\language{fr}
+\range{-5..5}
+\author{Frédéric, Pitoun}
+\email{lva.pitoun@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{u0=random(-4..4)}
+\integer{v0=random(-40..40)}
+\if{\u0<\v0}{
+\integer{u=\u0}
+\integer{v=\v0}
+}{
+\integer{v=\u0}
+\integer{u=\v0}
+}
+\integer{triche=random(1..5)}
+
+\text{sols=\u,\v}
+\integer{k=random(-1,1)}
+\function{fd=\k*(x-\u)*(x-\v)}
+\function{fd=maxima(expand(6*(\fd)))}
+\function{f=maxima(integrate(\fd))}
+\function{f=maxima(expand(\f))}
+\text{bornes=slib(function/bounds \f, x,-5,5)}
+\integer{m=item(1,\bornes)}
+\integer{M=item(2,\bornes)}
+\integer{pert=randint(\m,\M)}
+\if{\triche=1}{
+\if{\k>0}{
+\integer{pert=-evalue(\f,x=\u)}
+}
+\if{\k<0}{
+\integer{pert=-evalue(\f,x=\v)}
+}
+}
+\function{f=\f+\pert}
+\if{\u=\v}{
+\integer{nd=1}
+}
+{
+\integer{nd=2}
+}
+
+\if{\k>0}{
+\integer{nk=1}
+}
+\if{\k<0}{
+\integer{nk=2}
+}
+
+\rational{fu=evalue(\f,x=\u)}
+\rational{fv=evalue(\f,x=\v)}
+
+\if{\fu>0}{
+\integer{\nu=0}
+}
+\if{\fu=0}{
+\integer{\nu=1}
+}
+\if{\fu<0}{
+\integer{\nu=2}
+}
+\if{\fv>0}{
+\integer{\nv=0}
+}
+\if{\fv=0}{
+\integer{\nv=1}
+}
+\if{\fv<0}{
+\integer{\nv=2}
+}
+
+\integer{d=\nu*3+\nv+1}
+
+\if{\k>0}{
+\text{pos=1,2,3,Imp,1,2,Imp,Imp,1}
+}
+\if{\k<0}{
+\text{pos=1,Imp,Imp,2,1,Imp,3,2,1}
+}
+
+\integer{n=item(\d,\pos)}
+
+\integer{al=random(1,2)}
+\integer{al=1}
+\if{\al=1}{
+\text{txt=la fonction \(f)}
+\integer{rep=\n}
+}
+
+\if{\al=2}{
+\text{txt=la dérivée de la fonction \(f)}
+\integer{rep=\nd}
+}
+
+\integer{ym=-10}
+\integer{yM=10}
+\integer{dy=1}
+\integer{ny=(\yM-\ym)/\dy}
+
+\steps{
+reply 1
+reply 2
+reply 3
+reply 4
+}
+
+\text{ftex=texmath(simplify(\f))}
+
+\integer{debug=0}
+
+\statement{
+On considère une fonction \(f), définie sur \(\mathbb{R}) par la
+relation \(f(x)=\ftex).<div>
+\if{\step=1}{La dérivée de la fonction\(f) est donnée par \(f'(x)=)\embed{reply 1,20}}
+\if{\step=2}{Oui, on a \(f'(x)=\fd), les solutiuons de l'équation \(f'(x)) sont \embed{reply 2,10}.}
+\if{\step=3}{Sur l'intervalle \(=\lbrack \u;\v \rbrack), la fonction \(f) est \embed{reply 3}.}
+\if{\step=4}{Construire maintenant le tableau de variations de la
+fonction \(f) et en déduire le nombre de solutions de l'équation \(f(x)=0).
+<div class="spacer">
+La fonction \(f) s'annule \embed{reply 4,10} fois sur \(\mathbb{R}).
+</div>}
+\if{\debug=1}{Les valeurs \nu, \nv et donc \d. Tandis que \u a pour image \fu et \v pour image \fv et du coup \rep solutions.
+Alors que le k \k et le nk est \nk}
+</div>
+}
+
+\answer{Dérivée}{type=algexp}{\fd}
+\answer{Racines}{type=set}{\sols}
+\answer{Variations}{type=menu}{\nk;décroissante,croissante}
+\answer{Nombre}{type=default}{\rep}

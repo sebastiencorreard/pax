@@ -1,0 +1,401 @@
+\title{Généralités sur une fonction}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+
+\integer{sommet=randint(1..5)*randint(1,-1)}
+\integer{sing1=\sommet-randint(3..9)}
+\integer{sing2=2*\sommet-\sing1}
+\integer{c=\sing1*\sing2}
+\if{\c=0}
+ {
+ \integer{sing1=\sing1-1}
+ \integer{sing2=\sing2+1}
+ }
+\text{offset=shuffle(5,7,9,11)}
+\integer{xm=\sing1-\offset[1]}
+\integer{xM=\sing2+\offset[2]}
+\integer{a=randint(1..4)*randint(1,-1)}
+\integer{ac=\c*\a}
+\function{f=\a*(x-\sing1)*(x-\sing2)}
+\text{fdev=maxima(expand(\f))}
+\text{tfdev=texmath(\fdev)}
+\text{ffact=texmath(\f)}
+
+\integer{ym=evalue(\f,x=\xm)}
+\integer{yM=evalue(\f,x=\xM)}
+\integer{yS=evalue(\f,x=\sommet)}
+
+## construction du tableau de variation
+\if{\a>0}
+{
+\text{pos=top,bottom,top}
+\text{monotone=\(\searrow),\(\nearrow)}
+}
+{
+\text{pos=bottom,top,bottom}
+\text{monotone=\(\nearrow),\(\searrow)}
+}
+
+\text{tableau=<table class="wimscenter wimsnoborder" style="border: solid black 1px;">
+ <tr style="border: solid black 1px;">
+  <th width="15%"  style="border-right: solid black 1px;width:15%;">\(x)</th>
+  <td width="15%" style="text-align:left"> \xm</td>
+  <td width="8%"></td>
+  <td width="15%">\sommet</td>
+  <td width="8%"></td>
+  <td width="15%">\xM</td>
+ </tr>
+ <tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;">\(f(x))</th>
+  <td width="15%" style="text-align:left;" valign="\pos[1]">\ym</td>
+  <td width="8%"> \monotone[1] </td>
+  <td width="15%" valign="\pos[2]"> \yS </td>
+  <td width="8%"> \monotone[2]  </td>
+  <td width="15%" valign="\pos[3]"> \yM </td>
+ </tr>
+</table>
+
+}
+
+## choix des questions de comparaison
+\real{x1=randint(\xm..\sommet-1)+randint(1..4)/10}
+\real{x2=randint(\x1+1..\sommet)-randint(1..4)/10}
+\real{x3=randint(\sommet..\xM-1)+randint(1..4)/10}
+\real{x4=randint(\x3+1..\xM)-randint(1..4)/10}
+\real{x5=randint(\xm+1..\sommet-1)+randint(1..4)/10}
+\real{x6=randint(\sommet+1..\xM-1)-randint(1..4)/10}
+\text{switchcp=2,1}
+\integer{cp1=\a>0?2:1}
+\integer{kk=randint(1,2)}
+\text{ql=\kk=1?\x1,\x2,\cp1:\x2,\x1,\switchcp[\cp1]}
+\integer{cp2=\a>0?1:2}
+\integer{kk=randint(1,2)}
+\text{ql=\kk=1?\ql,
+\x3,\x4,\cp2:\ql,
+\x4,\x3,\switchcp[\cp2]}
+\integer{kk=randint(1,2)}
+\text{ql=\kk=1?\ql,
+\x5,\x6,3:\ql,
+\x6,\x5,3}
+\text{indq=shuffle(3)}
+\text{qrow=row(\indq[1],\ql)}
+\real{q1=\qrow[1]}
+\real{q2=\qrow[2]}
+\integer{cp1=\qrow[3]}
+\text{qrow=row(\indq[2],\ql)}
+\real{q3=\qrow[1]}
+\real{q4=\qrow[2]}
+\integer{cp2=\qrow[3]}
+\text{qrow=row(\indq[3],\ql)}
+\real{q5=\qrow[1]}
+\real{q6=\qrow[2]}
+\integer{cp3=\qrow[3]}
+
+\text{choixcomp=<,>,on ne peut pas savoir}
+\text{vesp=&nbsp;}
+\text{size1=50x50x7}
+\text{size2=50x50x11}
+\text{lsttabsigne=+,-,\xm,\xM,\sing1,\sing2,\sommet,0,\ym,\yM,\yS,\vesp}
+\text{lsttabsigne=wims(listuniq \lsttabsigne)}
+\text{lignex=\xm,\vesp,\sing1,\vesp,\sing2,\vesp,\xM}
+\text{lignefx=\a>0?\vesp,+,0,-,0,+,\vesp:\vesp,-,0,+,0,-,\vesp}
+\text{tabsign=<table class="wimscenter wimsnoborder" style="border:solid black 1px;">
+<tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;" width="15%"> \(x)</th>
+  <td width="15%" style="text-align:left">\xm</td>
+  <td width="8%">&nbsp;</td>
+  <td width="15%">\sing1</td>
+  <td width="8%">&nbsp;</td>
+  <td width="15%">\sing2</td>
+  <td width="8%">&nbsp;</td>
+  <td width="15%">\xM</td>
+</tr><tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;" width="15%">\(f(x))</th>
+  <td width="15%">&nbsp;</td>
+  <td width="8%">\lignefx[2]</td>
+  <td width="15%">0</td>
+  <td width="8%">\lignefx[4]</td>
+  <td width="15%">0</td>
+  <td width="8%">\lignefx[6]</td>
+  <td width="15%">&nbsp;</td>
+</tr>
+</table>}
+\text{sol1=\sing1,\sing2}
+\integer{somme=\sing1+\sing2}
+\text{sol2=0,\somme}
+
+# choix de l'inéquation
+\integer{k=randint(1..4)}
+\integer{isymb=randint(1..4)}
+\text{symb=<,\le,>,\ge}
+# objets à cliquer
+\text{crocg=&#91;}
+\text{crocd=&#93;}
+\text{union=\(\cup)}
+\text{inter=\(\cap)}
+\text{empt=\(\emptyset)}
+\text{ptvirg=&#59;}
+
+\text{crochg=\isymb=1 or \isymb=3?\crocd:\crocg}
+\text{crochd=\isymb=1 or \isymb=3?\crocg:\crocd}
+\if{\a>0}
+ {
+ \if{\k=1}
+  {
+  \integer{val=randint(\yS-10..\yS-1)}
+  \text{grep=\isymb<3?\empt:\crocg,\xm,\ptvirg,\xM,\crocd}
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text -0.5,\val,medium,\val
+  }
+  }
+ \if{\k=2}
+  {
+  \integer{x1=randint(\sing1+1..\sommet-1)}
+  \integer{x2=2*\sommet-\x1}
+  \integer{val=evalue(\f,x=\x1)}
+  \text{grep=\isymb<3?\crochg,\x1,\ptvirg,\x2,\crochd:\crocg,\xm,\ptvirg,\x1,\crochd,\union,\crochg,\x2,\ptvirg,\xM,\crocd}
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text blue,-0.5,\val,medium,\val
+ points blue,\x1,0,\x2,0
+ text blue,\x1,-0.5,medium,\x1
+ text blue,\x2,-0.5,medium,\x2
+ linewidth 1
+ dsegment \x1,0,\x1,\val,blue
+ dsegment \x2,0,\x2,\val,blue
+   }
+  }
+ \if{\k=3}
+  {
+   \integer{d1=\sommet-\xm}
+   \integer{d2=\xM-\sommet}
+   \integer{x1=\d2>\d1?\xM-randint(1..\d2-\d1-1):\xm+randint(1..\d1-\d2-1)}
+   \integer{x2=2*\sommet - \x1}
+   \integer{val=evalue(\f,x=\x1)}
+   \if{\val<\ym}
+     {
+      \text{grep=\isymb<3?\crochg,\x1,\ptvirg,\xM,\crocd:\crocg,\xm,\ptvirg,\x1,\crochd}
+     }
+     {
+      \text{grep=\isymb<3?\crocg,\xm,\ptvirg,\x1,\crochd:\crochg,\x1,\ptvirg,\xM,\crocd}
+     }
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text blue,-0.5,\val,medium,\val
+ points blue,\x1,0,\x2,0
+ text blue,\x1,-0.5,medium,\x1
+ linewidth 1
+ dsegment \x1,0,\x1,\val,blue
+   }
+
+  }
+ \if{\k=4}
+  {
+  \integer{val=\ym<\yM?randint(\yM+1..\yM+10):randint(\ym+1..\ym+10)}
+  \text{grep=\isymb<3?\crocg,\xm,\ptvirg,\xM,\crocd:\empt}
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text -0.5,\val,medium,\val
+  }
+
+  }
+ }
+ {
+ \if{\k=1}
+  {
+  \integer{val=randint(\yS+1..\yS+10)}
+  \text{grep=\isymb>2?\empt:\crocg,\xm,\ptvirg,\xM,\crocd}
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text -0.5,\val,medium,\val
+  }
+  }
+ \if{\k=2}
+  {
+  \integer{x1=randint(\sing1+1..\sommet-1)}
+  \integer{x2=2*\sommet-\x1}
+  \integer{val=evalue(\f,x=\x1)}
+  \text{grep=\isymb>2?\crochg,\x1,\ptvirg,\x2,\crochd:\crocg,\xm,\ptvirg,\x1,\crochd,\union,\crochg,\x2,\ptvirg,\xM,\crocd}
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text blue,-0.5,\val,medium,\val
+ points blue,\x1,0,\x2,0
+ text blue,\x1,-0.5,medium,\x1
+ text blue,\x2,-0.5,medium,\x2
+ linewidth 1
+ dsegment \x1,0,\x1,\val,blue
+ dsegment \x2,0,\x2,\val,blue
+   }
+  }
+ \if{\k=3}
+  {
+   \integer{d1=\sommet-\xm}
+   \integer{d2=\xM-\sommet}
+   \integer{x1=\d2>\d1?\xM-randint(1..\d2-\d1-1):\xm+randint(1..\d1-\d2-1)}
+   \integer{x2=2*\sommet - \x1}
+   \integer{val=evalue(\f,x=\x1)}
+   \if{\val>\ym}
+     {
+      \text{grep=\isymb>2?\crochg,\x1,\ptvirg,\xM,\crocd:\crocg,\xm,\ptvirg,\x1,\crochd}
+     }
+     {
+      \text{grep=\isymb>2?\crocg,\xm,\ptvirg,\x1,\crochd:\crochg,\x1,\ptvirg,\xM,\crocd}
+     }
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text blue,-0.5,\val,medium,\val
+ points blue,\x1,0,\x2,0
+ text blue,\x1,-0.5,medium,\x1
+ linewidth 1
+ dsegment \x1,0,\x1,\val,blue
+   }
+
+  }
+ \if{\k=4}
+  {
+  \integer{val=\ym>\yM?randint(\yM-10..\yM-1):randint(\ym-10..\ym-1)}
+  \text{grep=\isymb>2?\crocg,\xm,\ptvirg,\xM,\crocd:\empt}
+  \text{dessinsuite=
+ linewidth 5
+ point 0,\val,blue
+ text -0.5,\val,medium,\val
+  }
+  }
+ }
+  \text{ineq=f(x) \symb[\isymb] \val}
+\text{lstrep=\crocg,\crocd,\empt,\union,\inter,\ptvirg,\xm,\xM,\sommet,\x1,\x2}
+\integer{xmin=\xm-1}
+\integer{xmax=\xM+1}
+\if{\a>0}
+  {
+  \integer{ymin=\yS-12}
+  \integer{ymax=\ym>\yM?\ym+12:\yM+12}
+  }
+  {
+  \integer{ymax=\yS+12}
+  \integer{ymin=\ym<\yM?\ym-12:\yM-12}
+  }
+
+\text{dessin=
+ xrange \xmin,\xmax
+ yrange \ymin,\ymax
+ arrow \xmin,0,\xmax,0,10,black
+ arrow 0,\ymin,0,\ymax,10,black
+ trange \xm,\xM
+ plot red,\f
+\dessinsuite
+}
+\text{mstep=r1,r2,r3
+r4,r5
+r6
+r7,r8,r9,r10
+r11}
+
+\steps{\mstep}
+\statement{
+<div class="float_left spacer">
+La fonction \(f) définie sur \(&#91;\xm;\xM&#93;) admet le tableau des
+variations suivant:<div>
+\tableau
+</div>
+et vérifie \(f(\sing1)=0) et \(f(\sing2)=0).
+\if{\step=1}{
+  <p>
+  Comparer si possible les images suivantes:
+  </p>
+<table class="wimsnoborder">
+<tr><td> \(f(\q1))</td><td> \embed{reply1} </td><td>\(f(\q2))</td></tr>
+<tr><td> \(f(\q3))</td><td> \embed{reply2} </td><td>\(f(\q4))</td></tr>
+<tr><td> \(f(\q5))</td><td> \embed{reply3} </td><td>\(f(\q6))</td></tr>
+</table>
+  }{
+   \if{\step=2}{
+<p> Construire le tableau des signes de la fonction \(f):</p>
+<table class="wimsborder">
+<tr><td>\(x)</td><td>\embed{reply4,\size1}</td></tr>
+<tr><td>\(f(x))</td><td>\embed{reply5,\size1}</td><tr>
+</table>
+   }{
+<p>On connaît maintenant l'expression algébrique factorisée de \(f):</p>
+<div class="wimscenter">\(f(x)=\ffact)</div>
+    \if{\step=3}{
+<p>Donner son expression développée:</p>
+<div class="wimscenter">\(f(x))=\embed{reply6}</div>
+    }{
+     \if{\step=4}{
+<p>Choisir la bonne expression de \(f) pour résoudre algébriquement
+les équations suivantes:
+</p>
+<ol>
+<li>\(f(x)=0):<br>
+Choix de l'expression à utiliser:<br>\embed{reply7}<br>
+Solution(s) de l'équation: S=\embed{reply8}</li>
+<li>\(f(x)=\ac):<br>
+Choix de l'expression à utiliser:<br>\embed{reply9}<br>
+Solution(s) de l'équation: S=\embed{reply10}</li>
+</ol>
+     }
+    }
+   }
+  }
+  </div>
+<div class="float_right" style="background-color:lightgrey">
+<b>Résultats</b>
+\if{\step>1}
+  {
+<p>
+On a:
+</p>
+<ul>
+\if{\cp1<3}{
+<li> \(f(\q1)) \choixcomp[\cp1] \(f(\q2))</li>}
+\if{\cp2<3}{
+<li> \(f(\q3)) \choixcomp[\cp2] \(f(\q4))</li>}
+\if{\cp3<3}{
+<li> \(f(\q5)) \choixcomp[\cp3] \(f(\q6))</li>}
+</ul>
+   \if{\step>2}{
+<p>Tableau des signes:</p>
+\tabsign
+    }
+   \if{\step>3}{
+<p>La forme développée de \(f) est \(f(x)=\fdev).</p>
+    }
+   \if{\step>4}{
+<p> On choisit la forme factorisée pour résoudre \(f(x)=0).<br>
+    On choisit la forme développée pour résoudre \(f(x)=\ac).
+    </p>
+    }
+  }
+</div>
+\if{\step=5}
+ {
+<div class="wimscenter">\draw{300,300}{\dessin}</div>
+On a dessiné la représentation graphique de la fonction \(f).
+Résoudre graphiquement l'inéquation \(\ineq).
+
+<div class="wimscenter">
+\embed{reply11,\size2}
+</div>
+ }
+}
+\answer{Comparaison 1}{\cp1;\choixcomp}{type=menu}{option=nonstop}
+\answer{Comparaison 2}{\cp2;\choixcomp}{type=menu}{option=nonstop}
+\answer{Comparaison 3}{\cp3;\choixcomp}{type=menu}{option=nonstop}
+\answer{ligne des x}{\lignex;\lsttabsigne}{type=clickfill}{option=nonstop}
+\answer{ligne de f(x)}{\lignefx;\lsttabsigne}{type=clickfill}{option=nonstop}
+\answer{Forme développée}{\fdev}{type=litexp}{option=nonstop}
+\answer{choix forme 1}{2;\(\fdev),\(\ffact)}{type=checkbox}{option=nonstop}
+\answer{Solution de l'équation 1}{\sol1}{type=fset}{option=nonstop}
+\answer{choix forme 2}{1;\(\fdev),\(\ffact)}{type=checkbox}{option=nonstop}
+\answer{Solution de l'équation 2}{\sol2}{type=fset}{option=nonstop}
+\answer{Solution de l'inéquation}{\grep;\lstrep}{type=clickfill}

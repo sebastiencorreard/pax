@@ -1,0 +1,65 @@
+\title{Question 303 S Reconnaitre l'équation d'une fonction affine}
+\keywords{quizz,affine_function}
+\observation{Question du sujet zéro sujet-specialite-1.pdf publié sur EDUSCOL en juin 2025 }
+
+\text{coef=shuffle(2,3,4,5)}
+\integer{a=\coef[1]}
+\integer{b=\coef[2]}
+\integer{c=\coef[3]}
+\integer{d=\coef[4]}
+\real{de=\d/10}
+\integer{ng=randint(591..789)}
+\text{q=randomitem(sqrt(2),sqrt(3),\ng,pi)}
+\text{fcts=\a*x^2-(\b+\a*x^2),\a*x/\b-(\c+1/\q),(\a-\c*x/ \b)/\de,\a*x^2-(\b-\c*x^2),(\a-\c*x^2/ \b)/\d,\a*x/\b*(\c+x/\q),\a*x^2-(\b-\a*x^2)}
+\text{fctstxt=\a x^2-\left(\b+\a x^2\right),\frac{\a}{\b}x-\left(\c+\frac{1}{\q}\right),\frac{\a-\frac{\c}{\b}x}{\de},\a x^2-\left(\b-\c x^2\right),\frac{\a-\frac{\c}{ \b}x^2 }{\d},\frac{\a}{\b}x\left(\c+\frac{x}{\q}\right),\a x^2-\left(\b-\a x^2\right)}
+\text{fctstxt=wims(replace internal sqrt(2) by \sqrt{2} in \fctstxt)}
+\text{fctstxt=wims(replace internal sqrt(3) by \sqrt{3} in \fctstxt)}
+\text{fctstxt=wims(replace internal pi by \pi in \fctstxt)}
+\text{prop=shuffle(7)}
+\text{enonce=On considère trois fonctions définies sur \(\mathbb{R}\)&nbsp;&#58;<div class="wimscenter">
+ \(f_1&nbsp;&#58;&nbsp;x \mapsto \fctstxt[\prop[1]]\)&nbsp;&nbsp;&nbsp;&nbsp; \(f_2&nbsp;&#58;&nbsp;x \mapsto \fctstxt[\prop[2]]\)&nbsp;&nbsp;&nbsp;&nbsp; \(f_3&nbsp;&#58;&nbsp;x \mapsto \fctstxt[\prop[3]]\)
+</div>Parmi ces trois fonctions&#44; celles qui sont des fonctions affines sont&nbsp;&#58; }
+
+\text{sol=}
+\text{sol=\prop[1]<3.5?wims(append item f_1 to \sol):\sol}
+\text{sol=\prop[2]<3.5?wims(append item f_2 to \sol):\sol}
+\text{sol=\prop[3]<3.5?wims(append item f_3 to \sol):\sol}
+
+\text{notsol=}
+\text{notsol=\prop[1]>3.5?wims(append item f_1 to \notsol):\notsol}
+\text{notsol=\prop[2]>3.5?wims(append item f_2 to \notsol):\notsol}
+\text{notsol=\prop[3]>3.5?wims(append item f_3 to \notsol):\notsol}
+
+\text{sd=shuffle(3)}
+\if{\sol issametext }{
+  \text{good=aucune}
+  \text{bad1=toutes}
+  \text{bad2=uniquement la fonction \(f_\sd[1]\)}
+  \text{bad3=uniquement les fonctions \(f_\sd[2]\) et \(f_\sd[3]\)}
+  }
+\if{items(\sol)=1}{
+  \text{good=uniquement la fonction \(\sol\)}
+  %%%%%
+  \text{bad1=toutes}
+  \text{bad2=aucune}
+  \text{bad3=uniquement les fonctions \(\notsol[1]\) et \(\notsol[2]\)}
+}
+\if{items(\sol)=2}{
+  \text{good=uniquement les fonctions \(\sol[1]\) et \(\sol[2]\)}
+  %%%%%
+  \text{bad1=toutes}
+  \text{bad2=aucune}
+  \text{bad3=uniquement la fonction \(\notsol\)}
+}
+\if{items(\sol)=3}{
+  \text{good=toutes}
+  %%%%%
+  \text{bad1=uniquement les fonctions \(f_\sd[1]\) et \(f_\sd[2]\)}
+  \text{bad2=aucune}
+  \text{bad3=uniquement la fonction \(f_\sd[3]\)}
+}
+\text{bads=\bad1,\bad2,\bad3}
+%%%% feedback %%%%%%%
+
+
+\text{feedback=La bonne réponse est <b>\good</b>. <br>Pour s'en convaincre&#44; il faut essayer de réduire les expressions pour voir si on peut les écrire sous la forme \(m x+p\) caractéristique des fonction affines.<br> Si ce n'est pas le cas&#44; ce n'est pas une fonction affine.}

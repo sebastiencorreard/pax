@@ -1,0 +1,228 @@
+!set title=Tour de Babel : quel coût total ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle Exact,Bien,Juste,Bravo,Bonnes réponses,Oui
+
+val6=$(tmp0)
+tmp0=!shuffle Il y a des erreurs,Certaines réponses sont inexactes,Tout n'est pas juste
+
+val7=$(tmp0)
+tmp0=!randint 100, 250
+
+val8=$[rint($(tmp0))]
+tmp=!nonempty items 10,15,20,25
+
+tmp0=!randitem $tmp
+val9=$[rint($(tmp0))]
+tmp=!nonempty items 5,10,15,20,25
+
+tmp0=!randitem $tmp
+val10=$[rint($val9+$(tmp0))]
+val11=arithmétique
+val12=$[rint($val8+49*$val9)]
+val13=$[rint(50*($val8+$val12)/2)]
+val14=$[rint($val12+$val10)]
+val15=$[rint($val12+50*$val10)]
+val16=$[rint(50*($val14+$val15)/2)]
+val17=$[rint($val13+$val16)]
+oefsteps=reply1,reply2,reply3,reply4	reply5,reply6,reply7	reply8 
+nextstep=!nosubst reply1,reply2,reply3,reply4	reply5,reply6,reply7	reply8 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=nonstop 
+replyname1=nature
+replygood1=1;arithmétique,géométrique
+replytype2=integer
+
+replyoption2=nonstop 
+replyname2=raison
+replygood2=$val9
+replytype3=integer
+
+replyoption3=nonstop 
+replyname3=50eme m
+replygood3=$val12
+replytype4=integer
+
+replyoption4=nonstop 
+replyname4=total 50 premiers mètres
+replygood4=$val13
+replytype5=integer
+
+replyoption5=nonstop 
+replyname5=51eme m
+replygood5=$val14
+replytype6=integer
+
+replyoption6=nonstop 
+replyname6=100eme m
+replygood6=$val15
+replytype7=integer
+
+replyoption7=nonstop 
+replyname7=total 50 derniers mètres
+replygood7=$val16
+replytype8=integer
+
+replyoption8=nonstop 
+replyname8=cout total
+replygood8=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="background-color:#FFFF66">		<p>D'après une légende biblique,	la Tour de Babel devait monter jusqu'aux cieux,	afin de pouvoir loger toute l'humanité dans une seule et même cité.	</p>		<b><font color=blue>1. Coût de construction des cinquante premiers étages </font> </b>:	<p><font color=blue>	Supposons que le premier étage  de la Tour coûte $val8 talents, puis que chaque	étage supplémentaire coûte $val9 talents de plus que le précédent, et ce jusqu'au	cinquantième étage inclus.		Notons 
+!insmath u_n
+$() le prix en talents du n-ième étage  de la Tour.	</font></p>	<ul>	 <li> La suite 
+!insmath (u_1, u_2, ... , u_{50})
+$() est  
+!read oef/embed.phtml reply1,10 
+$() de raison  
+!read oef/embed.phtml reply2,5 
+$() </li>		<li> Le cinquantième étage coûte  alors :  
+!read oef/embed.phtml reply3,8 
+$() talents.</li>		<li> Le coût total des cinquante premiers étages est : 
+!insmath S_1 = 
+$()  
+!read oef/embed.phtml reply4,10 
+$() talents.</li>		
+!if $m_step>1 
+$()	   
+!if $m_reply1=$val11 and $m_reply2=$val9 and $m_reply3=$val12 and $m_reply4=$val13 
+$()<font color=green>$(val6[1]) !</font> 
+!else
+$()	       <font color=red>$(val7[1])<br>	       La suite 
+!insmath (u_1, u_2, ... , u_{50})
+$() est $val11 de raison $val9 et de premier terme 
+!insmath u_1 = $val8
+$(). <br>	       Le coût du n-ième étage se calcule par 
+!insmath u_n = u_1 + (n-1)\times$val9
+$() ,  donc 
+!insmath u_{50} = $val8 + 49\times $val9 = $val12 
+$().<br>	       Par la formule de somme d'une suite arithmétique :   
+!insmath S_1 =  u_1 + u_2 + ... + u_{50} = 50 \times \frac{u_1+u_{50}}{2} = $val13
+$().	      </font> 
+!endif
+$()	</ul>	<b><font color=blue>2. Coût de construction des cinquante étages suivants </font> </b>:	<p><font color=blue>Supposons qu'à partir du cinquantième étage, chaque étage supplémentaire	 coûte $val10 talents de plus que le précédent, et ce jusqu'au	centième  étage inclus.	</font></p>	<ul>		<li> Le cinquante et unième étage coûte  alors : 
+!insmath u_{51}
+$() =  
+!read oef/embed.phtml reply5,8 
+$() talents.</li>		<li> Le centième étage coûte  alors : 
+!insmath u_{100}
+$() =  
+!read oef/embed.phtml reply6,8 
+$() talents.</li>		<li> Le coût total de la deuxième tranche de cinquante étages est  : 
+!insmath S_2 = 
+$()  
+!read oef/embed.phtml reply7,10 
+$() talents.</li>		 
+!endif
+$()		
+!if $m_step>2 
+$()	   
+!if $m_reply5=$val14 and $m_reply6=$val15 and  $m_reply7=$val16 
+$()<font color=green>$(val6[2]) !</font> 
+!else
+$()	    <font color=red>$(val7[2])...<br>	       La suite  
+!insmath (u_{50}, u_{51}, ... u_{100})
+$()  est $val11 de raison $val10 et de premier terme 
+!insmath u_{50} = $val12
+$(). <br>	       On a  : 
+!insmath u_{51} = u_{50} +  $val10 =   $val14
+$() &nbsp; et  &nbsp; 
+!insmath u_{100} = u_{50} +  50\times$val10 = $val15 
+$()  ou bien 
+!insmath u_{100} = u_{51} +  49\times$val10 = $val15 
+$() .<br>	       Par la formule de somme d'une suite arithmétique,   
+!insmath S_2 =  u_{51} + u_{52} + ... + u_{100} = 50 \times \frac{u_{51}+u_{100}}{2} = 50 \times \frac{$val14+$val15}{2} = $val16
+$().	    </font> 
+!endif
+$()		</ul>		<b><font color=blue>3. Au total, les cent premiers étages de la Tour ont coûté    </font> </b>:	 
+!insmath S = 
+$()  
+!read oef/embed.phtml reply8,10 
+$() talents.		</div>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_step=3 and $m_reply8!=$val17
+ <div class='oef_feedbacks'><font color=red>Votre calcul est faux pour 
+!insmath S
+$(). <br>	Le bon calcul est : 
+!insmath S = \S_1 + \S_2 = $val13 + $val16 = $val17 
+$().<br>	NB : La suite entière 
+!insmath (u_0,u_1, ... u_{100})
+$() n'est pas arithmétique, car le prix du mètre n'augmente pas toujours du même nombre.	 La formule  
+!insmath u_1+u_2+...+u_{100} = 100\times\frac{u_1+u_{100}}{2}
+$() n'est donc pas valable !	</font>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,15,16,17
+embedcnt=8

@@ -1,0 +1,109 @@
+!set title=Le taux annuel moyen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+precision=100
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 19
+
+val6=$[rint(5*$(tmp0))]
+tmp0=!randint 30, 90
+
+val7=$[0.1*$(tmp0)]
+val8=$[1+$val7/100]
+val9=$[$val8^5]
+val10=$[rint(100*$val6*$val9)]
+val10=$[0.01*$val10]
+tmp0=!randint 110, 300
+
+val11=$[rint(100*$(tmp0))]
+tmp0=!randint 30, 90
+
+val12=$[0.1*$(tmp0)]
+val13=$[1-$val12/100]
+val14=$[$val13^5]
+val15=$[rint(100*$val11*$val14)]
+val15=$[0.01*$val15]
+val16=<ol style="list-style-type: upper-alpha">	<li>Le coefficient multiplicateur pour 5 ans est : \(CM = \frac{$val10}{$val6} \approx $val9).<br>	Si \(k) est le coefficient multiplicateur pour un an alors \(k^5*$val6=$val10)	  et \(k^5 \approx $val9)<br>	Donc \(k = \root{5}{$val10/$val6} \approx $val8) et donc le taux est de $val7 %.	</li><li>Le coefficient multiplicateur pour 5 ans est : \(CM = \frac{$val15}{$val11} \approx $val14).	<br>	Si \(k) est le coefficient multiplicateur pour un an, alors \(k^5*$val11=$val15) et	\(k^5 \approx $val14).<br>	Donc \(k = \root{5}{$val15/$val11} \approx $val13) et donc le taux est de $val12 %.</li></ol>
+replytype1=numeric
+replyoption1=absolute 
+replyname1=taux moyen
+replygood1=$[$val7]
+replytype2=numeric
+replyoption2=absolute 
+replyname2=taux moyen de diminution
+replygood2=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val16
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<ol style="list-style-type: upper-alpha">	<li>	En 5 ans, la valeur d'une action est passée de $val6 &euro; à $val10 &euro;.<br>	<label for="reply1">Quel a été le pourcentage d'augmentation annuel moyen ?</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$() % (arrondir à 0,1 % près).</div>	</li><li>En 5 ans, la valeur d'une voiture a diminué de $val11 &euro; à $val15 &euro;.<br>	<label for="reply2">Quel a été le pourcentage de diminution annuel moyen ?</label>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2 
+$() % (arrondir à 0,1 % près).</div>	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val16
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,15,16
+embedcnt=2

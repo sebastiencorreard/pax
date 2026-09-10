@@ -1,0 +1,313 @@
+!set title=Combinaison de VA binomiale, puis calcul
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Hubert,Proal
+email=communanute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr
+keywords=random_variable,binomial_distribution
+computeanswer=yes
+
+ansorder=r,r,r,r,r,r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=MutuWIMS
+tmp0=!randint 2, 50
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 50
+
+val7=$[rint($(tmp0))]
+tmp0=!shuffle 6
+
+val8=$(tmp0)
+tmp0=!randint 1, 3
+
+val9=$[rint($(tmp0))]
+tmp0=!item  1 to $val9 of $val8 
+
+val10=$(tmp0)
+tmp0=!shuffle 6
+
+val8=$(tmp0)
+tmp0=!randint 1, 3
+
+val11=$[rint($(tmp0))]
+tmp0=!item  1 to $val11 of $val8 
+
+val12=$(tmp0)
+t_=!rawmath $val6
+val13=!exec pari print($t_)
+t_=!rawmath $val9/6
+val14=!exec pari print($t_)
+t_=!rawmath $val7
+val15=!exec pari print($t_)
+t_=!rawmath $val11/6
+val16=!exec pari print($t_)
+t_=!rawmath $val6*$val9/6+$val7*$val11/6
+val17=!exec pari print($t_)
+t_=!rawmath $val6*$val9*(6-$val9)/36+$val7*$val11*(6-$val11)/36
+val18=!exec pari print($t_)
+t_=!rawmath $val6*$val9/6
+val19=!exec pari print($t_)
+val20=$[rint($val6*$val9)]
+t_=!rawmath $val7*$val11/6
+val21=!exec pari print($t_)
+val22=$[rint($val7*$val11)]
+t_=!rawmath $val6*$val9*(6-$val9)/36
+val23=!exec pari print($t_)
+t_=!rawmath $val7*$val11*(6-$val11)/36
+val24=!exec pari print($t_)
+t_=!replace internal \( by ( in gcd($val6*$val9+$val7*$val11,6)
+tmp0=!exec maxima $t_
+
+val25=$[rint($(tmp0))]
+val26=$[rint(($val6*$val9+$val7*$val11)/$val25)]
+val27=$[rint(6/$val25)]
+
+!ifval $val27=1
+val28= $val26 
+!else
+val28= \frac{$val26}{$val27}
+!endif
+t_=!replace internal \( by ( in gcd($val6*$val9*(6-$val9)+$val7*$val11*(6-$val11),36)
+tmp0=!exec maxima $t_
+
+val29=$[rint($(tmp0))]
+val30=$[rint(($val6*$val9*(6-$val9)+$val7*$val11*(6-$val11))/$val29)]
+val31=$[rint(36/$val29)]
+
+!ifval $val31=1
+val32= $val30 
+!else
+val32= \frac{$val30}{$val31}
+!endif
+
+!ifval $val9=1
+val33= est égal à $val10
+!else
+val33= appartient à l'ensemble \(\left\{$val10 \right\}\)
+!endif
+
+!ifval $val11=1
+val34= est égal à $val12
+!else
+val34= appartient à l'ensemble \(\left\{$val12 \right\}\)
+!endif
+val35=r1,r2,r3,r4	r5,r6
+oefsteps=$val35 
+nextstep=!nosubst $val35 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=nonstop 
+replyname1=\(n_1\)
+replygood1=$val13
+replytype2=numexp
+replyoption2=nonstop 
+replyname2=\(p_1\)
+replygood2=$val14
+replytype3=numexp
+replyoption3=nonstop 
+replyname3=\(n_2\)
+replygood3=$val15
+replytype4=numexp
+replyoption4=nonstop 
+replyname4=\(p_2\)
+replygood4=$val16
+replytype5=numexp
+replyoption5=nonstop 
+replyname5=E
+replygood5=$val17
+replytype6=numexp
+replyoption6=nonstop 
+replyname6=V
+replygood6=$val18
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>On va lancer 
+!insmath $val6
+$() dés rouges et 
+!insmath $val7
+$() dés verts. </p>	<ul class="wims_nopuce">	<li>Un dé rouge est dit gagnant si le résultat $val33 </li>	<li>Un dé vert est dit gagnant si le résultat $val34 </li>	</ul>	<p class="wims_emph">Partie 1 :</p>	<p>On note 
+!insmath R
+$() la variable aléatoire qui détermine le nombre de dés rouges gagnants	et 
+!insmath T
+$()  la variable aléatoire qui détermine le nombre de dés verts gagnants.</p>	
+!if $m_step=1 
+$()<div class="wims_question"> 
+!endif
+$()	<ul class="wims_nopuce">	<li>La variable aléatoire 
+!insmath R 
+$() suit une loi binomiale de paramètres 
+!insmath n_1 
+$() et 
+!insmath p_1 
+$(),	 donner leur valeur :	<br/>
+!if $m_step=1 
+$()<label for="reply1">
+!insmath n_1=
+$()</label>  
+!read oef/embed.phtml r1,10 
+$() 
+!else
+$() 
+!insmath n_1=
+$()$m_reply1 
+!endif
+$() et	
+!if $m_step=1 
+$()<label for="reply2">
+!insmath p_1=
+$()</label> 
+!read oef/embed.phtml r2,10 
+$() 
+!else
+$() 
+!insmath p_1=
+$()$m_reply2. 
+!endif
+$()</li>	<li>La variable aléatoire 
+!insmath T 
+$() suit une loi binomiale de paramètres 
+!insmath n_2
+$() et 
+!insmath p_2
+$(),	 donner leur valeur :	<br/>
+!if $m_step=1 
+$()<label for="reply3">
+!insmath n_2=
+$()</label>  
+!read oef/embed.phtml r3,10 
+$() 
+!else
+$() 
+!insmath n_2=
+$()$m_reply3 
+!endif
+$() et	
+!if $m_step=1 
+$()<label for="reply4">
+!insmath p_2=
+$()</label> 
+!read oef/embed.phtml r4,10 
+$() 
+!else
+$() 
+!insmath p_2=
+$()$m_reply4. 
+!endif
+$()</li>	</ul>	
+!if $m_step=1 
+$()</div> 
+!endif
+$()		
+!if $m_step=2 
+$()<p class="wims_emph">Partie 2 :</p>	<p>Déterminer les valeurs de l'espérance et de la variance	du nombre de dés gagnants (rouges et verts confondus).</p>		<div class="wims_question">	<ul class="wims_nopuce">	<li><label for="reply5"> L'espérance vaut : </label> 
+!read oef/embed.phtml r5,10 
+$()</li>	<li><label for="reply6"> La variance vaut : </label> 
+!read oef/embed.phtml r6,10 
+$()</li>	</ul>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p><b>Partie 1</b></p>	<p>Lancer 
+!insmath n 
+$() dés identiques revient à répéter 
+!insmath n 
+$() fois la même expérience aléatoire,	le résultat de chaque expérience étant indépendante des autres. La variable aléatoire	 donnant le nombre de dés « gagnants » de même couleur suit alors une loi binomiale de paramètres	 
+!insmath n 
+$() et 
+!insmath p 
+$() si 
+!insmath p 
+$() est la probabilité que ce dé soit « gagnant ».</p>	<p> Ainsi :</p>	<ul class="wimsnopuce">	<li>Pour 
+!insmath R
+$() : 
+!insmath n_1=$val13
+$() et 
+!insmath p_1=$val14
+$().</li>	<li>Pour 
+!insmath T
+$() : 
+!insmath n_2=$val15
+$() et 
+!insmath p_2=$val16
+$().</li>	</ul>	<p><b>Partie 2</b></p>	<p>Pour l'espérance 
+!insmath E
+$() : on sait que pour une loi binomiale de paramètres 
+!insmath n
+$() et 
+!insmath p
+$(),	on a : 
+!insmath E= n p 
+$().</p>	<p>Donc, 
+!insmath E(R+T)=E(R)+E(T)=$val6 \times \frac{$val9}{6} +$val7  \times \frac{$val11}{6}	=\frac{$val20}{6}+\frac{$val22}{6}=$val28
+$().</p>	<p>Pour la variance 
+!insmath V
+$() : on sait que pour une loi binomiale de paramètres 
+!insmath n
+$() et 
+!insmath p
+$(),	on a : 
+!insmath V= n p (1-p) 
+$().</p>	<p>Donc, 
+!insmath V(R+T)=V(R)+V(T)	=\frac{$val6 \times $val9 \times (6-$val9)}{36}+\frac{$val7 \times $val11 \times (6-$val11)}{36}	=$val32
+$().</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,13,14,15,16,20,22,28,32,33,34
+embedcnt=6

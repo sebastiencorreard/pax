@@ -1,0 +1,150 @@
+type=game
+textarea="data"
+:Frise chronologique
+Evénements à classer du type frise chronologique.
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Repérage 6,5,4}
+:\author{Jean-Baptiste, Frondas}
+:Consigne
+
+\text{instruction=Mettre les dates en bas et les événements correspondants sur la ligne du haut. Quand les événements courent sur une période, c'est la date de début qui compte. Quand deux événements ont la même date, les classer par ordre alphabétique.}
+
+:Nombre de mots maximum (maximum 10)
+
+\text{N=5}
+
+:couleur de la flèche
+
+\text{couleur=orange}
+
+:Largeur des étiquettes
+
+\text{facteur=100}
+
+:Hauteur des étiquettes
+
+\integer{height=100}
+
+:utilise les deux items des données principales (0), seulement la première colonne (1), seulement la deuxième colonne (2)
+
+\text{choix=0}
+
+:Données principales.
+
+\text{data=VIII° millénaire av JC,Naissance de l’agriculture
+IV° millénaire av JC,Invention de l’écriture
+II-I° millénaire av JC,Le temps de la Bible
+V° siècle avant JC,Apogée d’Athènes (Périclès – Parthénon)
+52 av JC,Victoire de César sur Vercingétorix à Alésia
+I° siècle,Début du christianisme
+II° siècle,Apogée de l’empire romain
+V° siècle,Dislocation de l’empire romain
+496,Baptême de Clovis
+622,L’Hégire (début de l’ère musulmane)
+800,Couronnement de Charlemagne
+987,Avènement d’Hugues Capet
+XIII° siècle,Louis IX (Saint Louis) le temps des cathédrales
+1453,Chute de Constantinople
+Milieu du XV° siècle,Naissance de l’imprimerie en occident (la Bible de Gutenberg)
+1492,Prise de Grenade et découverte de l’Amérique
+XVI° siècle,Réformes protestantes (Luther et Calvin)
+1661-1715,Règne personnel de Louis XIV
+Milieu du XVIII° siècle,L’encyclopédie de Diderot et d’Alembert
+2° moitié du XVIII°,Machine à vapeur de James Watt
+1789,Prise de la Bastille – Déclaration des droits de l’homme et du citoyen
+1792,Proclamation de la 1ère république
+1804 - 1815,Premier empire – Napoléon 1er
+1815 - 1848,Monarchie constitutionnelle
+1848,Abolition de l’esclavage
+1848 - 1852,2ème république
+1852 - 1870,Second empire – Napoléon III
+1870 - 1940,3ème république
+1885,Pasteur découvre le vaccin contre la rage
+1898,Affaire Dreyfus}
+
+:%%%%%%%%%%%%%% Rien à modifier ensuite %%%%%%%%%%%%%%%%
+
+\real{M=\N-0.3}
+\text{xrange=-1,\N+1}
+\text{yrange=\choix=0 ? -5,5:-2,5}
+\text{yrange=\choix=1 ? -5,2}
+\text{cnt=rows(\data)}
+\text{shu=shuffle(\cnt)}
+\text{shu=\shu[1..\N]}
+\text{shu=wims(sort numeric item \shu)}
+\text{data=row([\shu],\data)}
+\matrix{rep=\data}
+\integer{size=(1.5*\facteur)*(\M+1)}
+\integer{height2=4*\height}
+\text{size=\size,\height2}
+\text{fleche=xrange \xrange
+yrange \yrange
+lines \couleur,\M,1,-1,1,-1,-1,\M,-1,\M,-2,\N+0.5,0,\M,2,\M,1
+fill 0,\0,\couleur
+}
+
+\text{STEP=\choix=0 ? wims(values x for x=1 to 2*\N)}
+\text{STEP=\choix=1 ? wims(values 2*x-1 for x=1 to \N)}
+\text{STEP=\choix=2 ? wims(values 2*x for x=1 to \N)}
+\text{STEP=wims(makelist r x for x in  \STEP)}
+\steps{\STEP}
+\text{positionbas=}
+\text{positionhaut=}
+\for{j=0 to \N-1}{
+  \text{fleche=\choix=0 or \choix=1 ? \fleche
+  line \j-0.1,-1,\j-0.1,-2,\couleur}
+  \text{fleche=\choix=0 or \choix=2 ? \fleche
+  line \j-0.1,0.7,\j-0.1,2,\couleur}
+  \text{ans=pari([2*\j+1,2*\j+2])}
+ \text{v=slib(draw/convpixel \j-0.5,-2,\size,\xrange,\yrange,0,pixels)}
+ \text{positionbas=\positionbas
+ r\ans[1],\v[1] x \v[2]}
+ \text{v=slib(draw/convpixel \j-0.5,4,\size,\xrange,\yrange,0,pixels)}
+ \text{positionhaut=\positionhaut
+r\ans[2],\v[1] x \v[2]}
+ }
+ \text{position=\choix=1 or \choix=0? \positionbas}
+ \text{position=\choix=2 or \choix=0? \position
+ \positionhaut}
+ text{position=\positionbas
+ \positionhaut}
+ \text{urlfleche=draw(\size
+\fleche)}
+\statement{\instruction
+<div class="wimscenter">
+\special{imagefill \urlfleche,\size[1]x\size[2],\facteur x \height
+\position}
+</div>
+}
+
+\answer{}{\rep[1;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[1;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;2]}{type=clickfill}{option=shuffle}

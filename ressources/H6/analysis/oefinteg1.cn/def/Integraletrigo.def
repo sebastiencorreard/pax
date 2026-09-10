@@ -1,0 +1,175 @@
+!set title=三角函数的积分
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+leftrange=-5.000000
+rightrange=5.000000
+author=Michel Gosse
+email=michel.gosse@ac-poitiers.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -2,-1,1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 18
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 18
+
+val10=$[rint($(tmp0))]
+
+!ifval ($val9=$val10)
+tmp0=!randint 1, 18
+
+val10=$[rint($(tmp0))]
+!endif
+
+!ifval ($val9=$val10)
+tmp0=!randint 1, 18
+
+val10=$[rint($(tmp0))]
+!endif
+tmp0=!item $val9 of 0,	\pi/6,\pi/4,\pi/2,\pi/3,\pi,	-\pi/6,-\pi/4,-\pi/2,-\pi/3,-\pi,	2\pi/3,3\pi/4,5\pi/6,	-2\pi/3,-3\pi/4,-5\pi/6,2\pi	
+
+val11=$(tmp0)
+tmp0=!item $val10 of 0,\pi/6,\pi/4,\pi/2,\pi/3,\pi,	-\pi/6,-\pi/4,-\pi/2,-\pi/3,-\pi,	2\pi/3,3\pi/4,5\pi/6,	-2\pi/3,-3\pi/4,-5\pi/6,2\pi	
+
+val12=$(tmp0)
+tmp0=!item $val9 of 0,%pi/6,%pi/4,%pi/2,%pi/3,%pi,	-%pi/6,-%pi/4,-%pi/2,-%pi/3,-%pi,	2*%pi/3,3*%pi/4,5*%pi/6,	-2*%pi/3,-3*%pi/4,-5*%pi/6,2*%pi	
+
+val13=$(tmp0)
+tmp0=!item $val10 of 0,%pi/6,%pi/4,%pi/2,%pi/3,%pi,	-%pi/6,-%pi/4,-%pi/2,-%pi/3,-%pi,	2*%pi/3,3*%pi/4,5*%pi/6,	-2*%pi/3,-3*%pi/4,-5*%pi/6,2*%pi	
+
+val14=$(tmp0)
+tmp0=!randitem $val6*cos($val8*x),$val6*sin($val8*x),cos($val7*x)^2,	sin($val7*x)^2,$val6*cos(x+pi),$val6*sin(x+pi),$val6*cos(x+pi/2),	$val6*sin(x+pi/2)
+
+val15=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val15,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val16=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand(subst(x=$val14,$val16)-subst(x=$val13,$val16));
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+tmp0=!texmath $val15
+
+val18=$(tmp0)
+tmp0=!texmath $val16
+
+val19=$(tmp0)
+replytype1=formal
+replyname1=I 的值
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()计算以下积分的精确值 :	<center>	
+!insmath I=\int_{$val11}^{$val12} $val18 \,dx
+$()	</center>	平方根函数记为 sqrt. 例如, sqrt(2)=
+!insmath \sqrt{2}
+$(). 数 
+!insmath \pi
+$() 记为 pi.
+$()
+!exit
+
+:hint
+$()回想求导公式 :	<center>	
+!insmath (\cos(u))'=-u'\times \sin(u) \qquad (\sin(u))'=u'\times \cos(u)
+$()</center>	以及三角函数的一些特殊值 :	<center>	<table border="1" width="50%">	  <tbody>	    <tr>	      <td> <i>x</i> </td>	      <td> 0 </td>	      <td> 
+!insmath \frac{\pi}{6}
+$() </td>	      <td> 
+!insmath \frac{\pi}{4}
+$() </td>	      <td> 
+!insmath \frac{\pi}{3}
+$() </td>	      <td> 
+!insmath \frac{\pi}{2}
+$() </td>	    </tr>	    <tr>	      <td> 
+!insmath \cos x
+$() </td>	      <td> 1 </td>	      <td> 
+!insmath \frac{\sqrt{3}}{2}
+$() </td>	      <td> 
+!insmath \frac{\sqrt{2}}{2}
+$() </td>	      <td> 
+!insmath \frac{1}{2}
+$() </td>	      <td> 0 </td>	    </tr>	    <tr>	      <td> 
+!insmath \sin x
+$() </td>	      <td> 0 </td>	      <td> 
+!insmath \frac{1}{2}
+$() </td>	      <td> 
+!insmath \frac{\sqrt{2}}{2}
+$() </td>	      <td> 
+!insmath \frac{\sqrt{3}}{2}
+$() </td>	      <td>1  </td>	    </tr>	  </tbody>	</table>	</center>	和以下三角公式 :	<center>	
+!insmath \cos (2x)=2\cos^2x-1
+$(),$m_quad 
+!insmath \cos (2x)=1-2\sin^2x
+$()	</center>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()函数	<center>	
+!insmath x \rightarrow $val18
+$()	</center>	的原函数是 :	<center>	
+!insmath x \rightarrow $val19
+$()	</center>	
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,18,19
+embedcnt=0

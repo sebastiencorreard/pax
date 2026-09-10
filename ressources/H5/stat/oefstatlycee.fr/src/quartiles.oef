@@ -1,0 +1,144 @@
+\title{Médiane et quartiles}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+
+
+\integer{n=randint(20..50)}
+\text{listval=}
+\integer{valmin=20}
+\integer{xmax=\valmin}
+\integer{valmax=50}
+\integer{xmin=\valmax}
+\integer{nbval=randint(5..10)}
+\text{valposs=shuffle(\valmax-\valmin)}
+\integer{imode=randint(1..\nbval)}
+\text{listeff=}
+\integer{efftotal=0}
+\text{xlistval=}
+\for{i=1 to \nbval}
+{ 
+ \text{xlistval=wims(append item \valposs[\i] to \xlistval)}}
+\text{xlistval=wims(sort numeric list \xlistval)}
+\for{i=1 to \nbval}
+  {
+   \if{\i=\imode}{\integer{eff=random(6..10)}
+                   \integer{valmode=\xlistval[\i]}
+                  }
+      {\integer{eff=random(1..5)}}
+   \integer{efftotal=\efftotal+\eff}
+   \text{listeff=wims(append item \eff to \listeff)}
+   \integer{val=\xlistval[\i]}
+   \for{j=1 to \eff}
+    {
+     \text{listval=wims(append item \val to \listval)}
+    }
+   \integer{\xmin=\val<\xmin?\val}
+   \integer{\xmax=\val>\xmax?\val}
+  }
+## Calcul des indicateurs
+\integer{ecc=0}
+\integer{Q1=-1}
+\integer{Q3=-1}
+\integer{Med=-1}
+\real{effMed=\efftotal/2}
+\real{effQ1=\efftotal/4}
+\real{effQ3=3*\efftotal/4}
+\for{i=1 to \nbval}
+ {
+ \integer{ecc=\ecc+\listeff[\i]}
+ \if{\ecc>=\effQ1 and \Q1<0}{\integer{Q1=\xlistval[\i]}}
+ \if{\ecc>=\effMed and \Med<0}{
+  \real{Med=\ecc=\effMed?(\xlistval[\i]+\xlistval[\i+1])/2:\xlistval[\i]}
+ }
+
+ \if{\ecc>=\effQ3 and \Q3<0}{\integer{Q3=\xlistval[\i]}}
+ }
+
+\text{slistval=shuffle(\listval)}
+\integer{rangeval=\xmax - \xmin}
+\text{table=<table class="wimscenter wimsborder" style="background-color:skyblue">}
+
+\integer{nn=ceil(\efftotal/10)}
+\for{i=0 to \nn-1}
+ {\text{table=\table <tr>}
+ \for{j=1 to 10}
+ {\text{a=item(\i*10+\j,\slistval)}
+\text{table=\table <td> \a </td>}
+ }
+\text{table=\table </tr>}
+}
+\text{table=\table </table>}
+\text{tableau=<table class="wimscenter wimsborder">}
+\text{tableau=\tableau<tr><th> Ages </th>}
+\for{j=1 to \nbval}
+{
+ \text{tableau=\tableau<td> \xlistval[\j] </td>}
+}
+\text{tableau=\tableau</tr><tr><th>Effectif</th>}
+
+\text{mstep = wims(makelist r x for x = 1 to \nbval+3)}
+\text{mstep=wims(nospace \mstep)}
+
+\nextstep{\mstep}
+
+\statement{<p>
+Voici les âges recensés dans une population à la suite d'une étude: 
+</p>
+\table
+<p>
+
+Compléter le tableau suivant
+</p>
+\tableau
+ <td> \embed{reply 4,3} </td>
+ <td> \embed{reply 5,3} </td>
+ <td> \embed{reply 6,3} </td>
+ <td> \embed{reply 7,3} </td>
+ <td> \embed{reply 8,3} </td>
+\if{\nbval>5}
+{
+ <td> \embed{reply 9,3} </td>
+}
+\if{\nbval>6}
+{
+ <td> \embed{reply 10,3} </td>
+}
+\if{\nbval>7}
+{
+ <td> \embed{reply 11,3} </td>
+}
+\if{\nbval>8}
+{
+ <td> \embed{reply 12,3} </td>
+}
+\if{\nbval>9}
+{
+ <td> \embed{reply 13,3} </td>
+}
+</tr></table>
+
+<ol><li> Quelle est la médiane de cette série: \embed{reply1}</li>
+<li> Que vaut Q1:\embed{reply2}</li>
+<li> Que vaut Q3:\embed{reply3}</li>
+</ol>
+}
+\if{\step=2}{\text{mstep=}}
+
+\answer{Médiane}{\Med}{type=numeric}
+\answer{Q1}{\Q1}{type=numeric}
+\answer{Q3}{\Q3}{type=numeric}
+\answer{Effectif 1}{\listeff[1]}{type=numeric}
+\answer{Effectif 2}{\listeff[2]}{type=numeric}
+\answer{Effectif 3}{\listeff[3]}{type=numeric}
+\answer{Effectif 4}{\listeff[4]}{type=numeric}
+\answer{Effectif 5}{\listeff[5]}{type=numeric}
+\answer{Effectif 6}{\listeff[6]}{type=numeric}
+\answer{Effectif 7}{\listeff[7]}{type=numeric}
+\answer{Effectif 8}{\listeff[8]}{type=numeric}
+\answer{Effectif 9}{\listeff[9]}{type=numeric}
+\answer{Effectif 10}{\listeff[10]}{type=numeric}

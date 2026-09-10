@@ -1,0 +1,128 @@
+!set title=Dérivée d'un quotient 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Maguy, Bruno ; Régine, Mangeard
+email=regine@mangeard.Fr
+precision=100
+computeanswer=yes
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -6, 6
+
+val6=$[rint($(tmp0))]
+val7=\a
+tmp0=!makelist x,-x for x=1 to 5
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=1
+val10=$[rint(2)]
+!else
+val10=$[rint(1)]
+!endif
+val11=$[rint($(val8[1]))]
+val12=$[rint($(val8[2]))]
+val13=$[rint($(val8[3]))]
+tmp0=!randint -5, 5
+
+val14=$[rint($(tmp0))]
+val15=!rawmath ($val14+$val11*x)/($val12*x+$val13)
+t_=!replace internal \( by ( in $val11*x+$val14
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+t_=!replace internal \( by ( in $val12*x+$val13
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2)
+
+val16=\frac{$(tmp1)}{$(tmp3)}
+tmp=!translate ;";': to $     $ in $val15,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+replytype1=formal
+replyname1=
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   Calculer 
+!insmath f'(x)
+$() pour 
+!insmath f(x)=$val16
+$()	<div class="wimscenter"><label for="reply1">
+!insmath f'(x)=
+$()</label>  
+!read oef/embed.phtml reply1 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16
+embedcnt=1

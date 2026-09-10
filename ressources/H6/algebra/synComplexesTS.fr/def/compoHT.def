@@ -1,0 +1,343 @@
+!set title=Image par composée d'homothétie et translation 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Hélène, Brion; Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val6+$val7*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val10=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val8+$val9*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+t_=!rawmath $(tmp0)*$(tmp1)/2
+val12=!exec pari print($t_)
+
+!ifval $val12=1
+t_=!rawmath  -1
+val12=!exec pari print($t_)
+!endif
+tmp=!translate ";': to $     $ in ($val11)*(1-($val12))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val13=!mathsubst I=i in $t_
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+!if $val14 = 1 
+tmp=!translate ";': to $     $ in ($val12)*($val10)+$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val15=!mathsubst I=i in $t_
+val16=h \circ t
+!endif
+!if $val14 = 2 
+tmp=!translate ";': to $     $ in $val10+$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val15=!mathsubst I=i in $t_
+val16=t \circ h
+!endif
+tmp=!translate ";': to $     $ in ($val15)/(1-($val12))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val17=!mathsubst I=i in $t_
+val18=, , , L'affixe du point invariant vérifie l'équation : \(z_I = ($val12)z_I+$val15), 
+oefsteps=reply 1,	reply 2, reply 3	reply 4, reply 5	reply 6	reply 7, reply 8 
+nextstep=!nosubst reply 1,	reply 2, reply 3	reply 4, reply 5	reply 6	reply 7, reply 8 
+!readproc oef/steps.proc
+replytype1=default
+replyoption1=nonstop 
+replyname1=translation
+replygood1=$val10
+replytype2=default
+replyoption2=nonstop 
+replyname2=coefh
+replygood2=$val12
+replytype3=default
+replyoption3=nonstop 
+replyname3=consth
+replygood3=$val13
+replytype4=default
+replyoption4=nonstop 
+replyname4=coeff
+replygood4=$val12
+replytype5=default
+replyoption5=nonstop 
+replyname5=constf
+replygood5=$val15
+replytype6=default
+replyoption6=nonstop 
+replyname6=zI
+replygood6=$val17
+replytype7=default
+replyname7=coeff1
+replygood7=$val12
+replytype8=default
+replyname8=constf1
+replygood8=$val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $(val18[$m_step])
+
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<i>Cet exercice comporte cinq étapes.</i>	<p>On considère successivement plusieurs transformations du plan complexe, dont on va	 déterminer l'écriture complexe.	<ol>	<li>Soit 
+!insmath t
+$() la translation de vecteur 
+!insmath u($val10)
+$().	L'écriture complexe de la translation 
+!insmath t
+$() est	
+!insmath z' = z + 
+$()  
+!read oef/embed.phtml rep1, 7 
+$()	
+!if $m_step>1 
+$()<div class="wimscenter">	 
+!if $m_sc_reply1=1 
+$()<span style="color:green"> Bonne réponse ! 
+!else
+$()	          <span style="color:red"> Mauvaise réponse... 
+!endif
+$()	        L'écriture complexe de 
+!insmath t
+$() est 
+!insmath z' = z + $val10
+$().</span></div>	        </li>	 <li>	 Soit 
+!insmath h
+$() l'homothétie de centre	 
+!insmath C($val11)
+$() et de rapport 
+!insmath $val12
+$(). L'écriture complexe de 
+!insmath h
+$() est 
+!insmath z' = 
+$()  
+!read oef/embed.phtml rep2, 5 
+$() 
+!insmath z 
+$() +  
+!read oef/embed.phtml rep3, 7 
+$()	  
+!endif
+$()	
+!if $m_step>2 
+$()<div class="wimscenter">	 
+!if $m_sc_reply2=1 and $m_sc_reply3=1 
+$()<span style="color:green"> Bonne réponse ! 
+!else
+$()	          <span style="color:red"> Mauvaise réponse... 
+!endif
+$()	        L'écriture complexe de 
+!insmath h
+$() est 
+!insmath  z' = ($val12)z + $val13
+$(). </span></div> </li>	 <li>	 On considère maintenant la composée 
+!insmath f = $val16
+$().	 L'écriture complexe de la transformation 
+!insmath f
+$() est	 
+!insmath z' = 
+$()  
+!read oef/embed.phtml rep4, 5 
+$()
+!insmath z 
+$()+  
+!read oef/embed.phtml rep5, 7 
+$()	  
+!endif
+$()		
+!if $m_step>3 
+$()<div class="wimscenter">	 
+!if $m_sc_reply4=1 and $m_sc_reply5=1 
+$()<span style="color:green"> Bonne réponse ! 
+!else
+$()	          <span style="color:red"> Mauvaise réponse... 
+!endif
+$()	        L'écriture complexe de 
+!insmath f 
+$() est 
+!insmath  z' = ($val12)z + $val15
+$() .</span></div></li>	 <li>	 L'affixe 
+!insmath z_I
+$() du point I invariant par 
+!insmath f
+$() est 
+!insmath z_I = 
+$() 
+!read oef/embed.phtml rep6, 7 
+$()	  
+!endif
+$()		
+!if $m_step>4 
+$()<div class="wimscenter">	 
+!if $m_sc_reply6=1 
+$()<span style="color:green"> Bonne réponse ! 
+!else
+$()	          <span style="color:red"> Mauvaise réponse... 
+!endif
+$()	         On a 
+!insmath z_I = $val17
+$() .</span><div class="wimscenter">	         </li>	 <li> L'écriture complexe de l'homothétie de centre I et de rapport $val12 est	 
+!insmath z' = 
+$()  
+!read oef/embed.phtml rep7, 5 
+$()
+!insmath z
+$() +  
+!read oef/embed.phtml rep8, 7 
+$()	  
+!endif
+$()	</li></ol>		
+$()
+!exit
+
+:hint
+$()	<p>Soit 
+!insmath f
+$() une transformation du plan complexe. Soit 
+!insmath M(z)
+$() un point	du plan complexe et 
+!insmath M'(z')
+$() son image par 
+!insmath f
+$().	L'<i>écriture complexe</i> ou <i>expression complexe</i>	de 
+!insmath f
+$(), est la relation qui permet d'exprimer 
+!insmath z'
+$() en fonction de 
+!insmath z
+$().	</p><p>	Pour déterminer cette relation (si l'on n'a pas mémorisé les formules du cours !)	on écrit une condition géométrique définissant le point 
+!insmath M'
+$() en fonction du point 
+!insmath M
+$()	et on la traduit à l'aide des affixes des points.	</p>	<table class="wimsborder">	<tr><th>Nature de 
+!insmath f
+$() </th><th>Condition géométrique </th> <th>Traduction complexe </th></tr>	<tr><td>translation de vecteur 
+!insmath \vec{u}
+$()
+!insmath  \alpha ; \beta
+$() </td>	    <td> 
+!insmath \vec{MM'} = \vec{u} 
+$()</td>	     <td> 
+!insmath  z' - z = \alpha + i \beta 
+$()</td>	</tr>	<tr><td> homothétie de centre 
+!insmath \Omega(\omega)
+$() et de rapport 
+!insmath k
+$() </td>	    <td> 
+!insmath \vec{\Omega M'} = k \vec{\Omega M} 
+$()</td>	   <td> 
+!insmath  z' - \omega = k(z - \omega)
+$()</td>	</tr>	<tr><td> rotation de centre 
+!insmath \Omega(\omega)
+$() et d'angle 
+!insmath \displaystyle{\theta}
+$() </td>	    <td> 
+!insmath \Omega M' = \Omega M 
+$() et &nbsp;
+!insmath (\vec{\Omega M} , \vec{\Omega M'}) = \theta \quad [2\pi] 
+$()</td>	    <td> 
+!insmath  z' - \omega = e^{i\theta}(z - \omega)
+$()</td>	</tr>	</table>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,15,16,17,18
+embedcnt=8

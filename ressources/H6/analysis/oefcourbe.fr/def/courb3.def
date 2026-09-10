@@ -1,0 +1,428 @@
+!set title=Détermination d'une fonction **
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal,Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!replace internal A by 1,2 in $val2
+
+val6=$(tmp0)
+tmp0=!replace internal B by 3 in $val6
+
+val6=$(tmp0)
+tmp0=!replace internal C by 4,5,6 in $val6
+
+val6=$(tmp0)
+tmp0=!replace internal D by 8 in $val6
+
+val6=$(tmp0)
+tmp0=!replace internal E by 7,9 in $val6
+
+val6=$(tmp0)
+
+!ifval $val6 = 
+tmp0=!randint 1, 9
+
+val7=$[rint( $(tmp0))]
+!else
+tmp=!nonempty items $val6
+
+tmp1=!randitem $tmp
+val7=$[rint( $(tmp1))]
+!endif
+
+!ifval $val7 >=7 
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val8=$[rint( $(tmp0)*$(tmp1))]
+!else
+tmp2=!randint 1, 5
+
+tmp3=!randitem -1,1
+
+val8=$[rint($(tmp2)*$(tmp3))]
+!endif
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!item $val7 of $val8*(x)^2 + $val9*x + $val10,	$val8*x^3 + $val9*(x)^2 + $val10*x,	$val9*x + $val10 + $val8/(x + 1),	$val9*x + $val10 + $val8*ln(x + 1),	$val8*ln(x) + $val9*x + $val10,	$val8*ln(2*x + 1) + $val9*x + $val10,	$val9*x + $val10 + $val8*sqrt(x + 1),	$val8*sqrt(x) + $val9*x + $val10,	$val8*sqrt(2*x + 1) + $val9*x + $val10
+
+val11=!rawmath $(tmp0)
+tmp0=!item $val7 of a*x^2 + b*x + c,	a*x^3 + b*x^2 + c*x,	a/(x + 1) + b*x + c,	a*ln(x + 1) + b*x + c,	a*ln(x) + b*x + c,	a*ln(2*x + 1) + b*x + c,	a*sqrt(x + 1) + b*x + c,	a*sqrt(x) + b*x + c,	a*sqrt(2*x + 1) + b*x + c
+
+val12=$(tmp0)	
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+tmp0=!item $val7 of 0,1,0,0,1,0,0,4,4
+
+val13=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randitem 1,2
+
+tmp2=!randitem -2,-1,2
+
+tmp3=!randitem -3,-2,1,2
+
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 2,3,4,8,9
+
+tmp6=!randitem 1,2,3,4
+
+tmp7=!randitem -1,3,6,4
+
+tmp8=!randitem 0,1,7,5
+
+tmp9=!randitem 0,2,3
+
+tmp10=!item $val7 of $(tmp0)*$(tmp1),$(tmp2),$(tmp3),$(tmp4),$(tmp5),$(tmp6),$(tmp7),$(tmp8),$(tmp9)
+
+val14=$[rint($(tmp10))]
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val15=!rawmath $(tmp0)
+tmp0=!mathsubst x=$val13 in $val11
+
+val16=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=!rawmath $(tmp0)
+tmp0=!mathsubst x=$val14 in $val11
+
+val17=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=!rawmath $(tmp0)
+tmp0=!replace internal log(4) by 2*log(2) in $val17
+
+val17=!rawmath $(tmp0)
+tmp0=!replace internal log(8) by 3*log(2) in $val17
+
+val17=!rawmath $(tmp0)
+tmp0=!replace internal log(9) by 2*log(3) in $val17
+
+val17=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand(($val17))
+tmp0=!exec maxima $t_
+
+val17=!rawmath $(tmp0)
+tmp0=!replace internal log by ln in $val17
+
+val17=!rawmath $(tmp0)
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+val19=$[min(min($val13-2,$val14-1),-1)]
+val20=$[max(max($val13+2,$val14+1),1)]
+val21=$[min(min($val16-1,$val17-1),-1)]
+val22=$[max(max($val16+1,$val17+1),1)]
+tmp0=!mathsubst x=$val13 in $val15
+
+val23=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+
+!ifval $val16-$val23 <$val21+1 and $val16+$val23>$val22-1 
+val21=$[ $val16-$val23 -1 ]
+!else
+val21=$[ $val21]
+!endif
+
+!ifval $val16+$val23 <$val21+1 and $val16-$val23>$val22-1 
+val21=$[ $val16+$val23 -1 ]
+!else
+val21=$[ $val21]
+!endif
+
+!ifval $val22-$val21 > 40 
+val21=$[ $val21-1]
+!endif
+
+!ifval $val16-$val23 >$val21 and $val16-$val23<$val22 
+val24=$[ $val13-1 ]
+!else
+val24=$[ $val13+1]
+!endif
+
+!ifval $val16-$val23 >$val21 and $val16-$val23<$val22 
+val25=$[ $val16-$val23 ]
+!else
+val25=$[ $val16+$val23]
+!endif
+
+!ifval abs($val23)>8 or (abs($val23)> 3 and $val22-$val21 >25) 
+val26=	fcircle $val24,$val25,5, red	dsegment 0,$val25,$val24,$val25,red	text red , 0.1 , $val25, medium,$val25
+!endif
+
+!ifval floor($val17)<>$val17 or $val22 - $val21 > 25
+val27=	text blue, 0.1,$val17,medium,$val17	dsegment 0,$val17,$val14,$val17,blue	
+!endif
+
+!ifval $val22 - $val21 >25 
+val28=	dsegment 0,$val16,$val13,$val16,blue	text blue, 0.1,$val16,medium,$val16	
+!endif
+val29=$[rint(floor($val21))]
+val30=$[rint(floor($val22)+1)]
+val31=<p>La courbe bleue ci-dessous représente une fonction	\(f) de la forme : \(f(x) = $val12).</p>
+val32=
+val33=$val13,$val14,$val16,$val17,$val23,0,\(f),\(f')
+val32=$val27
+oefsteps=reply1,reply2,reply3,reply4,reply5,reply6,reply10,reply11,reply12	reply7,reply8,reply9 
+nextstep=!nosubst reply1,reply2,reply3,reply4,reply5,reply6,reply10,reply11,reply12	reply7,reply8,reply9 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=
+replygood1=$val13;$val33
+replytype2=clickfill
+replyname2=
+replygood2=$val16;$val33
+replytype3=clickfill
+replyname3=
+replygood3=$val14;$val33
+replytype4=clickfill
+replyname4=
+replygood4=$val17;$val33
+replytype5=clickfill
+replyname5=
+replygood5=$val13;$val33
+replytype6=clickfill
+replyname6=
+replygood6=$val23;$val33
+replytype7=numeric
+replyname7=\(a)
+replygood7=$[$val8]
+replytype8=numeric
+replyname8=\(b)
+replygood8=$[$val9]
+replytype9=numeric
+replyname9=\(c)
+replygood9=$[$val10]
+replytype10=clickfill
+replyname10=
+replygood10=\(f);$val33
+replytype11=clickfill
+replyname11=
+replygood11=\(f);$val33
+replytype12=clickfill
+replyname12=
+replygood12=\(f');$val33
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val31	
+!if $m_step=2 
+$()<ul class="wims_nopuce"><li>On sait que 
+!insmath f($val13)=$val16
+$() ; 
+!insmath f($val14) = $val18
+$() et 
+!insmath f'($val13) = $val23
+$().	</li><li><b>Calculer 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$().</b></li></ul> 
+!endif
+$()	 
+!read oef/draw.phtml 500,300 \
+	  xrange $val19, $val20	  yrange $val21,$val22	  parallel $val19,$val29,$val19,$val30,1,0,$val20 - $val19 +1,grey	  parallel $val19,$val29,$val20,$val29,0,1,$val30 -$val29 +1,grey	  hline 0,0,black	  arrow 0,0,1,0,6,black	  arrow 0,0,0,1,6,black	  vline 0,0,black	  plot blue, $val11	  fcircle $val13,$val16,7, green	  fcircle $val14,$val17,7 , green	  plot green, $val16+(x-$val13)*$val23	  text black,$val13,$val16,medium,A	  text black,$val14,$val17,medium,B	$val32	 
+$()	
+!if $m_step=1 
+$()<p>Interpréter les renseignements tirés de l'observation de la courbe : </p>	<ul><li>	<b><i>La courbe passe par 
+!insmath A ($val13 ; $val16)
+$()</i></b> se traduit par :	<div style="text-align:center"> 
+!read oef/embed.phtml reply10 
+$() (  
+!read oef/embed.phtml reply1 
+$() ) =  
+!read oef/embed.phtml reply2 
+$()</div></li>	<li><b><i>La courbe passe par 
+!insmath B ($val14 ; $val18)
+$()</i></b> se traduit par :	<div style="text-align:center"> 
+!read oef/embed.phtml reply11 
+$()(  
+!read oef/embed.phtml reply3 
+$() ) =  
+!read oef/embed.phtml reply4 
+$()</div></li>	<li><b><i>La tangente tracée en vert a comme coefficient directeur 
+!insmath $val23
+$() </i></b> se traduit par :	<div style="text-align:center"> 
+!read oef/embed.phtml reply12 
+$()(  
+!read oef/embed.phtml reply5 
+$() ) =  
+!read oef/embed.phtml reply6 
+$()</div></li>	</ul>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<div class="wims_center"><label for="reply7">
+!insmath a
+$() =</label>  
+!read oef/embed.phtml reply7,7 
+$() ;	<label for="reply8">
+!insmath b
+$() =</label>  
+!read oef/embed.phtml reply8,7 
+$() ;	<label for="reply9">
+!insmath c
+$() =</label>  
+!read oef/embed.phtml reply9,7 
+$()</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	 
+!if $m_step=1 
+$()<ul class="wims_nopuce"><li>La courbe représentant la fonction 
+!insmath f
+$()	<b> passe par </b> les points 
+!insmath M(x;y)
+$() qui vérifient <b>
+!insmath y = f(x)
+$()</b>.</li><li>	<b>
+!insmath f'(x)
+$()</b> est le <b>coefficient directeur de la tangente</b>	à la courbe au point <b> d'abscisse x</b>.</li><li>	N'oubliez pas de regarder <b>en quel point</b> la droite verte	est <b>tangente</b> (c'est à dire "touche") à la courbe.</li></ul> 
+!endif
+$()	 
+!if $m_step=2 
+$()<ul class="wims_nopuce"><li>Calculer d'abord <b>
+!insmath f'(x)
+$()</b> en dérivant 
+!insmath f(x) = $val12
+$().	   
+!if $val7=3 
+$()On rappelle que la dérivée de 
+!insmath \frac{1}{u}
+$() est	
+!insmath \frac{-u'}{u^2}
+$()et que la dérivée de 
+!insmath \frac{u}{v}
+$() est	
+!insmath \frac{u'v-u v'}{v^2}
+$()  
+!endif
+$()	   
+!if $val7>3 
+$()On rappelle que la dérivée de 
+!insmath ln(u)
+$() est 
+!insmath \frac{u'}{u}
+$() et que la dérivée de 
+!insmath sqrt(u)
+$() est 
+!insmath \frac{u'}{2 sqrt(u)}
+$().  
+!endif
+$()</li><li>	Exprimer ensuite les trois conditions <b>(
+!insmath f($val13) = $val16
+$() ;	
+!insmath f($val14)=$val18
+$() et 
+!insmath f'($val13) = $val23
+$())</b> en utilisant les expressions	de 
+!insmath f(x)
+$() et 
+!insmath f'(x)
+$().</li><li>	Vous obtenez ainsi un système de trois équations à trois inconnues	(
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$()). Bien le regarder pour choisir la méthode la plus simple pour le résoudre.</li><li>	   
+!if $val7>3 
+$()Vous aurez peut-être besoin d'utiliser la propriété de la fonction 
+!insmath ln
+$() :	
+!insmath ln(a^n)=n*ln(a)
+$().	    
+!endif
+$()</li></ul>	   
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,12,13,14,16,17,18,19,20,21,22,23,29,30,31,32
+embedcnt=12

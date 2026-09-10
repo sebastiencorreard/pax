@@ -1,0 +1,315 @@
+!set title=Le litre de lait
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=61
+prevarcnt=51
+postvarcnt=9
+replycnt=12
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1,2,3,4
+val7=1,2,3,4
+val8=répondre,tableau,opérateur,schéma
+val9=julie.png,	tableau.png,	operater.png,	schema.png,	kpart.png,	inconnu.png,	graphe.png
+val9=$(val9[$val6])
+tmp0=!itemcnt $val6
+
+val10=$[rint($(tmp0))]
+val11=fille nommée Julie Dédeugénie pour répondre,	  fille nommée Métab Laurie,	  garçon nommé Léo Pérateur,	  fille nommée Mechet Marie,	  garçon nommé Lucas Particulier,	  garçon nommé Constantin Connu,	  garçon nommé Côme André Currente
+val12=$(val11[$val6])
+val13=Je sais <b>répondre</b> sans aide supplémentaire.,	 Le problème peut être résolu avec des <b>tableaux</b> de proportionnalité.,	 Trouver le bon <b>opérateur</b> est souvent la clef du problème.,	 Réaliser un <b>schéma</b> guide vers la solution.,	 On peut se servir d'une valeur <b>particulière</b>.,	 On peut utiliser une <b>lettre</b> pour désigner la valeur initiale inconnue.,	 On peut calculer le pourcentage d'augmentation chaque année par rapport à l'année <b>précédente</b>,	 On peut calculer le pourcentage de chaque valeur par rapport à celle de <b>2015</b>.,	 Utiliser la <b>lettre</b> \(x) pour désigner le prix initial pour justifier la dernière réponse.
+val13=$(val13[$val7])
+val14=yellow,lightgrey,paleturquoise,lightsalmon,blueviolet,lightgreen,orange
+val14=$(val14[$val6])
+!readproc slib/text/balloon [$(val13[1])],$(val14[1]),250,100,triangle=left-in 
+tmp0=$slib_out
+val15=$(tmp0)
+!readproc slib/text/balloon [$(val13[2])],$(val14[2]),250,100,triangle=left-in 
+tmp0=$slib_out
+val16=$(tmp0)
+!readproc slib/text/balloon [$(val13[3])],$(val14[3]),250,100,triangle=left-in 
+tmp0=$slib_out
+val17=$(tmp0)
+!readproc slib/text/balloon [$(val13[4])],$(val14[4]),250,100,triangle=left-in 
+tmp0=$slib_out
+val18=$(tmp0)
+!readproc slib/text/balloon [$(val13[5])],$(val14[5]),250,100,triangle=left-in 
+tmp0=$slib_out
+val19=$(tmp0)
+!readproc slib/text/balloon [$(val13[6])],$(val14[6]),250,100,triangle=left-in 
+tmp0=$slib_out
+val20=$(tmp0)
+val21=<p>Répondre directement ou choisir une méthode qui mènera au résultat.</p>
+tmp0=!randint 25, 35
+
+val22=$[0.01*$(tmp0)]
+tmp0=!randint 60, 90
+
+val23=$[rint($(tmp0))]
+val24=$[rint(100+$val23)]
+tmp0=!randint 60, 80
+
+val25=$[rint($(tmp0))]
+val26=$[rint(100+$val25)]
+tmp0=!randint 4, 8
+
+val27=$[rint($(tmp0))]
+val28=$[rint(100+$val27)]
+val29=\(CM2= 1+\frac{$val25}{100})
+val30=augmentation
+val31=$[$val24/100]
+val32=$[0.01*round(100*$val22*$val31)]
+val33=$[$val26/100]
+val34=$[0.01*round(100*$val32*$val33)]
+val35=$[$val34]
+val36=$[$val32]
+val37=$[$val28/100]
+val38=$[0.01*round(100*$val34*$val37)]
+val39=$[$val31*$val33*$val37]
+val40=$[0.01*round(100*$val39)]
+val41=$[rint(round(100*$val39))]
+val42=$[rint(abs($val41-100))]
+val43=$[rint(100*$val22*$val39)]
+val43=$[0.01*$val43]
+val44=\(CM1= 1+\frac{$val23}{100}=$val31)
+val29=$val29=$val33
+val45=\(CM3= 1+\frac{$val27}{100}=$val37)
+val46=\(CM= CM1 \times CM2 \times CM3 = $val39)
+val47=<ul><li>	  Dans le cas d'évolutions successives,	  il faut calculer les différents coefficients multiplicateurs,	  puis calculer le coefficient multiplicateur global.</li><li>	  Ici, successivement : $val44, $val29, $val45.</li><li>	  Donc le coefficient global est $val46 \(\approx) $val40.</li>	  
+val47=$val47	  <li>Le nouveau prix représente $val41 % du prix initial.</li>	  <li>Et le pourcentage d'augmentation est $val42 % à 1 % près.	  </li></ul>	   Le nouveau prix est donc \(NV =$val22 \times $val39 \approx $val43) &euro; à 0,01 près.
+val48=
+val49=r1
+val50=1
+dynsteps=yes
+oefsteps=$val49 
+nextstep=!nosubst $val49 
+!readproc oef/steps.proc
+replytype1=click
+replyoption1=nonstop 
+replyname1=Méthode
+replygood1=?analyze 51;$val8
+replytype2=numeric
+replyname2=CM1
+replygood2=$[$val31]
+replytype3=numeric
+replyname3=Valeur 1
+replygood3=$[$val32]
+replytype4=numeric
+replyname4=Valeur 1
+replygood4=$[$val36]
+replytype5=numeric
+replyname5=CM2
+replygood5=$[$val33]
+replytype6=numeric
+replyname6=Valeur 2
+replygood6=$[$val34]
+replytype7=numeric
+replyname7=Valeur 2
+replygood7=$[$val35]
+replytype8=numeric
+replyname8=CM3
+replygood8=$[$val37]
+replytype9=numeric
+replyname9=CM global
+replygood9=$[$val39]
+replytype10=numeric
+replyname10=Valeur finale
+replygood10=$[$val38]
+replytype11=numeric
+replyname11=Valeur finale
+replygood11=$[$val43]
+replytype12=numeric
+replyname12=Pourcentage global
+replygood12=$[$val42]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <ul class="wims_nopuce">	  <li>	  Un litre de lait est vendu $val22 &euro; HT à la laiterie.	  </li><li>	  Celle-ci le revend avec une augmentation de $val23 % à un hypermarché.	  </li><li>	  L'hypermarché met le produit en rayon avec une augmentation de $val25 %.	  </li><li>	  Et bien sûr, le client doit payer en plus la taxe de $val27 %.	  </li></ul>	  Quel est le prix TTC payé par le client pour ce litre de lait ?	  
+!if $val48=répondre 
+$() 
+!read oef/embed.phtml reply11 
+$() &euro;.	  <div class="wims_instruction">Arrondir à 0,01 &euro; près.</div> 
+!endif
+$()	  Et quel est le pourcentage d'augmentation entre le prix HT payé par la laiterie	  ($val22 &euro;) et le prix final TTC payé par le client ?	  
+!if $val48=répondre 
+$() 
+!read oef/embed.phtml reply12,4 
+$()%.	  <div class="wims_instruction">Arrondir à 1% près.</div> 
+!endif
+$()	
+!if $m_step=1 
+$()	$val21	<ul class="inline"><li>	 
+!read oef/embed.phtml reply1,1,<img src="gifs/images/methods//$(val9[1])" alt="$(val12[1])"> 
+$()	$val15	</li><li>	 
+!read oef/embed.phtml reply1,2,<img src="gifs/images/methods//$(val9[2])" alt="$(val12[2])"> 
+$()	$val16	</li><li>	 
+!read oef/embed.phtml reply1,3,<img src="gifs/images/methods//$(val9[3])" alt="$(val12[3])"> 
+$()	$val17	</li><li>	 
+!read oef/embed.phtml reply1,4,<img src="gifs/images/methods//$(val9[4])" alt="$(val12[4])"> 
+$()	$val18	</li>	
+!if $val10>=5 
+$()	<li>	 
+!read oef/embed.phtml reply1,5,<img src="gifs/images/methods//$(val9[5])" alt="$(val12[5])"> 
+$()	$val19	</li> 
+!endif
+$()	
+!if $val10>=6 
+$()<li>	 
+!read oef/embed.phtml reply1,6,<img src="gifs/images/methods//$(val9[6])" alt="$(val12[6])"> 
+$()	$val20	</li> 
+!endif
+$()	</ul>	 
+!endif
+$()	
+!if $m_step>1 
+$()		  <div class="wims_instruction">Arrondir toutes les valeurs en euros à 0,01 près.</div>	  
+!if $val48=tableau 
+$()	    Vous avez choisi de répondre à l'aide de tableaux de proportionnalité.	    <table class="wimscenter wimsborder"><caption>Augmentation de $val23%</caption>	    <tr><td></td><td>Valeur</td><td>Pourcentage</td></tr>	    <tr><td>Avant</td><td>$val22</td><td>100</td></tr>	    <tr><td>Après</td><td> 
+!read oef/embed.phtml reply3 
+$()</td><td>$val24</td></tr>	    </table>	    <br/>	    <table class="wimscenter wimsborder"><caption>Augmentation de $val25%</caption>	    <tr><td></td><td>Valeur</td><td>Pourcentage</td></tr>	    <tr><td>Avant</td><td> 
+!read oef/embed.phtml reply4 
+$()</td><td>100</td></tr>	    <tr><td>Après</td><td> 
+!read oef/embed.phtml reply6 
+$()</td><td>$val26</td></tr>	    </table>	    <br/>	    <table class="wimscenter wimsborder"><caption>Augmentation de $val27%</caption>	    <tr><td></td><td>Valeur</td><td>Pourcentage</td></tr>	    <tr><td>Avant</td><td> 
+!read oef/embed.phtml reply7 
+$()</td><td>100</td></tr>	    <tr><td>Après</td><td> 
+!read oef/embed.phtml reply10 
+$()</td><td>$val28</td></tr>	    </table>	   
+!endif
+$()		  
+!if $val48=opérateur 
+$()	    Vous avez choisi de répondre à l'aide des coefficients multiplicateurs.	    <ul class="wims_nopuce">	    <li>Le coefficient multiplicateur correspondant à une augmentation de $val23% est :  
+!read oef/embed.phtml reply2 
+$()</li>	    <li>Le coefficient multiplicateur correspondant à une $val30 de $val25% est :  
+!read oef/embed.phtml reply5 
+$()</li>	    <li>Le coefficient multiplicateur correspondant à une augmentation de $val27% est :  
+!read oef/embed.phtml reply8 
+$()</li>	    <li>Le coefficient multiplicateur global est :  
+!read oef/embed.phtml reply9 
+$() (valeur exacte)</li>		    <li>Le prix final est :  
+!read oef/embed.phtml reply11 
+$() (à 0,01 près)</li>		    </ul>	   
+!endif
+$()		  
+!if $val48=schéma 
+$()	    Vous avez choisi de répondre à l'aide d'un schéma.	    <ul class="wims_nopuce">	    <li> 
+!read oef/special.phtml mathmlinput [\large{ $val22\; \overset{\phantom{xx}+$val23\%\phantom{xx}}{\underset{\times reply2}{\mapsto}}\; reply3\; \overset{\phantom{xx}+$val25\%\phantom{xx}}{\underset{\times reply5}{\mapsto}}\; reply6\;	\overset{\phantom{xx}+$val27\%\phantom{xx}}{\underset{\times reply8}{\mapsto}}\; reply10}],5	reply2	reply3	reply5	reply6	reply8	reply10 
+$()	</li></ul>	 
+!endif
+$()	
+!if $val48 !=répondre 
+$()	  Le pourcentage d'augmentation entre le prix HT payé par la laiterie	  ($val22 &euro;) et le prix final TTC payé par le client est  
+!read oef/embed.phtml reply12,4 
+$() % (à 1% près)	 
+!endif
+$()	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	   <ul class="wims_nopuce">	<li>Pourcentage d'augmentation</li>	<li>
+!insmath \large{ $val22\; \overset{\phantom{xx}+$val23\%\phantom{xx}}{\underset{\times $val31}{\mapsto}}\; $val32\; \overset{\phantom{xx}+$val25\%\phantom{xx}}{\underset{\times $val33}{\mapsto}}\; $val34\;	\overset{\phantom{xx}+$val27\%\phantom{xx}}{\underset{\times $val37}{\mapsto}}\; $val38}
+$()</li>	  </ul>	$val47	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val49=
+!if $m_step=2 
+val48=$val51
+
+!ifval $val48 issametext répondre
+val49= r11,r12
+!endif
+
+!ifval $val48 issametext tableau
+val49= r3,r4,r6,r7,r10,r12
+!endif
+
+!ifval $val48 issametext opérateur
+val49= r2,r5,r8,r9,r11,r12
+!endif
+
+!ifval $val48 issametext schéma
+val49= r2,r3,r5,r6,r8,r10,r12
+!endif
+
+!ifval $val48 issametext particulier
+val49= r2,r3,r5,r6,r8,r10,r11,r12
+!endif
+
+!ifval $val48 issametext lettre
+val49= r2,r4,r5,r7,r8,r9,r11,r12
+!endif
+!endif
+!if $m_step=3 
+val49=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+condlist= $val50
+
+!ifval 1=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Choix de la méthode
+
+!exit
+
+:stat
+vsavelist=9,10,12,15,16,17,18,19,20,21,22,23,24,25,26,27,28,30,31,32,33,34,37,38,47,48,50,51
+embedcnt=20

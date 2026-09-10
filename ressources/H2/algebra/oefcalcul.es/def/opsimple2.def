@@ -1,0 +1,172 @@
+!set title=Operaciones simples con relativos 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Odile, Bénassy
+email=obenassy@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=c,c,c,c,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=4
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 6,7,8,9,10,11,12,13,14,15,16,18,20,24,25,30,50
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 6,7,8,9,10,11,12,13,14,15,16,18,20,24,25,30,50
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val8 * $val6)]
+val11=$[rint($val9 * $val7)]
+val12=$[rint($val10 * $val11)]
+tmp0=!randitem 3,4
+
+val13=$[rint($(tmp0))]
+
+!ifval $val13=3
+val14= $val10 
+!else
+val14= $val12
+!endif
+
+!ifval $val9=-1
+val15= ($val11) 
+!else
+val15= $val11
+!endif
+val16=5
+tmp0=!item $val13 of +,-,x,:
+
+val17=$(tmp0)
+
+!ifval $val13=3
+val18=$[rint( $val12 )]
+!else
+val18=$[rint( $val10)]
+!endif
+tmp0=$val18 / abs($val18)
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19=-1
+val20= - 
+!else
+val20= +
+!endif
+val21=adición, sustracción, multiplicación, división
+tmp0=!item $val13 of  $val21
+
+val22=$(tmp0)
+val23=tomo simplemente el signo de los dos números.,  retiro los paréntesis luego yo tomo el signo de los dos números.,  observo quien de los dos números a la mayor distancia a cero.,  retiro los paréntesis y luego observo quien de los dos números a la mayor distancia a cero.,  utilizo la "regla de las señales".
+tmp0=!item $val16 of  $val23
+
+val24=$(tmp0)
+oefsteps=choice 1	choice 2, choice 3	choice 4, reply 1 
+nextstep=!nosubst choice 1	choice 2, choice 3	choice 4, reply 1 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$val18]
+choicename1=
+choicegood1=$val22
+choicebad1=$val21
+choicename2=
+choicegood2=$val24
+choicebad2=$val23
+choicename3=
+choicegood3=$val20
+choicebad3=+,-
+choicename4=
+choicegood4=$val22
+choicebad4=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<br><br>O sea la operación : <br><br>$val14 $val17 $val15.	<br><br>	 
+!if $m_step<=1 
+$()Es una  
+!read oef/embed.phtml choice 1 
+$(). 
+!endif
+$()		 
+!if $m_step=2 
+$()Para encontrar el signo del resultado, <br> 
+!read oef/embed.phtml choice 2 
+$()	<br><br>¿Cuál es el signo del resultado?  
+!read oef/embed.phtml choice 3 
+$() 
+!endif
+$()		 
+!if $m_step=3 
+$()Para calcular el resultado, debo hacer una  
+!read oef/embed.phtml choice 4 
+$().	<br><br>Encuentro :  
+!read oef/embed.phtml reply 1,3 
+$() 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15,17
+embedcnt=5

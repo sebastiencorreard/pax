@@ -1,0 +1,228 @@
+!set appletdir=!getopt applet in $(replyoption$i)
+!if $appletdir issametext imagedir
+  !set appletdir=$imagedir
+!endif
+!default appletdir=java/jmol
+!distribute lines $(reply$i) into repens,repetu,ans_sc1,ans_orient
+!set repens=!word 2 to -1 of $repens
+!set repetu=!word 2 to -1 of $repetu
+!set ans_sc1=!word 2 to -1 of $ans_sc1
+!set ans_orient=!word 2 to -1 of $ans_orient
+!set repens=!replace internal |  by $\
+$ in $repens
+!set repetu=!replace internal |  by $\
+$ in $repetu
+
+!set oldrepens=$repens
+!set oldrepetu=$repetu
+debug $oldrepens\
+$oldrepetu
+
+!set repens=!replace internal _  by , in $repens
+!set temp=!linecnt $repens
+!set temp=$temp -1
+!set nbrepens=!eval $temp
+!set temp=!line 1 of $repens 
+!ifval $nbrepens != $temp
+ !debug $temp\
+$nbrepens
+!endif
+!set repens=!line 2 to -1 of $repens
+
+!set repetu=!replace internal _  by , in $repetu
+!set temp=!linecnt $repetu
+!set temp=$temp -1
+!set nbrepetu=!eval $temp
+!set temp=!line 1 of $repetu 
+!ifval $nbrepetu != $temp
+ !debug $temp\
+$nbrepetu
+!endif
+!set repetu=!line 2 to -1 of $repetu
+
+!set ensinetu=
+!for iens = 1 to $nbrepens
+ !set ensinetu= !append item 0 to $ensinetu
+!next
+!set etuinens=
+
+
+!for ietu = 1 to $nbrepetu
+ !set letui=!line $ietu of $repetu
+ !set nbetui=!itemcnt $letui
+ !set isinens= 0
+ !for iens = 1 to $nbrepens
+  !set lensi=!line $iens of $repens
+  !set nbensi=!itemcnt $lensi
+  !ifval $nbensi == $nbetui
+   !set thesame= 1
+   !for iv = 1 to $nbensi
+    !set etuiv=!item $iv of $letui
+    !set ensiv=!item $iv of $lensi
+    !ifval $etuiv != $ensiv
+     !set thesame= 0
+     !break
+    !endif
+   !next
+   !ifval $thesame == 1
+    !set isinens= 1
+    !break
+   !endif
+  !endif
+ !next
+ !ifval $isinens == 1
+  !set ensinetu= !replace item number $iens by 1 in $ensinetu
+  !set etuinens= !append item 1 to $etuinens
+ !else
+  !set etuinens= !append item 0 to $etuinens
+ !endif
+!next
+
+!set nbforget=0
+!set forget=0
+!for iens = 1 to $nbrepens
+ !set eiei=!item $iens of $ensinetu
+ !ifval $eiei == 0
+  !increase nbforget
+  !set itemp=$iens
+  !increase itemp
+  !set temp=!line $itemp of $oldrepens
+  !set forget=!append line $temp to $forget
+ !endif
+!next
+!set forget= !replace line number 1 by $nbforget in $forget
+
+!set nbgood=0
+!set good=0
+!for iens = 1 to $nbrepens
+ !set eiei=!item $iens of $ensinetu
+ !ifval $eiei == 1
+  !increase nbgood
+  !set itemp=$iens
+  !increase itemp
+  !set temp=!line $itemp of $oldrepens
+  !set good=!append line $temp to $good
+ !endif
+!next
+!set good= !replace line number 1 by $nbgood in $good
+
+!set nbbad=0
+!set bad=0
+!for ietu = 1 to $nbrepetu
+ !set eiei=!item $ietu of $etuinens
+ !ifval $eiei == 0
+  !increase nbbad
+  !set itemp=$ietu
+  !increase itemp
+  !set temp=!line $itemp of $oldrepetu
+  !set bad=!append line $temp to $bad
+ !endif
+!next
+!set bad= !replace line number 1 by $nbbad in $bad
+
+
+!if split iswordof $(replyoption$i) or partialscore iswordof $(replyoption$i) or eqweight iswordof $(replyoption$i)
+ !if eqweight iswordof $(replyoption$i)
+   !set coeff=1
+ !else
+   !set coeff=2
+ !endif
+!else
+ !set coeff=0
+!endif
+
+!ifval $coeff == 0
+ !ifval $nbbad == 0 and $nbforget == 0
+  !set score=1
+ !else
+  !set score=0
+ !endif
+!else
+ !set score=(1*($nbgood-($coeff*$nbbad)))/$nbrepens
+ !set score=!eval $score
+ !ifval $score<0 
+  !set score=0
+ !endif
+ !ifval $score>1 
+  !set score=1
+ !endif
+!endif
+
+!set forget=!replace internal $\
+$ by | in $forget
+!set bad=!replace internal $\
+$ by | in $bad
+!set good=!replace internal $\
+$ by | in $good
+
+
+
+debug $good\
+$bad\
+$forget
+
+
+
+!set for_feedback=$good;$bad;$forget
+
+
+!distribute lines $oef_applet_option into size,file,ans_sc0,ans_sc2
+!if __http isin __$ans_sc0
+  ans_file0=$ans_sc0
+!debug $ans_file0
+  !reset ans_sc0
+!endif
+
+!if __http isin __$ans_sc2
+  ans_file2=$ans_sc2
+  !reset ans_sc2
+!endif
+
+!if $wims_read_parm=nocompare
+  reply$i=$(m_reply$i)
+  !set for_feedback=$selbad
+  !goto applet
+!endif
+
+!ifval $score==1
+ diareply$i=good
+ !advance freegot
+!else
+   diareply$i=bad
+   freegot=$[$freegot+$score]
+!endif
+
+:applet
+
+reply_$i=<script type="text/javascript" src="$appletdir/Jmol.js"></script>
+reply_$i=$(reply_$i)
+
+reply_$i=$(reply_$i)<script type="text/javascript">\
+    jmolInitialize('$appletdir','JmolApplet.jar');\
+    jmolSetAppletColor('white');\
+    var sc0='$ans_sc0';\
+    var sc2='$ans_sc2';\
+    var sc1='$ans_sc1';\
+    var orient='$ans_orient';\
+var jscr='load $file;';\
+    jscr= jscr +'selectionhalos on;select none; color selectionHalos blue;';\
+    jgbf= 'strgood="$good";';\
+    jgbf= jgbf+'strbad="$bad";';\
+    jgbf= jgbf+'strforget="$forget";';\
+\
+    jmolApplet([$size],jscr+jgbf+sc0+orient+sc1+sc2);
+
+!if $ans_file0!=$empty
+    reply_$i=$(reply_$i)\
+    jmolScriptWait('script $ans_file0;');
+!endif
+!if $ans_file2!=$empty
+    reply_$i=$(reply_$i)\
+    jmolScriptWait('script $ans_file2;');
+!endif
+reply_$i=$(reply_$i)\
+</script>\
+
+!set reply_$i=$(reply_$i)
+!set m_reply$i=$for_feedback
+!set reply$i=

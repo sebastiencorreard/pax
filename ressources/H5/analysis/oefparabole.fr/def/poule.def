@@ -1,0 +1,230 @@
+!set title=Les poules en plein air
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 10
+
+val6=$[rint(10*$(tmp0))]
+tmp0=!randint 3, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+val8=$[rint($(tmp0))]
+val9=$[0.25*($val6+$val7+$val8)]
+val10=$[rint($val8+$val7)]
+val11=$[rint($val6+$val10)]
+val12=$[0.5*$val11]
+val13=$[rint($val8*$val7)]
+val14=$[rint(-$val13)]
+val15=$[$val9^2+$val14]
+val16=!rawmath L*x-$val13
+val17=!rawmath -x^2+$val12*x+$val14
+val18=!rawmath -(x-$val9)^2+$val15
+val19=!rawmath 2*x+2*L-$val10
+val20=$val12-x
+val21=xrange -4,46	yrange -4,36	linewidth 2		frect 0,0,40,30,green	rect 0,0,40,30,red		frect 40-2*$val8,0,40,2*$val7,white	rect 40-2*$val8,0,40,2*$val7,black		arrow2 -0.5,0,-0.5,30,8,black	arrow2 40-2*$val8,-1,40,-1,8,black	arrow2 41,0,41,2*$val7,8,black	arrow2 0,30.5,40,30.5,8,black		text black,-2,15,medium,x	text black,40-$val8,-1.5,medium,$val8	text black,42,$val7,medium,$val7	text black,20,35,medium,L	text black,41-2*$val8,$val7,medium,Poulailler		
+val22=$[rint(4*$val9)]
+val23=$[rint(4*round($val9+0.75)+10)]
+val24=xrange -10,$val23	yrange -10,$val23	linewidth 2		frect 0,0,$val22,$val22,green	rect 0,0,$val22,$val22,red		frect $val22-4*$val8,0,$val22,4*$val7,white	rect $val22-4*$val8,0,$val22,4*$val7,black		text black,-9,2*$val9,medium,$val9	text black,$val22-2*$val8,-1.5,small,$val8	text black,$val22+2,2*$val7+2,small,$val7	text black,2*$val9,$val22+8,medium,$val9		text black,10,20,medium,A = Lx-$val13	
+oefsteps=reply1,reply2	reply3,reply4	reply5,reply6 
+nextstep=!nosubst reply1,reply2	reply3,reply4	reply5,reply6 
+!readproc oef/steps.proc
+replytype1=function
+replyname1=Aire
+replygood1=!rawmath $val16
+replytype2=function
+replyname2=Grillage
+replygood2=!rawmath $val19
+replytype3=function
+replyname3=\(L=)
+replygood3=!rawmath $val20
+replytype4=function
+replyname4=\(f(x))
+replygood4=!rawmath $val17
+replytype5=numeric
+replyname5=\(x)
+replygood5=$[$val9]
+replytype6=numeric
+replyname6=\(L)
+replygood6=$[$val9]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	  
+!read oef/draw.phtml 400,320 \
+$val21 
+$()	 </div><div class="medium_size text_col">	  <ul class="wims_nopuce">	  <li>On veut réaliser un enclos rectangulaire délimité par $val6 m de grillage (en rouge) qui	  inclut un poulailler rectangulaire de $val8 m sur $val7 m, dans l'un des coins.</li>	  <li>Il n'y a pas de grillage le long du mur.</li>	  <li>On cherche les dimensions 
+!insmath x
+$() et 
+!insmath L
+$() en mètres pour lesquelles l'aire de	  l'enclos hors poulailler est maximale.	  </li>	  </ul>	</div></div>	
+!if $m_step=1 
+$()	<h2>Étape 1</h2>	<ul><li>	<label for="reply1">Quelle est l'expression de l'aire hors enclos en fonction de 
+!insmath x
+$() et 
+!insmath L
+$() ?</label>	 
+!read oef/embed.phtml reply 1,15 
+$().	</li><li>	<label for="reply2">Quelle est l'expression de la longueur du grillage en fonction de 
+!insmath x
+$() et 
+!insmath L
+$() ?</label>	 
+!read oef/embed.phtml reply 2,15 
+$()	</li></ul>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<h2>Étape 2</h2>	<p>L'aire hors enclos est bien 
+!insmath A=$val16
+$().</p>	<p>Et la longueur du grillage est 
+!insmath $val19=$val6
+$().</p>	<p>Exprimer 
+!insmath L
+$() en fonction de 
+!insmath x
+$() à l'aide de la 2ème formule :</p>	<div class="wimscenter">	<label for="reply3">
+!insmath L
+$() =</label>  
+!read oef/embed.phtml reply 3,10 
+$()	</div>	<p>Substituer l'expression trouvée à L dans 
+!insmath A
+$() pour obtenir une expression	qui dépend seulement de 
+!insmath x
+$().</p>	<div class="wimscenter">	<label for="reply4">
+!insmath A
+$() =</label>  
+!read oef/embed.phtml reply 4,15 
+$().	</div>	<p>On note cette expression 
+!insmath f(x)
+$().</p>	 
+!endif
+$()	
+!if $m_step=3 
+$()	<h2>Étape 3</h2>	<p>La longueur du grillage est 
+!insmath $val19=$val6
+$() donc 
+!insmath L=$val20
+$().</p>	<p>Et l'aire hors enclos est 
+!insmath f(x)=$val17
+$().</p>	<p>Déterminer 
+!insmath x
+$() pour que 
+!insmath $val17
+$() soit maximale.</p>	<div class="wimscenter">	Réponse : <label for="reply5">
+!insmath x
+$() = </label> 
+!read oef/embed.phtml reply 5,5 
+$().</div>	Puis en déduire la valeur de 
+!insmath L
+$().	<div class="wimscenter">	<label for="reply6">
+!insmath L
+$() = </label> 
+!read oef/embed.phtml reply 6,5 
+$().</div>	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	
+!if $m_step=1 
+$()<ul class="wims_nopuce">	  <li>Retrancher l'aire du poulailler à l'aire du grand rectangle	  pour obtenir l'aire de l'enclos hors poulailler.</li>	  <li>La longueur du grillage est obtenue en ajoutant x, L, x-$val7 et ...</li>	  </ul>	   
+!endif
+$()	
+!if $m_step=2 
+$()	  
+!insmath A=f(x)
+$() ne doit comporter que la variable 
+!insmath x
+$() et des valeurs numériques.	   
+!endif
+$()	
+!if $m_step=3 
+$()	  L'expression canonique de 
+!insmath $val17
+$() est 
+!insmath $val18
+$().	   
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<div class="float_right">	   
+!read oef/draw.phtml 300,300 \
+$val24 
+$()</div>	  <div>	  <ul class="wims_nopuce">	  <li>L'aire hors enclos est 
+!insmath A=$val16
+$() et la longueur du grillage est 
+!insmath $val19=$val6
+$() avec 
+!insmath L=$val20
+$().</li>	  <li>Donc 
+!insmath A=f(x)=$val17
+$().</li>	  <li>Elle est maximale pour 
+!insmath x=$val9
+$() et 
+!insmath L=$val9
+$().</li>	  </ul>	  </div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,16,17,18,19,20,21,24
+embedcnt=6

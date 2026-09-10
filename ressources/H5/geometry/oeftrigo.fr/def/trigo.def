@@ -1,0 +1,225 @@
+!set title=Trigonométrie, calculs
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=36
+prevarcnt=29
+postvarcnt=6
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=0,pi/2	pi/2,pi	pi,3*pi/2	3*pi/2, 2*pi	
+tmp0=!randitem 1,2,3,4
+
+val8=$(tmp0)
+tmp0=!randitem 1,2,3,4
+
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val8 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 1 of $(tmp0)
+
+val10=$(tmp1)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val8 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0)
+
+val11=$(tmp1)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 1 of $(tmp0)
+
+val12=$(tmp1)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0)
+
+val13=$(tmp1)
+tmp0=!random $val10, $val11
+
+val14=$[$(tmp0)]
+tmp0=!random $val12, $val13
+
+val15=$[$(tmp0)]
+tmp0=!randitem sin,cos
+
+val16=$(tmp0)
+tmp0=!randitem sin,cos
+
+val17=$(tmp0)
+val18=$[$val16($val14)]
+val19=$[$val17($val15)]
+tmp0=!randitem 1,-1
+
+val20=$(tmp0)
+tmp0=!randitem sin(($val20)*x + y), cos(($val20)*x + y),	 tan(($val20)*x + y)
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp1)
+tmp=!translate ";': to $     $ in ($val20)*x + y
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+val23=$[$val17(2*$val15)]
+tmp=!translate ";': to $     $ in $val17(2*y)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=!rawmath $(tmp0)
+evaltmp=$val21
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+evaltmp=!mathsubst y=($val15) in $evaltmp
+tmp0=($evaltmp)
+val25=$[$(tmp0)]
+val26=cos($val14),sin($val14)
+val27=cos($val15),sin($val15)
+val28=cos(($val20)*$val14+$val15),sin(($val20)*$val14+$val15)
+val29=cos(2*$val15),sin(2*$val15)
+val30=Calculer les réels \($val21) et \( $val24) sachant que	\($val16(x) = $val18), que \($val17(y) = $val19),	que \(x) est compris entre \($val10) et \($val11) et que	\(y) est compris entre \($val12) et \($val13).
+val31=Votre réponse est vraiment impossible,	  elle doit être comprise entre -1 et 1.
+val32=Voici les points \(A), \(B), \(C), \(D) de représentation complexe
+val33=En <span style="color:red">rouge</span>,vous voyez la droite sur laquelle vous	  prétendez que se trouve
+val34=En <span style="color:magenta">magenta</span>,	  vous voyez la droite sur laquelle vous prétendez que se trouve
+replytype1=numeric
+replyname1=\($val21)
+replygood1=$[$val25]
+replytype2=numeric
+replyname2=\($val24)
+replygood2=$[$val23]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val30	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val35=
+!if $m_reply1<>$val25 
+!if sin isin $val21 and abs($m_reply1) <=1 
+val35=$val35	 hline 0, $m_reply1, red
+!endif
+!if cos isin $val21 and abs($m_reply1) <=1 
+val35=$val35	 vline $m_reply1, 0, red
+!endif
+!if tan isin $val21 
+val35=$val35	xrange -1.5,1.5	yrange -1.5,1.5	plot red, ($m_reply1)*x	
+!endif
+!endif
+!if $m_reply2<>$val23 
+!if sin isin $val24 and abs($m_reply2) <= 1 
+val35=$val35	 hline 0, $m_reply2, magenta
+!endif
+!if cos isin $val24 and abs($m_reply2) <= 1 
+val35=$val35	 vline $m_reply2,0, magenta
+!endif
+!endif
+
+!exit
+
+:feedback
+!ifval ((sin isin $val21 or cos isin $val21 ) and abs($m_reply1) > 1 )	 or ((sin isin $val24 or cos isin $val24 ) and abs($m_reply2) > 1)
+ <div class='oef_feedbacks'>$val31
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>$val32	
+!insmath exp(i*x), exp(i*y), exp(i*($val22)), exp(2*i*y)
+$(). <br>	
+!if $m_reply1 <> $val25 and ( ( abs($m_reply1) <= 1 and s isin $val21) or (tan isin $val21)) 
+$()$val33 
+!insmath exp(i*($val22))
+$().	 
+!endif
+$()	
+!if $m_reply2 <> $val23 and abs($m_reply2) <= 1 
+$()	<br>$val34 
+!insmath exp(2*i*y)
+$().	 
+!endif
+$()	<div class="wimscenter"> 
+!read oef/draw.phtml 200,200 \
+	 xrange -1.5,1.5	 yrange -1.5,1.5	 trange -1,1	 hline 0,0,black	 vline 0,0,black	 plot blue, cos(2*pi*t),sin(2*pi*t)	 linewidth 6	 point $val26, blue	 text black, $val26 , medium,A	 point $val27, blue	 point $val28, green	 point $val29, green	 text black, $val27,medium,B	 text black, $val28, medium,C	 text black, $val29, medium,D	 linewidth 1	 segment 0,0,$val26,blue	 segment 0,0,$val27,blue	 segment 0,0,$val28,green	 segment 0,0,$val29,green	 linewidth 2	 $val35	 
+$()	</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,22,23,24,25,26,27,28,29,30,31,32,33,34
+embedcnt=0

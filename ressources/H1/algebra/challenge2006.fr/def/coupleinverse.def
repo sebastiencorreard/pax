@@ -1,0 +1,148 @@
+!set title=Couples inversés
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Joseph,Cesaro;Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r
+varcnt=11
+prevarcnt=0
+postvarcnt=10
+replycnt=4
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+replytype1=numeric
+replyname1=Premier nombre du premier couple
+replygood1=?analyze 6
+replytype2=numeric
+replyname2=Deuxième nombre du premier couple
+replygood2=?analyze 7
+replytype3=numeric
+replyname3=Premier nombre du deuxième couple
+replygood3=?analyze 8
+replytype4=numeric
+replyname4=Deuxième nombre du deuxième couple
+replygood4=?analyze 9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On dit que 12 et 21 sont inversés, 42 et 24 le sont aussi. Mais on remarque en plus que les deux produits suivants sont égaux :	<div class="wimscenter"> 	
+!insmath 12\times42=504 \quad\quad ; \quad\quad 21\times24=504
+$() 	</div>	On dit alors que les couples (12;42) et (21;24) sont inversés.<br>		Peux-tu trouver deux autres couples de nombres inversés donnant le même produit ?	<br><b><u>Votre réponse :</u></b> 	<ul>	<li>Premier couple : ( 
+!read oef/embed.phtml r1,4 
+$() ;  
+!read oef/embed.phtml r2,4 
+$())</li>	<li>Deuxième couple : ( 
+!read oef/embed.phtml r3,4 
+$() ;  
+!read oef/embed.phtml r4,4 
+$())</li>	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!charcnt $val6
+
+val10=$[rint($(tmp0))]
+tmp0=!values v for v=$val10 to 1 step -1
+
+val10=$(tmp0)
+tmp0=!char $val10 of $val6
+
+val10=$(tmp0)
+tmp0=!charcnt $val7
+
+val11=$[rint($(tmp0))]
+tmp0=!values v for v=$val11 to 1 step -1
+
+val11=$(tmp0)
+tmp0=!char $val11 of $val7
+
+val11=$(tmp0)
+tmp0=!listintersect 12,42,21,24 and $val6,$val8,$val7,$val9
+
+val12=$(tmp0)
+tmp0=!itemcnt $val12
+
+val13=$[rint($(tmp0))]
+
+!ifval $val13=4
+val13=$[rint(0)]
+!else
+val13=$[rint(1)]
+!endif
+val14=$[rint($val6*$val7-$val8*$val9)]
+
+!exit
+
+:feedback
+!ifval $val13!=1
+ <div class='oef_feedbacks'>Tu n'as pas de point car tu as recopiés les nombres de l'énoncé.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val13=1 and $val10=$val8 and $val11=$val9
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Les couples sont inversés
+
+!ifval $val14=0 and $val13=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=La condition de produit est vérifiée
+
+!exit
+
+:stat
+vsavelist=6,7,8,9
+embedcnt=4

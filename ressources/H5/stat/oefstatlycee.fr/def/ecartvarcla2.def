@@ -1,0 +1,171 @@
+!set title=Moyenne et écart-type avec des classes II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(6)]
+tmp0=!randint 10, 25
+
+val7=$[rint($(tmp0))]
+val8=0,2,4,6,11,16,26
+!readproc slib/stat/random $val6-2, 0,$val7 
+tmp0=$slib_out
+val9=$(tmp0)
+!readproc slib/stat/sum $val9 
+tmp0=$slib_out
+val10=$[$(tmp0)]
+val11=$[rint(100-$val10)]
+tmp0=!randint 0, $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!append item $val12 to $val9
+
+val9=$(tmp0)
+val12=$[rint($val11-$val12)]
+tmp0=!append item $val12 to $val9
+
+val9=$(tmp0)
+tmp0=!sort reverse numeric item $val9
+
+val9=$(tmp0)
+val13=$[0]
+!for val11 =1 to $val6 
+val13=$[$val13+($(val8[$val11])+$(val8[$val11+1]))*$(val9[$val11])/200]
+!next
+val14=$[0]
+!for val11 =1 to $val6 
+val14=$[$val14+$(val9[$val11])*(($(val8[$val11])+$(val8[$val11+1]))/2-$val13)^2/100]
+!next
+val15=$[sqrt($val14)]
+tmp0=!sort  numeric item $val9
+
+val16=$(tmp0)
+tmp0=!item  -1 of   $val16
+
+val17=$(tmp0)
+tmp0=!item  1 of   $val16
+
+val18=$(tmp0)
+val19=$[$val17-$val18]
+!readproc slib/stat/sum $val9 
+tmp0=$slib_out
+val10=$[$(tmp0)]
+val20=<table class="wimscenter wimsborder" style="background-color:skyblue">	  <tr>
+val20=$val20<th>Nombre de salariés </th><th> Pourcentage d'entreprises</th></tr>
+!for val21 =1 to $val6 
+val20=$val20 <tr><td> &#91; $(val8[$val21]) &#59; $(val8[$val21+1]) &#91; </td><td> $(val9[$val21]) % </td></tr>
+!next
+val20=$val20 </table>
+val22=<table class="wimscenter wimsborder" style="background-color:MistyRose">	  <tr>
+val22=$val22 <th>centre des classes </th><th> Pourcentage d'entreprises</th></tr>
+val23=
+!for val21 =1 to $val6 
+t_=!rawmath ($(val8[$val21])+$(val8[$val21+1]))/2
+val24=!exec pari print($t_)
+val22=$val22 <tr><td> $val24 </td><td> $(val9[$val21]) % </td></tr>
+val23=$val23+$val24 \times $(val9[$val21])
+!next
+val22=$val22 </table>
+val10=$[$val10*0.5]
+tmp0=!item 1 of $val9
+
+val25=$[$(tmp0)]
+!for val11 =1 to $val6 
+!if $val25<$val10 
+tmp0=!item $val11+1 of $val9
+
+val25=$[$val25+$(tmp0)]
+val26=$[rint($val11)]
+!endif
+!next
+replytype1=numeric
+replyname1=Moyenne
+replygood1=$[$val13]
+replytype2=numeric
+replyname2=Ecart-type
+replygood2=$[$val15]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On a relevé le nombre de salariés dans les entreprises artisanales en	France à une certaine date:</p>	 $val20	<p>	Calculer  pour cette série statistique:</p>	 <table>	  <tr>	   <th> la moyenne :</th><td>  
+!read oef/embed.phtml reply 1, 6 
+$()</td>	  </tr>	  <tr>	   <th> l'écart-type :</th><td>  
+!read oef/embed.phtml reply 2, 6 
+$()</td>	 </tr>	</table>	Les valeurs seront données au centième près.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1!=$val13 or $m_reply2 != $val15
+ <div class='oef_feedbacks'>Pour calculer la moyenne de cette série, il faut pondérer les centres des classes par les fréquences:<br>	$val22<br>	Ce qui donne: 
+!insmath \mu
+$() = 
+!insmath \frac{$val23}{100}
+$()<p>	L'écart-type est donné par la calculatrice grâce au tableau précédent.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15,20,22,23
+embedcnt=2

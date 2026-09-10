@@ -1,0 +1,120 @@
+!set title=À droite ou à gauche de 0
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_es=A la derecha o la izquierda de 0
+title_nl=Links of rechts van nul
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=droite, gauche
+val8=Le point \(A\) est d'abscisse +AAAA ou -AAAA. Or il est à, de 0.	  Quelle est son abscisse&nbsp;
+val9=Son abscisse est
+!if $val6=es 
+val7=derecha, izquierda
+val8=El punto \(A\) tiene de abscisa +AAAA ou -AAAA. Ahora bien está a la , de 0.	  ¿Cuál es su abscisa?
+val9=Su abscisa es
+!endif
+!if $val6=nl 
+val7=rechts, links
+val8=Een punt \(A\) op de getallenlijn heeft een x-co&ouml;rdinaat van +AAAA of -AAAA en ligt , van 0. Welke x-co&ouml;rdinaat heet het punt&nbsp;
+val9=De x-co&ouml;rdinaat is 
+!endif
+tmp0=!randint 1, 7
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val11=$(tmp0)
+tmp0=!item $val11 of $val7
+
+val12=$(tmp0)
+
+!ifval $val11=1
+val13= $val10
+!else
+val13=-$val10
+!endif
+val14=$(val8[1]) $val12 $(val8[2])
+tmp0=!replace internal AAAA by $val10 in $val14
+
+val14=$(tmp0)
+replytype1=numeric
+replyname1=$val9
+replygood1=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val14? \end{statement}
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val14?	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val14? $m_end{statement}
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14
+embedcnt=0

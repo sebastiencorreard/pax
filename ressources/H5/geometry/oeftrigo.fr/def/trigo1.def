@@ -1,0 +1,163 @@
+!set title=Trigonométrie I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Combien l'équation,a-t-elle de solutions dans l'intervalle
+val8=Nombre de solutions
+tmp0=!randitem 1,2,3,4
+
+val9=$(tmp0)
+tmp0=!randitem sin,cos,tan
+
+val10=$(tmp0)
+tmp0=!randint 1, 120
+
+t_=!replace internal \( by ( in $(tmp0)/60
+tmp1=!exec pari $t_
+
+val11=$(tmp1)
+val12=$val11*pi
+!if floor((2*$val9*$val11-1)/2)=(2*$val9*$val11-1)/2 and (tan isin $val10) 
+val13=$[(-1)^($val9)]
+val14=$val13*inf
+!else
+val14=$[floor(10^7*$val10($val9*$val12))/10000000]
+!endif
+tmp0=!randint -50, 50
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 7*pi, 15*pi
+
+val16=$[rint($val15+$(tmp0))]
+val17=$[rint(floor(($val15-($val12))/(2*pi)*$val9))]
+val18=$[rint(floor(($val16-($val12))/(2*pi)*$val9))]
+
+!ifval $val18=($val16-($val12))/(2*pi)*$val9 
+val18=$[rint( $val18-1)]
+!endif
+val19=$[$val12+(2*($val17+1)*pi/$val9)]
+!for val20 =$val17+2 to $val18 
+val21=$[$val12+(2*($val20)*pi)/$val9]
+val19=$val19,$val21
+!next
+
+!ifval sin isin $val10 
+val22=$[ pi/$val9-($val12)]
+!else
+val22=$[ -($val12)]
+!endif
+
+!ifval tan isin $val10 
+val22=$[ pi/$val9+($val12)]
+!endif
+val23=$[rint(floor(($val15-($val22))/(2*pi)*$val9))]
+val24=$[rint(floor( ($val16-($val22))/(2*pi)*$val9))]
+
+!ifval $val24=($val16-($val22))/(2*pi)*$val9
+val24=$[rint( $val24-1)]
+!endif
+!for val20 =$val23+1 to $val24 
+val21=$[$val22+(2*($val20)*pi)/$val9]
+val19=$val19,$val21
+!next
+tmp0=!sort numeric list $val19
+
+val19=$(tmp0)
+tmp0=!listuniq $val19
+
+val19=$(tmp0)
+tmp0=!itemcnt $val19
+
+val25=$(tmp0)
+replytype1=default
+replyname1=$val8
+replygood1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1])	<div class="wimscenter">
+!if inf isin $val14 and - notin $val14 
+$()
+!insmath  $val10($val9*x) = +$val14
+$()	 
+!else
+$()	  
+!insmath  $val10($val9*x) = $val14
+$() 
+!endif
+$()</div>	$(val7[2]) &#93;
+!insmath  $val15 , $val16
+$() &#91; ?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,14,15,16
+embedcnt=0

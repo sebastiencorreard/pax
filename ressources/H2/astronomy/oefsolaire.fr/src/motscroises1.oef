@@ -1,0 +1,113 @@
+type=game
+textarea="data"
+:Mots croisés
+Un mot croisé est proposé à partir de mots et de leurs définitions.
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Mots croisés}
+:\author{Chantal,Causse}
+:\email{chantal.causse@noos.fr}
+\keywords{solar_system }
+:\credits{}
+:Consigne
+
+\text{instruction=Remplir la grille en utilisant les définitions.}
+
+:Nombre de mots maximum
+
+\text{N=7}
+
+:Options
+Si le paramètre est <span class="tt wims_code_words">allhelp</span>, toutes les définitions apparaissent.
+Si le paramètre est <span class="tt wims_code_words">tooltip</span>, les définitions apparaîtront
+en "pop-up" en cliquant sur le numéro. Mettre un blanc pour qu'elles apparaissent
+une par une sur le côté.
+\text{none=allhelp}
+
+:Nom du fichier
+Ne remplissez que si vous désirez transférer le source de cet exercice dans un compte Modtool
+et utiliser un fichier de données (dans un module OEF)
+du type
+<pre>
+&#58;RAM, Random Access Memory
+&#58;ROM, Read Only Memory
+&#58;FAI, Acronyme. Fournisseurs d'accès Internet
+&#58;WIFI,Wireless Internet access
+&#58;PC,Ordinateur individuel
+</pre>
+Dans ce cas, les données suivantes ne seront pas prises en compte.
+Sinon, remplissez les données.
+\text{file=}
+
+:Données principales.
+Mettre dans la première colonne les mots en minuscules et dans la deuxième une indication,
+le délimiteur de colonne étant la virgule.
+Les virgules sont permises pour les indications, par contre il n'est pas possible
+de mettre plusieurs mots dans la première colonne.
+\text{data=soleil,Étoile centrale du système solaire
+lune,Satellite naturel de la Terre
+satellite, Corps céleste en orbite autour d'une planète
+mercure,{Planète la plus proche du Soleil,Planète dont l'aspect ressemble beaucoup à la Lune, La plus petite des planètes du système solaire, Planète où la température atteint 430°C le jour et -180°C la nuit}
+vénus,{Étoile du Berger,Planète tellurique ayant une atmosphère dense,Planète dont le sol est masqué par une couche nuageuse de près de 40 km d'épaisseur}
+mars, {Planète au sol rouge en raison de la présence d'oxyde de fer, Planète riche en eau (surtout solide)}
+orbite,Trajectoire d'une planète autour du Soleil ou d'un satellite autour d'une planète
+jupiter, {La plus grosse des planètes du système solaire,Planète géante dont la surface présente de grandes taches correspondant à des tempêtes,Planète géante ayant de nombreux satellites, Io Europe Ganymède et Callisto sont ses principaux satellites}
+saturne,{La planète la moins dense du système solaire,Planète gazeuse entourée d'anneaux bien visibles, Planète géante dont le satellite principal est Titan}
+uranus,{Planète découverte en 1781 par Herschel,Planète à l'atmosphère bleu-gris }
+neptune,{Planète apparaissant bleue en raison de la présence de méthane dans son atmosphère,Planète découverte en 1846 par Le Verrier et Adams, Même avec les meilleurs télescopes terrestres cette planète n'apparaît que comme une petite tache bleue}
+astéroïde,Petit corps tournant autour du Soleil et faisant souvent partie d'un ensemble de corps analogues (ceinture)
+météorite,Corps céleste qui s'écrase sur la Terre (souvent un petit morceau d'astéroïde)
+comète, Petit corps tournant autour du Soleil selon une orbite très allongée et présentant quand elle s'approche du Soleil une chevelure et une queue
+révolution, La période de ... est le temps mis par une planète pour tourner autour du Soleil
+terre, Seule planète du système solaire à posséder de l'eau liquide
+voyager,Sondes spatiales ayant permis de photographier et d'explorer en particulier les planètes géantes et leurs satellites
+galileen, Adjectif qualifiant les 4 principaux satellites de Jupiter, du nom de l'astronome qui les observa en 1610
+tchouri, Nom (simplifié)de la comète explorée en 2014 par la sonde Rosetta
+rosetta, Première sonde spatiale ayant été placée en orbite autour d'une comète et ayant posé un atterrisseur sur le noyau de la comète
+}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+
+\if{\file notsametext}{
+  \text{file=randitem(\file)}
+  \integer{datacnt=wims(recordcnt \file)}
+  \integer{N=min(\N,\datacnt)}
+  \text{choix=shuffle(\datacnt)}
+  \text{choix=\choix[1..\N]}
+  \text{data=}
+  \for{s in \choix}{
+    \text{data=\data
+wims(record \s of \file)}
+  }
+  \matrix{data=\accolade=1 ?wims(randitem embraced \data)}
+  \text{data=wims(replace internal ;; by ; in \data)}
+}{
+  \text{objet_cnt=rows(\data)}
+  \integer{N=min(\N,\objet_cnt)}
+  \text{bat=shuffle(\objet_cnt)}
+  \text{bat=\bat[1..\N]}
+  \matrix{data=\data}
+  \matrix{data=\data[\bat;]}
+}
+
+\text{data=slib(text/crossword \data) }
+
+\statement{ \instruction
+
+\embed{r1} }
+\answer{}{\data}{type=crossword}{option=\none }

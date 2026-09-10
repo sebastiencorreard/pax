@@ -1,0 +1,81 @@
+type=imaudio
+textarea="data instruction"
+iEdit="instruction"
+:Choisir une étiquette correspondant à l'image (ou au texte présenté)
+Attention, ce modèle ne fonctionnera bien que si vous chargez les images sur wims.
+<p>
+Pour construire un exercice avec ce modèle, il suffit de taper la liste des images et
+des étiquettes correspondantes
+</p>
+
+<p class="wims_credits">
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Trouver le nom d'un matériel de verrerie donné parmi une liste}
+:\author{Marie-joëlle, Ramage}
+:\email{marie-joelle.ramage@u-psud.fr}
+:\credits{https://commons.wikimedia.org/wiki}
+:Consigne
+
+\text{instruction=Glisser-déposer l'étiquette du nom de l'objet présenté
+  sous l'image.}
+
+:Données
+
+\text{data=Erlenmeyer.jpg, erlenmeyer,l'
+Ballon.jpg, ballon, le
+Becher.jpg, bécher,le
+Cristallisoir.jpg, cristallisoir,le
+Eprouvette.jpg, éprouvette,l'
+Pipetteplastique.jpg, pipette,la
+Pissette.jpg, pissette,la
+Tubeaessai.jpg, tube à essai,le
+Verreapied.jpg, verre à pied,le}
+
+:Nombre de perturbateurs.
+
+\integer{cntpertub=3}
+
+:La taille verticale des cases en pixels.
+
+\text{sizev=40}
+
+:La taille horizontale des cases en pixels
+
+\text{sizeh=200}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+\text{mot = randrow(\data)}
+\text{image=\mot[1]}
+\text{ext=item(2,wims(replace internal . by , in wims(lowercase \image)))}
+\text{mot =\mot[2]}
+\text{liste=column(2, \data)}
+\text{perturb=wims(listcomplement \mot in \liste)}
+\text{perturb=shuffle(\perturb)}
+\text{perturb=\perturb[1..\cntpertub]}
+
+
+\statement{
+  <p>\instruction</p>
+  <p class="wimscenter">
+    \if{\ext isitemof png,gif,jpg,jpeg}{
+      \img{\imagedir/\image}
+    }{\image}
+  </p>
+
+  <p class="wimscenter">
+    \embed{r1,\sizeh x \sizev}
+  </p>
+}
+
+\answer{}{\mot;\perturb}{type=clickfill}

@@ -1,0 +1,83 @@
+target=oefconstpat5
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\integer{ha=randint(35..75)}
+\integer{la=randint(45..105)}
+\integer{lo=randint(\ha..380-2*\ha)}
+
+\text{mes=\lo,\la,\ha}
+\text{nm=shuffle(a,b,c)}
+
+\integer{mes1=item(position(a,\nm),\mes)}
+\integer{mes2=item(position(b,\nm),\mes)}
+\integer{mes3=item(position(c,\nm),\mes)}
+\integer{d=\lo+\ha*2}
+\integer{e=\la*2+\ha*2}
+
+\integer{xo=(-\lo-2*\ha)/2}
+\integer{yo=\la+\la-50}
+
+\text{patron=xrange -210,210
+yrange -200,200
+rect \xo+\ha,\yo,\xo+\ha+\lo,\yo-\la,black
+rect \xo+\ha+\lo,\yo-\la,\xo+\ha,\yo-\la-\ha,black
+rect \xo+\ha,\yo-\la-\ha,\xo,\yo-\ha-2*\la,black
+filledrect \xo+\ha,\yo-\la-\ha,\xo+\ha+\lo,\yo-\ha-2*\la,yellow
+rect \xo+\ha,\yo-\la-\ha,\xo+\ha+\lo,\yo-\ha-2*\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+2*\ha+\lo,\yo-\ha-\la,black
+rect \xo+\ha+\lo,\yo-\ha-2*\la,\xo+\ha,\yo-2*\la-2*\ha,black
+arrow2 \xo+\ha,\yo+10,\xo+\ha+\lo,\yo+10,10,black
+text black,\xo+\ha+\lo/2,\yo+30,medium,\nm[1]
+arrow2 \xo+\ha-10,\yo-\la,\xo+\ha-10,\yo-\la-\ha,10,black
+text black,\xo+\ha-25,\yo-\la-\ha/2,medium,\nm[3]
+arrow2 \xo+\ha-10,\yo,\xo+\ha-10,\yo-\la,10,black
+text black,\xo+\ha-25,\yo-\la/2,medium,\nm[2]
+arrow2 \xo+\ha+\lo/2,\yo,\xo+\ha+\lo/2,\yo-2*\ha-2*\la,10,black
+text black,\xo+\ha+\lo/2+12,\yo-\la-\ha/2,medium,e
+arrow2 \xo,\yo-\la*1.5-\ha,\xo+\ha*2+\lo,\yo-\la*1.5-\ha,10,black
+text black,\xo+\ha+\lo/4,\yo-\la*1.5-\ha-10,medium,d
+}
+
+\text{pat1=draw(420,400
+\patron
+)}
+
+\text{pat2=draw(420,400
+rotate 90
+\patron
+)}
+
+\text{pat3=draw(420,400
+rotate 270
+\patron
+)}
+
+\text{patron=\pat1,\pat2,\pat3}
+\integer{a=randint(1..3)}
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\patron[\a]" alt=""></div>
+ <div class="medium_size text_col">
+Nous avons un parallélépipède rectangle avec les dimensions suivantes :
+<ul><li>Longueur = \lo mm
+</li><li> largeur = \la mm
+</li><li> hauteur = \ha mm.
+</li></ul>
+La face jaune servira de base pour poser le parallélépipède rectangle.
+<p>Quelles seront les dimensions du patron du parallélépipède rectangle ?
+</p>
+<ul><li><label for="reply1">a =</label> \embed{r1,3} mm
+</li><li><label for="reply2">b =</label> \embed{r2,3} mm
+</li><li><label for="reply3">c =</label> \embed{r3,3} mm
+</li><li><label for="reply4">d =</label> \embed{r4,4} mm
+</li><li><label for="reply5">e =</label> \embed{r5,4} mm
+</li></ul></div></div>
+}
+
+\answer{}{\mes1}{type=raw}
+\answer{}{\mes2}{type=raw}
+\answer{}{\mes3}{type=raw}
+\answer{}{\d}{type=raw}
+\answer{}{\e}{type=raw}

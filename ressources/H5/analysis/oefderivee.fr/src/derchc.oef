@@ -1,0 +1,124 @@
+\title{Calcul paramétrable de dérivée}
+
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\author{Cyrille, Douriez}
+##avec l'aide de Chantal Causse##
+\email{cyrille.douriez@ac-amiens.fr}
+\format{html}
+\range(1..7)
+<!-- Types d'expression (récupéré de confparm2)
+TS : terme seul
+S : somme ou différence de termes
+P : produit
+I : inverse
+Q : quotient
+C: composée avec ax+b
+Si rien n'est coché, confparm2 -> TS, S 
+Aléatoire entre les cochés si plusieurs sont cochés, TS sinon 
+
+Termes possibles (récupéré de confparm1):
+A : affine
+P1 : polynôme de degré max 3
+P2 : polynôme de degré > 3
+INV : a/x
+INVN : a/x^n
+T : cos ou sin
+R : racine carrée
+Si rien n'est coché : confparm1 -> A, P1, P2, INV
+Si confparm2 vaut TS ou C ou I : un aléatoire entre les cochés
+Sinon, 2 aléatoires entre les cochés (pouvant être les mêmes)
+
+->
+
+
+##Liste des formules et liste des types de termes##
+
+\text{listef=\confparm2}
+\text{listet=\confparm1}
+\if{items(\listef)=0}{\text{listef=TS,S}}
+\if{items(\listet)=0}{\text{listet=A,P1,P2,INV}}
+
+\text{formule = randitem(\listef)}
+\text{listet = (items(\listet)=1)? \listet:wims(shuffle(\listet))}
+\text{terme1 = \listet[1]}
+\if{\formule = TS or \formule = C or \formule = I}{\text {terme2 = 0}}
+{\text{terme2 = randitem ( \listet[-1], randitem(\listet))}}
+
+
+##Coefficients de la fonction fct1##
+\integer{deg1=randint(4..30)}
+\integer{a1=randint(1..9)*randitem(-1,1)}
+\integer{b1=randint(1..9)*randitem(-1,1)}
+\integer{c1= randitem(0,randint(-8..8))}
+\integer{d1= randint(-10..10)}
+\integer{e1=randint(-20..20)}
+\integer{f1den=randint(1,randitem(1,3,5,7,11))}
+\integer{f1num=(\f1den=1)? randint(1..12)*randint(-1,1):randint(1..(\f1den-1))*randint(-1,1)}
+\integer{g1=((\formule issametext Q) or (\formule issametext P) or (formule issametext C))? 1:randint(1..12)*randint(-1,1)}
+\integer{h1=((\formule issametext Q) or (\formule issametext P) or (formule issametext C))? 1:randint(1..12)*randint(-1,1)}
+\text{coefpoly1=\b1,\c1}
+\text{coefpoly1=wims(shuffle(\coefpoly1))}
+\text{fcttrigo=cos,sin}
+\text{fcttrigo=wims(shuffle(\fcttrigo))}
+\integer{deg12=randint(2..20)}
+
+## fct1
+\if{\terme1 = A}{\function{fct1 = maxima((\d1)*x + \e1)}}
+\if{\terme1 = P1}{\function{fct1 = maxima(\coefpoly1[1]*x^3+\coefpoly1[2]*x^2+\d1*x+\e1)}}
+\if{\terme1 = P2}{\function{fct1 = maxima((\a1)*x^\deg1)}}
+\if{\terme1 = INV}{\function{fct1 = maxima(\f1num/(\f1den*x))}}
+\if{\terme1 = INVN}{\function{fct1 = maxima(\f1num/(\f1den*x^\deg12))}}
+\if{\terme1 = T}{\function{fct1 = maxima((\g1)*\fcttrigo[1](x) )}}
+\if{\terme1 = R}{\function{fct1 = maxima((\h1)*sqrt (x))}}
+
+\if{\terme2 != 0}{
+
+##Coefficients de la fonction fct2##
+\integer{deg2=randint(4..30)}
+\integer{a2= randint(1..9)*randint(-1,1)}
+\integer{b2=randint(1..9)*randint(-1,1)}
+\integer{c2=randitem(0,randint(-8..8))}
+\integer{d2= randint(-10..10)}
+\integer{e2= randint(-20..20)}
+\integer{f2= randint(1..12)*randint(-1,1)}
+\integer{ct21=randint(1..12)*randint(1,1,-1)}
+\integer{ct22=randint(-20..20)}
+\text{coefpoly2=\b2,\c2}
+\text{coefpoly2=wims(shuffle(\coefpoly2))}
+\integer{deg22=randint(2..20)}
+
+## fct2
+\if{\terme2 = A}{\function{fct2 = maxima(\d2*x + \e2)}}
+\if{\terme2 = P1}{\function{fct2 = maxima(\coefpoly2[1]*x^3+\coefpoly2[2]*x^2+\d2*x+\e2)}}
+\if{\terme2 = P2}{\function{fct2 = maxima(\a2*x^\deg2)}}
+\if{\terme2 = INV}{\function{fct2 = maxima(\f2/x)}}
+\if{\terme2 = INVN}{\function{fct2 = maxima(\f2/x^\deg22)}}
+\if{\terme2 = T}{\function{fct2 = maxima(\fcttrigo[1](x))}}
+\if{\terme2 = R}{\function{fct2 = maxima(sqrt(x))}}
+}
+
+##Expressions de la fonction à dériver##
+
+\if{\formule = TS}{\function {f = \fct1}}
+\if{\formule = C}{
+\integer{ct1=randint(1..12)*randint(1,1,-1)}
+\integer{ct2=randint(-20..20)}
+\function {f = wims(replace x by (\ct1*x +\ct2) in \fct1)}
+\function{f = maxima(\f)}
+}
+\if{\formule = S}{\function {f = maxima ((\fct1)+ randitem(-1,1)*(\fct2)) }}
+\if{\formule = P}{\function {f = maxima ((\fct1)*(\fct2))}}
+\if{\formule = Q}{\function {f = maxima ((\fct1)/(\fct2))}}
+\if{\formule = I}{\function {f = maxima (1/(\fct1) )}}
+
+##la dérivée##
+
+\text{der=diff(\f,x)}
+
+\text{f=texmath(\f)}
+
+\statement{Calculer la dérivée sur son ensemble de définition de la fonction \(f) d'expression \(f(x) = \f).}
+
+\answer{\(f'(x))=}{\der}{type=formal}

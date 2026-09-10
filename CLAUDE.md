@@ -39,7 +39,7 @@ On first start, `entrypoint.sh` runs automatically:
 2. `python scripts/import_exercises.py` — imports all renderable OEF exercises from every level dir (`H3`, `H4`, … any `<uppercase letter><digit>` name) plus `tool`/`Lang`; pass `--level H4` to restrict to one.
    It is **idempotent**: an exercise already in the DB has its title, language
    and keywords re-read from the `.def` and updated when they differ — a fix to
-   `extract_meta` therefore reaches the 4278 existing rows on the next start.
+   `extract_meta` therefore reaches every existing row on the next start.
    A field the `.def` does not carry never erases what the DB holds. `--dry-run`
    lists what would change without writing.
    Keywords are the **union** of the `.def`'s `keywords=` and of the module's
@@ -73,13 +73,13 @@ Run tests:
 ```bash
 cd backend && pytest                         # all tests
 cd backend && pytest tests/path/to_test.py  # single file
-cd backend && pytest -m slow                 # corpus sweep (4278 exercises)
+cd backend && pytest -m slow                 # corpus sweep (9699 exercises)
 cd backend && PAX_TEST_CORPUS=H4/algebra pytest -m slow   # one subtree
 ```
 
 `test_exercises_check` and `test_exercises_render` walk the whole corpus, so
 they carry the `slow` marker and `pytest.ini` excludes them by default —
-otherwise every run would render 4278 exercises. They read the corpus **off
+otherwise every run would render 9699 exercises. They read the corpus **off
 disk** (`tests/corpus.py`), needing neither a database nor a prior import.
 Known-failing exercises live in `tests/known_failures.py`, keyed by **slug**;
 rebuild those lists from a real run after fixing a bug.

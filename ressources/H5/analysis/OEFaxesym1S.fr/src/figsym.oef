@@ -1,0 +1,89 @@
+\title{Figure symétrique et fonctions}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+
+## choix de 4 points
+\integer{xmax=randint(10..20)}
+\integer{ymax=randint(10..20)}
+\text{yl=wims(makelist x for x=0 to \ymax)}
+\text{yl=shuffle(\yl)}
+\integer{y0=\yl[1]}
+\integer{y1=\yl[2]}
+\integer{y2=\yl[3]}
+\integer{y3=0}
+\integer{x0=0}
+\text{xl=wims(makelist 2*x for x=1 to \xmax/2)}
+\text{xl=shuffle(\xl)}
+\text{xl=\xl[1],\xl[2],\xl[3]}
+\text{xl=wims(sort numeric list \xl)}
+\integer{x1=\xl[1]}
+\integer{x2=\xl[2]}
+\integer{x3=\xl[3]}
+\integer{d0=(\x0-\x1)*(\x0-\x2)*(\x0-\x3)}
+\integer{d1=(\x1-\x0)*(\x1-\x2)*(\x1-\x3)}
+\integer{d2=(\x2-\x1)*(\x2-\x0)*(\x2-\x3)}
+\integer{d3=(\x3-\x1)*(\x3-\x2)*(\x3-\x0)}
+\integer{m1=lcm(\d0,\d1)}
+\integer{m2=lcm(\d2,\d3)}
+\integer{m=lcm(\m1,\m2)}
+\integer{ymax=\m*\ymax}
+## Interpolation
+\function{f0=(x-\x1)*(x-\x2)*(x-\x3)/\d0}
+\function{f1=(x-\x0)*(x-\x2)*(x-\x3)/(\d1)}
+\function{f2=(x-\x1)*(x-\x0)*(x-\x3)/(\d2)}
+\function{f3=(x-\x1)*(x-\x2)*(x-\x0)/(\d3)}
+\function{f=\m*(\y0*\f0+\y1*\f1+\y2*\f2+\y3*\f3)}
+\integer{a=randint(1,2)*randint(1,-1)}
+\integer{b=randint(1..5)*randint(1,-1)}
+\integer{c=randint(1..5)*randint(1,-1)}
+\integer{d=randint(1..5)*randint(1,-1)}
+function{f=\a*x^3+\b*x^2+\c*x+\d}
+\text{f=maxima(expand(\f))}
+\text{tf=texmath(\f)}
+## symétrie par rapport à (Ox)
+\function{g=-(\f)}
+
+## symétrie par rapport a (Oy)
+\text{h=wims(replace x by (-x) in \f)}
+
+## symétrie par rapport à l'origine
+\text{k=wims(replace x by (-x) in \g)}
+
+\text{dessin=
+ xrange -\xmax-2,\xmax+2
+ yrange -\ymax-2,\ymax+2
+ arrow -\xmax-2,0,\xmax+2,0,10,black
+ arrow 0,-\ymax-2,0,\ymax+2,10,black
+ trange 0,\x3
+ plot red,\f
+ plot blue,\g
+ trange -\x3,0
+ plot green,\h
+ plot purple,\k
+}
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col">\draw{300,300}{\dessin}</div>
+ <div class="medium_size text_col">
+La figure ci-contre présente les axes de coordonnées comme axes de symétrie.
+<div>
+L'arc de courbe <span style="color:red"> rouge </span> représente la fonction
+<span style="color:red">\(f) </span> définie sur [0;\x3] par:
+<div class="wimscenter"><span style="color:red">\(f(x)=\tf).</span></div>
+L'arc de courbe <span style="color:blue"> bleue </span> représente la fonction <span style="color:blue">\(g) </span> définie sur [0;\x3].<br>
+L'arc de courbe <span style="color:green"> verte </span> représente la fonction <span style="color:green"> \(h) </span> définie sur [-\x3;0].<br>
+L'arc de courbe <span style="color:purple">violette </span> représente la fonction <span style="color:purple">\(k) </span> définie sur [-\x3;0].<br>
+</div>
+Déterminer les expressions algébriques des fonctions \(g), \(h) et \(k):
+<div class="wimscenter">
+<label for="reply1"><span style="color:blue">\(g(x))</span></label>=\embed{reply1}</div>
+<div class="wimscenter">
+<label for="reply2"><span style="color:green">\(h(x))</span></label>=\embed{reply2}</div>
+<div class="wimscenter">
+<label for="reply3"><span style="color:purple">\(k(x))</span></label>=\embed{reply3}</div>
+</div></div>
+}
+\answer{\(g(x))}{\g}{type=function}
+\answer{\(h(x))}{\h}{type=function}
+\answer{\(k(x))}{\k}{type=function}

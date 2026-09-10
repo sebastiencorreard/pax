@@ -1,0 +1,145 @@
+!set title=B. Coefficients binomiaux 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=combination
+precision=1000
+oefdescription=Pour se familiariser avec l'expression des coefficients binomiaux
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val6-($val7))]
+t_=!replace internal \( by ( in n+$val7
+tmp0=!exec maxima $t_
+
+val9=$(tmp0)
+
+!ifval $val8>0
+val10= supérieur ou égal à \($val8\).
+!else
+val10=positif.
+!endif
+!if $val6=0 
+val11=!rawmath 1
+!else
+!if $val6=1 
+val11=!rawmath $val9
+!else
+val11=!rawmath 1/($val6!)
+!for val12 =0 to $val6-1 
+t_=!replace internal \( by ( in n+$val7-$val12
+tmp0=!exec maxima $t_
+
+val11=!rawmath $val11 *($(tmp0))
+!next
+!endif
+!endif
+tmp0=!texmath $val11
+
+val13=$(tmp0)
+val14=Soit \(n\) un entier
+val15=Exprimer le coefficient binomial
+val16=en fonction de \(n\)&nbsp;
+replytype1=formal
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val14 $val10 $val15 \(\left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right )\). \end{statement} \begin{solution} \(\left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right ) =$val13.\) \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val14 $val10	<div class="wims_question">	  $val15 
+!insmath \left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right )
+$()	  $val16:	<div class="wimscenter"><label for="reply1">
+!insmath \left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right )
+$()=</label> 
+!read oef/embed.phtml reply1 
+$().</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Si 
+!insmath n
+$() et 
+!insmath k
+$() désignent des entiers positifs tels que 
+!insmath k\leq n
+$() alors	
+!insmath \left ( \begin{array}{c}n \\ k \end{array} \right )=\frac{n!}{k!\times(n-k)!}
+$().
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val14 $val10 $val15 
+!insmath \left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right )
+$(). $m_end{statement} $m_begin{solution} 
+!insmath \left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right ) =$val13.
+$() $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>
+!insmath \left ( \begin{array}{c}$val9 \\ $val6 \end{array} \right )=$val13
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,13,14,15,16
+embedcnt=1

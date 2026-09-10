@@ -1,0 +1,76 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=cube,label=false scale=0.8 height=300 width=300\
+rhombicosidodecahedron,label=true scale=1 height=300 width=300
+!exit
+
+:proc
+modification lorsqu'on appelle un polyedre par son nom
+pas clean
+slib_data = !item 1 of $wims_read_parm
+slib_option= !item -1 of $wims_read_parm
+
+!default slib_cnt=0
+slib_cnt= $[$slib_cnt +1]
+
+!for slib_a in label,scale,box,bonds,bgcolor,bondcolor,format,width,height
+  slib_$slib_a=!getopt $slib_a in $slib_option
+!next slib_a
+
+
+!default slib_label=false
+!default slib_bgcolor=ffffff
+!default slib_bondcolor=000000
+!default slib_box=true
+!default slib_bonds=true
+!default slib_scale=0.8
+!default slib_format=pdb
+!default slib_width=300
+!default slib_height=300
+
+slib_out=
+
+slib_cnt_word=!wordcnt $slib_data
+!if $slib_cnt_word=1
+  slib_data=!record 0 of data/polyedre_off/$slib_data.off
+  slib_format=off
+!endif
+
+!if $slib_format issametext off
+ !!readproc slib/geo3D/off2xyz $slib_data
+ slib_atomes=$slib_data
+!else
+slib_atomes=$slib_data
+!endif
+slib_atomes=!translate $	$ to $\
+$ in $slib_atomes
+!default slib_cnt=0
+slib_cnt= $[$slib_cnt+1]
+slib_fichier=fichier.$slib_cnt
+
+!readproc oef/togetfile.proc $slib_fichier new\
+$slib_atomes
+
+!readproc slib/geo3D/off2jmol $slib_atomes,[SS,A,F],[green,green,lightgreen],[0.01,0.01],url distance
+!readproc slib/chemistry/jmolshow $(slib_out[2]),300,300,white,script "$(slib_out[1])";zoom 180,$id
+
+
+!!slib_out=$wims_ref_name?session=$session&+cmd=getfile&+special_parm=$slib_fichier
+
+!!slib_out=<object type="application/x-java-applet;jpi-version=1.4" \
+ classid="java:LatticeViewer.class" width="$(slib_width)px" height="$(slib_height)px">\
+<param name="java_codebase" value="java/Lattice">\
+<param name="java_code" value="LatticeViewer.class">\
+<param name="java_archive" value="Lattice.jar">\
+<param name="model" value="$slib_out">\
+<param name="label" value="$slib_label">\
+<param name="scale" value="$slib_scale">\
+<param name="box" value="$slib_box">\
+<param name="bonds" value="$slib_bonds">\
+<param name="bgcolor" value="$slib_bgcolor">\
+<param name="bondcolor" value="$slib_bondcolor">\
+</object>

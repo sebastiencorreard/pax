@@ -1,0 +1,185 @@
+!set title=Étude de signe 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Compléter le tableau de signes de
+val7=En quelle valeur de \(x\) le binôme du premier degré,	  s'annule-t-il&nbsp;, pour
+val8=Le binôme du premier degré, s'annule pour
+val9=Le binôme du premier degré \(a x+b\) s'annule en ,	  et change de signe,	  Il est du signe du coefficient \(a\) lorsque
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 4
+
+val10=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val11=$[rint((-1)^$(tmp0)*$(tmp1))]
+t_=!rawmath -$val11/$val10
+val12=!exec pari print($t_)
+val13=!rawmath $val10 *x + $val11
+
+!ifval $val10==1
+val13=!rawmath x + $val11
+!endif
+
+!ifval $val10==-1
+val13=!rawmath -x + $val11
+!endif
+t_=!rawmath -$val11/$val10
+val14=!exec pari print($t_)
+val15=-,+
+val16=-,+
+val17=0,||,|
+
+!ifval $val10>0
+val18=1
+!else
+val18=2
+!endif
+
+!ifval $val10>0
+val19=2
+!else
+val19=1
+!endif
+val20=1
+oefsteps=reply1	reply2,reply3,reply4,reply5 
+nextstep=!nosubst reply1	reply2,reply3,reply4,reply5 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=nonstop 
+replyname1=
+replygood1=$val14
+replytype2=numexp
+replyname2=
+replygood2=$val14
+replytype3=menu
+replyname3=
+replygood3=$val18 ; $val15
+replytype4=menu
+replyname4=
+replygood4=$val20 ; $val17
+replytype5=menu
+replyname5=
+replygood5=$val19 ; $val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()	<div class="background-color:#FFFF66">	<p>$(val7[1]) 
+!insmath $val13
+$() $(val7[2])?</p>	<div class="wimscenter"> 
+!insmath $val13 = 0 
+$() $(val7[3]) <label for="reply1">
+!insmath x
+$() =</label>	 
+!read oef/embed.phtml reply1,5 
+$().</div></div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<div class="background-color:#FFFF66">	<p>$(val8[1]) 
+!insmath $val13
+$() $(val8[2]) 
+!insmath  x 
+$() = $val14.</p>	<p>$val6 
+!insmath $val13
+$().</p>	<table class="wimscenter" border=1 border="solid" width="70%">	<tr>	<td width="15%" align="center">	
+!insmath x
+$()</td><td width="30%" align="left">
+!insmath -\infty
+$()</td>	<td width="5%" align="center"> 
+!read oef/embed.phtml reply2,5 
+$()</td>	<td width="30%" align="right">
+!insmath +\infty
+$()</td>	</tr><tr>	<td width="15%" align="center">
+!insmath $val13
+$()</td><td width="30%" align="center">	 
+!read oef/embed.phtml reply3 
+$()</td><td width="5%" align="center"> 
+!read oef/embed.phtml reply4 
+$()</td><td width="30%" align="center">  
+!read oef/embed.phtml reply5 
+$()</td>	</tr>	</table>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	<p style="color:blue">$(val9[1]) 
+!insmath -\frac{b}{a}
+$() $(val9[2])
+!insmath -\frac{b}{a}
+$().	$(val9[3]) 
+!insmath x > -\frac{b}{a}
+$().</p>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,13,14
+embedcnt=5

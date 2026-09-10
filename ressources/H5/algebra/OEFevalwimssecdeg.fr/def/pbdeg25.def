@@ -1,0 +1,265 @@
+!set title=Problème du second degré 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Maguy, Bruno
+email=regine@mangeard.fr
+keywords=equations, trinomial,roots
+
+ansorder=r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange -15,15	 yrange -15,15	 parallel -15,-15,-15,15,1,0,30,gray	 parallel -15,-15,15,-15,0,1,30,gray	 linewidth 2	 arrow 0,-15,0,15,10,blue	 arrow -15,0,15,0,10,blue	 segment -0.2,1,0.2,1,black	 segment 1,-0.2,1,0.2,black	 text black,-0.7,1.5,small,1	 text black,0.7,-0.5,small,1	
+tmp0=!randint 1, 2
+
+val7=$[rint($(tmp0))]
+tmp0=!makelist x,-x for x=1 to 10
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!randint 2, 5
+
+t_=!rawmath $(val8[1])/$(tmp0)
+val9=!exec pari print($t_)
+tmp0=!randint 2, 5
+
+t_=!rawmath $(val8[2])/$(tmp0)
+val10=!exec pari print($t_)
+val11=$[rint(1)]
+!while $val11 < 10 and $val9=-($val10) 
+tmp0=!randint 2, 5
+
+t_=!rawmath $(val8[2])/$(tmp0)
+val10=!exec pari print($t_)
+val11=$[rint($val11+1)]
+!endwhile
+!if $val9=-$val10 
+t_=!rawmath $(val8[1])/3
+val9=!exec pari print($t_)
+t_=!rawmath $val9+1
+val10=!exec pari print($t_)
+!endif
+!if $val7=1 
+
+!ifval $val9<$val10
+t_=!rawmath $val9
+val12=!exec pari print($t_)
+!else
+t_=!rawmath $val10
+val12=!exec pari print($t_)
+!endif
+
+!ifval $val9<$val10
+t_=!rawmath $val10
+val13=!exec pari print($t_)
+!else
+t_=!rawmath $val9
+val13=!exec pari print($t_)
+!endif
+!else
+
+!ifval abs($val9)<abs($val10)
+t_=!rawmath $val9
+val12=!exec pari print($t_)
+!else
+t_=!rawmath $val10
+val12=!exec pari print($t_)
+!endif
+
+!ifval abs($val9)<abs($val10)
+t_=!rawmath $val10
+val13=!exec pari print($t_)
+!else
+t_=!rawmath $val9
+val13=!exec pari print($t_)
+!endif
+!endif
+
+!ifval $val7=1
+tmp=!translate ";': to $     $ in $val12+($val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val14=!exec pari print($t_)
+!else
+tmp=!translate ";': to $     $ in $val12-($val13)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+val14=!exec pari print($t_)
+!endif
+
+!ifval $val7=1
+t_=!rawmath  $val12*($val13)
+val15=!exec pari print($t_)
+!else
+t_=!rawmath -($val12)*$val13
+val15=!exec pari print($t_)
+!endif
+t_=!rawmath ($val14)^2-4*($val15)
+val16=!exec pari print($t_)
+val17=$val14
+tmp0=!replace internal / by , in $val17
+
+val17=$(tmp0)
+tmp0=!itemcnt $val17
+
+
+!ifval $(tmp0)=1
+val17=$(val17[1])
+!else
+val17=\frac{$(val17[1])}{$(val17[2])}
+!endif
+t_=!rawmath $val12*($val13)
+val18=!exec pari print($t_)
+tmp0=!replace internal / by , in $val18
+
+val18=$(tmp0)
+tmp0=!itemcnt $val18
+
+
+!ifval $(tmp0)=1
+val18=$(val18[1])
+!else
+val18=\frac{$(val18[1])}{$(val18[2])}
+!endif
+
+!ifval $val7=1
+val19=x+y=$val17
+!else
+val19=x-y=$val17
+!endif
+val20=x y=$val18
+tmp0=!texmath x^2-$val14*x+$val15=0
+
+val21=$(tmp0)
+replytype1=numexp
+replyname1=x1
+replygood1=$val12
+replytype2=numexp
+replyname2=x2
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Résoudre le système, avec	  
+!if $val7=1 
+$()
+!insmath x \leq y
+$() 
+!else
+$() 
+!insmath |x| \leq |y|
+$() 
+!endif
+$() :	<div class="wimscenter">
+!insmath \begin{cases}$val19\\ $val20\end{cases}
+$()	</div>	<div class="wimscenter">	  <label for="reply1">Valeur de 
+!insmath x
+$()</label>: 
+!read oef/embed.phtml reply 1,10 
+$()	</div><div class="wimscenter">	  <label for="reply2">Valeur de 
+!insmath y
+$()</label>: 
+!read oef/embed.phtml reply 2,10 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Les nombres 
+!insmath x
+$() et 
+!if $val7=1 
+$()
+!insmath y
+$() 
+!else
+$() 
+!insmath -y
+$() 
+!endif
+$() ont pour somme 
+!insmath $val17
+$() et pour produit	
+!insmath $val15
+$() ; ils sont donc solutions de l'équation du second degré:	<div class="wimscenter">
+!insmath $val21
+$().</div>	<p>Le discriminant de ce polynôme est égal à 
+!insmath $val16
+$(), ses racines	 sont 
+!if $val7=1 
+$()	 
+!insmath $val12
+$() et 
+!insmath $val13
+$(). 
+!else
+$()  
+!insmath $val12
+$() et 
+!insmath -($val13)
+$(). 
+!endif
+$()	Le problème posé a donc comme solution 
+!insmath ($val12,$val13)
+$().	</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,12,13,15,16,17,19,20,21
+embedcnt=2

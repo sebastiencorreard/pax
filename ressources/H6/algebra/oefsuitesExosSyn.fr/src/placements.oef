@@ -1,0 +1,102 @@
+\title{Valorisation d'un capital}
+\language{fr}
+\range{-5..5}
+\author{Véronique Royer}
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+
+\text{goodrep=shuffle(Exact,Bien,Juste,Bravo,Bonne réponse,Oui)}
+\text{erreur=shuffle(Erreur,Faux,Inexact,Mauvaise réponse,Non)}
+
+\integer{c0=random(10..50)*100}
+  \integer{t=randint(10..100)}
+\real{t=randint(1,2)+\t*0.01}
+\real{m=\t*0.01}
+\real{I=\c0*\m}
+\real{q=1+0.01*\t}
+\integer{cas=randitem(1,2)}
+\text{type=item(\cas,simples,composés)}
+\text{nature=item(\cas,arithmétique,géométrique)}
+\real{raison=item(\cas,\I,\q)}
+\real{rep1=(\cas=1)?\c0+\I:\q*\c0}
+\real{rep2=(\cas=1)?\rep1+\I:\rep1*\q}
+\integer{tant=randitem(10,20,30,40,50)}
+\real{m2=0.01*\tant}
+\real{q2=1+0.01*\tant}
+\real{sol=\cas=1?(\m2*\c0)/(\I):log(\q2)/log(\q)}
+\real{rep3=pari(ceil( \sol ))}
+
+\steps{reply1,reply2
+reply3,reply4
+reply5}
+
+\statement{
+<div style="background-color:#FFFF66">
+<p><font color=blue>
+ Un particulier place  un capital initial \(C_0) de \c0 euros.
+Les intérêts sont \type, au taux annuel de \t %.<br>
+On note  \(C_n) le capital disponible au bout de \(n) années
+de placement (exprimé en euros).
+</font></p>
+
+
+<ol>
+<li>Calculer les valeurs exactes des capitaux disponibles respectivement  après un an et deux ans de placement:
+<center>\(C_1 ) = \embed{reply1,8} &nbsp;et &nbsp; \(C_2 ) = \embed{reply2,8}</li></center>
+
+\if{\step>1}{
+
+\if{\reply1=\rep1 and \reply2=\rep2}
+    {<font color=green>\goodrep[1] !</font>}
+     {<font color=red>\erreur[1] !
+      \if{\cas=1}{Le placement est à intérêts simples, donc chaque année le capital augmente d'un intérêt fixe \(I) égal à \t %  de \(C_0). <br>
+          On a : \(I = \m\times\c0 = \I ) ;  \( C_1 = C_0 + I = \rep1 ) ;    \( C_2 = C_1 + I = C_0 + 2 I = \rep2 ).}
+         {Le placement est à intérêts composés, donc chaque année \(n+1) le capital augmente d'un intérêt variable \(I_n) égal à \t %  de \(C_n).<br>
+          On a :   \( C_1 = C_0 + \m \times C_0 = \q\times C_0 = \rep1 )  ; \( C_2 = C_1 + \m\times C_1 = \q\times C_1 = \rep2 ) }
+     </font>}
+
+<li>La suite des capitaux \((C_n)) est \embed{reply3} de raison \embed{reply4,5}.</li>
+}
+
+\if{\step>2}{
+
+\if{\reply3=\nature and \reply4=\raison}
+    {<font color=green>\goodrep[2] !</font>}
+     {<font color=red>\erreur[2] !
+      \if{\cas=1}{Le placement est à intérêts simples, donc de l'année \(n) à la suivante on a  : \(C_{n+1} = C_n + I) où \(I) est l'intérêt fixe \(I = \I).<br>}
+         {Le placement est à intérêts composés, donc de l'année \(n) à la suivante on a  : \(C_{n+1} = C_n +   \m\times C_n = \raison \times C_n ).<br>}
+      La suite \((C_n)) est \nature de raison \raison et de premier terme \(C_0 = \c0).
+     </font>}
+
+<li>Pour obtenir un capital qui ait augmenté de  \tant pour cent par rapport  au capital initial,
+  il faut le placer pendant au moins \embed{reply5,5} années pleines. </li>
+}
+
+</ol>
+</div>
+}
+
+\feedback{\step=3 }
+{<font color=blue><b>Corrigé détaillé de la question 3 </b> : On cherche le plus petit entier \(n) tel que  \( C_n \geq \q2 C_0).
+   <br> On peut trouver la solution à l'aide d'une calculatrice, ou  résoudre l'inéquation comme suit.<br>
+  \if{\cas=1}
+  { La formule donnant le capital \(C_n) est \(C_n = C_0 + n\times I ) avec \(I =\I).
+    <center> \( C_n \geq \q2 \times C_0  \iff  C_0 + n\times I \geq \q2 \times C_0 \iff
+   n\times I \geq \m2\times C_0  \iff n \geq \frac{ \m2 \times C_0}{I } )</center>
+   \( \frac{ \m2 \times C_0}{I }  \simeq \sol) d'où \( n \geq \sol).
+   }
+  {La formule donnant le capital \(C_n) est \(C_n = C_0 \times q^{n} ) avec \(q = \q).
+    <center> \( C_n \geq \q2 C_0  \iff  C_0 \times \q^{n} \geq \q2 \times C_0 \iff
+   \q^{n} \geq \q2   \iff \ln(\q^{n}) \geq \ln(\q2) \iff
+   n\times \ln(\q) \geq \ln(\q2) \iff n  \geq \frac{\ln(\q2)}{\ln(\q)} )</center>
+   \( \frac{\ln(\q2)}{\ln(\q)}  \simeq \sol) d'où \( n \geq \sol).
+  }
+  Le nombre miminal d'années qui convient est  \( n_0 = \rep3).
+</font>}
+\answer{C1}{\rep1}{type=numeric}{option=nonstop}
+\answer{C2}{\rep2}{type=numeric}{option=nonstop}
+\answer{nature}{\cas;arithmétique,géométrique}{type=menu}{option=nonstop}
+\answer{raison}{\raison}{type=numeric}{option=nonstop}
+\answer{temps mini placement}{\rep3}{type=integer}

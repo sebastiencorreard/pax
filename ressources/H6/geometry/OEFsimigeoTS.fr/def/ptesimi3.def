@@ -1,0 +1,226 @@
+!set title=Propriété des similitudes 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r,r,r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=ruche.ggb
+val7=
+val8=file=$val6	width=500	height=400	showToolBar=true	customToolBar="40|41|42|"	showAlgebraInput=false
+!readproc slib/geo2D/geogebra $val7 , $val8 
+tmp0=$slib_out
+val9=$(tmp0)
+val10=\frac{2\sqrt{3}}{3},\frac{\sqrt{3}}{2},\frac{\pi}{6},P,M,I,H,E,B,M,H,L,E,A,B,I,L,P,Q,T,W	\frac{\sqrt{3}}{2},\frac{2\sqrt{3}}{3},\frac{\pi}{6},Q,H,L,I,A,D,Z,P,T,H,Q,M,I,P,Q,Q,W,Z,P,Z,U	\sqrt{3},\frac{\sqrt{3}}{3},\frac{5\pi}{6},P,Q,K,H,I,C,Q,M,T,I,E,L,H,L,E,P,T,M	\frac{\sqrt{3}}{3},\sqrt{3},\frac{5\pi}{6},P,S,Q,H,K,I,Q,L,U,I,D,M,H,M,D,P,U,L	\sqrt{3},\frac{\sqrt{3}}{3},\frac{\pi}{2},H,I,A,P,Q,H,Q,M,L,I,E,D,M,I,P,E,B,H	\frac{\sqrt{3}}{3},\sqrt{3},\frac{\pi}{2},I,B,H,Q,I,P,M,H,Q,E,A,I,I,L,M,B,D,E	
+val11=2*sqrt(3)/3,sqrt(3)/2,1/6	\sqrt(3)/2,2*sqrt(3)/3,1/6	sqrt(3),sqrt(3)/3,5/6	sqrt(3)/3,sqrt(3),5/6	sqrt(3),sqrt(3)/3,1/2	sqrt(3)/3,sqrt(3),1/2	
+val12=la similitude directe de centre 
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val13=$[rint($(tmp1))]
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $val13 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val13 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val17=$[rint($(tmp0))]
+
+!ifval $val16=1
+val18=$(val14[1])
+!else
+val18=$(val14[2])
+!endif
+
+!ifval $val16=1
+val19=$(val15[1])
+!else
+val19=$(val15[2])
+!endif
+
+!ifval $val16=1
+val20=$(val14[3])
+!else
+val20=-$(val14[3])
+!endif
+
+!ifval $val16=1
+val21=$(val15[3])
+!else
+val21=-$(val15[3])
+!endif
+tmp0=!itemcnt $val14
+
+val22=$[rint($(tmp0)/3)]
+tmp0=!randint 1, $val22-1
+
+val23=$[rint($(tmp0))]
+val24=$(val14[3*$val23+1])
+val25=$(val14[3*$val23+1])
+
+!ifval $val16=1
+val26=$(val14[3*$val23+2])
+!else
+val26=$(val14[3*$val23+3])
+!endif
+
+!ifval $val16=2
+val27=$(val14[3*$val23+2])
+!else
+val27=$(val14[3*$val23+3])
+!endif
+!if $val17=1 
+
+!ifval $val16=1
+val28=du point $(val14[3*$val23+2])
+!else
+val28=du point $(val14[3*$val23+3])
+!endif
+val29=$val12 $val24 , de rapport \($val18) et d'angle \($val20)
+!endif
+val30=r$val17
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=nocase
+replyname1=image
+replygood1=$val27
+replytype2=numexp
+replyname2=angle
+replygood2=$val21
+replytype3=numeric
+replyname3=rapport
+replygood3=$[$val19]
+replytype4=nocase
+replyname4=antecédent
+replygood4=$val26
+replytype5=nocase
+replyname5=centre
+replygood5=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">$val9</div>	 <div class="medium_size text_col">	<p>Tous les hexagones sont réguliers.</p>	
+!if $val17=1 
+$()	<p><label for="reply1">Quelle est l'image $val28 par $val29 ?</label></p>	<div class="wimscenter">  
+!read oef/embed.phtml reply1,3 
+$()</div>	 
+!endif
+$()	
+!if $val17=2 
+$()	  <label for="reply2">Quel est l'angle de la similitude directe de	  centre $val24 et de rapport 
+!insmath $val18
+$() qui envoie $val26 sur $val27?</label>	  <div class="wimscenter">  
+!read oef/embed.phtml reply2,3 
+$()
+!insmath \pi
+$()</div>	 
+!endif
+$()	
+!if $val17=3 
+$()	  <label for="reply3">Quel est le rapport de la similitude directe de centre $val24	  et d'angle 
+!insmath $val20
+$() qui envoie $val26 sur $val27?	  </label>	  <div class="wimscenter">  
+!read oef/embed.phtml reply3,7 
+$()</div>	  <div class="wims_instruction"> Taper sqrt(a) pour 
+!insmath \sqrt{a}
+$()</div>	 
+!endif
+$()	
+!if $val17=4 
+$()	  <label for="reply4">Quel est l'antécédent du point $val27 par la	    similitude directe de centre $val24, d'angle 
+!insmath $val20
+$() et de rapport 
+!insmath $val18
+$()?	    </label>	  <div class="wimscenter">  
+!read oef/embed.phtml reply4,5 
+$()</div>	 
+!endif
+$()	
+!if $val17=5 
+$()	  <label for="reply5">Quel est le centre de la similitude directe	  d'angle 
+!insmath $val20
+$() et de rapport 
+!insmath $val18
+$() qu envoie le point $val26 sur le point $val27?	  </label><div class="wimscenter">  
+!read oef/embed.phtml reply5,5 
+$()</div>	 
+!endif
+$()	<div class="wims_instruction">Utiliser le zoom si les points n'apparaissent pas.</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,17,18,20,24,26,27,28,29
+embedcnt=5

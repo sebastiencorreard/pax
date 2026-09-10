@@ -1,0 +1,45 @@
+target=oefrecqua5
+
+\langage{fr}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\format{html}
+\text{nom=shuffle(A,B,C,E,F,G,H,J,K,L,M,N,R,S,T)}
+
+\text{ang=randomitem(0,30,60,90,120,150,180,210,240,270,300,330)}
+\text{fig=draw(300,300
+xrange -150,150
+yrange -150,150
+rotate \ang
+circle -65,0,160,black
+circle 65,0,160,black
+linewidth 2
+poly red,-65,80,65,80,65,-80,-65,-80
+poly black,-145,0,-65,80,15,0,-65,-80
+poly blue,145,0,65,80,15,0,65,-80
+poly green,-65,0,0,45,65,0,0,-45
+text black,-75,0,medium,\nom[1]
+text black,70,0,medium,\nom[2])}
+
+\text{a=shuffle(4)}
+\text{coul=\name_coul}
+
+\text{des=<img src="\fig" alt="">}
+\statement{<div class="wims_columns">
+ <div class="medium_size img_col">\des</div>
+ <div class="medium_size text_col">
+\name_enonce[1] \nom[1] \name_enonce[2] \nom[2] \name_enonce[3].
+<p>\name_question[1]:</p>
+<ul> <li>\name_question[2] \coul[\a[1]] : \embed{r1,150x40}
+</li><li>\name_question[2] \coul[\a[2]] : \embed{r2,150x40}
+</li><li>\name_question[2] \coul[\a[3]] : \embed{r3,150x40}
+</li><li>\name_question[2] \coul[\a[4]] : \embed{r4,150x40}</li></ul>
+</div></div>
+}
+
+\answer{}{\noms[\a[1]];\noms}{type=clickfill}
+\answer{}{\noms[\a[2]];\noms}{type=clickfill}
+\answer{}{\noms[\a[3]];\noms}{type=clickfill}
+\answer{}{\noms[\a[4]];\noms}{type=clickfill}

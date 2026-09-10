@@ -1,0 +1,186 @@
+!set title=Angle de similitude directe 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1/2,1/3,1/4,1/5,1/6,2/5,3/5
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)
+val7=!exec pari print($t_)
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+t_=!rawmath $val7+$val8
+val9=!exec pari print($t_)
+
+!ifval $val9>=1
+t_=!rawmath ($val8)/2
+val8=!exec pari print($t_)
+!endif
+t_=!rawmath $val7+$val8
+val9=!exec pari print($t_)
+tmp=!translate ";': to $     $ in 1-$val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val10=!exec pari print($t_)
+tmp0=!texmath $val7*x
+
+val11=$(tmp0)
+tmp0=!texmath -$val7*x
+
+val12=$(tmp0)
+tmp0=!texmath $val8*x
+
+val13=$(tmp0)
+tmp0=!texmath -$val8*x
+
+val14=$(tmp0)
+tmp0=!texmath $val10*x
+
+val15=$(tmp0)
+tmp0=!texmath -$val10*x
+
+val16=$(tmp0)
+tmp0=!replace internal x by \pi in $val11
+
+val11=$(tmp0)
+tmp0=!replace internal x by \pi in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal x by \pi in $val13
+
+val13=$(tmp0)
+tmp0=!replace internal x by \pi in $val14
+
+val14=$(tmp0)
+tmp0=!replace internal x by \pi in $val15
+
+val15=$(tmp0)
+tmp0=!replace internal x by \pi in $val16
+
+val16=$(tmp0)
+val17=\((\overrightarrow{OA},\overrightarrow{OB})=$val11),\((\overrightarrow{OB},\overrightarrow{OA})=$val12),\((\overrightarrow{AO},\overrightarrow{BO})=$val11),\((\overrightarrow{BO},\overrightarrow{AO})=$val12)
+val18=\((\overrightarrow{BO},\overrightarrow{BA})=$val13),\((\overrightarrow{BA},\overrightarrow{BO})=$val14),\((\overrightarrow{OB},\overrightarrow{AB})=$val13),\((\overrightarrow{AB},\overrightarrow{OB})=$val14)
+val19=\((\overrightarrow{AO},\overrightarrow{AB})=$val16),\((\overrightarrow{AB},\overrightarrow{AO})=$val15),\((\overrightarrow{OA},\overrightarrow{BA})=$val16),\((\overrightarrow{BA},\overrightarrow{OA})=$val15)
+tmp0=!randint 1, 3
+
+val20=$[rint($(tmp0))]
+!if $val20=1 
+tmp=!nonempty items $val17
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+tmp=!nonempty items $val18
+
+tmp0=!randitem $tmp
+val22=$(tmp0)
+!endif
+!if $val20=2 
+tmp=!nonempty items $val18
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+tmp=!nonempty items $val19
+
+tmp0=!randitem $tmp
+val22=$(tmp0)
+!endif
+!if $val20=3 
+tmp=!nonempty items $val19
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+tmp=!nonempty items $val17
+
+tmp0=!randitem $tmp
+val22=$(tmp0)
+!endif
+replytype1=numexp
+replyname1=angle
+replygood1=$val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère 3 points 
+!insmath O,A
+$() et 
+!insmath B
+$() du plan tels que:	</p>	<div class="wimscenter"> $val21 et $val22</div>	Quel est l'angle de la similitude directe de centre O qui envoie 
+!insmath A
+$() sur 
+!insmath B
+$()?	<div class="wimscenter"><label for="reply1">angle de similitude =</label>  
+!read oef/embed.phtml reply1,4 
+$()
+!insmath \pi
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,22
+embedcnt=1

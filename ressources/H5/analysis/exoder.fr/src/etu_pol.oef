@@ -1,0 +1,151 @@
+\title{Etude d'un polynôme}
+\keywords{roots,functions, derivative, extremum}
+\language{fr}
+\range{-5..5}
+\author{Frédéric, Pitoun}
+\email{lva.pitoun@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{u0=random(-10..10)}
+\integer{v0=random(-10..10)}
+\if{\u0>\v0}{
+\integer{u=\v0}
+\integer{v=\u0}
+}{
+\integer{u=\u0}
+\integer{v=\v0}
+}
+
+\integer{a=random(-20..20)}
+\integer{b=\a+randint(1..40)}
+
+\if{\a<=\u}{
+\integer{t0=0}
+}
+\if{\a>u and \a<\v}{
+\integer{t0=1}
+}
+
+\if{\a>=\v}{
+\integer{t0=2}
+}
+
+\if{\b<=\u}{
+\integer{t1=0}
+}
+\if{\b>u and \b<\v}{
+\integer{t1=1}
+}
+
+\if{\b>=\v}{
+\integer{t1=2}
+}
+
+\integer{tg=\t1+3*\t0+1}
+
+\text{sols=\u,\v}
+\integer{k=random(-1,1)}
+
+\function{fd=\k*(x-\u)*(x-\v)}
+\function{fd=maxima(expand(6*(\fd)))}
+\function{f=maxima(integrate(\fd))}
+\function{f=maxima(expand(\f))}
+
+\rational{fu=evalue(\f,x=\u)}
+\rational{fv=evalue(\f,x=\v)}
+\rational{fa=evalue(\f,x=\a)}
+\rational{fb=evalue(\f,x=\b)}
+
+\if{\k>0}{
+\matrix{lmin=\fa,min(\fa,\fb),min(\fa,\fv),so,\fb,\fv,so,so,\fa}
+\matrix{lmax=\fb,\fu,max(\fu,\fb),so,\fa,max(\fa,\fb),so,so,\fb}
+\integer{nk=1}
+}{
+\matrix{lmax=\fa,min(\fa,\fb),max(\fa,\fv),so,\fb,\fv,so,so,\fa}
+\matrix{lmin=\fb,\fu,min(\fu,\fb),so,\fa,min(\fa,\fb),so,so,\fb}
+\integer{nk=2}
+}
+
+\if{\u=\v}{
+\integer{nk=3}
+}
+\rational{minf=pari(item(\tg,\lmin))}
+\rational{maxf=pari(item(\tg,\lmax))}
+
+\if{\fu>0}{
+\integer{\nu=0}
+}
+\if{\fu=0}{
+\integer{\nu=1}
+}
+\if{\fu<0}{
+\integer{\nu=2}
+}
+\if{\fv>0}{
+\integer{\nv=0}
+}
+\if{\fv=0}{
+\integer{\nv=1}
+}
+\if{\fv<0}{
+\integer{\nv=2}
+}
+
+\integer{d=\nu*3+\nv+1}
+
+\if{\k>0}{
+\text{pos=1,2,3,Imp,1,2,Imp,Imp,1}
+}
+\if{\k<0}{
+\text{pos=1,Imp,Imp,2,1,Imp,3,2,1}
+}
+
+\integer{n=item(\d,\pos)}
+
+\steps{
+reply 1
+reply 2
+reply 3
+reply 4, reply 5
+reply 6
+}
+
+\integer{debug=0}
+
+
+\text{ftex=texmath(simplify(\f))}
+
+\statement{
+On considère une fonction \(f), définie sur \(\mathbb{R}) par la
+relation \(f(x)=\ftex).
+<div>
+\if{\step=1}{La dérivée de la fonction\(f) est donnée par \(f'(x)=)\embed{reply 1,20}.}
+\if{\step=2}{Oui, on a \(f'(x)=\fd), les solutions de l'équation \(f'(x) = 0) sont \embed{reply 2,10}.}
+\if{\step=3}{Sur l'intervalle \(=\lbrack \u;\v \rbrack), la fonction \(f) est \embed{reply 3}.}
+\if{\step=4}{Construire maintenant le tableau de variations de la
+fonction \(f) et en déduire les extrema de cette fonction sur l'intervalle \(\lbrack \a ; \b \rbrack)
+<div class="spacer">
+Sur cet intervalle le minimum de \(f) est \embed{reply 4,10} et
+son maximum \embed{reply 5,10}.
+</div>
+}
+
+\if{\step=5}{Toujours à partir du tableau de variations de \(f),
+déterminer le nombre de solutions nombre de solutions de l'équation \(f(x)=0).
+<div class="spacer">La fonction \(f) s'annule \embed{reply 6,10} fois sur
+\(\mathbb{R}).</div>}
+\if{\debug=1}{Par \(f), \u a pour image \fu et \v pour image \fv. L'intervalle considéré est \(\a;\b)
+et les images des bornes de cet intervalle sont \fa et \fb.
+Alors que le k \k et le nk est \nk et le nombre de racines est \rep.
+Les extrema sont \minf et \maxf !}
+</div>
+}
+
+\answer{Dérivée}{type=algexp}{\fd}
+\answer{Racines}{type=set}{\sols}
+\answer{Variations}{type=menu}{\nk;décroissante,croissante,sans objet}
+\answer{Min}{type=default}{\minf}
+\answer{Max}{type=default}{\maxf}
+\answer{Nombre}{type=default}{\rep}

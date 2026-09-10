@@ -1,0 +1,187 @@
+target=eqasympt
+
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{infg=\(-\infty)}
+\text{infd=\(+\infty)}
+\text{empt=\(\emptyset)}
+\text{ptvirg=&#59;}
+
+\rational{a=random(0,random(1,2,3,-1,-2,-3,1/2,1/3,-1/2,-1/3))}
+\integer{a=random(1..5)}
+\integer{b=random(1..5)}
+\integer{c=random(1..5)}
+\integer{d=random(1..5)}
+\integer{e=random(1..3)}
+\integer{g=random(1..5)}
+\integer{cb=\c*\b}
+
+%% 1:branche parabolique (Oy)
+\text{f1list=\a*x^3+\b*x^2+\c*x+\d,\a*x^3+\c*x+\d,\a*x^2+\b*x+\d,(\a*x^4+\b*x)/(\c*x^2+\d)}
+%% 2:branche parabolique (0y)+ asymptote verticale x= -\d / \c
+\text{f2list=(\a*x^3+\c)/(\c*x+\d),(\a*x^4+\b*x)/(\c*x+\d)^2,(\a*x^3+\b*x)/(\c*x+\d)}
+%% 3:branche parabolique (Ox)
+\text{f3list=\sqrt{x}+\b,\sqrt{\a x+\b},\frac{x^2\sqrt{x}+\c}{\a x^2+\b}}
+%% 4:branche parabolique (Ox) + asymptote verticale x= -\d / \c
+\text{f4list=\frac{(\c x + \d)\sqrt{x}+\cb x+\e}{\c x+\d}}
+%% 5:Asymptote horizontale y= \f
+\text{f5list= \g + \c / (\a * x^2 + \b ), \g + \c * x / (\a * x^2 + \b )}
+%% 6:Asymptote horizontale y= \f plus asymptote verticale x= -\d/ \c
+\text{f6list=(\g*\c*x+\a+\g*\d)/(\c*x+\d),(\g*\c^2*x^2+\a)/(\c*x+\d)^2}
+%% 7:Asymptote oblique y= \a x +\b
+\text{f7list=\a*x+\b+\c/(\d*x^2+\e),\a*x+\b+\c*x/(\d*x^2+\e)}
+%% 8:Asymptote oblique y= \a x+ \b plus asymptote verticale x= -\d/ \c
+\text{f8list=\a*x+\b+\e/(\c*x+\d),\a*x+\b+\e*x/(\c*x+\d)^2}
+
+\integer{cas=random(1..8)}
+%%integer{cas=3}
+\if{\cas=1}{
+   \text{indlist=1}
+   \text{step2=}
+   \function{fi=randomitem(\f1list)}
+}
+\if{\cas=2}{
+   \text{indlist=1,3}
+   \text{step2=
+r2}
+   \text{rep2=x= -\d / \c}
+   \text{quest2=\name_eqpos[1]}
+   \function{fi=randomitem(\f2list)}
+}
+\if{\cas=3}{
+   \text{indlist=2}
+   \text{step2=}
+   \function{fi=randomitem(\f3list)}
+}
+\if{\cas=4}{
+   \text{indlist=2,3}
+   \text{step2=
+r2}
+   \text{rep2=x= -\d / \c}
+   \text{quest2=\name_equpos[1]}
+   \function{fi=randomitem(\f4list)}
+}
+\if{\cas=5}{
+   \text{indlist=4}
+   \text{step2=
+r2}
+   \text{rep2=y=\g}
+   \text{quest2=\name_equpos[2]}
+   \function{fi=randomitem(\f5list)}
+}
+\if{\cas=6}{
+   \text{indlist=3,4}
+   \text{step2=
+r2,r3}
+   \text{rep2=x= -\d / \c}
+   \text{rep3=y= \g}
+   \text{quest2=\name_equpos[1]}
+   \text{quest3=\name_equpos[2]}
+   \function{fi=randomitem(\f6list)}
+}
+\if{\cas=7}{
+   \text{indlist=5}
+   \text{step2=
+r2}
+   \text{rep2=y=\a*x+\b}
+   \text{quest2=\name_equpos[3]}
+   \function{fi=randomitem(\f7list)}
+}
+\if{\cas=8}{
+   \text{indlist=3,5}
+   \text{step2=
+r2,r3}
+   \text{rep2=x= -\d / \c}
+   \text{rep3=y= \a*x+\b}
+   \text{quest2=\name_equpos[1]}
+   \text{quest3=\name_equpos[3]}
+   \function{fi=randomitem(\f8list)}
+}
+\if{\cas=3 or \cas=4}{
+  \text{ft=\(\fi)}
+}{
+\function{fj=simplify(\fi)}
+%%text{fj=wims(replace internal sqrt by \sqrt in \fj)}
+\text{num=pari(numerator(\fj))}
+\text{den=pari(denominator(\fj))}
+
+\text{ft=\den=1?\(texmath(\num)):\(\frac{texmath(pari(numerator(\fj)))}{texmath(pari(denominator(\fj)))})}
+  %%text{fi=maxima(\fi)}
+  %%text{ft=\(texmath(\fi))}
+}
+\if{\cas=1}{
+  \if{\den=1}{
+    \text{textsol= \name_textsol}
+  }{
+    \text{textsol= \name_textsol0 \name_textsol<br>\name_textsol1}
+  }
+}
+\if{\cas=2}{
+  \text{textsol= \name_textsol0 \name_textsol<br>
+  \name_textsol2[1] \rep2, \name_textsol2[2] \(\RR \setminus -\frac{\d}{\c}) \name_textsol2[3] \rep2.}
+}
+\if{\cas=3}{
+  \text{textsol= \name_textsol3}
+}
+\if{\cas=4}{
+  \text{textsol= \name_textsol3<br>
+ \name_textsol2[1] \rep2, \name_textsol2[2] \(\RR \setminus -\frac{\d}{\c}) \name_textsol2[3] \rep2.}
+}
+\if{\cas=5}{
+ \text{textsol= \name_textsol4 \rep2.<br>
+ \name_textsol1}
+}
+\if{\cas=6}{
+  \text{textsol= \name_textsol4 \rep3.<br>
+ \name_textsol2[1] \rep2, \name_textsol2[2] \(\RR \setminus \{-\frac{\d}{\c}\}\) \name_textsol2[3] \rep2.}
+}
+\if{\cas=7}{
+  \text{textsol=\name_textsol5 texmath(\rep2).<br>
+ \name_textsol1}
+}
+\if{\cas=8}{
+  \text{textsol= \name_textsol5 texmath(\rep3).<br>
+ \name_textsol2[1] \rep2,  \name_textsol2[2] \(\RR \setminus \{-\frac{\d}{\c}\}\) \name_textsol2[3] \rep2.}
+}
+
+\text{mstep=r1
+\step2}
+\steps{\mstep}
+#include "confparm.inc"
+\statement{
+<div \fsize>
+\name_enonce:
+<div class="wimscenter">\(f(x)=)\ft.</div>
+\if{\step=1}{\name_question[1]:
+<div class="wims_question">\name_question[2]:
+<ul><li>\embed{reply 1,1}</li>
+<li>\embed{reply 1,2}</li>
+<li>\embed{reply 1,3}</li>
+<li>\embed{reply 1,4}</li>
+<li>\embed{reply 1,5}</li>
+</ul>
+</div>
+}{
+  <div class="wims_question">
+  \if{\cas<>1 and \cas<>3}{
+    <label for="reply2">\quest2:</label> \embed{reply2,10}.
+    \if{\cas=6 or \cas=8}{<br>
+      <label for="reply3">\quest3:</label> \embed{reply3,10}.
+    }
+  }
+  </div>
+}
+</div>
+}
+%%%% soumission de réponse %%%%
+\answer{\name_answer}{\indlist;\listrep}{type=checkbox}
+\answer{\quest2}{\rep2}{type=equation}
+\answer{\quest3}{\rep3}{type=equation}
+\feedback{1=1}{\textsol}

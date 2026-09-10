@@ -1,0 +1,175 @@
+!set title=Tables de multiplication
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_it=Tavole di moltiplicazione
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=15
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint  5, 14
+
+val6=$(tmp0)
+tmp0=!randint 3, $val6-1
+
+val7=$(tmp0)
+val8=
+tmp0=!exec float_calc	obase=$val6; ibase=10; $val7
+
+val9=$(tmp0)
+val10=
+!for val11  = 1 to $val6-1 
+tmp0=!exec float_calc	obase=$val6; ibase=10;$val7*$val11
+
+val8=$val8, $(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=10; $val11
+
+val10=$val10, $(tmp0)
+!next
+tmp0=!nonempty items $val10
+
+val10=$(tmp0)
+tmp0=!nonempty items $val8
+
+val8=$(tmp0)
+tmp0=!makelist r x for x = 1 to $val6-1
+
+val12=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=Donner la table de multiplication par	  $val9 dans le système de numération en base $val6.
+!if $val13=it 
+val14=Scrivere tabellina (di moltiplicazione) per	  $val9 nel sistema di numerazione in base $val6.
+!endif
+val15=\begin{enumerate}
+!for val16  = 1 to $val6 -1 
+val15=$val15	\item \($(val10[$val16]) \times $val9\) = .......
+!next
+val15=$val15 \end{enumerate}
+oefsteps=$val12 
+nextstep=!nosubst $val12 
+!readproc oef/steps.proc
+replytype1=nocase
+replyname1=$val9 \(\times\) 1
+replygood1=$(val8[1])
+replytype2=nocase
+replyname2=$val9 \(\times\) 2
+replygood2=$(val8[2])
+replytype3=nocase
+replyname3=$val9 \(\times\) 3
+replygood3=$(val8[3])
+replytype4=nocase
+replyname4=$val9 \(\times\) 4
+replygood4=$(val8[4])
+replytype5=nocase
+replyname5=$val9 \(\times\) 5
+replygood5=$(val8[5])
+replytype6=nocase
+replyname6=$val9 \(\times\) 6
+replygood6=$(val8[6])
+replytype7=nocase
+replyname7=$val9 \(\times\) 7
+replygood7=$(val8[7])
+replytype8=nocase
+replyname8=$val9 \(\times\) 8
+replygood8=$(val8[8])
+replytype9=nocase
+replyname9=$val9 \(\times\) 9
+replygood9=$(val8[9])
+replytype10=nocase
+replyname10=$val9 \(\times\) 10
+replygood10=$(val8[10])
+replytype11=nocase
+replyname11=$val9 \(\times\) 11
+replygood11=$(val8[11])
+replytype12=nocase
+replyname12=$val9 \(\times\) 12
+replygood12=$(val8[12])
+replytype13=nocase
+replyname13=$val9 \(\times\) 13
+replygood13=$(val8[13])
+replytype14=nocase
+replyname14=$val9 \(\times\) 13
+replygood14=$(val8[14])
+replytype15=nocase
+replyname15=$val9 \(\times\) 13
+replygood15=$(val8[15])
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val14 $val15 \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="spacer">$val14</div>	<ul class="wims_nopuce">	 
+!for m_j = 1 to $val6-1 
+$()	  <li><label for="reply$m_j">$(val10[$m_j]) $m_times $val9</label> =  
+!read oef/embed.phtml reply \j,5 
+$()</li> 
+!next
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val14 $val15 $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,14,15
+embedcnt=1

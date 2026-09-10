@@ -1,0 +1,149 @@
+!set title=Axe et centre de symétrie 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard; Maguy, Bruno
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=A faire sans calculatrice.
+val8=et
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val9+$val10)]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+!if $val12=1 
+val13=Soit \(f) une fonction définie sur \(\RR).<br>	 Si \(f($val9)) et \(f(-$val9)) sont des nombres opposés, alors on peut en déduire	  que la courbe de \(f) est symétrique par rapport à l'origine du repère
+val14=$[rint(2)]
+!else
+val13=Soit \(f) une fonction définie sur \(\RR).<br>	 Si \(f($val9)) et \(f(-$val9)) ne sont pas des nombres opposés, alors on peut en déduire	  que la courbe de \(f) n'est pas symétrique par rapport à l'origine du repère
+val14=$[rint(1)]
+!endif
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+!if $val15=1 
+val16=Soit \(f) une fonction définie sur &#91; -$val9;$val11 &#93;.<br>	 Sa courbe représentative ne sera jamais symétrique par rapport à l'axe des ordonnées
+val17=$[rint(1)]
+!else
+val16=Soit \(f) une fonction définie sur &#91; -$val9;$val11 &#93;.<br>	 Sa courbe représentative peut être symétrique par rapport à l'axe des ordonnées
+val17=$[rint(2)]
+!endif
+tmp0=!randitem 1,2
+
+val18=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val10/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val19=!exec pari print($t_)
+tmp0=!texmath $val19
+
+val20=\($(tmp0))
+tmp=!translate ";': to $     $ in $val11/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val21=!exec pari print($t_)
+tmp0=!texmath $val21
+
+val22=\($(tmp0))
+!if $val18=1 
+val23=Soit \(f) une fonction définie sur &#91; -$val9;$val11 &#93;.<br>	  Sa courbe représentative peut être symétrique par rapport à un point d'abscisse $val20.
+val24=$[rint(1)]
+!else
+val23=Soit \(f) une fonction définie sur &#91; -$val9;$val11 &#93;.<br>	 Sa courbe représentative peut être symétrique par rapport à un point d'abscisse $val22.
+val24=$[rint(2)]
+!endif
+replytype1=radio
+replyname1=$val13
+replygood1=$val14;Vrai, Faux
+replytype2=radio
+replyname2=$val16
+replygood2=$val17;Vrai, Faux
+replytype3=radio
+replyname3=$val23
+replygood3=$val24;Vrai, Faux
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Vrai ou Faux:	<ol>	<li> $val13:  
+!read oef/embed.phtml reply1 
+$() </li>	<li> $val16:  
+!read oef/embed.phtml reply2 
+$() </li>	<li> $val23:  
+!read oef/embed.phtml reply3 
+$() </li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,16,23
+embedcnt=3

@@ -1,0 +1,352 @@
+!set title=Équation du second degré (R,A)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul@byache.fr
+keywords=equations,trinomial
+language=fr
+precision=1000
+oefobservation=Dans cet exercice, la résolution se fait dans l'ensemble des réels.<br>Il y a deux solutions distinctes dans 50% des cas. <br>Les solutions devront être données sous forme arrondies.
+
+ansorder=r,r,r,r
+varcnt=70
+prevarcnt=69
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=X
+val7=deux solutions, une solution double,pas de solution réelle
+tmp0=!randitem 1,1,2,3
+
+val8=$[rint($(tmp0))]
+val9=x_1
+val10=RR
+!if $val8=1 
+tmp0=!randint 0, 2
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=$[rint(($val11)^2/(4*($val12)))]
+!if $val12>0 
+tmp0=!randint -5, $val13-1
+
+val14=$[rint($(tmp0))]
+!else
+tmp0=!randint $val13+1, 5
+
+val14=$[rint($(tmp0))]
+!endif
+t_=!replace internal \( by ( in expand($val12*z^2+$val11*z+$val14)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val16=$[rint(($val11)^2-4*($val12)*($val14))]
+val17=$[rint(2*($val12))]
+
+!ifval $val17<0 
+val18= ($val17) 
+!else
+val18= $val17
+!endif
+val19=$[rint(-$val11)]
+
+!ifval $val11<0 
+val20= $val19 
+!else
+val20= -$val11
+!endif
+
+!ifval $val11==0 
+val21= -sqrt($val16) 
+!else
+val21= ($val20-sqrt($val16))
+!endif
+
+!ifval $val11==0 
+val22= sqrt($val16) 
+!else
+val22= ($val20+sqrt($val16))
+!endif
+tmp0=!nospace $val21 / $val18
+
+val23=$(tmp0)
+tmp0=!nospace $val22 / $val18
+
+val24=$(tmp0)
+val25=r1	  r2
+val26=Quelles sont ces solutions réelles \(x_1) et \( x_2) &#63;
+!endif
+!if $val8=2 
+tmp0=!randitem 3,7
+
+val27=$[rint($(tmp0))]
+tmp0=!randint 8, 20
+
+tmp1=!randitem 1,-1
+
+t_=!rawmath $(tmp0)*$(tmp1)/$val27
+val23=!exec pari print($t_)
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$val27^2*$(tmp1))]
+t_=!replace internal \( by ( in expand($val12*(z-$val23)^2)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val11=$[-($val12)*2*($val23)]
+val14=$[($val12)*($val23)^2]
+val25=r1	  r3
+val26=Quelle est cette solution réelle double \($val9) &#63;
+!endif
+!if $val8=3 
+tmp0=!randint 0, 2
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 0, 5
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=$[rint(($val11)^2/(4*($val12)))]
+!if $val12<0 
+tmp0=!randint -5, $val13-1
+
+val14=$[rint($(tmp0))]
+!else
+tmp0=!randint $val13+1, 5
+
+val14=$[rint($(tmp0))]
+!endif
+t_=!replace internal \( by ( in expand($val12*z^2+$val11*z+$val14)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val16=$[rint(-(($val11)^2-4*($val12)*($val14)))]
+val17=$[rint(2*$val12)]
+
+!ifval $val17<0 
+val18= ($val17) 
+!else
+val18= $val17
+!endif
+val19=$[rint(-$val11)]
+
+!ifval $val11<0 
+val20= $val19 
+!else
+val20= -$val11
+!endif
+
+!ifval $val11==0 
+val21= -i*sqrt($val16) 
+!else
+val21= ($val20-i*sqrt($val16))
+!endif
+
+!ifval $val11==0 
+val22= i*sqrt($val16) 
+!else
+val22= ($val20+i*sqrt($val16))
+!endif
+tmp0=!nospace $val21 / $val18
+
+val28=$(tmp0)
+tmp0=!nospace $val22 / $val18
+
+val29=$(tmp0)
+val23=$[(-($val11))/($val17)]
+val24=$[(-($val11))/($val17)]
+val30=$[(-sqrt($val16))/($val17)]
+val31=$[(sqrt($val16))/($val17)]
+val25=r1	  r4
+!endif
+val23=$[rint($val23*100)]
+val23=$[$val23/100]
+val24=$[rint($val24*100)]
+val24=$[$val24/100]
+val30=$[rint($val30*100)]
+val30=$[$val30/100]
+val31=$[rint($val31*100)]
+val31=$[$val31/100]
+val6=Donner des valeurs arrondies à \(10^{-2}\) près.
+val32=$[rint(5)]
+val33=aset
+tmp0=!replace internal z by x in $val15
+
+val15=$(tmp0)
+!if $val8=3 
+val25=r1
+!endif
+val16=$[($val11)^2-4*($val12)*($val14)]
+
+!ifval $val12<0 
+val34= ($val12) 
+!else
+val34= $val12
+!endif
+
+!ifval $val11<0 
+val35= ($val11) 
+!else
+val35= $val11
+!endif
+
+!ifval $val14<0 
+val36= ($val14) 
+!else
+val36= $val14
+!endif
+val37=Pour savoir combien il y a de solutions, on peut calculer le discriminant de l'équation : \(\Delta=b^2-4ac)<br>	Ici, on a \(a=$val12), \(b=$val11) et \(c=$val14). Donc le calcul du discriminant se fait ainsi :<br>	\(\Delta=$val35^2-4\times $val34 \times $val36=$val16)
+oefsteps=$val25 
+nextstep=!nosubst $val25 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=type de solutions
+replygood1=$val8;$val7
+replytype2=$val33
+
+replyoption2=distinct_inputs 
+replyname2=\(x_1) et \(x_2)
+replygood2=$val23,$val24
+replytype3=numexp
+replyname3=\($val9)
+replygood3=$val23
+replytype4=$val33
+
+replyoption4=distinct_inputs 
+replyname4=\(z_1) et \(z_2)
+replygood4=$val28,$val29
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère l'équation 
+!insmath (E) : $val15=0
+$().	<br>On veut résoudre cette équation sur 
+!insmath $val10
+$().	</p>	
+!if $m_step=1 
+$()	L'équation 
+!insmath (E)
+$() possède :	<div class="wims_question"><ul class="wims_nopuce">	<li> 
+!read oef/embed.phtml reply1,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply1,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply1,3 
+$()</li>	</ul></div>	  
+!else
+$()	  	
+!if $val8=1 
+$()L'équation 
+!insmath (E)
+$() possède $(val7[$val8]).	$val26	<div class="wims_question"><div class="wimscenter">Donner l'ensemble de ces deux solutions :  
+!read oef/embed.phtml reply2,$val32 
+$()</div></div>	  
+!endif
+$()	
+!if $val8=2 
+$()L'équation 
+!insmath (E)
+$() possède $(val7[$val8]).	$val26	<div class="wims_question"><div class="wimscenter"> 
+!insmath $val9
+$()= 
+!read oef/embed.phtml reply3,$val32 
+$()</div></div>	  
+!endif
+$()	
+!if $val8=3 
+$()L'équation 
+!insmath (E)
+$() possède $(val7[$val8]).	$val26	<div class="wims_question"><div class="wimscenter">Donner l'ensemble de ces deux solutions :  
+!read oef/embed.phtml reply4,$val32 
+$()</div></div>	  
+!endif
+$()	
+!if $val6 notsametext X 
+$()<br/><br/><div class=wims_instruction>$val6</div> 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_step=1
+ <div class='oef_feedbacks'><div class="feedback">$val37</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,15,26,32,37
+embedcnt=6

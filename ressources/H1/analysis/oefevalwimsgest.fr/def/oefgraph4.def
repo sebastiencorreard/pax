@@ -1,0 +1,170 @@
+!set title=Lire un graphique 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r
+varcnt=48
+prevarcnt=47
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Après un contrôle de mathématiques,	  le professeur dresse un tableau des notes obtenues	  par les élèves de sa classe. En utilisant le graphique,	  répondre&nbsp;	
+val7=à la question suivante&nbsp;
+tmp=!trim Quel est le nombre d'élèves qui ont	  de 10 pour note&nbsp;
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=plus,moins
+tmp0=!shuffle 0,4,7
+
+val10=$(tmp0)
+!for val11 =1 to 3 
+tmp0=!randint 2, 6
+
+val10=$val10,$(tmp0)
+!next
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp0=!randint 1, 2
+
+val12=$[rint($(tmp0))]
+!if $val12=1 
+val13=$[rint($(val10[1])+$(val10[2])+$(val10[3]))]
+val14=$(val9[2])
+!else
+val13=$[rint($(val10[4])+$(val10[5])+$(val10[6]))]
+val14=$(val9[1])
+!endif
+val15=élèves,ont
+val16=élève,a
+val17=élèves ont une note inférieure à 10.
+val18=élèves ont une note supérieure à 10.
+val19=Les autres élèves ont plus de 10.,Les autres élèves ont moins de 10.
+!if $val12=1 
+val20=$[rint(0)]
+!if $(val10[1])<2 
+val21=\($(val10[1])\) $(val16[1]) $(val16[2]) 0
+!else
+val21=\($(val10[1])\) $(val15[1]) $(val15[2]) 0
+!endif
+!for val11 =2 to 3 
+val20=$[rint($val20+4)]
+!if $(val10[$val11])<2 
+val21=$val21, \($(val10[$val11])\) $(val16[1]) $(val16[2]) $val20
+!else
+val21=$val21, \($(val10[$val11])\) $(val15[1]) $(val15[2]) $val20
+!endif
+!next
+!else
+val20=$[rint(12)]
+!if $(val10[4])<2 
+val21=\($(val10[4])\) $(val16[1]) $(val16[2]) 12
+!else
+val21=\($(val10[4])\) $(val15[1]) $(val15[2]) 12
+!endif
+!for val11 =5 to 6 
+val20=$[rint($val20+4)]
+!if $(val10[$val11])<2 
+val21=$val21, \($(val10[$val11])\) $(val16[1]) $(val16[2]) $val20
+!else
+val21=$val21, \($(val10[$val11])\) $(val15[1]) $(val15[2]) $val20
+!endif
+!next
+!endif
+!if $val12=1 
+val22=$val21. $(val19[$val12])	  <p>\($(val10[1])+$(val10[2])+$(val10[3])=$val13\)</p> \($val13\) $val17
+!else
+val22=$val21. $(val19[$val12])	  <p>\($(val10[4])+$(val10[5])+$(val10[6])=$val13\)</p>	  \($val13\) $val18
+!endif
+val23=frect 1,0,2,$(val10[1]),red
+val24=frect 3,0,4,$(val10[2]),red
+val25=frect 5,0,6,$(val10[3]),red
+val26=frect 7,0,8,$(val10[4]),red
+val27=frect 9,0,10,$(val10[5]),red
+val28=frect 11,0,12,$(val10[6]),red
+val29=
+!for val11 =0 to 20 step 4 
+val29=$val29	  text black,$val11/2+1.4,-0.2,small,$val11
+!next
+!for val11 =1 to 10 
+val29=$val29	  text black,-0.7,$val11+0.2,small,$val11
+!next
+val30=fill 0,0,220,220,255
+!readproc oef/draw.phtml 506,308, \
+  xrange -1,22	  yrange -1,8	  $val30	  parallel 1,0,1,8,1,0,20,grey	  parallel 0,0.5,21,0.5,0,0.5,16,grey	  linewidth 2	  arrow -1,0,21,0,10,black	  arrow 0,-1,0,8,10,black	  text black,18.6,0.8,medium,Notes	  text black,0.5,7.9,medium,Nbre	  $val29	$val23	$val24	$val25	$val26	$val27	$val28	  
+tmp0=$ins_url
+val31=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val22
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col">	  <img src="$val31" alt="">	  </div>	  <div class="medium_size text_col">	  $val6 $val7:		<div><label for="reply1">$(val8[1;]) $val14 $(val8[2;]) ? </label>	 
+!read oef/embed.phtml r1,5 
+$().</div>		</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val22
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,14,22,31
+embedcnt=1

@@ -1,0 +1,130 @@
+!set title=Valeur approchée 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+language=fr
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le nombre, est la valeur approchée,près, du nombre
+val7=à l'unité,au dixième,au centième,au millième,à la dizaine,à la centaine
+val8=par défaut,par excès
+val8=par défaut,par excès
+val9=+,-
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 0, 9
+
+tmp1=!randint 1, 9
+
+val11=$[rint($(tmp0)*100+$(tmp1)*10)]
+tmp0=!randint 1, 3
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 10^($val12-1), 10^$val12
+
+val13=$[rint($(tmp0))]
+val11=$[$val11-$val13/10^($val12-1)]
+tmp0=!randint 1, 499
+
+val14=$[rint($(tmp0))]
+val15=$[$val11$(val9[$val10])$val14/10^($val12+2)]
+!readproc slib/numeration/ecriturenombre $val15 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!replace internal . by , in $val15
+
+val15=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val11 
+tmp0=$slib_out
+val11=$(tmp0)
+tmp0=!replace internal . by , in $val11
+
+val11=$(tmp0)
+replytype1=menu
+replyname1=
+replygood1=$val12;$val7
+replytype2=menu
+replyname2=
+replygood2=$val10;$val8
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $(val6[1]) $val11 $(val6[2]) \(\cdots\) $(val6[3]) \(\cdots\) $(val6[4]) $val15. \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val6[1]) $val11 $(val6[2])  
+!read oef/embed.phtml r1 
+$() $(val6[3])  
+!read oef/embed.phtml r2 
+$() $(val6[4]) $val15.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $(val6[1]) $val11 $(val6[2]) 
+!insmath \cdots
+$() $(val6[3]) 
+!insmath \cdots
+$() $(val6[4]) $val15. $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,15
+embedcnt=2

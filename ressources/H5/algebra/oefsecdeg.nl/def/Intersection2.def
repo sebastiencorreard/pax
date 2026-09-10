@@ -1,0 +1,232 @@
+!set title=Doorsnede 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Frédéric PITOUN
+email=lva.pitoun@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val7*(-1)^($val8))]
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val12*(-1)^($val13)+$val10)]
+tmp=!translate ";': to $     $ in $val9/(x-$val10)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=!rawmath $val6+$(tmp0)
+tmp=!translate ";': to $     $ in $val15
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=!rawmath $(tmp0)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val17=!rawmath $(tmp1)
+tmp=!translate ";': to $     $ in $val11*x-$val11*$val14+$val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val6*(x-$val10)+$val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in ($val18)*(x-$val10)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val20)
+tmp0=!exec maxima $t_
+
+tmp=!translate ";': to $     $ in $(tmp0)-$val19
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp1)
+tmp0=!texmath $val18
+
+val22=$(tmp0)
+tmp0=!texmath $val16
+
+val23=$(tmp0)
+tmp0=!texmath $val19
+
+val24=$(tmp0)
+tmp0=!texmath $val20
+
+val25=$(tmp0)
+tmp0=!texmath $val21
+
+val26=$(tmp0)
+tmp=!translate ";': to $     $ in 	$val9/($val11*($val10-$val14))+$val10	
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=!rawmath $(tmp0)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val27) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in 	$(tmp0)	
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val28=!rawmath $(tmp1)
+tmp=!translate ";': to $     $ in ($val27)+(-1)*($val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val29=$[$(tmp0)]
+
+!ifval ($val29>=0)
+val30=!rawmath $val14
+!else
+val30=!rawmath $val27
+!endif
+
+!ifval ($val29>=0)
+val31=!rawmath $val17
+!else
+val31=!rawmath $val28
+!endif
+
+!ifval ($val29>=0)
+val32=!rawmath $val27
+!else
+val32=!rawmath $val14
+!endif
+
+!ifval ($val29>=0)
+val33=!rawmath $val28
+!else
+val33=!rawmath $val17
+!endif
+val34=De vergelijking van de hyperbool kan geschreven worden in de vorm \(y=$val23), om de intersectiepunten van \(H) en \(d) te vinden, moet men dus de volgende vergelijking oplossen<br/>	<p align="center"> 	\(	\begin{array}{cccc}	& $val23 & = & $val22 \\	\Leftrightarrow & $val24 & = & $val25 \\	\Leftrightarrow & 0 & = & $val26	) <p/> <br/>	Deze laatste vergelijking heeft	
+
+!ifval ($val14=$val27)
+val35= een unieke oplossing, namelijk \($val30). Deze twee krommen hebben een uniek intersectiepunt, namelijk \(A($val14;$val17))
+!else
+val35= twee oplossingen \($val30) en \($val32). Deze twee krommen hebben twee intersectiepunten \(A($val14;$val17)) en \(B($val27;$val28))
+!endif
+replytype1=default
+replyname1=x-coordinaat van het 1e intersectiepunt
+replygood1=$val30
+replytype2=default
+replyname2=y-coordinaat van het 1e intersectiepunt
+replygood2=$val31
+replytype3=default
+replyname3=x-coordinaat van het 2e intersectiepunt
+replygood3=$val32
+replytype4=default
+replyname4=y-coordinaat van het 2e intersectiepunt
+replygood4=$val33
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Herschrijf de vergelijking zodat je een kruisproduct kunt gebruiken.
+
+solution=!nosubst $val34 $val35
+
+
+!goto stat
+
+!exit
+
+:question
+$()Bepaal de coordinaten van het of de punten in de doorsnede van lijn 
+!insmath d
+$() gegeven door 
+!insmath y=$val22
+$() en hyperbool 
+!insmath H
+$() gegeven door 
+!insmath y=$val15
+$().<br/>	<b>Belangrijke opmerkingen:</b> 	<ul>	<li>	    Als je maar een intersectiepunt vindt, vul zijn coordinaten dan twee keer in. 	</li>	<li>	    Als je twee intersectiepunten vindt, vul dan als eerste diegene in met het kleinste x-coordinaat.	</li>	<li>	    Numerieke antwoorden moeten exact zijn.	</li>	</ul>	
+$()
+!exit
+
+:hint
+$()Herschrijf de vergelijking zodat je een kruisproduct kunt gebruiken.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val34 $val35
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,22,34,35
+embedcnt=0

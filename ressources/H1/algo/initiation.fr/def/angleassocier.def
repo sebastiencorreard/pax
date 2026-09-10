@@ -1,0 +1,527 @@
+!set title=Angle : Associer chaque script à la figure qui lui correspond
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bruno.mifsud@laposte.net
+
+ansorder=r
+varcnt=139
+prevarcnt=138
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp=!nonempty items 1,2
+
+tmp1=!randitem $tmp
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+val6=Aucun logiciel n'est autorisé pour répondre à cet exercice,	 sans quoi il ne sert pas à grand chose pour progresser.
+tmp=!nonempty items 30,60,120,150
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=angle_pgm_$val7.png
+val9=angle_complet_$val7.png
+tmp=!nonempty items 30,60,120,150
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=angle_pgm_$val7.png
+val9=angle_fig_$val7.png
+!if confparm2=1 
+val10=donnee_angle
+!else
+val10=donnee_angle_mesure
+!endif
+!readproc slib/utilities/notepad Notepad,small 
+tmp0=$slib_out
+val11=$(tmp0)
+tmp0=!nosubst Associez à chaque programme la figure qu'il trace.
+
+val12=$(tmp0)
+tmp0=!nosubst 
+
+val13=$(tmp0)
+val14=
+val15=
+val16=no
+val17=no
+val18=no
+val19=no
+val20=yes
+val21=200x180x200
+val22=split
+val23=1
+val24=aucune de ces possibilités
+val25=clickfill
+val26=mark
+val27=
+val28=
+val29=
+val30=
+val31=
+val32=
+val33=yes
+val34=inside
+val35=yes
+val36=1
+val37=
+val38=
+val39=
+val40=
+val41=
+!readproc slib/oef/env givegood 
+tmp0=$slib_out
+val42=$(tmp0)
+
+!ifval $val42 issametext 
+val42= 1
+!endif
+
+!ifval $val42>0
+val37= yes
+!endif
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val43=$(tmp0)
+tmp0=!recordcnt $val43
+
+val44=$[rint($(tmp0))]
+val45=1
+val46=1
+val47=3
+
+!ifval $val26 iswordof flashcard
+val48=show
+!endif
+
+!ifval $val26 iswordof flashcard 
+val49=s;&nbsp;
+!endif
+
+!ifval $val25 iswordof case nocase 
+val50= autocomplete="off"
+!endif
+tmp0=!replace internal - by in $val40
+
+val40=$(tmp0)
+val51=$val27,$val28,$val29,$val30
+
+!ifval $val31 = 
+val31=++>
+!endif
+
+!ifval $val36 notwordof 0 
+val36=$[rint( 1)]
+!endif
+
+!ifval $val32!=yes 
+val52= noreaccent
+!else
+val52=
+!endif
+
+!ifval $val33 issametext no 
+!readproc slib/utilities/nopaste  
+tmp0=$slib_out
+val53= $(tmp0)
+!endif
+
+!ifval $val12 issametext 
+tmp0=!getdef instruction in $val43
+
+val12= $(tmp0)
+!endif
+tmp0=$val12
+
+val12=$(tmp0)
+
+!ifval $val13 issametext 
+tmp0=!getdef instruction2 in $val43
+
+val13= $(tmp0)
+!endif
+tmp0=$val13
+
+val13=$(tmp0)
+
+!ifval $val21 issametext 
+tmp0=!getdef size in $val43
+
+val21= $(tmp0)
+!endif
+
+!ifval $val17 issametext 
+tmp0=!getdef reading_file in $val43
+
+val17= $(tmp0)
+!endif
+tmp0=!record 0 of $val17
+
+val54=$(tmp0)
+tmp0=$val54
+
+val54=$(tmp0)
+
+!ifval $val16 issametext 
+tmp0=!getdef audio_file in $val43
+
+val16= $(tmp0)
+!endif
+
+!ifval $val16 notsametext and $val16 notsametext no
+!readproc slib/media/audio $val1/$val16,$val41,player=$val40 
+tmp0=$slib_out
+val55=	<div class="wimscenter">$(tmp0)</div>
+!endif
+
+!ifval $val18 issametext 
+tmp0=!getdef image_file in $val43
+
+val18= $(tmp0)
+!endif
+
+!ifval $val18 notsametext and $val18 notsametext no
+tmp0=!makelist <img src="$val1/x " alt="" /> for x in $val18
+
+val56=	$(tmp0)
+!endif
+
+!ifval $val19 issametext 
+tmp0=!getdef video_file in $val43
+
+val19= $(tmp0)
+!endif
+!if $val19 notsametext and $val19 notsametext no 
+
+!ifval http notin $val19 
+val19= $val1/$val19
+!endif
+
+!ifval $val19 notsametext 
+val57= <div><a target="wims_external" href="$val19">[video]</a></div>
+!endif
+!endif
+
+!ifval $val14 issametext 
+tmp0=!getdef choice in $val43
+
+val58= $(tmp0)
+!else
+val58=$val14
+!endif
+
+!ifval $val38 notwordof 1 2 3 4 5 6 7 8 9 10 
+val38= 1
+!endif
+
+!ifval $val25 iswordof dragfill clickfill 
+val21= $val21 x 1
+!endif
+val46=$[rint(min($val44,$val46))]
+val45=$[rint(min($val46*$val45,$val44))]
+
+!ifval $val20 issametext yes 
+tmp0=!shuffle $val44
+
+val59= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val44
+
+val59=	$(tmp1)
+!endif
+tmp0=!randrecord $val10
+
+val60=$(tmp0)
+tmp0=!embraced randitem $val60
+
+val60=$(tmp0)
+val61=$val60
+tmp=!translate internal $	$ to ; in $val61
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val61=$(tmp0)
+!if $val61 notsametext  
+tmp0=!getopt audio in $val61
+
+val62=$(tmp0)
+tmp0=!getopt image in $val61
+
+val63=$(tmp0)
+tmp0=!getopt title in $val61
+
+val64=$(tmp0)
+tmp0=!getopt intro in $val61
+
+val65=$(tmp0)
+
+!ifval $val62$val63$val64$val65 notsametext 
+val66=$[rint( 1 )]
+!else
+val66=$[rint( 0)]
+!endif
+val67=
+
+!ifval $val64 notsametext 
+val67=$val67<div class="wimscenter">$val64</div>
+!endif
+
+!ifval $val65 notsametext 
+val67=$val67 $val65
+!endif
+
+!ifval $val63 notsametext 
+val67= $val67 <div class="wimscenter"><img src="$val1/$val63" alt="" /></div>
+!endif
+!if $val62 notsametext  
+
+!ifval . isin $val62 or $val39= 
+!readproc slib/media/audio $val1/$val62,$val41,player=$val40 
+tmp0=$slib_out
+val68=	       $(tmp0)
+!else
+!readproc slib/lang/swac $val62,$val39,player=$val40,$val41 
+tmp1=$slib_out
+val68=$(tmp1)
+!endif
+val67=$val67 <div class="wimscenter">$(val68[1;1])</div>
+!endif
+
+!ifval $val66=1 
+val69= $val67
+!else
+val69=&nbsp;
+!endif
+!else
+val66=$[rint(2)]
+!endif
+
+!ifval $val66=1 or $val66=2 
+tmp0=!line 2 to -1 of $val60
+
+tmp=!trim  $(tmp0)
+val60=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $val60
+val60=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val60
+
+tmp0=!rowcnt $tmp
+val70=$[rint($(tmp0))]
+
+!ifval $val47 issametext all 
+val47=$[rint( $val70)]
+!else
+val47=$[rint(min($val70,$val47))]
+!endif
+tmp0=!shuffle $val70
+
+val58=$(tmp0)
+tmp=!trim $(val60[$(val58[1..$val47]);])
+val60=!translate internal $	\
+$ to ;; in $tmp
+val71=
+val72=
+!for val73  = 1 to $val47 
+!if .mp3 isin $(val60[$val73;2]) or .jpg isin $(val60[$val73;2]) or .gif isin $(val60[$val73;2]) or .png isin $(val60[$val73;2]) 
+!if .mp3 isin $(val60[$val73;2]) 
+tmp0=!nospace $(val60[$val73;2])
+
+val74=$(tmp0)
+!readproc slib/media/audio $val1/$(val60[$val73;2]),$val41,player=$val40 
+tmp0=$slib_out
+val74=$(tmp0)
+!endif
+!if .jpg isin $(val60[$val73;2]) or .gif isin $(val60[$val73;2]) or .png isin $(val60[$val73;2]) 
+tmp0=!nospace $(val60[$val73;2])
+
+val74=$(tmp0)
+tmp0=!replace internal image= by in $val74
+
+val74=$(tmp0)
+tmp0=!replace internal imag= by in $val74
+
+val74=$(tmp0)
+val74=imgrename($val1/$val74 )
+!endif
+!else
+tmp0=!getopt audio in $(val60[$val73;2])
+
+val75=$(tmp0)
+!if $val75 notsametext  
+!readproc slib/lang/swac $val75,$val39,player=$val40,$val41 
+tmp0=$slib_out
+val74=$(tmp0)
+val74=$(val74[1;1])
+!else
+val74=$(val60[$val73;2])
+!endif
+!endif
+tmp0=!append item $val74 to $val72
+
+val72=$(tmp0)
+!next
+!for val73  = 1 to $val47 
+!if .mp3 isin $(val60[$val73;1]) or .jpg isin $(val60[$val73;1]) or .gif isin $(val60[$val73;1]) or .png isin $(val60[$val73;1]) 
+!if .mp3 isin $(val60[$val73;1]) 
+tmp0=!nospace $(val60[$val73;1])
+
+val74=$(tmp0)
+!readproc slib/media/audio $val1/$(val60[$val73;1]),$val41,player=$val40 
+tmp0=$slib_out
+val74=$(tmp0)
+!endif
+!if .jpg isin $(val60[$val73;1]) or .gif isin $(val60[$val73;1]) or .png isin $(val60[$val73;1]) 
+tmp0=!nospace $(val60[$val73;1])
+
+val74=$(tmp0)
+tmp0=!replace internal image= by in $val74
+
+val74=$(tmp0)
+tmp0=!replace internal imag= by in $val74
+
+val74=$(tmp0)
+val74=imgrename($val1/$val74 )
+!endif
+!else
+tmp0=!getopt audio in $(val60[$val73;1])
+
+val75=$(tmp0)
+!if $val75 notsametext  
+!readproc slib/lang/swac $val75,$val39,player=$val40,$val41 
+tmp0=$slib_out
+val74=$(tmp0)
+val74=$(val74[1;1])
+!else
+val74=$(val60[$val73;1])
+!endif
+!endif
+tmp0=!append item $val74 to $val71
+
+val71=$(tmp0)
+!next
+val76=
+val77=
+val78=
+!for val79 =1 to $val47 
+tmp0=!lookup $(val60[$val79;2]) in imagesize
+
+val80=$(tmp0)
+tmp0=!append item $(val80[1]) to $val76
+
+val76=$(tmp0)
+tmp0=!lookup $(val60[$val79;1]) in imagesize
+
+val81=$(tmp0)
+tmp0=!append item $(val81[1]) to $val77
+
+val77=$(tmp0)
+tmp0=!append item $(val81[2]),$(val80[2]) to $val78
+
+val78=$(tmp0)
+!next
+t_=!replace internal \( by ( in [vecmax([$val78]),vecmax([$val77]),vecmax([$val76])]
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+tmp0=!replace internal , by x in $val21
+
+val21=$(tmp0)
+replytype1=correspond
+replyoption1=$val22 
+replyname1=
+replygood1=$val71; $val72
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val53 <div class="instruction">$val12</div> $val69	  
+!if $val54 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val56 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val55$val57	  <div class="wimscenter question"> 
+!read oef/embed.phtml reply1,$val21 
+$()</div>	  <div class="wims_instruction">	  $val6	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ul class="wims_nopuce">	   <li>Attention, comme on avance d'abord de 150, puis de 100, on part de la gauche.	   </li>	   <li>Ensuite, il faut bien faire attention lorsqu'on tourne d'un certain angle :	   <div class="wimscenter"> 
+!read oef/img.phtml $val1/angle_corr.png  
+$().</div>	    Exemple : pour $val7° :	   <div class="wimscenter"> 
+!read oef/img.phtml $val1/$val8  
+$() donne  
+!read oef/img.phtml $val1/$val9  
+$().</div>	</li></ul>	 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,9,12,21,53,54,55,56,57,69
+embedcnt=3

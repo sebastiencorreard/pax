@@ -1,0 +1,42 @@
+\title{Question 850 S Probabilités et arbre}
+\keywords{probability,conditional_probability,quizz}
+\observation{Question du sujet zéro sujet-specialite-2.pdf publié sur EDUSCOL en juin 2025 }
+
+\text{temp=shuffle(9)} %%% avoir des proba distinctes
+\real{pAB=\temp[1]/10}
+\real{pnAB=\temp[2]/10}
+\real{pnA=\temp[3]/10}
+\real{pA=1-\pnA}
+\real{pAnB=1-\pAB}
+\real{pnAnB=1-\pnAB}
+\real{pAinterB=\pA*\pAB}
+\real{pnAinternB=\pnA*\pnAnB}
+\real{pnAinterB=\pnA*\pnAB}
+\real{pB=\pAinterB+\pnAinterB}
+
+
+\text{dessinprelim=
+xrange 0,256
+yrange 0,160
+copy 0,160,-1,-1,-1,-1,850.png
+text black,150,150,giant,\pAB
+text black,150,25,giant,\pnAnB
+text black,40,120,giant,\pA}
+\text{img=draw(256,160
+\dessinprelim)}
+
+\text{imgcorr=draw(256,160
+\dessinprelim
+text green,150,105,giant,\pAnB
+text green,40,55,giant,\pnA
+text green,150,70,giant,\pnAB)}
+\text{enonce=On considère l’arbre de probabilité ci-joint.<div class="wimscenter"><img src="\img" alt="arbre"></div> On cherche la probabilité de l’évènement <span class="nowrap">\(B\).</span> <br>On a&nbsp;&#58;}
+
+\text{good=\(P(B)=\pB\)}
+\real{bad1=\pA*\pAB}
+\real{bad2=\pAB}
+\real{bad3= \pAB+\pnAinternB=\pB?\pB+randomitem(-1,1)*0.01:\pAB+\pnAinternB}
+
+
+\text{bads=\(P(B)=\bad1\),\(P(B)=\bad2 \),\(P(B)=\bad3\)}
+\text{feedback=La bonne réponse est <b>"\good"</b>.<br> On complète l'arbre&nbsp;&#58;<div class="wimscenter"><img src="\imgcorr" alt="arbre"></div> On utilise le fait que \(P(B)=P(A \cap B)+P(\bar{ A } \cap B)\)<br> Ici \(P(B)=\pA\times\pAB+\pnA\times\pnAB=\pB\) }

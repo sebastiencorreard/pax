@@ -1,0 +1,183 @@
+!set title=Fonctions trigonométriques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, ROYER
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 2,3,4
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 8
+
+val10=$[rint($(tmp0))]
+val11=!rawmath $val6*cos($val7*x),	$val6*sin($val7*x),	$val6*cos($val7*x)^2,	$val6*sin($val7*x)^2,	$val6*cos($val7*x+$val8),	$val6*sin($val7*x+$val8),	$val6*sin($val7*x+$val8)*cos^$val9($val7*x+$val8),	$val6*cos($val7*x+$val8)*sin^$val9($val7*x+$val8)
+tmp0=!item $val10 of $val11
+
+val12=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val12,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val13=!rawmath $(tmp0)
+
+!ifval ($val10<5)
+t_=!rawmath 0 
+val14=!exec pari print($t_)
+!else
+t_=!rawmath  -($val8)/($val7)
+val14=!exec pari print($t_)
+!endif
+t_=!rawmath 0
+val15=!exec pari print($t_)
+
+!ifval ($val10 isitemof 2,6)
+t_=!rawmath ($val6)/($val7)
+val15=!exec pari print($t_)
+!endif
+
+!ifval ($val10 ==7)
+t_=!rawmath ($val6)/(($val9+1)*$val7)
+val15=!exec pari print($t_)
+!endif
+
+!ifval $val15==0
+val16=!rawmath $val13
+!else
+val16=!rawmath $val13+$val15
+!endif
+tmp0=!texmath $val12
+
+val17=$(tmp0)
+tmp0=!texmath $val16
+
+val18=$(tmp0)
+replytype1=formal
+replyname1=Valeur de F(x)
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Soit la fonction 
+!insmath f
+$() définie sur $m_RR par :</p>	<div  class="wimscenter">	
+!insmath f(x) =  $val17 
+$()	</div>		<p>	La primitive 
+!insmath F
+$() de  
+!insmath f
+$() sur  $m_RR  qui s'annule en 
+!insmath $val14
+$() est définie par :</p>	<div  class="wimscenter">	<label for="reply1">
+!insmath F(x)
+$()</label> =  
+!read oef/embed.phtml reply1 , 30 
+$()	</div>			
+$()
+!exit
+
+:hint
+$()	<p><span style="color:blue;">On rappelle les formules de dérivation suivantes, 	où 
+!insmath u
+$() est une fonction dérivable sur 
+!insmath I
+$() :</span>	<ul><li>	
+!insmath (\cos(u))'=-u'\times \sin(u)
+$() 	</li><li> 
+!insmath (\sin(u))'=u'\times \cos(u)
+$()	</li></ul>	<font color=blue>ainsi que les formules de duplication d'angle :</font>		<ul><li>	
+!insmath \cos (2a)= \cos^2a-\sin^2a = 2\cos^2a-1 = 1-2\sin^2a
+$() 	</li><li>
+!insmath \sin(2a)=2\sin a \cos a
+$()	</li></ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Une  primitive 
+!insmath F
+$() de la fonction	
+!insmath x \rightarrow $val17
+$() 	est de la forme  	
+!insmath F : x \mapsto $val13 + c
+$().<br/>	Pour que 
+!insmath F
+$() s'annule en 
+!insmath $val14
+$() il faut choisir 
+!insmath c = $val15
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,15,17
+embedcnt=1

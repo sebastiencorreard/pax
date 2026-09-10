@@ -1,0 +1,181 @@
+!set title=Base orthonormale 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r,r,r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=5
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+val8=$[rint(($val6)^2+($val7)^2)]
+tmp=!translate ";': to $     $ in $val6/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val9=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val7/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val10=!exec pari print($t_)
+tmp0=!texmath $val9
+
+val11=$(tmp0)\sqrt{$val8}
+tmp0=!texmath $val10
+
+val12=$(tmp0)\sqrt{$val8}
+tmp0=!texmath -$val10
+
+val13=$(tmp0)\sqrt{$val8}
+replytype1=numeric
+replyname1=abscisse v
+replygood1=?analyze 14
+replytype2=numeric
+replyname2=ordonnée v
+replygood2=?analyze 15
+replytype3=numeric
+replyname3=abscisse w
+replygood3=?analyze 16
+replytype4=numeric
+replyname4=ordonnée w
+replygood4=?analyze 17
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	 Le plan est muni d'un repère orthonormal 
+!insmath (O,\vec{i},\vec{j})
+$().	 Étant donné un vecteur 
+!insmath \vec{u}\left(\begin{array}{c} $val6 \\ $val7 \end{array}\right)
+$(),	 déterminer le vecteur 
+!insmath \vec{v}
+$() colinéaire à 
+!insmath \vec{u}
+$() et de même sens que 
+!insmath \vec{u}
+$()	 et le vecteur 
+!insmath \vec{w}
+$()	 tels que 
+!insmath (O,\vec{v},\vec{w})
+$() soit un repère orthonormal direct.	 </p>	<div class="wimscenter"> 
+!insmath \vec{v}
+$()=( 
+!read oef/embed.phtml reply1,10 
+$(), 
+!read oef/embed.phtml reply2,10 
+$())</div>	<div class="wimscenter"> 
+!insmath \vec{w}
+$()=( 
+!read oef/embed.phtml reply3,10 
+$(), 
+!read oef/embed.phtml reply4,10 
+$())</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath \vec{v}\left(\begin{array}{c} $val11 \\ $val12 \end{array}\right)
+$() et 
+!insmath \vec{w}\left(\begin{array}{c} $val13 \\ $val11 \end{array}\right)
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val14)^2+($val15)^2=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=vecteur v unitaire
+
+!ifval $val14*$val7-$val15*$val6=0 and $val14*$val6>=0 and $val15*$val7>=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=vecteur v  et u colinéaires et de même sens
+
+!ifval ($val16)^2+($val17)^2=1
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=vecteur w unitaire
+
+!ifval $val16*$val6+$val17*$val7=0
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=vecteur w orthogonal à u
+
+!ifval $val16=-$val15 and $val17=$val14
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=(v,w) orthonormal direct
+
+!exit
+
+:stat
+vsavelist=6,7,11,12,13,14,15,16,17
+embedcnt=4

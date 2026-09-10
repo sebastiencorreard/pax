@@ -1,0 +1,322 @@
+!set title=Labyrinthe des nombres premiers
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=primes
+
+ansorder=r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=MutuWIMS
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem 1,2
+
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+
+!ifval $val2=1 
+val6=$[rint( 30 )]
+!else
+val6=$[rint(100)]
+!endif
+tmp0=!shuffle 6
+
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!item 1 of $val7
+
+val8=$(tmp0)  
+val9=D,2,2,2,3,1,3,4,2,3,1,5,2,2,2,A	D,1,4,5,2,2,1,6,3,3,3,1,6,4,5,A	D,2,4,5,1,2,3,6,3,1,3,3,6,4,1,A	D,1,1,5,2,2,4,1,3,3,3,1,6,4,5,A	2,1,D,2,1,2,5,2,1,3,4,3,A,2,5,2	6,6,D,2,5,4,2,1,2,3,1,3,A,1,2,5	
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+val11=
+val12=2
+!for val13 =3 to $val6 
+t_=!replace internal \( by ( in isprime($val13)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1
+tmp1=!append item $val13 to $val12
+
+val12= $(tmp1)
+!endif
+!next
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+val14=
+!for val13 =1 to $val6 
+t_=!replace internal \( by ( in isprime($val13)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=0
+tmp1=!append item $val13 to $val14
+
+val14= $(tmp1)
+!endif
+!next
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+val15=$[rint(1)]
+!for val13 =1 to 16 
+!if $val13=1 
+!if $(val10[$val13])==D 
+val16=Départ
+!else
+
+!ifval $(val10[$val13])=1 
+val16= $(val12[$val15]) 
+!else
+val16= $(val14[$val13])
+!endif
+!if $(val10[$val13])=1 
+val15=$[rint($val15+1)]
+!endif
+!endif
+!else
+!if $(val10[$val13])==D 
+val16=$val16,Départ
+!else
+!if $(val10[$val13])==A 
+val16=$val16,Arrivée
+!else
+
+!ifval $(val10[$val13])=1 
+val16= $val16,$(val12[$val15]) 
+!else
+val16= $val16,$(val14[$val13])
+!endif
+!if $(val10[$val13])=1 
+val15=$[rint($val15+1)]
+!endif
+!endif
+!endif
+!endif
+!if $val13=1 
+val17=$(val16[1])
+!else
+val17=$val17,$(val16[$val13])
+!endif
+val18=$[rint($(val16[$val13]))]
+!if $val13=1 
+val19=$val18
+!else
+val19=$val19,$val18
+!endif
+t_=!replace internal \( by ( in isprime($val18)
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1
+tmp1=!append item $val13 to $val11
+
+val11=  $(tmp1)
+!endif
+!next
+tmp0=!itemcnt $val17
+
+val20=$[rint($(tmp0))]
+val21=<b>Définition :</b> On appelle nombre premier tout entier positif qui admet exactement deux diviseurs positifs : 1 et lui-même.	<br/>Exemple : 5 est un nombre premier	<br/>Contre exemple : 6 n'est pas un nombre premier.	Il est divisible à la fois par 1, 2, 3 et 6.	
+val22=Aidez Ludivine à sortir du labyrinthe.
+val23=En partant de la case <b>Départ</b>, cliquez sur les cases qui 	contiennent un nombre premier pour aller jusqu'à la case <b>Arrivée</b>.
+replytype1=mark
+replyname1=
+replygood1=$val11;$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val21
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>$val22</p>	<p>$val23</p>	<div class=wimscenter>	<table class="wimsborder">	<tr>	 
+!for m_k=1 to 4 
+$()	<th>
+!if $(val10[$m_k])=D 
+$()Départ 
+!else
+$() 
+!if $(val10[$m_k])=A 
+$()Arrivée 
+!else
+$()  
+!read oef/embed.phtml r1,\k 
+$() 
+!endif
+$() 
+!endif
+$() </th> 
+!next
+$()	</tr>	<tr>	 
+!for m_k=5 to 8 
+$()	<th>
+!if $(val10[$m_k])=D 
+$()Départ 
+!else
+$() 
+!if $(val10[$m_k])=A 
+$()Arrivée 
+!else
+$()  
+!read oef/embed.phtml r1,\k 
+$() 
+!endif
+$() 
+!endif
+$() </th> 
+!next
+$()	</tr>	<tr>	 
+!for m_k=9 to 12 
+$()	<th>
+!if $(val10[$m_k])=D 
+$()Départ 
+!else
+$() 
+!if $(val10[$m_k])=A 
+$()Arrivée 
+!else
+$()  
+!read oef/embed.phtml r1,\k 
+$() 
+!endif
+$() 
+!endif
+$() </th> 
+!next
+$()	</tr>	<tr>	 
+!for m_k=13 to 16 
+$()	<th>
+!if $(val10[$m_k])=D 
+$()Départ 
+!else
+$() 
+!if $(val10[$m_k])=A 
+$()Arrivée 
+!else
+$()  
+!read oef/embed.phtml r1,\k 
+$() 
+!endif
+$() 
+!endif
+$() </th> 
+!next
+$()	</tr>	</table>	</div>	<div class="wims_instruction">	En partant de la case départ, on doit se déplacer d'une case à l'autre, de proche en proche. Vers le haut, le bas, à droite, à gauche et en diagonale.</div>		
+$()
+!exit
+
+:hint
+$()$val21
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Voici le labyrinthe avec les nombres premiers :	<div class=wimscenter>	<table class="wimsborder">	<tr>	 
+!for m_m=1 to 4 
+$()	<th>	$(val17[$m_m])	
+!if $(val10[$m_m])=D 
+$() 
+!else
+$() 	
+!if $(val10[$m_m])=1 
+$()<font color="green"> est premier</font> 
+!endif
+$()	 
+!endif
+$()</th> 
+!next
+$()	</tr>	<tr>	 
+!for m_m=5 to 8 
+$()	<th>$(val17[$m_m])	
+!if $(val10[$m_m])=1 
+$()<font color="green"> est premier</font> 
+!endif
+$()	 </th> 
+!next
+$()	</tr>	<tr>	 
+!for m_m=9 to 12 
+$()	<th>$(val17[$m_m])	
+!if $(val10[$m_m])=1 
+$()<font color="green"> est premier</font> 
+!endif
+$()	 </th> 
+!next
+$()	</tr>	<tr>	 
+!for m_m=13 to 16 
+$()	<th>$(val17[$m_m])	
+!if $(val10[$m_m])=A 
+$() 
+!else
+$() 	
+!if $(val10[$m_m])=1 
+$()<font color="green"> est premier</font> 
+!endif
+$()	 
+!endif
+$()</th> 
+!next
+$()	</tr>	</table>	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,17,21,22,23
+embedcnt=4

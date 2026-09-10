@@ -1,0 +1,432 @@
+!set title=Indeterminate forms with ln or exp
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Véronique Royer
+email=veronique.royer@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=57
+prevarcnt=56
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -8, 8
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -8, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -,+
+
+val10=$(tmp0)
+tmp0=!randint 1, 4
+
+val11=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val6*x + $val7)
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val8*x + $val9)
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+tmp0=!texmath $val13
+
+val13=$(tmp0)
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+
+!ifval $val14=1
+val15=e^{t}
+!else
+val15=\ln(t)
+!endif
+
+!ifval $val14=1
+val16=e^{u}
+!else
+val16=\ln(u)
+!endif
+
+!ifval $val14=1
+val17=e^{u(x)}
+!else
+val17=\ln(u(x))
+!endif
+
+!ifval $val14=1
+val18=!rawmath e^{$val12}
+!else
+val18=!rawmath \ln($val12)
+!endif
+tmp0=!item $val11 of $val13 $val10  $val18,($val13)\times $val18, \frac{$val13}{$val18},\frac{$val18}{$val13}
+
+val19=$(tmp0)
+tmp0=!item $val11 of v $val10  $val16, v \times $val16, \frac{v}{$val16},\frac{$val16}{v}
+
+val20=$(tmp0)
+tmp0=!texmath $val19
+
+val21=$(tmp0)
+t_=!rawmath -$val7/$val6
+val22=!exec pari print($t_)
+val23=&#8734;
+
+!ifval $val14=1
+tmp0=!randitem -,+
+
+val24=$(tmp0)
+!endif
+
+!ifval $val14=2 and $val6>0
+val24=+
+!endif
+
+!ifval $val14=2 and $val6<0
+val24=-
+!endif
+
+!ifval ($val24 issametext +)
+val25=$[rint(1)]
+!else
+val25=$[rint(-1)]
+!endif
+val26=$val24$val23
+val27=$val24\infty
+
+!ifval $val14=2 and $val6>0
+val28=&#93;  $val22 ; $val26 &#91;
+!endif
+
+!ifval $val14=2 and $val6<0
+val28= &#93;$val26 ; $val22 &#91; 
+!endif
+
+!ifval $val14=1
+val28=\RR
+!endif
+
+!ifval ($val8*$val25)>0
+val29=+inf,+\infty,1
+!else
+val29=-inf,-\infty,-1
+!endif
+tmp0=!item 1 of $val29
+
+val30=$(tmp0)
+tmp0=!item 2 of $val29
+
+val31=$(tmp0)
+
+!ifval ($val6*$val25)>0
+val32=+inf,+\infty
+!else
+val32=-inf,-\infty
+!endif
+tmp0=!item 1 of $val32
+
+val33=$(tmp0)
+tmp0=!item 2 of $val32
+
+val34=$(tmp0)
+
+!ifval $val14=1 and $val33 issametext -inf
+val35=0,0,0
+!else
+val35=+inf,+\infty,1
+!endif
+tmp0=!item 1 of $val35
+
+val36=$(tmp0)
+tmp0=!item 2 of $val35
+
+val37=$(tmp0)
+val38=$val36
+val39=$val37
+val40=Yes because there is no indeterminate form,	No because there is an indeterminate form  0 x $val23, 	No because there is an indeterminate form  0 / 0,	No because there is an indeterminate form $val23 / $val23 ,	No because there is an indeterminate form -$val23 + (+$val23)	
+val41=, 0 x $val23,  0 / 0, $val23 / $val23 , -$val23 + (+$val23)
+tmp0=!item 3 of $val29
+
+val42=$[rint($(tmp0))]
+tmp0=!item 3 of $val35
+
+val43=$[rint($(tmp0))]
+val43=$[rint($val42*$val43)]
+val44=1
+
+!ifval $val11=1 and $val10 issametext + and $val43<0
+val44=5
+!endif
+
+!ifval $val11=1 and $val10 issametext - and $val43>0
+val44=5
+!endif
+
+!ifval $val11=2 and $val43=0
+val44=2
+!endif
+
+!ifval $val11>2 and $val43!=0
+val44=4
+!endif
+tmp0=!item $val44 of $val41
+
+val45=$(tmp0)
+!if $val11=4 
+
+!ifval $val42=1
+val46=+inf
+!else
+val46=-inf
+!endif
+!endif
+tmp=!trim $val38,$val30	$val38,$val30	0,$val30	$val46,0
+val47=!translate internal $	\
+$ to ;; in $tmp
+!if $val44=1 
+
+!ifval $val11!=4
+val48=$val30
+!else
+val48=0
+!endif
+!else
+tmp=!translate internal $	$ to ; in $val47
+
+tmp=!row $val11 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val42=$(tmp0)
+tmp0=!item $val14 of $val42
+
+val48=$(tmp0)
+!endif
+oefsteps=reply1	reply2	reply3	reply4	reply5	reply6 
+nextstep=!nosubst reply1	reply2	reply3	reply4	reply5	reply6 
+!readproc oef/steps.proc
+replytype1=raw
+replyoption1=nospace nonstop 
+replyname1=limite de v :
+replygood1=$val30
+replytype2=raw
+replyoption2=nospace nonstop 
+replyname2=limite de u :
+replygood2=$val33
+replytype3=raw
+replyoption3=nospace nonstop 
+replyname3=limite de \($val15) :
+replygood3=$val36
+replytype4=raw
+replyoption4=nospace nonstop 
+replyname4=limite de \($val16) :
+replygood4=$val38
+replytype5=menu
+replyoption5=nonstop 
+replyname5=forme indéterminée :
+replygood5=$val44;$val40
+replytype6=raw
+replyoption6=nospace 
+replyname6=limite de f :
+replygood6=$val48
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="font-family: verdana,  sans-serif ;  font-size: 11pt ; background-color: yellow ;">	<p> 	Let 
+!insmath f
+$() be the function  defined over 
+!insmath $val28
+$() by:	
+!insmath f(x) = $val19
+$().	</p><p>	So we have 
+!insmath f = $val20 
+$()  where, for any real 
+!insmath x
+$() in 
+!insmath $val28
+$(), 	
+!insmath u(x) = $val12
+$()  &nbsp; and  &nbsp; 
+!insmath v(x) = $val13
+$().	</p><p> 	The aim of the exercise is to evaluate step by step the limit of 
+!insmath f
+$() at $val26.	</p>	<small><b> 
+!read oef/special.phtml help saisie,Typing hints 
+$()</b></small>	</div>		<ul>				 
+!if $m_step=1 
+$()<li>Evaluate the limit of 
+!insmath v
+$() at $val26 : 	<center>
+!insmath \lim_{x\to$val27} $val13 
+$() =  
+!read oef/embed.phtml reply1,5 
+$()</center>	</li> 
+!endif
+$()	 
+!if $m_step>1 
+$()<li><font color = blue> The limit of  
+!insmath v
+$() at $val26 is</font>:  	<center>
+!insmath \lim_{x\to$val27} v(x) = \lim_{x\to$val27} $val13  = $val31
+$()</center>	</li>	 
+!endif
+$()			 
+!if $m_step=2 
+$()<li>Evaluate the limit of  
+!insmath u
+$() at $val26 : 	<center>
+!insmath \lim_{x\to$val27} $val12 
+$() =  
+!read oef/embed.phtml reply2,5 
+$()</center>	</li>	 
+!endif
+$()	 
+!if $m_step>2 
+$()<li><font color = blue> The limit of   
+!insmath u
+$() at $val26  is</font>:  	<center>
+!insmath \lim_{x\to$val27} u(x) = \lim_{x\to$val27} $val12  = $val34
+$()</center>	</li>	 
+!endif
+$()			 
+!if $m_step=3 
+$()<li>Evaluate the limit of 
+!insmath $val15
+$() at 
+!insmath $val34
+$() : 	<center>
+!insmath \lim_{t\to$val34} $val15 
+$() =  
+!read oef/embed.phtml reply3,5 
+$()</center>	</li>	 
+!endif
+$()			 
+!if $m_step=4 
+$()<li>By variable renaming 
+!insmath t = $val12
+$(), knowing that
+!insmath \lim_{t\to$val34} $val15  = $val37
+$(), it comes that: 	<center>
+!insmath  \lim_{x\to$val27} $val18 
+$() =  
+!read oef/embed.phtml reply4,5 
+$()</center>	</li> 	 
+!endif
+$()	 
+!if $m_step>4 
+$()<li>	<font color = blue>The limit of 
+!insmath $val16
+$() at $val26 is</font>:	<center>
+!insmath \lim_{x\to$val27} $val17 =\lim_{x\to$val27} $val18  = \lim_{t\to$val34} $val15 = $val39
+$(). </center> 	</li>	 
+!endif
+$()		 
+!if $m_step=5 
+$()<li> Can we deduce the limit at $val26  of 
+!insmath f = $val20
+$() by applying the computational rules of limits ? 	<center> 
+!read oef/embed.phtml reply5,size=5 
+$()</center> 	</li>	 
+!endif
+$()		 
+!if $m_step=6 
+$()<li><font color=blue>	 
+!if $val44=1 
+$()	The computational rules of limits are valid, because there is no indeterminate form.</font>  
+!else
+$()	 The computational rules of limits are <b>not</b> valid, because there is an indeterminate form $val45 .	</font> <br/> We use instead the properties of "compared growth":	<i> 
+!if $val14=1 
+$()the exponential function dominates any polynom function 
+!else
+$() any polynom function dominates the logarithm function 
+!endif
+$().</i>	. 
+!endif
+$()	<br/>	Then it comes:	<center>
+!insmath \lim_{x\to$val27} f(x)
+$() =  
+!read oef/embed.phtml reply6,5 
+$() </center>	</li> 
+!endif
+$() 		</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	  	  
+!if $m_help_subject issametext saisie 
+$()	<b>Typing hints:</b><br/>	type <b>+inf</b> for 
+!insmath +\infty
+$()  ;<br/> type  <b>-inf</b> for 
+!insmath -\infty
+$(). 	    
+!endif
+$()	
+$()
+!exit
+
+:solution
+$() 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14,15,16,17,18,19,20,26,27,28,31,34,37,39,44,45
+embedcnt=7

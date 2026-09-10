@@ -1,0 +1,194 @@
+!set title=Calculs de quantité d'électricité
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoit Markey
+email=benoit.markey@ac-lille.fr
+
+ansorder=r,r,r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!recordcnt couples_piles.dat
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, $val6-1
+
+val7=$[rint($(tmp0))]
+tmp0=!randint $val7+1, $val6
+
+val8=$[rint($(tmp0))]
+tmp0=!record $val7 of couples_piles.dat
+
+val9=$(tmp0)
+tmp0=!record $val8 of couples_piles.dat
+
+val10=$(tmp0)
+!readproc oef/draw.phtml 20,20 \
+frect 0,0,20,20,232,232,232	text black,8,3,medium,+	circle 10,10,18,black 
+tmp0=$ins_url
+val11=$(tmp0)
+val12=<img src="$val11">
+!readproc oef/draw.phtml 20,20 \
+frect 0,0,20,20,232,232,232	text black,8,3,medium,-	circle 10,10,18,black 
+tmp0=$ins_url
+val13=$(tmp0)
+val14=<img src="$val13">
+!readproc slib/chemistry/chemeq_rev $(val10[;1]) 
+tmp0=$slib_out
+val15=$(tmp0)
+!readproc slib/chemistry/chemeq_el $(val9[;1]) 
+tmp0=$slib_out
+val16=$[rint($(tmp0))]
+!readproc slib/chemistry/chemeq_el $(val10[;1]) 
+tmp0=$slib_out
+val17=$[rint($(tmp0))]
+val18=$[rint(gcd($val16,$val17))]
+val19=$[rint(lcm($val16,$val17))]
+val20=$[rint($val17/$val18)]
+val21=$[rint($val16/$val18)]
+!readproc slib/chemistry/chemeq_add $val20,$(val9[;1]) 
+tmp0=$slib_out
+val22=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val22 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/chemistry/chemeq_add -$val21,$(val10[;1]) 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val24 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/chemistry/chemeq_add $val20,$(val9[;1]),-$val21,$(val10[;1]) 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $(val9[;1]) 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val15 
+tmp0=$slib_out
+val28=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $val26 
+tmp0=$slib_out
+val29=$(tmp0)
+!readproc slib/chemistry/chemeq_mass $(val9[;5]) 
+tmp0=$slib_out
+val30=$(tmp0)
+!readproc slib/chemistry/chemeq_mass $(val10[;5]) 
+tmp0=$slib_out
+val31=$(tmp0)
+tmp0=!randint 10, 35
+
+val32=$[rint($(tmp0))]
+tmp0=!randint 10, 45
+
+val33=$[rint($(tmp0))]
+val34=$[9.65e4]
+val35=$[$val33*1e-3*$val32*3600/$val34]
+val36=$[$val35/$val16]
+val37=$[$val36*$val30]
+val38=$[$val35/$val17*$val31]
+!readproc slib/text/sigunits $val35 mol,2 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/text/sigunits $val36 mol,2 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/text/sigunits $val37 g,2 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/text/sigunits $val38 g,2 
+tmp0=$slib_out
+val38=$(tmp0)
+replytype1=sigunits
+replyname1=n(e<sup>-</sup>)
+replygood1=$val35
+replytype2=sigunits
+replyname2=n($(val9[;5]))
+replygood2=$val36 
+replytype3=sigunits
+replyname3=m($(val9[;5]))
+replygood3=$val37 
+replytype4=sigunits
+replyname4=m($(val10[;5]))
+replygood4=$val38 
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst  Soit le couple [M<sup>n+</sup>/M], et sa demi-équation: M<sup>n+</sup> + n e<sup>-</sup> &rarr; M.<br> En construisant le tableau d'avancement, on a:<br> <table border=1><tr><th colspan=2>equation</th><td colspan=3>M<sup>n+</sup> + n e<sup>-</sup> &rarr; M</td></tr> <tr><th>Etat></th><th>Avancement</th><td>n(M<sup>n+</sup>)</td><td> n e<sup>-</sup></td><td>n(M)</td></tr> <tr><th>initial</th><th>x=0</th><td>n<sub>i</sub>(M<sup>n+</sup>)</td><td>n<sub>i</sub>e<sup>-</sup></td><td>n<sub>i</sub>(M)</td></tr> <tr><th>initial</th><th>x</th><td>n<sub>i</sub>(M<sup>n+</sup>)-x</td><td>n<sub>i</sub>e<sup>-</sup>-n&times;x</td><td>n<sub>i</sub>(M)+x</td></tr> </table> <br>On voit donc que le nombre de M <i>formées</i> est x. Comme le nombre de moles d'électrons transférées lors de la réaction est n&times;x, on en déduit la relation entre le nombre de moles de M formées et le nombre d'électrons transférées: N<sub>formé</sub>(M)=n(e<sup>-</sup><sub>transféré</sub>)/n 
+
+
+!goto stat
+
+!exit
+
+:question
+$()			On considère la pile électrochimique suivante:	$val14 
+!insmath $(val10[;5])/$(val10[;4])//$(val9[;4])/$(val9[;5])
+$() $val12 <br>	<ul>	<li>La réaction se produisant au pôle $val12 est: 
+!insmath $val27
+$()<br>		<li>La réaction se produisant au pôle $val14 est: 
+!insmath $val28
+$() <br>	<li>L'équation de la réaction globale de la pile est: 
+!insmath $val29
+$()	</ul> <br>	<i>Données</i>:  F=9,65 &times;10<sup>4</sup> C&bull;mol<sup>-1</sup> <br>	M($(val9[;5]))=$val30 g&bull;mol<sup>-1</sup>; M($(val10[;5]))=$val31 g&bull;mol<sup>-1</sup><br><br>	Cette pile débite pendant une durée &Delta;t=$val32 h dans un circuit électrique dans lequel 	circule un courant d'intensité I= $val33 mA.<br>	<i><font color="blue"> On tiendra compte des unités et des chiffres significatifs</font></i>	<ol>	<li>Calculez la quantité de matiére n(e<sup>-</sup>) d'électrons transférés<br>	<br>	n(e<sup>-</sup>)= 
+!read oef/embed.phtml reply1 
+$()<br><br>	<li>En s'aidant d'un ou plusieurs tableau(x) d'avancement, calculer la	 quantité de matière de $(val9[;5]) formé. <i>(Il est conseillé de 	construire le tableau d'avancement de la  demi-réaction se réalisant à	 l'électrode considérée. Voir l'aide à ce sujet.)</i><br>	n($(val9[;5]))= 
+!read oef/embed.phtml reply2 
+$()<br><br>	<li>En déduire la masse de $(val9[;5]) formée:<br>	m($(val9[;5]))= 
+!read oef/embed.phtml reply3 
+$()<br><br>	<li>De la même manière, calculer la masse de $(val10[;5]) consommée:	<br>	m($(val10[;5]))= 
+!read oef/embed.phtml reply4 
+$()<br><br></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() Soit le couple [M<sup>n+</sup>/M], et sa demi-équation: M<sup>n+</sup> + n e<sup>-</sup> &rarr; M.<br> En construisant le tableau d'avancement, on a:<br> <table border=1><tr><th colspan=2>equation</th><td colspan=3>M<sup>n+</sup> + n e<sup>-</sup> &rarr; M</td></tr> <tr><th>Etat></th><th>Avancement</th><td>n(M<sup>n+</sup>)</td><td> n e<sup>-</sup></td><td>n(M)</td></tr> <tr><th>initial</th><th>x=0</th><td>n<sub>i</sub>(M<sup>n+</sup>)</td><td>n<sub>i</sub>e<sup>-</sup></td><td>n<sub>i</sub>(M)</td></tr> <tr><th>initial</th><th>x</th><td>n<sub>i</sub>(M<sup>n+</sup>)-x</td><td>n<sub>i</sub>e<sup>-</sup>-n&times;x</td><td>n<sub>i</sub>(M)+x</td></tr> </table> <br>On voit donc que le nombre de M <i>formées</i> est x. Comme le nombre de moles d'électrons transférées lors de la réaction est n&times;x, on en déduit la relation entre le nombre de moles de M formées et le nombre d'électrons transférées: N<sub>formé</sub>(M)=n(e<sup>-</sup><sub>transféré</sub>)/n 
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,12,14,27,28,29,30,31,32,33
+embedcnt=4

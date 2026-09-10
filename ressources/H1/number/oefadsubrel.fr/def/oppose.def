@@ -1,0 +1,169 @@
+!set title=Déterminer l'opposé
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -50, 50
+
+val6=$[rint($(tmp0))]
+!if $val6=0 
+val7=raw
+val8=0,+0,-0
+val9=0
+!else
+val9=$[rint(-1*$val6)]
+val7=numexp
+!endif
+t_=!replace internal \( by ( in abs($val6)
+tmp0=!exec pari $t_
+
+val10=$[rint($(tmp0))]
+val11=$[rint(600)]
+val12=$[rint(40)]
+!if $val6>0 
+val13=$[rint($val9-2)]
+val14=$[rint($val6+2)]
+!else
+val14=$[rint($val9+2)]
+val13=$[rint($val6-2)]
+!endif
+val15=$[($val11-2*$val12)/($val14-$val13)]
+val16=$[$val13-$val12/$val15]
+val17=$[$val14+$val12/$val15]
+val18=$[rint($val14-$val13+1)]
+val19=$[rint($val14-$val13)]
+val20=$[4/$val15]
+val21=
+!for val22 =0 to $val19 
+val23=$[rint($val13+$val22)]
+val24=$[$val13+$val22-$val20]
+!if $val23=0 
+val25=segment $val23,-0.5,$val23,0.5,black
+tmp0=!append line $val25 to $val21
+
+val21=$(tmp0)
+val26=text black,$val24,-0.75,giant,$val23
+tmp0=!append line $val26 to $val21
+
+val21=$(tmp0)
+!endif
+!if $val23=$val9 and $val23<>0 
+val25=segment $val23,-0.5,$val23,0.5,red
+tmp0=!append line $val25 to $val21
+
+val21=$(tmp0)
+val26=text red,$val24,-0.75,giant,$val23
+tmp0=!append line $val26 to $val21
+
+val21=$(tmp0)
+!endif
+!if $val23=$val6 and $val23<>0 
+val25=segment $val23,-0.5,$val23,0.5,blue
+tmp0=!append line $val25 to $val21
+
+val21=$(tmp0)
+val26=text blue,$val24,-0.75,giant,$val23
+tmp0=!append line $val26 to $val21
+
+val21=$(tmp0)
+!endif
+!next
+val27=range $val16,$val17,-3,3	linewidth 2	arrow $val16,0,$val17,0,$val12/2,black	linewidth 3	$val21
+!readproc oef/draw.phtml 600,150 \
+$val27	arrow2 0,1.5,$val6,1.5,10,blue	text blue,$val6/2,2.5,giant,$val10	arrow2 0,1.5,$val9,1.5,10,red	text red,$val9/2,2.5,giant,$val10 
+tmp0=$ins_url
+val28=$(tmp0)
+replytype1=$val7
+
+replyname1=
+replygood1=?analyze 29
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Deux nombres relatifs ayant la même distance à zéro et des signes contraires sont opposés.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p><label for ="reply1">Quel est l'opposé du nombre 
+!insmath $val6
+$()&nbsp;?</label>  
+!read oef/embed.phtml reply1,5 
+$()
+$()
+!exit
+
+:hint
+$()Deux nombres relatifs ayant la même distance à zéro et des signes contraires sont opposés.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<img src="$val28" alt="droite graduée">	<p>L'opposé de 
+!insmath $val6
+$() est <span class="nowrap">
+!insmath $val9
+$().</span></p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val6=0 and ($val29=+0 or $val29=0 or $val29=-0)) or ($val6<>0 and $val29=$val9)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonne réponse ?
+
+!exit
+
+:stat
+vsavelist=6,9,28,29
+embedcnt=1

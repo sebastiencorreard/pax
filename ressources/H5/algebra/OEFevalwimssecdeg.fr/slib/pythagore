@@ -1,0 +1,38 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=triplet pythagoricien
+slib_parms=1\
+,max,color
+slib_author=Régine, MANGEARD
+slib_out=x,y,z
+slib_example= 3,4,5
+!exit
+
+:proc
+slib_mat=!declosing $wims_read_parm
+!if $slib_mat=$empty
+  slib_out=
+!else
+  slib_max=$(slib_mat[1])
+  slib_list=
+  !for slib_a=1 to $slib_max
+    !for slib_b=0 to $slib_max
+      slib_b=!eval $slib_b+1
+      slib_m=$slib_b
+      !if $slib_a>$slib_b
+        slib_m=$slib_a
+      !endif
+      slib_m1=!eval $slib_m + 1
+      slib_m2=!eval $slib_b + $slib_a - 1
+      !for slib_c=$slib_m1 to $slib_m2
+        slib_d=!eval $slib_c^2 - $slib_b^2 - $slib_a^2
+        !if $slib_d=0
+          slib_list=!append line $slib_a,$slib_b,$slib_c to $slib_list
+        !endif
+      !next
+    !next
+  !next
+  slib_out=!randline $slib_list
+
+!endif

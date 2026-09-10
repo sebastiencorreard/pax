@@ -1,0 +1,88 @@
+\title{Nature de la suite ? (numérique)}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\format{html}
+\computeanswer(yes)
+\keywords{sequence,geometric_sequence,arithmetic_sequence}
+
+%%%%%%%%%%% MB :
+\observation{En fonction de la configuration de l'exercice sur 
+le module, le vocabulaire utilisé est :
+<ul><li>Que celui des suites arithmétiques</li>
+<li>Que celui des suites géométriques</li>
+<li>Aléatoirement l'un ou l'autre</li>
+</ul>
+}
+%%%%%%%%%%% MB : introduction du confparm2 : suite arithm (A) ou géom (G) ou les deux (AG)
+\text{confparm2= items(\confparm2)=0 ? random(A,G,AG):\confparm2} %%% necessaire car non présent dans les premières versions
+\if{\confparm2 == A}{\text{proprep=être arithmétique,ne pas être arithmétique, je n'en sais rien}}
+\if{\confparm2 == G}{\text{proprep=ne pas être géométrique,être géométrique, je n'en sais rien}}
+\if{\confparm2 == AG}{\text{proprep=être arithmétique, être géométrique, je n'en sais rien}}
+
+##Suites géométriques à termes positifs \confparm1=P ou suite à termes réels : \confparm1=R
+\text{confparm1= items(\confparm1)=0 ? randitem(P,R):\confparm1}
+\integer{s1= \confparm1= R ? randint(-1,1,1,1):1}
+\integer{s2= \confparm1= R ? randint(-1,1,1,1):1}
+\integer{s3= \confparm1= R ? randint(-1,1,1):1}
+\integer{s4= \confparm1= R ? randint(8,8,-8):1}
+
+##Paramètres et termes de la suite##
+\integer{type=randint(1,2)}##1: arith, 2: géo##
+\if{\type=1}{\integer{R=randint(1..20)*randint(-1,1)}##raison##
+  \integer{U0=randint(-10..10)}
+  \text{Ul=\U0}
+  \for{J=1 to 5}{\integer{U=\U0+\J*\R},\text{Ul=\Ul,&nbsp;\U}}
+}{
+  \rational{R=randitem(0.5,1.5,2,3,4,5,10,20)*\s1}##raison##
+  \integer{U0=(\R>=2)? randitem(1,2,3)*\s2}
+  \integer{U0=(floor(\R)=\R)? randint(1..5)*\s3:\s4*randint(1..6)}
+  \text{Ul=\U0}
+  \for{J=1 to 5}{\real{U=\U0*(\R)^\J},\text{Ul=\Ul,&nbsp;\U}}
+}
+\integer{Rabs=abs(\R)}
+\text{Ul=wims(replace internal , by  &nbsp;; in \Ul)}
+
+%%% gestion des réponses %%%
+\if{\confparm2 == A}{
+\if{\type=1}{
+\text{temp=reply 1
+reply 2}}
+\if{\type=2}{\text{temp=reply 1 }}
+}
+
+
+\if{\confparm2 == G}{
+\if{\type=1}{
+\text{temp=reply 1}}
+\if{\type=2}{\text{temp=reply 1
+ reply 2}}
+}
+
+\if{\confparm2 == AG}{
+\text{temp=reply 1
+reply 2}}
+
+\steps{\temp
+}
+%%%% Nom Nature
+\text{nature=\type=1?arithmétique:géométrique}
+
+
+\statement{Voici les premiers termes d'une suite \(u) : \Ul.
+<div class="wims_question">
+\if{\step=1}{<p>
+Conjecturer la <label for="reply1">nature de cette suite</label>.
+</p>
+<p>La suite \(u) semble \embed{r1}.</p>}
+\if{\step>1}{
+<p>La suite est \nature de <label for="reply2">raison</label> \embed{r2,3}.</p>}
+</div>}
+
+\answer{}{\type;\proprep}{type=menu}
+\answer{}{\R}{type=numeric}
+
+\solution{On passe d'un terme au suivant en 
+\if{\type=1}{\if{\R>0}{additionnant}{soustrayant}
+\Rabs donc la suite \if{\confparm2==A or \confparm2==AG}{ semble <b>arithmétique de raison \R</b>}{ne semble pas être géométrique}}
+\if{\type=2}{multipliant par \R donc la suite \if{\confparm2==G or \confparm2==AG}{semble <b>géométrique de raison \R</b>}{ne sembe pas être arithmétique}
+}.}

@@ -1,0 +1,81 @@
+target=alloy3
+#include "lang_titles.inc"
+\language{fr}
+\range{-5..5}
+\author{XIAO, Gang}
+\email{xiao@unice.fr}
+\computeanswer{yes}
+\format{html}
+\precision{9000}
+
+\integer{x1=random(70..85)}
+\integer{y1=random(0.25*(100-\x1)..0.75*(100-\x1))}
+\integer{z1=100-\x1-\y1}
+\integer{y2=random(70..85)}
+\integer{x2=random(0.25*(100-\y2)..0.75*(100-\y2))}
+\integer{z2=100-\x2-\y2}
+\integer{z3=random(70..85)}
+\integer{x3=random(0.25*(100-\z3)..0.75*(100-\z3))}
+\integer{y3=100-\x3-\z3}
+\integer{ton=random(100..999)}
+\integer{x0=random(28..38)}
+\integer{y0=random(28..38)}
+\integer{y0=\x0+\y0<100-38?100-38-\x0}
+\integer{y0=\x0+\y0>100-28?100-28-\x0}
+\integer{z0=100-\x0-\y0}
+\integer{tx0 = \ton*\x0}
+\integer{ty0 = \ton*\y0}
+\integer{tz0 = \ton*\z0}
+\real{det=\x1*\y2*\z3-\x1*\y3*\z2+\x2*\y3*\z1-\x2*\y1*\z3+\x3*\y1*\z2-\x3*\y2*\z1}
+\real{xa=\ton*(\x0*\y2*\z3-\x0*\y3*\z2+\x2*\y3*\z0-\x2*\y0*\z3+\x3*\y0*\z2-\x3*\y2*\z0)/\det}
+\real{ya=\ton*(\x1*\y0*\z3-\x1*\y3*\z0+\x0*\y3*\z1-\x0*\y1*\z3+\x3*\y1*\z0-\x3*\y0*\z1)/\det}
+\real{za=\ton*(\x1*\y2*\z0-\x1*\y0*\z2+\x2*\y0*\z1-\x2*\y1*\z0+\x0*\y1*\z2-\x0*\y2*\z1)/\det}
+
+#include "lang.inc"
+
+\statement{\name_instruction
+<table class="wimscenter wimsborder">
+<tr><th>\name_table[1]</th><th>\name_table[2]</th>
+<th>\name_table[3]</th><th>\name_table[4]</th></tr>
+<tr><th>\name_table[5] A</th><td>\x1%</td><td>\y1%</td><td>\z1%</td></tr>
+<tr><th>\name_table[5] B</th><td>\x2%</td><td>\y2%</td><td>\z2%</td></tr>
+<tr><th>\name_table[5] C</th><td>\x3%</td><td>\y3%</td><td>\z3%</td></tr>
+</table>
+\name_question?
+<div class="wims_instruction">\name_help</div>
+}
+
+\answer{\name_table[5] A (t)}{\xa}
+\answer{\name_table[5] B (t)}{\ya}
+\answer{\name_table[5] C (t)}{\za}
+\integer{err=\sc_reply1<0.5 or \sc_reply2<0.5 or \sc_reply3<0.5?1:0}
+\real{somme =\reply1+\reply2+\reply3}
+\real{ecs = abs(\somme-\ton)/\ton}
+\real{val1 = (\x1*(\reply1) + \x2 *(\reply2) + \x3 *(\reply3))/\ton}
+\real{val2 = (\y1*(\reply1) + \y2 *(\reply2) + \y3 *(\reply3))/\ton}
+\real{val3 = (\z1*(\reply1) + \z2 *(\reply2) + \z3 *(\reply3))/\ton}
+\feedback{\ecs>0.0001 and \err=1}{
+<p>\name_feed0[1;] \(\ton\) \name_feed0[2;] \somme\name_feed0[3;].</p>}
+\feedback{\err=1}{
+<p>\name_feed[1;] \(\reply1\) t \name_feed[2;], \(\reply2\) t \name_feed[3;] \(\reply3\) t
+\name_feed[4;] \(\somme\) t
+\name_feed[5;]:
+\name_feed[6;] \(\val1 \%\) \name_feed[7;], \(\val2 \%\) \name_feed[8;] \(\val3 \%\)
+\name_feed[9;].</p>
+}
+
+\solution{\name_solution1:
+<div class="wimscenter">
+\(\left\lbrace\begin{array}{cccccc}
+\x1 a &+& \x2 b &+& \x3 c &=& \tx0\\\
+\y1 a &+& \y2 b &+& \y3 c &=& \ty0\\\
+\z1 a &+& \z2 b &+& \z3 c &=& \tz0 \end{array}\right .\)
+</div>
+\name_solution2 \(a=\xa\), \(b=\ya\), \(c=\za\).
+<p>
+\name_solution3[1;] \(\xa\) t \name_solution3[2;], \(\ya\) t \name_solution3[3;]
+\(\za\) t \name_solution3[4;],
+\name_solution3[5;] \(\ton\) t \name_solution3[6;]
+\(\x0 \%\) \name_solution3[7;], \(\y0 \%\) \name_solution3[8;] \(\z0 \%\) \name_solution3[9;].
+</p>
+}

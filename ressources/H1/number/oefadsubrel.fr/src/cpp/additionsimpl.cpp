@@ -1,0 +1,48 @@
+target= addisimpl
+
+%%vérifier les blocs solution
+
+
+#include "author.inc"
+#include "css.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\title{TITRE}
+\text{sign1=random(+,-)}
+\text{sign2=random(+,-)}
+\text{nb=shuffle(20)}
+\integer{nb1=\nb[1]}
+\integer{nb2=\nb[2]}
+\if{\sign1=+ and \sign2=+}{\text{expres= A = \nb1 \plus \nb2}
+\integer{res=\nb1+\nb2}
+\text{expli=A=(\plus\nb1)+(\plus\nb2)}
+\text{solu=<p>\(\expli\)</p>
+Le résultat est <span style="color:red">positif</span> et on <span style="color:red">additionne</span> les distances à zéro <span class="nowrap">\(\nb1+\nb2\)</span>.}}
+\if{\sign1=+ and \sign2=-}{\text{expres= A = \nb1 \minus \nb2}
+\integer{res=\nb1-\nb2}
+\text{expli=A=(\plus\nb1)+(\minus\nb2)}
+   \if{\nb2>\nb1}{\text{solu=<p>\(\expli\)</p>
+   <span style="color:red">Comme \(\nb2>\nb1\) et que \(\minus \nb2\) est négatif</span> alors le résultat est <span style="color:red">négatif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\(\nb2-\nb1\).</span>
+   }}{\text{solu=<p>\(\expli\)</p>
+   <span style="color:red">Comme \(\nb1>\nb2\) et que \(\plus\nb1\) est positif</span> alors le résultat est <span style="color:red">positif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\(\nb1-\nb2\).</span>
+   }}}
+\if{\sign1=- and \sign2=+}{\text{expres= A = \minus \nb1 \plus \nb2}
+\integer{res=-\nb1+\nb2}
+\text{expli=A=(\minus\nb1)+(\plus\nb2)}
+\if{\nb1>\nb2}{\text{solu=<p>\(\expli\)</p>
+               <span style="color:red">Comme \(\nb1>\nb2\) et que \(\minus\nb1\) est négatif</span> alors le résultat est <span style="color:red">négatif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\(\nb1-\nb2\).</span>}}
+               {\text{solu=<p>\(\expli\)</p><span style="color:red">Comme \(\nb2>\nb1\) et que \(\plus\nb2\) est positif</span> alors le résultat est <span style="color:red">positif</span> et on <span style="color:red">soustrait</span> les distances à zéros <span class="nowrap">\(\nb2-\nb1\).</span>}}}
+\if{\sign1=- and \sign2=-}{\text{expres= A =\minus \nb1 \minus \nb2}
+\integer{res=-\nb1-\nb2}
+\text{expli=A=(\minus\nb1)+(\minus\nb2)}
+\text{solu=<p>\(\expli\)</p>Le résultat est <span style="color:red">négatif</span> et on <span style="color:red">additionne</span> les distances à zéro <span class="nowrap">\(\nb1+\nb2\).</span>}}
+
+\statement{Calculer \(\expres\).
+<p><label for="reply1">\(A=\)</label> \embed{r1,5}}
+\hint{Pour calculer la somme de deux nombres relatifs&nbsp;:
+<ul><li>Si les deux nombres ont le même signe, le signe de leur somme est le signe commun aux deux nombres et on additionne les distances à zéro.</li>
+<li>Si les deux nombres ont des signes contraires, le signe de la somme est le signe du nombre qui a la plus grande distance à zéro et on calcule la différence de leurs distances à zéro.</li></ul>}
+\answer{}{\res}{type=numexp}
+\solution{\(\expres\)
+\solu
+<p>\(A=\res\)</p>}

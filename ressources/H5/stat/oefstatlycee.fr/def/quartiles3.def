@@ -1,0 +1,232 @@
+!set title=Médiane et quartiles avec des classes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r
+varcnt=74
+prevarcnt=73
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 50
+
+val6=$[rint($(tmp0))]
+val7=
+val8=$[rint(20)]
+val9=$[rint($val8)]
+val10=$[rint(50)]
+val11=$[rint($val10)]
+tmp0=!randint 5, 10
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val10-$val8
+
+val13=$(tmp0)
+tmp0=!randint 1, $val12*2
+
+val14=$[rint($(tmp0))]
+val15=
+val16=$[rint(0)]
+val17=
+!for val18 =1 to $val12 
+val19=$[rint($(val13[$val18])*10)]
+tmp0=!append item $val19 to $val17
+
+val17=$(tmp0)
+!next
+tmp0=!sort numeric list $val17
+
+val17=$(tmp0)
+!for val18 =1 to $val12 
+!if $val18=$val14 
+tmp0=!randint 80, 100
+
+val20=$[rint($(tmp0))]
+val21=$[rint($(val17[$val18]))]
+!else
+tmp0=!randint 1, 80
+
+val20=$[rint($(tmp0))]
+!endif
+val16=$[rint($val16+$val20)]
+tmp0=!append item $val20 to $val15
+
+val15=$(tmp0)
+val22=$[rint($(val17[$val18]))]
+
+!ifval $val22<$val11
+val11=$[rint($val22)]
+!endif
+
+!ifval $val22>$val9
+val9=$[rint($val22)]
+!endif
+!next
+val23=$[rint($(val17[$val12])+10)]
+tmp0=!append item $val23 to $val17
+
+val17=$(tmp0)
+val24=$[rint(0)]
+val25=$[rint(-1)]
+val26=$[rint(-1)]
+val27=$[rint(-1)]
+val28=$[$val16/2]
+val29=$[$val16/4]
+val30=$[3*$val16/4]
+val31=$[rint(ceil($val28))]
+val32=$[rint(ceil($val29))]
+val33=$[rint(ceil($val30))]
+!for val18 =1 to $val12 
+val24=$[rint($val24+$(val15[$val18]))]
+!if $val24>$val29 and $val25<0 
+val25=$[rint($(val17[$val18]))]
+val34=$[rint($(val17[$val18+1]))]
+!endif
+!if $val24>$val28 and $val27<0 
+val27=$[rint($(val17[$val18]))]
+val35=$[rint($(val17[$val18+1]))]
+!endif
+!if $val24>$val30 and $val26<0 
+val26=$[rint($(val17[$val18]))]
+val36=$[rint($(val17[$val18+1]))]
+!endif
+!next
+tmp0=!shuffle $val7
+
+val37=$(tmp0)
+val38=$[rint($val9 - $val11)]
+val39=<table class="wimsborder wimscenter" style="background-color:skyblue">	  <tr>
+val40=$[rint(ceil($val16/10))]
+!for val18 =0 to $val40-1 
+val39=$val39 <tr>
+!for val41 =1 to 10 
+tmp0=!item $val18*10+$val41 of $val37
+
+val42=$(tmp0)
+val39=$val39 <td> $val42 </td>
+!next
+val39=$val39 </tr>
+!next
+val39=$val39 </table>
+val43=&#91;
+val44=&#93;
+val45=&#59;
+val46=<table class="wimsborder wimscenter">
+val46=$val46<tr><th> Valeurs </th>
+!for val41 =1 to $val12 
+val46=$val46<td> $val43 $(val17[$val41]) $val45 $(val17[$val41+1]) $val43	 </td>
+!next
+val46=$val46</tr><tr><th>Effectif</th>
+!for val41 =1 to $val12 
+val46=$val46<td> $(val15[$val41]) </td>
+!next
+val47=$val46</tr><tr><td>E.C.C</td>
+val48=$[rint(0)]
+!for val41 =1 to $val12 
+val48=$[rint($val48+$(val15[$val41]))]
+val47=$val47<td> $val48 </td>
+!next
+val47=$val47</tr></table>
+val46=$val46</tr></table>
+replytype1=numeric
+replyname1=Médiane borne gauche
+replygood1=$[$val27]
+replytype2=numeric
+replyname2=Médiane borne droite
+replygood2=$[$val35]
+replytype3=numeric
+replyname3=Q1 borne gauche
+replygood3=$[$val25]
+replytype4=numeric
+replyname4=Q1 borne droite
+replygood4=$[$val34]
+replytype5=numeric
+replyname5=Q3 borne gauche
+replygood5=$[$val26]
+replytype6=numeric
+replyname6=Q3 borne droite
+replygood6=$[$val36]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Voici les données d'une série statistique:		$val46		<ol><li> Dans quelle classe se situe la médiane de cette série: $val43  
+!read oef/embed.phtml reply1,3 
+$(); 
+!read oef/embed.phtml reply2,3 
+$() $val43</li>	<li> Dans quelle classe se situe Q1:$val43  
+!read oef/embed.phtml reply3,3 
+$(); 
+!read oef/embed.phtml reply4,3 
+$() $val43</li>	<li> Dans quelle classe se situe Q3:$val43  
+!read oef/embed.phtml reply5,3 
+$(); 
+!read oef/embed.phtml reply6,3 
+$() $val43</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'> <p>On commence par calculer les effectifs cumulés croissants:</p>	$val47	<p>	L'effectif total de cette série est de $val16<br>	Le rang de la médiane est donc $val31, la médiane est donc dans la classe &#91; $val27 ; $val35 &#91;<br>	Le rang de Q1 est  $val32, Q1 est donc dans la classe &#91; $val25 ; $val34 &#91;<br>	Le rang de Q3 est  $val33, Q3 est donc dans la classe &#91; $val26 ; $val36 &#91;	</p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16,25,26,27,31,32,33,34,35,36,43,46,47
+embedcnt=6

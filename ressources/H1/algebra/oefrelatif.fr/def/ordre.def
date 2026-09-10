@@ -1,0 +1,194 @@
+!set title=Nombres relatifs et ordre I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_es=Números relativos y orden I
+title_nl=Groter of kleiner ? I
+
+ansorder=r,r,r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=En s'aidant de la règle graduée, compléter les expressions par	  les symboles &lt;, &gt; ou = 
+!if $val6=es 
+val7=Ayudándose de la regla graduada, completar las expresiones	  con los símbolos
+!endif
+!if $val6=nl 
+val7=Vul aan de hand van de getallenlijn de onderstaande uitdrukking in. 	Gebruik de symbolen  &lt;, &gt; of = 
+!endif
+val8=$[rint(6)]
+val9=$[rint(6)]
+val10=0
+val11=
+!for val12 =-$val8 to $val9 
+val10=$[rint($val12)]
+val13=$[rint($val12)]
+val11=$val11	text black, $val13,-1, medium,$val10
+!next
+val14=<,>,=
+tmp0=!randint 10, 10*$val8-1
+
+val15=$[$(tmp0)/10]
+tmp0=!randint 10, 10*$val8-1
+
+val16=$[$(tmp0)/10]
+val17=$[-$val15]
+val18=$[-$val15]
+tmp0=!shuffle $val15,$val16,-$val15,-$val16
+
+val19=$(tmp0)
+tmp0=!item 1 of $val19
+
+val20=$(tmp0)
+
+!ifval $val20>0 
+val20= +$val20
+!endif
+tmp0=!item 2 of $val19
+
+val21=$(tmp0)
+
+!ifval $val21>0 
+val21= +$val21
+!endif
+tmp0=!item 3 of $val19
+
+val22=$(tmp0)
+
+!ifval $val22>0 
+val22= +$val22
+!endif
+val23=>,<,=
+
+!ifval $val20>$val21 
+val24= >
+!else
+val24=<
+!endif
+
+!ifval $val20=$val21 
+val24= =
+!endif
+
+!ifval $val22>$val21 
+val25= >
+!else
+val25=<
+!endif
+
+!ifval $val22=$val21 
+val25= =
+!endif
+
+!ifval $val20> $val22 
+val26= >
+!else
+val26=<
+!endif
+
+!ifval $val20=$val22 
+val26= =
+!endif
+val11=xrange -$val8-0.1,$val9+0.1	yrange -2,2	hline black,0,0	arrow $val9-0.5,0,$val9,0,10,black	parallel -$val8,-0.8,-$val8,0.4,1/2,0,40, blue	parallel -$val8,-0.3,-$val8,0.3,1/10,0,200, blue	parallel -$val8,-0.8,-$val8,0.6,1,0,40, red	$val11
+!readproc oef/drawtikz.phtml 600,50 \
+$val11 
+tmp0=$ins_tikz
+val27=$(tmp0)
+replytype1=clickfill
+replyname1=
+replygood1=$val24;$val23
+replytype2=clickfill
+replyname2=
+replygood2=$val25;$val23
+replytype3=clickfill
+replyname3=
+replygood3=$val26;$val23
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val7. \begin{itemize} \item $val20 \(\cdots\) $val21 \item $val22 \(\cdots\) $val21 \item $val20 \(\cdots\) $val22 \end{itemize} \begin{center} $val27 \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$() $val7.	<div class="wims_question">	  <div class="wimscenter">	 $val20  
+!read oef/embed.phtml reply 1,40x40 
+$() $val21	 </div><div class="wimscenter">	 $val22  
+!read oef/embed.phtml reply 2,40x40 
+$() $val21	 </div><div class="wimscenter">	 $val20  
+!read oef/embed.phtml reply 3,40x40 
+$() $val22	 </div>	 </div>	<div class="wimscenter"> 
+!read oef/draw.phtml 600,50 \
+$val11 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val7. $m_begin{itemize} $m_item $val20 
+!insmath \cdots
+$() $val21 $m_item $val22 
+!insmath \cdots
+$() $val21 $m_item $val20 
+!insmath \cdots
+$() $val22 $m_end{itemize} $m_begin{center} $val27 $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,20,21,22,27
+embedcnt=3

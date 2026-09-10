@@ -1,0 +1,230 @@
+!set title=Intervalle de fluctuation : parité à l'embauche
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=34
+prevarcnt=29
+postvarcnt=4
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 15, 85
+
+val6=$[rint($(tmp0))]
+val7=$[rint(100-$val6)]
+tmp0=!randint $val6+1, $val6+10
+
+val8=$[$(tmp0)/100]
+tmp0=!randint $val6-10, $val6-1
+
+val9=$[$(tmp0)/100]
+val10=$val8,$val9
+tmp0=!randint 1, 2
+
+val11=$[rint($(tmp0))]
+val12=un homme,une femme
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 50, 500
+
+val14=$[rint($(tmp0))]
+!if $val13=1 
+val15=$[$val6/100]
+!else
+val15=$[$val7/100]
+!endif
+val16=$[floor($val14*$(val10[$val11]))]
+val17=$[rint($val14-$val16)]
+!if $val13=1 
+val18=$[$val16/$val14]
+!else
+val18=$[$val17/$val14]
+!endif
+val19=$[rint($val18*100)/100]
+val20=$[$val14*$val15]
+val21=$[$val14*(1-$val15)]
+
+!ifval $val14>=30 and $val20>=5 and $val21>=5
+val22=1
+!else
+val22=2
+!endif
+val23=$[($val15-1.96*sqrt($val15*(1-$val15))/sqrt($val14))*100]
+val24=$[($val15+1.96*sqrt($val15*(1-$val15))/sqrt($val14))*100]
+val25=$[floor($val23)/100]
+val26=$[floor($val24)-$val24]
+!if $val26!=0 
+val27=$[(floor($val24)+1)/100]
+!else
+val27=$[floor($val24)/100]
+!endif
+
+!ifval $val19>=$val25 and $val19<=$val27
+val28=2
+!else
+val28=1
+!endif
+!if $val28=2 
+val29=\(\in)
+!else
+val29=\(\notin)
+!endif
+val30=r1,r2,r3,r4,r5
+dynsteps=yes
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=nonstop 
+replyname1=
+replygood1=1;ensemble des demandeurs d'emploi, ensemble des hommes, ensemble des femmes
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=
+replygood2=$[$val15]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=
+replygood3=$[$val14]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=
+replygood4=$[$val19]
+replytype5=checkbox
+replyoption5=nonstop 
+replyname5=
+replygood5=$val22;oui,non
+replytype6=numeric
+replyname6=
+replygood6=$[$val25]
+replytype7=numeric
+replyname7=
+replygood7=$[$val27]
+replytype8=clickfill
+replyname8=
+replygood8=$val29;\(\in),\(\notin)
+replytype9=menu
+replyname9=
+replygood9=$val28;est,n'est pas
+replytype10=menu
+replyname10=
+replygood10=$val28;on peut, on ne peut pas
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	Dans un bassin d'emploi, il y a $val6 % d'hommes et $val7 % de femmes.<br>	Une entreprise a recruté $val16 hommes et $val17 femmes.<br>	Le bassin est suffisamment important pour considérer le recrutement comme un échantillon de taille $val14	 de l'ensemble des demandeurs d'emploi de ce bassin.<br>	On souhaite savoir si cette entreprise a respecté la parité homme/femme.	<div class="consigne">	Les résultats seront arrondis au centième.	</div>	</div>			
+!if $m_step=1 
+$()	<div class="question">	compléter :		<div class="reponse">		<table class="resumestat">	<tr><th>Population étudiée :</th><td colspan="2">  
+!read oef/embed.phtml r1 
+$()</td></tr>	<tr><th>Caractère étudié :</th><td>être $(val12[$val13])</td>	<td> proportion dans la population : p= 
+!read oef/embed.phtml r2,5 
+$()</td>	</tr>	<tr><th>Echantillon :</th> <td>taille n= 
+!read oef/embed.phtml r3,5 
+$()</td>	<td> fréquence observée dans l'échantillon : f<sub>obs</sub>= 
+!read oef/embed.phtml r4,5 
+$()</td>	</tr>	</table>		Les conditions n &ge; 30, n.p &ge; 5 et n.(1-p) &ge; 5 sont-elles vérifiées ?  
+!read oef/embed.phtml r5 
+$().	</div>	</div> 
+!endif
+$()		
+!if $m_step>=2 and $val22=1 
+$()	<div class="question">	Donner un intervalle de fluctuation asymptotique au seuil 0,95 de la fréquence d'hommes dans un	échantillon de taille $val14. Conclure.			
+!if $m_sc_reply2=1 and $m_sc_reply3=1 and $m_sc_reply4=1 and $m_sc_reply5=1 
+$()	<div class="oui">	On rappelle que n=$val14, p=$val15, f<sub>obs</sub>=$val19 et les conditions d'approximation sont respectées.	</div> 
+!endif
+$()		
+!if $m_sc_reply2!=1 or $m_sc_reply3!=1 or $m_sc_reply4!=1 or $m_sc_reply5!=1 
+$()	<div class="non">	On rappelle que n=$val14, p=$val15, f<sub>obs</sub>=$val19 et les conditions d'approximation sont respectées.	</div> 
+!endif
+$()			<div class="reponse">	
+!insmath I_{$val14}
+$()=[ 
+!read oef/embed.phtml r6,5 
+$(); 
+!read oef/embed.phtml r7,5 
+$()]<br><br>		On a f<sub>obs</sub>  
+!read oef/embed.phtml r8,50 
+$() I<sub>$val14</sub>, donc la différence entre	f<sub>obs</sub> et p  
+!read oef/embed.phtml r9 
+$()	statistiquement significative. Au seuil de 95%,  
+!read oef/embed.phtml r10 
+$() suspecter cette entreprise de ne pas respecter la parité homme-	femme à l'embauche.	</div>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val30=
+!if $m_step=2 and $val22=1 
+val30=r6,r7,r8,r9,r10
+!endif
+!if $m_step>=3 and $val22=1 
+val30=
+!endif
+!if $val22=2 
+val30=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,12,13,14,15,16,17,19,22
+embedcnt=10

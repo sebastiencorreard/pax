@@ -1,0 +1,515 @@
+!set title=Racines contenues dans un intervalle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David;Gérard, Lauton
+email=lauton@u-pec.fr
+keywords=trinomial, roots, interval, order
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefdescription=Compter des racines dans un intervalle sans les calculer
+
+ansorder=r,r
+varcnt=143
+prevarcnt=142
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 2,3,5;1,1,1;3,2,2;5,4,3;7,5,4;9,7,6;11,8,7;13,10,8
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val10=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val12=$[rint($(tmp0))]
+val13=$[rint($(val6[$val9;$val7]))]
+val14=$[rint($(val6[$val10;$val8]))]
+val15=$[rint($(val6[1;$val7]))]
+val16=$[rint($(val6[1;$val8]))]
+t_=!rawmath $val11*$val13/$val15
+val17=!exec pari print($t_)
+t_=!rawmath $val12*$val14/$val16
+val18=!exec pari print($t_)
+t_=!rawmath $val17*$val18
+val19=!exec pari print($t_)
+t_=!rawmath $val17+$val18
+val20=!exec pari print($t_)
+t_=!rawmath $val20/2
+val21=!exec pari print($t_)
+t_=!rawmath $val18-$val17
+val22=!exec pari print($t_)
+t_=!rawmath $val20*$val19
+val23=!exec pari print($t_)
+!while $val23=0 or $val22<3 
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val10=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val12=$[rint($(tmp0))]
+val13=$[rint($(val6[$val9;$val7]))]
+val14=$[rint($(val6[$val10;$val8]))]
+val15=$[rint($(val6[1;$val7]))]
+val16=$[rint($(val6[1;$val8]))]
+t_=!rawmath $val11*$val13/$val15
+val17=!exec pari print($t_)
+t_=!rawmath $val12*$val14/$val16
+val18=!exec pari print($t_)
+t_=!rawmath $val17*$val18
+val19=!exec pari print($t_)
+t_=!rawmath $val17+$val18
+val20=!exec pari print($t_)
+t_=!rawmath $val20/2
+val21=!exec pari print($t_)
+t_=!rawmath $val18-$val17
+val22=!exec pari print($t_)
+t_=!rawmath $val20*$val19
+val23=!exec pari print($t_)
+!endwhile
+
+!ifval $val19<0 and $val20<0
+val24=$[rint(-1)]
+!else
+val24=$[rint(1)]
+!endif
+t_=!rawmath $val17
+val25=!exec pari print($t_)
+t_=!rawmath min($val17,$val18)
+val17=!exec pari print($t_)
+t_=!rawmath max($val25,$val18)
+val18=!exec pari print($t_)
+val26=$[rint(floor($val17))]
+val27=$[rint(floor($val18))]
+val28=$[rint(ceil($val17))]
+val29=$[rint(ceil($val18))]
+
+!ifval $val17<0
+val30=-
+!else
+val30=+
+!endif
+
+!ifval $val18<0
+val31=-
+!else
+val31=+
+!endif
+tmp=!translate ";': to $     $ in $val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val32=$(tmp1)
+tmp=!translate ";': to $     $ in $val18
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+val34=$[rint($val15*$val16)]
+val34=$[rint($val24 * $val34)]
+t_=!rawmath -$val34*$val20
+val35=!exec pari print($t_)
+t_=!rawmath $val34*$val19
+val36=!exec pari print($t_)
+val37=!rawmath $val34*x^2+$val35*x+$val36
+t_=!replace internal \( by ( in $val34*(x-($val17))*(x-($val18))
+tmp0=!exec pari $t_
+
+val38=$(tmp0)
+tmp0=!randint $val26 -5 ,  $val26
+
+val39=$[rint($(tmp0))]
+tmp0=!randint $val28 ,  $val27 -1
+
+val40=$[rint($(tmp0))]
+tmp0=!randint $val40 +1 ,  $val27
+
+val41=$[rint($(tmp0))]
+tmp0=!randint $val29 ,  $val29 + 5
+
+val42=$[rint($(tmp0))]
+tmp=!trim $val39,$val40,$val41,$val42
+val43=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val44=$[rint($(tmp0))]
+tmp0=!randint $val44+1 , 4
+
+val45=$[rint($(tmp0))]
+val36=$[rint($(val43[$val44]))]
+val46=$[rint($(val43[$val45]))]
+tmp=!translate ";': to $     $ in $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val47=$(tmp1)
+t_=!rawmath $val21-$val36
+val48=!exec pari print($t_)
+t_=!rawmath $val21-$val46
+val49=!exec pari print($t_)
+t_=!rawmath $val48*$val49
+val50=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val48
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val51=$(tmp1)
+tmp=!translate ";': to $     $ in $val49
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val52=$(tmp1)
+evaltmp=$val38
+
+evaltmp=!mathsubst x=($val36) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val53=!exec pari print($t_)
+evaltmp=$val38
+
+evaltmp=!mathsubst x=($val46) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val54=!exec pari print($t_)
+t_=!rawmath $val53*$val54
+val55=!exec pari print($t_)
+t_=!rawmath $val34*$val53
+val56=!exec pari print($t_)
+t_=!rawmath $val34*$val54
+val57=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val53
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val58=$(tmp1)
+tmp=!translate ";': to $     $ in $val54
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val59=$(tmp1)
+tmp0=!texmath $val56
+
+val60=$(tmp0)
+tmp0=!texmath $val57
+
+val61=$(tmp0)
+t_=!rawmath ($val36-$val17)*($val36-$val18)
+val62=!exec pari print($t_)
+t_=!rawmath ($val46-$val17)*($val46-$val18)
+val63=!exec pari print($t_)
+val64=\({r < s < $val36 < $val46}\),\({$val36 < $val46 < r < s}\),\({r < $val36 < s < $val46}\),\({$val36 < r < $val46 < s}\),\({r < $val36 < $val46 < s}\),\({$val36 < r < s < $val46}\)
+!if $val18 < $val36 
+val65=1
+!endif
+!if $val46 < $val17 
+val65=2
+!endif
+!if $val62 < 0 and $val18 < $val46 
+val65=3
+!endif
+!if $val36 < $val17 and $val63 < 0 
+val65=4
+!endif
+!if $val62 < 0 and $val63 < 0 
+val65=5
+!endif
+!if $val36 < $val17 and $val18 < $val46 
+val65=6
+!endif
+!if $val65=1 or $val65=2 
+val66=$[rint(0)]
+
+!ifval $val65=1
+val67= négatif
+!else
+val67=positif
+!endif
+val68=Elles sont de mêmes signes et les produits	\(a \times T(\alpha)=($val34) \times T($val36) = $val56\) et	\(a \times T(\beta)=$val34 \times T($val46) = $val57\) sont tous deux positifs.	Pour en savoir plus, il faut situer l'intervalle \(\lbrack $val36,$val46\rbrack\)	par rapport à la demi-somme des racines \(-\frac{b}{2a} = $val47\).	<p>Pour cela, on observe les différences	\(\left(-\frac{b}{2a}-(\alpha)\right)=$val47-($val36)=$val51\)	et \(\left(-\frac{b}{2a}-\beta\right)=$val47-($val46)=$val52\).	Elles sont de mêmes signes $val67. Donc les bornes \(\alpha=$val36\)	et \(\beta=$val46\) sont situées d'un même côté de l'intervalle des racines.	Avec ces données :</p>	<ul><li>Le trinôme \(T\) a \(0\) racine dans	\(\lbrack $val36,$val46\rbrack\).</li>	<li>Le bon ordre des termes est $(val64[$val65]).</li></ul>	
+!endif
+!if $val65=3 or $val65=4 
+val66=$[rint(1)]
+!if $val56 >0 
+val69=positif, donc la borne \(\alpha=$val36\) est hors de l'intervalle	  des racines et la borne \(\beta=$val46\) est dedans
+!else
+val69=négatif, donc la borne \(\alpha=$val36\) est dans l'intervalle	  des racines et la borne \(\beta=$val46\) est en dehors
+!endif
+val68=Elles sont de signes contraires. On en déduit que l'une des bornes	  \(\alpha=$val36\) ou \(\beta=$val46\) est entre les deux racines et l'autre à l'extérieur.	  Le nombre de racines dans l'intervalle donné est donc égal à \(1\).	<p>Comme l'image \(T($val36) = $val53\) est du signe opposé de celui de \(a\),	  la borne \(\alpha=$val36\) est entre les racines et la borne \(\beta=$val46\) en	  dehors de l'intervalle des racines. On en déduit l'ordre ci-dessous des bornes	  de l'intervalle et des deux racines.	Avec ces données :</p>	<ul><li>Le trinôme \(T\) a \(1\) racine dans	\(\lbrack $val36,$val46\rbrack\).</li>	<li>Le bon ordre des termes est $(val64[$val65]).</li></ul>
+!endif
+!if $val65=5 
+val66=$[rint(0)]
+val68=Elles sont de mêmes signes et les produits	\(a \times T(\alpha)=($val34) \times T($val36) = $val56\) et	\(a \times T(\beta)=$val34 \times T($val46) = $val57\) sont tous deux négatifs.	<p>On en déduit que l'intervalle donné \(\lbrack $val36,$val46\rbrack\)	est strictement contenu dans celui des racines \(\lbrack r,s\rbrack\).	Avec ces données :</p>	<ul><li>Le trinôme \(T\) a \(0\) racines dans	\(\lbrack $val36,$val46\rbrack\).</li>	<li>Le bon ordre des termes est $(val64[$val65]).</li></ul>
+!endif
+!if $val65 = 6 
+val66=$[rint(2)]
+!if $val56 > 0 and $val57 > 0 
+val70=positifs
+!endif
+!if $val56 < 0 and $val57 < 0 
+val70=négatifs
+!endif
+val68=Elles sont de mêmes signes. De plus, les produits	\(a \times T(\alpha)=($val34) \times $val53 = $val56\) et	\(a \times T(\beta)=($val34) \times $val54 = $val57\) sont tous deux $val70.	<p>On en déduit que l'intervalle donné	\(\lbrack \alpha , \beta\rbrack = \lbrack $val36 , $val46\rbrack\)	contient les deux racines \(r\) et \(s\).	Avec ces données :</p>	<ul><li>Le trinôme \(T\) a \(2\) racines dans	\(\lbrack $val36,$val46\rbrack\).</li>	<li>Le bon ordre des termes est $(val64[$val65]).</li></ul>
+!endif
+evaltmp=$val38
+
+evaltmp=!mathsubst x=($val21) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val71=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val71
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val72=$(tmp1)
+val73=$[rint(100*$val71)/100]
+t_=!rawmath min($val17,$val18)
+val74=!exec pari print($t_)
+t_=!rawmath min($val74,$val36)
+val74=!exec pari print($t_)
+t_=!rawmath min($val74,$val46)
+val74=!exec pari print($t_)
+t_=!rawmath min($val74,-2)-2
+val74=!exec pari print($t_)
+t_=!rawmath ceil($val74)
+val74=!exec pari print($t_)
+t_=!rawmath max($val17,$val18)
+val75=!exec pari print($t_)
+t_=!rawmath max($val75,$val36)
+val75=!exec pari print($t_)
+t_=!rawmath max($val75,$val46)
+val75=!exec pari print($t_)
+t_=!rawmath max($val75,2)+2
+val75=!exec pari print($t_)
+t_=!rawmath floor($val75)
+val75=!exec pari print($t_)
+t_=!rawmath min($val53,$val54)
+val76=!exec pari print($t_)
+t_=!rawmath min($val76,$val71)
+val76=!exec pari print($t_)
+t_=!rawmath max($val53,$val54)
+val77=!exec pari print($t_)
+t_=!rawmath max($val77,$val71)
+val77=!exec pari print($t_)
+val78=$[rint(floor($val76)-5)]
+val79=$[rint(ceil($val77)+5)]
+!if $val55<0 
+!else
+t_=!rawmath abs($val76)
+val80=!exec pari print($t_)
+t_=!rawmath abs($val77)
+val81=!exec pari print($t_)
+t_=!rawmath -max($val80,$val81)
+val78=!exec pari print($t_)
+t_=!rawmath -$val78
+val79=!exec pari print($t_)
+!endif
+val78=$[rint(floor($val78)-5)]
+val79=$[rint(ceil($val79)+5)]
+val82=$[rint($val75-$val74)]
+val83=$[rint($val79-$val78)]
+
+!ifval $val34>0
+val84=$[rint(-1)]
+!else
+val84=$[rint(1)]
+!endif
+t_=!rawmath $val83/25
+val85=!exec pari print($t_)
+t_=!rawmath $val84*$val85
+val86=!exec pari print($t_)
+t_=!rawmath $val21
+val87=!exec pari print($t_)
+val73=$[rint(100*$val71)/100]
+val88=$[rint(100*$val21)/100]
+
+!ifval $val34<0
+t_=!rawmath $val78+2*$val85
+val89=!exec pari print($t_)
+!else
+t_=!rawmath $val79-2*$val85
+val89=!exec pari print($t_)
+!endif
+t_=!rawmath $val89-$val85
+val90=!exec pari print($t_)
+
+!ifval $val53<0
+t_=!rawmath $val85
+val91=!exec pari print($t_)
+!else
+t_=!rawmath -$val85
+val91=!exec pari print($t_)
+!endif
+
+!ifval $val54<0
+t_=!rawmath $val85
+val92=!exec pari print($t_)
+!else
+t_=!rawmath -$val85
+val92=!exec pari print($t_)
+!endif
+val93=xrange $val74,$val75	yrange $val78,$val79	parallel $val74,$val78,$val74,$val79,1,0,$val82,grey	parallel $val74,$val78,$val75,$val78,0,1,$val83,grey	hline 0,0,black	arrow 0,0,1,0,10, black	arrow 0,0,0,1,10, black	vline 0,0,black
+val94=$val93	text green,$val87,$val89,medium,F(x)=$val38	text blue,$val87,$val89-$val85,medium,S($val88,$val73)	plot green,$val37	fcircle $val21,0,10,blue	fcircle $val21,$val71,10,blue	fcircle $val17,0,10,black	fcircle $val18,0,10,black	text blue,$val21,$val71+$val86,medium,S	dsegment $val21,0,$val21,$val71,blue	dsegment 0,$val71,$val21,$val71,blue	text red,$val36,$val91,medium,$val36	text red,$val46,$val92,medium,$val46	linewidth 3	dsegment $val36,0,$val36,$val53,red	dsegment $val46,0,$val46,$val54,red	fcircle $val36,0,10,red	fcircle $val46,0,10,red	fcircle $val36,$val53,10,red	fcircle $val46,$val54,10,red	linewidth=4	dsegment $val36,0,$val46,0,red
+!if $val21=$val88 and $val71=$val73 
+val95=\(S \left($val47\; ;\;$val72\right)\)
+!else
+val95=\(S \left($val47\; ;\;$val72\right)\) c'est-à-dire \(S\; ($val88\; ;$val73)\) avec 2 décimales.
+!endif
+val96=On rappelle qu'un trinôme \(a\; x^2+b\; x+c\) est du signe de \(-a\)	  entre les racines et du signe de \(a\) à l'extérieur des racines.
+val97=La valeur de la demi-somme des racines \(-\frac{b}{2a}\)	  peut être utile pour placer les bornes \({\alpha}\) et \({\beta}\)	  de l'intervalle donné par rapport aux racines.
+replytype1=numeric
+replyname1=Nombre de racines
+replygood1=$[$val66]
+replytype2=radio
+replyoption2=shuffle 
+replyname2=Disposition
+replygood2=$val65;$val64
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val96 $val97
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_instruction">	  Pour résoudre cet exercice, on ne calculera pas les racines. On raisonnera	  à partir des valeurs du trinôme en certains points.</div>	  Soit le trinôme 
+!insmath T
+$() défini par 
+!insmath T(x) =$val38
+$().	      <div class="wims_question">	  <ol><li><label for="reply1">Le nombre de racines du trinôme appartenant	  à l'intervalle	  
+!insmath \lbrack \alpha , \beta \rbrack = \lbrack $val36 , $val46 \rbrack
+$()	  vaut </label>  
+!read oef/embed.phtml reply1,3 
+$().</li>	  <li>La disposition des racines 
+!insmath r
+$() et 
+!insmath s
+$() 
+!insmath {(r < s)}
+$()	  par rapport à cet intervalle est :	  <fieldset>	<legend><em>Cliquer sur la bonne disposition :</em></legend>	<ul style="list-style-type:none;">	  <li> 
+!read oef/embed.phtml reply2,1 
+$()</li>	  <li> 
+!read oef/embed.phtml reply2,2 
+$()</li>	  <li> 
+!read oef/embed.phtml reply2,3 
+$()</li>	  <li> 
+!read oef/embed.phtml reply2,4 
+$()</li>	  <li> 
+!read oef/embed.phtml reply2,5 
+$()</li>	  <li> 
+!read oef/embed.phtml reply2,6 
+$()</li>	</ul>	</fieldset>	</li>	</ol>	</div>	
+$()
+!exit
+
+:hint
+$()$val96 $val97
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p> $val96	  On calcule tout d'abord les images 
+!insmath T(\alpha) = $val58
+$() et	  
+!insmath T(\beta) = $val59
+$() des bornes de l'intervalle donné	  
+!insmath \lbrack \alpha , \beta\rbrack = \lbrack $val36 , $val46\rbrack
+$()	  (traits en pointillé <span style="color:red">rouge</span>	  sur la parabole représentant le trinôme).</p>	<p>$val68</p>	<p class="wimscenter">La demi-somme des racines est l'abscisse du	sommet de la parabole, soit :</p>	<p class="wimscenter">$val95.</em></p>	<p class="wimscenter"> 
+!read oef/draw.phtml 500,500 \
+$val94 
+$()</p>	<p class="wimscenter"><em>On a résolu l'exercice sans calculer les racines	de ce trinôme. Elles sont ici égales à 
+!insmath r = $val32
+$() et 
+!insmath s = $val33
+$().</em></p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=32,33,36,38,46,58,59,68,94,95,96,97
+embedcnt=7

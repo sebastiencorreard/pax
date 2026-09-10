@@ -1,0 +1,324 @@
+!set title=Pourcentage de diminution
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+oefcss=<style> .myblue {color:#135d8f} .myred {color:#b50000 } .mygreen {color:#008000} </style>
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=55
+prevarcnt=44
+postvarcnt=10
+replycnt=9
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1,2,3,4
+val7=1,2,3,4
+tmp0=!itemcnt $val7
+
+val8=$[rint($(tmp0))]
+val9=julie.png,	dessin.png,	tableau.png,	operater.png,	schema.png,	fraction.png
+val9=$(val9[$val6])
+tmp0=!itemcnt $val6
+
+val8=$[rint($(tmp0))]
+val10=fille nommée Julie Dédeugénie pour répondre,	  garçon nommé Lébodé Sinclair pour faire un dessin,	  fille nommée Métab Laurie pour faire des tableaux,	  garçon nommé Léo Pérateur pour utiliser des opérateurs,	  fille nommée Mechet Marie pour réaliser un schéma,	  garçon nommé Gaspard Tition pour utiliser des fractions
+val11=$(val10[$val6])
+val12=Je sais <b>répondre</b> sans aide supplémentaire.,	 Un <b>dessin</b> peut aider à comprendre l'énoncé.,	 Le problème peut être résolu avec un <b>tableau</b> de proportionnalité.,	 Trouver le bon <b>opérateur</b> est souvent la clef du problème.,	 Réaliser un <b>schéma</b> des ensembles guide vers la solution.,	 Les pourcentages sont des proportions donc des <b>fractions</b>.,	 On peut réaliser un arbre avec les <b>opérateurs</b> sous forme de pourcentages.
+val12=$(val12[$val7])
+val13=répondre,dessin,tableau,opérateur,schema,fraction
+val13=$(val13[$val7])
+val14=yellow,lightblue,lightgrey,paleturquoise,lightsalmon,sandybrown
+val14=$(val14[$val7])
+val15=Voici l'aide pour la méthode
+val16=la méthode
+val17=Répondre directement ou choisir une méthode qui mènera au résultat.
+val18=Utiliser cette méthode pour trouver une partie de la réponse, la fin sera traitée dans la prochaine étape.
+val19=Valeurs,Pourcentage,Valeur initiale,Diminution,Valeur finale
+tmp0=!randint 1, 79
+
+val20=$[20+$(tmp0)]
+tmp0=!randint 1, 20
+
+val21=$[rint($(tmp0))]
+val22=$[rint(100 - $val21)]
+val23=$[$val20*0.01*$val21]
+val24=$[$val20-$val23]
+val25=$[1-0.01*$val21]
+val26=
+val27=!rawmath x-y
+val28=!rawmath (x-y)/x*100
+val29=Une action qui valait $val20 &euro; vaut maintenant $val24 &euro;. Quel est le pourcentage de diminution ?
+val30=%
+val31=Lorsqu'une quantité qui valait \(x) vaut maintenant \(y), de combien a-t-elle diminué ?
+val32=(formule)
+val33=Lorsqu'une quantité qui valait \(x) vaut maintenant \(y), de quel pourcentage a-t-elle diminué ?
+val34=% (formule)
+val35=xrange 0,400	yrange -10,230	text black, 0,230, giant,Pourcentage de diminution	linewidth 1	rectangle 200,200,280,140, black	arc 50,150,16,100,90,180,black	arc 34,150,16,100,270,360,black	arc 34,50,16,100,0,90,black	arc 50,50,16,100,180,270,black	arc 200,170,16,60,90,270,black	arc 280,105,16,70,0,90,black	arc 296,105,16,70,180,270,black	arc 296,35,16,70,90,180,black	arc 280,35,16,70,-90,0,black	linewidth 3	rectangle 50,0,130,200, black	rectangle 200,0,280,140, blue	fill 210,5,pink	text black, 0, 110, medium, 100 %	text black, 60, 160, medium, valeur	text black, 60, 140, medium, initiale	text black, 60, 120, medium, en euros	text black, 180,180, medium, %	text blue, 210, 120, medium, valeur	text blue, 210, 100, medium, finale	text blue, 210, 80, medium,en euros	text black, 205, 190, small, diminution	text black, 345,80, medium, %	
+!readproc oef/draw.phtml 400,240 \
+$val35 
+tmp0=$ins_url
+val36=$(tmp0)
+val37=$val35	text black, 60, 100, medium, $val20	text black, 150,180, medium, $val21	text blue, 210, 60, medium,$val24	text black, 205, 160, small, $val23	text black, 315,80, medium, $val22	
+!readproc oef/draw.phtml 400,240 \
+$val37 
+tmp0=$ins_url
+val38=$(tmp0)
+val39=Rectangle 100% valeur initiale $val20 Rectangle \pa % valeur finale $val24 surmonté d'un rectangle $val21 % diminution de $val23
+tmp=!trim r7,r8,r9	r2,r3,r4,r5,r6	r2,r3,r4,r5,r6	r2,r3,r5,r6
+val40=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!makelist 0 for x=1 to $val8
+
+val41=$(tmp0)
+val42=
+val43=r1
+val44=1
+dynsteps=yes
+oefsteps=$val43 
+nextstep=!nosubst $val43 
+!readproc oef/steps.proc
+replytype1=click
+replyoption1=nonstop 
+replyname1=Méthode
+replygood1=?analyze 45;$val13
+replytype2=default
+replyname2=
+replygood2=$val20
+replytype3=default
+replyname3=
+replygood3=$val21
+replytype4=default
+replyname4=
+replygood4=$val23
+replytype5=default
+replyname5=
+replygood5=$val24
+replytype6=default
+replyname6=
+replygood6=$val22
+replytype7=default
+replyname7=Question 1
+replygood7=$val21
+replytype8=function
+replyname8=Question 2
+replygood8=!rawmath $val27
+replytype9=function
+replyname9=Question 3
+replygood9=!rawmath $val28
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_question">	  <ol>	  <li>$val29	  <br />	  
+!if $val42=$(val13[1]) 
+$() 
+!read oef/embed.phtml reply7,3 
+$() $val30 
+!endif
+$()	  </li>	  <li>$val31	  <br />	  
+!if $val42=$(val13[1]) 
+$() 
+!read oef/embed.phtml reply8,8 
+$() $val32 
+!endif
+$()	  </li>	  <li>$val33	  <br />	  
+!if $val42=$(val13[1]) 
+$()$val26  
+!read oef/embed.phtml reply9,8 
+$() $val34 
+!endif
+$()	  </li>	  </ol>	  </div>	  
+!if $m_step=1 
+$()	<div class="wims_instruction">$val17</div>	<ul class="inline">	 
+!for m_tt=1 to $val8 
+$()	  
+!if $(val41[$m_tt])=0 
+$()	    <li>	     
+!read oef/embed.phtml reply1,\tt,<img src="gifs/images/methods/$(val9[$m_tt])" alt="$(val11[$m_tt])"> 
+$()	     
+!read oef/slib.phtml text/balloon [$(val12[$m_tt])],$(val14[$m_tt]),250,100,triangle=left-in 
+$()	    </li>	   
+!endif
+$()	 
+!next
+$()	</ul>	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    
+!if $val42 !=$(val13[1]) 
+$()	      <p class="myred">	      $val18	      </p>	      <div class="wims_question">	       
+!for m_tt=2 to $val8 
+$()	        
+!if $val42=$(val13[$m_tt]) 
+$()	          <div>	
+!if $m_tt=2 
+$()	Compléter le schéma suivant avec les données de la question 1.	<br />	 
+!read oef/special.phtml imageinput $val36, 400x240, 3	reply2, 60x130	reply3, 140x50,1	reply4, 215x60	reply5, 215x170	reply6, 300x150,1	 
+$()	 
+!endif
+$()	
+!if $m_tt=3 
+$()	  Compléter le tableau de proportionnalité avec les données de la question 1.	  <table class="wimscenter wimsborder">	  <tr><td>1.</td><td>$(val19[1])</td><td>$(val19[2])</td></tr>	  <tr><td>$(val19[3])</td><td> 
+!read oef/embed.phtml reply 2,3 
+$()</td><td>100 %</td></tr>	  <tr><td>$(val19[4])</td><td> 
+!read oef/embed.phtml reply 4,3 
+$()</td><td> 
+!read oef/embed.phtml reply 3,2 
+$() %</td></tr>	  <tr><td>$(val19[5])</td><td> 
+!read oef/embed.phtml reply 5,3 
+$()</td><td> 
+!read oef/embed.phtml reply 6,2 
+$() %</td></tr>	  </table>	 
+!endif
+$()	
+!if $m_tt=4 
+$()	  <p>Compléter le schéma suivant avec les données de la question 1.</p>	  <p>Pourcentage de diminution</p>	  
+!read oef/special.phtml mathmlinput [\large{ reply2 \; \overset{\phantom{xxx}- reply3\%\phantom{xxxx}}{\underset{\times reply6 /100}{\mapsto}}\; reply5 }],5	reply2	reply3	reply6	reply5 
+$()	 
+!endif
+$()	          </div>	         
+!endif
+$()	       
+!next
+$()	      </div>	     
+!endif
+$()	   
+!endif
+$()	  
+!if $m_step>2 
+$()	    
+!if $(val41[2])=1 
+$()<img src="$val38" alt="$val39"><br /> 
+!endif
+$()	    
+!if $(val41[3])=1 
+$()	      <table class="wimscenter wimsborder">	      <tr><td>1.</td><td>$(val19[1])</td><td>$(val19[2])</td></tr>	      <tr><td>$(val19[3])</td><td>$val20</td><td>100 %</td></tr>	      <tr><td>$(val19[4])</td><td>$val23</td><td>$val21 %</td></tr>	      <tr><td>$(val19[5])</td><td>$val24</td><td>$val22 %</td></tr>	      </table>	     
+!endif
+$()	    
+!if $(val41[4])=1 
+$()	    <ul class="wims_nopuce">	    <li>Pourcentage de diminution </li>	    <li>
+!insmath \large{ $val20\; \overset{\phantom{xx}-$val21\%\phantom{xx}}{\underset{\times $val22/100}{\mapsto}}\; $val24}
+$()</li>	   </ul>	     
+!endif
+$()	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<img src="$val38" alt="$val39">	   <ul class="wims_nopuce">	    <li>Pourcentage diminution </li>	    <li>
+!insmath \large{ $val20\; \overset{\phantom{xx}-$val21\%\phantom{xx}}{\underset{\times $val25}{\mapsto}}\; $val24}
+$()</li>	   </ul>	   <ul class="wims_nopuce">	    <li>Pourcentage diminution </li>	    <li>
+!insmath \large{ x\; \overset{\phantom{xx}-p\%\phantom{xx}}{\underset{\times (1-p/100)}{\mapsto}}\; y}
+$()</li>	   </ul>	<p>Lorsqu'une action passe de $val20 &euro; à $val24 &euro;, elle diminue de $val21 %.</p>	<p>Lorsqu'une quantité diminue de 
+!insmath x
+$() à 
+!insmath y
+$(), elle diminue de 
+!insmath x-y
+$().</p>	<p>Le pourcentage de diminution est 
+!insmath p=\frac{x-y}{x} \times 100
+$().</p>	<p>Le taux est 
+!insmath t=\frac{y-x}{x}
+$() autrement dit 
+!insmath t = \frac{Valeur_finale - Valeur_initiale}{Valeur_initiale}
+$()	  et il est négatif ce qui indique une diminution.</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val42=$val45
+!if $m_step=2 
+!if $val45=$(val13[1]) 
+val43=$(val40[1;])
+!else
+!for val46 =2 to $val8 
+!if $val42=$(val13[$val46]) 
+tmp0=!replace item number $val46 by 1 in $val41
+
+val41=$(tmp0)
+val43=$(val40[$val46;])
+!endif
+!next
+!endif
+!endif
+!if $m_step=3 
+!if $val42=$(val13[1]) 
+val43=
+!else
+val42=$(val13[1])
+val43=$(val40[1;])
+!endif
+!endif
+!if $m_step>=4 
+val42=$(val13[1])
+val43=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+condlist=$val44
+
+!ifval 1=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Choix de la méthode
+
+!exit
+
+:stat
+vsavelist=8,9,11,12,13,14,17,18,19,20,21,22,23,24,25,26,29,30,31,32,33,34,36,38,39,40,41,42,44,45
+embedcnt=11

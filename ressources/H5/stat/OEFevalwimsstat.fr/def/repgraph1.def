@@ -1,0 +1,260 @@
+!set title=Représentation graphique 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=86
+prevarcnt=85
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+val6=$[rint(3)]
+tmp0=!randint 20, 100
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 0, 50
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+val9=$[rint(2)]
+tmp0=!randitem 3,4
+
+val10=$[rint(2*$(tmp0)+$val9)]
+val11=
+!if $val6=3 
+val12=$[rint($val8)]
+val13=$[rint(0)]
+val14=
+val15=
+val16=
+tmp0=!append item $val12 to $val14
+
+val14=$(tmp0)
+!for val17 =1 to $val10 
+tmp0=!randitem 1,2,4
+
+val18=$[rint($(tmp0))]
+val12=$[rint($val12+$val18*10)]
+tmp0=!append item $val12 to $val14
+
+val14=$(tmp0)
+tmp0=!randint 0, 20
+
+val19=$[rint($(tmp0))]
+val13=$[rint($val13+$val19)]
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+val20=$[$val19 / $val18]
+tmp0=!append item $val20 to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!sort numeric list $val16
+
+val21=$(tmp0)
+val22=$[rint($(val21[$val10]))]
+!else
+!for val17 =1 to $val10+1 
+tmp0=!randint $val8, $val8+$val7
+
+val12=$[rint($(tmp0))]
+tmp0=!append item $val12 to $val11
+
+val11=$(tmp0)
+!next
+tmp0=!sort numeric list $val11
+
+val14=$(tmp0)
+tmp0=!listuniq $val14
+
+val14=$(tmp0)
+tmp0=!itemcnt $val14
+
+val10=$[rint($(tmp0)-1)]
+val15=
+val13=$[rint(0)]
+!for val17 =1 to $val10 
+tmp0=!randint 0, 20
+
+val19=$[rint($(tmp0))]
+val13=$[rint($val13+$val19)]
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+!next
+tmp0=!sort numeric list $val15
+
+val23=$(tmp0)
+val22=$[rint($(val23[$val10]))]
+!endif
+val8=$[rint($(val14[1]))]
+val24=$[rint($(val14[$val10+1]))]
+val25=$[rint(0)]
+val26=$[rint($val13)]
+val27=
+val28=
+tmp0=!append item $val26 to $val28
+
+val28=$(tmp0)
+val29=
+!for val17 =1 to $val10 
+val25=$[rint($val25+$(val15[$val17]))]
+val26=$[rint($val26-$(val15[$val17]))]
+tmp0=!append item $val25 to $val27
+
+val27=$(tmp0)
+tmp0=!append item $val26 to $val28
+
+val28=$(tmp0)
+val30=$[rint($(val15[$val17])* 1000 / $val13)]
+val30=$[$val30 / 10]
+tmp0=!append item $val30 to $val29
+
+val29=$(tmp0)
+!next
+tmp0=!makelist r x for x=1 to $val10
+
+val31=$(tmp0)
+tmp0=!nospace $val31
+
+val31=$(tmp0)
+val32=Diagramme circulaire, Diagramme en bâtons, Histogramme
+!if $val6=1 
+val33=red,skyblue,orange,grey,green,purple,pink,magenta,yellow,cyan
+val34=xrange -1.5,1.5	  yrange -1.5,1.5	  ellipse 0,0,2,2,black	  segment 0,0,1,0,black	  
+val35=0
+val36=
+!for val17 =1 to $val10 
+val37=$[$(val29[$val17])*2*pi/100]
+val38=$[$val35+$val37/2]
+val39=$(val33[$val17])
+val35=$[$val35+$val37]
+tmp0=!append item $val35 to $val36
+
+val36=$(tmp0)
+val34=$val34	    segment 0,0,cos($val35),sin($val35),black	    fill  cos($val38)/2,sin($val38)/2, $val39	    text $val39,  1.2*cos($val38),1.2*sin($val38),medium, $(val29[$val17])%
+!next
+!endif
+!if $val6=2 
+val34=xrange $val8-15,$val24+5	   yrange -10,$val22+5	   arrow $val8-5,0,$val24+5,0,10,black	   arrow $val8-5,-5,$val8-5,$val22+5,10,black	   segment $(val14[1]),0,$(val14[1]),$(val15[1]),blue	  dsegment $val8-5,$(val15[1]),$(val14[1]),$(val15[1]),orange	  text black,$(val14[1]),-5,medium,$(val14[1])	  text black,$val8-12,$(val15[1]),medium,$(val15[1])	  
+val40=$[rint(12)]
+val41=$[rint(3)]
+!for val17 =2 to $val10 
+
+!ifval $val40=12
+val40=$[rint(7)]
+!else
+val40=$[rint(12)]
+!endif
+
+!ifval $val41=3
+val41=$[rint(5)]
+!else
+val41=$[rint(3)]
+!endif
+val34=$val34	    segment $(val14[$val17]),0,$(val14[$val17]),$(val15[$val17]),blue	    dsegment $val8-5,$(val15[$val17]),$(val14[$val17]),$(val15[$val17]),orange	    text black,$(val14[$val17]),-$val41,medium,$(val14[$val17])	    text black,$val8-$val40,$(val15[$val17]),medium,$(val15[$val17])	    
+!next
+!endif
+!if $val6=3 
+val42=$[($val24-$val8)/5]
+val34=xrange $val8-$val42,$val24+15	   yrange -10,$val22+5	   arrow $val8-5,0,$val24+5,0,10,black	   arrow $val8-5,-5,$val8-5,$val22+5,10,black	   polyline blue,$(val14[1]),0,$(val14[1]),$(val16[1]),$(val14[2]),$(val16[1]),$(val14[2]),0	  dsegment $val8-5,$(val16[1]),$(val14[1]),$(val16[1]),orange	  text black,$(val14[1]),-5,medium,$(val14[1])	  text black,$val8-$val42,$(val16[1]),medium,$(val16[1])	  
+val41=$[rint(3)]
+!for val17 =2 to $val10 
+
+!ifval $val40=$val42
+val40=$[$val42/2]
+!else
+val40=$[$val42]
+!endif
+
+!ifval $val41=3
+val41=$[rint(5)]
+!else
+val41=$[rint(3)]
+!endif
+val34=$val34	   polyline blue,$(val14[$val17]),0,$(val14[$val17]),$(val16[$val17]),$(val14[$val17+1]),$(val16[$val17]),$(val14[$val17+1]),0	   dsegment $val8-5,$(val16[$val17]),$(val14[$val17]),$(val16[$val17]),orange	   text black,$(val14[$val17]),-$val41,medium,$(val14[$val17])	   text black,$val8-$val40,$(val16[$val17]),medium,$(val16[$val17])	   
+!next
+
+!ifval $val41=3
+val41=$[rint(5)]
+!else
+val41=$[rint(3)]
+!endif
+val34=$val34	  text black,$(val14[-1]),-$val41,medium,$(val14[-1])
+!endif
+replytype1=radio
+replyname1=Il s'agit
+replygood1=$val6 ;$val32
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Voici une représentation graphique d'une série statistique :	  <div class="wimscenter">	   
+!read oef/draw.phtml 400,400 \
+$val34 
+$()</div>	   De quelle représentation graphique s'agit-il ?	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=34
+embedcnt=0

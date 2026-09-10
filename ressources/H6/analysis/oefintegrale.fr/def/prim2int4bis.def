@@ -1,0 +1,286 @@
+!set title=Primitive et intégrale (ln) à étapes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal,Causse
+email=Chantal.Causse@noos.fr
+leftrange=1.000000
+rightrange=10.000000
+
+ansorder=r,r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=$[rint(3 )]
+tmp0=!item $val11 of (a * x + b)*e^($val10*x),(x^2+a*x+b)*e^($val10*x),a * x *ln(x)+ b * x
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val12
+
+val13=$(tmp0)
+evaltmp=$val12
+
+evaltmp=!mathsubst a=($val6) in $evaltmp
+evaltmp=!mathsubst b=($val7) in $evaltmp
+tmp0=($evaltmp)
+val14=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val14)
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=!rawmath $(tmp0)
+tmp0=!item $val11 of $val16,$val16,$val15
+
+val14=!rawmath $(tmp0)
+tmp0=!replace internal log by ln in $val14
+
+val14=!rawmath $(tmp0)
+tmp0=!texmath $val14
+
+val17=$(tmp0)
+tmp=!translate ;";': to $     $ in $val14,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val18=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val18)
+tmp0=!exec maxima $t_
+
+val19=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val18
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=!rawmath $(tmp0)
+tmp0=!item $val11 of $val20,$val20,$val19
+
+val18=!rawmath $(tmp0)
+tmp0=!texmath $val18
+
+val21=$(tmp0)
+tmp0=!replace internal log by ln in $val21
+
+val21=$(tmp0)
+tmp0=!randint -4, 4
+
+tmp1=!randint -4, 4
+
+tmp2=!randint 1, 8
+
+tmp3=!item $val11 of $(tmp0)/2,$(tmp1)/2,$(tmp2)/2
+
+t_=!rawmath $(tmp3)
+val22=!exec pari print($t_)
+tmp0=!randint 1, 8
+
+t_=!rawmath $val22 + $(tmp0)/4
+val23=!exec pari print($t_)
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($val23) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($val22) in $evaltmp
+tmp2=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val24=$(tmp1) - $(tmp3)
+t_=!replace internal \( by ( in expand($val24)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+tmp0=!replace internal log by ln in $val24
+
+val24=$(tmp0)
+oefsteps=reply1,reply2	reply3	reply4 
+nextstep=!nosubst reply1,reply2	reply3	reply4 
+!readproc oef/steps.proc
+replytype1=integer
+
+replyname1=a
+replygood1=$val6
+replytype2=integer
+
+replyname2=b
+replygood2=$val7
+replytype3=function
+replyname3=F(x)
+replygood3=!rawmath $val14
+replytype4=function
+replyname4=intégrale
+replygood4=!rawmath $val24
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère les fonctions 
+!insmath f
+$() définie par 
+!insmath f(x) = $val21
+$() et 
+!insmath F
+$() définie par 
+!insmath F(x) = $val13
+$() (
+!insmath a
+$() et 
+!insmath b
+$() sont des réels).	
+!if $m_step=1 
+$()<p>1. Déterminer les nombres 
+!insmath a
+$() et 
+!insmath b
+$() pour que la fonction 
+!insmath F
+$() soit une primitive de 
+!insmath f
+$().</p> 
+!else
+$() <p>Effectivement, on doit choisir 
+!insmath a=$val6
+$() et 
+!insmath b=$val7
+$() pour la fonction 
+!insmath F
+$() soit une primitive de 
+!insmath f
+$().</p> 
+!endif
+$()	
+!if $m_step=2 
+$()<div>2. L'<label for="reply3">expression de 
+!insmath F(x)
+$()</label> est donc  
+!read oef/embed.phtml r3 
+$().</div> 
+!endif
+$()	
+!if $m_step=3 
+$()<p>La fonction 
+!insmath F
+$() vérifie 
+!insmath F(x)=$val17
+$().</p>	<p>3. Calculer 
+!insmath integrate(f(x),x=$val22, $val23)
+$().</p> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+!insmath F
+$() est une primitive de 
+!insmath f
+$() si et seulement si 
+!insmath F'(x) = f(x)
+$().<br>	En calculant 
+!insmath F'(x)
+$() et en l'identifiant à 
+!insmath f(x)
+$(), on trouve des équations permettant de déterminer 
+!insmath a
+$() et 
+!insmath b
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1=1) and ($m_sc_reply2=1) and ($m_sc_reply3=1) and ($m_sc_reply4=1)
+ <div class='oef_feedbacks'>Votre réponse est juste. L'intégrale 
+!insmath integrate(f(x),x=$val22, $val23)
+$() s'écrit 
+!insmath $val24
+$().
+$()</div>
+!endif
+!ifval ($m_sc_reply1=1) and ($m_sc_reply2=1) and ($m_sc_reply3=1) and ($m_sc_reply4=0)
+ <div class='oef_feedbacks'>Votre réponse est fausse. L'intégrale 
+!insmath integrate(f(x),x=$val22, $val23)
+$() vaut 
+!insmath $val24
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,13,17,21,22,23,24
+embedcnt=1

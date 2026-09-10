@@ -1,0 +1,220 @@
+\title{Raaklijn en afgeleide}
+\language{nl}
+\range{-5..5}
+\author{Véronique Royer}
+\email{royer.lyjamo@wanadoo.fr}
+\computeanswer{no}
+\format{html}
+\language{nl}
+\precision{10}
+
+(version fevrier 05) 
+
+\integer{cas=random(1..4)}
+\integer{xsize=random(4..6)}
+\integer{ysize=\xsize}
+
+\integer{sign1=random(-1,1)}
+\integer{sign2=random(-1,1)}
+
+
+/** cas 1 : Cf  hyperbole et  tangente en A3 **/
+
+\integer{a1=\cas==1?\sign1*random(-\xsize..-0.5*\xsize-1)}
+\integer{b1=\cas==1?\sign2*random(2..0.5*\ysize)}
+\integer{a3=\cas==1?random(-0.5*\xsize+1..0.5*\xsize-1)}
+\integer{b3=\cas==1?\sign2*random(1..0.5*\ysize-1)}
+\function{f=\cas==1? \b3*(\a3-\a1)/(x-\a1)}
+\text{ensdef=\cas==1?\(\RR\setminus\{\a1\})}
+
+
+/** cas 2 : Cf  cubique et  Cg sa tangente en A3 proche du sommet **/
+
+
+\integer{a1=\cas==2?random(-\xsize..-0.5*\xsize-2)}
+\integer{a2=\cas==2?\sign2*random(2..0.5*\xsize-1)}
+\integer{a3=\cas==2?-\sign2*random(2..0.5*\xsize-1)}
+\integer{a4=\cas==2?random(0.5*\xsize+2..\xsize)}
+\integer{b1=\cas==2?random(-0.5*\ysize+1..0.5*\ysize-1)}
+\integer{b4=\cas==2?\b1+ random(-1..1)}
+\integer{b3=\cas==2?\b1+\sign1*random(2..0.5*\ysize-1)}
+\integer{b2=\cas==2?\b1-\sign1*random(2..0.5*\ysize-1)} 
+
+\function{f=\cas==2?\b1*(x-\a2)*(x-\a3)*(x-\a4)/((\a1-\a2)*(\a1-\a3)*(\a1-\a4)) + \b2*(x-\a1)*(x-\a3)*(x-\a4)/((\a2-\a1)*(\a2-\a3)*(\a2-\a4))+ \b3*(x-\a1)*(x-\a2)*(x-\a4)/((\a3-\a2)*(\a3-\a1)*(\a3-\a4))+ \b4*(x-\a1)*(x-\a2)*(x-\a3)/((\a4-\a2)*(\a4-\a1)*(\a4-\a3))}
+
+
+/** cas 3 : Cf parabole et  Cg sa tangente proche d'un chge var **/
+
+\integer{a1=\cas==3?-\xsize+1}
+\integer{a3=\cas==3?\sign1*random(2..0.5*\xsize)}
+\integer{a4=\cas==3?\xsize-1}
+\rational{b1=\cas==3?\sign1*0.5*random(0..\ysize-1)}
+\rational{b4=\cas==3?-\sign1*0.5*random(0..\ysize-1)}
+\rational{b3=\cas==3?\b1+(\b4-\b1)*(\a3-\a1)/(\a4-\a1)+
+\sign2*0.5*random(2..5)
+}
+
+/** cas 4 : Cf parabole et  Cg sa tangente proche d'un chge var **/
+
+\integer{a1=\cas==4?-\xsize+1}
+\integer{a3=\cas==4?\sign1*random(2..0.5*\xsize)}
+\integer{a4=\cas==4?\xsize-1}
+\rational{b1=\cas==4?\sign1*random(0.5\ysize-1..\ysize-1)}
+\rational{b4=\cas==4?\sign1*random(0.5\ysize-1..\ysize-1)}
+\rational{b3=\cas==4?-\sign1*random(0.5\ysize-1..1)}
+
+\function{f=\cas>2? \b3*(x-\a1)*(x-\a4)/((\a3-\a4)*(\a3-\a1))+ \b1*(x-\a3)*(x-\a4)/((\a1-\a3)*(\a1-\a4)) + \b4*(x-\a1)*(x-\a3)/((\a4-\a3)*(\a4-\a1))}
+
+\text{ensdef=\cas>1?\(\RR)}
+
+
+\function{df=diff(\f,x)}
+\real{m=evaluate(\df,x=\a3)}
+\function{g=\m*(x-\a3)+ \b3}
+
+/** préparation du graphique **/
+
+\integer{ysize=\cas==3?\xsize+1}
+
+/** si  b3 non  entier, afficher une val décimale de b3 pour yA **/ 
+\real{yA=cas<3?\b3:pari(floor(100*\b3)/100)}
+
+
+\real{labelf=evaluate(\f, x=-\xsize+0.5)}
+
+\real{absm=pari(abs(\m))}
+\integer{deltax=\absm<1?2:1}
+\integer{x3=\a3+\deltax}
+\real{h=evaluate(\g, x=\x3)}
+\integer{change=(\h<-\xsize+1 or \h>\xsize-1 or \x3<-\xsize+1 or 
+\x3>\xsize-1)?1:0}
+\integer{x3=\change==1?\a3-\deltax}
+\real{y3=evaluate(\g, x=\x3)}
+\real{y3=pari(floor(100*\y3)/100)}
+
+\text{labelA=text red , \a3 , \b3 +0.5 , medium, A
+linewidth 3
+point \a3 , \b3 ,red}
+\text{labelB=text red , \x3 , \y3 +0.5 , medium, B
+linewidth 3
+point \x3 , \y3 ,red}
+
+\text{ticks=text black , -1, -20, small , -20
+text black , -1, -15, small , -15
+text black , -1,-10,small , -10
+text black , -1,-5,small , -5
+text black , -1, 5,small , 5
+text black , -1, 10, small , 10
+text black , -1, 15, small , 15
+text black , -1, 20, small , 20
+text black, -10, -0.2, small , -10
+text black, -5, -0.2, small , -5
+text black, 5, -0.2,small , 5
+text black, 10, -0.2,small , 10
+linewidth 3
+point   1 ,0, black
+point   0 ,1, black
+point   -10 ,0, black
+point   -5 ,0, black
+point   5 , 0, black
+point   10 , 0, black
+point  0, -20 , black
+point  0, -15 , black
+point  0, -10 , black
+point  0, -5 , black
+point  0, 5 , black
+point  0, 10 , black
+point  0, 15 , black
+point  0, 20 , black
+}
+
+
+\statement{<table width="100%">
+<tr>
+<td width="50%">
+<p>
+Gegeven is het vlak \((O ; \vec{i} , \vec{j})). </p>
+<p>
+De <font color=blue>curve \C </font> stelt de <font color=blue>functie &nbsp;\(f)&nbsp;</font> voor , gedefinieerd in \ensdef.  </p>
+<p><font color= green>De rechte \(T) </font> is de raaklijn aan \C in het punt \(A) , met co&ouml;rdinaten  (\a3 : \yA).
+</p>
+<p style="background-color:#FFCC66">
+We weten dat de rechte \(T) ook door punt \(B) ,met co&ouml;rdinaten  (\x3 : \y3) gaat. 
+<br>
+Bereken hiermee de waarde van &nbsp;\(f'(\a3)) &nbsp; op twee decimalen nauwkeurig.
+</p>
+
+<center>\(f'(\a3) \simeq)   \embed{reply1 , 10} </center>
+
+</td>
+<td width="50%">
+<center>
+\draw{380,380}{
+xrange -\xsize,\xsize
+yrange -\ysize,\ysize
+parallel -\xsize,-\ysize,-\xsize,\ysize,1,0, 2*\xsize+1, grey 
+parallel -\xsize,-\ysize,\xsize,-\ysize,0,1, 2*\ysize+1, grey 
+hline 0,0,black
+vline 0,0,black
+arrow 0,0,1,0,8, black
+arrow 0,0,0,1,8, black
+text black , -0.5,-0.3,small , O
+text black , 1,-0.3,small , I
+text black , -0.5,1,small , J
+\labelA
+\labelB
+text blue , -\xsize+0.5 ,\labelf  , medium, y=f(x)
+\ticks
+linewidth 1.5
+plot blue, \f
+plot green, \g
+}
+</center>
+</td>
+</tr></table>
+}
+
+\hint{Le nombre dérivé \(f'(a)) est le coefficient directeur de la tangente \(T_a) à la courbe représentative de \(f) au point d'abscisse \(a).}
+
+
+\answer{Nombre dérivée \(f'(\a3)) :}{\m}{type = numeric}
+
+\integer{bonsigne=\m!=0 and \reply1*\m<0?0:1}
+
+\feedback{\bonsigne==0}{<b>Opmerking</b>
+Je hebt de richtings co&euml;fficient van de raaklijn verkeerd.
+Als de functie stijgend is in de buurt van \(x = \a3) , is de raaklijn \(T) "stijgend" en is \(f'(\a3)) dus positief<br> 
+<br/>
+Als de functie dalend is in de buurt van \(x = \a3) , is de raaklijn \(T) dalend en is \(f'(\a3)) dus negatief.
+}
+
+\feedback{0==0}{De afgeleide in \(\a3) van \(f) is de rechte \(T) met  richtingsco&euml;fficient \(m) .  <br/>
+\(m) is gelijk aan \(\frac{\Delta y}{\Delta x} = \frac{y_B - y_A}{
+x_B - x_A}) (zie de rode pijlen in de grafiek ): 
+<center>
+\draw{350,350}{
+xrange -\xsize,\xsize
+yrange -\ysize,\ysize
+parallel -\xsize,-\ysize,-\xsize,\ysize,1,0, 2*\xsize+1, grey 
+parallel -\xsize,-\ysize,\xsize,-\ysize,0,1, 2*\ysize+1, grey 
+hline 0,0,black
+vline 0,0,black
+arrow 0,0,1,0,8, black
+arrow 0,0,0,1,8, black
+arrow \a3,\b3,\x3,\b3, 8, red
+arrow \x3,\b3,\x3,\y3, 8, red
+text black , -0.5,-0.3,small , O
+text black , 1,-0.3,small , I
+text black , -0.5,1,small , J
+text blue , \xsize-2 ,\labelf  , medium, y=f(x)
+text green, -\xsize+2 ,\labelg  , medium, T
+\labelA
+\labelB
+linewidth 1.5
+plot blue, \f
+plot green, \g
+linewidth 3
+point \a3 , \b3, red
+}
+</center>
+}

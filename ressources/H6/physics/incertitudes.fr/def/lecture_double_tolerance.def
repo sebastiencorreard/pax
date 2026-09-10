@@ -1,0 +1,236 @@
+!set title=Incertitude de lecture double + tolérance
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r
+varcnt=52
+prevarcnt=51
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!random 0, 10
+
+val6=$[$(tmp0)]
+tmp0=!randitem 0.1,0.5,1,2
+
+val7=$[$(tmp0)]
+tmp0=!randitem 0.75*$val7,$val7/2,$val7/4
+
+val8=$[$(tmp0)]
+val9=$[2*$val8/sqrt(3)]
+val10=$[sqrt(2)*2*$val7/sqrt(12)]
+val11=$[sqrt(($val9)*($val9)+($val10)*($val10))]
+val12=$[ceil($val11)]
+!readproc slib/text/sigunits $val12,1 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=$val13
+!if $val7=0.1 
+val15=$[rint(2)]
+tmp0=!random 20, 70
+
+val16=$[$(tmp0)]
+val11=$[sqrt(($val9)*($val9)+($val10)*($val10))]
+val12=$[ceil($val11*10)/10]
+!readproc slib/text/sigunits $val12,1 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=$val13
+!endif
+!if $val7=0.5 
+val15=$[rint(3)]
+tmp0=!random 20, 70
+
+val16=$[$(tmp0)]
+!if $val11<=0.5 
+val12=$[0.5]
+!else
+val12=$[1]
+!endif
+!readproc slib/text/sigunits $val12,1 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=$val13
+!endif
+!if $val7=1 
+val15=$[rint(2)]
+tmp0=!random 20, 70
+
+val16=$[$(tmp0)]
+!endif
+!if $val7=2 
+val15=$[rint(2)]
+tmp0=!random 31, 70
+
+val16=$[$(tmp0)]
+!endif
+val17=$[(80-$val16)*$val7]
+!readproc slib/text/sigunits $val17,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+!if $val7=0.5 
+val19=$[$val18-floor($val17)]
+val20=$[floor($val17)]
+val21=$[$val20+0.5]
+val22=$[$val20+1]
+!if $val19<0.35 
+!readproc slib/text/sigunits $val20,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+!endif
+!if $val19>0.35 and $val19<0.75 
+!readproc slib/text/sigunits $val21,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+!endif
+!if $val19>0.75 
+!readproc slib/text/sigunits $val22,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+!endif
+!endif
+!if $val7=2 
+val20=$[floor($val17)]
+val19=$[$val20%2]
+val22=$[$val20+1]
+!if $val19=0 
+!readproc slib/text/sigunits $val20,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+!else
+!readproc slib/text/sigunits $val22,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+!endif
+!endif
+val23=$val18
+val24=$[rint(10*$val7)]
+tmp=!trim $val24
+val25=!translate internal $	\
+$ to ;; in $tmp
+val26=$[rint(81)]
+val27=text black,24,80,small,0	
+!for val28 =1 to 8 
+val29=$[rint((10*$val7)*$val28)]
+val26=$[rint($val26-10)]
+tmp=!trim $val25,$val29
+val25=!translate internal $	\
+$ to ;; in $tmp
+val27=$val27	text black,24,$val26,small,$(val25[$val28+1])
+!next
+!readproc oef/draw.phtml 250,500 \
+xrange -0.5, 10*4	yrange -0.5, 10*8	fill 1,1,grey	rect 2,78,15,68,red	text red,4,75,small,tolerance=	text red,4,73,small,$val8 mL	frect 18,-0.5,27,$val16,skyblue	rect 18,-0.5,27,82,255,220,180	linewidth 1	parallel 19, 0, 23, 0, 0, 1, 10*8+1, 255,220,180	linewidth 3	parallel 19, 0, 23, 0, 0, 10, 10*8+1, 255,220,180	linewidth 2	$val27	 
+tmp0=$ins_url
+val30=$(tmp0)
+val31=t=$val16<br>L=$val18<br>n=$val7<br>tol=$val8<br>Utot=$val11<br>Utot1=$val12<br>
+replytype1=sigunits
+replyname1=V
+replygood1=$val18
+replytype2=numeric
+replyname2=U(L)
+replygood2=$[$val10]
+replytype3=numeric
+replyname3=U(t)
+replygood3=$[$val9]
+replytype4=numeric
+replyname4=U(V)
+replygood4=$[$val11]
+replytype5=sigunits
+replyname5=U(V)
+replygood5=$val13
+replytype6=sigunits
+replyname6=U(V)
+replygood6=$val23
+replytype7=sigunits
+replyname7=U(L)
+replygood7=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<table>	<tr><th><img src="$val30"></th>	<td>	Lors d'un TP de chimie, un élève utilise la burette ci-contre. Soit V le volume versé	<ul>	<li>Relever la valeur de V en tenant compte des chiffres significatifs 	(voir <i>indication</i>):	<br> V=  
+!read oef/embed.phtml reply1,8 
+$()mL</li>	<li>Calculer l'incertitude U(L) de lecture sans tenir compte des chiffres significatifs. 	<br>U(L)= 
+!read oef/embed.phtml reply2,8 
+$()mL</li>	<li>Calculer l'incertitude U(t) liée à la tolérance sans tenir compte des chiffres significatifs. 	<br>U(t)= 
+!read oef/embed.phtml reply3,8 
+$()mL</li>	<li>En déduire l'incertitude totale U(V) (voir <i>indication</i>) sans tenir compte des chiffres significatifs. 	<br>U(V)= 
+!read oef/embed.phtml reply4,8 
+$()mL puis en ne gardant qu'un seul chiffre significatif:	<br>U(V)= 
+!read oef/embed.phtml reply5,8 
+$()mL</li>	<li>Ecrire V sous la forme V=V &plusmn; U(V): 	V=( 
+!read oef/embed.phtml reply6,8 
+$()
+!insmath \pm
+$() 
+!read oef/embed.phtml reply7,8 
+$())mL</li>	</ul>	</td></tr></table>	
+$()
+!exit
+
+:hint
+$()<h2>RAPPELS:</h2>	<ul>	<li>Pour déterminer le nombre de chiffres significatifs, il faut se poser la question suivante: avec	quelle précision (et donc combien de chiffres) arrive-ton à effectuer la mesure.<br>	Il ne faut pas se fier au nombre de chiffres proposés par l'échelle </li>	<li>Incertitude U(t) liée à la tolérance t d'un instrument (ou appareil) de mesure:	
+!insmath U(t)=\frac{2\times t}{\sqrt{3}}
+$()</li> 	<li>Lecture d’une valeur sur un système gradué : 
+!insmath U_{lecture} = \frac{2\times "graduation"}{\sqrt{12}}
+$()	 ou « graduation » représente la plus petite graduation de l’appareil.<br>	Pour une double lecture (distance sur une règle..), 	
+!insmath U_{double lecture} =  \sqrt{2}\times U_{lecture}
+$()	<li>Pour une mesure à la burette, il faut utiliser la double lecture. En effet, il y a eu 	forcément une lecture pour la mise à zéro, puis une autre pour mesurer V. </li>	<li>L'incertitude est toujours arrondie à la valeur supérieure</li>	<li>L'incertitude totale U(V) composée de plusieurs incertitudes :U(L) et U(t) se calcule à l'aide de la formule suivante:<br>	
+!insmath U(V)=\sqrt{U(L)^2+U(t)^2}
+$() <br>	Il ne faut pas effectuer d'arrondi sur U(L) et U(t) avant de calculer U(V)</li>	</ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=30
+embedcnt=7

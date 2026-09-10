@@ -1,0 +1,134 @@
+!set title=5. Intérêt
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=jlyotardwims@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Les Intérêts,Le Capital,Le Taux,La Durée
+val7=ÊTES-VOUS UN BON FINANCIER ?
+val8=On va déterminer simplement la durée du placement	 avec un capital et un taux d'intérêt fixés.
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/100]
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+val12=$[rint(10000+$val11*1000)]
+tmp0=!randint 5, 15
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val12*$val10*$val13)]
+tmp0=!randint 1, 5
+
+val15=$[rint($(tmp0))]
+val16=$[rint(1000+$val15*1000)]
+tmp0=!randint 20, 30
+
+val17=$[rint($(tmp0))]
+val18=$[$val16*$val17*$val10]
+val19=$val14 &#8364;,$val12 &#8364;,$val10, ??????
+val20=$[rint(5*0.01*$val12)]
+!readproc slib/geo2D/jsxgraph jsxbox,800 x 650,	var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 50, originY: 600, unitX: 20, unitY: 0.05, axis:true,shownavigation:false, grid:false});	var s = board.createElement('slider', [[1,-500],[11,-500],[1000,10000,15000]],{name:'Capital',strokeColor:'black',fillColor:'red',snapWidth:1000});	var t = board.createElement('slider', [[22,-500],[27,-500],[0,0.01,0.05]],{name:'Taux',strokeColor:'black',fillColor:'red',snapWidth:0.01});		var yy = board.createElement('text',[1,11500,function(){	    return 'Intérêt en &#8364;';}],{fontSize:'14px'});	var xx = board.createElement('text',[30,300,function(){	    return 'Période en jours';}],{fontSize:'14px'});		var fct= board.createElement('functiongraph', [function(x){return x*s.Value()*t.Value();},0,37]);	var g1 = board.createElement('glider', [5, $val20, fct], {style:12,name:"Déplace moi", strokeColor:'#990000',highlightStrokeColor:'#000000'});		var pyy = board.createElement('point',[0 , function(){ return g1.Y();}], {name:'B',style:6,visible:false});	var pxx = board.createElement('point',[function(){ return g1.X();}, 0], {visible:false});		var fleyy = board.createElement('line',[g1,pyy], 	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'#990000', dash:0,  lastArrow:true});	var fleyy = board.createElement('line',[g1,pxx], 	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'#990000', dash:0,  lastArrow:true});	 
+tmp0=$slib_out
+val21=$(tmp0)
+replytype1=numeric
+replyname1=La durée est de
+replygood1=$[$val13]
+replytype2=range
+replyname2=Les Intérêts sont de
+replygood2=!rawmath $val18-200,$val18+200,$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br />	<div class="consigne">	<div id="boited">	<img src="$val1/sallemarche.jpg" alt="Salle des marchés" />	</div>	<p class="problematique"> $val7</p>	<p class="special_letter">$val8<br /></p>		<div class="Table">	Les intérêts simples  sont donnés par la relation	 suivante :<br />	 
+!insmath \large{I = C \times t \times n}
+$()	</div>	<div class="Table">	<b>
+!insmath I
+$() : Intérêt en &#8364;</b>	<br />	<b>
+!insmath C
+$(): Capital placé en &#8364;</b>	<br />	<b>
+!insmath t
+$() : Taux du placement</b>	<br />	<b>
+!insmath n
+$() : Période du placement</b>	<br />	</div>	<br />	Un traider a joué en bourse et l'ensemble des capitaux	 a rapporté un montant de $val14 &#8364;.	<br /><br />	<table class="wimscenter wimsborder">	<tr>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;$(val6[$m_l])&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;$(val19[$m_l]) &nbsp;&nbsp;</td> 
+!next
+$()	</tr>	</table>	<br />	$val21	<br />	<div class="question">	En réalisant une lecture graphique, déterminez la durée du placement.	<br />	Au préalable, prenez soin de régler correctement la droite à	 l'aide des curseurs puis déplacez le point sur la droite.	<br />	Par conséquent la période est de :  
+!read oef/embed.phtml reply1, 4 
+$() jours.	<br /><br />	Un particulier réalise les mêmes opérations boursières avec	un capital de $val16 &#8364; sur une période de $val17 jours.	<br />	Déterminez le montant des intérêts:  
+!read oef/embed.phtml reply2, 4 
+$() &#8364;.	</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,14,16,17,19,21
+embedcnt=2

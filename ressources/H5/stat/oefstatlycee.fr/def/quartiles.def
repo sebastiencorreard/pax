@@ -1,0 +1,285 @@
+!set title=Médiane et quartiles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=58
+prevarcnt=56
+postvarcnt=1
+replycnt=13
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 50
+
+val6=$[rint($(tmp0))]
+val7=
+val8=$[rint(20)]
+val9=$[rint($val8)]
+val10=$[rint(50)]
+val11=$[rint($val10)]
+tmp0=!randint 5, 10
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val10-$val8
+
+val13=$(tmp0)
+tmp0=!randint 1, $val12
+
+val14=$[rint($(tmp0))]
+val15=
+val16=$[rint(0)]
+val17=
+!for val18 =1 to $val12 
+tmp0=!append item $(val13[$val18]) to $val17
+
+val17=$(tmp0)
+!next
+tmp0=!sort numeric list $val17
+
+val17=$(tmp0)
+!for val18 =1 to $val12 
+!if $val18=$val14 
+tmp0=!randint 6, 10
+
+val19=$[rint($(tmp0))]
+val20=$[rint($(val17[$val18]))]
+!else
+tmp0=!randint 1, 5
+
+val19=$[rint($(tmp0))]
+!endif
+val16=$[rint($val16+$val19)]
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+val21=$[rint($(val17[$val18]))]
+!for val22 =1 to $val19 
+tmp0=!append item $val21 to $val7
+
+val7=$(tmp0)
+!next
+
+!ifval $val21<$val11
+val11=$[rint($val21)]
+!endif
+
+!ifval $val21>$val9
+val9=$[rint($val21)]
+!endif
+!next
+val23=$[rint(0)]
+val24=$[rint(-1)]
+val25=$[rint(-1)]
+val26=$[rint(-1)]
+val27=$[$val16/2]
+val28=$[$val16/4]
+val29=$[3*$val16/4]
+!for val18 =1 to $val12 
+val23=$[rint($val23+$(val15[$val18]))]
+!if $val23>=$val28 and $val24<0 
+val24=$[rint($(val17[$val18]))]
+!endif
+!if $val23>=$val27 and $val26<0 
+
+!ifval $val23=$val27
+val26=$[($(val17[$val18])+$(val17[$val18+1]))/2]
+!else
+val26=$[$(val17[$val18])]
+!endif
+!endif
+!if $val23>=$val29 and $val25<0 
+val25=$[rint($(val17[$val18]))]
+!endif
+!next
+tmp0=!shuffle $val7
+
+val30=$(tmp0)
+val31=$[rint($val9 - $val11)]
+val32=<table class="wimscenter wimsborder" style="background-color:skyblue">
+val33=$[rint(ceil($val16/10))]
+!for val18 =0 to $val33-1 
+val32=$val32 <tr>
+!for val22 =1 to 10 
+tmp0=!item $val18*10+$val22 of $val30
+
+val34=$(tmp0)
+val32=$val32 <td> $val34 </td>
+!next
+val32=$val32 </tr>
+!next
+val32=$val32 </table>
+val35=<table class="wimscenter wimsborder">
+val35=$val35<tr><th> Ages </th>
+!for val22 =1 to $val12 
+val35=$val35<td> $(val17[$val22]) </td>
+!next
+val35=$val35</tr><tr><th>Effectif</th>
+tmp0=!makelist r x for x = 1 to $val12+3
+
+val36=$(tmp0)
+tmp0=!nospace $val36
+
+val36=$(tmp0)
+dynsteps=yes
+oefsteps=$val36 
+nextstep=!nosubst $val36 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Médiane
+replygood1=$[$val26]
+replytype2=numeric
+replyname2=Q1
+replygood2=$[$val24]
+replytype3=numeric
+replyname3=Q3
+replygood3=$[$val25]
+replytype4=numeric
+replyname4=Effectif 1
+replygood4=$[$(val15[1])]
+replytype5=numeric
+replyname5=Effectif 2
+replygood5=$[$(val15[2])]
+replytype6=numeric
+replyname6=Effectif 3
+replygood6=$[$(val15[3])]
+replytype7=numeric
+replyname7=Effectif 4
+replygood7=$[$(val15[4])]
+replytype8=numeric
+replyname8=Effectif 5
+replygood8=$[$(val15[5])]
+replytype9=numeric
+replyname9=Effectif 6
+replygood9=$[$(val15[6])]
+replytype10=numeric
+replyname10=Effectif 7
+replygood10=$[$(val15[7])]
+replytype11=numeric
+replyname11=Effectif 8
+replygood11=$[$(val15[8])]
+replytype12=numeric
+replyname12=Effectif 9
+replygood12=$[$(val15[9])]
+replytype13=numeric
+replyname13=Effectif 10
+replygood13=$[$(val15[10])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Voici les âges recensés dans une population à la suite d'une étude: 	</p>	$val32	<p>		Compléter le tableau suivant	</p>	$val35	 <td>  
+!read oef/embed.phtml reply 4,3 
+$() </td>	 <td>  
+!read oef/embed.phtml reply 5,3 
+$() </td>	 <td>  
+!read oef/embed.phtml reply 6,3 
+$() </td>	 <td>  
+!read oef/embed.phtml reply 7,3 
+$() </td>	 <td>  
+!read oef/embed.phtml reply 8,3 
+$() </td>	 
+!if $val12>5 
+$()	 <td>  
+!read oef/embed.phtml reply 9,3 
+$() </td>	 
+!endif
+$()	 
+!if $val12>6 
+$()	 <td>  
+!read oef/embed.phtml reply 10,3 
+$() </td>	 
+!endif
+$()	 
+!if $val12>7 
+$()	 <td>  
+!read oef/embed.phtml reply 11,3 
+$() </td>	 
+!endif
+$()	 
+!if $val12>8 
+$()	 <td>  
+!read oef/embed.phtml reply 12,3 
+$() </td>	 
+!endif
+$()	 
+!if $val12>9 
+$()	 <td>  
+!read oef/embed.phtml reply 13,3 
+$() </td>	 
+!endif
+$()	</tr></table>		<ol><li> Quelle est la médiane de cette série:  
+!read oef/embed.phtml reply1 
+$()</li>	<li> Que vaut Q1: 
+!read oef/embed.phtml reply2 
+$()</li>	<li> Que vaut Q3: 
+!read oef/embed.phtml reply3 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 
+val36=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,32,35
+embedcnt=13

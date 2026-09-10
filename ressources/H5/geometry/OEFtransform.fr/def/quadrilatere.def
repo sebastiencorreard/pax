@@ -1,0 +1,176 @@
+!set title=Quadrilatères
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard	
+email=regine@mangeard.fr	
+
+ansorder=r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1	)]
+tmp=!trim parallélogramme	carré	losange	rectangle	trapèze	
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rowcnt $val7
+
+val8=$[rint($(tmp0))]
+tmp=!trim ses diagonales se coupent en leur milieu	ses diagonales sont de même longueur	ses diagonales se coupent à angle droit	ses côtés opposés sont égaux	ses côtés adjacents sont égaux	<span style="color:magenta">Choix vide</span>	
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rowcnt $val9
+
+val10=$[rint($(tmp0)-1)]
+tmp=!trim 1,4,	1,2,3,4,5	1,3,4,5	1,2,4	6	
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=$[rint(0	)]
+val13=$[rint()]
+val14=$[rint()]
+val15=$[rint()]
+val16=$[rint(5	)]
+val17=lavender,wheat,turquoise
+val18=$[rint(floor(($val16+1)/2))]
+val19=$[rint((($val16+1)%2))]
+tmp0=!randint 1, $val8
+
+val20=$[rint($(tmp0))]
+val21=$(val7[$val20;])
+val22=$(val11[$val20;])
+tmp0=!shuffle $val10
+
+val23=$(tmp0)
+tmp0=!item 1 to $val16 of $val23
+
+val23=$(tmp0)
+tmp0=!sort numeric item $val23
+
+val23=$(tmp0)
+val24=$[rint($val10+1)]
+tmp0=!append item $val24 to $val23
+
+val23=$(tmp0)
+val25=
+!for val26  in $val23 
+tmp0=!append line $(val9[$val26;]) to $val25
+
+val25=$(tmp0)
+!next
+tmp=!trim $val25
+val25=!translate internal $	\
+$ to ;; in $tmp
+val27=$[rint($val16+1)]
+tmp0=!values i for i=1 to $val27
+
+val28=$(tmp0)
+tmp0=!listintersect $val22 and $val23
+
+val29=$(tmp0)
+tmp0=!itemcnt $val29
+
+val30=$[rint($(tmp0))]
+!if $val30=0 
+val31=$val27
+!else
+val31=
+!for val26  in $val29 
+tmp0=!positionof item $val26 in $val23
+
+val32=$(tmp0)
+tmp0=!append item $val32 to $val31
+
+val31=$(tmp0)
+!next
+!endif
+val33=Les propriétés de $val21
+tmp0=!values i for i=1 to $val18
+
+val34=$(tmp0)
+tmp0=!values $val18+i for i=1 to $val18
+
+val35=$(tmp0)
+val36=<p>	On considère le	<b>$val21 </b> <span style="color:blue">ABCD </span>.	</p><p>	Dans la liste ci-dessous, cochez toutes les propriétés vérifiées par ce <b>$val21</b>.	</p>	
+replytype1=checkbox
+replyname1=$val33
+replygood1=$val31;$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val36	  <ul class="wims_nopuce">	   
+!for m_k=1 to $val18 
+$()	    <li>	       
+!read oef/embed.phtml reply 1,$(val34[$m_k]) 
+$() : $(val25[$m_k;])	    </li>	    
+!next
+$()	   
+!for m_k=1 to $val18 
+$()	    <li>	      
+!read oef/embed.phtml reply 1,$(val35[$m_k]) 
+$() : $(val25[($m_k+$val18);])	   </li>	     
+!next
+$()	    
+!if $val19<>0 
+$()	     <li>	       
+!read oef/embed.phtml reply 1,$val27 
+$() : $(val25[$val27;])	     </li>	     
+!endif
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,25,27,34,35,36
+embedcnt=3

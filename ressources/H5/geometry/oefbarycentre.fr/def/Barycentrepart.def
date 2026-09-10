@@ -1,0 +1,319 @@
+!set title=Barycentre partiels graphiques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=67
+prevarcnt=62
+postvarcnt=4
+replycnt=3
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!item $val6 of A,B,C,A
+
+val7=$(tmp0)
+tmp0=!item $val6 of B,C,A,C
+
+val8=$(tmp0)
+tmp0=!item $val6 of C,A,B,B
+
+val9=$(tmp0)
+val10=G
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+val12=$[rint(5)]
+val13=$[rint(-5)]
+val14=$[rint(-5)]
+val15=$[rint(5)]
+val16=$[rint(-5)]
+val17=2,3,5,7,11
+tmp0=!itemcnt $val17
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 1, $val18-1
+
+val19=$[rint($(tmp0))]
+tmp0=!item $val19 of $val17
+
+val20=$[rint($(tmp0))]
+
+!ifval $val19<$val18
+val21=$[rint($val19+1)]
+!else
+val21=$[rint(1)]
+!endif
+tmp0=!item $val21 of $val17
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 1, $val22-1
+
+val23=$[rint($(tmp0))]
+val24=$[rint($val20*$val23)]
+val25=$[rint(($val20*$val22-$val24))]
+tmp0=!randint 1, 5
+
+val26=$[rint($val22*$(tmp0))]
+val27=$[rint(($val25+$val24))]
+t_=!replace internal \( by ( in gcd($val25,$val24)
+tmp0=!exec pari $t_
+
+val28=$[rint($val25/$(tmp0))]
+t_=!replace internal \( by ( in gcd($val25,$val24)
+tmp0=!exec pari $t_
+
+val29=$[rint($val24/$(tmp0))]
+val30=$[rint($val28+$val29)]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val31=$[rint($val26/$(tmp0))]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val32=$[rint($val27/$(tmp0))]
+val33=$[rint($val26+$val25+$val24)]
+tmp0=!item $val6 of $val26,$val24,$val25,$val26
+
+val34=$[rint($(tmp0))]
+tmp0=!item $val6 of $val25,$val26,$val24,$val24
+
+val35=$[rint($(tmp0))]
+tmp0=!item $val6 of $val24,$val25,$val26,$val25
+
+val36=$[rint($(tmp0))]
+val37=$[($val26*$val11+$val25*$val13+$val24*$val15)/$val33]
+val38=$[($val26*$val12+$val25*$val14+$val24*$val16)/$val33]
+t_=!replace internal \( by ( in gcd($val25,$val24)
+tmp0=!exec pari $t_
+
+val39=$[$(tmp0)*10/$val27]
+val40=$[($val25*$val13+$val24*$val15)/($val25+$val24)]
+val41=$[($val25*$val14+$val24*$val16)/($val25+$val24)]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val42=$[$(tmp0)*($val40-$val11)/$val33]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val43=$[$(tmp0)*($val41-$val12)/$val33]
+val44=linewidth 4\	
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val45=$[rint($val33/$(tmp0))]
+!for val46 =1 to $val45 
+val47=$[$val11+$val46*$val42]
+val48=$[$val12+$val46*$val43]
+!if $val46=$val32 
+val44=$val44\	point $val47,$val48,red
+!else
+val44=$val44\	point $val47,$val48,green
+!endif
+!next
+val44=$val44\	linewidth 1
+!readproc oef/draw.phtml 300,200 \
+xrange -6,6	yrange -6,6	linewidth 1	poly red,$val11,$val12,$val13,$val14,$val15,$val16	points green,$val37,$val38	text red,$val11,$val12+0.5,medium,$val7	text red,$val13,$val14,medium,$val8	text red,$val15,$val16,medium,$val9	text red,$val37,$val38,medium,G	parallel -5,-5.2,-5,-4.8,$val39,0,$val30,red	line $val11,$val12,$val40,$val41,blue	$val44	 
+tmp0=$ins_url
+val49=$(tmp0)
+val50=$[rint($val25+$val24)]
+val51=($val8,$val25),($val9,$val24)
+val52=($val7,$val26),($val9,$val24)
+val53=($val7,$val26),($val8,$val25)
+tmp=!trim 
+val54=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val55=!translate internal $	\
+$ to ;; in $tmp
+val56=$[rint()]
+val57=$[rint()]
+t_=!replace internal \( by ( in gcd($val25,$val24)
+tmp0=!exec pari $t_
+
+val28=$[rint($val25/$(tmp0))]
+t_=!replace internal \( by ( in gcd($val25,$val24)
+tmp0=!exec pari $t_
+
+val29=$[rint($val24/$(tmp0))]
+val30=$[rint($val28+$val29)]
+t_=!replace internal \( by ( in gcd($val25,$val24)
+tmp0=!exec pari $t_
+
+val58=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val59=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val31=$[rint($val26/$(tmp0))]
+t_=!replace internal \( by ( in gcd($val26,$val27)
+tmp0=!exec pari $t_
+
+val32=$[rint($val27/$(tmp0))]
+replytype1=default
+replyname1=
+replygood1=?analyze 60
+replytype2=default
+replyname2=
+replygood2=?analyze 61
+replytype3=default
+replyname3=
+replygood3=?analyze 62
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right">	<img src="$val49" alt="">	</div>	Dans la figure ci-contre, on a représenté un triangle 
+!insmath ABC
+$() et 
+!insmath G
+$()	un point situé à l'intérieur de ce triangle.	<div class="spacer">	En se basant sur le graphique, déterminer 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$() tels que 
+!insmath G
+$()	soit le barycentre des points pondérés 
+!insmath (A,a)
+$(), 
+!insmath (B,b)
+$() et 
+!insmath (C,c)
+$().	</div>	On a :	<div class="wimscenter">	
+!insmath G
+$() = Bary &#91; (A, 
+!read oef/embed.phtml reply 1,4 
+$());(B, 
+!read oef/embed.phtml reply 2,4 
+$());(C, 
+!read oef/embed.phtml reply 3,4 
+$()) &#93;	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Notons 
+!insmath I
+$(), le poins d'intersection des droites 
+!insmath $val7$val10
+$() et 
+!insmath $val8$val9
+$(), en se basant sur la figure, on voit que:	<ul>	<li>Le point 
+!insmath I
+$() est le barycentre des points 
+!insmath ($val8,$val28)
+$() et 
+!insmath ($val9,$val29)
+$(). </li>	<li>Le point 
+!insmath G
+$() est le barycentre des points 
+!insmath ($val7,$val31)
+$() et 
+!insmath (I,$val32)
+$(). </li>	</ul>	Pour pouvoir utiliser la propriété d'associativité des barycentres, il faudrait que les nombres $val28+$val29 et $val32 soient égaux, ce qui n'est pas le cas. Or on sait que pour tous réels 
+!insmath x
+$() et 
+!insmath y
+$() non nuls :	<ul>	<li>Bary&#91;($val8,$val28);($val9,$val29)&#93;=Bary&#91;($val8,$val28 x);($val9,$val29 x)&#93; </li>	<li>Bary &#91($val7,$val31);(I,$val32)&#93;=Bary&#91; ($val7,$val31 y);(I,$val32 y	)&#93; </li>	</ul>	Il suffit donc pour pouvoir appliquer la règle des barycentres partiels de choisir 
+!insmath x
+$() et 
+!insmath y
+$() de sorte que 
+!insmath $val30 x = $val32 y
+$()	(cela revient à chercher un multiple commun à  $val30 et $val32),	on peut par exemple choisir 
+!insmath x=$val58
+$() et 
+!insmath y=$val59
+$(), on a alors:		<ul>	<li>I=Bary &#91;($val8,$val25);($val9,$val24)&#93; </li>	<li>G=Bary &#91;($val7,$val26);(I,$val27)&#93;</li>	</ul>	On obtient donc en utilisant la propriété du barycentre partiel:	<div class="wimscenter">	G = Bary &#91 (A,$val34) (I,$val27) &#93;	  = Bary&#91; (A,$val34) (B,$val35) (C,$val36) &#93;	</div>		<b>Remarque:</b> La solution ci-dessus, n'est pas forcément la plus simple.		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!trim $val60,$val61,$val62;$val60,$val61,$val62
+val54=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val34,$val35,$val36;$val60,$val61,$val62
+val55=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in matrank([$val54])
+tmp0=!exec pari $t_
+
+val56=$[rint($(tmp0))]
+t_=!replace internal \( by ( in matrank([$val55])
+tmp0=!exec pari $t_
+
+val57=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val56=1 and $val57=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Vérification:
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,24,25,26,27,28,29,30,31,32,34,35,36,49,54,55,56,57,58,59,60,61,62
+embedcnt=3

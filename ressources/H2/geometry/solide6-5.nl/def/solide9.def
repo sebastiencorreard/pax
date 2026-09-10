@@ -1,0 +1,174 @@
+!set title=Zijden deel III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=DONADONI Jluc
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim A,B,C,D,E,F,G,H	J,K,L,M,N,O,P,Q	R,S,T,U,V,W,X,Y
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp=!trim $(val6[1])$(val6[4]),$(val6[5])$(val6[8]),$(val6[2])$(val6[3]),$(val6[6])$(val6[7])	$(val6[1])$(val6[5]),$(val6[2])$(val6[6]),$(val6[4])$(val6[8]),$(val6[3])$(val6[7])	$(val6[1])$(val6[2]),$(val6[5])$(val6[6]),$(val6[7])$(val6[8]),$(val6[3])$(val6[4])
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=
+!for val9 =1 to 3 
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0),$val8
+!next
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val10=$(val8[1])
+tmp0=!char 1 to 1 of $val10
+
+val11=$(tmp0)
+tmp0=!char 2 to 2 of $val10
+
+val12=$(tmp0)
+val13=
+!for val9 =1 to 8 
+!if $(val6[$val9])<>$val11 and $(val6[$val9])<>$val12 
+tmp0=!append item $(val6[$val9]) to $val13
+
+val13=$(tmp0)
+!endif
+!next
+val14=
+val15=
+!for val9 =2 to 12 
+tmp0=!char 1 to 1 of $(val8[$val9])
+
+tmp1=!char 2 to 2 of $(val8[$val9])
+
+tmp2=!char 1 to 1 of $(val8[$val9])
+
+tmp3=!char 2 to 2 of $(val8[$val9])
+
+!if $val11=$(tmp0) or	$val11=$(tmp1) or	$val12=$(tmp2) or	$val12=$(tmp3) 
+tmp0=!append item $(val8[$val9]) to $val14
+
+val14=$(tmp0)
+!else
+tmp0=!append item $(val8[$val9]) to $val15
+
+val15=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+val16=$(val14[2]),$(val14[3]),	$(val15[2]),$(val15[4]),$(val15[5]),$(val15[6])
+tmp0=!shuffle $val16
+
+val17=$(tmp0)
+tmp0=!positionof item $(val14[2]) in $val17
+
+val18=$[rint($(tmp0))]
+tmp0=!positionof item $(val14[3]) in $val17
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 80, 200
+
+val20=$[rint($(tmp0))]
+tmp0=!randint 50, 160
+
+val21=$[rint($(tmp0))]
+tmp0=!randint 20, 80
+
+val22=$[rint($(tmp0))]
+val23=$[rint($val20+$val22)]
+val24=$[rint($val21+$val22)]
+!readproc oef/draw.phtml 340,300 \
+transparent white	rect 170-$val23/2,130+$val24/2,170+$val23/2-$val22,130-$val24/2+$val22,black	line 170+$val23/2-$val20,130-$val24/2,170+$val23/2,130-$val24/2,black	line 170+$val23/2-$val20,130-$val24/2,170+$val23/2-$val20-$val22,130-$val24/2+$val22,black	line 170+$val23/2,130-$val24/2,170+$val23/2-$val22,130-$val24/2+$val22,black	line 170+$val23/2,130-$val24/2,170+$val23/2,130-$val24/2+$val21,black	line 170+$val23/2-$val22,130-$val24/2+$val22+$val21,170+$val23/2,130-$val24/2+$val21,black	dline 170+$val23/2-$val20,130-$val24/2+$val21,170+$val23/2,130-$val24/2+$val21,black	dline 170+$val23/2-$val20,130-$val24/2+$val21,170+$val23/2-$val20-$val22,130-$val24/2+$val21+$val22,black	dline 170+$val23/2-$val20,130-$val24/2+$val21,170+$val23/2-$val20,130-$val24/2,black	text red,170-$val23/2-8,130+$val24/2+5,huge,$(val6[1])	text red,170+$val23/2-$val22,130-$val24/2+$val22+$val21+5,huge,$(val6[2])	text red,170+$val23/2-$val22+5,130-$val24/2+$val22,huge,$(val6[3])	text red,170+$val23/2-$val20-$val22-10,130-$val24/2+$val22-5,huge,$(val6[4])	text red,170+$val23/2-$val20+3,130-$val24/2+$val21+3,huge,$(val6[5])	text red,170+$val23/2+3,130-$val24/2+$val21+3,huge,$(val6[6])	text red,170+$val23/2+5,130-$val24/2-10,huge,$(val6[7])	text red,170+$val23/2-$val20-12,130-$val24/2-10,huge,$(val6[8])	 
+tmp0=$ins_url
+val25=$(tmp0)
+replytype1=radio
+replyname1=
+replygood1=$val18,$val19;$(val17[1]),$(val17[2]),	$(val17[3]),$(val17[4]),$(val17[5]),$(val17[6])
+replytype2=checkbox
+replyname2=
+replygood2=$val18,$val19;$(val17[1]),$(val17[2]),	$(val17[3]),$(val17[4]),$(val17[5]),$(val17[6])
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<center>	<font size="3"><font face="comic sans ms">	<table>	    <td>	 Geef een zijde loodrecht op zijde $val10:	 <br> 
+!read oef/embed.phtml r1 
+$()	 <hr>	 <br> 	 Geef de zijden loodrecht op zijde $val10:	 <br> 
+!read oef/embed.phtml r2 
+$()	    </td>	    <td>	 <img src=$val25>	    </td>	</table>	</center>	</font></font><br>
+$()
+!exit
+
+:hint
+$()<em>Geef <b>een</b> zijde</em> wil zeggen: klik een willekeurige zijde<br>	<em>Geef <b>de</b> zijden</em> wil zeggen: klik zoveel mogelijk zijden aan 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,25
+embedcnt=2

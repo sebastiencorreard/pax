@@ -1,0 +1,319 @@
+!set title=Nature d'un triangle (direct)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+computeanswer=no
+
+ansorder=r,r
+varcnt=55
+prevarcnt=54
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint(2*$(tmp0))]
+tmp0=!randint 1, 7
+
+tmp1=!randitem -1,1
+
+val9=$[rint($val8+($(tmp0)*$(tmp1)))]
+val10=$[rint(1)]
+!if $val10=1 
+val11=$[rint($val6)]
+val12=$[rint(0)]
+val13=$[rint($val8+$val6)]
+val14=$[rint(0)]
+val15=$[rint($val6+0.5*$val8)]
+val16=$[rint(0.5*$val8*sqrt(3))]
+val17=$[rint(0.5*$val8)]
+val18=$[rint(($val15-$val11)*($val15-$val11)+0.25*$val8*$val8*3)]
+val19=$[rint(($val15-$val13)*($val15-$val13)+0.25*$val8*$val8*3)]
+!else
+!if $val10<4 
+val11=$[rint($val6)]
+val12=$[rint($val7)]
+val13=$[rint($val6+$val8)]
+val14=$[rint($val7+$val9)]
+
+!ifval ($val10=3)
+val15=$[rint( $val6-$val9 )]
+!else
+val15=$[rint( $val6+$val9)]
+!endif
+val16=$[rint($val7+$val8)]
+!else
+val11=$[rint($val6)]
+val12=$[rint($val7)]
+val13=$[rint($val6+$val8)]
+val14=$[rint($val7+$val9)]
+tmp0=!randint 2, 4
+
+val20=$[rint($(tmp0))]
+val15=$[rint($val6-$val20*$val9)]
+val16=$[rint($val7+$val20*$val8)]
+!endif
+val18=$[rint(($val15-$val11)*($val15-$val11)+($val16-$val12)*($val16-$val12))]
+val19=$[rint(($val15-$val13)*($val15-$val13)+($val16-$val14)*($val16-$val14))]
+!endif
+t_=!rawmath $val11+$val12*i
+t_=!exec pari print($t_)
+val21=!mathsubst I=i in $t_
+t_=!rawmath $val13+$val14*i
+t_=!exec pari print($t_)
+val22=!mathsubst I=i in $t_
+t_=!rawmath $val15+$val16*i
+t_=!exec pari print($t_)
+val23=!mathsubst I=i in $t_
+val24=$[rint(($val13-$val11)*($val13-$val11)+($val14-$val12)*($val14-$val12))]
+val25=$[sqrt($val24)]
+val26=$[sqrt($val18)]
+val27=$[sqrt($val19)]
+
+!ifval ($val10=1)
+val28=$[rint( 1)]
+!else
+val28=$[rint(2)]
+!endif
+
+!ifval ($val10=2 or $val10=3)
+val29=$[rint( 1)]
+!else
+val29=$[rint(2)]
+!endif
+
+!ifval ($val10=2)
+val30=$[rint( $val24 )]
+!else
+val30=$[rint( $val19)]
+!endif
+
+!ifval ($val10=2)
+val31=$[rint( $val19+$val18 )]
+!else
+val31=$[rint( $val24+$val18)]
+!endif
+
+!ifval ($val10>2)
+val32=$[rint( 1)]
+!else
+val32=$[rint(2)]
+!endif
+t_=!rawmath $val22-($val21)
+t_=!exec pari print($t_)
+val33=!mathsubst I=i in $t_
+val34=$[rint($val15-$val11)]
+val35=$val34 +$val17 \sqrt{3} i
+t_=!rawmath $val23-($val21)
+t_=!exec pari print($t_)
+val36=!mathsubst I=i in $t_
+val37=$[rint($val15-$val13)]
+val38=$val37 +$val17 \sqrt{3} i
+t_=!rawmath $val23-($val22)
+t_=!exec pari print($t_)
+val39=!mathsubst I=i in $t_
+val40=$[rint($val13-$val11)]
+val41=$[rint($val14-$val12)]
+
+!ifval (round( $val25)=$val25)
+val42= $val25
+!else
+val42=\sqrt{$val24}
+!endif
+
+!ifval (round( $val26)=$val26)
+val43= $val26
+!else
+val43=\sqrt{$val18}
+!endif
+
+!ifval (round( $val27)=$val27)
+val44= $val27
+!else
+val44=\sqrt{$val19}
+!endif
+
+!ifval ($val10=1)
+val45= r1	
+!else
+val45=r1,r2	
+!endif
+dynsteps=yes
+oefsteps=$val45 
+nextstep=!nosubst $val45 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val10;équilatéral,isocèle,isocèle rectangle,rectangle,quelconque
+replytype2=menu
+replyname2=
+replygood2=1;A,B,C
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On donne 
+!insmath A
+$() d'affixe 
+!insmath $val21
+$() , 
+!insmath B
+$() d'affixe 
+!insmath $val22
+$() , 
+!insmath C
+$() d'affixe	
+!if $val10=1 
+$()
+!insmath $val15 +$val17 \sqrt{3} i
+$() 
+!else
+$() 
+!insmath $val23
+$() 
+!endif
+$(). </p>	<div class="wims_question"><p><label for="reply1">Quelle est la nature du triangle 
+!insmath A B C
+$() ? </label></p>	<p>
+!insmath ABC
+$() est  
+!read oef/embed.phtml r1 
+$() 
+!if $val10>1 and $val10<5 
+$()en  
+!read oef/embed.phtml r2 
+$() 
+!endif
+$().</p></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath A B=|z_B-z_A|=|$val22-($val21)|=|$val33|={}
+$()
+!if $val10=1 
+$()
+!insmath $val8
+$() 
+!else
+$() 
+!insmath \sqrt{($val40)^2+($val41)^2}=$val42
+$() 
+!endif
+$().<br/> 	
+!insmath A C=|z_C-z_A|={}
+$()
+!if $val10=1 
+$()
+!insmath |$val35|
+$() 
+!else
+$() 
+!insmath |$val36|
+$() 
+!endif
+$()
+!insmath =$val43
+$(). <br/>	
+!insmath B C=|z_C-z_B|={}
+$()
+!if $val10=1 
+$()
+!insmath |$val38|
+$() 
+!else
+$() 
+!insmath |$val39|
+$() 
+!endif
+$()
+!insmath =$val44
+$().<br/>	
+!if $val10=1 
+$()
+!insmath AB=AC=BC
+$() donc 
+!insmath ABC
+$() est équilatéral. 
+!endif
+$()	
+!if $val10=2 or $val10=3 
+$()
+!insmath AB=AC
+$() donc 
+!insmath ABC
+$() est isocèle en 
+!insmath A
+$(). 
+!endif
+$()	
+!if $val10=3 or $val10=4 
+$()
+!insmath AB²+AC²=BC²
+$() donc 
+!insmath ABC
+$() est rectangle en 
+!insmath A
+$(). 
+!endif
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,15,17,21,22,23,33,35,36,38,39,40,41,42,43,44
+embedcnt=2

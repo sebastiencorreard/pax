@@ -1,0 +1,161 @@
+!set title=Résumer: Médiane, écart interquartile 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r,r,r,r,r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le premier décile \(D_1\) et le neuvième décile \(D_9\) se calculent de la	même façon que le premier quartile \(Q_1\) et le troisième quartile \(Q_3\), en substituant	 au partage en 4 parties égales un partage en 10 parties égales.
+val7=On rappelle la définition du premier décile noté \(D_1\) et du neuvième décile noté \(D_9\):<br>	Pour une série statistique ordonnée dans l'ordre croissant, d'effectif total \(n\),<br>	\(D_1\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{n}{10}\),<br>	\(D_9\) est la valeur de la série dont le rang est le plus petit entier supérieur ou égal à \(\frac{9n}{10}\)
+tmp0=!randint 3, 8
+
+val8=$[rint($(tmp0)*100)]
+val9=
+!for val10 =1 to 16 
+val11=$[rint($val8*$val10)]
+tmp0=!append item $val11 to $val9
+
+val9=$(tmp0)
+!next
+val12=$(val9[1]),$(val9[2]),$(val9[3]),$(val9[5]),$(val9[10])
+val13=$(val9[2]),$(val9[3]),$(val9[5]),$(val9[6]),$(val9[16])
+tmp=!trim La moitié des valeurs ne dépasse pas $(val9[3]),1	Environ 50 % des valeurs sont supérieures à $(val9[5]),2	Le quart supérieur des valeurs a une amplitude de $(val9[10]),2	Le quart des valeurs est égal à au moins 5 fois la valeur minimale,1	L'écart interquartile est de $(val9[3]),3	Environ la moitié des valeurs se situe entre $(val9[2]) et $(val9[5]),3	Environ une valeur sur quatre est inférieure à $(val9[2]),1	Environ 75% des valeurs sont au moins égales à $(val9[3]),2	Au moins 50% des valeurs sont supérieures ou égales à $(val9[3]),3	La valeur maximale est au moins trois fois plus élevée que 50% des valeurs de la série,3
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+val16=$(val14[$val15;1])
+val17=$(val14[$val15;2])
+
+!ifval $val17=3
+val17=1,2
+!endif
+val18=$(val14[2+$val15;1])
+val19=$(val14[2+$val15;2])
+
+!ifval $val19=3
+val19=1,2
+!endif
+val20=$(val14[4+$val15;1])
+val21=$(val14[4+$val15;2])
+
+!ifval $val21=3
+val21=1,2
+!endif
+val22=$(val14[6+$val15;1])
+val23=$(val14[6+$val15;2])
+
+!ifval $val23=3
+val23=1,2
+!endif
+val24=$(val14[8+$val15;1])
+val25=$(val14[8+$val15;2])
+
+!ifval $val25=3
+val25=1,2
+!endif
+replytype1=checkbox
+replyname1=Affirmation 1
+replygood1=$val17;Série \(A\),Série \(B\)
+replytype2=checkbox
+replyname2=Affirmation 2
+replygood2=$val19;Série \(A\),Série \(B\)
+replytype3=checkbox
+replyname3=Affirmation 3
+replygood3=$val21;Série \(A\),Série \(B\)
+replytype4=checkbox
+replyname4=Affirmation 4
+replygood4=$val23;Série \(A\),Série \(B\)
+replytype5=checkbox
+replyname5=Affirmation 5
+replygood5=$val25;Série \(A\),Série \(B\)
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On a résumé deux séries statistiques 
+!insmath A
+$() et 
+!insmath B
+$() en cinq nombres: min, 
+!insmath Q_1
+$(),Med,
+!insmath Q_3
+$(),max:	</p>	<div class="wimscenter"> série 
+!insmath A
+$(): $val12 </div>	<div class="wimscenter"> série 
+!insmath B
+$(): $val13 </div>	<p>	Indiquer pour quelle(s) série(s) chacune des affirmations suivantes est vraisemblable:	</p>	<ol>	<li> $val16: 
+!read oef/embed.phtml reply1 
+$()</li>	<li> $val18: 
+!read oef/embed.phtml reply2 
+$()</li>	<li> $val20: 
+!read oef/embed.phtml reply3 
+$()</li>	<li> $val22: 
+!read oef/embed.phtml reply4 
+$()</li>	<li> $val24: 
+!read oef/embed.phtml reply5 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,16,18,20,22,24
+embedcnt=5

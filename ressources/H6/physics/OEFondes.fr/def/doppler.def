@@ -1,0 +1,108 @@
+!set title=Effet Doppler
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 400, 18000
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, $val6/4
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val8=$[$(tmp0)]
+val9=$[rint($val6+$val8*$val7)]
+tmp0=!randint 320, 360
+
+val10=$[rint($(tmp0))]
+val11=$[$val10*$val7/$val9]
+!if $val9>$val6 
+tmp=!trim est en approche,s'éloigne
+val12=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim s'éloigne,est en approche
+val12=!translate internal $	\
+$ to ;; in $tmp
+!endif
+replytype1=menu
+replyname1=
+replygood1=1;$(val12[1]),$(val12[2])
+replytype2=units
+replyname2=v
+replygood2=$val11 m/s
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Dans un véhicule , un son de fréquence $val6 Hz est émis en continu. Sur le trottoir,	un piéton enregistre le son qu'il perçoit. Après analyse, le piéton mesure sur  un spectre que le	son qu'il a enregistré à une fréquence $val9 Hz.</p>	<p>Pour les conditions de ce jour, le son se propage à la vitesse v<sub>son</sub>=$val10 m.s<sup>-1</sup></p>	<div class="wims_question">	<ol class="wims_nopuce">	<li class="spacer">A la lecture de ces mesures, on peut dire que le véhicule  
+!read oef/embed.phtml reply1 
+$()</li>	<li>Calculer la vitesse du véhicule: v=  
+!read oef/embed.phtml reply2 
+$()</li>	</ol></div>	 		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10
+embedcnt=2

@@ -1,0 +1,171 @@
+\title{Angle et quotient de complexes}
+\language{fr}
+\range{-5..5}
+\author{Hélène, Brion}
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{1000}
+
+/*** Choix de l'angle et de son signe***/
+\text{listangle=0,\(pi/6),\(pi/4),\(pi/3),\(pi/2),\(2pi/3),\(3pi/4),\(5pi/6),\(pi),\(-pi/6),\(-pi/4),\(-pi/3),\(-pi/2),\(-2pi/3),\(-3pi/4),\(-5pi/6)}
+\integer{ChoixAngle=random(1..9)}
+\text{angle=\listangle[\ChoixAngle]}
+\integer{signe=random(0,1)}
+\integer{RangAngle=\ChoixAngle}
+\if{\ChoixAngle=1 or \ChoixAngle=9}{\integer{signe=0}}
+\if{\signe=1}{\text{angle=- \angle}
+	\integer{RangAngle=\ChoixAngle + 8}
+	}
+
+
+/*** Calcul des points, S et M1 sont construit au hasard, M2 est l'image de S par une similitude de centre S***/
+\integer{as=random(-3..3)}
+\integer{bs=random(-3..3)}
+\integer{a0=random(1,2)}
+\integer{a1=\a0*random(-3..-1,1..3)}
+\integer{b1=\a0*random(-3..3)}
+\complex{zs=simplify(\as+i*(\bs))}
+\complex{z1=simplify(\zs+\a1+i*(\b1))}
+\function{ReSim=2,x,1,1,0,-2,-2,-x,-3}
+\function{ImSim=0,1,1,x,3,2x,2,1,0}
+\function{foncta2=simplify(\ReSim[\ChoixAngle]*\a1-\ImSim[\ChoixAngle]*\b1+\as)}
+\function{fonctb2=simplify(\ReSim[\ChoixAngle]*\b1+\ImSim[\ChoixAngle]*\a1+\bs)}
+\real{a2=evalue(\foncta2,x=0)}
+\real{a2rac=evalue(\foncta2,x=1)-\a2}
+\real{b2=evalue(\fonctb2,x=0)}
+\real{b2rac=evalue(\fonctb2,x=1)-\b2}
+
+/*** Affichage propre des trois affixes ***/
+\text{zs=\(\zs)}
+\text{z1=\(\z1)}
+
+/*** utilisation d'affichage propre de B ***/
+\rational{B1=\a2}
+\rational{B2=\a2rac}
+\rational{B3=\b2}
+\rational{B4=\b2rac}
+\text{rac=\(\sqrt{3})}
+
+/***Affichage propre de B = B1+B2rac + i(B3+B4rac)***/
+\if{\B2=0 and \B4=0}{\complex{B=\B1+i*\B3}\text{ppB=\(\B)}}{
+\text{s2=+}
+\text{s3=+}
+\text{s4=+}
+\if{\B2<0}{\text{s2=-}\rational{B2=-(\B2)}}
+\if{\B3<0}{\text{s3=-}\rational{B3=-(\B3)}}
+\if{\B4<0}{\text{s4=-}\rational{B4=-(\B4)}}
+\if{\s1=+}{\text{pps1=}}{\text{pps1=-}}
+\if{\s2=+}{\text{pps2=}}{\text{pps2=-}}
+\if{\s3=+}{\text{pps3=}}{\text{pps3=-}}
+
+
+\text{ppB2=\B2<>1? \(\B2)}
+\text{ppB3=\B3<>1 ? \(\B3)}
+\text{ppB4=\B4<>1? \(\B4)}
+\if{\B1=0}
+	{\if{\B2=0}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=0}}
+				{\text{ppB=\pps4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\pps3 \ppB3 \ i}}
+				{\text{ppB=i (\pps3 \(\B3) \s4 ppB4\rac)}}
+			}
+		}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=\pps2 \ppB2\rac}}
+				{\text{ppB=\pps2 \ppB2\rac \s4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\pps2 \ppB2 \s3 i \rac }}
+				{\text{ppB=\pps2 \ppB2 \rac + i (\pps3\(\B3) \s4 \ppB4 \rac)}}
+			}
+		}
+	}
+	{\if{\B2=0}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1)}}
+				{\text{ppB=\(\B1) \s4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1) \s3 \ppB3 i }}
+				{\text{ppB=\(\B1) + i (\pps3\(\B3) \s4 \ppB4 \rac)}}
+			}
+		}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac}}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac \s4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac \s3 \ppB3 i }}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac + i (\pps3 \(\B3) \s4 \ppB4 \rac)}}
+			}
+		}
+	}
+}
+\text{z2=\ppB}
+\text{affixe=\zs,\z1,\z2}
+
+/*** Valeur du quotient à calculer ***/
+\complex{ValSim=evalue(\ReSim[\ChoixAngle],x=sqrt(3)) + i*evalue(\ImSim[\ChoixAngle],x=sqrt(3))}
+\if{\signe=1 and \ChoixAngle>1 and \ChoixAngle<9}{\complex{ValSim=(\ValSim)^(-1)}}
+
+
+/*** Correspondance quotient, angle ***/
+\text{NomAngle =\((\overrightarrow{AB};\overrightarrow{AC})),\((\overrightarrow{AC};\overrightarrow{AB})),\((\overrightarrow{BA};\overrightarrow{BC})),,\((\overrightarrow{BC};\overrightarrow{BA})),\((\overrightarrow{CA};\overrightarrow{CB})),\((\overrightarrow{CB};\overrightarrow{CA})),}
+\text{Quotient=\((z_C-z_A)/(z_B-z_A)),\((z_B-z_A)/(z_C-z_A)),\((z_C-z_B)/(z_A-z_B)),\((z_C-z_A)/(z_A-z_B)),\((z_A-z_B)/(z_C-z_B)),\((z_B-z_C)/(z_A-z_C)),\((z_A-z_C)/(z_B-z_C)),\((z_B-z_C)/(z_C-z_A))}
+
+/*** Mixage des points, A est représenté par 0, B par 1 et C par 2 ***/
+\text{M=shuffle(0,1,2)}
+\integer{nA=position(0,\M)}
+\integer{nB=position(1,\M)}
+\integer{nC=position(2,\M)}
+\integer{nAngle=3*\M[1]+(1-\signe)*\M[2]+\signe*\M[3]}
+
+\steps{reply 1
+reply 2
+reply 3}
+
+
+\statement{
+
+On considère les points \(A), \(B) et \(C) d'affixes respectives : <br>
+<div class="wimscenter"> \(z_A = ) \affixe[\nA] &nbsp;;&nbsp;
+\(z_B = ) \affixe[\nB] &nbsp;;&nbsp;
+\(z_C = ) \affixe[\nC]</div>
+
+<ul>
+<li>
+On cherche à calculer l'angle \NomAngle[\nAngle]. Pour trouver une mesure de cet angle, il faut chercher un argument d'un quotient. Lequel ?<br>
+<div class="wimscenter">\embed{reply1}</div>
+\if{\step > 1}{
+	<br>
+	\if{\reply1=\Quotient[\nAngle]}
+        {<span style="color:green"> Bien ! Le quotient à calculer est effectivement \Quotient[\nAngle] </span>}
+        {<span style="color:red"> Non... Le quotient à calculer n'est pas \reply1 mais \Quotient[\nAngle] </span>}
+	</li><li>
+	Calculez ce quotient.<br>
+        <div class="wimscenter">\Quotient[\nAngle] = \embed{reply2,20}</div>
+	}
+\if{\step >2}{
+         \if {\reply2=\ValSim}
+	{<span style="color:green"> Bien !</span>}
+	{\if{\ChoixAngle= 2 or \ChoixAngle= 4 or \ChoixAngle= 6 or \ChoixAngle= 8 or \RangAngle= 13}
+        {<span style="color:red"> Non ... La bonne réponse a comme valeur approchée \ValSim </span>}
+        {<span style="color:red"> Non ... Le quotient vaut \ValSim </span>}
+        }</li><li>
+	Que vaut l'argument de ce complexe, c'est-à-dire l'angle \NomAngle[\nAngle] ?<br>
+        <div class="wimscenter">\embed{reply3}</div>
+	}
+</li></ul>
+}
+
+\answer{L'angle correspond à l'argument de }{\nAngle;\Quotient}{type=checkbox}{option=nonstop}
+\answer{Le quotient vaut :}{\ValSim}{option=nonstop}
+\answer{L'angle \NomAngle[\nAngle] vaut<br> }{\RangAngle;\listangle}{type=checkbox}

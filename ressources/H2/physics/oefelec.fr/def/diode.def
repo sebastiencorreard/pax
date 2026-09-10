@@ -1,0 +1,328 @@
+!set title=Diodes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+title_nl=Dioden en Lampen
+
+ansorder=c,c
+varcnt=77
+prevarcnt=76
+postvarcnt=0
+replycnt=0
+choicecnt=2
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=éteinte, allumée
+val8=Voici un circuit électrique contenant générateur, lampes et,	  diodes,diode
+val9=La lampe rouge est, et la lampe bleue est
+val10=Lampe rouge,Lampe verte
+!if $val6=nl 
+val7=uit,aan
+val8=Hier zie je een electrisch schema van een stroombron (Batterij),	  lampjes en, lampjes en, een paar dioden,een diode
+val9=De rode lamp is, De blauwe lamp is
+val10=rode lamp,blauwe lamp
+!endif
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val12=$[rint($(tmp0))]
+tmp=!trim g,0,L,l,0,dl,0	g,d,L,l,0,l,0	g,0,dL,l,0,l,0	g,0,dl,0,0,dl,0	g,0,l,0,0,dl,0
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp0=!rowcnt $tmp
+val14=$(tmp0)
+tmp0=!randint 1, $val14
+
+val15=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+val17=2,0.5,0,0.5,0,5,5,5,5,0.5,3,0.5
+val18=polyline black ,$val17	segment 0,3,5,3, black 
+val19=2,0.5,3,0.5
+val20=5,1,5,2
+val21=4,3,3,3
+val22=2,3,1,3
+val23=0,1,0,2
+val24=1,5,2,5
+val25=3,5,4,5
+tmp=!trim 2,0.5,3,0.5	2,0.5,3,0.5	5,1,5,2	5,1,5,2	4,3,3,3	2,3,1,3	0,1,0,2	0,2,0,1	0	0	 2,5,1,5,	 4,5,3,5
+val26=!translate internal $	\
+$ to ;; in $tmp
+val27=0
+!for val28 =1 to 7 
+tmp0=!item $val28 of  $val16
+
+!if  d isin $(tmp0)  
+val27=$[rint($val27+1)]
+val29=$val12
+!if $val27=2  
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val30=$(tmp0)
+val29=$val30
+!endif
+tmp=!translate internal $	$ to ; in $val26
+
+tmp=!row 2*$val28-1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+
+!ifval $val29=-1
+tmp0=!item 3 of $val31
+
+tmp1=!item 4 of $val31
+
+tmp2=!item 1 of $val31
+
+tmp3=!item 2 of $val31
+
+val31= $(tmp0),$(tmp1),$(tmp2),$(tmp3)
+!endif
+tmp0=!item 1 of $val31
+
+val32=$[$(tmp0)]
+tmp0=!item 2 of $val31
+
+val33=$[$(tmp0)]
+tmp0=!item 3 of $val31
+
+val34=$[$(tmp0)]
+tmp0=!item 4 of $val31
+
+val35=$[$(tmp0)]
+val36=$[($val32+($val34))/2]
+val37=$[($val33+($val35))/2]
+val38=$[$val34-($val32)]
+val39=$[$val35-($val33)]
+val18=$val18	segment $val32+($val39)/2,$val33-($val38)/2,$val32-($val39)/2,$val33+($val38)/2, black	fpoly black,$val32,$val33,$val34+($val39)/2,$val35-($val38)/2, $val34-($val39)/2,$val35+($val38)/2
+!endif
+tmp0=!item $val28 of  $val16
+
+!if  g isin $(tmp0)  
+tmp=!translate internal $	$ to ; in $val26
+
+tmp=!row 2*$val28-1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+val40=black
+
+!ifval $val11=-1
+tmp0=!item 3 of $val31
+
+tmp1=!item 4 of $val31
+
+tmp2=!item 1 of $val31
+
+tmp3=!item 2 of $val31
+
+val31= $(tmp0),$(tmp1),$(tmp2),$(tmp3)
+!endif
+!endif
+tmp0=!item $val28 of  $val16
+
+!if l isin $(tmp0)  
+tmp=!translate internal $	$ to ; in $val26
+
+tmp=!row 2*$val28 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+
+!ifval $val28<5 
+val40= blue
+!else
+val40= red
+!endif
+!endif
+tmp0=!item 1 of $val31
+
+val32=$[$(tmp0)]
+tmp0=!item 2 of $val31
+
+val33=$[$(tmp0)]
+tmp0=!item 3 of $val31
+
+val34=$[$(tmp0)]
+tmp0=!item 4 of $val31
+
+val35=$[$(tmp0)]
+val36=$[($val32+$val34)/2]
+val37=$[($val33+$val35)/2]
+val41=$[(($val34-$val32)^2+($val35-$val33)^2)^(1/2)]
+tmp0=!item $val28 of  $val16
+
+!if l isin $(tmp0)  
+val18=$val18	ellipse $val36,$val37,$val41,$val41,$val40	segment $val32,$val33,$val34,$val35,$val40	linewidth 5	segment (3*($val32)+($val34))/4,(3*($val33)+($val35))/4,(3*($val34)+($val32))/4,(3*($val35)+($val33))/4, $val40	linewidth 1	
+!endif
+tmp0=!item $val28 of  $val16
+
+!if g isin $(tmp0)  
+
+!ifval $val32<$val34 
+val42= +
+!else
+val42=-
+!endif
+
+!ifval $val32<$val34 
+val43= -
+!else
+val43=+
+!endif
+val44=$[max($val32,$val34)+ 1]
+val29=$[min($val32,$val34)- 1]
+val18=$val18	ellipse $val36,$val37,$val41,$val41,$val40	text black, $val36-0.1,$val37+0.3, medium, G	text black, $val44,$val37,medium,$val42	text black, $val29,$val37,medium,$val43	
+!endif
+tmp0=!item $val28 of  $val16
+
+!if L isin $(tmp0)  
+tmp=!translate internal $	$ to ; in $val26
+
+tmp=!row 2*$val28 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val31=$(tmp0)
+tmp0=!item 1 of $val31
+
+val32=$[$(tmp0)]
+tmp0=!item 2 of $val31
+
+val33=$[$(tmp0)]
+tmp0=!item 3 of $val31
+
+val34=$[$(tmp0)]
+tmp0=!item 4 of $val31
+
+val35=$[$(tmp0)]
+val36=$[($val32+$val34)/2]
+val37=$[($val33+$val35)/2]
+val41=$[(($val34-$val32)^2+($val35-$val33)^2)^(1/2)]
+val18=$val18	ellipse $val36,$val37,$val41,$val41,black	segment $val32,$val33,$val34,$val35,$val40	linewidth 5	segment (3*($val32)+($val34))/4,(3*($val33)+($val35))/4,(3*($val34)+($val32))/4,(3*($val35)+($val33))/4, $val40	linewidth 1	
+!endif
+!next
+tmp=!trim g00l0dl0, 2,$val11-($val12)	gd0l0l0,$val11-($val12),$val11-($val12)	g0dl0l0,2,2	g0dl00dl0, $val11-($val12),$val11-($val30)	g0l00dl0, 2, $val11-($val12)
+val45=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val45
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0)
+
+val46=$(tmp1)
+val47=$[abs($val46)/2+1]
+tmp0=!item $val47 of $val7
+
+val46=$(tmp0)
+tmp=!translate internal $	$ to ; in $val45
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 3 of $(tmp0)
+
+val48=$(tmp1)
+val49=$[abs($val48)/2+1]
+tmp0=!item $val49 of $val7
+
+val48=$(tmp0)
+choicename1=$(val10[1])
+choicegood1=$val48
+choicebad1=$val7
+choicename2=$(val10[2])
+choicegood2=$val46
+choicebad2=$val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val8[1]), $(val8[2])	
+!if $val27=2 
+$()$(val8[3]) 
+!else
+$() $(val8[4]) 
+!endif
+$() :	<div class="wimscenter"> 
+!read oef/draw.phtml 200,200 \
+xrange -2,7	yrange -2,7	$val18 
+$()	</div>	$(val9[1])  
+!read oef/embed.phtml choice 1 
+$() $(val9[2])  
+!read oef/embed.phtml choice 2 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,18,27
+embedcnt=2

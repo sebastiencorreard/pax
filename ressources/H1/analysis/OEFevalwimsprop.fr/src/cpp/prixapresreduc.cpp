@@ -1,0 +1,57 @@
+target=reducpourcguide reducpourc
+
+\author{Lionel,Verbecq}
+\email{lionel.verbecq@ac-versailles.fr}
+\precision{10000000}
+\computeanswer{yes}
+\format{html}
+
+# define TITRE Montant après réduction
+
+#if defined TARGET_reducpourcguide
+\title{TITRE (guidé)}
+#endif
+#if defined TARGET_reducpourc
+\title{TITRE}
+#endif
+
+\integer{pourcent=randint(2..10)}
+\integer{prix=randint(10..999)}
+\text{nom=slib(lang/fname fr,boy)}
+\text{objet=slib(life/frcommodity \prix)}
+\text{article=item(1,\objet)}
+\text{objet=item(2,\objet)}
+\real{remise=\prix*\pourcent/100}
+\real{final=\prix-\remise}
+\text{enonce=\nom a acheté \article \objet à \prix euros en janvier,Les prix ont diminué de \pourcent % en février}
+\text{question=Quel est le montant de la réduction&nbsp;?,Quel est le prix final après la réduction&nbsp;?}
+
+#if defined TARGET_reducpourcguide
+\statement{\enonce[1].
+<p>\enonce[2].</p>
+\question[1]
+<div class="spacer">
+<label for="reply1"><b>Montant de la réduction</b>&nbsp;:</label>\embed{r1,5} &euro;. </div>
+<div class="wims_instruction">Le point sera utilisé comme séparateur décimal au lieu de la virgule.</div>
+\question[2]
+<p><label for="reply2"><b>Montant final après réduction</b>&nbsp;:</label>\embed{r2,7} &euro;.</p>
+}
+\answer{Montant de la réduction}{\remise}{type=numeric}
+\answer{Montant après réduction}{\final}{type=numeric}
+#endif
+
+#if defined TARGET_reducpourc
+\statement{\enonce[1].
+<p>\enonce[2].</p>
+\question[2]
+<div class="wims_instruction">Le point sera utilisé comme séparateur décimal au lieu de la virgule.</div>
+<p><label for="reply1"><b>Montant final après réduction</b>&nbsp;:</label>\embed{r1,7} &euro;.</p>
+}
+\answer{Montant après réduction}{\final}{type=numeric}
+#endif
+
+\solution{On calcule d'abord le montant de la réduction.
+<p>"\pourcent % de \prix" fait \(\frac{\pourcent \times \prix}{100} = \remise\).</p>
+On calcule le prix final après la réduction.
+<p>\(\prix - \remise = \final\)</p>
+Le prix final après la réduction est \( \final \ \euro\).}

@@ -1,0 +1,188 @@
+\integer{sup=2}
+\text{ajou=0}
+
+
+
+\title{Fournitures scolaires}
+## plage des prix
+\integer{euros=random(100..520)}
+\integer{cents=random(1..99)}
+
+\real{prx=\euros+(\cents/100)}
+
+## liste des pièces et billets utilisés
+\text{sM=10000,5000,2000,1000,500,200,100,50,20,10,5,2,1}
+
+## prix en centimes
+\integer{X=\prx*100}
+
+## nombre de billets en français
+\text{numerat=un billet,deux billets,trois billets,quatre billets,cinq billets,six billets,sept billets,huit billets,neuf billets,dix billets,onze billets}
+
+
+## décomposition de X en vue des billets et pièces à utiliser
+\integer{x=\X}
+\text{sX=}
+\text{rX=}
+\for{i in \sM}{
+  \integer{q=floor(\x/\i)}
+  \text{sX=wims(append item \q to \sX)}
+  \integer{r=\x%\i}
+  \text{rX=wims(append item \r to \rX)}
+  \integer{x=\r}
+}
+
+
+## possibilités de paiement
+\if{\rX[1]=0}{
+  \integer{b1=\sX[1]-1}
+  \integer{Y=\b1*\sM[1]+\sM[2]+3*\sM[3]}
+  \text{paie=\numerat[\b1] de 100 &euro;, un billet de 50 &euro; et trois billets de 20 &euro;}
+}
+
+
+\if{(\rX[1]<>0) and \rX[2]=0}{
+  \integer{ch=random(1,2)}
+  \if{\ch=1}{
+    \integer{b1=\sX[1]+1}
+    \integer{Y=\b1*\sM[1]}
+    \text{paie=\numerat[\b1] de 100 &euro;}
+    }{
+    \integer{b1=\sX[1]}
+    \integer{Y=\b1*\sM[1]+3*\sM[3]}
+    \text{paie=\numerat[\b1] de 100 &euro; et trois billets de 20 &euro;}
+    }
+}
+
+\if{(\rX[1]<>0) and (\rX[2]<>0)}{
+  \integer{ch=random(1..4)}
+  \if{\ch=1}{
+    \integer{b1=\sX[1]}
+    \integer{b2=\sX[2]+1}
+    \integer{Y=\b1*\sM[1]+\b2*\sM[2]}
+    \text{paie=\numerat[\b1] de 100 &euro; et \numerat[\b2] de 50 &euro;}
+  }
+
+  \if{\ch=2}{
+    \integer{b1=\sX[1]+1}
+    \integer{Y=\b1*\sM[1]}
+    \text{paie=\numerat[\b1] de 100 &euro; }
+  }
+ \if{\ch=3}{
+   \integer{b1=2*\sX[1]+\sX[2]+1}
+   \integer{Y=\b1*\sM[2]}
+   \text{paie=\numerat[\b1] de 50 &euro;}
+  }
+  \if{\ch=4}{
+   \integer{b1=\sX[1]-1}
+   \integer{b2=\sX[2]+3}
+   \integer{Y=\b1*\sM[1]+\b2*\sM[2]}
+   \if{\b1>0}{
+      \text{paie=\numerat[\b1] de 100 &euro; et \numerat[\b2] de 50 &euro;}
+       }{
+      \text{paie=\numerat[\b2] de 50 &euro;}
+      }
+    }
+}
+
+
+## client ou cliente
+\text{CL=Un étudiant,Une étudiante}
+\text{art=il,elle}
+\integer{cl=random(1,2)}
+\text{boutiq=fournitures scolaires,fournitures scolaires}
+
+
+## la bonne réponse
+\integer{Z=\Y-\X+\ajou}
+\integer{z=\Z}
+\text{sZ=}
+\for{i=2 to 13}{
+  \integer{q=floor(\z/\sM[\i])}
+  \text{sZ=wims(append item \q to \sZ)}
+  \integer{r=\z%\sM[\i]}
+  \integer{z=\r}
+}
+
+
+\language{fr}
+\range{-5..5}
+\author{Joachim,YAMEOGO}
+\email{yameogo@math.unice.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\real{rep=\Z/100}
+\text{magasin=votre magasin}
+
+## couleurs de fond
+\text{bg=silver,darkseagreen,bisque}
+
+## index des monnaies
+\text{mon=5000a.png,2000a.png,1000a.png,500a.png,200.png,100.png,50.png,20.png,10.png,5.png,2.png,1.png}
+
+
+\text{img1=height="55" src="\imagedir}
+\text{monimg=<img alt="cinq cent euro" \img1/50000a.png">,
+<img alt="deux cent euro" \img1/20000a.png">,
+<img alt="cent euro" \img1/10000a.png">,
+<img alt="cinquante euro" \img1/5000a.png">,
+<img alt="ving euro" \img1/2000a.png">,
+<img alt="dix euro" \img1/1000a.png">,
+<img alt="cinq euro" \img1/500a.png">,
+<img alt="deux euro" \img1/200.png">,
+<img alt="un euro" \img1/100.png">,
+<img alt="cinquante centimes" \img1/50.png">,
+<img alt="vingt centimes" \img1/20.png">,
+<img alt="dix centimes" \img1/10.png">,
+<img alt="cinq centimes" \img1/5.png">,
+<img alt="deux centimes" \img1/2.png">,
+<img alt="un centime" \img1/1.png">
+}
+
+
+\text{minpieces=wims(sum x for x in \sZ)}
+
+\integer{ddtot=\minpieces + \sup}
+\integer{ddvert=ceil(\ddtot/6)}
+\integer{ddhoriz=max(5,ceil(\ddtot/\ddvert))}
+\integer{ddtot=\ddhoriz*\ddvert}
+
+\text{ddsize=110 60 \ddtot \ddvert}
+
+\integer{dd=2}
+## Enoncé de l'exercice
+\text{genre=randrow(Combien la caissière doit-elle lui rendre ? Elle doit utiliser le plus petit nombre possible de pièces et de billets.;
+Combien le caissier doit-il lui rendre ? Il doit utiliser le plus petit nombre possible de pièces et de billets.)}
+
+\statement{Un client achète dans un magasin de \boutiq[\cl] pour \prx euros d'articles et paye avec \paie.
+\genre
+<div class="wimscenter">
+\embed{r1,\ddsize}
+</div>}
+## champ des réponses
+
+## XIAO:begin
+\reply{Pièces et billets}{\rlist;\monimg}{type=clickfill}
+
+\text{rlist=wims(replace internal \img1 by in \rlist)}
+\text{rlist=wims(text select 1250, in \rlist)}
+\integer{rcnt=items(\rlist)}
+\integer{sum=wims(sum x for x in \rlist)}
+\real{sum2=\sum/100}
+
+\condition{Les pièces et billets s'ajoutent à la somme à rendre}
+        {\sum=\Z}
+\feedback{\sum!=\Z}{Les pièces et billets que vous rendez s'ajoutent
+à \sum2 &euro;, mais pas à \rep &euro; comme il faut !}
+
+
+\condition{C'est le plus petit nombre de pièces et billets}
+        {\sum=\Z and \rcnt<=\minpieces}
+
+\feedback{\sum=\Z and \rcnt>\minpieces}{Il suffit de \minpieces
+pièces et billets pour composer la même somme à rendre, au lieu de \rcnt.}
+
+
+## XIAO:end

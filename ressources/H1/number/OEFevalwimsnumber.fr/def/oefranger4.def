@@ -1,0 +1,164 @@
+!set title=Ranger 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r,r,r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=croissant,décroissant
+val7=
+val8=Ranger les nombres
+val9=\(\Large{<}\),\(\Large{>}\),\(\Large{=}\)
+tmp0=!shuffle 9
+
+val10=$(tmp0)
+tmp0=!item 1 to 4 of $val10
+
+val11=$(tmp0)
+val12=$(val11[1]),$(val11[3]),$(val11[2]),$(val11[4])
+val13=$(val11[1]),$(val11[2]),$(val11[3]),0
+val14=$(val11[1]),$(val11[2]),0,0
+val15=$[rint(0)]
+val16=$[rint(0)]
+val17=$[rint(0)]
+val18=$[rint(0)]
+!for val19 =1 to 4 
+val15=$[$val15+$(val11[$val19])/10^($val19-1)]
+val16=$[$val16+$(val12[$val19])/10^($val19-1)]
+val17=$[$val17+$(val13[$val19])/10^($val19-1)]
+val18=$[$val18+$(val14[$val19])/10^($val19-1)]
+!next
+val20=$val15,$val16,$val17,$val18
+tmp0=!randitem 1,2
+
+val21=$[rint($(tmp0))]
+!if $val21=1 
+tmp0=!sort numeric items $val20
+
+val20=$(tmp0)
+!else
+tmp0=!sort reverse numeric items $val20
+
+val20=$(tmp0)
+!endif
+val22=$val8
+val23=$(val9[$val21]) 
+val24=$(val9[$val21]) 
+val25=$(val9[$val21]) 
+val26=$(val20[1])
+val27=$(val20[2])
+val28=$(val20[3])
+val29=$(val20[4])
+val30=50x50
+val31=dragfill
+val6=
+val32=$val26,$val27,$val28,$val29
+tmp0=!replace internal ; by , in $val32
+
+val32=$(tmp0)
+tmp0=!listuniq $val32
+
+val32=$(tmp0)
+tmp0=!shuffle $val32
+
+val32=$(tmp0)
+replytype1=dragfill
+replyname1=
+replygood1=$val26
+replytype2=dragfill
+replyname2=
+replygood2=$val27
+replytype3=dragfill
+replyname3=
+replygood3=$val28
+replytype4=$val31
+
+replyname4=
+replygood4=$val29;$val6
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val8 $val32 \begin{center} \(\ldots\) $val23 \(\ldots\) $val24 \(\ldots\) $val25 \(\ldots\) \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val8	<div class="wimscenter">	 
+!read oef/embed.phtml r1,$val30 
+$()	$val23  
+!read oef/embed.phtml r2,$val30 
+$()	$val24  
+!read oef/embed.phtml r3,$val30 
+$()	$val25  
+!read oef/embed.phtml r4,$val30 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val8 $val32 $m_begin{center} 
+!insmath \ldots
+$() $val23 
+!insmath \ldots
+$() $val24 
+!insmath \ldots
+$() $val25 
+!insmath \ldots
+$() $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,23,24,25,30,32
+embedcnt=4

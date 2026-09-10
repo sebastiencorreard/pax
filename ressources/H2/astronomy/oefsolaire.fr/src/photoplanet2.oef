@@ -1,0 +1,85 @@
+type=image
+textarea="data"
+:Choisir une étiquette correspondant à l'image (ou au texte présenté)
+Attention, ce modèle ne fonctionnera bien que si vous chargez les images sur wims.
+<p>
+Pour construire un exercice avec ce modèle, il suffit de taper la liste des images et
+des étiquettes correspondantes
+</p>
+
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+
+:\title{Trouver le nom d'une planète d'après une photo}
+:\author{Chantal,Causse}
+:\email{chantal.causse@noos.fr}
+\keywords{solar_system, planet }
+
+:Consigne
+
+\text{instruction=Quel est le nom de cette planète du système solaire ?
+<div class="wims_instruction"> Une indication sur l'origine de ce nom est donnée dans l'aide.</div>}
+
+:Données
+
+\text{data=img03.jpg,Mercure,NASA/Johns Hopkins University Applied Physics Laboratory/Carnegie Institution of Washington,Nom du messager des dieux chez les Romains&#44;  donné à cette planète en raison de sa rapidité de déplacement (ou de sa proximité au Soleil).
+152.gif,Venus,C.J.Hamilton/NASA,Nom de la déesse romaine de l'amour et de la beauté&#44;  donné à la planète qui était considérée comme la plus belle du ciel par les Romains.
+190.jpg,Terre,NASA,Son nom vient du mot latin désignant un lien sec&#44;  par opposition à la mer.
+73.jpg,Mars,P.James/NASA/STSCI,Nom du dieu romain de la guerre&#44;  donné à cette planète en raison de sa couleur rouge.
+59.jpg,Jupiter,NASA,Nom du dieu romain de la foudre et du tonnerre.
+eso0204a.jpg,Saturne,ESO,Nom du dieu romain du temps qui passe&#44;  car cette planète a un déplacement très lent.
+eso0237a.jpg,Uranus,ESO,Nom du dieu romain du ciel.
+86.jpg,Neptune,Voyager/NASA,Nom du dieu romain de la mer.}
+
+:Nombre de perturbateurs.
+
+\integer{cntpertub=4}
+
+:La taille verticale des cases en pixels.
+
+\text{sizev=128}
+
+:La taille horizontale des cases en pixels
+
+\text{sizeh=128}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+\text{mot = randrow(\data)}
+\text{image=\mot[1]}
+\text{ext=item(2,wims(replace internal . by , in wims(lowercase \image)))}
+\text{credit = \mot[3]}
+\text{aide = \mot[4]}
+\text{mot =\mot[2]}
+
+\text{liste=column(2, \data)}
+\text{perturb=wims(listcomplement \mot in \liste)}
+\text{perturb=shuffle(\perturb)}
+\text{perturb=\perturb[1..\cntpertub]}
+\credits{Crédit photographique : \credit}
+
+\statement{
+\instruction
+<p class="wimscenter">
+\if{\ext isitemof png,gif,jpg,jpeg}{
+  \img{\imagedir/\image}
+  }
+  {\image}</p>
+
+<div class="wimscenter">
+\embed{r1,\sizeh x \sizev}
+</div>
+
+}
+\answer{}{\mot;\perturb}{type=clickfill}
+\help{\aide}

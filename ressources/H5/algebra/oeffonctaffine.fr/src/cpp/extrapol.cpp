@@ -1,0 +1,330 @@
+target=extrapol1
+\title{Coût d'un lot de savons}
+\language{fr}
+\range{-5..5}
+
+\author{Rémi, Belloeil}
+\email{remi.belloeil@orange.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+\text{couleur=MistyRose}
+%%Choix de la méthode%%
+0-> liste
+1-> ballon
+#define TYPE 1
+\text{list=1,2,3,4,5,6}
+\text{list2=1,2,3,4,5,6}
+\text{repchoix=f,a,b,c,d,e}
+#include "method.inc"
+
+\real{a=0.2+0.2*(1+2*randint(0..3))}
+\integer{b=randint(1..5)}
+\integer{n= 1+2*randint(0..2)}
+\integer{x1=\n*10}
+\real{y1=\a *\x1 +\b}
+\integer{p= 10*randint(2..4)}
+\integer{x2=\x1 +\p}
+\real{y2=\a *\x2 +\b}
+\integer{x3=\x2 +\p}
+\real{y3=\a *\x3 +\b}
+\integer{dx=\x2 - \x1}
+\real{dy=\y2 - \y1}
+\integer{x4=\x3 +1}
+\real{y4=\y3 +\a}
+\integer{dya=10*\a}
+\function{f=\a*x+\b}
+\integer{x5=\x3 +10}
+\integer{y5=\y3 +10*\a}
+
+%% Méthode dessin
+\text{camion=xrange -5,95
+yrange -5,50
+rect 30,5,90,40,black
+polygon black,30,5,0,5,0,30,30,40
+polygon black,2,15,2,25,28,35,28,15,2,15
+arc 15,5,16,16,180,360,black
+arc 49,5,16,16,180,360,black
+arc 75,5,16,16,180,360,black
+}
+\text{GCamion = draw(100,45
+\camion)}
+
+\text{boite=xrange -5,50
+yrange -5,50
+rect 0,0,30,30,black
+polygon black,0,30,5,40,35,40,35,10,30,0,30,30
+segment 30,30,35,40,black
+}
+\text{boiteb=\boite
+text black,5,20,giant,\x1
+}
+\text{boitec=\boite
+text black,5,20,giant,\p
+}
+\text{boited=\boite
+text black,5,20,giant,10
+}
+
+\text{GBoite = draw(55,55
+\boite)}
+\text{GBoiteb = draw(55,55
+\boiteb)}
+\text{GBoitec = draw(55,55
+\boitec)}
+\text{GBoited = draw(55,55
+\boited)}
+\text{savon = draw(20,20
+xrange 0,20
+yrange 0,20
+fellipse 10,10,19,15,pink)
+}
+
+%%Méthode Schéma
+\text{flecheH=draw (100,20
+xrange -5,95
+yrange -10,10
+arrow 0,0,90,0,10,black)
+}
+\text{flecheV=draw (20,80
+xrange -10,10
+yrange -5,75
+arrow 0,90,0,0,10,black)
+}
+
+%%Méthode graphique
+\text{graph=xrange -20,\x5
+yrange -10,\y5
+linewidth 1
+parallel 0,10,\x5,10,0,10,20,black
+parallel 10,0,10,\y5,10,0,20,black
+text black,47,-1,giant,50
+text black,97,-1,giant,100
+text black,147,-1,giant,150
+
+text black,-3,3,giant,0
+text black,-8,53,giant,50
+text black,-12,103,giant,100
+text black,-12,153,giant,150
+text red,\x1-4,\y1+4,giant,A
+text red,\x2-4,\y2+4,giant,B
+
+linewidth 3
+parallel 50,0,50,\y5,50,0,4,black
+parallel 0,50,\x5,50,0,50,4,black
+arrow 0,0,\x5,0,10,black
+arrow 0,0,0,\y5,10,black
+linewidth 5
+points red,\x1,\y1,\x2,\y2
+}
+\text{graphS=\graph
+linewidth 3
+segment 0,\b,\x5,\y5,green
+segment \x1,\y1,\x2,\y1,green
+segment \x2,\y1,\x2,\y2,green
+text green,\x1+0.5*\dx,\y1-1,giant,\dx
+text green,\x2+1,\y1+0.5*\dy,giant,\dy
+text green,-3,6,giant,\b
+text green,0.5*\x1,18,giant,a = \dy / \dx = \a
+text red,\x3-4,\y3+4,giant,C
+segment \x2,\y2,\x3,\y2,green
+segment \x3,\y2,\x3,\y3,green
+text green,\x2+0.5*\dx,\y2-1,giant,\dx
+text green,\x3+1,\y2+0.5*\dy,giant,\dy
+point \x3,\y3,red
+}
+\text{Gurl = draw(400,400
+\graph)}
+
+\text{W=}
+\text{ETAPE = r1}
+\text{COND = 1}
+\nextstep{ \ETAPE}
+\conditions{ \COND}
+
+\statement{
+<div class="wims_question">
+<p>Pour un achat par correspondance de savons parfumés,
+on paye un prix fixe pour l'envoi par la Poste
+et un prix proportionnel au nombre de savons.</p>
+<p>Le prix total pour \x1 savons est \y1 euros et pour \x2 savons, il est de \y2 euros.</p>
+</div>
+\if{\step = 1}
+{<ol>
+<li>Quel est le prix pour la commande de \x3 savons ?</li>
+<li>Quel est le prix pour la commande de \(x) savons ?</li>
+</ol>
+
+#include "listmethodb.inc"
+
+}
+
+\if{\step>1}{
+\if{\W=f}{
+  <div>Le prix total pour \x3 savons (soit \x2 + \p) est :
+ \embed{reply 7,6} euros. </div>
+}
+
+ \if{\W=a}{
+Compléter la dernière colonne du tableau et écrire la formule en dessous.
+<table classe="wimsborder wimscenter">
+<tr><td><img src="\GCamion" alt="camion" /></td><td><img src="\GBoiteb" alt="boîte de \x1 savons" /></td><td> coût \y1 &euro;</td></tr>
+<tr><td><img src="\GCamion" alt="camion" /></td><td><img src="\GBoiteb" alt="boîte de \x1 savons" /><img src="\GBoitec" alt="boîte de \p savons" /></td><td> coût \y2 &euro;</td></tr>
+<tr><td><img src="\GCamion" alt="camion" /></td><td><img src="\GBoiteb" alt="boîte de \x1 savons" /><img src="\GBoitec" alt="boîte de \p savons" /> <img src="\GBoitec" alt="boîte de \p savons" /></td><td style="background-color:\couleur;"> \embed{reply 7,6} &euro;</td></tr>
+<tr><td></td><td><img src="\GBoitec" alt="boîte de \p savons" /></td><td style="background-color:\couleur;">\embed{reply 3,6} &euro;</td></tr>
+<tr><td></td><td><img src="\GBoited" alt="boîte de 10 savons" /></td><td style="background-color:\couleur;">\embed{reply 8,6} &euro;</td></tr>
+<tr><td></td><td><img src="\savon" alt="un savon" /></td><td style="background-color:\couleur;">\embed{reply 4,6} &euro;</td></tr>
+<tr><td><img src="\GCamion" alt="camion" /></td><td></td><td style="background-color:\couleur;">\embed{reply 6,6} &euro;</td></tr>
+</table>
+}
+\if{\W=b}{
+Compléter le schéma où \(u) est le prix d'un savon et \(p) le prix de l'envoi par la Poste.
+<p>Calculer de combien augmente le nombre de savons entre \x1 et \x2 ? et le prix ?
+</p><p>
+Entre \x2 et \x3, le nombre de savons augmente de \dx et on peut ainsi calculer le prix de \x3 savons.
+</p>
+<table class="wimscenter wimsnoborder">
+<tr><td>\x1</td><td></td><td>\((\times u)) \((+p))<br><img src="\flecheH" /></td><td></td><td>\(\x1*u + p) </td><td></td><td> = \y1</td><tr>
+<tr><td style="text-align:right"><img src="\flecheV" /></td><td>+ </td><td style="background-color:\couleur; text-align:left">\embed{reply 2,1}</td><td style="text-align:right"><img src="\flecheV" /></td><td>+ \(\dx*u)</td><td style="text-align:right"><img src="\flecheV" /></td><td style="background-color:\couleur;">+ \embed{reply 3,6}</td><td></td><tr>
+<tr><td>\x2</td><td></td><td>\((\times u)) \((+p))<br><img src="\flecheH" /></td><td></td><td>\(\x2*u + p) </td><td></td><td> = \y2</td><tr>
+<tr><td style="text-align:right"><img src="\flecheV" /></td><td>+ \dx</td><td></td><td style="text-align:right"><img src="\flecheV" /></td><td>+ \(\dx*u)</td><td style="text-align:right"><img src="\flecheV" /></td><td>+ ?</td><tr>
+<tr><td>\x3</td><td></td><td>\((\times u)) \((+p))<br><img src="\flecheH"></td><td></td><td>\(\x3*u + p) </td><td></td><td style="background-color:pink; text-align:left"> = \embed{reply 7,6}</td></td><td><tr>
+</table>
+<p>
+Connaissant le coût supplémentaire pour \dx savons, on en déduit que
+le prix supplémentaire pour chaque savon est : <label for="reply4">\(u =)</label> \embed{reply 4,6} &euro;.
+</p><p>
+On peut maintenant déduire le prix de \(x) savons par rapport à celui de \x1 savons.</p>
+<table class="wimsnoborder wimscenter">
+<tr><td>\x1</td><td></td><td>\((\times u)) \((+p))<br><img src="\flecheH"></td><td></td><td>\(\x1*u + p) </td><td></td><td> = \y1</td><tr>
+<tr><td style="text-align:right"><img src="\flecheV" /></td><td>+ </td><td>\((x-\x1))</td><td style="text-align:right"><img src="\flecheV" /></td><td>+ \((x-\x1)*u)</td><td style="text-align:right"><img src="\flecheV" /></td><td>+ \((x-\x1))* </td><td style="background-color:\couleur;">\embed{reply 5,6}</td><tr>
+<tr><td>\(x)</td><td></td><td>\((\times u)) \((+p))<br><img src="\flecheH" /></td><td></td><td>\(u*x + p) </td><td></td><td> = ?</td><tr>
+</table>
+}
+
+\if{\W=c}{
+  Compléter le tableau.
+  <table class="wimscenter wimsborder" style="font-size:20;background-color:\couleur;"><tr>
+  <tr style="background-color:cyan;"><td></td><td><td></td><td>+ \embed{reply2,6}</td><td></td><td></td><td></td></tr>
+  <tr><td>Nombre de savons</td><td>0</td><td>\x1</td><td></td><td>\x2</td><td>\x3</td><td>\x4</td></tr>
+  <tr><td>Prix total</td><td>\embed{reply6,6}</td></td><td>\y1</td><td></td><td>\y2</td><td>\embed{reply7,6}</td><td>\embed{reply9,6}</td></tr>
+  <tr style ="background-color:cyan;"><td></td><td>(prix du transport)<td></td><td>+ \embed{reply3,6}</td><td></td><td></td><td></td></tr>
+  </table>
+  <p>
+  Entre \x1 et \x2, de combien augmente le nombre de savons ? et le prix ?
+  En déduire le prix de \x3 savons, soit \x2 + \p savons.</p>
+  <div>
+  Connaissant le prix supplémentaire pour \dx savons, il est facile de trouver
+  que le prix supplémentaire pour un savon est : \embed{reply 4,6} &euro;
+  et en déduire le prix de \x4 savons puis le prix du transport.</div>
+  Si on achète en tout \(x) savons, le coût supplémentaire par rapport au prix de \x1 savons est :
+  <div class="wimscenter">
+   \embed{reply 5,6} * (\(x - \x1)) &euro;. </div>
+  Ce qui donne au total :<br>
+ }
+\if{\W=d}{
+  Recopier le graphique ci-dessous où le point A a pour coordonnées (\x1;\y1) et B (\x2;\y2).</font></p>
+  <img src="\Gurl" /><br>
+  La fonction qui à \(x) savons associe le coût de la commande est une fonction affine.<br>
+  Sa courbe est la droite (AB) et son coefficient directeur est : <br>
+  \(a) = \embed{reply 3,6} / \embed{reply 2,6} = \embed{reply 4,6}<br>
+  Ce qui représente l'écart du coût divisé par l'écart du nombre de savons,
+  autrement dit le coût d'un savon supplémentaire.<br>
+  Par ailleurs, si on commande \x3 savons, soit \x2 + \p, le prix est : \embed{reply 7,6} &euro;euro;<br>
+  La première information nous permet d'écrire : \x1 \(a) + \(b) = \y1<br>
+  Quel est l'ordonnée à l'origine \(b) ? \embed{reply 6,6}<br>
+  Elle représente le coût du transport.<br>
+}
+ \if{\W=e}{
+  <p>On cherche le prix de chaque savon \(a) et celui du transport \(b).</p>
+  <p>Les données se traduisent par les équations :</p>
+  <ul>
+  <li>\x1 \(a) + \(b) = \y1</li>
+  <li>\x2 \(a) + \(b) = \y2</li>
+  </ul>
+
+  Pour résoudre ce système de deux équations, on peut soustraire la première équation à la deuxième.
+  <table style="text-align:right">
+  <tr><td>\(\x2*a)</td><td>+</td><td>\(b)</td><td>=</td><td>\y2</td></tr>
+  <tr><td>\(-\x1*a)</td><td>\(-)</td><td>\(b)</td><td>=</td><td>\(- \y1)</td>
+  </tr><tr><td>_____________</td><td>__</td><td>___</td><td>___</td>
+  <td>_______________</td></tr>
+  <tr><td>\embed{reply 2,2} \(a)</td><td>+</td><td>0</td><td>=</td><td>\embed{reply 3,2}</td></tr>
+  <tr><td>\(a)</td><td></td><td></td><td>=</td><td>\embed{reply 4,2}</td></tr>
+  </table>
+  <p>
+  Substituer la valeur de \(a) à \(a) dans la première équation pour en déduire \(b).
+  </p><p>
+  Le système équivaut à : </p>
+  <ul>
+  <li>\(\x1 \times) \embed{reply 5,2} + \(b) = \y1</li>
+  <li>\x2 \(a) + \(b) = \y2</li>
+  </ul>
+  <div>Donc <label for="reply6">\(b) = </label>\embed{reply 6,2}</div>
+  <div>Le prix pour \x3 savons est \(\x3 * a + b =) \embed{reply 7,2}</div>
+}
+
+  Le coût total pour \(x) savons est :<div class="wimscenter">
+ \embed{reply 10,10} &euro;.</div>
+}
+}
+\answer{Méthode}{\var1;\repchoix}{type=radio}{option=nonstop}
+\answer{dx }{\dx}{type=default}
+\answer{dy }{\dy}{type=default}
+\answer{a }{\a}{type=default}
+\answer{a }{\a}{type=default}
+\answer{b }{\b}{type=default}
+\answer{y3 }{\y3}{type=default}
+\answer{dya }{\dya}{type=default}
+\answer{prix pour \x4 savons }{\y4}{type=default}
+\answer{formule }{\f}{type=function}
+\condition{Choix de la méthode}{1=1}
+
+#include "method_step.inc"
+
+\solution{<p><b>N'hésitez pas à recommencer cet exercice avec la même méthode ou une méthode différente.</b></p>
+<ul class="wims_nopuce">
+<li>
+Le prix supplémentaire pour chaque savon est \((\y2 - \y1)/(\x2 - \x1) = \dy/\dx = \a ).
+</li><li>
+Pour \x3 savons le coût total est \(\a * (\x3 - \x2) + \y2 = \y3).
+</li><li>
+Pour \(x) savons, il est de \(\a * (x - \x1) + \y1 = \a * x + \b = \a * (x - \x2) + \y2).
+</li></ul>
+<b>Graphique</b>
+<div class="wimscenter">
+\draw{400,400}{\graphS}</div>
+<b>Système d'équations</b>:
+On cherche le prix de chaque savon \(a) et celui du transport \(b).
+Les données se traduisent par les équations :
+<ul>
+<li>\x1 \(a) + \(b) = \y1</li>
+<li>\x2 \(a) + \(b) = \y2</li>
+</ul>
+
+Pour résoudre ce système de deux équations, on peut soustraire la première équation à la deuxième.
+<table style="text-align:right">
+<tr><td>\(\x2*a)</td><td>+</td><td>\(b)</td><td>=</td><td>\y2</td></tr>
+<tr><td>\(-\x1*a)</td><td>\(-)</td><td>\(b)</td><td>=</td><td>\(- \y1)</td></tr>
+<tr><td>_____________</td><td>__</td><td>___</td><td>___</td><td>_______________</td></tr>
+<tr><td>\dx \(a)</td><td>+</td><td>0</td><td>=</td><td>\dy</td></tr></tr>
+<tr><td>\(a)</td><td> </td><td></td><td>=</td><td>\a</td></tr></tr>
+</table>
+<p>
+On substitue la valeur de \(a) à \(a) dans la première équation pour en déduire \(b).
+Le système équivaut à : </p>
+<ul>
+<li>\x1 \(a) + \(b) = \y1</li>
+<li>\(a)= \a </li>
+</ul>
+et à :
+<ul>
+<li>\(\x1 \times \a) + \(b) = \y1</li>
+<li> \(a)= \a </li>
+</ul>
+et finalement à :
+<ul>
+<li>\(a) = \a</li>
+<li>\(b) = \b</li>
+</ul>
+}

@@ -1,0 +1,66 @@
+target=addition
+
+#include "header.inc"
+#include "lang_titles.inc"
+
+\title{TITLE}
+\title_it{TITLE_it}
+
+\text{b = randitem(randint( 5..9),randint(11..14))}
+\text{n = randint (3..\b-1)}
+\text{z=}
+\text{zn=wims(exec float_calc
+obase=\b; ibase=10; \n)}
+\text{zi=}
+\for{ i = 1 to \b-1}{
+  \text{z= \z, wims(exec float_calc
+obase=\b; ibase=10;\n + \i)}
+
+\text{zi=\zi, wims(exec float_calc
+obase=\b; ibase=10; \i)}
+}
+\text{z=wims(nonempty items \z)}
+\text{zi=wims(nonempty items \zi)}
+\text{STEPS=wims(makelist r x for x = 1 to \b-1)}
+\steps{\STEPS}
+
+#include "lang.inc"
+
+\text{latexoperation=\begin{enumerate}}
+\for{ k = 1 to \b -1} {
+\text{latexoperation=\latexoperation
+\item \(\zn + \zi[\k]\) = .......}
+}
+\text{latexoperation=\latexoperation \end{enumerate}}
+
+\statement{\name_statement
+<ul>
+\for{ j = 1 to \b-1} {
+<li><label for="reply\j">\zn + \zi[\j]</label>= </td><td>\embed{reply \j,5}</li>}
+</ul>
+}
+
+\answer{\n + 1}{\z[1]}{type=nocase}
+\answer{\n + 2}{\z[2]}{type=nocase}
+\answer{\n + 3}{\z[3]}{type=nocase}
+\answer{\n + 4}{\z[4]}{type=nocase}
+\answer{\n + 5}{\z[5]}{type=nocase}
+\answer{\n + 6}{\z[6]}{type=nocase}
+\answer{\n + 7}{\z[7]}{type=nocase}
+\answer{\n + 8}{\z[8]}{type=nocase}
+\answer{\n + 9}{\z[9]}{type=nocase}
+\answer{\n + 10}{\z[10]}{type=nocase}
+\answer{\n + 11}{\z[11]}{type=nocase}
+\answer{\n + 12}{\z[12]}{type=nocase}
+\answer{\n + 13}{\z[13]}{type=nocase}
+\answer{\n + 14}{\z[14]}{type=nocase}
+\answer{\n + 15}{\z[15]}{type=nocase}
+
+\help{\name_help}
+
+\latex{\begin{statement}
+\name_statement
+latexoperation
+\end{statement}
+}
+

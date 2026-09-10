@@ -1,0 +1,148 @@
+\title{ Coordonnées de vecteurs dans une base orthonormée}
+\author{Euler,Académie de Versailles}
+\email{euler.wims@ac-versailles.fr}
+\format{html}
+\precision{100}
+\css{
+<style>
+.disp_columns{
+  display: flex;
+  flex-wrap: wrap;
+}
+</style>
+
+}
+
+\integer{mid=3}
+\integer{range=\mid}
+\rational{pente=0}
+\integer{grad=5}
+
+\text{cadre=
+  xrange -\grad,\grad
+  yrange -\grad,\grad
+  parallel -\grad-\pente/2,-\grad,-\grad+\pente/2,\grad,1,0,2*\grad+1,gray
+  parallel -\grad,-\grad,\grad,-\grad,0,1,2*\grad+1,gray
+}
+text{angle=randitem(-1,1)*randitem(0,pi/3,pi/4,pi/2,2*pi/3,3*pi/4,pi)}
+\text{angle=randitem(-1,1)*randitem(0,pi/2,pi)}
+\text{vecu=pari([cos(\angle);sin(\angle)])}
+\real{xu=\vecu[1;]}
+\real{yu=\vecu[2;]}
+
+\text{vecv1=pari(A=[0,-1;1,0];u=[\vecu];A*u)}
+\text{vecv2=pari(B=[0,1;-1,0];u=[\vecu];B*u)}
+\text{vecv=randitem(\vecv1,\vecv2)}
+\real{xv=\vecv[1;]}
+\real{yv=\vecv[2;]}
+
+\integer{x=random(1..2)*random(1,-1)}
+\integer{y=random(1..2)*random(1,-1)}
+\integer{xw=\x*(\xu)+(\y)*(\xv)}
+\integer{yw=\x*(\yu)+(\y)*(\yv)}
+\if{\xw>0}{
+  \integer{xa=random(-\range..\range-\xw)}
+ }{
+   \integer{xa=random(-\range-(\xw)..\range)}
+ }
+\if{\yw>0}
+ {
+   \integer{ya=random(-\range..\range-\yw)}
+ }{
+   \integer{ya=random(-\range-(\yw)..\range)}
+ }
+\text{cadre=\cadre
+ linewidth 2
+ arrow 0,0,\xu,\yu,10,red
+ arrow 0,0,\xv,\yv,10,blue
+ arrow \xa,\ya,\xa+\xw,\ya+\yw,10,green
+ text red,\xu-0.2,\yu-0.2,large,u
+ text blue,\xv-0.2,\yv-0.2,large,v
+ text green,\xa+\xw-0.2,\ya+\yw-0.2,large,w
+ }
+\text{cadrerep=\cadre
+ darrow \xa,\ya,\xa+\x*\xu,\ya+\x*\yu,10,red
+ darrow \xa+\x*\xu,\ya+\x*\yu,\xa+\xw,\ya+\yw,10,blue
+}
+\statement{
+<script>
+function logoOEFTitle(){
+  var elt=document.querySelector("h1.oeftitle");
+  var elChild = document.createElement("IMG");
+  elChild.setAttribute("src","\imagedir/logo_euler.png");
+  elChild.setAttribute("width","48");
+  elChild.setAttribute("height","36");
+  elChild.setAttribute("style","float:right;margin-left:0.5em;margin-right:0.2em;");
+  elChild.setAttribute("alt","Logo Euler Académie de Versailles");
+  elChild.setAttribute("title","Euler Académie de Versailles");
+  elt.insertBefore(elChild,elt.firstChild);
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  logoOEFTitle();
+});
+</script>
+<div class="disp_columns">
+  <div class="medium_size">
+    <p>Dans le plan muni d'une base orthonormée \((\overrightarrow{u},\overrightarrow{v})) on a placé un vecteur <span class="nowrap">\(\overrightarrow{w}).</span><br>
+      L'objectif est d'exprimer le vecteur \(\overrightarrow{w}) en fonction des vecteurs \(\overrightarrow{u}) et <span class="nowrap">\(\overrightarrow{v}).</span></p>
+    <p>Déterminer les nombres \(a\) et \(b\) tels que <span class="nowrap">\(\overrightarrow{w} = a \overrightarrow{u} + b \overrightarrow{v}\).</span></p>
+    <div><label for="reply1">\(a\)</label> = \embed{reply1,3}</div>
+    <div class="spacer"><label for="reply2">\(b\)</label> = \embed{reply2,3}</div>
+  </div>
+  <div class="medium_size">
+    \draw{400,400}{\cadre}
+  </div>
+</div>
+
+
+
+}
+\answer{Première coordonnée}{\x}{type=numeric}
+\answer{Deuxième coordonnée}{\y}{type=numeric}
+
+\if{\reply1=1}
+  {\text{c1=}}
+  {\if{\reply1=-1}
+    {\text{c1=-}}
+    {\text{c1=texmath(\reply1)}}
+  }
+
+\if{\reply2>0}{\text{op=+}}{\text{op=-}}
+
+\if{\reply2=1 or \reply2=-1}
+  {\text{c2=}}
+  {\rational{cc2=abs(\reply2)}
+   \text{c2= texmath(\cc2)}
+  }
+
+\if{\x=1}
+  {\text{a1=}}
+  {\if{\x=-1}
+    {\text{a1=-}}
+    {\text{a1=texmath(\x)}}
+  }
+
+\if{\y>0}{\text{op1=+}}{\text{op1=-}}
+
+\if{\y=1 or \y=-1}
+  {\text{a2=}}
+  {\rational{aa2=abs(\y)}
+   \text{a2= texmath(\aa2)}
+  }
+
+
+\text{cadrebrep=\cadre
+ linewidth 2
+ darrow \xa,\ya,\xa+\reply1*\xu,\ya+\reply1*\yu,10,red
+ darrow \xa+\reply1*\xu,\ya+\reply1*\yu,\xa+\reply1*\xu+\reply2*\xv,\ya+\reply1*\yu+\reply2*\yv,10,blue
+ arrow \xa,\ya,\xa+\reply1*\xu+\reply2*\xv,\ya+\reply1*\yu+\reply2*\yv,10,black
+}
+\feedback{\x <>\reply1 or \y<>\reply2}{
+Voici, construit <strong>en noir</strong>, un représentant du vecteur \(\color{red}\c1\overrightarrow{u} \color{blue}\op \c2 \overrightarrow{v}\) correspondant à votre réponse&nbsp;:
+<div class="wimscenter">\draw{400,400}{\cadrebrep}</div>
+}
+\feedback{1=1}{
+\if{\sc_reply1 = 1 and \sc_reply2=1}{Effectivement, la }{La } réponse exacte est <span class="nowrap">\(\color{green}\overrightarrow{w} = \color{red}\a1\overrightarrow{u} \color{blue}\op1 \a2 \overrightarrow{v}\)&nbsp;:</span>
+<div class="wimscenter">\draw{400,400}{\cadrerep}</div>
+}

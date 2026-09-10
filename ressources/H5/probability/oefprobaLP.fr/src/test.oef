@@ -1,0 +1,131 @@
+\title{Le test antigénique}
+\language{fr}
+\range{-5..5}
+\author{Norbert,Rey}
+\email{Norbert.Rey@ac-lyon.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+code \css{
+<style>.bleu{color:darkblue;}</style>
+<style>.vert{color:green;}</style>
+<style>.violet{color:purple;}</style>
+<style>.cadre {
+                 color:grey;
+                 padding: 10px;
+                 border-style: double;
+                 margin-left:100px;
+                 margin-right:150px;
+                  }</style> }
+
+\integer{T= randint(245..255) }
+\integer{VP= randint(38..48) }
+\integer{FP= random(0,1,2,3,4) }
+\integer{FN= random(8,9,10) }
+\integer{P= \VP+\FP }
+\integer{NP= \T-\P }
+\integer{VN= \NP-\FN }
+\integer{M= \VP+\FN }
+\integer{NM= \FP+\VN }
+\real{ sens=rint(1000*\VP/\M)/10 }
+\real{ spe=rint(1000*\VN/\NM)/10 }
+\text{C1=\sens<80?1:2}
+\text{C2=\spe<99?1:2}
+\text{C3=\C1+\C2<4?1:2}
+
+
+\steps{
+    reply1, reply2, reply3, reply4, reply5, reply6, reply7, reply8, reply9
+    reply10, reply11, reply12, reply13, reply14
+   }
+
+\text{TAB1=slib(text/matrixhtml [
+ ,malade,non malade,total;
+test positif,Vrai Positif,Faux Positif,\(P);
+test négatif,Faux Négatif,Vrai Négatif,\(\overline{P})   ;
+total,\(M),\(\overline{M}),\(T)],wimscenter wimsborder,TH=[1;1] )}
+
+\text{TAB2=slib(text/matrixhtml [
+,malade,non malade,total;
+test positif,reply1,reply2,reply3;
+test négatif,reply4,reply5,reply6;
+total,reply7,reply8,reply9], wimsborder,TH=[1;1] CAPTION="test antigénique nocovformi")}
+
+\text{TAB3=slib(text/matrixhtml [
+,malade,non malade,total;
+test positif,\VP,\FP,\P;
+test négatif,\FN,\VN,\NP;
+total,\M,\NM,\T],wimscenter wimsborder,TH=[1;1] )}
+
+\help{
+<p><span  class="wims_emph">Sensibilité :</span> probabilité conditionnelle d’obtenir un test positif si le patient est malade.</p>
+<p  class="wimscenter"> Formule : <span class="wims_emph"> \(VP/(VP+FN)) = \(VP/M)</span> </p>
+<p> Par analogie, l’énoncer devrait vous permettre de trouver la formule de la <span  class="bold">spécificité.</span></p>
+}
+
+\statement{
+<p class="vert wimscenter" > Exercice en 2 étapes</p>
+<p class="cadre"><span  class="bleu">« Chez les pharmaciens, c’est l’affluence. Le personnel réalise des tests antigéniques du matin au soir…… Avec la circulation virale qui croît, le nombre de tests antigéniques devrait continuer à augmenter».</span> <br>
+<span  class="small">Le  Monde  21 décembre 2021.</span></p>
+<p>  Pour détecter le maximum de malade, la haute autorité de santé (HAS) a fixé des seuils minimaux de performance.  <span  class="bold">Les tests antigéniques doivent présenter une sensibilité minimale de 80% et une spécificité minimale de 99%.</span>
+
+<ul>
+ <li>La <span  class="wims_emph">sensibilité</span> correspond à la probabilité conditionnelle d’obtenir un test positif si le patient est malade. </li>
+ <li>La <span  class="wims_emph">spécificité</span>, est la probabilité d'obtenir un test négatif si le sujet est  sain.</li>
+</ul>
+
+Lors des essais cliniques de ces tests, on distingue 4 types de résultats regroupés dans le tableau ci-dessous. \TAB1</p>
+<p> Le test  antigénique <span class="larger"> nocovformi </span> a donné les résultats  suivants:
+<ul>
+ <li> Vrais Positifs: Individus infectés présentant un test positif :\VP. </li>
+ <li> Vrais Négatifs : Individus non infectés présentant un test négatif :\VN.</li>
+ <li> Faux Positifs: Individus présentant un test positif alors qu’ils ne sont pas infectés :\FP</li>
+ <li> Faux Négatifs: les individus présentant un test négatif alors qu’ils sont infectés :\FN</li>
+</ul></p>
+<p class="violet larger wimscenter">Problématique : Le test nocovformi peut-il être vendu en pharmacie ?</p>
+
+
+\if{ \step = 1 } {
+<p class="vert bold wimscenter">Première partie</p>
+<p> Compléter le tableau ci-dessous.
+\special{codeinput [\TAB2], 5,div
+reply1
+reply2
+reply3
+reply4
+reply5
+reply6
+reply7
+reply8
+reply9 }
+</p>}
+
+
+\if{ \step = 2 } {
+<p class="vert bold wimscenter">Seconde partie</p>
+<span class="vert" >Bonne réponse, le tableau est correct : \TAB3 </span>
+<span> On considère un individu pris au hasard.</span>
+<p class="wims_question">Quelle est la probabilité d’obtenir un test positif si le patient est malade?\embed{reply10,5} %  <span class="bleu small">arrondi à\(10^-1)</span></p>
+<p class="wims_question">Quelle est la probabilité d'obtenir un test négatif si le sujet est  sain? \embed{reply11,5} %  <span class="bleu small">arrondi à\(10^-1)</span</p>
+<p class="wims_question">Compléter la sensibilité est  \embed{reply12} à 80%, la spécificité est \embed{reply13}  à 99%</p>
+<p class="wims_question">Le test  \embed{reply14} être vendu en Pharmacie?</p>
+}}
+
+
+
+
+\answer{1}{\VP }{type=numeric}
+\answer{2}{\FP }{type=numeric}
+\answer{3}{\P }{type=numeric}
+\answer{4}{\FN }{type=numeric}
+\answer{5}{\VN }{type=numeric}
+\answer{6}{\NP }{type=numeric}
+\answer{7}{\M }{type=numeric}
+\answer{8}{\NM}{type=numeric}
+\answer{9}{\T }{type=numeric}
+\answer{10}{\sens}{type=numeric}{option=comma}
+\answer{11}{\spe}{type=numeric}{option=comma}
+\answer{12}{\C1;inférieure,supérieure ou égale} {type=menu}{option=shuffle}
+\answer{13}{\C2;inférieure,supérieure ou égale} {type=menu}{option=shuffle}
+\answer{14}{\C3;ne peut pas,peut} {type=menu}{option=shuffle}

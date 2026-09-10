@@ -1,0 +1,78 @@
+\title{III Quelle est la formule ? (réf. abs.)1}
+\langage {fr}
+\author{Paul,Byache}
+\email{paul@byache.fr}
+\langage{html}
+
+choix de la ligne sur laquelle porte la question
+\integer{ligne=randitem(6,7)}
+
+on choisit au hasard la lettre désignant la première colonne
+\integer{colonne=random(14)}
+\text{alphabet=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
+lettre désigne l'intitulé de la colonne sur laquelle porte la question (la 3e colonne de l'image)
+\integer{lettre=\colonne+3}
+\text{lettre=item(\lettre,\alphabet)}
+
+placement des lettres sur l'image
+\text{dessin=}
+\for{i=1 to 12}{
+      \text{prov=item(\colonne+\i,\alphabet)}
+      \text{dessin=\dessin
+         text black,74*\i,157,medium,\prov}
+}
+\text{dessin=draw(960,259
+xrange 0,960
+yrange 0,259
+copy 0,259,-1,-1,-1,-1,im1.jpg
+\dessin
+)}
+
+référence de la cellule sur laquelle porte la question
+\text{cel=wims(nospace \lettre \ligne)}
+
+bonne réponse
+\text{good6=wims(nospace =$\lettre $2)}
+\text{good7=wims(nospace =$\lettre $2*\lettre 5)}
+\text{good= \ligne=6 ? \good6 : \good7}
+
+autres réponses
+\text{reps6=wims(nospace =\lettre $2,=$\lettre 2,=\lettre 2,=$\lettre $6,=\lettre $6,=$\lettre 6,=\lettre 6)}
+\text{reps7=}
+on met des dollars partout où c'est possible dans "=C2*C5"
+\for{i=1 to 2}{
+ \for{j=1 to 2}{
+  \for{k=1 to 2}{
+    \text{d1=item(\i,,$)}
+    \text{d2=item(\j,,$)}
+    \text{d3=item(\k,,$)}
+    \text{reps7=\reps7,=\d1 \lettre \d2 2* \d3 \lettre 5}
+  }
+ }
+}
+\text{reps7=wims(nospace \reps7)}
+\text{reps= \ligne=6 ? \reps6 : \reps7}
+\text{reps=wims(nonempty item \reps)}
+\text{reps=wims(listcomplement \good in \reps)}
+\text{reps=wims(shuffle \reps)}
+\text{reps=item(1..5,\reps)}
+
+hauteur en pixels de la cellule sur laquelle porte la question :
+\integer{lignepix= \ligne=6 ? 211 : 230}
+
+largeur en pixels de la case à compléter:
+\integer{largpix= \ligne=6 ? 73 : 90}
+
+\statement{
+Voici l'image d'un écran de tableur.<br>
+Les cellules colorées ont permis de calculer rapidement la table de multiplication par 7.<br>
+Quelle formule doit-on taper dans la cellule \cel si on veut remplir
+<b>toute la ligne 6 en "tirant" cette formule vers la droite ?</b>
+
+<div class="wimscenter">
+\special{imagefill \dessin,960x259,\largpix x19
+reply 1,182x\lignepix
+}
+</div> }
+
+\answer{ }{ \good;\reps }{ type=clickfill } {option=shuffle}

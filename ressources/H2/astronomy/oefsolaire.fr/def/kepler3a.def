@@ -1,0 +1,194 @@
+!set title=Troisième loi de Képler
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal,Causse
+email=chantal.causse@noos.fr
+keywords=solar_system, planet, Kepler, orbit, satellite 
+language=fr
+computeanswer=yes
+precision=100
+
+ansorder=r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[6.6726*10^(-11)]
+val7=L'astronome Képler (1571-1630) a découvert trois lois décrivant le mouvement d'un corps en orbite autour d'un autre (planète autour du Soleil ou satellite autour d'une planète).<br>		La troisième loi de Képler relie la période de révolution \(T) en secondes, le demi-grand axe de l'orbite \(r) en mètres et la masse du corps central \(M) en kilogrammes :	<p class="wimscenter"> \(\frac{T^2}{r^3} = \frac{4 \pi^2}{G \times M}) où \(G) est la constante de gravitation \(G = $val6 m^3 kg^(-1) s^(-2))</p>	 <p class = "small">Ces orbites sont des ellipses (en application de la première loi de Képler), mais celles des corps étudiés dans cet exercice sont très proches de cercles, \(r) est alors la distance moyenne entre les centres des deux objets.<br>	 La période de révolution est le temps mis par le corps en orbite pour faire un tour complet autour de l'objet central, par rapport au repère des étoiles lointaines (considérées comme fixes). Pour cette raison, on l'appelle aussi "période de révolution sidérale". </p>	
+tmp0=!randitem 1,2
+
+val8=$(tmp0)
+
+!ifval $val8 = 1 
+val9= reply2,reply3 
+!else
+val9= reply2
+!endif
+tmp0=!item $val8 of la Terre,le Soleil
+
+val10=$(tmp0)
+tmp0=!item $val8 of de la Terre,du Soleil
+
+val11=$(tmp0)
+tmp0=!item $val8 of la Lune,la Terre
+
+val12=$(tmp0)
+tmp0=!item $val8 of 384 000,149 600 000
+
+val13=$(tmp0)
+val14=$[1000*$val13]
+tmp0=!item $val8 of 27.3,365.25
+
+val15=$[$(tmp0) ]
+val16=$[$val15 * 24*3600]
+val17=$[(4*pi^2*($val14)^3)/(($val6)*($val16)^2)]
+tmp0=!item $val8 of 6.02*10^24,1.99*10^30
+
+val18=$[$(tmp0)]
+val19=la masse $val11 est de \($val18) kg 
+val20=$[4 * pi^2 / (($val6) * ($val18)) ]
+val21=Sachant que la période de révolution de $val12 autour $val11 est de $val15 jours et que	 la distance moyenne entre $val12 et $val10 est $val13 km, calculer la masse $val11 en kg.	 
+!if $val8 = 1 
+tmp0=!randint 20, 40
+
+tmp1=!randint 80, 85
+
+tmp2=!randint 85, 110
+
+tmp3=!randint 2, 35
+
+val22=artificiel en orbite basse,$(tmp0)*10	de télédétection, $(tmp1)*10	de télécommunication,$(tmp2)*10	géostationnaire,36000	artificiel,$(tmp3)*1000
+tmp=!translate internal $	$ to ; in $val22
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+val24=$(val23[1])
+val25=$[$(val23[2])]
+val26=$[rint(6350)]
+val27=$[($val26 + $val25)*10^3 ]
+val28=$[sqrt($val20 * ($val27)^3)]
+val29=$[rint(floor($val28/3600))]
+val30=$[round(($val28 - 3600*$val29)/60) ]
+val31=$[$val29]
+val32=$[$val30]
+val33=satellite
+val34=heures
+val35=Un satellite $val24 est mis en orbite circulaire autour de la Terre à une altitude de $val25 km ; comme pour les satellites naturels, son mouvement autour de la Terre suit les lois de Képler. Le rayon de la Terre est $val26 km.<br> 
+!endif
+!if $val8 = 2 
+val36=Mercure,57.9	Vénus,108.2	Mars,227.9	Jupiter,778.3	Saturne,1427	Uranus,2870	Neptune,4497
+tmp=!translate internal $	$ to ; in $val36
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val37=$(tmp0)
+val27=$[$(val37[2])*10^9 ]
+val38=$[round(sqrt($val20 * ($val27)^3)/(3600*24))]
+val31=$[$val38]
+val33=$(val37[1])
+val34=jours
+val35=La distance moyenne au Soleil de la planète $(val37[1]) est $(val37[2]) millions de kilomètres.
+!endif
+oefsteps=reply1	$val9 
+nextstep=!nosubst reply1	$val9 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Masse $val11 en kg
+replygood1=$[$val17]
+replytype2=numeric
+replyname2=
+replygood2=$[$val31]
+replytype3=numeric
+replyname3=
+replygood3=$[$val32]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7	
+!if $m_step = 1 
+$()$val21 
+!else
+$() Le calcul fait à la première question montre que $val19 <br> 
+!endif
+$()	
+!if $m_step = 2 
+$()$val35<br>	
+!if $val8 = 1 
+$()La période de révolution de ce satellite autour de la Terre sera de  
+!read oef/embed.phtml reply 2,3 
+$() heures et  
+!read oef/embed.phtml reply 3,2 
+$() minutes (arrondir à la minute entière). 
+!endif
+$()	
+!if $val8 = 2 
+$()La troisième loi de Képler permet de calculer la période de révolution de $(val37[1]) autour du Soleil :  
+!read oef/embed.phtml reply 2,3 
+$() jours  (arrondir à l'entier). 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,19,21,35,37
+embedcnt=3

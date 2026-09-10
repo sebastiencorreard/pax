@@ -1,0 +1,147 @@
+!set title=Suites arithmétiques et géométriques	
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 10
+
+val7=$[rint($(tmp0)*$(tmp1))]
+!if $val6=1 
+tmp0=!randitem -1,1
+
+tmp1=!randint 10, 50
+
+val8=$[rint($(tmp0)*$(tmp1))]
+!else
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 4
+
+val8=$[rint($(tmp0)*$(tmp1))]
+!endif
+tmp0=!randint 2, 7
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9+1)]
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+!if $val11=1 
+val12=$[rint($val10+1)]
+!else
+val12=$[rint($val9-1)]
+!endif
+!if $val6=1 
+val13=$[rint($val7+$val9*($val8))]
+val14=$[rint($val13+$val8)]
+val15=arithmétique
+!if $val11=1 
+t_=!rawmath $val14+$val8
+val16=!exec pari print($t_)
+!else
+t_=!rawmath $val13-$val8
+val16=!exec pari print($t_)
+!endif
+!else
+val13=$[rint($val7*($val8)^($val9))]
+val14=$[rint($val13*($val8))]
+val15=géométrique
+!if $val11=1 
+t_=!rawmath $val14*$val8
+val16=!exec pari print($t_)
+!else
+t_=!rawmath $val13/$val8
+val16=!exec pari print($t_)
+!endif
+!endif
+replytype1=default
+replyname1=Réponse
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère une suite <b>$val15</b> telle que 
+!insmath u_{$val9}=$val13
+$() et 
+!insmath u_{$val10}=$val14
+$(). Calculer 
+!insmath u_{$val12}
+$():	<p class="wimscenter">	On a 
+!insmath u_{$val12}=
+$()  
+!read oef/embed.phtml reply 1,16 
+$()	</p>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,12,13,14,15
+embedcnt=1

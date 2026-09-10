@@ -1,0 +1,183 @@
+!set title=Comparaison 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=10000
+
+ansorder=r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1L,1S,1ES,1STMG
+tmp0=!makelist x for x=40 to 70
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+val8=$(val7[1]),$(val7[2]),$(val7[3]),$(val7[4])
+val9=40,45,50,55,60,65,70,75,80
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val10=$(val9[1]),$(val9[2]),$(val9[3]),$(val9[4])
+val11=
+val12=
+val13=
+val14=
+val15=
+val16=
+val17=
+!for val18 =1 to 4 
+val19=$[rint($(val8[$val18])*100/$(val10[$val18]))]
+val20=$[rint($val19 - $(val8[$val18]))]
+val21=$[$(val8[$val18])/$val19]
+t_=!replace internal \( by ( in round($val21*1000)/10
+tmp0=!exec pari $t_
+
+val22=$[$(tmp0)]
+t_=!replace internal \( by ( in $val22==$val21*100
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+
+!ifval $val23=1
+val24==
+!else
+val24=\simeq
+!endif
+val25=$[rint($val21*1000)]
+val25=$[$val25/10]
+tmp0=!append item $val21 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val22 to $val17
+
+val17=$(tmp0)
+tmp0=!append item $val24 to $val15
+
+val15=$(tmp0)
+tmp0=!append item $val25 to $val16
+
+val16=$(tmp0)
+tmp0=!append item $val23 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val19 to $val11
+
+val11=$(tmp0)
+tmp0=!append item $val20 to $val12
+
+val12=$(tmp0)
+!next
+tmp0=!sort item $val10
+
+val26=$(tmp0)
+tmp0=!positionof item $(val26[4]) in $val10
+
+val27=$[rint($(tmp0))]
+val28=$[rint(($(val8[$val27])/ $(val11[$val27]))*1000)]
+val28=$[$val28/10]
+replytype1=radio
+replyname1=
+replygood1=$val27;1L,1S,1ES,1STMG
+replytype2=numeric
+replyname2=
+replygood2=$[$val28]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	  Voici la répartition des élèves de Première d'un lycée&nbsp;:	</p>	<div class="table-scroll">	<table class="wimscenter wimsborder">	<tr><th>&nbsp;</th><th>1L</th><th>1S</th><th>1ES</th><th>1STMG</th></tr>	<tr><th>Garçons</th>	   
+!for m_l1=1 to 4 
+$()<td>$(val12[$m_l1])</td> 
+!next
+$()	</tr>	<tr><th>Filles</th>	   
+!for m_l2=1 to 4 
+$()<td>$(val8[$m_l2])</td> 
+!next
+$()	</tr>	</table>	</div>	  Dans quelle série la proportion des filles est-elle la plus importante&nbsp;?	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	<p>Quelle est cette proportion en pourcentage&nbsp;?</p>	<div class="wimscenter">	  <label for="reply2">Réponse&nbsp;:</label> <span class="nowrap"> 
+!read oef/embed.phtml reply2,4 
+$() %</span>	</div>	<div class="wims_instruction">	 La précision demandée est de 0.1&nbsp;%.	 </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="table-scroll">	<table class="wimscenter wimsborder">	<tr><th>&nbsp;</th><th>1L</th><th>1S</th><th>1ES</th><th>1STMG</th></tr>	<tr><th>Garçons</th>	   
+!for m_l1=1 to 4 
+$()<td>$(val12[$m_l1])</td> 
+!next
+$()	</tr>	<tr><th>Filles</th>	   
+!for m_l2=1 to 4 
+$()<td>$(val8[$m_l2])</td> 
+!next
+$()	</tr>	<tr><th>Proportion de filles<br> en % arrondie<br>à 0,1&nbsp;%</th>	    
+!for m_l3=1 to 4 
+$()<td>
+!insmath \frac{$(val8[$m_l3])}{$(val12[$m_l3])+$(val8[$m_l3])} \times 100 $(val15[$m_l3]) $(val16[$m_l3]) 
+$()</td> 
+!next
+$()	</tr>	</table>	<p> C'est en série $(val6[$val27]) que la proportion des filles est la plus importante.</p>	<p>Cette proportion est de	
+!if $(val13[$val27])=0 
+$()$val28&nbsp;% arrondi à 0.1&nbsp;%. 
+!else
+$() $val28&nbsp;%. 
+!endif
+$()</p>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,13,15,16,27,28
+embedcnt=2

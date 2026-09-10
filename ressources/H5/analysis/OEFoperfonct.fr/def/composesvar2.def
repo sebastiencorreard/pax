@@ -1,0 +1,152 @@
+!set title=Composition et sens de variation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2=1 
+val6= 
+!else
+val6=x-large
+!endif
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=de composition de fonctions
+val12=($val8*x-$val10*$val8)^2,x,&#91;$val10 &#59;\(+\infty) &#91;,1,1	($val8*x-$val10*$val8)^2,x,&#93;\(-\infty) &#59;$val10 &#93;,2,2	1/($val8*x-$val10*$val8),x,&#93;$val10 &#59;\(+\infty) &#91;,2,1	1/($val8*x-$val10*$val8),x,&#93;\(-\infty) &#59;$val10 &#91;,2,1	($val8*x-$val10*$val8)^3,x,&#91;$val10 &#59;\(+\infty) &#91;,1,2
+!if $val8>0 
+val12=$val12	sqrt($val8*x-$val10*$val8),x,&#91;$val10 &#59;\(+\infty) &#91;,1,2	
+!else
+val12=$val12	sqrt($val8*x-$val10*$val8),x,&#93;\(-\infty) &#59;$val10 &#93;,1,2	
+!endif
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, $val13
+
+val14=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+val16=$(val15[3])
+val17=$[rint($val7*$val8)]
+val18=Oui&#44; \(f) est croissante, Oui&#44; \(f) est décroissante,Non&#44; on ne peut rien dire
+t_=!replace internal \( by ( in $val7*$(val15[1])
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val19=$(tmp1)
+
+!ifval $val8>0
+val20=$[rint($(val15[4]))]
+!else
+val20=$[rint($(val15[5]))]
+!endif
+
+!ifval $val7>0
+val20=$[rint($val20)]
+!else
+val20=$[rint(3-$val20)]
+!endif
+replytype1=radio
+replyname1=
+replygood1=$val20;$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère une fonction 
+!insmath f
+$() définie sur $val16 par:	<div class="wimscenter">
+!insmath f(x)=$val19
+$() .</div>	<p>	En utilisant simplement les théorèmes sur le sens de variation $val11, peut-on	connaître le sens de variation de 
+!insmath f
+$()?	</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,16,19
+embedcnt=1

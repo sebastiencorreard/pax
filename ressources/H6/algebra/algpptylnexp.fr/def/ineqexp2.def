@@ -1,0 +1,414 @@
+!set title=Inéquation du type c e^(ax+b) > d
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c,r,r,c,c,r,r
+varcnt=51
+prevarcnt=50
+postvarcnt=0
+replycnt=4
+choicecnt=3
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=positif,négatif,nul
+val7=50
+val8=20
+val9=x,y,z,t
+tmp0=!randitem 1,-1
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, $val7
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val11*$val10)]
+tmp0=!randitem 1,-1
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, $val7
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val14*$val13)]
+tmp0=!randitem 1,-1
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, $val8
+
+val17=$[rint($(tmp0)*$val16)]
+tmp0=!randint -$val7, $val7
+
+val18=$[rint($(tmp0))]
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+
+!ifval ($val15=0)
+val20=!rawmath $val12$val19
+!else
+val20=!rawmath $val12$val19+$val15
+!endif
+tmp0=!texmath $val20
+
+val21=$(tmp0)
+tmp0=!randitem <,>
+
+val22=$(tmp0)
+tmp0=!positionof item $val22 in <,>
+
+val23=$(tmp0)
+
+!ifval ($val17>0)
+val24=$val22
+!endif
+
+!ifval ($val17<0 && $val23=1)
+tmp0=!item 2 of <,>
+
+val24=$(tmp0)
+!endif
+
+!ifval ($val17<0 && $val23=2)
+tmp0=!item 1 of <,>
+
+val24=$(tmp0)
+!endif
+t_=!rawmath $val18/$val17
+val25=!exec pari print($t_)
+
+!ifval ($val25=0)
+val26=$(val6[3])
+!endif
+
+!ifval ($val25>0)
+val26=$(val6[1])
+!endif
+
+!ifval ($val25<0)
+val26=$(val6[2])
+!endif
+
+!ifval ($val26 issametext $(val6[1]))
+val27=$[rint(1)]
+!else
+val27=$[rint(2)]
+!endif
+val28=$[rint($val12*$val17)]
+
+!ifval ($val28>0)
+val29=$val22
+!else
+val29=<
+!endif
+
+!ifval ($val28<0 && $val23=1)
+tmp0=!item 2 of <,>
+
+val29=$(tmp0)
+!endif
+
+!ifval ($val28<0 && $val23=2)
+tmp0=!item 1 of <,>
+
+val29=$(tmp0)
+!endif
+
+!ifval ($val25=1)
+val30=0
+!else
+val30=ln($val25)
+!endif
+
+!ifval ($val12=1)
+val31=!rawmath $val30-$val15
+!else
+val31=!rawmath ($val30-$val15)/($val12)
+!endif
+
+!ifval ($val12=-1)
+val31=!rawmath $val15-$val30
+!endif
+
+!ifval ($val25=1)
+tmp=!translate ";': to $     $ in $val31
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=!rawmath $(tmp0)
+!endif
+
+!ifval ($val15<0)
+val32=+$val14
+!else
+val32=-$val15
+!endif
+val33=\frac{\ln($val25) $val32}{$val12}
+
+!ifval ($val12=1)
+val33=\ln($val25) $val32
+!endif
+
+!ifval ($val12<0 || $val25=1)
+val34=$[rint(1)]
+!else
+val34=$[rint(0)]
+!endif
+!if $val34=1 
+
+!ifval ($val25=1)
+t_=!rawmath -$val15/$val12
+val35=!exec pari print($t_)
+!endif
+
+!ifval ($val25!=1 && $val12<0)
+val35=\frac{$val15 - \ln($val25)}{$val11}
+!endif
+
+!ifval ($val25!=1 && $val12=-1)
+val35=$val15 - \ln($val25)
+!endif
+!else
+val35=$val33
+!endif
+val36=$val17*e^($val20) $val22 $val18
+val37=(I)
+!if $val27=2 
+
+!ifval ($val24 issametext <)
+val38=$[rint(1)]
+!else
+val38=$[rint(2)]
+!endif
+!endif
+val39=la règle \(e^u $val24 v \Longleftrightarrow u $val24 ln(v)\)
+!if $val27=1 
+val40=choice3,reply3
+val41=choice4,choice5
+!else
+val40=reply4
+val41=choice6
+!endif
+oefsteps=choice1,reply1,reply2,choice2	$val40 
+nextstep=!nosubst choice1,reply1,reply2,choice2	$val40 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=nonstop 
+replyname1=Première question b.
+replygood1=$val25
+replytype2=menu
+replyoption2=nonstop 
+replyname2=Deuxième question a.
+replygood2=$val27;peut,ne peut pas
+replytype3=formal
+replyweight3=2 
+replyname3=Troisième question b.
+replygood3=$val31
+replytype4=menu
+replyname4=Troisième question
+replygood4=$val38;n'a aucune solution,admet tous les réels comme solutions
+choiceoption1=nonstop 
+choicename1=Première question a.
+choicegood1=$val24
+choicebad1=<,>
+choiceoption2=nonstop 
+choicename2=Deuxième question b.
+choicegood2=$val26
+choicebad2=$(val6[2]),$(val6[3]),$(val6[1])
+choicename3=Troisième question a.
+choicegood3=$val29
+choicebad3=<,>
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On veut résoudre dans 
+!insmath \mathbb{R}
+$() l'inéquation (I) : 
+!insmath $val36
+$() .	<p>	Résolvez (I) sur papier libre,	en complétant les affirmations suivantes.	</p>	
+!if $m_step=1 
+$()	<ul><li>	On peut écrire l'équivalence suivante :	<div class="wimscenter">	  $val37 
+!insmath \Longleftrightarrow e^{$val21}
+$()	   
+!read oef/embed.phtml choice1 
+$()  
+!read oef/embed.phtml reply1,5 
+$()	</div>	</li><li>	On  
+!read oef/embed.phtml reply2 
+$() appliquer $val39 car	le deuxième membre de l'inéquation est  
+!read oef/embed.phtml choice2 
+$().	</li></ul>	 
+!endif
+$()	
+!if $m_step=2 && $val27=1 
+$()	<ul><li>	On peut écrire l'équivalence suivante :	<div class="wimscenter">	  $val37 
+!insmath \Longleftrightarrow e^{$val21} $val24 $val25 
+$()	</div>	</li>	<li>	 On peut appliquer $val39, car	le deuxième membre de l'inéquation est <span class="bold"$val26</span>.	</li>	<li>	En appliquant cette règle, on obtient :	<div class="wimscenter">	$val37 
+!insmath \Longleftrightarrow $val19
+$() 
+!read oef/embed.phtml choice3 
+$()  
+!read oef/embed.phtml reply3 
+$().</div>	</li></ul> 
+!endif
+$()	
+!if $m_step=2 && $val27=2 
+$()	<ul>	<li>On peut écrire l'équivalence suivante :	<div class="wimscenter">	 $val37 
+!insmath \Longleftrightarrow e^($val21) $val24 $val25
+$()	</div>	</li><li>	On <font color=blue>ne peut pas</font> appliquer $val39 , car	le deuxième membre de l'inéquation est <font color=blue>$val26</font>.	</li>	<li> Sachant que 
+!insmath e^{t}>0
+$() pour tout réel t, on conclut que	l'inéquation $val37  
+!read oef/embed.phtml reply4 
+$().	</li></ul> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>	<b>Voici une résolution détaillée de l'inéquation (I) : 
+!insmath $val36
+$() :</b>	<p>La fonction exponentielle est définie sur 
+!insmath \mathbb{R}
+$(),	donc il n'y a aucune précaution de définition à prendre.</p>	<p> On commence par diviser l'inéquation par 
+!insmath $val17
+$()	
+!if $val17<0 
+$()(en inversant le sens de l'inégalité car on divise par un nombre négatif) 
+!endif
+$() :</p>	<div class="wimscenter">	(I) 
+!insmath \Longleftrightarrow e^{$val21} $val24 $val25
+$()	</div>	
+!if $val27=1 
+$()	On peut appliquer $val39, car le logarithme du second membre est défini ($val25 > 0\):	<div class="wimscenter">	(I) 
+!insmath \Longleftrightarrow $val21 $val24 ln($val25)
+$()	<br>	(I) 
+!insmath \Longleftrightarrow $val12$val19 $val24 ln($val25) $val32 
+$()	</div>	On divise par 
+!insmath $val12
+$() 
+!if $val12<0 
+$()(en inversant le sens de l'inégalité	  car on divise par un nombre négatif) 
+!endif
+$() :	<div class="wimscenter">	(I) 
+!insmath \Longleftrightarrow $val19 $val29 $val33 
+$()	<br>	
+!if $val34=1 
+$()	(I) 
+!insmath \Longleftrightarrow $val19 $val29 $val35 
+$() 
+!endif
+$()	</div>	<p> Posons 
+!insmath $val19 _{0} = $val35
+$().	L'ensemble des solutions de (I) est l'intervalle	
+!if $val29 issametext > 
+$()&#93; 
+!insmath $val19 _0 \; ; \; +\infty
+$() &#91; 
+!else
+$() &#93; 
+!insmath  -\infty \; ; \; $val19 _0 
+$() &#91; . 
+!endif
+$()	</p>	 
+!endif
+$()	
+!if $val27=2 
+$()	<p>On sait que 
+!insmath e^{\alpha}>0
+$() pour tout réel 
+!insmath \alpha
+$(). Donc on a 
+!insmath e^($val20) >0
+$()	pour tout réel 
+!insmath $val19
+$().</p>	<p>Par suite, l'inégalité	
+!if $val24 issametext > 
+$()	 
+!insmath e^($val20) > $val25
+$() est toujours vraie, quel que soit 
+!insmath $val19
+$(). 
+!else
+$()	  
+!insmath e^($val20) < $val25
+$() est toujours fausse, quel que soit 
+!insmath $val19
+$(). 
+!endif
+$()	On conclut que l'inéquation (I)	
+!if $val38=1 
+$()n'a aucune solution. 
+!else
+$() admet tous les réels comme solutions. 
+!endif
+$()	L'ensemble des solutions de (I) est	
+!if $val38=1 
+$()l'ensemble vide. 
+!else
+$() 
+!insmath \mathbb{R}
+$() entier. 
+!endif
+$()	</p>	 
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,17,19,20,21,24,25,26,27,29,32,33,34,35,36,37,38,39
+embedcnt=7

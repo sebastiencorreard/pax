@@ -1,0 +1,165 @@
+!set title=Equation avec une exponentielle de base a 7
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=20
+prevarcnt=17
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp=!nonempty items 1,1,1,-1
+
+tmp1=!randitem $tmp
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp=!nonempty items 1,1,1,-1
+
+tmp1=!randitem $tmp
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 0, 15
+
+tmp=!nonempty items 1,1,1,-1
+
+tmp1=!randitem $tmp
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$[rint($val7-$val6*$val8)]
+t_=!replace internal \( by ( in $val6*(10^x)+$val9
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+tmp0=!texmath $val10
+
+val10=$(tmp0)
+val11=$val10=$val7
+val12=log($val8)/log(10)
+
+!ifval ($val8<=0)
+val12= aucune
+!else
+val12=$val12
+!endif
+
+!ifval ($val8=10)
+val12= 1
+!else
+val12=$val12
+!endif
+val13=formal
+val14=$[rint(abs($val9))]
+val15=$[rint($val7-$val9)]
+val16=$val12 \($val10=$val7\) &hArr; \($val6 10^x=$val15\) <br>&hArr; \(10^x=$val8\).
+
+!ifval ($val8<=0)
+val16= $val16 <br>\(10^{x}>0) et \($val8\leq 0) donc il n'y a pas de solution. 
+!else
+val16=$val16<br> &hArr; \(x=log($val8)).
+!endif
+val17=1
+val18=En cas d'absence de solution, écrire : aucune.
+replytype1=raw
+replyoption1=absolute comma 
+replyname1=
+replygood1=?analyze 19
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val16
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">Résoudre dans 
+!insmath \mathbb{R}
+$() l'équation :	
+!insmath  $val11 
+$()</div>	
+!if $val13 issametext fset 
+$()L'ensemble des solutions est 
+!else
+$() La solution est  
+!endif
+$()  
+!read oef/embed.phtml reply1,8 
+$().	
+!if $val17=1 
+$()<div class="wims_instruction">$val18</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val16
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val20=($val19)/ln(10)
+val21=$[$val6*10^($val20)+$val9]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val8<=0 and $val19 issametext aucune) or ($val8>0 and $val19==$val12) or ($val8>0 and (log isin $val19) and $val21==$val7)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Réponse correcte ?
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12,13,16,17,18,19
+embedcnt=1

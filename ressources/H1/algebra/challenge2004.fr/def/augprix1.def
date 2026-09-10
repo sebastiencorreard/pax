@@ -1,0 +1,104 @@
+!set title=Augmentation de prix I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 30
+
+tmp1=!randitem 20,40,60
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 5,10,15,20,25,30
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val6*(1+$val7/100))]
+!readproc slib/life/frcommodity $val6,$val8 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!item 1 of $val9
+
+val10=$(tmp0)
+tmp0=!item 2 of $val9
+
+val11=$(tmp0)
+tmp0=!translate u to U in $val10
+
+val12=$(tmp0)
+replytype1=numeric
+replyname1=Le nouveau prix
+replygood1=$[$val8]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val12 $val11 dont le prix initial était $val6 euros a eu	une augmentation de $val7 pourcents.	<p>	Quel est le nouveau prix ?	 
+!read oef/embed.phtml reply 1,4 
+$() euros.	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11,12
+embedcnt=1

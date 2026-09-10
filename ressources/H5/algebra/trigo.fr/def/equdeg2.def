@@ -1,0 +1,142 @@
+!set title=Second degré et fonctions trigonométriques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frederic, Pitoun
+email=frederic.pitoun@free.fr
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+val7=$[rint($val6)]
+val8=$[rint($val6+2*($val7-1))]
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp=!trim 2,2,2,1,0	3,2,1,1,0	
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=$[rint($(val12[$val6;$val9])+$(val12[$val7;$val10]))]
+tmp0=!randitem -1,1
+
+tmp1=!random 0.1, 0.9
+
+tmp2=!randitem -1,1
+
+tmp3=!random 1.1, 11
+
+val14=0,$(tmp0)*$(tmp1),1,-1,$(tmp2)*$(tmp3)
+val15=$[floor($(val14[$val9])*100)/100]
+val16=$[floor($(val14[$val10])*100)/100]
+!if $val15=$val16 
+val13=$[rint($val13/2)]
+!endif
+tmp0=!item $val6 of cos,sin
+
+val17=!rawmath $(tmp0)
+tmp0=!item $val7 of cos,sin
+
+val18=!rawmath $(tmp0)
+tmp=!trim $val11*(cos(2*x)+1-2*($val15+$val16)*cos(x)+2*$val15*$val16)	$val11*(sin(2*x)+1-2*($val15)*sin(x)-2*($val16)*cos(x)+2*$val15*$val16)	$val11*(sin(2*x)+1-2*($val16)*sin(x)-2*($val15)*cos(x)+2*$val15*$val16)	$val11*(-cos(2*x)+1-2*($val15+$val16)*sin(x)+2*$val15*$val16)	
+val19=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in expand($(val19[$val8;1]))
+tmp0=!exec maxima $t_
+
+val20=!rawmath $(tmp0)
+tmp0=!texmath $val20
+
+val21=$(tmp0)
+replytype1=default
+replyname1=
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère l'équation	<div class="wimscenter">
+!insmath $val21 = 0
+$()</div>	Combien cette équation possède-t-elle de solutions dans l'intervalle	
+!insmath \lbrack 0 ; 2 \pi \rbrack
+$() ?<br />	Cette équation possède  
+!read oef/embed.phtml reply 1,10 
+$() solutions dans 
+!insmath \lbrack 0 ; 2 \pi \rbrack
+$().	
+$()
+!exit
+
+:hint
+$()Se ramener à une équation de degré 2 en 
+!insmath $val17(x)
+$() en utilisant la	relation	<div class="wimscenter">	
+!insmath \cos(2x)=2\cos^2(x)-1=1-2\sin^2(x)
+$()	</div>.	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,21
+embedcnt=1

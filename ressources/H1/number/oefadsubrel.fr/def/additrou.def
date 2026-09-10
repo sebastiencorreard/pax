@@ -1,0 +1,211 @@
+!set title=Addition à trou de nombres relatifs
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=66
+prevarcnt=65
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=+,-
+tmp0=!randitem +,-
+
+val7=$(tmp0)
+tmp0=!shuffle 30
+
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[2]))]
+val6=+,-
+tmp0=!randitem +,-
+
+val7=$(tmp0)
+tmp0=!randitem +,-
+
+val11=$(tmp0)
+val12=$[rint($val7$val9)]
+val13=$[rint($val11$val10)]
+val14=$[rint($val11$val10-$val7$val9)]
+tmp0=!randint 2
+
+val15=$(tmp0)
+!if $val15=1 
+val16=\(\lpar$val7$val9\rpar+\lpar\)
+val17=\(\rpar\)
+!else
+val17=\(\rpar+\lpar$val7$val9\rpar\)
+val16=\(\lpar\)
+!endif
+val18=\(=$val11$val10\)
+!if $val14>0 
+val19=\textcolor{red}{( \plus $val14 )}
+val20=\textcolor{red}{\plus $val14}
+!else
+val19=\textcolor{red}{( $val14 )}
+val20=\textcolor{red}{$val14}
+!endif
+!if $val15=1 
+val21=\(($val7 $val9 ) \plus \)\($val19\)\( =$val11 $val10\)
+!else
+val21=\( $val19\)\( \plus ($val7 $val9 ) =$val11 $val10\)
+!endif
+!if $val7=+ and $val11=+ and $val10>$val9 
+val22=$[rint(-1)]
+val23=$[rint($val10+2)]
+!endif
+!if $val7=+ and $val11=+ and $val9>$val10 
+val22=$[rint(-1)]
+val23=$[rint($val9+2)]
+!endif
+!if $val7=- and $val11=- and $val10>$val9 
+val23=$[rint(1)]
+val22=$[rint(-$val10-2)]
+!endif
+!if $val7=- and $val11=- and $val9>$val10 
+val23=$[rint($val10+2)]
+val22=$[rint(-$val9-2)]
+!endif
+!if $val7=+ and $val11=- and $val10>$val9 
+val23=$[rint($val9+1)]
+val22=$[rint(-$val10-2)]
+!endif
+!if $val7=+ and $val11=- and $val9>$val10 
+val23=$[rint($val9+1)]
+val22=$[rint(-$val10-2)]
+!endif
+!if $val7=- and $val11=+ and $val10>$val9 
+val23=$[rint($val10+1)]
+val22=$[rint(-$val9-2)]
+!endif
+!if $val7=- and $val11=+ and $val9>$val10 
+val23=$[rint($val10+1)]
+val22=$[rint(-$val9-2)]
+!endif
+val24=$[rint(600)]
+val25=$[rint(40)]
+val26=$[($val24-2*$val25)/($val23-$val22)]
+val27=$[$val22-$val25/$val26]
+val28=$[$val23+$val25/$val26]
+val29=$[rint($val23-$val22+1)]
+val30=$[rint($val23-$val22)]
+val31=$[4/$val26]
+val32=
+!for val33 =0 to $val30 
+val34=$[rint($val22+$val33)]
+val35=$[$val22+$val33-$val31]
+!if $val34=0 
+val36=segment $val34,-0.5,$val34,0.5,black
+tmp0=!append line $val36 to $val32
+
+val32=$(tmp0)
+val37=text black,$val35,-0.75,giant,$val34
+tmp0=!append line $val37 to $val32
+
+val32=$(tmp0)
+!endif
+!if $val34=$val12 
+val36=segment $val34,-0.5,$val34,0.5,blue
+tmp0=!append line $val36 to $val32
+
+val32=$(tmp0)
+val37=text blue,$val35,-0.75,giant,$val34
+tmp0=!append line $val37 to $val32
+
+val32=$(tmp0)
+!endif
+!if $val34=$val13 
+val36=segment $val34,-0.5,$val34,0.5,black
+tmp0=!append line $val36 to $val32
+
+val32=$(tmp0)
+val37=text black,$val35,-0.75,giant,$val34
+tmp0=!append line $val37 to $val32
+
+val32=$(tmp0)
+!endif
+!next
+val38=range $val27,$val28,-3,3	linewidth 2	arrow $val27,0,$val28,0,$val25/2,black	linewidth 3	$val32
+!readproc oef/draw.phtml 600,150 \
+$val38	translate $val7 $val9,0	arrow 0,1.5,$val14,1.5,10,red	text red,$val14/2,2.5,giant,?	killtranslate	 
+tmp0=$ins_url
+val39=$(tmp0)
+replytype1=numexp
+replyname1=Votre réponse
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p><label for="reply1">Trouver le nombre manquant&nbsp;:</label></p>	<div><span class="nowrap"> $val16 
+!read oef/embed.phtml reply1,5 
+$()$val17$val18.</span></div>	<div class="wims_instruction">Le nombre cherché sera écrit sans parenthèses.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Pour aller de 
+!insmath $val12
+$() à 
+!insmath $val13
+$(), il faut...<span class="nowrap">
+!insmath $val20
+$().</span>	<img src="$val39" alt="droite graduée avec flèches bout à bout">	<p>$val21</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,16,17,18,20,21,39
+embedcnt=1

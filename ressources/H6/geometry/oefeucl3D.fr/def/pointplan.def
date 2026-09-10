@@ -1,0 +1,154 @@
+!set title=Distance d'un point à un plan
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_en=Distance Between a Point and a Plane
+title_es=Distancia de un punto a un plano
+title_ca=Distància d'un punt a un pla
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 10^2, 10^4
+
+val7=$[$(tmp0)*$(tmp1)/100]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 10^2, 10^4
+
+val8=$[$(tmp0)*$(tmp1)/100]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 10^2, 10^4
+
+val9=$[$(tmp0)*$(tmp1)/100]
+tmp0=!randint -10, 10
+
+val10=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val12=$[rint($(tmp0))]
+
+!ifval ($val10)^2+($val11)^2+($val12)^2=0 
+tmp0=!randint 1, 4
+
+val10=$[rint( $val10+$(tmp0))]
+!endif
+tmp0=!randint -10, 10
+
+val13=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in ($val10)*x + ($val11)*y + ($val12)*z
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=!rawmath $(tmp0)
+val15=$[abs(($val10)*($val7)+($val11)*($val8)+($val12)*($val9)-$val13)/(($val10)^2+($val11)^2+($val12)^2)^(1/2)]
+val16=Calculer la distance du point ($val7,$val8,$val9) au plan de	  \(\RR^3) d'équation	
+tmp=!trim distance	Une distance est un réel positif.
+val17=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+val16=Find the distance between point ($val7,$val8,$val9) and the plane of	  \(\RR^3) of equation	
+tmp=!trim distance	A distance is a nonnegative real number.
+val17=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=es 
+val16=Calcular la distancia desde el punto ($val7,$val8,$val9) al plano de	  \(\RR^3) de ecuación	
+tmp=!trim distancia	Una distancia es un real positivo.
+val17=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=ca 
+val16=Calcular la distància del punt ($val7,$val8,$val9) al pla de	 \(\RR^3) d'equació	
+tmp=!trim distància	Una distància és un real positiu.
+val17=!translate internal $	\
+$ to ;; in $tmp
+!endif
+replytype1=numeric
+replyname1=$(val17[1;])
+replygood1=$[$val15]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val16 
+!insmath $val14 = $val13
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1< 0
+ <div class='oef_feedbacks'>$(val17[2;])
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,16,17
+embedcnt=0

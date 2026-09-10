@@ -1,0 +1,196 @@
+!set title=Arbre et probabilités 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+val7=$[rint(5*$val6)]
+val8=$[rint(3*$val6)]
+val9=arbre1.GIF
+val10=$[rint(10)]
+val11=$[rint(3)]
+val12=50,20
+val13=black
+val14=clickfill
+tmp=!trim 502,217	5/8,39,51,65,77	3/8,39,162,65,139	5/8,253,18,283,42	3/8,253,91,283,78	5/8,253,121,283,139	3/8,253,192,283,179	25/64,500,29,457,29	15/64,500,88,457,88	15/64,500,132,457,132	9/64,500,188,457,188
+val15=!translate internal $	\
+$ to ;; in $tmp
+val16=$(val15[1;])
+val17=$(val15[2..-1;])
+tmp=!translate internal $	$ to ; in $val17
+
+tmp0=!rowcnt $tmp
+val18=$[rint($(tmp0))]
+tmp=!trim $val17
+val17=!translate internal $	\
+$ to ;; in $tmp
+val10=$[rint(min($val10,$val18))]
+val19=$(val12[1])
+val20=$(val12[2])
+val21=
+tmp0=!shuffle $val18
+
+val22=$(tmp0)
+val23=$[rint(max(0,min($val11,$val18-$val10)))]
+val24=$(val22[1..$val10])
+val25=copy 0,0,-1,-1,-1,-1,$val9
+!for val26  =1 to $val10 
+val25=$val25	arrow $(val17[$(val24[$val26]);2]),$(val17[$(val24[$val26]);3]),$(val17[$(val24[$val26]);4]),$(val17[$(val24[$val26]);5]),20,$val13
+val27=$(val17[$(val24[$val26]);2,3])
+
+!ifval $(val17[$(val24[$val26]);2]) < $(val17[$(val24[$val26]);4]) 
+t_=!replace internal \( by ( in [$val27] - [$val19,$val20/2]
+tmp0=!exec pari $t_
+
+val27= $(tmp0)
+!else
+t_=!replace internal \( by ( in [$val27] - [0,$val20/2]
+tmp1=!exec pari $t_
+
+val27=	     $(tmp1)
+!endif
+val21=$val21	r $val26,$(val27[1]) x $(val27[2])
+!next
+!readproc oef/draw.phtml $val16 \
+$val25 
+tmp0=$ins_url
+val28=$(tmp0)
+
+!ifval $val23 >0
+val29= $(val17[$(val22[$val10+1..$val10+$val23]);1])
+!else
+val29=
+!endif
+tmp0=!makelist r x for x=1 to $val10 +1 
+
+val30=$(tmp0)
+tmp0=!randint 1, 4
+
+val31=$[rint($(tmp0))]
+val32=tirer deux boules noires de suite, tirer une boule rouge puis une boule noire, tirer deux boules rouges de suite, tirer une boule rouge et une boule noire dans n'importe quel ordre
+val33=9/64, 15/64, 25/64, 30/64 
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=$val14
+
+replyname1=
+replygood1=$(val17[$(val24[1]);1])
+replytype2=$val14
+
+replyname2=
+replygood2=$(val17[$(val24[2]);1])
+replytype3=$val14
+
+replyname3=
+replygood3=$(val17[$(val24[3]);1])
+replytype4=$val14
+
+replyname4=
+replygood4=$(val17[$(val24[4]);1])
+replytype5=$val14
+
+replyname5=
+replygood5=$(val17[$(val24[5]);1])
+replytype6=$val14
+
+replyname6=
+replygood6=$(val17[$(val24[6]);1])
+replytype7=$val14
+
+replyname7=
+replygood7=$(val17[$(val24[7]);1])
+replytype8=$val14
+
+replyname8=
+replygood8=$(val17[$(val24[8]);1])
+replytype9=$val14
+
+replyname9=
+replygood9=$(val17[$(val24[9]);1])
+replytype10=$val14
+
+replyname10=
+replygood10=$(val17[$(val24[10]);1])
+replytype11=formal
+replyname11=
+replygood11=$(val33[$val31])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$m_instruction	<span class="wims_emph">Problématique : Quelle est la probabilité de $(val32[$val31])? </span>	<div class="larger">Une urne est composées de $val7 boules rouges et de $val8 boules noires.<br>	 On tire une première boule, on  la repose  dans l'urne, on tire une seconde boule. <br>	 Placer les probabilités aux bons endroits. </div>	 <span class="smaller"> Rappel : En bout d'arbre, la probabilité que l'évènement B suive l'évènement A, <i>notée 
+!insmath p(A \cap B) 
+$()</i>, est: 
+!insmath p(A \cap B) = p_A(B) \times p(A) 
+$()</span>	<div class="wimscenter">	 
+!read oef/special.phtml imagefill $val28,$(val16[1]) x $(val16[2]),$val19 x $val20	$val21 
+$()	</div>	<span class="bold">Conclusion : </span>la probabilité de $(val32[$val31]) est  
+!read oef/embed.phtml reply11,5 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,16,19,20,21,28,31,32
+embedcnt=2

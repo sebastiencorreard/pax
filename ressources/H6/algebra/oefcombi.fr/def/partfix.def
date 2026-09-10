@@ -1,0 +1,121 @@
+!set title=Partitions fixes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000000
+title_en=Fixed partitions
+title_nl=Fixed partitions
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Nombre de façons
+tmp=!trim De combien de façons distinctes peut-on écrire	  où les \(n_i\) sont des entiers supérieurs ou égaux à,rangés dans l'ordre
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=croissant,décroissant
+!if $val6=en 
+val7=Number of ways
+tmp=!trim In how many ways can we write	  where the \(n_i\) are integers greater than or equal to,arranged in the order
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=increasing,decreasing
+!endif
+!if $val6=nl 
+val7=Aantal manieren
+tmp=!trim Op hoeveel manieren kunnen we schrijven	  waarin \(n_i\) integers zijn groter of gelijk aan,en gerangschikt in, volgorde
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=toenemende,afnemende
+!endif
+tmp0=!randint 3, 10
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 4, 9
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 0, 3
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val10+$val12*$val11)]
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+val15=$[rint(binomial($val10+$val11-1,$val11-1))]
+replyname1=$val7
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val8[1;])	<div class="wimscenter">
+!insmath $val13 = n_1+n_2+...+n_($val11)
+$()	</div>	$(val8[2;1]) $val12, $(val8[2;2]) $val14 $(val8[2;3])?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,11,12,13,14
+embedcnt=0

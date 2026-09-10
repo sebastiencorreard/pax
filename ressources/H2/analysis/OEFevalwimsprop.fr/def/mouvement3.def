@@ -1,0 +1,126 @@
+!set title=Mouvement uniforme 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=La vitesse de,est-elle uniforme sur son parcours
+tmp=!trim Sur le graphique ci-dessous, on a noté la distance parcourue par	 en ordonnée en fonction du temps en abscisse.
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val12=$[rint($(tmp0))]
+!readproc slib/draw/repere 400,400,20,0,10,0,10,1,1,black,grey 
+tmp0=$slib_out
+val13=$(tmp0)
+val13=$val13	text black,385,385,medium,T	text black,5,5,medium,D
+!if $val12=1 
+tmp0=!randint 3, 7
+
+val14=$(tmp0)
+val13=$val13	linewidth 2	segment 20,380,380,20+36*$val14,blue
+!else
+tmp0=!randint 4, 9
+
+val15=$(tmp0)
+tmp0=!randint 1, 2
+
+val16=$(tmp0)
+tmp0=!randint 2, 4
+
+val17=$(tmp0)
+tmp0=!randint 5, 6
+
+val18=$(tmp0)
+tmp0=!randint 8, 9
+
+val19=$(tmp0)
+val13=$val13	linewidth 2	segment 20,380,20+36*$val17,20+36*$val15,blue	segment 20+36*$val17,20+36*$val15,20+36*$val18,20+36*$val15,blue	segment 20+36*$val18,20+36*$val15,20+36*$val19,20+36*$val16,blue
+!endif
+!readproc oef/draw.phtml 400,400 \
+$val13 
+tmp0=$ins_url
+val20=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val21=$(tmp0)
+val22=$(val11[1;]) $val21 $(val11[2;])	  <div class="wimscenter"><img src="$val20" alt=""></div>
+val23=$(val10[1]) $val21 $(val10[2])
+val24=$(val9[$val12])
+choicename1=
+choicegood1=$val24
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val22	<p>	$val23 ?	</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=22,23
+embedcnt=0

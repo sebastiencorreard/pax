@@ -1,0 +1,81 @@
+target=limite
+\title{Calcul de limite }
+#include "author.inc"
+
+\format{html}
+\text{infd=\(+ \infty)}
+\text{infg=\(- \infty)}
+\text{listinf=\infd, \infg}
+\text{lstlim=a une limite finie nulle, a une limite finie non nulle, a une limite infinie, n'a pas de limite}
+
+\integer{a=randint(1..5)*randint(1,-1)}
+\integer{b=randint(-10..10)}
+
+\integer{c=randint(1..5)*randint(1,-1)}
+\integer{d=randint(-10..10)}
+
+\integer{e=randint(1..5)*randint(1,-1)}
+\integer{f=random(-10..10)}
+
+\integer{choix=random(1..3)}
+\function{den=\choix=1?maxima(expand((\a*x+\b)*(\c*x+\d))):maxima(expand((\a*x+\b)*(\c*x+\d)*(\e*x+\f)))}
+\integer{coefden=\choix=1?\a*\c:\a*\c*\e}
+
+\integer{u=randint(1..6)*random(1,-1)}
+\integer{v=randint(-5..5)}
+\integer{w=randint(-5..5)}
+
+\function{num=\choix<3?maxima(expand((\u*x^2+\v*x+\v)*(\e*x+\f))):maxima((\u*x^2+\v*x+\v))}
+\integer{coefnum=\choix<3?\u*\e:\u}
+
+\rational{coef=\coefnum/\coefden}
+
+\text{
+ulim=maxima(limit((\num)/(\den),x,INF))
+}
+
+\if{inf isin \lim}{\text{lim_tex= +\infty}}
+\if{minf isin \lim}{\text{lim_tex= -\infty}}
+\if{inf notin \lim}{\text{lim_tex= \lim}}
+
+\text{numu=wims(replace internal x by n in \num)}
+\text{denu=wims(replace internal x by n in \den)}
+
+\text{indlim=\choix=1?3:2}
+\text{indlim=\choix=3?1}
+\if{\choix=1}{
+  \text{mstep=r1
+  r3}
+  \if{\coef>0}{\text{liminf=\infd}}{\text{liminf=\infg}}
+   }{
+    \if{\choix=2}
+       { \text{mstep=r1
+                 r2}
+       }
+       { \text{mstep=r1}}
+   }
+
+\steps{\mstep
+}
+\text{u=(\numu)/(\denu)}
+\statement{
+  On considère la suite \(u) définie pour \(n \ge 1) par
+  <div class="wimscenter">\(u_n = \u)</div>
+  \if{\step=1}{
+  Choisissez la bonne réponse:<br>
+  La suite \(u) \embed{reply 1}
+  }
+  \if{\step=2}{
+    \if{\indlim=2}{
+    Quelle est la limite finie de \(u) ?<br>
+    <label for="reply2">\(\displaystyle{\lim_{n \to +\infty}u_n = })</label> \embed{reply 2}
+   }{
+  Choisissez la bonne réponse:<br>
+  \(\displaystyle{\lim_{n \to +\infty}u_n = }) \embed{reply 3}
+   }
+  }
+}
+
+\answer{type limite}{\indlim;\lstlim}{type=menu}
+\answer{}{\ulim}{type=numexp}
+\answer{}{\liminf;\infg,\infd}{type=clickfill}

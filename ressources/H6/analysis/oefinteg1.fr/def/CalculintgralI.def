@@ -1,0 +1,182 @@
+!set title=Calcul intégral I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Michel, Gosse
+email=michel.gosse@ac-poitiers.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -2,-1,1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val8=$[rint($(tmp0))]
+val9=$[rint(-$val8/$val6)]
+tmp0=!randitem 2,3
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem -2,-1,1,2
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val11*($val6)^2)]
+val13=$[rint($val11*$val8*$val6)]
+val14=$[rint(($val6)^2)]
+val15=$[rint(2*$val8*$val6)]
+val16=$[rint(($val8)^2)]
+
+!ifval ($val6>0)
+tmp0=!randint $val9+1, 5
+
+val17=$[rint($(tmp0))]
+!else
+tmp1=!randint -5, $val9-1
+
+val17=$[rint($(tmp1))]
+!endif
+
+!ifval ($val6>0)
+tmp0=!randint $val9+1, 5
+
+val18=$[rint($(tmp0))]
+!else
+tmp1=!randint -5, $val9-1
+
+val18=$[rint($(tmp1))]
+!endif
+
+!ifval ($val6>0)
+tmp0=!randint $val9+1, 5
+
+val19=$[rint($(tmp0))]
+!else
+tmp1=!randint -5, $val9-1
+
+val19=$[rint($(tmp1))]
+!endif
+
+!ifval ($val18=$val17)
+val18=$[rint($val19)]
+!else
+val18=$[rint($val18)]
+!endif
+tmp0=!randitem ($val6*x+$val8)^$val10,1/($val6*x+$val8)^$val10,$val7/($val6*x+$val8),	($val12*x+$val13)/($val14*x^2+$val15*x+$val16),$val7/sqrt($val6*x+$val8),$val7*e^($val6*x),	$val7*e^($val6*x+$val8),($val12*x+$val13)*e^($val14*x^2+$val15*x+$val16),	$val6*x^2+$val8*x+$val7	
+
+val20=!rawmath $(tmp0)
+tmp0=!texmath $val20
+
+val21=$(tmp0)
+tmp=!translate ;";': to $     $ in $val20,x 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+val22=!rawmath $(tmp0)
+tmp0=!texmath $val22
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in subst(x=$val18,$val22)-subst(x=$val17,$val22);
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+tmp0=!texmath $val24
+
+val25=\$(tmp0)
+replytype1=auto
+
+replyname1=Valeur de I
+replygood1=$val24
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer la valeur exacte de l'intégrale&nbsp;:	<div class="wimscenter">	
+!insmath I=integrate($val20,x=$val17, $val18)
+$()	</div>	<div class="wims_instruction">	Pour entrer la réponse, on utilise les conventions suivantes&nbsp;:<br>	La fonction logarithme népérien s'écrit <span class="tt">log</span>. Par exemple, on tape  <span class="tt">log(2)</span> pour écrire le réel <span class="tt">ln(2)</span>. <br>	La fonction racine carrée s'écrit <span class="tt">sqrt</span>. Par exemple, on entre <span class="tt">sqrt(2)</span> pour écrire le réel <span class="nowrap">
+!insmath \sqrt{2}
+$().</span> <br>	Enfin, la fonction exponentielle s'écrit <span class="tt">exp</span>. Par exemple, on tape <i>exp(2)</i> pour désigner le réel <span class="nowrap">
+!insmath e^2
+$().</span> Il est aussi possible de simplifier la notation en écrivant <i>e^2</i>.	</div>	
+$()
+!exit
+
+:hint
+$()On rappelle les formules de dérivation&nbsp;:<p>	
+!insmath \left(\dfrac{1}{u}\right)^'=-\dfrac{u^'}{u^2}
+$() <br>	
+!insmath (e^u)^{'}=u^'e^u
+$()<br>	
+!insmath (\ln u)^'=\dfrac{u^'}{u}
+$()<br>	
+!insmath (u^n)^'=n u^{n-1}u^'
+$()<br>	
+!insmath (\sqrt{u})^'=\dfrac{u^'}{2\sqrt{u}}
+$()	</p>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Une primitive de la fonction	<div class="wimscenter">	
+!insmath x \longmapsto $val21
+$()	</div>	est la fonction&nbsp;:	<div class="wimscenter">	
+!insmath x \longmapsto $val23
+$()	</div>	ce qui permet de trouver la valeur de l'intégrale.	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,18,20,21,23
+embedcnt=0

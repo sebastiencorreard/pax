@@ -1,0 +1,166 @@
+!set title=Calcul mental en base quelconque
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_it=Calcolo mentale in base qualunque
+
+ansorder=r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 5,6,7,3
+
+val6=$(tmp0)
+t_=!replace internal \( by ( in random\(10000) + 70
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+t_=!replace internal \( by ( in random\($val7-60)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=10;$val7
+
+val7=$(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=10;$val8
+
+val8=$(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=$val6;$val7 - $val8
+
+val9=$(tmp0)
+val10=$[floor(log($val8)/log(10))+1]
+tmp0=!exec float_calc	obase=$val6; ibase=10;$val10
+
+val10=$(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=$val6;10^$val10 - $val8
+
+val11=$(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=$val6; $val7 + $val11
+
+val12=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val13=$(tmp0)
+val14=Calculer rapidement \( $val7 - $val8 \) en base $val6	  en utilisant la méthode de l'aide :
+val15=Tous les nombres sont écrits en base $val6.
+val16=Voici une méthode permettant de faire des additions et	  des compléments à $val6 plutôt que des soustractions :
+val17=Nombre de chiffres
+val18=de
+val19=si \(p\) est le nombre de chiffres de $val8, calculer
+val20=Pour calculer \(10^p - $val8\) :le chiffre des unités est le	  complément du chiffre des unités à 10, les autres sont le complément à 10	  moins 1.
+val21=et enlever \(10^p\) n'est pas trop dur en général, si	  le \(p+1\) chiffre n'est pas un 0.
+!if $val13=it 
+val14=Calcolare rapidamente \( $val7 - $val8 \) in base $val6	  utilizzando il metodo descritto nelle istruzioni:
+val15=Tutti i numeri sono scritti in base $val6.
+val16=Ecco un metodo che permette di svolgere addizioni e	    complementi a $val6 invece che sottrazioni:
+val17=Numero di cifre
+val18=di
+val19=se \(p\) è il numero di cifre di $val8, calcolare
+val20=Per calcolare \(10^p - $val8\): la cifra delle unità è	  il complemento a 10 della cifra delle unità, le altre sono i complementi	  a 10 meno 1.
+val21=e elevare \(10^p\) non è troppo difficile in generale, se	  la cifra \(p+1\) non è uno 0.
+!endif
+val22=$val10
+replytype1=numexp
+replyname1=\(p\)
+replygood1=$val10
+replytype2=numexp
+replyname2=\(10^p - $val8\)
+replygood2=$val11
+replytype3=numexp
+replyname3=\($val7 + (10^p - $val8)\)
+replygood3=$val12
+replytype4=numexp
+replyname4=\($val7 - $val8\)
+replygood4=$val9
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val14	<table class="wimsborder wimscenter">	<tr><th>	$val17 
+!insmath p
+$() $val18 
+!insmath $val8
+$()</th><td>	 
+!read oef/embed.phtml reply1,$val10 
+$()	</td></tr>	<tr><th>	
+!insmath 10^p - $val8
+$()</th><td>  
+!read oef/embed.phtml reply2,$val10 
+$()	</td></tr>	<tr><td></td><td>
+!insmath $val7
+$()</td></tr>	<tr><th>	
+!insmath $val7 + (10^p - $val8) 
+$()</th><td> 
+!read oef/embed.phtml reply3,$val10 
+$()	</td></tr>	<tr><th>	
+!insmath $val7 - $val8
+$()</th><td>  
+!read oef/embed.phtml reply4,$val10 
+$()	</td></tr>	</table>	<div class="wims_instruction">$val15</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val16	<ul>	<li>	$val19	<div class="wimscenter">
+!insmath $val7 + (10^p - $val8) - 10^p
+$(). </div>	</li><li>	$val20	</li><li>	$val21	</li></ul>	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,14,15,16,17,18,19,20,21
+embedcnt=4

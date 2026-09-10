@@ -1,0 +1,257 @@
+!set title=Utilisation de la forme canonique d'un trinôme 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=rbelloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 6, 10
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 11, 20
+
+val8=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val6*(x-$val7)^2+$val8
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+!if $val10=1 
+val11=minimum,maximum
+
+!ifval $val6>0
+val12=$[rint(1)]
+!else
+val12=$[rint(2)]
+!endif
+!else
+val11=maximum,minimum
+
+!ifval $val6>0
+val12=$[rint(2)]
+!else
+val12=$[rint(1)]
+!endif
+!endif
+val13=$(val11[$val12])
+val14=\(\searrow)
+val15=\(\nearrow)
+val16=&nbsp
+val17=\(-\infty)
+val18=\(+\infty)
+tmp0=!shuffle \($val6),$val7,\(-$val7),\(-$val6),\($val8),\(-$val8)
+
+val19=$(tmp0)
+tmp0=!listuniq $val19
+
+val19=$(tmp0)
+val20=$val17,$val18,$val15,$val14,\($val6),$val7,\(-$val7),\(-$val6),\($val8),\(-$val8)
+!if $val6>0 
+val21=$val18
+val22=$val14
+val23=$val15
+val24=$val18
+!else
+val25=$val17,$val15,\($val8),$val14,$val17
+val21=$val17
+val22=$val15
+val23=$val14
+val24=$val17
+!endif
+
+!ifval $val2=1 
+val26= 
+!else
+val26=x-large
+!endif
+oefsteps=reply 1	reply 2,reply 3,	reply 4,reply 5,reply 6,reply 7,reply 8,reply 9,reply 10,reply 11 
+nextstep=!nosubst reply 1	reply 2,reply 3,	reply 4,reply 5,reply 6,reply 7,reply 8,reply 9,reply 10,reply 11 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Extremum
+replygood1=$val12;$val11
+replytype2=auto
+
+replyname2=$val13
+replygood2=$val8
+replytype3=auto
+
+replyname3=pour \(x =)
+replygood3=$val7
+replytype4=clickfill
+replyname4=
+replygood4=$val17;$val20
+replytype5=clickfill
+replyname5=
+replygood5=$val7;$val20
+replytype6=clickfill
+replyname6=
+replygood6=$val18;$val20
+replytype7=clickfill
+replyname7=
+replygood7=$val21;$val20
+replytype8=clickfill
+replyname8=
+replygood8=$val22;$val20
+replytype9=clickfill
+replyname9=
+replygood9=\($val8);$val20
+replytype10=clickfill
+replyname10=
+replygood10=$val23;$val20
+replytype11=clickfill
+replyname11=
+replygood11=$val24;$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère le trinôme 
+!insmath f(x)=$val9
+$() défini sur 
+!insmath RR
+$().	
+!if $m_step=1 
+$()	<div>	La fonction 
+!insmath f
+$() admet un  
+!read oef/embed.phtml reply 1 
+$().	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	Déterminez les coordonnées du sommet de la parabole qui représente 
+!insmath f
+$().	<ul><li>	<label for="reply2">Le $val13 est</label>  
+!read oef/embed.phtml reply 2,20 
+$().</li><li>	<label for="reply1">Il est obtenu lorsque 
+!insmath x =
+$()</label>  
+!read oef/embed.phtml reply 3,20 
+$().	</li></ul>	 
+!endif
+$()		
+!if $m_step=3 
+$()	Construire le tableau des variations de 
+!insmath f
+$()	en déposant les éléments nécessaires dans la ligne 
+!insmath x
+$() et	dans la ligne 
+!insmath f(x)
+$() du tableau ci-dessous.		      <table align="center" border="2" width="50%">	      <tr>	         <td align="center">
+!insmath x
+$() </td>	         <td align="center" border="0" > 
+!read oef/embed.phtml reply 4,$val26 
+$()</td>	         <td border="0">$val16</td><td border="0"> 
+!read oef/embed.phtml reply 5,$val26 
+$()</td><td border="0">$val16</td>	         <td border="0"> 
+!read oef/embed.phtml reply 6,$val26 
+$()</td>	      </tr>	      <tr>	         <td align="center" border="2">
+!insmath f(x)
+$()</td>	         <td align="center" border="0" > 
+!read oef/embed.phtml reply 7,$val26 
+$()</td>	         <td border="0"> 
+!read oef/embed.phtml reply 8,$val26 
+$()</td>	         <td border="0"> 
+!read oef/embed.phtml reply 9,$val26 
+$()</td>	         <td border="0"> 
+!read oef/embed.phtml reply 10,$val26 
+$()</td>	         <td border="0"> 
+!read oef/embed.phtml reply 11,$val26 
+$()</td>	  </tr>	</table>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()<p>La forme canonique d'un trinôme est 
+!insmath a(x - d)^2 + e
+$(), où 
+!insmath d
+$() et	
+!insmath e
+$() sont l'abscisse et l'ordonnée du sommet de la parabole représentant le trinôme.</p>	  <ul><li>Si 
+!insmath a
+$() est strictement positif, la fonction a un minimum.</li><li>	  Si 
+!insmath a
+$() est strictement négatif, la fonction a un maximum.</li></ul>	  <p> Exemple de la fonction carré : 
+!insmath f(x) = (1)(x-0)^2+0
+$()</p>		      <table border="2" align="center" width="50%">	      <tr>	     <td align="center">	     
+!insmath x
+$() </td><td align="center" nowrap>$val17 </td><td align="center" nowrap>$val16</td>	<td align="center" nowrap>0</td><td align="center" nowrap>$val16</td><td align="center" nowrap> $val18	     </td></tr>	      <tr>	     <td align="center">	     
+!insmath f(x)
+$() </td><td align="center" nowrap>$val18 </td><td align="center" nowrap>$val14</td>	<td align="center" nowrap>0</td><td align="center" nowrap>$val15</td><td align="center" nowrap> $val18	     </td>	      </tr>	</table>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,13,14,15,16,17,18,26
+embedcnt=11

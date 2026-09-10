@@ -1,0 +1,189 @@
+\title{Image par une rotation}
+\language{fr}
+\range{-5..5}
+\author{Hélène, Brion; Véronique, Royer}
+\email{royer.veronique@orange.fr}
+\computeanswer{yes}
+\format{html}
+\precision{100}
+
+
+
+/***affixes de C et D***/
+\integer{a=2*random(-3..3)}
+\integer{b=2*random(-3..3)}
+\integer{c=random(-3..-1,1..3)}
+\integer{d=random(-3..-1,1..3)}
+\complex{za=simplify(\a+(\b)*i)}
+\complex{zb=simplify(\a+\c+(\b+\d)*i)}
+
+/***Choix de l'angle de la rotation/***
+\text{listangle=\(pi/3),\(pi/2),\(3pi/4),\(pi),\(-pi/6),\(-pi/2)}
+\text{listecomplexe=\(\frac{1}{2}+i\frac{\sqrt{3}}{2}),\(i),\(-\frac{\sqrt{2}}{2}+i\frac{\sqrt{2}}{2}),\(-1),\(\frac{\sqrt{3}}{2}-i\frac{1}{2}),\(-i)}
+\matrix{PartieRatioCos = 1/2,0,0,-1,0,0}
+\matrix{PartieIrratCos = 0,0,-1/2,0,1/2,0}
+\matrix{PartieRatioSin = 0,1,0,0,-1/2,-1}
+\matrix{PartieIrratSin = 1/2,0,1/2,0,0,0}
+\integer{\i=random(1..6)}
+
+/*** Expression complexe de r : z'=Mz+P/***
+\text{rac=\(\sqrt{3})}
+\real{vrac=sqrt(3)}
+
+\text{rac=\i=3? \(\sqrt{2})}
+\real{vrac=\i=3? sqrt(2)}
+
+\rational{M1=\PartieRatioCos[\i]}
+\rational{M2=\PartieIrratCos[\i]}
+\rational{M3=\PartieRatioSin[\i]}
+\rational{M4=\PartieIrratSin[\i]}
+\real{m1=(\M1)+(\M2)*\vrac}
+\real{m2=(\M3)+(\M4)*\vrac}
+\text{ppM=\listecomplexe[\i]}
+
+\rational{P1=(\a)*(1-\M1)+(\b)*(\M3)}
+\rational{P2=-(\a)*(\M2)+(\b)*(\M4)}
+\rational{P3=(\b)*(1-\M1)-(\a)*(\M3)}
+\rational{P4=-(\b)*(\M2)-(\a)*(\M4)}
+\real{p1=(\P1)+(\P2)*\vrac}
+\real{p2=(\P3)+(\P4)*\vrac}
+
+/***Affichage propre de P***/
+\rational{B1=\P1}
+\rational{B2=\P2}
+\rational{B3=\P3}
+\rational{B4=\P4}
+
+/***Affichage propre de B = B1+B2rac + i(B3+B4rac)***/
+\if{\B2=0 and \B4=0}{\complex{B=\B1+i*\B3}\text{ppB=\(\B)}}{
+\text{s2=+}
+\text{s3=+}
+\text{s4=+}
+\if{\B2<0}{\text{s2=-}\rational{B2=-(\B2)}}
+\if{\B3<0}{\text{s3=-}\rational{B3=-(\B3)}}
+\if{\B4<0}{\text{s4=-}\rational{B4=-(\B4)}}
+\if{\s1=+}{\text{pps1=}}{\text{pps1=-}}
+\if{\s2=+}{\text{pps2=}}{\text{pps2=-}}
+\if{\s3=+}{\text{pps3=}}{\text{pps3=-}}
+
+
+\text{ppB2=\B2<>1? \(\B2)}
+\text{ppB3=\B3<>1 ? \(\B3)}
+\text{ppB4=\B4<>1? \(\B4)}
+\if{\B1=0}
+	{\if{\B2=0}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=0}}
+				{\text{ppB=\pps4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\pps3 \ppB3 \ i}}
+				{\text{ppB=i (\pps3 \(\B3) \s4 ppB4\rac)}}
+			}
+		}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=\pps2 \ppB2\rac}}
+				{\text{ppB=\pps2 \ppB2\rac \s4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\pps2 \ppB2 \s3 i \rac }}
+				{\text{ppB=\pps2 \ppB2 \rac + i (\pps3\(\B3) \s4 \ppB4 \rac)}}
+			}
+		}
+	}
+	{\if{\B2=0}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1)}}
+				{\text{ppB=\(\B1) \s4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1) \s3 \ppB3 i }}
+				{\text{ppB=\(\B1) + i (\pps3\(\B3) \s4 \ppB4 \rac)}}
+			}
+		}
+		{\if{\B3=0}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac}}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac \s4 \ppB4 i \rac}}
+			}
+			{\if{\B4=0}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac \s3 \ppB3 i }}
+				{\text{ppB=\(\B1) \s2 \ppB2 \rac + i (\pps3 \(\B3) \s4 \ppB4 \rac)}}
+			}
+		}
+	}
+}
+\text{ppP=\ppB}
+
+
+/*** calcul de Q affixe de r(B)***/
+\rational{Q1=(\c)*(\M1)-(\d)*(\M3)+(\a)}
+\rational{Q2 =(\c)*(\M2)-(\d)*(\M4)}
+\rational{Q3=(\c)*(\M3)+(\d)*(\M1)+(\b)}
+\rational{Q4=(\c)*(\M4)+(\d)*(\M2)}
+\real{q1=(\Q1)+(\Q2)*\vrac}
+\real{q2=(\Q3)+(\Q4)*\vrac}
+
+
+
+
+
+/*** Exercice à 3 étapes***/
+\steps{reply 1, reply2
+reply 3, reply 4
+reply 5,reply 6}
+
+
+/*** STATEMENT***/
+
+\statement{<i>Cet exercice comporte 3 étapes.</i><p>
+Soit \(r) la rotation de centre C(\(\za)) et d'angle \listangle[\i].
+L'écriture complexe de \(r) est \(z' = a z + b) où \(M(z)) est un point quelconque du plan complexe et \(M'(z')) est son image par \(r).</p>
+<ol><li> <b> Quelle est la forme algébrique de \(a) ? </b>
+<div class="wimscenter">\(a) = \embed{reply1,10} + i \embed{reply2,10}</div>
+
+\if{\step>1}{<br>
+		\if{\reply1-\m1 <0.01 and \reply1-\m1 >-0.01 and \reply2-\m2<0.01 and \reply2-\m2>-0.01 }
+			{<span style="color:green"> Bien ! \(a) = </span>\ppM}
+			{<span style="color:red"> Non ... \(a) = </span>\ppM}
+		</li>
+  <li> <b>Quelle est la forme algébrique de \(b) ? </b>
+		<div class="wimscenter">\(b) = \embed{reply3,10} + i \embed{reply4,10}</div>
+		}
+\if{\step>2}{<br>
+		\if{\reply3-\p1 <0.01 and \reply3-\p1 >-0.01 and \reply4-\p2<0.01 and \reply4-\p2>-0.01 }
+			{<span style="color:green"> Bien ! \(b) = </span>\ppP}
+			{<span style="color:red"> Non ... \(b) = </span>\ppP}
+		</li>
+    <li><b> On considère le point D(\(\zb)).
+  Quel est l'affixe de \(r)(D) ?</b><br>
+		<div class="wimscenter">L'affixe de \(r)(D) est : \embed{reply5,10} + i \embed{reply6,10}</div>
+
+		}
+		 </li></ol>
+}
+
+\answer{m1}{\m1}{option=nonstop}{type=numeric}
+\answer{m2}{\m2}{option=nonstop}{type=numeric}
+\answer{p1}{\p1}{option=nonstop}{type=numeric}
+\answer{p2}{\p2}{option=nonstop}{type=numeric}
+\answer{q1}{\q1}{option=nonstop}{type=numeric}
+\answer{q2}{\q2}{option=nonstop}{type=numeric}
+
+\hint{
+<p> Soit \(M(z)) un point
+du plan complexe et \(M'(z')) son image par la rotation \(r) de centre \(\Omega(\omega)) et d'angle \(theta).
+ <br>
+L'<i>écriture complexe</i> de \(r)
+ est la relation qui permet d'exprimer \(z') en fonction de \(z).
+</p>
+<p>
+Géométriquement, on a : <div class="wimscenter"> \(\Omega M' = \Omega M ) et \((\vec{\Omega M} , \vec{\Omega M'}) = \theta \quad [2\pi] )
+</div>
+En passant aux affixes : <div class="wimscenter">
+\( \frac{z' - \omega}{z' - \omega} = e^{i\theta}) soit \(z' - \omega = e^{i\theta}(z - \omega)).
+</div>
+}

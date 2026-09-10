@@ -1,0 +1,161 @@
+\title {Démolition d'une maison}
+\precision{100}
+
+\real{l=randint(8..12)}
+\real{d=randint(8..12)/10}
+\real{dsurl=\d/\l}
+\real{rcm=randint(23..26)}
+\real{r=\rcm/100}
+\real{rsurl=\r/\l}
+\real{V=4/3*pi*\r^3}
+\real{mfe=7.8e3}
+\real{m=\mfe*\V}
+\text{mkg=slib(text/sigunits \m,3)}
+\real{alphadeg=randint(25..35)}
+\real{alpharad=\alphadeg/180*pi}
+\real{betarad=arcsin(\d/\l)}
+\real{betadeg=\betarad/pi*180}
+\text{betadeg3=slib(text/sigunits \betadeg,3)}
+\text{betarad3=slib(text/sigunits \betarad,3)}
+\real{z1=-1*\l*cos(\alpharad)}
+\real{z2=-1*\l*cos(\betarad)}
+\text{z1m=slib(text/sigunits \z1,3)}
+\text{z2m=slib(text/sigunits \z2,3)}
+\real{g=9.8}
+\real{Epp1=\m*\g*\z1}
+\real{Epp2=\m*\g*\z2}
+\text{Epp1J=slib(text/sigunits \Epp1,3)}
+\text{Epp2J=slib(text/sigunits \Epp2,3)}
+\real{Depp=\Epp2-\Epp1}
+\text{DeppJ=slib(text/sigunits \Depp,3)}
+\real{\Dec=-1*\Depp}
+\text{DecJ=slib(text/sigunits \Dec,3)}
+\real{Ec=\Dec}
+\real{v=sqrt(2*\Ec/\m)}
+\text{vms=slib(text/sigunits \v,3)}
+
+\text{pm=-0.8,-2,-0.8,-0.5,-0.4,0,0,-0.5,0,-2}
+\text{polymaison=}
+\for{i1=1 to 10 step 2}{
+  \real{x=\pm[\i1]-\dsurl}
+  \real{y=\pm[\i1+1]}
+  \text{polymaison=\polymaison \x, \y,}
+}
+
+\real{smax=acos(-1*\betarad/\alpharad)/(2*pi)}
+\text{dessin=
+animate 15, 0.1, 0
+trange 0,1
+xrange -1.2,1.2
+yrange -2.2,0.2
+point blue,0,0
+dvline 0,0,blue
+text blue, -\dsurl,0.1,medium,d = \d m
+plot blue,0.2*cos(t*\alpharad-pi/2),0.2*sin(t*\alpharad-pi/2)
+text blue,0.2,-0.1, medium, alpha = \alphadeg°
+plot blue,cos((\alpharad+\betarad)*t-pi/2-\betarad),sin((\alpharad+\betarad)*t-pi/2-\betarad)
+//arc 0,0,2,2,-90-\betadeg, -90+\alphadeg, blue
+segment 0,0,cos(\alpharad*cos(2*pi*s*\smax)-pi/2),sin(\alpharad*cos(2*pi*s*\smax)-pi/2), green
+dsegment 0, 0, cos(\alpharad-pi/2), sin(\alpharad-pi/2), blue
+text blue,0.1+0.5*cos(\alpharad-pi/2), 0.5*sin(\alpharad-pi/2),medium, l = \l m
+plot blue,cos(\alpharad*cos(2*pi*s*\smax)-pi/2)+\rsurl*cos(2*pi*t),sin(\alpharad*cos(2*pi*s*\smax)-pi/2)+\rsurl*sin(2*pi*t)
+fillpoly red,\polymaison
+dvline -\dsurl,0,red
+}
+
+\steps{r1,r2
+r3,r4
+r5,r6,r7
+r8
+}
+
+\integer{debug=0}
+\statement{
+\if{\debug=1}{
+<h3>debug</h3>
+dessin=\dessin<br>
+<p>
+}
+<div style="float:left;width:300px;margin-right:5%;">
+\draw{300,300}{\dessin}<br>
+<div style="background:lightyellow;font-size:80%;color:green;">
+La précision des réponses numériques doit être meilleure que un 
+pour cent. <b>Attention</b>, les calculs doivent être faits avec
+une précision plus grande tant qu'on n'a pas encore fait la
+soustraction des énergies potentielles, car après soustraction la 
+marge d'erreur augmente relativement.
+</div>
+</div>
+Une boule de démolition peut être modélisée comme un sphère
+de fer de rayon r=\rcm cm, suspendue par un câble idéal à une 
+distance l=\l m
+d'un point fixe. Ce point fixe est à la distance d=\d m du plan d'un mur à démolir.
+<p>
+La boule est lâchée sans vitesse initiale alors que le câble 
+fait un angle 
+\alphadeg° avec la verticale, dans un plan perpendiculaire au mur.
+
+<ol>
+<li>Calculez la masse m de la boule d'acier&nbsp;:<br> m=\embed{r1}
+<br><span style="color:green;font-size:70%;">préciser l'unité&nbsp;; prendre la masse volumique du fer&nbsp;: &mu;<sub>Fe</sub>=7,8&times;10<sup>3</sup>&nbsp;kg.m<sup>-3</sup>.</span></li>
+<li>Calculez l'angle \(\beta) que fera le câble avec la verticale quand
+la boule sera au contact du mur &nbsp;:<br>  \(\beta)=\embed{r2}
+<br><span style="color:green;font-size:70%;">préciser l'unité (° pour degré ou rien pour radian)</span></li>
+\if{\step>1}{
+<li>On prend pour origine des altitudes (et aussi pour origine des énergies potentielles),
+le point de fixation du 
+câble. Calculer l'altitude z<sub>1</sub> du point de départ de 
+la boule (angle \alphadeg°) et l'altitude z<sub>2</sub> de la boule 
+quand celle-ci fait un angle \(\beta) avec la verticale et touche le
+mur.<br>
+z<sub>1</sub>=\embed{r3} z<sub>2</sub>=\embed{r4}
+<br><span style="color:green;font-size:70%;">préciser les unités</span>
+</li>
+}
+\if{\step>2}{
+<li>Calculez les énergies potentielles de la boule E<sub>pp1</sub> et 
+E<sub>pp2</sub> au début et à la fin de sa trajectoire&nbps;:
+<br>E<sub>pp1</sub>=\embed{r5} E<sub>pp2</sub>=\embed{r6}
+<br><span style="color:green;font-size:70%;">prendre g = 9,8 N.kg<sup>-1</sup>, préciser les unités</span></li>
+<li>Déterminez l'énergie cinétique E<sub>c</sub> de la boule de démolition quand celle-ci touche le mur&nbsp;:
+<br>E<sub>c</sub>= \embed{r7}
+<br><span style="color:green;font-size:70%;">préciser l'unité</span></li>
+}
+\if{\step>3}{
+<li>Déduisez-en la vitesse v de la boule de démolition quand celle-ci touche le mur à démolir&nbsp;:
+v=\embed{r8}
+<br><span style="color:green;font-size:70%;">préciser l'unité</span></li>
+}
+</ol>
+}
+
+\reply{}{\m kg}{type=units}
+\reply{}{\betadeg °}{type=units}
+\reply{}{\z1 m}{type=units}
+\reply{}{\z2 m}{type=units}
+\reply{}{\Epp1 J}{type=units}
+\reply{}{\Epp2 J}{type=units}
+\reply{}{\Ec J}{type=units}
+\reply{}{\v m/s}{type=units}
+
+\solution{
+<ol>
+<li>masse m de la boule d'acier&nbsp;:<br> \(m=\mu_{Fe} \times 4/3 \pi r^3 = \mfe \times 4/3 \times \pi (\r)^3) = \(\mkg kg)</li>
+<li>Le sinus de \(\beta) est calculable&nbsp;: \(sin(\beta)=d/l = \d/\l). On détermine l'arcsinus de cette valeur&nbsp;:
+\(\beta=arcsin(\d/\l)) donc \(\beta) vaut \(\betadeg3)° ou \(\betarad3) rad.</li>
+\if{\step>1}{
+<li>\(z1=- l \times cos(\alpha) = - \l \times cos(\alphadeg^o)) = \(\z1m m) <br>\(z2=- l \times cos(\beta) = - \l \times cos(\betadeg^o)) = \(\z2m m) .
+</li>
+}
+\if{\step>2}{
+<li>\(E_{pp1}=-mgz_1=-\mkg \times \g \times \z1m) = \(\Epp1J J) <br> \(E_{pp2}=-mgz_2=-\mkg \times \g \times \z2m) = \(\Epp2J J) </li>
+<li>La conservation de l'énergie mécanique, qui n'est ici composée que d'énergie cinétique et potentielle de pesanteur, donne
+l'équation suivante&nbsp;:<br>
+\(0=\Delta E_m=\Delta E_c + \Delta E_{pp}), donc \(\Delta E_c= -\Delta E_{pp} = (E_{pp1})-(E_{pp2})=\Epp1J - \Epp2J) = \(\DecJ J). <br>
+Comme l'énergie initiale est nulle, l'énergie finale se confond avec \(\Delta E_c). Donc \(E_c) = \(\DecJ J).</li>
+}
+\if{\step>3}{
+<li>Il suffit de résoudre l'équation \(1/2mv^2=E_c)&nbsp;: \(v=\sqrt{2E_c/m}=\sqrt{2*\DecJ/\mkg}) = \(\vms) m.s<sup>-1</sup>.</li>
+}
+</ol>
+}

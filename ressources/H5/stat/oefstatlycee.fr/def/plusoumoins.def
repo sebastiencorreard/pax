@@ -1,0 +1,204 @@
+!set title=Effectifs cumulés et plus ou moins
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=48
+prevarcnt=47
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 20, 30
+
+val7=$[rint($(tmp0))]
+tmp0=!values x for x = 0 to $val6-1
+
+val8=$(tmp0)
+!readproc slib/stat/random $val6, 0,$val7 
+tmp0=$slib_out
+val9=$(tmp0)
+!readproc slib/stat/arithmean [$val8],[$val9] 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0)
+
+val10=$(tmp1)
+val10=$[rint($val10*10)]
+val10=$[$val10/10]
+tmp0=!sort  numeric item $val9
+
+val11=$(tmp0)
+tmp0=!item  -1 of   $val11
+
+val12=$(tmp0)
+tmp0=!item  1 of   $val11
+
+val13=$(tmp0)
+val14=$[$val12-$val13]
+!readproc slib/stat/sum $val9 
+tmp0=$slib_out
+val15=$[$(tmp0)]
+tmp0=!randint 1, 4
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 2, $val6-1
+
+val17=$[rint($(tmp0))]
+val18=$[0]
+!if $val16=1 or $val16=4 
+val19=$[rint($val17-1)]
+!else
+val19=$[rint($val17)]
+!endif
+!for val20 =1 to $val19+1 
+tmp0=!item $val20 of $val9
+
+val18=$[$val18+$(tmp0)]
+!next
+tmp0=!randint 2, $val6-1
+
+val21=$[rint($(tmp0))]
+val22=$[$val15]
+!if $val16=1 or $val16=2 
+val23=$[rint($val21+1)]
+!else
+val23=$[rint($val21)]
+!endif
+!for val20 =1 to $val23 
+tmp0=!item $val20 of $val9
+
+val22=$[$val22-$(tmp0)]
+!next
+!if $val16=1 
+val24=moins de $val17 heures (au sens strict)
+val25=plus de $val21 heures (au sens strict)
+!endif
+!if $val16=2 
+val24=au plus $val17 heures (au sens large)
+val25=plus de $val21 heures (au sens strict)
+!endif
+!if $val16=3 
+val24=au plus $val17 heures (au sens large)
+val25=au moins $val21 heures (au sens large)
+!endif
+!if $val16=4 
+val24=moins de $val17 heures (au sens strict)
+val25=au moins $val21 heures (au sens large)
+!endif
+val26=<table class="wimscenter wimsborder" style="background-color:skyblue">	  <tr>
+val26=$val26<th>nombres d'heures </th>
+!for val27 =0 to $val6-1 
+val26=$val26 <td> $val27 </td>
+!next
+val26=$val26 </tr> <tr><th>effectif par heure </th>
+!for val20 =1 to $val6 
+tmp0=!item $val20 of $val9
+
+val28=$(tmp0)
+val26=$val26 <td> $val28 </td>
+!next
+val26=$val26 </tr> 	</table>
+val15=$[$val15*0.5]
+tmp0=!item 1 of $val9
+
+val29=$[$(tmp0)]
+!for val20 =1 to $val6 
+!if $val29<$val15 
+tmp0=!item $val20+1 of $val9
+
+val29=$[$val29+$(tmp0)]
+val30=$[rint($val20)]
+!endif
+!next
+replytype1=numeric
+replyname1=Moyenne
+replygood1=$[$val10]
+replytype2=numeric
+replyname2=ont passé $val24
+replygood2=$[$val18]
+replytype3=numeric
+replyname3=ont passé $val25
+replygood3=$[$val22]
+replytype4=numeric
+replyname4=classe médiane
+replygood4=$[$val30]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Voici les résultats d'une enquête sur le  nombre  d'heures passées devant la télévision par jour :</p>	 $val26 	<p>	Calculer  pour cette série statistique 	 la moyenne  :  
+!read oef/embed.phtml reply 1, 6 
+$()	</p>	<p>	Combien ont passé $val24  devant l'écran	 ?  
+!read oef/embed.phtml reply 2, 6 
+$()	</p>		<p>	Combien ont passé $val25 devant l'écran	 ?  
+!read oef/embed.phtml reply 3, 6 
+$()	</p>		<p>	Dans quelle classe se situe la médiane de la statistique ?	 
+!read oef/embed.phtml reply 4,6 
+$()	</p>	<p>	Le résultat de la moyenne sera donné avec une précision de 
+!insmath  10^-1
+$() (arrondi scientifique)	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24,25,26
+embedcnt=4

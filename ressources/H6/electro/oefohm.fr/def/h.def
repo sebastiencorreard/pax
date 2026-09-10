@@ -1,0 +1,371 @@
+!set title=3 - Type h
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r
+varcnt=130
+prevarcnt=129
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(20)]
+val7=10,15,22,33,47,68
+val8=10,12,15,18,22,27,33,39,47,56,68,82
+val9=10,11,12,13,15,16,18,20,22,24,27,30,33,36,39,43,47,51,56,62,68,75,82,91
+val10=1,1.2,1.5,1.8,2,2.5,3,3.5,4,4.5,5,6,7,8,9
+tmp=!nonempty items 1,10,100
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items 1,10,100,1000
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+!if $val11 > $val12 
+val13=1
+val14=A
+!else
+val13=1000
+val14=mA
+!endif
+!if $val12 >= 100 
+val15=1000
+val16=K\(Omega)
+!else
+val15=1
+val16=\(Omega)
+!endif
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val17=$[$(tmp0)*$val11]
+tmp0=!values x*10 for x in $val8
+
+val18=$(tmp0)
+tmp0=!randint 1, 10
+
+val19=$(tmp0)
+tmp0=!item $val19 to $val19+8 of $val8,$val18
+
+val20=$(tmp0)
+tmp0=!shuffle $val20
+
+val20=$(tmp0)
+tmp0=!values x*$val12 for x in $val20
+
+val20=$(tmp0)
+val21=
+val22=
+!for val23 =1 to 4 
+val24=$[rint(floor($(val20[$val23])/1000))]
+
+!ifval $(val20[$val23])<1000
+val25=$[$(val20[$val23])]
+!else
+val25=$[$(val20[$val23])/1000]
+!endif
+
+!ifval $(val20[$val23])<1000
+val24=$val25
+!else
+val24=$(val25[])K
+!endif
+
+!ifval $(val20[$val23])<1000
+val26=OMEGA
+!else
+val26=
+!endif
+val21=$val21$val24,
+val22=$val22$val26,
+!next
+val27=$[$(val20[1])]
+val28=$[$(val20[2])]
+val29=$[$(val20[3])]
+val30=$[$(val20[4])]
+val31=$(val21[1])
+val32=$(val21[2])
+val33=$(val21[3])
+val34=$(val21[4])
+val35=$(val22[1])
+val26=$(val22[2])
+val36=$(val22[3])
+val24=$(val22[4])
+val37=
+val38=8/Hclose
+val39=bat _V1_,iArrow @@I,wire,,res _R_,chas,res _R1_,res _R2_
+val37=14,5.5
+val40=v1/(r1+r2*r/(r2+r))
+val41=v1*(r2*r/(r2+r))/(r1+r2*r/(r2+r))
+val42=v1/(r1+r2*r/(r2+r))*r2/(r2+r)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val43=$(tmp0)
+
+!ifval $val2 issametext 
+val2= $val5
+!endif
+val44=
+!for val45  in $val2 
+!if (a2 notin $val45 or $val42 notsametext a1) and	     (v2 notin $val45 or $val41 notsametext v1) 
+tmp0=!append item $val45 to $val44
+
+val44=$(tmp0)
+!endif
+!next
+tmp=!nonempty items $val44
+
+tmp0=!randitem $tmp
+tmp1=!translate internal / to , in $(tmp0)
+
+val46=$(tmp1)
+
+!ifval $val46 issametext 
+val46= v1+r,a1
+!endif
+tmp0=!translate a+b to a b in $(val46[1])
+
+val47=$(tmp0)
+val48=$(val46[2])
+
+!ifval $val3>0 and $val3<=7
+val49=$[rint($val3)]
+!else
+val49=$[rint(3)]
+!endif
+tmp0=!item $val49 of 10,5,2,1,0.5,0.2,0.1
+
+val49=$(tmp0)
+tmp=!trim la tension de la source U	  la tension sur le point A	  l'intensité du courant I	  l'intensité du courant passant par R	  la valeur de R	
+val50=!translate internal $	\
+$ to ;; in $tmp
+val51=Dans le schéma ci-contre
+val52=de
+tmp=!trim l'intensité du courant est	  l'intensité du courant passant par R est	  la tension sur le point A est de	
+val53=!translate internal $	\
+$ to ;; in $tmp
+val54=Quelle est
+val55=Vous avez droit à une marge d'erreur de
+val56=dans la réponse
+val57=Attention
+val58=Attention à la tolérance d'erreur !	  Votre calcul semble avoir une marge d'erreur trop importante.
+val59=v1,r1,r2,r3,r
+val10=$val17,$val27,$val28,$val29,$val30
+tmp0=!itemcnt $val10
+
+val60=$[rint($(tmp0))]
+val61=$val40,$val42,$val41
+val62=
+
+!ifval $val49>=1
+val63=3
+!else
+val63=4
+!endif
+!for val64  in $val61 
+val65=$val64
+!for val23 =1 to $val60 
+tmp0=!mathsubst $(val59[$val23])=($(val10[$val23])) in $val65
+
+val65=$(tmp0)
+!next
+val66=$[rint(floor(log10($val65)))]
+val65=$[rint(($val65)*10^($val63-($val66)))*10^($val66-$val63)]
+val62=$val62$val65,
+!next
+val67=$[$(val62[1])*$val13]
+val68=$[$(val62[2])*$val13]
+val69=$(val62[3])
+val70=$val39
+tmp0=!replace internal _R1_ by $val31 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal _R2_ by $val32 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal _R3_ by $val33 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal _R1_ by $val35 in $val70
+
+val70=$(tmp0)
+tmp0=!replace internal _R2_ by $val26 in $val70
+
+val70=$(tmp0)
+tmp0=!replace internal _R3_ by $val36 in $val70
+
+val70=$(tmp0)
+!if v1 iswordof $val47 
+tmp0=!replace internal _V1_ by $val17 V in $val39
+
+val39=$(tmp0)
+!else
+tmp0=!replace internal _V1_ by U in $val39
+
+val39=$(tmp0)
+!endif
+!if r iswordof $val47 
+!if a2 isin $val46 
+tmp0=!replace internal _R_ by R=$val34 in $val39
+
+val39=$(tmp0)
+!else
+tmp0=!replace internal _R_ by $val34 in $val39
+
+val39=$(tmp0)
+!endif
+tmp0=!replace internal _R_ by $val24 in $val70
+
+val70=$(tmp0)
+!else
+tmp0=!replace internal _R_ by @@R in $val39
+
+val39=$(tmp0)
+!endif
+!if v1 iswordof $val48 
+val71=$(val50[1;])
+val72=V
+val73=$val17
+!endif
+!if v2 iswordof $val48 
+val71=$(val50[2;])
+val72=V
+val73=$val69
+!endif
+!if a1 iswordof $val48 
+val71=$(val50[3;])
+val72=$val14
+val73=$val67
+!endif
+!if a2 iswordof $val48 
+val71=$(val50[4;])
+val72=$val14
+val73=$val68
+!endif
+!if r iswordof $val48 
+val71=$(val50[5;])
+val72=$val16
+val73=$[$val30/$val15]
+!endif
+val74=
+!if $val37 notsametext and v2 isin $val46 
+val74=linewidth 7	point $val37,black	text black,$(val37[1])+0.4,$(val37[2])+0.3,large,A	 
+!endif
+!readproc slib/circuits/draw $val38,$val6,black,$val39 
+tmp0=$slib_out
+val75=$(tmp0)	$val74
+tmp0=!line 1 of $val75
+
+val76=$(tmp0)
+tmp0=!word 2 to -1 of $val76
+
+val76=$(tmp0)
+
+!ifval $val76=
+val76=300,300
+!endif
+!readproc oef/draw.phtml $val76 \
+$val75 
+tmp0=$ins_url
+val75=$(tmp0)
+val77=$[$val73*(1-$val49/100)]
+val78=$[$val73*(1+$val49/100)]
+val79=$[$val73*(1-2*$val49/100)]
+val80=$[$val73*(1+2*$val49/100)]
+val81=$val77,$val78,$val73
+val82=
+
+!ifval a1 isin $val47
+val83=$(val53[1;]) I = $val67 $val14
+!else
+val83=
+!endif
+
+!ifval a2 isin $val47
+tmp0=!append item $val82 $(val53[2;]) $val68 $val14 to $val83
+
+val83=$(tmp0)
+!endif
+
+!ifval v2 isin $val47
+tmp0=!append item $val82 $(val53[3;]) $val69 V to $val83
+
+val83=$(tmp0)
+!endif
+replytype1=range
+replyname1=$val71
+replygood1=!rawmath $val81
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right">	<img src="$val75" alt="" />	</div>	<div>	
+!if $val83 notsametext  
+$()	 $val51, $val83.	 
+!endif
+$()	</div><div>	$val54 <label for="reply1">$val71</label>&nbsp;?	 
+!read oef/embed.phtml r1,8 
+$() $val72	</div>	<br class="clearall" />	<div class="wims_instruction">	$val57. $val55 $val49% $val56.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_reply1 > $val78 and $m_reply1<=$val80) or	($m_reply1 < $val77 and $m_reply1 >= $val79)
+ <div class='oef_feedbacks'>$val58
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=49,51,54,55,56,57,58,71,72,75,77,78,79,80,83
+embedcnt=1

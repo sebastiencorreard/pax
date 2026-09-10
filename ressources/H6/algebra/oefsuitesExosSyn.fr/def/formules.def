@@ -1,0 +1,180 @@
+!set title=Quelle  formule de calcul ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,1,2,3
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+
+!ifval $val6=1
+val7= 
+!else
+val7= pour cent
+!endif
+
+!ifval $val6=1
+val8= lui ajoutant
+!endif
+
+!ifval $val6=2
+val8= l'augmentant de
+!endif
+
+!ifval $val6=3
+val8= le diminuant de
+!endif
+tmp0=!randint 10, 80
+
+val9=$[0.1*$(tmp0)]
+!if $val6=1 
+
+!ifval $val9=1
+val9=$[10]
+!endif
+!endif
+
+!ifval $val6 = 2 or $val6=1
+val10=$[1+0.01*$val9]
+!endif
+
+!ifval $val6 = 3 
+val10=$[1-0.01*$val9]
+!endif
+
+!ifval $val6 = 3
+val11=$[1+0.01*$val9]
+!endif
+
+!ifval $val6 = 2
+val11=$[1-0.01*$val9]
+!endif
+tmp0=!randint 0, 5
+
+val12=$[rint($(tmp0))]
+val13=\(u_0),\(u_1)
+
+!ifval $val12>1
+val13=$val13,\(u_$val12)
+!endif
+tmp0=!randint 10, 30
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val14-1)]
+val16=$[rint($val14+1)]
+val17=$[rint($val14-$val12)]
+
+!ifval $val6=1 and $val12=0
+val18=\(u_0),+,$val14,\(times),$val9|\(u_0),+,$val9,\(times),$val14| $val14,\(times),$val9,+,\(u_0)|$val9,\(times),$val14,+,\(u_0)
+!endif
+
+!ifval $val6=1 and $val12=1
+val18=\(u_1),+,$val15,\(times),$val9|\(u_1),+,$val9,\(times),$val15|$val15,\(times),$val9,+,\(u_1)|$val9,\(times),$val15,+,\(u_1)
+!endif
+
+!ifval $val6=1 and $val12>1
+val18=\(u_$val12),+,$val17,\(times),$val9|\(u_$val12),+,$val9,\(times),$val17|$val17,\(times),$val9,+,\(u_$val12)|$val9,\(times),$val17,+,\(u_$val12)
+!endif
+
+!ifval $val6>1 and $val12=0
+val18=\(u_0),\(times),$val10,^,$val14|$val10,^,$val14,\(times),\(u_0)
+!endif
+
+!ifval $val6>1 and $val12=1
+val18=\(u_1),\(times),$val10,^,$val15|$val10,^,$val15,\(times),\(u_1)
+!endif
+
+!ifval $val6>1 and $val12>1
+val18=\(u_$val12),\(times),$val10,^,$val17|$val10,^,$val17,\(times),\(u_$val12)
+!endif
+val19=$val14,$val15,$val16,$val17,$val13,\(u_{$val15}),\(u_{$val16}),\(u_{$val17}),\(times),+,-,^,$val10,$val11,$val9
+val20=$val18;$val19
+replytype1=clickfill
+replyname1=
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<div style="background-color:#FFFF66">		<p><font color=blue>	On  considère une  suite 
+!insmath (u_n)
+$() dans laquelle chaque terme s'obtient à partir du terme précédent	en $val8  $val9 $val7 .	<br>	On connaît la valeur du terme 
+!insmath u_$val12
+$().	<br>	Avec  ces seules données, quelle formule permet de calculer  directement le terme 
+!insmath u_n
+$() de rang 
+!insmath n = $val14
+$() ?	</font></p>		<center>
+!insmath u_$val14
+$() =   
+!read oef/embed.phtml reply1,40x30x5 
+$()</center>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,12,14
+embedcnt=1

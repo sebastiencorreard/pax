@@ -1,0 +1,116 @@
+\title{Relation de Chasles}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{pt=A,B,C,D,E,F,G,H,I,J}
+\integer{i1=randint(1..10)}
+\integer{i2=randint(1..10)}
+\integer{i3=randint(1..10)}
+\integer{i4=randint(1..10)}
+\integer{i5=randint(1..10)}
+ on ne veut pas le vecteur nul
+\integer{i5=\i5=\i1?\i5+1:\i5}
+\integer{i5=\i5>10?1:\i5}
+\text{vlist=}
+\integer{s=random(1..2)}
+\text{v=\s=1?+\overrightarrow{\pt[\i1] \pt[\i2]}:-\overrightarrow{\pt[\i2] \pt[\i1]}}
+\text{vlist= wims( append item \v to \vlist)}
+\text{s=random(+,-)}
+\text{v=\s=1?+\overrightarrow{\pt[\i2] \pt[\i3]}:-\overrightarrow{\pt[\i3] \pt[\i2]}}
+\text{vlist= wims( append item \v to \vlist)}
+\text{s=random(+,-)}
+\text{v=\s=1?+\overrightarrow{\pt[\i3] \pt[\i4]}:-\overrightarrow{\pt[\i4] \pt[\i3]}}
+\text{vlist= wims( append item \v to \vlist)}
+\text{s=random(+,-)}
+\text{v=\s=1?+\overrightarrow{\pt[\i4] \pt[\i5]}:-\overrightarrow{\pt[\i5] \pt[\i4]}}
+\text{vlist= wims( append item \v to \vlist)}
+\text{ind=shuffle(4)}
+\text{relation=\vlist[\ind]}
+\text{rel=wims(items2lines \relation)}
+\text{char1=wims(char 1 of \rel)}
+\if{\char1=+}{\text{rel=wims(replace internal char number 1 by  in \rel)}}
+\text{ori=\pt[\i1]}
+\text{dest=\pt[\i5]}
+
+#### Pour le bloc solution
+## Transformation des vecteurs opposés et vecteurs nuls
+\text{rel1=}
+\for{k=1 to 4}
+  {\text{temp=\vlist[\ind[\k]]}
+    \text{perm1=wims(char 18 to 20 of \temp)}
+    \text{perm2=wims(text reverse \perm1)}
+    \if{- isin \temp}
+    {\text{temp=wims(replace internal - by + in \temp)}
+     \text{temp=wims(text insert \perm2 into \temp mask 000000000000000001110)}
+    }
+    \if{\perm1=\perm2}
+     {\text{temp=+\overrightarrow{0}}}
+    \text{rel1=wims(append item \temp to \rel1)}
+  }
+\text{rel1aff=wims(items2lines \rel1)}
+\text{char2=wims(char 1 of \rel1aff)}
+\if{\char2=+}{\text{rel1aff=wims(replace internal char number 1 by  in \rel1aff)}}
+
+## Réorganisation et retrait vecteurs nuls
+\text{ind_inv=}
+\for{kk=1 to 4}
+  {\text{num=wims(positionof item \kk in \ind)}
+   \text{ind_inv=wims(append item \num to \ind_inv)}
+  }
+
+\text{rel2init=\rel1[\ind_inv]}
+\text{rel2=}
+\for{j=1 to 4}
+  {\text{temp2=\rel2init[\j]}
+   \if{\temp2=+\overrightarrow{0}}
+    {\text{temp2=}}
+    \text{rel2=wims(append item \temp2 to \rel2)}
+  }
+\text{rel2=wims(nonempty item \rel2)}
+\text{rel2aff=wims(items2lines \rel2)}
+\text{char3=wims(char 1 of \rel2aff)}
+\if{\char3=+}{\text{rel2aff=wims(replace internal char number 1 by  in \rel2aff)}}
+\integer{nbvect=wims(itemcount \rel2)}
+
+
+text{rel2=wims(replace internal word +\overrightarrow{0} by in \rel2)}
+text{rel2=wims(replace internal word \overrightarrow{0} by in \rel2)}
+
+
+
+
+
+\statement{
+
+Simplifiez au maximum la relation suivante&nbsp;:
+<div class="wimscenter unbreakable">
+\special{mathmlinput [\rel = \overrightarrow{ reply1 reply2}], 2,noanswer
+reply1
+reply2}
+</div>
+<div class="wims_instruction">
+Entrez séparément l'origine et l'extrémité du vecteur.
+</div>
+}
+
+\answer{origine}{\ori}{type=case}
+\answer{extrémité}{\dest}{type=case}
+
+\solution{
+En utilisant la relation de Chasles, on peut obtenir successivement les égalités suivantes&nbsp;:
+
+<div class="unbreakable">
+\(\rel = \rel1aff\)<br>
+\if{\rel1aff notsametext \rel2aff}
+ {\(\phantom{\rel}=\rel2aff \)<br>}
+\if{\nbvect >2}
+ {\(\phantom{\rel}=\overrightarrow{\pt[\i1] \pt[\i3]} + \overrightarrow{\pt[\i3] \pt[\i5]}\)<br>}
+\if{\nbvect >1}
+ {\(\phantom{\rel}= \overrightarrow{\ori \dest}\)}
+</div>
+}

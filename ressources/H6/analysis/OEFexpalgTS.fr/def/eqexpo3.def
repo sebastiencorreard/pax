@@ -1,0 +1,171 @@
+!set title=Équation avec exponentielle 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine,Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Résoudre dans \(\,\RR\) l'équation
+val7=Pour écrire votre réponse,	  <ul><li>écrire <span class="tt">vide</span> s'il n'y a pas de solution.	  </li><li>s'il y a plusieurs solutions, les séparer par une virgule.	  </li></ul>	
+val8=Ensemble de solutions
+tmp=!trim Le dénominateur à gauche ne s'annule pas, l'équation est donc équivalente à	  Après simplification, on obtient l'équation	  qui est équivalente à
+val9=!translate internal $	\
+$ to ;; in $tmp
+val8=Ensemble de solutions
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val13=$[rint($(tmp0))]
+
+!ifval $val12=$val10
+val12=$[rint($val12+1)]
+!endif
+t_=!replace internal \( by ( in $val10*x+$val11
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val14=$(tmp1)
+t_=!replace internal \( by ( in $val12*x+$val13
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val16=1
+val17= 
+!else
+val17=$val16
+!endif
+
+!ifval $val16=-1
+val17=-
+!endif
+tmp0=!randint 1, 5
+
+val18=$[rint($(tmp0))]
+val19=$[rint($val16*$val18)]
+tmp0=!texmath x+$val19
+
+val20=$(tmp0)
+tmp0=!replace internal x by $val17 e^{$val14} in $val20
+
+val20=$(tmp0)
+tmp0=!texmath x+$val18
+
+val21=$(tmp0)
+tmp0=!replace internal x by e^{$val15} in $val21
+
+val21=$(tmp0)
+val22=\frac{$val20}{$val21}=$val16
+tmp0=!texmath x+$val19
+
+val23=$(tmp0)
+tmp0=!replace internal x by $val17 e^{$val14} in $val23
+
+val23=$(tmp0)
+val24=$(val9[1;]):<br>\($val23=$val16($val21)\).<br>	  $(val9[2;]) \(e^{$val14}=e^{$val15}\) $(val9[3;]) \($val14=$val15\).
+tmp=!translate ";': to $     $ in $val13-$val11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)/($val10-$val12)
+val25=!exec pari print($t_)
+replytype1=fset
+replyname1=$val8
+replygood1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val24
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val6 
+!insmath $val22
+$().	<div class="wimscenter"><label for="reply1">
+!insmath S=
+$()</label>  
+!read oef/embed.phtml reply1 
+$() </div>	<div class="wims_instruction">$val7</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val24
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,22,24
+embedcnt=1

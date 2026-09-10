@@ -1,0 +1,137 @@
+!set title=Lire une fraction sur un axe
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou;Paul, Byache
+email=paul.byache@ac-aix-marseille.fr
+language=fr
+computeanswer=no
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(6)]
+val7=$[rint(0)]
+val8=
+!for val9 =0 to 6 
+val8=$val8	text blue, $val9,-1, medium,$val9
+!next
+tmp=!nonempty items 4,6,9,10
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0))]
+tmp0=!randint  4, 20
+
+val11=$[rint($(tmp0))]
+t_=!rawmath $val11/$val10
+val12=!exec pari print($t_)
+
+!ifval $val12 notsametext $val11/$val10 
+val13= (ou \($val12\) sous forme simplifiée). 
+!else
+val13= .
+!endif
+val14=
+!for val9 =1 to $val11 
+val15=$[($val9-0.5)/$val10]
+val14=$val14	arc $val15,0,1/$val10,2,0,180,red
+!next
+val8=xrange $val7-0.1,$val6+0.1	yrange -2,2.2	hline black,0,0	arrow 2.5,0,$val6,0,10,black	parallel $val7,-0.3,$val7,0.3,1/$val10,0, 200, blue	parallel $val7,-0.8,$val7,0.6,1,0, 40, red	$val8	arrow $val12,2,$val12,0, 8, black
+val16=Voici la droite graduée. Le point indiqué par	  la flèche sur la droite graduée	  a comme abscisse le quotient de deux entiers. Il s'agit de
+!readproc oef/drawtikz.phtml 600,70 \
+$val8 
+tmp0=$ins_tikz
+val17=$(tmp0)
+replytype1=numeric
+replyname1=numérateur
+replygood1=?analyze 18
+replytype2=numeric
+replyname2=dénominateur
+replygood2=?analyze 19
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val16 \LARGE \(\frac{\cdots}{\cdots}\) \begin{center} $val17 \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val16	<table class="wimscenter wimsnoborder">	<tr><td> 
+!read oef/embed.phtml reply 1,3	autocomplete="off" 
+$()</td></tr>	<tr><td><hr></td></tr>	<tr><td> 
+!read oef/embed.phtml reply 2,3	autocomplete="off" 
+$()</td></tr>	</table>	<div class="wimscenter"> 
+!read oef/draw.phtml 600,50 \
+$val8 
+$()	</div>	<div class="wims_instruction">	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<b>Solution :</b>	Pour trouver la fraction représentée, on peut remarquer que les unités sont partagées en $val10 parties égales et que de l'origine 	jusqu'au point indiqué, il y a $val11 parties : 	<div class="wimscenter">	 
+!read oef/draw.phtml 600,50 \
+xrange -0.1,6.1	yrange -2,2.2	hline black,0,0	arrow 2.5,0,6.1,0,10,black		parallel 0,-0.3,0,0.3,1/$val10,0, 200, blue		parallel 0,-0.8,0,0.6,1,0, 40, red	$val8	arrow $val12,2,$val12,0, 8, black	$val14	 
+$()	</div>La solution est donc 
+!insmath $val11\over$val10
+$() $val13
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val16 $m_LARGE 
+!insmath \frac{\cdots}{\cdots}
+$() $m_begin{center} $val17 $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $m_reply1=$m_reply2*$val12
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Votre réponse est-elle correcte ?
+
+!exit
+
+:stat
+vsavelist=8,10,11,12,13,14,16,17,18,19
+embedcnt=2

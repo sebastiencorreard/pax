@@ -1,0 +1,295 @@
+!set title=Mesure principale et Relation de Chasles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r
+varcnt=68
+prevarcnt=67
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim u,v,v,w,w,t,	-u,-v,-v,-w,-w,-t,	v,u,w,v,t,w,	-v,-u,-w,-v,-t,-w,	u,-v,v,-w,w,-t,	-u,v,-v,w,-w,t,	v,-u,w,-v,t,-w,	-v,u,-w,v,-t,w
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=\((\overrightarrow{u},\overrightarrow{v})),\((\overrightarrow{v},\overrightarrow{w})),\((\overrightarrow{w},\overrightarrow{t}))
+val8=
+val9=
+val10=
+val11=
+val12=
+val13=
+val14=
+val15=
+!for val16 =1 to 3 
+tmp0=!randint 2, 11
+
+val17=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val18=$[rint($(tmp0))]
+
+!ifval $val18=1
+tmp0=!randint 1, 15
+
+val19=$[rint($(tmp0)*2+1)]
+!else
+tmp1=!randint 1, 15
+
+val19=$[rint($(tmp1)*2)]
+!endif
+tmp0=!randint 1, $val17-1
+
+val20=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val21=$[rint($(tmp0))]
+val22=$[rint($val17*$val19+$val20)]
+t_=!rawmath $val22*$val21 / $val17
+val23=!exec pari print($t_)
+tmp0=!append item $val23 to $val10
+
+val10=$(tmp0)
+
+!ifval $val21=1
+val24=\frac{$val22}{$val17}
+!else
+val24=-\frac{$val22}{$val17}
+!endif
+tmp0=!append item $val24 to $val11
+
+val11=$(tmp0)
+tmp0=!randint 1, 4
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val26=$[rint($(tmp0))]
+val27=$[rint(2*($val25-1)+$val26)]
+val28=\((\overrightarrow{$(val6[$val27;($val16-1)*2+1])},\overrightarrow{$(val6[$val27;($val16-1)*2+2])})=$val24 \pi+2k \pi)
+tmp0=!append item $val28 to $val12
+
+val12=$(tmp0)
+!if $val25=1 
+val22=$[rint($val22*$val21)]
+val29=$val19
+val30=$[rint($val18)]
+val31=$[rint($val21)]
+!endif
+!if $val25=2 
+val22=$[rint($val22*(-1)*$val21)]
+val29=$val19
+val30=$[rint($val18)]
+val31=$[rint(-1*($val21))]
+!endif
+!if $val25=3 
+val22=$[rint(($val22+$val17)*$val21)]
+val29=$val19-1
+
+!ifval $val18=1
+val30=$[rint(2)]
+!else
+val30=$[rint(1)]
+!endif
+val31=$[rint($val21)]
+!endif
+!if $val25=4 
+val22=$[rint(($val22*(-1)+$val17)*$val21)]
+val29=$val19+1
+
+!ifval $val18=1
+val30=$[rint(2)]
+!else
+val30=$[rint(1)]
+!endif
+val31=$[rint(-1*($val21))]
+!endif
+tmp0=!append item $val22 to $val8
+
+val8=$(tmp0)
+tmp0=!append item $val17 to $val9
+
+val9=$(tmp0)
+val32=impair,pair
+val33=,-,,-
+
+!ifval $val31=1
+val34= 
+!else
+val34=-
+!endif
+val35=,,+ \(pi),+\(pi)
+val36=\((\overrightarrow{$(val6[$val27;($val16-1)*2+1])},\overrightarrow{$(val6[$val27;($val16-1)*2+2])})) = $(val33[$val25]) $(val7[$val16]) $(val35[$val25])
+val37=et $(val7[$val16])=$val34 \(\frac{$val17 \times $val19 + $val20}{$val17})\(pi) $(val35[$val25]) + \(2k pi).	Comme $val29 est $(val32[$val30]) la mesure principale de $(val7[$val16]) est 
+!if ($val25=1 and $val21=1 and $val18=1) or ($val25=2 and $val21=-1 and $val18=1) or ($val25=3 and $val21=1 and $val18=2) or ($val25=4 and $val21=-1 and $val18=2) 
+t_=!rawmath ($val20-$val17)/ $val17
+val38=!exec pari print($t_)
+val37=$val37 \(\frac{($val20 - $val17)\pi}{$val17})
+!endif
+!if ($val25=1 and $val21=1 and $val18=2) or ($val25=2 and $val21=-1 and $val18=2) or ($val25=3 and $val21=1 and $val18=1) or ($val25=4 and $val21=-1 and $val18=1) 
+t_=!rawmath $val20 /$val17
+val38=!exec pari print($t_)
+val37=$val37 \(\frac{$val20 \pi}{$val17})
+!endif
+!if ($val25=1 and $val21=-1 and $val18=1) or ($val25=2 and $val21=1 and $val18=1) or ($val25=3 and $val21=-1 and $val18=2) or ($val25=4 and $val21=1 and $val18=2) 
+t_=!rawmath ($val17-$val20)/ $val17
+val38=!exec pari print($t_)
+val37=$val37 \(\frac{($val17 - $val20)\pi}{$val17})
+!endif
+!if ($val25=1 and $val21=-1 and $val18=2) or ($val25=2 and $val21=1 and $val18=2) or ($val25=3 and $val21=-1 and $val18=1) or ($val25=4 and $val21=1 and $val18=1) 
+t_=!rawmath -$val20 /$val17
+val38=!exec pari print($t_)
+val37=$val37 \(-\frac{$val20 \pi}{$val17})
+!endif
+tmp0=!append item $val38 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val36 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val37 to $val15
+
+val15=$(tmp0)
+!next
+tmp=!translate ";': to $     $ in $(val13[1])+$(val13[2])+$(val13[3])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val39=!exec pari print($t_)
+val40=\((\overrightarrow{u},\overrightarrow{t}))= (\(($(val13[1]))) + \(($(val13[2]))) + \(($(val13[3]))) ) \(pi+2k pi) = $val39 \(pi+2k pi)
+!if $val39>=3 
+t_=!rawmath $val39-2
+val39=!exec pari print($t_)
+!endif
+!if $val39>1 
+t_=!rawmath $val39-2
+val39=!exec pari print($t_)
+!endif
+!if $val39<=-3 
+t_=!rawmath $val39+2
+val39=!exec pari print($t_)
+!endif
+!if $val39<=-1 
+t_=!rawmath $val39+2
+val39=!exec pari print($t_)
+!endif
+replyname1=angle(u,v)
+replygood1=$(val13[1])
+replyname2=angle(v,w)
+replygood2=$(val13[2])
+replyname3=angle(w,t)
+replygood3=$(val13[3])
+replyname4=angle(u,t)
+replygood4=$val39
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Déterminer la mesure principale de l'angle 
+!insmath (\overrightarrow{u},\overrightarrow{t})
+$()	en complétant le tableau suivant:		<table class="wimscenter wimsborder">	  <tr><td>$(val12[1])</td>	  <td> 
+!insmath (\overrightarrow{u},\overrightarrow{v})
+$()= 
+!read oef/embed.phtml reply 1,4 
+$()
+!insmath pi +2k pi
+$()	  </td></tr><tr><td>	  $(val12[2])</td>	  <td> 
+!insmath (\overrightarrow{v},\overrightarrow{w})
+$()= 
+!read oef/embed.phtml reply 2,4 
+$()
+!insmath pi +2k pi
+$()	  </td></tr><tr><td>	  $(val12[3])</td>	  <td> 
+!insmath (\overrightarrow{w},\overrightarrow{t})
+$()= 
+!read oef/embed.phtml reply 3,4 
+$()
+!insmath pi +2k pi
+$()	   </td></tr><tr><td>	&nbsp;</td><td> 
+!insmath (\overrightarrow{u},\overrightarrow{t})
+$()=  
+!read oef/embed.phtml reply 4,5 
+$() 
+!insmath pi +2k pi
+$()	    </td></tr>	</table>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 != $(val13[1])
+ <div class='oef_feedbacks'>$(val14[1])<br>$(val15[1])
+$()</div>
+!endif
+!ifval $m_reply2 != $(val13[2])
+ <div class='oef_feedbacks'>$(val14[2])<br>$(val15[2])
+$()</div>
+!endif
+!ifval $m_reply3 != $(val13[3])
+ <div class='oef_feedbacks'>$(val14[3])<br>$(val15[3])
+$()</div>
+!endif
+!ifval $m_reply4 != $val39
+ <div class='oef_feedbacks'>$val40<br>	La mesure principale de cette angle est donc $val39 
+!insmath pi
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14,15,39,40
+embedcnt=4

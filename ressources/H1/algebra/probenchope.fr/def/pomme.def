@@ -1,0 +1,497 @@
+!set title=Pommes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+oefcss=<style> .feed{background-color: #fefbd8} </style>
+
+ansorder=r,r,r
+varcnt=126
+prevarcnt=89
+postvarcnt=36
+replycnt=3
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Vous avez répondu&nbsp;:
+val8=Cette réponse est exacte.
+val9=Cette réponse est fausse.
+val10=Vous devez utiliser les étiquettes proposées.
+val11=Expression correcte
+val12=Choix des propositions
+val13=Calcul correct
+val14=Expression correcte&nbsp;?
+val15=ou
+val16=Il y a plusieurs expressions possibles.
+val17=PPP a NNN3 paniers qui contiennent chacun NNN1 pommes.<p> QQQ ajoute NNN2 pommes dans chaque panier.</p>
+val18=Écrire&#44; en une seule expression&#44; le nombre total de pommes.
+val19=Calculer le nombre total de pommes.
+val20=Le nombre total de pommes est 
+val21=.
+val12=le nombre total de pommes 
+val22=Choisir toutes les expressions qui permettent de calculer le nombre total de pommes.
+!if $val2= 
+val2=1
+!endif
+tmp0=!randint 2
+
+val23=$[rint($(tmp0))]
+!if $val23=1 
+!readproc slib/lang/fname fr, boy 
+tmp0=$slib_out
+val24=$(tmp0)
+tmp0=!replace internal word QQQ by Il in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word qqq by il in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word QQQ by Il in \name_ans
+
+val25=$(tmp0)
+!else
+!readproc slib/lang/fname fr, girl 
+tmp0=$slib_out
+val24=$(tmp0)
+tmp0=!replace internal word QQQ by Elle in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word qqq by elle in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word QQQ by elle in $val25
+
+val25=$(tmp0)
+!endif
+tmp0=!replace internal word PPP by $val24 in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal word PPP. by $val24. in $val18
+
+val18=$(tmp0)
+tmp0=!replace internal word PPP. by $val24. in $val19
+
+val19=$(tmp0)
+tmp0=!replace internal word QQQ by $val24 in $val20
+
+val20=$(tmp0)
+tmp0=!record 3 of donnees
+
+val26=$(tmp0)
+tmp=!translate internal $	$ to ; in $val26
+
+tmp0=!rowcnt $tmp
+val27=$[rint($(tmp0))]
+val28=
+!for val29 =1 to $val27 
+tmp0=!itemcnt $(val26[$val29;])
+
+val30=$[rint($(tmp0))]
+!if $val30=2 
+tmp0=!randint $(val26[$val29;1]) ,  $(val26[$val29;2])
+
+val31=$(tmp0)
+!endif
+!if $val30>2 
+tmp0=!shuffle $(val26[$val29;])
+
+val31=$(tmp0)
+val31=$(val31[1])
+!endif
+!if $val30=1 
+val31=$(val26[$val29;1])
+!endif
+tmp0=!append item $val31 to $val28
+
+val28=$(tmp0)
+!next
+!readproc slib/numeration/ecriturenombre $(val28[1]),comma 
+tmp0=$slib_out
+val32=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[2]),comma 
+tmp0=$slib_out
+val33=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[3]),comma 
+tmp0=$slib_out
+val34=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[4]),comma 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[5]),comma 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[6]),comma 
+tmp0=$slib_out
+val37=$(tmp0)
+!readproc slib/numeration/ecriturenombre $(val28[7]),comma 
+tmp0=$slib_out
+val38=$(tmp0)
+tmp0=!replace internal . by &#44; in ($(val28[1]) \plus $(val28[2])) \times $(val28[3])
+
+val39=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[3]) \times $(val28[1])+ $(val28[3]) \times $(val28[2])
+
+val40=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[3]) \times ($(val28[1])+$(val28[2]))
+
+val41=$(tmp0)
+val42=$val39,$val40,$val41
+tmp0=!replace internal . by &#44; in ($(val28[1]) \minus $(val28[2])) \times $(val28[3])
+
+val43=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[3]) \times $(val28[1]) \minus $(val28[3]) \times $(val28[2])
+
+val44=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[3]) \times ($(val28[1]) \minus $(val28[2]))
+
+val45=$(tmp0)
+val46=$val43,$val44,$val45
+val47=1,2
+val48=$[rint(9)]
+val49=$[($(val28[1])+$(val28[2]))*$(val28[3])]
+!readproc slib/numeration/ecriturenombre $val49,comma 
+tmp0=$slib_out
+val50=$(tmp0)
+val51=$[$(val28[1])+$(val28[2])]
+!readproc slib/numeration/ecriturenombre $val51,comma 
+tmp0=$slib_out
+val52=$(tmp0)
+val53=$[$val51*$(val28[3])]
+!readproc slib/numeration/ecriturenombre $val53,comma 
+tmp0=$slib_out
+val54=$(tmp0)
+val55=
+!for val29 =1 to $val27 
+!if NNN$val29 iswordof $val17 or NNN$val29 iswordof $val18 or NNN$val29 iswordof $val22 
+val49=$(val28[$val29])
+!readproc slib/numeration/ecriturenombre $val49,comma 
+tmp0=$slib_out
+val50=$(tmp0)
+tmp0=!replace internal . by &#44; in $(val28[$val29])
+
+val56=$(tmp0)
+tmp0=!replace internal word NNN$val29 by \($val50\) in $val17
+
+val17=$(tmp0)
+tmp0=!append item $val56 to $val55
+
+val55=$(tmp0)
+!endif
+!next
+!if 1 isitemof $val2 and 2 isitemof $val2 
+tmp0=!randint 2
+
+val2=$(tmp0)
+!endif
+val57=$val55,+,-,\(\times\),\(\div\),&#40;,&#41;
+val58=$val42,$val46
+tmp0=!nonempty item $val58
+
+val58=$(tmp0)
+tmp0=!itemcnt $val58
+
+val59=$[rint($(tmp0))]
+tmp0=!shuffle $val59
+
+val60=$(tmp0)
+val61=$(val58[$val60])
+tmp0=!positionof item 1 in $val60
+
+tmp1=!positionof item 2 in $val60
+
+tmp2=!positionof item 3 in $val60
+
+val62=$(tmp0),$(tmp1),$(tmp2)
+
+!ifval $val2=1
+val63=r1,r3
+!else
+val63=r2,r3
+!endif
+tmp0=!itemcnt $val42
+
+val64=$[rint($(tmp0))]
+tmp0=!makelist 1 for x=1 to $val64
+
+tmp1=!makelist 0 for x=1 to $val59-$val64
+
+val65=$(tmp0),$(tmp1)
+val65=$(val65[$val60])
+tmp=!trim 
+val66=!translate internal $	\
+$ to ;; in $tmp
+val67=
+val68=
+val69=
+val70=$[rint(0)]
+oefsteps=$val63 
+nextstep=!nosubst $val63 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=$val11
+replygood1=?analyze 71;$val57
+replytype2=checkbox
+replyoption2=split 
+replyname2=$val12
+replygood2=$val62;$val61
+replytype3=numeric
+replyoption3=comma 
+replyname3=$val13
+replygood3=$[$val53]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest">$val17</div>	
+!if $val2=1 
+$()1. $val18	                  <div class="
+!if $val70=0 
+$()euler_answer 
+!endif
+$()
+!if $val70=1 
+$()euler_rep_good_nobg 
+!endif
+$()
+!if $val70=2 
+$()euler_rep_bad_nobg 
+!endif
+$()">	                       <div class="wims_instruction">$val10</div>	                        
+!read oef/embed.phtml r1,50x40x$val48 
+$()	                  </div>	                  
+!endif
+$()	
+!if $val2=2 
+$()1. $val22	                  <fieldset class="euler_field">	                    <div class="
+!if $m_sc_reply2= 
+$()euler_answer 
+!endif
+$()
+!if $m_sc_reply2=1 
+$()euler_rep_good_nobg 
+!endif
+$()
+!if $m_sc_reply2=0 
+$()euler_rep_bad_nobg 
+!endif
+$()
+!if $m_sc_reply2=0.5 
+$()euler_rep_prec_nobg 
+!endif
+$()">	                       <legend>
+!if $m_sc_reply2= 
+$() 
+!else
+$() $val7 
+!endif
+$()</legend>	                       <ul class="wims_nopuce euler_ul_check">	                          
+!for m_h=1 to $val59 
+$()	                           <li 
+!if $m_sc_reply2!= 
+$()
+!if $(val66[$m_h])=1 
+$()class="euler_box_checked" 
+!else
+$() class="euler_box_nochecked" 
+!endif
+$() 
+!endif
+$()>	                                
+!read oef/embed.phtml r2,\h,\($(val61[$m_h])\) 
+$()	                               
+!if $m_sc_reply2!= 
+$()<span class="$(val69[$m_h])"></span> 
+!endif
+$()	                           </li>	                                              
+!next
+$()	                      </ul>	                   </div>	                 </fieldset>	     
+!endif
+$()	2. $val19	<div class="
+!if $m_sc_reply3= 
+$()euler_answer 
+!endif
+$()
+!if $m_sc_reply3=1 
+$()euler_rep_good_nobg 
+!endif
+$()
+!if $m_sc_reply3=0 
+$()euler_rep_bad_nobg 
+!endif
+$()
+!if $m_sc_reply3=0.5 
+$()euler_rep_prec_nobg 
+!endif
+$()">	    <label for="reply3">$val20</label>	     
+!read oef/embed.phtml r3,5 
+$() $val21	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()1. $val16 <li class="wims_nopuce"><span class="nowrap">
+!insmath P=$val39
+$()</li> $val15 <li class="wims_nopuce">
+!insmath P=$val40
+$()</li> $val15 <li class="wims_nopuce"><span class="nowrap">
+!insmath P=$val41
+$().</span></li>	<p>2. 
+!insmath P=$val34 \times ($val32+$val33)
+$()</p>	
+!insmath P=$val34 \times $val52
+$()	<p>
+!insmath P=$val54
+$()</p>	$val20 $val54$val21
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val68=$m_sc_reply2
+val67=$m_reply2
+val66=
+val69=
+!for val72 =1 to $val59 
+!if $(val61[$val72]) isitemof $val67 
+val73=1
+!if $(val65[$val72])=1 
+val74=oef_indgood tick
+!else
+val74=oef_indbad cross
+!endif
+!else
+val73=0
+!if $(val65[$val72])=1 
+val74=oef_indforget forget
+!else
+val74=oef_indneutral
+!endif
+!endif
+tmp0=!append item $val73 to $val66
+
+val66=$(tmp0)
+tmp0=!append item $val74 to $val69
+
+val69=$(tmp0)
+!next
+!if $val2=1 
+tmp0=!itemcnt $val71
+
+val75=$[rint($(tmp0))]
+val76=$[rint($val75-$val48/2)]
+val77=
+!for val23 =1 to $val75 
+tmp0=!replace &#44; by . in $(val71[$val23])
+
+val78=$(tmp0)
+tmp0=!append item $val78 to $val77
+
+val77=$(tmp0)
+!next
+val79=()
+tmp0=!char 1 of $val79
+
+val80=$(tmp0)
+tmp0=!char 2 of $val79
+
+val81=$(tmp0)
+tmp0=!replace internal &#41; by $val81 in $val77
+
+val77=$(tmp0)
+tmp0=!replace internal &#40; by $val80 in $val77
+
+val77=$(tmp0)
+tmp0=!replace internal , by in $val77
+
+val77=$(tmp0)
+tmp0=!replace internal \(\times\) by * in $val77
+
+val77=$(tmp0)
+tmp0=!replace internal \(\div\) by / in $val77
+
+val77=$(tmp0)
+tmp0=!rawmath $val77
+
+val77=$(tmp0)
+t_=!replace internal \( by ( in $val77
+tmp0=!exec pari $t_
+
+val82=$[$(tmp0)]
+val83=$[$val82-$val53]
+val84=$[rint(2)]
+!if $val83=0 
+val70=$[rint(1)]
+!else
+val70=$[rint(2)]
+!endif
+!endif
+!if $val2=2 
+val84=$[rint(0)]
+val85=hide
+!endif
+val86=Votre expression n'est pas assez longue,vous devez utiliser plus d'étiquettes.
+
+!exit
+
+:feedback
+!ifval $val76<0
+ <div class='oef_feedbacks'><p class="oef_condbad">$val86</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=$val84 
+condoption1=$val85 
+
+!ifval $val83=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val14
+
+!exit
+
+:stat
+vsavelist=2,7,10,14,15,16,17,18,19,20,21,22,23,32,33,34,39,40,41,48,52,53,54,59,61,65,66,67,69,70,71
+embedcnt=3

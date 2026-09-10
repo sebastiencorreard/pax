@@ -1,0 +1,135 @@
+\title{Tableau des variations d'une composée}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+
+\integer{xM=randint(100..150)}
+\text{indl=shuffle(8)}
+\integer{x1f=\indl[1]*10}
+\integer{x1g=\indl[2]*10}
+\text{size=50x50x7}
+\text{crocg=\lbrack}
+\text{crocd=\rbrack}
+\text{variation=croissante,décroissante}
+
+## détermination de f
+\integer{y0f=randint(2..8)*10}
+\integer{y1f=randint(randint(0..\y0f-1),randint(\y0f+1..100))}
+\text{monotone=\(\nearrow),\(\searrow)}
+\text{sensf=\y0f<\y1f?1,2:2,1}
+\integer{y2f=\y0f<\y1f?randint(0..\y1f-1):randint(\y1f+1..100)}
+\integer{x1g=\y0f<\y1f?randint(\y1f+1..100):randint(1..\y1f-1)}
+\if{\y0f<\y1f}
+  {
+  \integer{y3f=\x1f<\x1g?randint(\y2f+1..\y1f-1):randint(\y0f+1..\y1f-1)}
+  }
+  {
+  \integer{y3f=\x1f<\x1g?randint(\y1f+1..\y2f-1):randint(\y1f+1..\y0f-1)}
+  }
+\integer{v0=\y0f<\y1f?\y0f:\y1f}
+\integer{v1=\y0f<\y1f?\y1f:\y0f}
+\integer{v2=\y1f<\y2f?\y1f:\y2f}
+\integer{v3=\y1f<\y2f?\y2f:\y1f}
+\text{varf=\variation[\sensf[1]],\variation[\sensf[2]]}
+
+\text{posf=\y0f<\y1f?bottom,top,bottom:top,bottom,top}
+\text{tableauf=<table class="wimscenter wimsnoborder" style="border: solid black 1px;">
+<tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;width:15%">\(x)</th>
+      <td style="width:15%;text-align:left">0</td>
+      <td style="width:8%"></td>
+      <td style="width:15%">\x1f</td>
+      <td style="width:8%"></td>
+      <td style="width:15%">\xM</td>
+</tr><tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;">\(f(x))</th>
+     <td style="width:15%;text-align:left;vertical-align:\posf[1]">\y0f</td>
+     <td style="width:8%">\monotone[\sensf[1]]</td>
+     <td style="width:15%;vertical-align:\posf[2]">\y1f</td>
+     <td style="width:8%">\monotone[\sensf[2]]</td>
+     <td style="width:15%;vertical-align:\posf[3]">\y2f</td>
+  </tr>
+</table>
+}
+
+## détermination de g
+\integer{y0g=randint(2..8)*10}
+\integer{y1g=randint(randint(0..\y0g-1),randint(\y0g+1..100))}
+\text{monotone=\(\nearrow),\(\searrow)}
+\text{sensg=\y0g<\y1g?1,2:2,1}
+\integer{y2g=\y0g<\y1g?randint(0..\y1g-1):randint(\y1g+1..100)}
+\if{\y0g<\y1g}
+  {
+  \integer{y3g=\x1f<\x1g?randint(\y0g+1..\y1g-1):randint(\y2g+1..\y1g-1)}
+  }
+  {
+  \integer{y3g=\x1f<\x1g?randint(\y1g+1..\y0g-1):randint(\y1g+1..\y2g-1)}
+  }
+
+\text{posg=\y0g<\y1g?bottom,top,bottom:top,bottom,top}
+\text{tableaug=<table class="wimscenter wimsnoborder" style="border: solid black 1px;">
+<tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;width:15%">\(x)</th>
+  <td style="text-align:left;width:15%">0</td>
+  <td style="width:8%"></td>
+  <td style="width:15%">\x1g</td>
+  <td style="width:8%"></td>
+  <td style="width:15%">\xM</td>
+</tr><tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;width:15%;vertical-align:middle">\(g(x))</th>
+  <td style="text-align:left;width:15%;vertical-align:\posg[1]">\y0g</td>
+  <td style="width:8%">\monotone[\sensg[1]]</td>
+  <td style="width:15%;vertical-align:\posg[2]">\y1g</td>
+  <td style="width:8%">\monotone[\sensg[2]]</td>
+  <td style="width:15%;vertical-align:\posg[3]">\y2g</td>
+</tr>
+</table>
+}
+
+\text{vesp=&nbsp;}
+\text{petitpoint=\(\cdots)}
+\text{lstrep=\monotone,0,\xM,\x1f,\x1g,\vesp,\y0f,\y0g,\y1f,\y1g,\y2f,\y2g,\y3f,\y3g,\petitpoint}
+
+## détermination de la réponse: on s'est arrangé pour que g soit monotone sur les intervalles f(0),f(x1f) et f(x1f) f(xM)
+\text{lignex=0,\vesp,\x1f,\vesp,\xM}
+\if{\y0f<\y1f}
+  {
+# donc x1g>y1f f(x) dans [0,x1g] et f croissante au début
+  \text{lignehx=\y0g<\y1g?\petitpoint,\monotone[1],\y3g,\monotone[2],\petitpoint:\petitpoint,\monotone[2],\y3g,\monotone[1],\petitpoint}
+  \text{varg=\variation[\sensg[1]],\variation[\sensg[1]]}
+  \text{intg=\crocg 0;\x1g \crocd}
+  }
+  {
+# donc x1g<y1f f(x) dans [x1g,xM] et f décroissante au début
+  \text{lignehx=\y0g<\y1g?\petitpoint,\monotone[1],\y3g,\monotone[2],\petitpoint:\petitpoint,\monotone[2],\y3g,\monotone[1],\petitpoint}
+  \text{varg=\variation[\sensg[2]],\variation[\sensg[2]]}
+  \text{intg=\crocg \x1g;\xM \crocd}
+  }
+\text{varh=\y0g<\y1g?\variation:\variation[2],\variation[1]}
+
+\statement{
+<p>On considère une fonction \(f) dont le tableau de variations est:</p>
+\tableauf<p> et qui vérifie \(f(\y1g)=\y3f),</p>
+<p>et une fonction \(g) dont le tableau de variations est:</p>
+\tableaug
+<p>et qui vérifie \(g(\y1f)=\y3g).
+</p><p>
+Construire le tableau des variations de la fonction \(h=g\circ f), enchaînement
+de \(f) suivie de \(g).</p>
+<div class="wims_instruction">
+  Utiliser le symbole \(\cdots) pour les valeurs de la fonction \(h) qui
+  ne sont pas connues.
+</div>
+<table class="wimscenter wimsborder"><tr><td>\(x)</td><td>\embed{reply1,\size}</td></tr>
+<tr><td>\(h(x))</td><td>\embed{reply2,\size}</td></tr>
+</table>
+}
+\answer{lignex}{\lignex;\lstrep}{type=clickfill}
+\answer{lignehx}{\lignehx;\lstrep}{type=clickfill}
+\feedback{1=1}{
+Lorsque \(x) varie de  0 à \x1f, \(f(x)) appartient à l'intervalle \(\crocg \v0;\v1 \crocd \subset \intg) sur lequel la fonction \(g) est \varg[1].<br>
+Sur cet intervalle on a donc la composition d'une fonction \varf[1] et d'une fonction \varg[1] ce qui donne une fonction \varh[1].<p>
+Lorsque \(x) varie de  \x1f à \xM, \(f(x)) appartient à l'intervalle \(\crocg \v2;\v3 \crocd \subset \intg) sur lequel la fonction \(g) est \varg[2].<br>
+Sur cet intervalle on a donc la composition d'une fonction \varf[2] et d'une fonction \varg[2] ce qui donne une fonction \varh[2].<p>
+Enfin \(h(\x1f)=g(f(\x1f))=g(\y1f)=\y3g).
+}

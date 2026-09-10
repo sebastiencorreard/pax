@@ -1,0 +1,61 @@
+target=oefpaveparaperp4
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\matrix{som=A,B,C,D,E,F,G,H
+J,K,L,M,N,O,P,Q
+R,S,T,U,V,W,X,Y}
+\text{som=randrow(\som)}
+\text{som=shuffle(\som)}
+\text{a=shuffle(3)}
+
+\matrix{paralls=\som[1]\som[2]\som[3]\som[4],\som[5]\som[6]\som[7]\som[8]
+\som[1]\som[5]\som[8]\som[4],\som[2]\som[6]\som[7]\som[3]
+\som[1]\som[2]\som[6]\som[5],\som[4]\som[3]\som[7]\som[8]}
+\text{\parall1=row(item(1,\a),\paralls)}
+\text{\parall2=row(item(2,\a),\paralls)}
+\text{\parall3=row(item(3,\a),\paralls)}
+\text{parall=shuffle(\parall1)}
+\text{chpars=\parall[2],\parall2[1],
+\parall2[2],\parall3[1],\parall3[2]}
+\text{chp=shuffle(\chpars)}
+\integer{rep1=positionof(\parall2[1],\chp)}
+\integer{rep2=positionof(\parall2[2],\chp)}
+\integer{rep3=positionof(\parall3[1],\chp)}
+\integer{rep4=positionof(\parall3[2],\chp)}
+\text{enonc=une face perpendiculaire à la face}
+\text{quest=\parall[1]}
+
+\integer{lo=randint(80..200)}
+\integer{la=randint(50..160)}
+\integer{ha=randint(20..80)}
+\integer{xo=\lo+\ha}
+\integer{yo=\la+\ha}
+\text{pave=draw(340,300
+rect 170-\xo/2,130+\yo/2,170+\xo/2-\ha,130-\yo/2+\ha,black
+segment 170+\xo/2-\lo,130-\yo/2,170+\xo/2,130-\yo/2,black
+segment 170+\xo/2-\lo,130-\yo/2,170+\xo/2-\lo-\ha,130-\yo/2+\ha,black
+segment 170+\xo/2,130-\yo/2,170+\xo/2-\ha,130-\yo/2+\ha,black
+segment 170+\xo/2,130-\yo/2,170+\xo/2,130-\yo/2+\la,black
+segment 170+\xo/2-\ha,130-\yo/2+\ha+\la,170+\xo/2,130-\yo/2+\la,black
+dsegment 170+\xo/2-\lo,130-\yo/2+\la,170+\xo/2,130-\yo/2+\la,black
+dsegment 170+\xo/2-\lo,130-\yo/2+\la,170+\xo/2-\lo-\ha,130-\yo/2+\la+\ha,black
+dsegment 170+\xo/2-\lo,130-\yo/2+\la,170+\xo/2-\lo,130-\yo/2,black
+text red,170-\xo/2-8,130+\yo/2+5,medium,\som[1]
+text red,170+\xo/2-\ha,130-\yo/2+\ha+\la+5,medium,\som[2]
+text red,170+\xo/2-\ha+5,130-\yo/2+\ha,medium,\som[3]
+text red,170+\xo/2-\lo-\ha-10,130-\yo/2+\ha-5,medium,\som[4]
+text red,170+\xo/2-\lo+3,130-\yo/2+\la+3,medium,\som[5]
+text red,170+\xo/2+3,130-\yo/2+\la+3,medium,\som[6]
+text red,170+\xo/2+5,130-\yo/2-10,medium,\som[7]
+text red,170+\xo/2-\lo-12,130-\yo/2-10,medium,\som[8]
+)}
+\statement{<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\pave" alt=""></div>
+ <div class="medium_size text_col">
+ \name_give \enonc \quest:
+<div>\embed{r1}</div> </div></div>
+}
+\answer{}{\rep1,\rep2,\rep3,\rep4;\chp[1],\chp[2],\chp[3],\chp[4],\chp[5],\chp[6]}{type=radio}
+

@@ -1,0 +1,106 @@
+!set title=Évaluer une expression 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Combien vaut l'expression, pour
+val7=Votre réponse
+tmp0=!shuffle 2,3,4,5,6,7,8,9
+
+val8=$(tmp0)
+tmp=!nonempty items x,y,a,b
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+val10=$val9+$(val8[2])
+val11=$(val8[1])
+tmp0=!texmath $val10
+
+val12=$(tmp0)
+evaltmp=$val10
+
+evaltmp=!mathsubst $val9=($val11) in $evaltmp
+tmp0=($evaltmp)
+val13=$[rint($(tmp0))]
+replytype1=numexp
+replyname1=
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst \begin{statement} $(val6[1]) \($val12\) $(val6[2]) \($val9=$val11\) ? \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val6[1]) 
+!insmath $val12
+$() $(val6[2]) 
+!insmath $val9=$val11
+$() ?	<p>	<b>$val7 :</b>  
+!read oef/embed.phtml r1,7 
+$()</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()$m_begin{statement} $(val6[1]) 
+!insmath $val12
+$() $(val6[2]) 
+!insmath $val9=$val11
+$() ? $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,12
+embedcnt=1

@@ -1,0 +1,150 @@
+!set title=Polarité et détermination des porteurs de charge d'une pile
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoit Markey
+
+ansorder=c,c,c,c,c
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=0
+choicecnt=5
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!recordcnt couples_piles.dat
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, $val6-1
+
+val7=$[rint($(tmp0))]
+tmp0=!randint $val7+1, $val6
+
+val8=$[rint($(tmp0))]
+tmp0=!record $val7 of couples_piles.dat
+
+val9=$(tmp0)
+tmp0=!record $val8 of couples_piles.dat
+
+val10=$(tmp0)
+val11=$(val9[;2]);$(val10[;2])
+tmp0=!shuffle 1,2
+
+val7=$(tmp0)
+val12=$[$(val11[$(val7[1]);])-$(val11[$(val7[2]);])]
+val13=$(val9[;5]);$(val10[;5])
+val14=$(val9[;4]);$(val10[;4])
+!readproc oef/draw.phtml 200,200 \
+fsquare 5,135,60,skyblue	segment 5,120,5,195,black	segment 65,120,65,195,black	segment 5,195,65,195,black	fsquare 135,135,60,yellow	segment 135,120,135,195,black	segment 195,120,195,195,black	segment 135,195,195,195,black	linewidth 5	segment 50,90,50,150,green	segment 50,90,150,90,green	segment 150,90,150,150,green	segment 10,100,15,160,grey	segment 190,100,185,160,grey	linewidth 1	segment 10,100,10,30, black	segment 10,30,190,30,black	segment 190,30,190,100,black	fcircle 95,30,50,white	linewidth 3	circle 95,30,50,red	text red,75,25,small,$val12 V	text red,125,15,small,COM	text black,15,90,small,$(val13[$(val7[1]);])	text black,170,90,small,$(val13[$(val7[2]);])	text black,15,180,small,$(val14[$(val7[1]);])	text black,150,180,small,$(val14[$(val7[2]);])	text green,100,70,small,NH4^+	text green,100,100,small,NO3^-		 
+tmp0=$ins_url
+val15=$(tmp0)
+val16=<img src="$val15">
+!readproc oef/draw.phtml 20,20 \
+frect 0,0,20,20,232,232,232	text black,8,3,medium,+	circle 10,10,18,black 
+tmp0=$ins_url
+val17=$(tmp0)
+val18=<img src="$val17">
+!readproc oef/draw.phtml 20,20 \
+frect 0,0,20,20,232,232,232	text black,8,3,medium,-	circle 10,10,18,black 
+tmp0=$ins_url
+val19=$(tmp0)
+val20=<img src="$val19">
+tmp=!trim $val18,\($(val9[;5])),\($(val10[;5]))	$val20,\($(val10[;5])),\($(val9[;5]))
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val23=$[rint($(tmp0))]
+tmp=!trim NH<sub>4</sub><sup>+</sup>,$(val9[;4]),$(val10[;4])	NO<sub>3</sub><sup>-</sup>,$(val10[;4]),$(val9[;4])
+val24=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim la reduction,\($(val9[;5])),\($(val10[;5]))	l'oxydation,\($(val10[;5])),\($(val9[;5]))
+val25=!translate internal $	\
+$ to ;; in $tmp
+choicename1=1. le pôle $(val21[$val8;1]) est la lame
+choicegood1=$(val21[$val8;2])
+choicebad1=$(val21[$val8;3])
+choicename2=2. les ions $(val24[$val22;1]) vont vers
+choicegood2=$(val24[$val22;2])
+choicebad2=$(val24[$val22;3])
+choicename3=3. $(val25[$val23;1]) a lieu sur la lame
+choicegood3=$(val25[$val23;2])
+choicebad3=$(val25[$val23;3])
+choicename4=4. Les électrons vont vers la lame de
+choicegood4=$(val9[;5])
+choicebad4=$(val10[;5])
+choicename5=5. Le courant électrique va vers la lame
+choicegood5=$(val10[;5])
+choicebad5=$(val9[;5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considére la pile électrochimique suivante:<br>	<table>	<tr><th>	$val16	</th><td><ol><li>Déterminer le pôle $(val21[$val8;1]) de la pile<br>	 
+!read oef/embed.phtml \(reply1 ,10x20) 
+$()<br>	<li>Le pont salin est constitué d'ions NH<sub>4</sub><sup>+</sup> et d'ions NO<sub>3</sub><sup>-</sup>,	Déterminez dans quel sens vont se déplacer les ions $(val24[$val8;1])<br>	 
+!read oef/embed.phtml reply2 
+$()<br>	<li>Quelle est l'électrode siège de $(val25[$val8;1])?<br>	 
+!read oef/embed.phtml reply3 
+$()<br>	<li>Dans quel sens se déplacent les électrons?<br>	 
+!read oef/embed.phtml reply4 
+$()<br>	<li>Quel est le sens du courant électrique?</td></ol></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,16,21,24,25
+embedcnt=4

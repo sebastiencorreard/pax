@@ -1,0 +1,194 @@
+!set title=Réécriture avec des logarithmes (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On donne, où ln désigne la fonction logarithme népérien.
+tmp=!trim Réécrire \(A\) comme le logarithme d'un produit	  Réécrire \(A\) comme une somme de logarithmes
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle x,y,z,t,u,v
+
+val8=$(tmp0)
+tmp0=!item 1 of $val8
+
+val9=$(tmp0)
+tmp0=!item 2 of $val8
+
+val10=$(tmp0)
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val12*$val11)]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val11*$val14)]
+val16=!rawmath ($val9^$val13)*($val10^$val15)
+
+!ifval $val11=1
+val17=$val13*ln($val9) + $val15*ln($val10)
+!else
+val17=$val13*ln($val9) - $val14*ln($val10)
+!endif
+val18=$val17,ln($val16)
+tmp0=!randitem 1,2
+
+val19=$[rint($(tmp0))]
+tmp0=!item $val19 of $val18
+
+val20=$(tmp0)
+replytype1=integer
+
+replyname1=
+replygood1=$val13
+replytype2=integer
+
+replyname2=
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	$(val6[1]) 
+!insmath A = $val20
+$() $(val6[2])	<p>$(val7[$val19;]).</p>	  <div class="wimscenter">	
+!if $val19=1 
+$()	 
+!insmath A = ln($val9^n $val10^m)
+$()	 
+!else
+$() 	  
+!insmath A = n ln($val9) + m ln($val10)
+$()	 
+!endif
+$()	  </div>	avec 
+!insmath n
+$() =  
+!read oef/embed.phtml reply1,5 
+$() et 
+!insmath m
+$() =  
+!read oef/embed.phtml reply2,5 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()Les règles de calcul des logarithmes sont :	  <div>	  
+!insmath \ln (a \times b) = \ln(a) + \ln(b) 
+$()<br>	  
+!insmath \ln (\frac{a}{b}) = \ln(a) - \ln(b)
+$()<br>	  
+!insmath \ln(a^{n}) = n \ln(a)
+$() <br>	  
+!insmath \ln(\frac{1}{a}) = - \ln(a)
+$()	  </div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>	  Voici un corrigé :<br>	  
+!if $val19=1 
+$()	    
+!insmath $val13 ln($val9) = ln($val9^$val13)
+$() et 
+!insmath $val15 ln($val10) = ln($val10^$val15)
+$()<br>	    
+!insmath  $val17 = ln($val9^$val13) + ln($val10^$val15) = ln($val9^$val13 * $val10^$val15)	    = ln($val16) 
+$()	   
+!endif
+$()	  
+!if $val19=2 
+$()	    En appliquant la règle du logarithme d'un produit : <br>	    
+!insmath \ln($val9^{$val13}\times $val10^{$val15}) = \ln($val9^{$val13}) + \ln($val10^{$val15}) = $val13\ln($val9) + $val15\ln($val10)
+$()	   
+!endif
+$()	  
+!if $val19=2 && $val15>0 && $val13<0 
+$()<br>	    En appliquant la règle du logarithme d'un quotient : <br>	    
+!insmath \ln($val9^{$val13}\times$val10^{$val15}) = \ln(\frac{$val10^{$val15}}{$val9^{$val12}}) = \ln($val10^{$val15}) - \ln($val9^{$val12}) = $val15\ln($val10) - $val12\ln($val9)
+$()	   
+!endif
+$()	  
+!if $val19=2 && $val13>0 && $val15<0 
+$()<br>	    En appliquant la règle du logarithme d'un quotient : <br>	    
+!insmath  \ln($val9^{$val13}\times$val10^{$val15}) = \ln(\frac{$val9^{$val13}}{$val10^{$val14}}) = \ln($val9^{$val13}) - \ln($val10^{$val14}) = $val13\ln($val9) - $val14\ln($val10)
+$()	   
+!endif
+$()	  
+!if $val19=2 && $val13<0 && $val15<0 
+$()<br>	    En appliquant la règle du logarithme d'un quotient : <br>	    
+!insmath  \ln($val9^{$val13}\times$val10^{$val15}) = \ln(\frac{1}{$val9^{$val12}$val10^{$val14}}) = -\ln($val9^{$val12}$val10^{$val14}) = - (\ln($val9^{$val12})+ \ln($val10^{$val14}))	    = - ($val12\ln($val9) + $val14\ln($val10)) = -$val12\ln($val9) - $val14\ln($val10)
+$()	   
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,12,13,14,15,16,17,19,20
+embedcnt=2

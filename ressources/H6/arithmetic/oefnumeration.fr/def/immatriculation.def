@@ -1,0 +1,212 @@
+!set title=Immatriculation de voitures
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+precision=100000
+title_it=Targhe automobilistiche
+
+ansorder=r,r,r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=26
+val7=999
+tmp0=!charcnt $val7
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in (immat(a)  = local(c,u,g) ; c=divrem(a-1,$val7)~ ; u=c[2]+1 ; a1 = c[1] ; g=[] ;	  for( s = 1,4 ,c = divrem(a1,$val6)~; g=concat(c[2]+1,g) ; a1=c[1]) ; return ([g,u]) ;)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in (immatinv(a) = a[2] + $val7*((a[1][1]-1)*$val6^3 + (a[1][2]-1)*$val6^2 + (a[1][3]-1)*$val6 + (a[1][4]-1)))
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in immatinv([[$val6,$val6,$val6,$val6],$val7])
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+val11=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+t_=!replace internal \( by ( in c=random\($val10-4) ; c+4
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in $val12-1
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in immat($val12)
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+val15=$(val14[2])
+tmp0=!charcnt $val15
+
+val16=$(tmp0)
+
+!ifval $val16 < $val8 
+tmp0=!makelist 0 for x = 1 to $val8-$val16
+
+val15= $(tmp0),$val15
+!endif
+tmp0=!items2words $val15
+
+val15=$(tmp0)
+tmp0=!nospace $val15
+
+val15=$(tmp0)
+val17=$(val14[1])
+tmp0=!declosing $val17
+
+val17=$(tmp0)
+val18=$(val11[$(val17[1])])$(val11[$(val17[2])])-$val15-$(val11[$(val17[3])])$(val11[$(val17[4])])
+t_=!replace internal \( by ( in c=random\($val10-4) ; c+4
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in immat($val19)
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+val21=$(val20[2])
+tmp0=!charcnt $val15
+
+val16=$(tmp0)
+
+!ifval $val16 < $val8 
+tmp0=!makelist 0 for x = 1 to $val8-$val16
+
+val21= $(tmp0),$val21
+!endif
+tmp0=!items2words $val21
+
+val21=$(tmp0)
+tmp0=!nospace $val21
+
+val21=$(tmp0)
+val22=$(val20[1])
+tmp0=!declosing $val22
+
+val22=$(tmp0)
+val23=$(val11[$(val22[2])])$(val11[$(val22[1])])-$val15-$(val11[$(val22[3])])$(val11[$(val22[4])])
+tmp0=!randint 2, 7
+
+val24=$(tmp0)
+val25=ceil($val10/$val24*10^(-6))
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val26=$(tmp0)
+val27=Les nouvelles plaques d'immatriculation sont mises en circulation. Chaque véhicule immatriculé	    possède un numéro à vie. Ce numéro est constitué de sept caractères, répartis en trois blocs :
+val28=La numérotation des véhicules est faite de manière	    chronologique et au niveau national, de AA-001-AA à ZZ-999-ZZ, les	    numéros se succèdant de la manière suivante :
+tmp=!trim Premier bloc : deux lettres	    Deuxième bloc : trois chiffres	    Troisième bloc : deux lettres	    de AA-001-AA à AA-999-AA	    puis de AA-001-AA à AA-999-AB, etc.	    puis de AA-001-BA à AA-999-BZ, etc.	    puis de AB-001-AA à AZ-999-ZZ	    puis de BA-999-AA à ZZ-999-ZZ	    
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Combien de véhicules devront être immatriculés pour atteindre le numéro $val18 ?	Quel est le nombre de véhicules immatriculés avant d'arriver au numéro $val18 ?	Quel est le nombre de véhicules immatriculés avant d'arriver au numéro $val18 ? 
+val30=!translate internal $	\
+$ to ;; in $tmp
+val31=Donner l'immatriculation du $val19-ième véhicule.
+val32=Au bout de combien d'années ce système de numération est-il épuisé si $val24 millions de véhicules	  sont immatriculés chaque année ?
+!if $val26=it 
+val27=Le nuove targhe automobilistiche Francesi sono ora in circolazione. A ogni veicolo immatricolato	    viene assegnato un numero valido per sempre. Questo numero è costituito da sette caratteri, suddivisi in tre blocchi:
+val28=La numerazione dei veicoli è costruita in maniera	    cronologica e a livello nazionale, da AA-001-AA a ZZ-999-ZZ, tali	    numeri costituiscono una successione nel modo seguente:
+tmp=!trim Primo blocco: due lettere	    Secondo blocco: tre cifre	    Terzo blocco: due lettere	    da AA-001-AA a AA-999-AA	    quindi da AA-001-AA a AA-999-AB, etc.	    quindi da AA-001-BA a AA-999-BZ, etc.	    quindi da AB-001-AA a AZ-999-ZZ	    quindi da BA-999-AA a ZZ-999-ZZ	    
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Quanti veicoli devono essere immatricolati per avere il numero $val18 ?	Qual è il numero di veicoli immatricolati prima di arrivare al numero $val18?	Qual è il numero di veicoli immatricolati prima di arrivare al numero $val18?
+val30=!translate internal $	\
+$ to ;; in $tmp
+val31=Dire qual è il numero di immatricolazione del veicolo $val19-esimo.
+val32=Quanti anni al massimo può essere utilizzato questo	    sistema di numerazione se ogni anno vengono immatricolati $val24 milioni di	    veicoli?
+!endif
+tmp=!translate internal $	$ to ; in $val30
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val33=$(tmp0)
+replytype1=case
+replyoption1=nospace 
+replyname1=
+replygood1=$val13
+replytype2=case
+replyoption2=nospace 
+replyname2=
+replygood2=$val23
+replytype3=numeric
+replyoption3=nospace 
+replyname3=
+replygood3=$[$val25]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val27 \begin{enumerate} \item $(val29[1;]) ; \item $(val29[2;]) ; \item $(val29[3;]) ; \end{enumerate} $val28 \begin{enumerate} \item $(val29[4;]) ; \item $(val29[5;]) ; \item $(val29[6;]) ; \item $(val29[7;]); \item $(val29[8;]). \end{enumerate} \begin{enumerate} \item $val33 \item $val31 \item $val32 \end{enumerate}. \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>$val27</p>	<ul><li>	  $(val29[1;]) ;	  </li><li>	  $(val29[2;]) ;	  </li><li>	  $(val29[3;]).	</li></ul>	 $val28	<ul>	  <li>$(val29[4;]) ;	  </li><li>$(val29[5;])	  </li><li>$(val29[6;])	  </li><li>$(val29[7;]) ;	  </li><li>$(val29[8;]).	  </li>	</ul>	$val33	<div class="wimscenter"> 
+!read oef/embed.phtml r1,12	default 
+$()</div>	<div>$val31  
+!read oef/embed.phtml r2,12	default 
+$()	</div>	<p>$val32</p>	<div class="wimscenter"> 
+!read oef/embed.phtml r3,5	default 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val27 $m_begin{enumerate} $m_item $(val29[1;]) ; $m_item $(val29[2;]) ; $m_item $(val29[3;]) ; $m_end{enumerate} $val28 $m_begin{enumerate} $m_item $(val29[4;]) ; $m_item $(val29[5;]) ; $m_item $(val29[6;]) ; $m_item $(val29[7;]); $m_item $(val29[8;]). $m_end{enumerate} $m_begin{enumerate} $m_item $val33 $m_item $val31 $m_item $val32 $m_end{enumerate}. $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=27,28,29,31,32,33
+embedcnt=3

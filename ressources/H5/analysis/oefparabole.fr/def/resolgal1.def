@@ -1,0 +1,376 @@
+!set title=Résolution générale d'une équation du 2nd degré
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=rbelloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=!rawmath -b/(2*a)
+val7=!rawmath (a*b^2)/(4*a^2)-b^2/(2*a)+c
+val8=!rawmath -b^2+4*a*c
+val9=!rawmath b^2-4*a*c
+val10=\(\frac{b^2-\Delta}{4 a^2})
+val11=\(\frac{b^2+\Delta}{4 a^2})
+val12=\(\frac{b-\sqrt{\Delta}}{2 a})
+val13=\(\frac{b+\sqrt{\Delta}}{2 a})
+val14=\(\frac{-b-\sqrt{\Delta}}{2 a})
+val15=\(\frac{-b+\sqrt{\Delta}}{2 a})
+val16=\(\frac{b^2}{4 a^2})
+val17=\(\frac{-b^2}{4 a^2})
+val18=\(\frac{b}{2 a})
+val19=\(\frac{-b}{2 a})
+oefsteps=reply1,reply2,reply3	reply4	reply5,reply6,reply7	reply8,reply9 
+nextstep=!nosubst reply1,reply2,reply3	reply4	reply5,reply6,reply7	reply8,reply9 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=xS
+replygood1=$val6
+replytype2=algexp
+replyname2=yS
+replygood2=$val7
+replytype3=algexp
+replyname3=Numérateur de yS
+replygood3=$val8
+replytype4=algexp
+replyname4=\(\Delta)
+replygood4=$val9
+replytype5=numeric
+replyname5=\(\Delta>0)
+replygood5=$[2]
+replytype6=numeric
+replyname6=\(\Delta=0)
+replygood6=$[1]
+replytype7=numeric
+replyname7=\(\Delta<0)
+replygood7=$[0]
+replytype8=checkbox
+replyoption8=shuffle 
+replyname8=2 solutions
+replygood8=5,6;$val10,$val11,$val12,$val13,$val14,$val15
+replytype9=checkbox
+replyoption9=shuffle 
+replyname9=1 solution
+replygood9=4;$val16,$val17,$val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	On considère le trinôme 
+!insmath f(x)=a*x^2+b*x+c
+$() avec 
+!insmath a \neq 0
+$().	Sa forme canonique est 
+!insmath a*(x-x_S)^2+y_S
+$().</p>	<p>On cherche les formules de résolution de 
+!insmath a*x^2+b*x+c=0
+$().</p>	
+!if $m_step=1 
+$()	<p>Exprimer en fonction de 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$() :</p>	<ul><li>	<label for="reply1">
+!insmath x_S =
+$()</label>  
+!read oef/embed.phtml reply1,10 
+$()	</li><li>	<label for="reply2">
+!insmath y_S =
+$()</label>  
+!read oef/embed.phtml reply2,30 
+$() =  
+!read oef/embed.phtml reply3,20 
+$() / 
+!insmath (4*a)
+$()	</li></ul>	 
+!endif
+$()	
+!if $m_step>1 
+$()<ul class="oef_indgood">	<li>
+!insmath x_S =$val6
+$() et on en déduit 
+!insmath y_S=
+$()
+!insmath a \frac{b^2}{4 a^2}-b \frac{b}{2 a}+c=
+$()
+!insmath \frac{-b^2+4ac}{4a}
+$()</li>	</ul>	<p>Or 
+!insmath a \neq 0
+$() donc 
+!insmath a*(x-x_S)^2+y_S=0
+$() équivaut à 
+!insmath (x-x_S)^2=-\frac{y_S}{a}
+$()</p>		 
+!endif
+$()	
+!if $m_step=2 
+$()	Compléter en fonction de 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath c
+$() :	<div class="wimscenter">	<label for="reply4">
+!insmath -\frac{y_S}{a}
+$() =</label>  
+!read oef/embed.phtml reply4,10 
+$()/
+!insmath (4*a^2)
+$().	</div>	 
+!endif
+$()	
+!if $m_step>2 
+$()	<p>On pose 
+!insmath \Delta=b^2-4ac
+$().</p>	<ul class="oef_indgood">	<li>
+!insmath a*x^2+b*x+c=0
+$() équivaut à 
+!insmath (x-x_S)^2=\frac{b^2-4ac}{4a^2}
+$() et à 
+!insmath (x-x_S)^2=\frac{\Delta}{4a^2}
+$()</li>	 </ul>	 
+!endif
+$()	
+!if $m_step=3 
+$()	<ul><li>	Si 
+!insmath \Delta>0
+$() alors <label for="reply5">le nombre de solutions de 
+!insmath a*x^2+b*x+c=0
+$() est</label>	   
+!read oef/embed.phtml reply5,5 
+$()	</li><li>	Si 
+!insmath \Delta=0
+$() alors <label for="reply6">le nombre de solutions de 
+!insmath a*x^2+b*x+c=0
+$() est</label>	   
+!read oef/embed.phtml reply6,5 
+$()	</li><li>	Si 
+!insmath \Delta<0
+$() alors <label for="reply3">le nombre de solutions de 
+!insmath a*x^2+b*x+c=0
+$() est</label>	   
+!read oef/embed.phtml reply7,5 
+$()	</li></ul>	 
+!endif
+$()	
+!if $m_step=4 
+$()	<ul class="oef_indgood">	<li>
+!insmath a*x^2+b*x+c=0
+$() équivaut à 
+!insmath (x+\frac{b}{2 a})^2=\frac{\Delta}{4a^2}
+$()</li>	</ul>	<p>Si 
+!insmath \Delta>0
+$() alors les solutions de 
+!insmath a*x^2+b*x+c=0
+$() sont :<p>	<ul class="inline"><li> 
+!read oef/embed.phtml reply8,1 
+$()</li> 
+!read oef/embed.phtml reply8,2 
+$()</li><li> 
+!read oef/embed.phtml reply8,3 
+$()</li><li	> 
+!read oef/embed.phtml reply8,4 
+$()</li><li> 
+!read oef/embed.phtml reply8,5 
+$()</li><li> 
+!read oef/embed.phtml reply8,6 
+$()	 </li></ul>	<p>Si 
+!insmath \Delta=0
+$() alors la solution de 
+!insmath a*x^2+b*x+c=0
+$() est :</p>	<ul class="inline"><li> 
+!read oef/embed.phtml reply9,1 
+$()</li><li> 
+!read oef/embed.phtml reply9,2 
+$()</li><li> 
+!read oef/embed.phtml reply9,3 
+$()	</li><li> 
+!read oef/embed.phtml reply9,4 
+$()</li></ul>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()	
+!if $m_step=1 
+$()	<p>En développant la forme canonique on a montré que 
+!insmath -2*a*x_S=b
+$() en déduire 
+!insmath x_S
+$().</p>	<p>De plus, 
+!insmath y_S=f(x_S)=a*x_S^2+b*x_S+c
+$().</p>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<p>
+!insmath -\frac{y_S}{a}=-\frac{1}{a}\times\frac{-b^2+4ac}{4a}=\frac{?}{4a^2}
+$()</p>	 
+!endif
+$()	
+!if $m_step=3 or $m_step=4 
+$()	<p>Si 
+!insmath \Delta>0
+$() alors 
+!insmath \frac{\Delta}{4a^2}=(\frac{\sqrt{\Delta}}{2a})^2
+$()</p>	<p>Par ailleurs :</p><ul>	<li>
+!insmath X^2=k^2
+$() a deux solutions 
+!insmath -k
+$() et 
+!insmath k
+$().</li>	<li>
+!insmath X^2=0
+$() équivaut à 
+!insmath X=0
+$().</li>	<li>Si 
+!insmath k<0
+$() alors 
+!insmath X^2=k
+$() n'a pas de solution dans 
+!insmath \ \RR
+$().</li>	</ul>	 
+!endif
+$()	
+!if $m_step=5 
+$()	<p>
+!insmath \frac{\Delta}{4a^2}=(\frac{\sqrt{\Delta}}{2a})^2
+$().</p>	 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p>On considère le trinôme 
+!insmath f(x)=a*x^2+b*x+c
+$() avec 
+!insmath a \neq 0
+$().</p>	<p>Sa forme canonique est 
+!insmath a*(x-x_S)^2+y_S
+$().</p>	<ul class="wims_nopuce">	<li>
+!insmath x_S = $val6
+$()<li>	<li>
+!insmath y_S= a \frac{b^2}{4 a^2} + b \frac{-b}{2 a} + c = \frac{b^2}{4 a} - \frac{2 b^2}{4 a}	  + \frac{4 a c}{4 a} =
+$() 
+!insmath \frac{-b^2+4ac}{4a}
+$()</li>	</ul>	
+!if $m_step>1 
+$()	<ul class="wims_nopuce">	<li>Or 
+!insmath a \neq 0
+$() donc :</li>	<li>
+!insmath a*(x-x_S)^2+y_S=0
+$() équivaut à 
+!insmath (x-x_S)^2=-\frac{y_S}{a}
+$()</li>	<li>De plus 
+!insmath -\frac{y_S}{a}=\frac{b^2-4 a c}{4 a^2}
+$()</li>	</ul>	 
+!endif
+$()	
+!if $m_step>2 
+$()	<ul class="wims_nopuce">	<li>On pose 
+!insmath \Delta=b^2-4ac
+$().</li>	<li>
+!insmath a*x^2+b*x+c=0
+$() équivaut à :</li>	</ul>	<div class="wimscenter">	<ul class="wims_nopuce">	<li>
+!insmath a*(x-x_S)^2+y_S=0
+$()</li>	<li>
+!insmath (x-x_S)^2=-\frac{y_S}{a}
+$()</li>	<li>
+!insmath (x-x_S)^2=\frac{b^2-4ac}{4a^2}
+$()</li>	<li>
+!insmath (x-x_S)^2=\frac{\Delta}{4a^2}
+$().</li>	</ul>	</div>	<ul><li>	Si 
+!insmath \Delta>0
+$() alors 
+!insmath a*x^2+b*x+c=0
+$() a 2 solutions.</li><li>	Si 
+!insmath \Delta=0
+$() alors 
+!insmath a*x^2+b*x+c=0
+$() a 1 solution.</li><li>	Si 
+!insmath \Delta<0
+$() alors 
+!insmath a*x^2+b*x+c=0
+$() n'a aucune solution.</li></ul>	 
+!endif
+$()	
+!if $m_step>3 
+$()	<ul class="wims_nopuce">	<li>Si 
+!insmath \Delta>0
+$() alors les  2 solutions de 
+!insmath a*x^2+b*x+c=0
+$() sont	
+!insmath x_1=
+$() $val14 et 
+!insmath x2=
+$() $val15</li>	<li>Si 
+!insmath \Delta=0
+$() alors la solution de 
+!insmath a*x^2+b*x+c=0
+$() est :	
+!insmath x_S=
+$() $val19.</li></ul>	   
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,15,19
+embedcnt=17

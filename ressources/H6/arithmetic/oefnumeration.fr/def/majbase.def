@@ -1,0 +1,252 @@
+!set title=Bases et ordre de grandeur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+title_it=Basi e ordine di grandezza
+
+ansorder=r
+varcnt=63
+prevarcnt=62
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 10
+
+val6=$(tmp0)
+val7=$[rint(0)]
+!while $val7=0 
+tmp0=!randint 200, 500
+
+val8=$(tmp0)
+tmp0=!randint 200, 500
+
+val9=$(tmp0)
+val10=$[rint($val8*$val9)]
+tmp0=!exec float_calc ibase=10; obase=$val6 ;	$val8;$val9;$val8*$val9
+
+val11=$(tmp0)
+tmp=!trim $val11
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=$(val11[1;])
+val13=$(val11[2;])
+val14=$(val11[3;])
+tmp0=!charcnt $val12
+
+val15=$[rint($(tmp0)-1)]
+tmp0=!charcnt $val13
+
+val16=$[rint($(tmp0)-1)]
+tmp0=!charcnt $val14
+
+val17=$[rint($(tmp0)-1)]
+tmp0=!char 1 of $val12
+
+val18=$(tmp0)
+tmp0=!char 1 of $val13
+
+val19=$(tmp0)
+tmp0=!char 1 of $val14
+
+val20=$(tmp0)
+tmp0=!char 2 of $val12
+
+val21=$(tmp0)
+tmp0=!char 2 of $val13
+
+val22=$(tmp0)
+tmp0=!char 2 of $val14
+
+val23=$(tmp0)
+tmp0=!sort numeric item $val18,$val19,$val20,$val21,$val22,$val23
+
+val24=$(tmp0)
+val24=$[rint($(val24[-1])+1)]
+
+!ifval $val18*$val19!=$val20 
+val7=$[rint( 1)]
+!endif
+!endwhile
+t_=!replace internal \( by ( in vecmax([$val18,$val21,$val19,$val22,$val20,$val23])+1
+tmp0=!exec pari $t_
+
+val25=$(tmp0)
+tmp0=!makelist \bullet for x=1 to $val15-1
+
+val26=$val18,$val21,$(tmp0)
+tmp0=!makelist \bullet for x=1 to $val16-1
+
+val27=$val19,$val22,$(tmp0)
+tmp0=!makelist \bullet for x=1 to $val17-1
+
+val28=$val20,$val23,$(tmp0)
+tmp0=!items2words $val26
+
+val26=$(tmp0)
+tmp0=!nospace $val26
+
+val26=$(tmp0)
+tmp0=!items2words $val27
+
+val27=$(tmp0)
+tmp0=!nospace $val27
+
+val27=$(tmp0)
+tmp0=!items2words $val28
+
+val28=$(tmp0)
+tmp0=!nospace $val28
+
+val28=$(tmp0)
+val29=$[rint($val17-$val15-$val16+1)]
+val30=!rawmath ($val18 * x + $val21)*($val19 * x + $val22)
+val31=!rawmath ($val18 * x + $val21+1)*($val19 * x + $val22+1)
+val32=!rawmath ($val20 * x + $val23)
+val33=!rawmath $val20 * x + $val23 +1
+tmp=!translate ";': to $     $ in (($val30) - ($val33)*x^$val29)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val34=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in ($val31) - ($val32)*x^$val29
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val35=!rawmath $(tmp0)
+val36=
+!if $val29=2 
+val37=$[rint(max($val25,floor(($val18+1)*($val19+1)/$val20)))]
+val38=$[rint(ceil($val18*$val19/($val20+1)))]
+!for val39 =$val38 to $val37 
+evaltmp=$val34
+
+evaltmp=!mathsubst x=($val39) in $evaltmp
+tmp0=($evaltmp)
+val40=$[$(tmp0)]
+evaltmp=$val35
+
+evaltmp=!mathsubst x=($val39) in $evaltmp
+tmp0=($evaltmp)
+val41=$[$(tmp0)]
+!if $val40 <0 and $val41 >0 and $val39 > 
+tmp0=!append item $val39 to $val36
+
+val36=$(tmp0)
+!endif
+!next
+!endif
+!if $val29=1 
+t_=!replace internal \( by ( in g=real(polroots($val34*1.)) ; g[#g]
+tmp0=!exec pari $t_
+
+val42=$(tmp0)
+t_=!replace internal \( by ( in g=real(polroots($val35*1.)) ; g[#g]
+tmp0=!exec pari $t_
+
+val43=$(tmp0)
+tmp0=!sort numeric items $val42,$val43
+
+val44=$(tmp0)
+val37=$[rint(ceil($(val44[2])))]
+val38=$[rint(floor($(val44[1])))]
+!for val39 =$val38 to $val37 
+evaltmp=$val34
+
+evaltmp=!mathsubst x=($val39) in $evaltmp
+tmp0=($evaltmp)
+val40=$[$(tmp0)]
+evaltmp=$val35
+
+evaltmp=!mathsubst x=($val39) in $evaltmp
+tmp0=($evaltmp)
+val41=$[$(tmp0)]
+!if $val40 <0 and $val41 >0 and $val39 >= $val24 
+tmp0=!append item $val39 to $val36
+
+val36=$(tmp0)
+!endif
+!next
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val45=$(tmp0)
+val46=Les nombres de l'opération suivante sont écrits dans une base \(b\) :
+val47=Donner l'ensemble des bases possibles avec cette seule	    indication sans chercher à trouver une solution	    (s'il y a plusieurs bases possibles, les séparer par des virgules) :
+val48=Cherchez des majorations et des minorations de chacun des	   nombres en fonction de la base \(b\) et comparez-les. Par exemple,	   \(2\bullet\bullet\bullet\) est compris entre \(2 b^3\)	   et \(3 b^3\), \(23\bullet\bullet\) est compris entre \((2b+3)* b^2\)	   et \((2b+4)* b^2\).	   Vous pouvez utiliser les outils graphiques pour résoudre les équations	   un peu compliquées.
+!if $val45=it 
+val46=I numeri nelle operazioni seguenti sono scritti in una certa base \(b\):
+val47=Dare tutte le basi possibili con questa singola	    indicazione senza cercare di trovare una soluzione	    (se ce ne è più di una, separarle con virgole):
+val48=Cercare maggiorazioni o minorazioni di ciascuno dei numeri	   in funzione della base \(b\) e confrontarle. Per esempio,	   \(2\bullet\bullet\bullet\) è compreso tra \(2 b^3\)	   e \(3 b^3\), \(23\bullet\bullet\) è compreso tra \((2b+3)* b^2\)	   e \((2b+4)* b^2\).	   Potete utilizzare gli strumenti grafici per risolvere le equazioni più	   complesse.
+!endif
+replytype1=set
+replyname1=xx
+replygood1=$val36
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val48
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val46	<div class="wimscenter">	
+!insmath $val28 = $val26  \times $val27 
+$()	</div>	$val47	<div class="wimscenter">	    
+!read oef/embed.phtml r1, 10 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()$val48
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=26,27,28,46,47,48
+embedcnt=1

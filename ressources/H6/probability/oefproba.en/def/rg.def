@@ -1,0 +1,131 @@
+!set title=Red and green
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_fr=Rouges et vertes
+title_it=Rosso e verde
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=The probability
+val8=red,red,green,green
+val9=We have ,red balls and ,green balls in a bag.	  If, balls are randomly extracted from the bag
+val10=what is the probability for them to be 
+val11=and
+!if $val6=fr 
+val7=La probabilité
+val8=rouge,rouges,verte,vertes
+val9=Il y a ,balles rouges et ,balles vertes dans	  un sac. Si, balles sont tirées du sac en même temps et au hasard
+val10=quelle est la probabilité d'obtenir
+val11=et
+!endif
+!if $val6=it 
+val7=Probabilità
+val8=rossa,rosse,verde,verdi
+val9=In un sacchetto sono contenute ,palline rosse e ,palline verdi.	  Se estraiamo casualmente, palline dal sacchetto
+val10=qual è la probabilità che siano 
+val11=e
+!endif
+tmp0=!randint 8, 20
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 8, 20
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val12+$val13)]
+tmp0=!randint 3, 7
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 1, $val15-1
+
+val16=$[rint($(tmp0))]
+val17=$[rint($val15-$val16)]
+val18=$[binomial($val12,$val16)*binomial($val13,$val17)/binomial($val14,$val15)]
+replyname1=$val7
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val9[1]) $val12 $(val9[2]) $val13 $(val9[3]) $val15	  $(val9[4]), $val10 $val16 
+!if $val16=1 
+$()$(val8[1]) 
+!else
+$() $(val8[2]) 
+!endif
+$()	 $val11 $val17 
+!if $val17=1 
+$()$(val8[3])&nbsp;? 
+!else
+$() $(val8[4])&nbsp;? 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,15,16,17
+embedcnt=0

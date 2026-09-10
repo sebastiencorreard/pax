@@ -1,0 +1,129 @@
+!set title=Angle : Compléter le script
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bruno.mifsud@laposte.net
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp=!nonempty items 1,2
+
+tmp1=!randitem $tmp
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+val6=Aucun logiciel n'est autorisé pour répondre à cet exercice,	 sans quoi il ne sert pas à grand chose pour progresser.
+tmp=!nonempty items 30,60,120,150
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=angle_pgm_$val7.png
+val9=angle_complet_$val7.png
+tmp0=!randitem 30,60,120,150
+
+val10=$[rint($(tmp0))]
+val11=angle_complet_$val10.png
+val12=angle_pgm_$val10.png
+val13=Quelle valeur faut-il saisir dans ce script pour obtenir la figure ci dessous ?	
+tmp0=!item 1 of 1 oui,	2 non
+
+val14=$(tmp0)
+tmp0=!word 1 of $val14
+
+val14=$(tmp0)
+
+!ifval $val14=1 
+tmp0=!embraced randitem $val13
+
+val13=$(tmp0)
+!endif
+replytype1=numeric
+replyname1=Réponse
+replygood1=$[$val10]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val13 \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter"> 
+!read oef/img.phtml $val1/anglescriptatrou.png  
+$()</div>	$val13	<div class="wimscenter"> 
+!read oef/img.phtml $val1/$val11  
+$()</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Script :  
+!read oef/img.phtml $val1/$val12  
+$().	Figure obtenue :  
+!read oef/img.phtml $val1/$val11  
+$().	<ul class="wims_nopuce">	   <li>Attention, comme on avance d'abord de 150, puis de 100, on part de la gauche.	   </li>	   <li>Ensuite, il faut bien faire attention lorsqu'on tourne d'un certain angle :	   <div class="wimscenter"> 
+!read oef/img.phtml $val1/angle_corr.png  
+$().</div>	    Exemple : pour $val7° :	   <div class="wimscenter"> 
+!read oef/img.phtml $val1/$val8  
+$() donne  
+!read oef/img.phtml $val1/$val9  
+$().</div>	</li></ul>	 
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val13 $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8,9,11,12,13
+embedcnt=0

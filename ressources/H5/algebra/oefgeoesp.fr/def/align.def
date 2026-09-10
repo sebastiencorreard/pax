@@ -1,0 +1,136 @@
+!set title=Problème d'alignement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/givenrank 1,3,1,5 
+tmp0=$slib_out
+val7=$(tmp0)
+t_=!replace internal \( by ( in [$val6]+[$val7]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val9=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in [$val6]+$val9*[$val7]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val11=$[rint($(tmp0))]
+tmp0=!item $val11 of x,y,z
+
+val12=$(tmp0)
+!if $val11=1 
+val13=x
+val14=$[rint($(val10[2]))]
+val15=$[rint($(val10[3]))]
+!endif
+!if $val11=2 
+val13=$[rint($(val10[1]))]
+val14=y
+val15=$[rint($(val10[3]))]
+!endif
+!if $val11=3 
+val13=$[rint($(val10[1]))]
+val14=$[rint($(val10[2]))]
+val15=z
+!endif
+val16=$[rint($(val10[$val11]))]
+replytype1=default
+replyname1=Valeur
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Pour quelle valeur de $val12 les points 
+!insmath A($val6)
+$(), 
+!insmath B($val8)
+$() et 
+!insmath C($val13,$val14,$val15)
+$()	sont-ils alignés ?	<div>	Ces points sont alignés pour la valeur 
+!insmath $val12=
+$()  
+!read oef/embed.phtml reply 1,5 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,13,14,15
+embedcnt=1

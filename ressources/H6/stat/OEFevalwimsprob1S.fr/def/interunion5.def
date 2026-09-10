@@ -1,0 +1,175 @@
+!set title=Union et intersection d'événements 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=90
+
+ansorder=r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+val7=0,5,10,100,500
+tmp0=!makelist x for x=1 to 20
+
+val8=$(tmp0)
+!readproc slib/data/random 5, item, $val8 
+tmp0=$slib_out
+val9=$(tmp0)
+!readproc slib/stat/sum [$val9] 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!sort reverse numeric list $val9
+
+val9=$(tmp0)
+!for val11 =1 to 5 
+tmp0=!append item $(val9[$val11])/$val10 to $val6
+
+val6=$(tmp0)
+!next
+t_=!rawmath 1-$(val6[1])
+val12=!exec pari print($t_)
+t_=!rawmath $(val6[4])+$(val6[5])
+val13=!exec pari print($t_)
+t_=!rawmath $(val6[3])+$(val6[1])+$(val6[2])
+val14=!exec pari print($t_)
+t_=!rawmath $(val6[3])+$(val6[2])
+val15=!exec pari print($t_)
+val16=$[rint(0)]
+!for val11 =1 to 5 
+t_=!rawmath $val16+$(val6[$val11])*$(val7[$val11])
+val16=!exec pari print($t_)
+!next
+tmp0=!randint max(1,$val16-8), ($val16+10)
+
+val17=$[rint($(tmp0))]
+
+!ifval abs($val17-$val16)<0.1
+val17=$[rint($val17+1)]
+!else
+val17=$[rint($val17)]
+!endif
+val16=$[$val16-$val17]
+
+!ifval $val16>0
+val18=$[rint(1)]
+!else
+val18=$[rint(2)]
+!endif
+val16=$[round(100*$val16)/100]
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=\(P(A)\)
+replygood1=$val12
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=\(P(B)\)
+replygood2=$val13
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=\(P(C)\)
+replygood3=$val14
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=\(P(A \cap C)\)
+replygood4=$val15
+replytype5=numeric
+replyname5=Espérance
+replygood5=$[$val16]
+replytype6=radio
+replyname6=Favorable au joueur
+replygood6=$val18;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	La loi de probabilité ci-dessous décrit le gain possible à une loterie	 sans tenir compte du prix du billet.</p>	<table class="wimsborder wimscenter">	<tr><th>Gain en euros</th><td>0</td><td>5</td><td>10</td><td>100</td><td>500</td></tr>	<tr><th>Probabilité d'obtenir ce gain</th><td>$(val6[1])</td><td>$(val6[2])</td><td>$(val6[3])</td><td>$(val6[4])</td><td>$(val6[5])</td></tr>	</table>	<div class="wims_question">	Déterminer la probabilité de chacun des événements suivants :	<ul class="spacer">	<li>
+!insmath A
+$() <span class="wims_emph">"Le joueur est gagnant"</span> : <label for="reply1">
+!insmath P(A) = 
+$() 
+!read oef/embed.phtml reply1,3 
+$()</label></li>	<li>
+!insmath B
+$() <span class="wims_emph">"Le joueur a gagné au moins 100 euros"</span> : <label for="reply2">
+!insmath P(B) =
+$()</label>  
+!read oef/embed.phtml reply2,3 
+$()</li>	<li>
+!insmath C
+$() <span class="wims_emph">"Le joueur a gagné au plus 10 euros"</span> : <label for="reply3">
+!insmath P(C) =
+$()</label>  
+!read oef/embed.phtml reply3,3 
+$()</li>	<li>
+!insmath D = A \cap C
+$() : 
+!insmath P(D) =
+$() <label for="reply4"> 
+!read oef/embed.phtml reply4,3 
+$()</label></li>	</ul>	</div>	L'organisateur du jeu prévoit de fixer le prix du billet à 
+!insmath $val17
+$() euros.	<div class="wims_question">	 Calculer l'espérance du "gain" en tenant compte du prix du billet.<br>	<label for="reply5">Espérance = </label> 
+!read oef/embed.phtml reply5,3 
+$() <i> arrondie au centième d'euro.</i>	</div>	<div class="wims_question">	<label for="reply6"> Le jeu sera-t-il favorable au joueur ?</label>  
+!read oef/embed.phtml reply6 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,17
+embedcnt=6

@@ -1,0 +1,151 @@
+!set title=Reconstituer un texte 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Philippe, Colpin
+email=jp.colpin@laposte.net
+
+ansorder=r,r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 105, 135
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 2, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 10,20
+
+val8=$[rint($(tmp0))]
+val9=$[$val7*$val6]
+val10=$[$val8-$val9]
+tmp0=!randint 80, 99
+
+val11=$[$(tmp0)/10]
+val12=Utilise les opérations pour compléter le texte ci-dessous: <ul>	<li>$val7 x $val6 = $val9 </li>	<li>$val8 - $val9 = $val10 </li>	</ul>	A la boulangerie, un croissant coûte ??$val6,$val7,$val10,$val11,$val8 ??.	Anne achète ??$val7,$val6,$val10,$val11,$val8 ?? croissants et	paye avec un billet de ??$val8,$val6,$val7,$val10,$val11 ?? &euro;.	La caissière lui rend ??$val10,$val7,$val6,$val11,$val8 ?? &euro;. 
+tmp0=!singlespace $val12
+
+val12=$(tmp0)
+tmp0=!embraced randitem $val12
+
+val12=$(tmp0)
+!readproc slib/text/cutchoice2 $val12 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val13=$[rint(min(20,floor($(tmp0)/2)))]
+val14=
+val15=
+!for val16 =1 to $val13 
+val17=$(val12[2*$val16;])
+val18=$(val17[1])
+tmp0=!sort items $val17
+
+val17=$(tmp0)
+tmp0=!positionof item $val18 in $val17
+
+val18=$(tmp0)
+val14=$val14$val18,
+val15=$val15$val17;
+!next
+tmp0=!embraced randitem \pre
+
+val19=$(tmp0)
+tmp0=!embraced randitem \post
+
+val20=$(tmp0)
+tmp0=!makelist reply x for x=1 to $val13
+
+val21=$(tmp0)
+oefsteps=$val21 
+nextstep=!nosubst $val21 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Champ 1
+replygood1=$(val14[1]);$(val15[1;])
+replytype2=menu
+replyname2=Champ 2
+replygood2=$(val14[2]);$(val15[2;])
+replytype3=menu
+replyname3=Champ 3
+replygood3=$(val14[3]);$(val15[3;])
+replytype4=menu
+replyname4=Champ 4
+replygood4=$(val14[4]);$(val15[4;])
+replytype5=menu
+replyname5=Champ 5
+replygood5=$(val14[5]);$(val15[5;])
+replytype6=menu
+replyname6=Champ 6
+replygood6=$(val14[6]);$(val15[6;])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val12[1;])	 
+!for m_k=1 to $val13 
+$()	 
+!read oef/embed.phtml r \k,\len 
+$() $(val12[2*$m_k+1;])	 
+!next
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13
+embedcnt=1

@@ -1,0 +1,277 @@
+!set title=Tirage avec ou sans remise ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+computeanswer=no
+oefcss=<style> .bgreen{color:green; font-weight:bold;font-style:italic} </style>
+
+ansorder=r
+varcnt=66
+prevarcnt=65
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=deux
+val7=avec, sans
+val8=bleues,rouges,orange,noires,violette,grises,blanches
+val9=bleue,rouge,orange,noire,violette,grise,blanche
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+
+!ifval $val2= 
+tmp0=!randint 2, 3
+
+val11=$[rint( $(tmp0))]
+!else
+val11=$[rint(min(3,$val2+1))]
+!endif
+val12=3
+tmp0=!positionof item $val10 in $val7
+
+val13=$(tmp0)
+tmp0=!randint 15, 26
+
+val14=$[rint($(tmp0))]
+tmp0=!makelist 1/$val11 for x=1 to $val11-1
+
+val15=$(tmp0)
+!readproc slib/stat/multinomial 1,$val14,[$val15] 
+tmp0=$slib_out
+val16=$(tmp0)
+t_=!replace internal \( by ( in [$val16]/$val14
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+t_=!replace internal \( by ( in [$val16]/($val14-1)
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in [$val16]/$val14
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+val20=
+tmp=!trim $val16
+val16=!translate internal $	\
+$ to ;; in $tmp
+val21=1
+!for val22 =1 to $val11 
+!for val23 = 1 to $val11 
+
+!ifval ($val23-$val22) %$val11 = 0 
+tmp=!translate ";': to $     $ in ($(val16[$val21;$val23])-1)/($val14-$val21)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$val17,$(tmp0)
+!else
+tmp=!translate ";': to $     $ in ($(val16[$val21;$val23]))/($val14-$val21)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val17=	  $val17,$(tmp1)
+!endif
+tmp=!translate ";': to $     $ in ($(val16[1;$val23]))/$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=$val19, $(tmp0)
+
+!ifval ($val23-$val22 )%$val11 = 0
+val20= $val20, $(val16[$val21;$val23])-1
+!else
+val20=$val20, $(val16[$val21;$val23])
+!endif
+!next
+tmp0=!nonempty items $val20
+
+val20=$(tmp0)
+tmp=!trim $val16	$val20
+val16=!translate internal $	\
+$ to ;; in $tmp
+!next
+
+!ifval $val10 issametext $(val7[1]) 
+val24= $val19
+!else
+val24=$val17
+!endif
+tmp0=!randint 10, 12
+
+val25=$[rint($(tmp0))]
+val26=blue,red,orange,black,purple,grey,white
+tmp0=!itemcnt $val26
+
+tmp1=!shuffle $(tmp0)
+
+tmp2=!item 1 to $val11 of $(tmp1)
+
+val27=$(tmp2)
+val8=$(val8[$val27])
+val28=$[rint(($val11^($val12)-1)/($val11-1)-1)]
+tmp0=!makelist $(val26[$val27]) for x=1 to $val28
+
+val26=$(tmp0)
+val29=*
+!readproc slib/graph/randtree $val28,$val11,$val12,[$val29], middle perfect point 
+tmp0=$slib_out
+val30=$(tmp0)
+tmp0=!declosing $(val30[1])
+
+val31=$(tmp0)
+val32=$(val30[3])
+val33=$(val30[4])
+tmp0=!declosing $val32
+
+tmp=!trim $(tmp0)
+val32=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val33
+
+tmp=!trim $(tmp0)
+val33=!translate internal $	\
+$ to ;; in $tmp
+val34=$(val30[2])
+tmp0=!declosing $val34
+
+val34=$(tmp0)
+tmp=!translate internal $	$ to ; in $val34
+
+tmp0=!rowcnt $tmp
+val35=$(tmp0)
+tmp=!translate internal $	$ to ; in $val33
+
+tmp0=!rowcnt $tmp
+val36=$[rint($(tmp0))]
+!for val37 =2 to $val35 
+val31=$val31	 fill $(val32[$val37;]), $(val26[$val37-1])	 
+!next
+tmp0=!randint 1, $val11
+
+val38=$(tmp0)
+val9=$(val9[$val27])
+val9=$(val9[$val38])
+t_=!rawmath 0
+val39=!exec pari print($t_)
+!for val37 =1 to $val11 
+t_=!rawmath $val39 + $(val24[$val37])*$(val24[$val11*$val37+$val38])
+val39=!exec pari print($t_)
+!next
+tmp=!trim $val34 
+val34=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val31
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val40=$(tmp0)
+tmp0=!replace internal xrange by in $val40
+
+val40=$(tmp0)
+tmp=!translate internal $	$ to ; in $val31
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41=$(tmp0)
+tmp0=!replace internal yrange by in $val41
+
+val41=$(tmp0)
+val42=600
+val43=250
+val44=
+val45=10
+!for val37 =2 to $val36 
+val46=$(val24[$val37-1])
+val47=$[$(val33[$val37;1])]
+val48=$[$(val33[$val37;2])]
+val31=$val31	 text black,$val47-0.4,$val48+0.1,medium,$val46	 
+!next
+!readproc oef/draw.phtml $val42,$val43 \
+$val31 
+tmp0=$ins_url
+val49=$(tmp0)
+replytype1=click
+replyname1=Tirage
+replygood1=$val13;$val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   Une urne contient $val14 boules :	 
+!for m_T=1 to $val11 
+$()
+!if $m_T < $val11 and $m_T >1 
+$(), 
+!endif
+$()	
+!if $m_T=$val11 
+$()et 
+!endif
+$() $(val16[1;$m_T]) $(val8[$m_T]) 
+!next
+$(). On effectue		$val6 tirages.		  On représente cette situation par un arbre :	<div class="wimscenter"><img src="$val49" alt=""></div>	   Il s'agit d'un tirage  
+!read oef/embed.phtml r1,1 
+$() ou  
+!read oef/embed.phtml r1,2 
+$() remise.		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,11,14,16,49
+embedcnt=2

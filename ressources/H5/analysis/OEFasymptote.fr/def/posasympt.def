@@ -1,0 +1,268 @@
+!set title=Position par rapport à son asymptote 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=no
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=65
+prevarcnt=64
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On fait apparaître l'expression de l'asymptote	  dans chacune des expressions algébriques&nbsp;
+val7=au dessus,en dessous
+val8=On sait que la courbe représentative	  \(\displaystyle{\mathcal{C}}\) d'une fonction \(f\) se situe&nbsp;
+val9=de son asymptote en
+val10=Choisir la fonction pouvant correspondre à
+val11=Votre réponse&nbsp;,Choix de la fonction&nbsp;
+val12=est au dessus de son asymptote en,	  est en dessous de son asymptote en,	  est en dessous de son asymptote en \(-\infty\) et au dessus en \(+\infty\),	  est au dessus de son asymptote en \(-\infty\) et en dessous en \(+\infty\)
+val13=\(-\infty)
+val14=\(+\infty)
+val15=\(\emptyset)
+val16=&#59;
+val17=$[rint(-10)]
+val18=$[rint(10)]
+val19=$[rint(-10)]
+val20=$[rint(10)]
+tmp0=!randitem 1,2,3,-1,-2,-3,1/2,1/3,-1/2,-1/3
+
+tmp1=!randitem 0,$(tmp0)
+
+t_=!rawmath $(tmp1)
+val21=!exec pari print($t_)
+val22=$val21
+tmp0=!replace internal / by , in $val22
+
+val22=$(tmp0)
+val21=$[rint($(val22[1]))]
+tmp0=!itemcnt $val22
+
+
+!ifval $(tmp0)=1
+val23=$[rint(1)]
+!else
+val23=$[rint($(val22[2]))]
+!endif
+
+!ifval $val23=1
+val24=$val21
+!else
+val24=\(\frac{$val21}{$val23})
+!endif
+
+!ifval $val24=1
+val24=
+!else
+val24=$val24
+!endif
+
+!ifval $val24=-1
+val24=-
+!else
+val24=$val24
+!endif
+tmp0=!randint 1, 5
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val26=$[rint($(tmp0)*10)]
+tmp0=!randint 1, 5
+
+val27=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val28=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val29=$[rint($(tmp0))]
+val30=+ $val26/($val27*x^2+$val28), - $val26/($val27*x^2+$val28),+($val29*x)/($val27*x^2+$val28),- ($val29*x)/($val27*x^2+$val28)
+val31=$val27*x^2+$val28
+val32=
+val33=
+val34=
+tmp0=!randint 1, 2
+
+val35=$[rint($(tmp0))]
+!for val36 =1 to 4 
+val37=!rawmath $val21/ $val23*x+$val25 $(val30[$val36])
+tmp=!translate ";': to $     $ in $val37
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val37=!rawmath $(tmp0)
+tmp0=!replace internal / by , in $val37
+
+val38=$(tmp0)
+tmp0=!declosing $(val38[1])
+
+val39=$(tmp0)
+tmp0=!declosing $(val38[2])
+
+val40=$(tmp0)
+tmp0=!texmath $val39
+
+tmp1=!texmath $val40
+
+val41=\(\frac{$(tmp0)}{$(tmp1)})
+tmp0=!texmath $val31
+
+val42=!rawmath \(\frac{$val26}{$(tmp0)})
+tmp0=!append item $val37 to $val32
+
+val32=$(tmp0)
+tmp0=!append item $val41 to $val33
+
+val33=$(tmp0)
+tmp0=!append item $val42 to $val34
+
+val34=$(tmp0)
+!next
+tmp0=!shuffle purple,blue,orange,green
+
+val43=$(tmp0)
+val44=200
+val45=300
+val46=dsegment -$val28/$val27,$val19,-$val28/$val27,$val20,red	
+val47=dsegment -$val28/$val27,$val19,-$val28/$val27,$val20,red	
+val48=
+val49=,,$val46,$val47
+val50=xrange $val17, $val18	   yrange $val19,$val20	   parallel $val17,$val19,$val17,$val20,1,0,$val18 - $val17 +1,grey	   parallel $val17,$val19,$val18,$val19,0,1,$val20 -$val19 +1,grey	   hline 0,0,black	   arrow 0,0,1,0,6,black	   arrow 0,0,0,1,6,black	   vline 0,0,black	   linewidth 2	   dsegment $val17,$val21/$val23*$val17+$val25,$val18,$val21/ $val23*$val18+$val25,red	   $val47
+!for val51 =1 to 4 
+!readproc oef/draw.phtml $val44,$val44 \
+    $val50	   plot $(val43[$val51]), $(val32[$val51]) 
+tmp0=$ins_url
+val52=<img src=	    "$(tmp0)"	    width="$val44" height="$val44" alt="">	    
+val52=<table>	      <tr>	        <td>	    $val52	  </td>	      </tr>	    </table>	  
+tmp0=!append item $val52 to $val48
+
+val48=$(tmp0)
+!next
+val53=$val44 x$val44 x$val45
+
+!ifval $val21=0
+val54=$val25
+!else
+val54=$val24 x + $val25
+!endif
+tmp0=!texmath $val31
+
+tmp1=!texmath $val31
+
+tmp2=!texmath $val31
+
+tmp3=!texmath $val31
+
+val55=$val6:<ul><li>	$(val33[1])=$val54 + \(\frac{$val26}{$(tmp0)}): \(\mathcal{C}_1) $(val12[1]) \(\pm\infty).	</li><li>$(val33[2])=$val54 - \(\frac{$val26}{$(tmp1)}): \(\mathcal{C}_2) $(val12[2]) \(\pm\infty).	</li><li>$(val33[3])=$val54 + \(\frac{$val29 x}{$(tmp2)}): \(\mathcal{C}_3) $(val12[3]).	</li><li>$(val33[4])=$val54 - \(\frac{$val29 x}{$(tmp3)}): \(\mathcal{C}_4) $(val12[4]).	</li></ul>
+tmp0=!randint 1, 4
+
+val35=$[rint($(tmp0))]
+
+!ifval ($val35=1 or $val35=3)
+val56=$[rint(1)]
+!else
+val56=$[rint(2)]
+!endif
+
+!ifval ($val35=1 or $val35=4)
+val57=$[rint(1)]
+!else
+val57=$[rint(2)]
+!endif
+
+!ifval $val2=2
+val44=style="font-size
+!else
+val44=xx-large":
+!endif
+replytype1=radio
+replyoption1=shuffle 
+replyname1=\\name_answer[2]
+replygood1=$val35;$val33
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div $m_fsize>$val8:	<ul>	<li> <span style="color:red">$(val7[$val56])</span> $val9 
+!insmath +\infty
+$()</li>	<li> <span style="color:red">$(val7[$val57])</span> $val9 
+!insmath -\infty
+$().</li>	</ul>	$val10 
+!insmath \displaystyle{\mathcal{C}}
+$().	<p>	$(val11[1]):	</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply 1,1 
+$(),  
+!read oef/embed.phtml reply1,2 
+$(),	  
+!read oef/embed.phtml reply 1,3 
+$(),  
+!read oef/embed.phtml reply1,4 
+$().</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val55
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,55,56,57
+embedcnt=4

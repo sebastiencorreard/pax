@@ -1,0 +1,152 @@
+!set title=Proportion 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r
+varcnt=10
+prevarcnt=6
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 20
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 30000, 90000
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+
+!ifval $val8=1
+val9=chômeurs
+!else
+val9= non chômeurs
+!endif
+
+!ifval $val8=1
+val10=$[rint($val7*$val6/ 100)]
+!else
+val10=$[rint($val7*(1-$val6/100))]
+!endif
+
+!ifval $val8=1
+val11=Le nombre de $val9 est donné par \(N=\frac{$val6}{100}\times $val7=$val10\) (résultat arrondi à l'unité)
+!else
+val11=	  Le nombre de <b>$val9</b> est donné par \(N=\left(1-\frac{$val6}{100}\right)\times $val7=$val10\) (résultat arrondi à l'unité)
+!endif
+replytype1=numeric
+replyname1=Réponse :
+replygood1=?analyze 12
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  $val11
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	  Dans une ville, la proportion de chômeurs est égale à	
+!insmath \frac{$val6}{100}
+$() de la population active.<br>	 La population d'actifs est de $val7.	</p><p>	  <label for="reply1">Combien y a-t-il de $val9&nbsp;?</label>  
+!read oef/embed.phtml reply1 
+$()	</p>	<div class="wims_instruction">Arrondir à l'unité.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() $val11
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val12=round($val12) 
+val13= 1
+!else
+val13=0
+!endif
+val14=$[abs($val12-$val10)]
+
+!ifval $val14<=1 and $val14<>0 
+val15= 1
+!else
+val15=0
+!endif
+
+!exit
+
+:feedback
+!ifval $val13=0
+ <div class='oef_feedbacks'>Attention : la réponse doit être un nombre entier. 
+$()</div>
+!endif
+!ifval $val15=1
+ <div class='oef_feedbacks'>Vous avez sans doute effectué le bon calcul mais vous avez mal arrondi le résultat.
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=19 
+condoption1=hide 
+
+!ifval $val14<=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=di inf 1
+condweight2=1 
+
+!ifval $val14=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Bonne réponse
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12
+embedcnt=1

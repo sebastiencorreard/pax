@@ -1,0 +1,225 @@
+!set title=Tracer un angle de mesure donnée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=jbfrondas@gmail.com
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r
+varcnt=68
+prevarcnt=67
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+val7=600,420
+tmp0=!randint 1, 60
+
+tmp1=!randint 60, 120
+
+tmp2=!randint 120, 180
+
+tmp3=!shuffle $(tmp0),$(tmp1),$(tmp2)
+
+tmp=!trim $(tmp3)
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[2]))]
+val11=$[rint($(val8[3]))]
+val12=$[(3.14159*$val9/180)]
+val13=$[280*cos($val12)+303]
+val14=$[280*sin($val12)+127]
+val15=$[293*cos($val12+0.07)+303]
+val16=$[293*sin($val12+0.07)+127]
+val17=$val13,$val14
+val18=$val15,$val16
+val19=$[(3.14159*$val10/180)]
+val20=$[280*cos($val19)+303]
+val21=$[280*sin($val19)+127]
+val22=$[293*cos($val19+0.07)+303]
+val23=$[293*sin($val19+0.07)+127]
+val24=$val20,$val21
+val25=$val22,$val23
+val26=$[(3.14159*$val11/180)]
+val27=$[280*cos($val26)+303]
+val28=$[280*sin($val26)+127]
+val29=$[293*cos($val26+0.07)+303]
+val30=$[293*sin($val26+0.07)+127]
+val31=$val27,$val28
+val32=$val29,$val30
+val33=$[420-$val28]
+val34=\abs3rep,$val33
+tmp0=!shuffle A,B,C,D,E,F,G,H,I,J,K,L,M,N,P,Q,S,T,U,V,W,Y,Z
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+val36=X
+val37=R
+val38=0,$val36	180,$val37	$val9,$(val35[1])	$val10,$(val35[2])	$val11,$(val35[3])
+tmp=!translate internal $	$ to ; in $val38
+
+tmp0=!rowcnt $tmp
+val39=$[rint($(tmp0))]
+tmp=!trim $val38
+val38=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle $val39
+
+val40=$(tmp0)
+val41=$(val38[$(val40[1]);])
+val42=$(val38[$(val40[2]);])
+val43=$[($(val41[1])-$(val42[1]))]
+!if $val43<0 
+val44=De plus, on sait que \( \widehat{XO$(val41[2])} < \widehat{XO$(val42[2])} \) 
+!else
+val44=De plus, on sait que \( \widehat{XO$(val41[2])} > \widehat{XO$(val42[2])}\) 
+!endif
+!if $(val41[1])=0 or $(val41[1])=180 
+val44=
+!endif
+!if $(val42[1])=0 or $(val42[1])=180 
+val44=
+!endif
+val45=$[rint(abs($(val41[1])-$(val42[1])))]
+val46=$(val41[2]) O $(val42[2])
+!if $(val41[2])=$val36 
+val47=590,128
+!else
+!endif
+!if $(val41[2])=$val37 
+val47=303,128
+!else
+!endif
+!if $(val41[2])=$(val35[1]) 
+val47=$val17
+val48=$val18
+!else
+!endif
+!if $(val41[2])=$(val35[2]) 
+val47=$val24
+val48=$val25
+!else
+!endif
+!if $(val41[2])=$(val35[3]) 
+val47=$val31
+val48=$val32
+!else
+!endif
+!if $(val42[2])=$val36 
+val49=590,128
+!else
+!endif
+!if $(val42[2])=$val37 
+val49=10,128
+!else
+!endif
+!if $(val42[2])=$(val35[1]) 
+val49=$val17
+!else
+!endif
+!if $(val42[2])=$(val35[2]) 
+val49=$val24
+!else
+!endif
+!if $(val42[2])=$(val35[3]) 
+val49=$val31
+!else
+!endif
+tmp0=!shuffle red,blue,green
+
+val50=$(tmp0)
+!if $(val41[2])=$val36 or $(val42[2])=$val36 or $(val41[2])=$val37 or $(val42[2])=$val37 
+val51=
+val52=
+!else
+val52=line 303,128,,,$(val50[2])
+val53=
+!endif
+val54=xrange 0,600	yrange 0,420	copy 0,420,-1,-1,-1,-1,rapporteur600.png	linewidth 3		line 303,128,$val47,$(val50[1])	text $(val50[1]),$val48,giant,$(val41[2])	text red,303,127,giant,O		line 303,128,10,128,gray	text black,5,128,medium,$val37		line 590,128,10,128,gray	text black ,590,128, medium,$val36	
+!readproc slib/draw/convpixel 300,128,600,420,0,600,0,420,1,pixels 
+tmp0=$slib_out
+val55=$(tmp0)
+!readproc slib/draw/convpixel $val49,600,420,0,600,0,420,1,pixels 
+tmp0=$slib_out
+val56=$(tmp0)
+!readproc oef/draw.phtml $val7 \
+$val54 
+tmp0=$ins_url
+val57=$(tmp0) 
+replytype1=jsxgraphcurve
+
+replyname1=
+replygood1=$val57;sline,$val55,$val56
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Tracer la droite 
+!insmath  (O $(val42[2])) 
+$() afin que l'angle 
+!insmath  \widehat{ $val46 }
+$()	mesure $val45 degrés. $val44	<div class="wimscenter"> 
+!read oef/embed.phtml reply1,600 x 420 
+$() </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=42,44,45,46
+embedcnt=1

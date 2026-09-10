@@ -1,0 +1,415 @@
+!set title=Calcul d'angles dans l'espace
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Solène, Charneau
+email=solene.charneau@gmail.com
+precision=1000
+computeanswer=yes
+oefdescription=Calcul d'un angle entre trois points dans l'espace, grâce au produit scalaire.
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[1;])
+val8=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val7]+[$val8])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val6[2;])
+val10=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val7]+[$val10])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 0, 3
+
+val12=$[rint($(tmp0))]
+!if $val12=0 
+val13=au
+!else
+val13=à \(10^{-$val12}\)
+!endif
+val14=$[rint($(val8[1])*$(val10[1])+$(val8[2])*$(val10[2])+$(val8[3])*$(val10[3]))]
+
+!ifval $val14<0
+val15= -
+!else
+val15=
+!endif
+tmp=!translate ";': to $     $ in sqrt(($(val8[1]))^2+($(val8[2]))^2+($(val8[3]))^2)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+tmp=!translate ";': to $     $ in sqrt(($(val10[1]))^2+($(val10[2]))^2+($(val10[3]))^2)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp=!translate ";': to $     $ in $val14/($val16*$val17)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+t_=!rawmath (($(val8[1]))^2+($(val8[2]))^2+($(val8[3]))^2)*(($(val10[1]))^2+($(val10[2]))^2+($(val10[3]))^2)
+val19=!exec pari print($t_)
+tmp=!translate ";': to $     $ in ($val14)^2 /($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+t_=!replace internal \( by ( in core(denominator($val20),1)
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in core(numerator($val20),1)
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+val20=$val15$(val22[2])/$(val21[2])*sqrt($(val22[1])/$(val21[1]))
+tmp=!translate ";': to $     $ in $val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+tmp0=!texmath $val20
+
+val23=$(tmp0)
+val24=$[rint(acos($val20)*180/pi*10^($val12))*10^(-$val12)]
+tmp0=!randint 1, 3
+
+val25=$[rint($(tmp0))]
+tmp=!trim A,B,C	B,A,B	C,C,A
+val26=!translate internal $	\
+$ to ;; in $tmp
+val27=$(val26[1;$val25])
+val28=$(val26[2;$val25])
+val29=$(val26[3;$val25])
+val30=r1 , r2, r3 , r4, r5, r6	r7	r8	r9,r10	r11	r12
+val31=\(\widehat{BAC}\), \(\widehat{ABC}\), \(\widehat{ACB}\) 
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=x
+replygood1=$[$(val8[1])]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=y
+replygood2=$[$(val8[2])]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=z
+replygood3=$[$(val8[3])]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=x'
+replygood4=$[$(val10[1])]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=y'
+replygood5=$[$(val10[2])]
+replytype6=numeric
+replyoption6=nonstop 
+replyname6=z'
+replygood6=$[$(val10[3])]
+replytype7=numeric
+replyoption7=nonstop 
+replyname7=produit scalaire
+replygood7=$[$val14]
+replytype8=radio
+replyoption8=nonstop 
+replyname8=angle
+replygood8=$val25 ; $val31
+replytype9=formal
+replyoption9=nonstop 
+replyname9=norme 1
+replygood9=$val16
+replytype10=formal
+replyoption10=nonstop 
+replyname10=norme 2
+replygood10=$val17
+replytype11=numeric
+replyoption11=nonstop 
+replyname11=cos de l'angle
+replygood11=$[$val20]
+replytype12=numeric
+replyname12=angle
+replygood12=$[$val24]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soient trois points dans l'espace repéré :	<div class="wimscenter">	
+!if $val25=1 
+$()	 
+!insmath $val27($(val7[1]),$(val7[2]), $(val7[3]))
+$(), 
+!insmath $val28($(val9[1]),$(val9[2]), $(val9[3]))
+$(), 
+!insmath $val29($(val11[1]),$(val11[2]), $(val11[3]))
+$().	 
+!else
+$() 
+!if $val25=2 
+$()	
+!insmath $val28($(val9[1]),$(val9[2]), $(val9[3]))
+$(), 
+!insmath $val27($(val7[1]),$(val7[2]), $(val7[3]))
+$(), 
+!insmath $val29($(val11[1]),$(val11[2]), $(val11[3]))
+$().	 
+!else
+$() 	
+!insmath $val29($(val11[1]),$(val11[2]), $(val11[3]))
+$(), 
+!insmath $val28($(val9[1]),$(val9[2]), $(val9[3]))
+$(), 
+!insmath $val27($(val7[1]),$(val7[2]), $(val7[3]))
+$().	 
+!endif
+$() 
+!endif
+$()	</div>	<ol>	
+!if $m_step = 1  
+$()<li> Calculer les coordonnées des vecteurs	
+!insmath \overrightarrow{$val27 $val28} 
+$() et 
+!insmath \overrightarrow{$val27 $val29}
+$() :		<div class="wimscenter">
+!insmath \overrightarrow{$val27 $val28}
+$() ( 
+!read oef/embed.phtml r1,2 
+$(),  
+!read oef/embed.phtml r2,2 
+$(),  
+!read oef/embed.phtml r3,2 
+$())	et 
+!insmath \overrightarrow{$val27 $val29} 
+$() ( 
+!read oef/embed.phtml r4,2 
+$(),  
+!read oef/embed.phtml r5,2 
+$(),  
+!read oef/embed.phtml r6,2 
+$()) </div></li> 
+!endif
+$()	
+!if $m_step >1 
+$()	
+!if $m_sc_reply1=0 or $m_sc_reply2=0 or $m_sc_reply3=0 or $m_sc_reply4=0 or $m_sc_reply5=0 or $m_sc_reply6=0 
+$()	<li> Attention, les coordonnées des vecteurs 
+!insmath \overrightarrow{$val27 $val28} 
+$() et 
+!insmath \overrightarrow{$val27 $val29}
+$() sont :	
+!insmath \overrightarrow{$val27 $val28} \left($(val8[1]),$(val8[2]),$(val8[3])\right)
+$() et 
+!insmath \overrightarrow{$val27 $val29} \left($(val10[1]),$(val10[2]),$(val10[3])\right) 
+$(). </li> 
+!else
+$() 	<li> Les coordonnées des vecteurs 
+!insmath \overrightarrow{$val27 $val28} 
+$() et 
+!insmath \overrightarrow{$val27 $val29}
+$() sont bien:	
+!insmath \overrightarrow{$val27 $val28} \left($(val8[1]),$(val8[2]),$(val8[3])\right)
+$() et 
+!insmath \overrightarrow{$val27 $val29} \left($(val10[1]),$(val10[2]),$(val10[3])\right) 
+$(). </li> 
+!endif
+$() 
+!endif
+$()		
+!if $m_step = 2  
+$() <li>Calculer 
+!insmath \overrightarrow{$val27 $val28}\cdot\overrightarrow{$val27 $val29}
+$():	  <div class="wimscenter"> 
+!insmath \overrightarrow{$val27 $val28}\cdot\overrightarrow{$val27 $val29}= 
+$()	   
+!read oef/embed.phtml r7,5 
+$() </div></li> 
+!endif
+$()	
+!if $m_step > 2 and $m_sc_reply7=1 
+$() <li>En effet,	  
+!insmath \overrightarrow{$val27 $val28}\cdot\overrightarrow{$val27 $val29}=$val14
+$(). </li> 
+!endif
+$()	
+!if $m_step > 2 and $m_sc_reply7=0 
+$() <li>Attention,	  
+!insmath \overrightarrow{$val27 $val28}\cdot\overrightarrow{$val27 $val29}=$val14
+$(). </li> 
+!endif
+$()	
+!if $m_step = 3  
+$()<li>Quel angle peut-on calculer avec ce produit scalaire ?	  <div class="wimscenter"> 
+!read oef/embed.phtml r8 
+$() </div></li>	 
+!endif
+$()	
+!if $m_step > 3 
+$()<li>Avec ce produit scalaire, nous allons calculer l'angle :	  $(val31[$val25]).</li>  
+!endif
+$()	
+!if $m_step = 4  
+$()<li>Calculer les normes des vecteurs 
+!insmath \overrightarrow{$val27 $val28} 
+$()	  et 
+!insmath \overrightarrow{$val27 $val29}
+$() :	  <div class="wimscenter"> 
+!insmath $val27 $val28 = 
+$()  
+!read oef/embed.phtml r9,5 
+$() et 
+!insmath $val27 $val29 = 
+$()  
+!read oef/embed.phtml r10,5 
+$(). </div>	</li>	 
+!endif
+$()	
+!if $m_step > 4 
+$()	  
+!if  $m_sc_reply9=0 or $m_sc_reply10=0 
+$()	    <li>Attention, 
+!insmath $val27 $val28 = $val16 
+$() et 
+!insmath $val27 $val29 = $val17 
+$(). </li> 
+!else
+$()	     <li> En effet, 
+!insmath $val27 $val28 = $val16 
+$() et 
+!insmath $val27 $val29 = $val17 
+$(). </li> 
+!endif
+$()	 
+!endif
+$()	
+!if $m_step = 5 
+$()	  <li>Déduire des questions précédentes la valeur du cosinus	  de l'angle 
+!insmath  \widehat{ $val28 $val27 $val29}
+$() :	  <div class="wimscenter"> 
+!insmath  cos \left(\widehat{ $val28 $val27 $val29}\right) = 
+$()  
+!read oef/embed.phtml r11 
+$(). </div>	  </li>	 
+!endif
+$()	
+!if $m_step > 5 and $m_sc_reply11=1 
+$()	  <li>En effet, 
+!insmath  cos \left(\widehat{ $val28 $val27 $val29}\right) = $val23 
+$().</li>  
+!endif
+$()	
+!if $m_step > 5 and $m_sc_reply11=0 
+$()	  <li>Attention, 
+!insmath  cos \left(\widehat{ $val28 $val27 $val29}\right) = $val23 
+$().</li>  
+!endif
+$()	
+!if $m_step = 6 
+$()	  <li>Enfin, trouver la valeur de l'angle arrondie $val13 degré	  près de 
+!insmath  \widehat{ $val28 $val27 $val29}
+$() :	  <div class="wimscenter"> 
+!insmath  \widehat{ $val28 $val27 $val29}
+$() =  
+!read oef/embed.phtml r12 
+$() </div></li>	 
+!endif
+$()	
+!if $m_step > 6 and $m_sc_reply12=1 
+$()	  <li>La valeur de l'angle arrondie au degré près de 
+!insmath  \widehat{ $val28 $val27 $val29}
+$() est bien:	  <div class="wimscenter"> 
+!insmath  \widehat{ $val28 $val27 $val29} = $val24 
+$(). </div></li>  
+!endif
+$()	
+!if $m_step > 6 and $m_sc_reply10=0 
+$()	  <li>Non, la valeur de l'angle arrondie au degré près de 
+!insmath  \widehat{ $val28 $val27 $val29}
+$() est :	<div class="wimscenter"> 
+!insmath  \widehat{ $val28 $val27 $val29} = $val24 
+$(). </div></li>  
+!endif
+$()	</ol>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,13,14,16,17,23,24,25,27,28,29,31
+embedcnt=12

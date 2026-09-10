@@ -1,0 +1,42 @@
+!set modu_lang=fr
+!set name_header=Objects à remplir,Type de termes,Nombre de termes suppl.,Type d'opérations
+!set name_prompt=1 terme, 2 termes, 3 termes,\
+	tous les termes, 1 opérateur, 2 opérateurs,\
+	tous les opérateurs, 1 terme + 1 opérateur,2 termes + 1 opérateur,\
+	2 termes + 2 opérateurs, tout
+
+!set n=!recordcnt src/data.$tmp_lang
+!reset objlist
+!for i=1 to $n
+ !set l=!record $i of src/data.$tmp_lang
+ !set l=!line 1 of $l
+ !set objlist=!append item $l to $objlist
+!next i
+<tr><th>$(name_header[1])
+</th><td>
+!set wims_formselect_switch=multiple="multiple" size="5"
+!set confparm3=50 0
+!formselect confparm3 list 1 0,2 0,3 0,\
+	50 0,0 1,0 2,\
+	0 50,1 1,2 1,\
+	2 2,50 50\
+	prompt \
+	$name_prompt
+!reset wims_formselect_switch
+</td></tr><tr><th>
+$(name_header[2]):
+</th><td>
+!set confparm1=1
+!formselect confparm1 from 1 to $n prompt $objlist
+</td></tr>
+<tr><th>
+$(name_header[4]):
+</th><td>
+!set confparm2=2
+!formselect confparm2 from 1 to 3 prompt \
+	+ and -, + - &times;, + - &times; &divide;
+</td></tr><tr><th>$(name_header[3]):
+</th><td>
+!set confparm4=1
+!formselect confparm4 from 0 to 5
+</td></tr>

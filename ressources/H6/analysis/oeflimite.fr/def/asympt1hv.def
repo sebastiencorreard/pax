@@ -1,0 +1,146 @@
+!set title=Limite -> asymptote (hv)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -5, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val7*x+$val6
+tmp0=!exec pari $t_
+
+tmp1=!texmath $(tmp0)
+
+val8=$(tmp1)
+tmp0=!randitem - \infty, + \infty
+
+val9=$(tmp0)
+tmp0=!randitem - \infty, + \infty
+
+val10=$(tmp0)
+tmp0=!randitem 1,3,4
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11 < 3 
+val12= 
+!else
+val12=reply2
+!endif
+tmp0=!item $val11 of \(\displaystyle{\lim_{x \to $val9} f(x) = $val10}),	\(\displaystyle{\lim_{x \to $val9} f(x) - ($val8) = $val10}),	\(\displaystyle{\lim_{x \to $val9} f(x) = $val6}),	\(\displaystyle{\lim_{x \to $val6} f(x) = $val9}),	\(\displaystyle{\lim_{x \to $val9} f(x)  - ($val8)  = 0})	
+
+val13=$(tmp0)
+tmp0=!item $val11 of 2,2,1,1,1
+
+val14=$(tmp0)
+tmp0=!item $val11 - 2 of y = $val6,x = $val6,y = $val8
+
+val15=$(tmp0)
+val15=$val15, x,y
+oefsteps=reply1	$val12 
+nextstep=!nosubst reply1	$val12 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=
+replygood1=$val14;oui,non
+replytype2=equation
+replyname2=Droite asymptote
+replygood2=!rawmath $val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère une fonction 
+!insmath f
+$() de courbe représentative 
+!insmath C
+$() dans un repère orthogonal.	<br/>On admet que $val13 .	 
+!if $m_step = 1 
+$()	<br/>Peut-on en déduire que la courbe 
+!insmath C
+$() admet une droite asymptote ? 
+!read oef/embed.phtml reply1 
+$() 
+!endif
+$()	 
+!if $m_step = 2 
+$()<br/>On peut en déduire que la courbe 
+!insmath C
+$() admet une droite asymptote d'équation :  
+!read oef/embed.phtml reply2 
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13
+embedcnt=2

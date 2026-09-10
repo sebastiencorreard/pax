@@ -1,0 +1,161 @@
+\title{Nature de la suite ? (graphique)}
+\author{Cyrille, Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\format{html}
+\computeanswer(yes)
+\keywords{sequence,geometric_sequence,arithmetic_sequence}
+%%%%%%%%%%% MB :
+\observation{En fonction de la configuration de l'exercice sur 
+le module, le vocaublaire utilisé est :
+<ul><li>Que celui des suites arithmétiques</li>
+<li>Que celui des suites géométriques</li>
+<li>Aléatoirement l'un ou l'autre</li>
+</ul>
+}
+%%%%%%%%%%% MB : introduction du confparm2 : suite arithm (A) ou géom (G) ou les deux (AG)
+\text{confparm2= items(\confparm2)=0 ? random(A,G,AG):\confparm2} %%% necessaire car non présent dans les premières versions
+\if{\confparm2 == A}{\text{proprep=être arithmétique,ne pas être arithmétique, je n'en sais rien}}
+\if{\confparm2 == G}{\text{proprep=ne pas être géométrique,être géométrique, je n'en sais rien}}
+\if{\confparm2 == AG}{\text{proprep=être arithmétique, être géométrique, je n'en sais rien}}
+
+%%%%%%%%%%%%%%%%%%%%%%%
+##Paramètres et termes de la suite##
+\integer{type=randint(1,2)}##1: arith, 2: géo##
+
+##Suites géométriques à termes positifs \confparm1=P ou suite à termes réels : \confparm1=R
+\text{confparm1= items(\confparm1)=0 ? randitem(P,R):\confparm1}
+\if{\confparm1 issametext R}{
+\integer{s1=random(-1,1)}
+}
+{\integer{s1=1}}
+
+
+\if{\type=1}{\integer{R=randint(1..5)*randint(-1,1)}##raison##
+\integer{U0=(\R>0)? randint(-8..2):randint(-2..8)}
+\text{Ul=\U0}
+\for{J=1 to 4}{\integer{U=\U0+\J*\R},\text{Ul=\Ul,\U}}
+}
+{%%%%% géom %%%%%
+\rational{R=randitem(0.5,1.5,2,3)}##raison##
+\integer{U0=(\R>=2)? randitem(1,2,3)*\s1}
+\integer{U0=(\R=0.5)? randitem(32,16,8)*\s1}
+\integer{U0=(\R=1.5)? randitem(2,4,8)*\s1}
+\text{Ul=\U0}
+\for{J=1 to 4}{\real{U=\U0*(\R)^\J},\text{Ul=abs(\U)>40?\Ul:\Ul,\U}}
+}
+\integer{n=randitem(0,0,1,2)}
+\rational{Rep=\Ul[\n+1]}
+
+##Paramètres graphiques##
+\integer{ymax=min(round(maxima(max(\Ul)))+10,90)}
+\integer{ymax=(\ymax<1)? 10:\ymax}
+\integer{ymin=max(round(maxima(min(\Ul)))-10,-90)}
+\integer{ymin=(\ymin>-1)? -10:\ymin}
+##pour voir les axes##
+\integer{Ny=\ymax-\ymin}
+\integer{larg=240}
+\integer{haut=floor(\Ny*\larg/6)}
+\integer{haut=(\Ny>10)? floor(\haut/(floor(\Ny/10)+1)):\haut}##pas trop haut##
+%%%% savoir combien de pts à tracer condition abs(U)<40 %%%%%%%%
+\text{plotpt=fcircle 0,\Ul[1],10,blue
+fcircle 1,\Ul[2],10,blue
+fcircle 2,\Ul[3],10,blue}
+\text{plotpt4=abs(\Ul[4])<40?fcircle 3,\Ul[4],10,blue}
+\text{plotpt5=abs(\Ul[5])<40?fcircle 4,\Ul[5],10,blue}
+%%%%%%% fin MB %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\text{courbe=draw(\larg,\haut
+xrange -1,5
+yrange \ymin,\ymax
+parallel -1,\ymin,5,\ymin,0,1,\Ny,grey
+parallel -1,\ymin,-1,\ymax,1,0,6,grey
+comment ajout MB
+parallel -0.1,-35,0.2,-35,0,10,10,black
+
+hline 0,0,black
+vline 0,0,black
+segment 1,-0.3,1,0.3, black
+segment -0.3,1,0.3,1, black
+text black , -0.2,-0.2,small , 0
+text black , 1,-0.3,small , 1
+text black , -0.5,2,small , 1
+segment -0.3,10,0.3,10, black
+text black , -0.5,10.2,small , 10
+segment -0.3,20,0.3,20, black
+text black , -0.5,20.2,small , 20
+segment -0.3,30,0.3,30, black
+text black , -0.5,30.2,small , 30
+segment -0.3,40,0.3,40, black
+text black , -0.5,40.2,small , 40
+segment -0.3,-10,0.3,-10, black
+text black , -0.5,-9.8,small , -10
+segment -0.3,-20,0.3,-20, black
+text black , -0.5,-19.8,small , -20
+segment -0.3,-30,0.3,-30, black
+text black , -0.5,-29.8,small , -30
+\plotpt
+\plotpt4
+\plotpt5
+)}
+\integer{Rabs=abs(\R)}
+%%% gestion des réponses %%%
+\if{\confparm2 == A}{
+\if{\type=1}{
+\text{temp=reply 1,reply 2
+reply 3}}
+\if{\type=2}{\text{temp=reply 1, reply 2 }}
+}
+
+
+\if{\confparm2 == G}{
+\if{\type=1}{
+\text{temp=reply 1, reply 2}}
+\if{\type=2}{\text{temp=reply 1, reply 2
+reply 3}}
+}
+
+\if{\confparm2 == AG}{
+\text{temp=reply 1, reply 2
+reply 3}}
+
+\steps{\temp
+}
+%%%% Nom Nature
+\text{nature=\type=1?arithmétique:géométrique}
+
+
+
+\statement{Ci-dessous sont représentés les premiers termes d'une suite \(u).
+<div class="wimscenter">
+<img src="\courbe" alt="nuage de points" >
+</div>
+\if{\step=1}{
+<div class="wims_question"><p>Lire la valeur de \(u_\n).</p>
+<label for="reply1">\(u_\n=)</label>\embed{r1,4}.
+</div>
+<div class="wims_question"><p>Conjecturer la <label for="reply2">nature</label> de cette suite.</p>
+La suite \(u) semble \embed{r2} .</div>}{
+<div class="wims_question">Cette suite \nature a pour <label for="reply3">raison</label> \embed{r3,3}.</div>
+}
+
+}
+\answer{}{\Rep}{type=numeric}
+\answer{}{\type;\proprep}{type=menu}
+\answer{}{\R}{type=numeric}
+
+\solution{<b>Pour \(u_\n) :</b>
+<br>\(u_\n) est l'ordonnée du point d'abscisse \(\n) donc \(u_\n=\Rep).
+<br><b>Pour la nature :</b>
+<br>Les points \if{\type=1}{semblent}{ne semblent pas} alignés.
+\if{\confparm2==A  or \confparm2==AG}{
+<br>Or on sait que les points sont alignés lorsque la suite est arithmétique.
+<br>Elle \if{\type=1}{semble donc}{ne semble donc pas} être arithmétique.}
+\if{\confparm2==G}{<br>Or on sait que les points ne sont pas alignés lorsque la suite est géométrique.}
+\if{\confparm2==G or \confparm2==AG}{
+\if{\type=2}{<br>Elle semble donc être géométrique (seul choix qu'il reste)}}
+\if{(\confparm2==A and \type=1) or (\confparm2==G and \type=2) or \confparm2==AG}{
+<br> <b>Pour la raison :</b> par lecture graphique les premiers termes sont \Ul[1] ; \Ul[2] ; \Ul[3]
+<br>On passe d'un terme au suivant en \if{\type=1}{\if{\R>0}{additionnant}{soustrayant}
+\Rabs donc la suite semble <b>arithmétique de raison \R</b>.}{multipliant par \R donc la suite semble <b>géométrique de raison \R</b>.}}
+ }

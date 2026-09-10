@@ -1,0 +1,186 @@
+!set title=Tables : trouver la base
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=bpr@math.u-psud.fr
+author=Bernadette, Perrin-Riou
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+oefcss=<style> .reponse {background-color: #ffcc99; color : black; margin: 2% 5%; padding: 2%; } </style> 
+title_it=Tavole: trova la base
+
+ansorder=r
+varcnt=37
+prevarcnt=27
+postvarcnt=9
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint  5, 9
+
+tmp1=!randint 11, 14
+
+tmp=!nonempty items $(tmp0), $(tmp1)
+
+tmp2=!randitem $tmp
+val6=$(tmp2)
+tmp0=!shuffle min(9,$val6-1)
+
+val7=$(tmp0)
+val8=$[rint($val6/2)]
+val7=$(val7[1..$val8])
+tmp0=!sort numeric items  $val7
+
+val7=$(tmp0)
+tmp0=!randint 3, $val6 -1
+
+val9=$(tmp0)
+val10=
+tmp0=!exec float_calc	obase=$val6; ibase=10; $val9
+
+val11=$(tmp0)
+val12=
+!for val13  = 1 to $val6-1 
+tmp0=!exec float_calc	obase=$val6; ibase=10;$val9*$val13
+
+val10=$val10, $(tmp0)
+tmp0=!exec float_calc	obase=$val6; ibase=10; $val13
+
+val12=$val12, $(tmp0)
+!next
+tmp0=!nonempty items $val12
+
+val12=$(tmp0)
+tmp0=!nonempty items $val10
+
+val10=$(tmp0)
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=Voici quelques multiplications tirées d'une	  table. Trouver le système de numération : donner la base \(b\) (écrite en	  base décimale). 
+val16=La base est correcte ?
+val17=Un système de numération possible est
+val18=Dans la base \base que vous avez indiqué,est égal à,et non pas à
+val19=Dans un système de numération de base,les chiffres sont "inférieurs" à
+val20=Base
+!if $val14=it 
+val15=Ecco alcune moltiplicazioni eseguite in uno stesso	    sistema di numerazione. Individua questo sistema di numerazione:	    indicandone la base \(b\) (scritta in notazione	  decimale). 
+val16=La base è corretta?
+val17=Un sistema di numerazione possibile è
+val18=Nella base,che voi avete indicato,è uguale a,e non a
+val19=In un sistema di numerazione in base,le cifre sono "inferiori" a
+val20=Base
+!endif
+replyname1=$val20
+replygood1=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val15	<table class="wimscenter">	 
+!for m_j in $val7 
+$()	<tr><td>$(val12[$m_j]) $m_times $val11</td><td> = </td><td>$(val10[$m_j])</td></tr> 
+!next
+$()	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val22=
+!for val23  in $val7 
+tmp0=!exec float_calc	obase=$val21; ibase=10 ; $val9*$val23
+
+val22=$val22, $(tmp0)
+!next
+tmp0=!nonempty items $val22
+
+val22=$(tmp0)
+val24=$(val10[$val7])
+tmp0=!listcomplement $val24 in $val22
+
+val25=$(tmp0)
+tmp0=!positionof item $(val25[1]) in $val22
+
+val26=$(tmp0)
+tmp0=!itemcnt $val25
+
+val27=$(tmp0)
+tmp0=!sort numeric item $val7,$val21
+
+val28=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val27 > 0 and $(val28[-1]) = $val21
+ <div class='oef_feedbacks'>	<div class="reponse">	  $val17	  
+!insmath b = $val6
+$().	$(val18[1]) $val21, $(val18[2]),	$(val7[$val26]) $m_times $val9 $(val18[3]) $(val22[$val26])	$(val18[4]) 
+!insmath $(val24[$val26])
+$().	</div>	
+$()</div>
+!endif
+!ifval $(val28[-1]) != $val21
+ <div class='oef_feedbacks'>	  <div class="reponse">$(val19[1]) $val21, $(val19[2]) $val21.	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val27=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val16
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12,15,16,17,18,19,21
+embedcnt=0

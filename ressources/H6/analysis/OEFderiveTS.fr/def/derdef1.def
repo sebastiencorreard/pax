@@ -1,0 +1,175 @@
+!set title=Dérivabilité 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Bonne réponse
+tmp0=!randint 2, 5
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7^2)]
+val9=$[rint($val7^3)]
+val10=sqrt(x^3-$val9),$val7,2	sqrt(x^2-$val8),$val7,2	sqrt(x^2+$val8),$val7,1	sqrt(x^3-$val7),$val7,1	(x-$val7)*sqrt(x-$val7),$val7,1	sin($val7*x),0,1	tan($val7*x),0,1	
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val11=$[rint($(tmp1))]
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $val11 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+val13=$(val12[1])
+tmp0=!texmath $val13
+
+val14=$(tmp0)
+val15=$[rint($(val12[2]))]
+val16=$[rint($(val12[3]))]
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+val17=$(tmp0)
+val18=!rawmath ($val13-$val17)/(x-$val15)
+t_=!replace internal \( by ( in $val13 - $val17
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val19=$(tmp1)
+t_=!replace internal \( by ( in x - $val15
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val20=$(tmp1)
+val21=\dfrac{$val19}{$val20}
+!if $val16=1 
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val22=!rawmath $(tmp0)
+evaltmp=$val22
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+val23=$[$(tmp0)]
+val24=r1,r2	r3
+!else
+val24=r1,r2
+!endif
+oefsteps=$val24 
+nextstep=!nosubst $val24 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=expression de la limite
+replygood1=$val18
+replytype2=radio
+replyname2=existence
+replygood2=$val16;Oui,Non
+replytype3=numexp
+replyname3=nombre dérivé
+replygood3=$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_smallhelp">Cet exercice comporte une ou plusieurs étapes.</div>	<p>	On veut étudier la dérivabilité en 
+!insmath x=$val15
+$() de la fonction 
+!insmath f
+$() définie par :</p>	<div class="wimscenter">
+!insmath f(x)=$val14
+$().</div>	<div class="wims_question">	
+!if $m_step=1 
+$()	<ol>	<li>Écrire la limite dont on doit vérifier l'existence pour conclure :	<div class="wimscenter"><label for="reply1">
+!insmath \displaystyle\lim_{x \rightarrow $val15}
+$()</label> 
+!read oef/embed.phtml reply1 
+$().</div>	</li><li>	  Cette limite existe-t-elle ?  
+!read oef/embed.phtml reply2 
+$().</li>	</ol></div>	<div class="wims_instruction">Pour écrire 
+!insmath \sqrt{5}
+$() taper	<span class="tt">sqrt(5)</span>.	 
+!else
+$() 	<span class="oef_indgood">$val6.</span>	  Le taux d'accroissement est 
+!insmath $val21
+$().	<ol start="3">	<li>	 <label for="reply3">Le nombre dérivé de 
+!insmath  f 
+$() en 
+!insmath  $val15 
+$() vaut 
+!insmath f'($val15) =
+$() </label>  
+!read oef/embed.phtml reply3 
+$().	</li>	</ol>	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,15,21
+embedcnt=3

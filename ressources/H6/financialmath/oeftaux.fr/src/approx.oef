@@ -1,0 +1,160 @@
+type=first
+textarea="data"
+:Questions à choix multiples incorporées dans un texte fixe.
+
+Cet exercice présente un texte où des champs à choix multiples sont insérés.
+<p>
+Pour construire un exercice avec ce modèle, il suffit d'entrer les textes.
+Une syntaxe facile permet d'incorporer les champs de choix dans les textes.
+<p>
+Auteur du modèle : Gang Xiao <xiao@unice.fr>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'entete ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Approximations}
+:\author{Eric, Sénéchal}
+:\email{ericsen@wanadoo.fr}
+:Paramètre 1 \x.
+
+\real{x=randitem(0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2)*randitem(-1,1)}
+
+:Paramètre 2 \y.
+
+\real{y=randitem(0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2)*randitem(-1,1)}
+
+:Paramètre 3 \z.
+
+\real{z=randitem(0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2)*randitem(-1,1)}
+
+:Paramètre 4 \t.
+
+\real{t=randitem(0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2)*randitem(-1,1)}
+
+:Paramètre 5 \u.
+
+\real{u=randitem(0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2)*randitem(-1,1)}
+
+:Année 1 \i.
+
+\real{i=randint(1980..2004)}
+
+:Année 2 \j.
+
+\real{j=\i+2}
+
+:Reponse 1 \v.
+
+\real{v=2*\x}
+
+:Reponse 2 \w.
+
+\real{w=-\y}
+
+:Reponse 3 \a.
+
+\real{a=0.5*\z}
+
+:Reponse 4 \b.
+
+\real{b=\t+\u}
+
+:Mauvais 1 \c.
+
+\real{c=min(min(\v,\w),min(\a,\b))-2}
+
+:Mauvais 2 \d.
+
+\real{d=min(min(\v,\w),min(\a,\b))-1}
+
+:Mauvais 3 \e.
+
+\real{e=min(min(\v,\w),min(\a,\b))-0.5}
+
+:Mauvais 4 \f.
+
+\real{f=max(max(\v,\w),max(\a,\b))+2}
+
+:Mauvais 5 \g.
+
+\real{g=max(max(\v,\w),max(\a,\b))+1}
+
+:Mauvais 6 \h.
+
+\real{h=max(max(\v,\w),max(\a,\b))+0.5}
+
+:Données principales.
+Les questions à poser doivent être mises entre une paire de
+double-point d'interrogation "??".
+On peut poser plusieurs questions dans une même phrase (jusqu'à 20).
+Si une question accepte plusieurs réponses correctes possibles, mettez
+toutes les bonnes réponses (synonymes) séparées par un trait vertical '|'.
+help
+\text{data=Remplissez : <p>
+Deux évolutions successives de \x % correspondent à une évolution globale voisine de
+??\v,\c,\d,\e,\f,\g,\h?? %.</p><p>
+ Si on considère une évolution de \y % alors l'évolution réciproque a un taux voisin de
+??\w,\c,\d,\e,\f,\g,\h?? %.</p><p> Une évolution de \z % de \i à \j correspond à une évolution annuelle moyenne voisine de
+??\a,\c,\d,\e,\f,\g,\h?? %.</p><p> Une évolution de \t % suivie d'une seconde évolution de \u % donnent une évolution globale d'un taux voisin de
+??\b,\c,\d,\e,\f,\g,\h?? %.</p><p> Mais ATTENTION : Toutes ces approximations ne sont admissibles que parce qu'il s'agissait de taux ??proches de 0 %,proches de 1 %,positifs, négatifs, très grands??
+</p>}.
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\text{data=wims(singlespace \data)}
+\text{data=wims(embraced randitem \data)}
+\text{data=slib(text/cutchoice2 \data)}
+\integer{qs=min(20,floor(rows(\data)/2))}
+
+\text{good=}
+\text{field=}
+\for{i=1 to \qs}{
+ \text{f=\data[2*\i;]}
+ \text{g=\f[1]}
+ \text{f=wims(sort items \f)}
+ \text{g=positionof(\g,\f)}
+ \text{good=\good\g,}
+ \text{field=\field\f;}
+}
+
+\text{pre=wims(embraced randitem \pre)}
+\text{post=wims(embraced randitem \post)}
+\text{qlist=wims(makelist reply x for x=1 to \qs)}
+\steps{\qlist}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement{
+\data[1;]
+\for{k=1 to \qs}{
+\embed{r \k,\len} \data[2*\k+1;]
+}}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{Champ 1}{\good[1];\field[1;]}{type=menu}
+\answer{Champ 2}{\good[2];\field[2;]}{type=menu}
+\answer{Champ 3}{\good[3];\field[3;]}{type=menu}
+\answer{Champ 4}{\good[4];\field[4;]}{type=menu}
+\answer{Champ 5}{\good[5];\field[5;]}{type=menu}
+\answer{Champ 6}{\good[6];\field[6;]}{type=menu}
+\answer{Champ 7}{\good[7];\field[7;]}{type=menu}
+\answer{Champ 8}{\good[8];\field[8;]}{type=menu}
+\answer{Champ 9}{\good[9];\field[9;]}{type=menu}
+\answer{Champ 10}{\good[10];\field[10;]}{type=menu}
+\answer{Champ 11}{\good[11];\field[11;]}{type=menu}
+\answer{Champ 12}{\good[12];\field[12;]}{type=menu}
+\answer{Champ 13}{\good[13];\field[13;]}{type=menu}
+\answer{Champ 14}{\good[14];\field[14;]}{type=menu}
+\answer{Champ 15}{\good[15];\field[15;]}{type=menu}
+\answer{Champ 16}{\good[16];\field[16;]}{type=menu}
+\answer{Champ 17}{\good[17];\field[17;]}{type=menu}
+\answer{Champ 18}{\good[18];\field[18;]}{type=menu}
+\answer{Champ 19}{\good[19];\field[19;]}{type=menu}
+\answer{Champ 20}{\good[20];\field[20;]}{type=menu}

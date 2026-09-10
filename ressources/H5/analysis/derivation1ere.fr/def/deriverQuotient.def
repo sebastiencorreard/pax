@@ -1,0 +1,333 @@
+!set title=Dérivée d'un quotient
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+title_en=The quotient rule
+
+ansorder=r,r,r,r,r,r,r
+varcnt=58
+prevarcnt=57
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Le numérateur \(u\) est défini par,	  Le dénominateur \(v\) est défini par,	  Dérivée du numérateur,	  Dérivée du dénominateur,	  Ensemble de dérivation,	  Formule de dérivation,	  La dérivée \(f'\) est définie par
+val8=Solution.,	  La fonction dérivée \(f'\) est définie pour tout réel \(x\),	  différent de, par,forme factorisée
+val9=On donne la fonction \(f\) définie sur,par,	  Nous allons calculer \(f'(x)\) par étapes.
+val10=On peut écrire \(f) comme un quotient \(\frac{u}{v}),	  où les fonctions \(u\) et \(v\) sont définies sur \(\,\RR\) par
+val11=et
+val12=Les fonctions \(u\) et \(v\) sont dérivables sur 
+val13=avec
+val14=La fonction quotient, est dérivable sur
+val15=On applique la formule de dérivation&nbsp;
+val16=On obtient alors
+!if $val6=en 
+val7=The numerator \(u\) is defined by,	  The denominator \(v\) is defined by,	  The derivative of the numerator,	  The derivative of the denominator,	  Differentiable in,	  Formule de dérivation,	  The derivative \(f'\) is defined by
+val8=Solution.,	  The derivative function \(f'\) is defined for all real \(x\),	  different of, by,factored form
+val9=Given the function \(f\) defined in,by,	  We will now determine the derivative of \(f'(x)\) in a few steps.
+val10=We rewrite \(f) as a fraction \(\frac{u}{v}),	  wherein the functions \(u\) and \(v\) are defined in \(\,\RR\) by
+val11=and
+val12=The functions \(u\) and \(v\) are differentiable in 
+val13=with
+val14=The fraction, is differentiable in
+val15=Which rule on differentiation do we apply
+val16=We will get
+!endif
+tmp0=!randint 1, 4
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+tmp1=!randitem 1,-1
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 4
+
+tmp1=!randitem 1,-1
+
+val20=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val21=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem x,x^2
+
+val22=$val18*x + $val19,	 x^2 + $val18,	 $val18*x^2 + $val19*x + $val20,	 $val17*$(tmp0)	
+tmp0=!randitem x,x^2
+
+val23=$val20*x+$val21,	 ($val20*x+$val21)^2,	 $val17*$(tmp0),	 x^2+$val17	
+tmp0=!randint 1, 4
+
+val24=$[rint($(tmp0))]
+
+!ifval ($val24==3)
+tmp0=!randint 1, 3
+
+val25=$[rint($(tmp0))]
+!else
+tmp1=!randint 1, 4
+
+val25=$[rint($(tmp1))]
+!endif
+tmp0=!item $val25 of  $val22
+
+val26=!rawmath $(tmp0)
+tmp0=!item $val24 of  $val23
+
+val27=!rawmath $(tmp0)
+
+!ifval $val24<3 
+t_=!rawmath -$val21 / $val20
+val28=!exec pari print($t_)
+!endif
+
+!ifval $val24==3 
+t_=!rawmath 0
+val28=!exec pari print($t_)
+!endif
+
+!ifval $val24==4 
+t_=!rawmath 0
+val28=!exec pari print($t_)
+!endif
+
+!ifval $val24==4
+val29=$[rint(1)]
+!else
+val29=$[rint(0)]
+!endif
+val30=\(\,\RR),\(\RR \setminus\{$val28\})
+
+!ifval $val24==4
+val31=$[rint(1)]
+!else
+val31=$[rint(2)]
+!endif
+tmp=!translate ;";': to $     $ in $val26,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val32=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val27,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val33=!rawmath $(tmp0)
+val34=!rawmath ($val26)/($val27)
+tmp=!translate ;";': to $     $ in $val34,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val35=!rawmath $(tmp0)
+t_=!replace internal \( by ( in factor($val35)
+tmp0=!exec maxima $t_
+
+val36=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val32*$val27-$val26*$val33)
+tmp0=!exec maxima $t_
+
+val37=!rawmath $(tmp0)
+tmp0=!randint 1, 3
+
+val38=$[rint($(tmp0))]
+val39=u'v + uv'
+val40=u'v - uv'
+val41=v^2
+val42=\(f' = $val39)
+val43=\(f' = $val40)
+val44=\(f' = \frac{$val40}{$val41})
+val45=\(f' = \frac{u'}{v'})
+val46=\(f' = \frac{$val39}{$val41})
+
+!ifval $val38==3
+val47=$val42,$val43,$val44,$val45,$val46
+!endif
+
+!ifval $val38==2
+val47=$val42,$val44,$val43,$val45,$val46
+!endif
+
+!ifval $val38==1
+val47=$val44,$val42,$val43,$val45,$val46
+!endif
+val48=$[rint($val38)]
+oefsteps=reply1,reply2,reply3,reply4	reply5, reply6	reply7 
+nextstep=!nosubst reply1,reply2,reply3,reply4	reply5, reply6	reply7 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=$(val7[1]) u (x)
+replygood1=$val26
+replytype2=formal
+replyname2=$(val7[2]) v (x)
+replygood2=$val27
+replytype3=formal
+replyname3=$(val7[3]): \(u'(x)\)
+replygood3=$val32
+replytype4=formal
+replyname4=$(val7[4]): \(v'(x)\)
+replygood4=$val33
+replytype5=radio
+replyname5=$(val7[5])
+replygood5=$val31 ; $val30
+replytype6=radio
+replyname6=$(val7[6])
+replygood6=$val48 ; $val47
+replytype7=formal
+replyname7=$(val7[7]): \(f'(x)\)
+replygood7=$val36
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<p>	  $(val9[1])	 
+!if $val29==1 
+$()
+!insmath \,\RR
+$() 
+!else
+$() 
+!insmath \RR \setminus\{$val28 \}
+$() 
+!endif
+$() $(val9[2])	  
+!insmath f(x) = ($val26)/($val27)
+$().	</p><p>$(val9[3]) $(val9[4])</p>	</div>	
+!if $m_step==1 
+$()	  <ul>	  <li>$val10 :	  <div class="wimscenter"><label for="reply1">
+!insmath u(x)
+$() =</label>  
+!read oef/embed.phtml reply1, 15 
+$()	   $val11	  <label for="reply2">
+!insmath v(x) = 
+$()</label>  
+!read oef/embed.phtml reply2, 15 
+$() </div>	  </li><li>$val12 
+!insmath \,\RR
+$():	  <div class="wimscenter"><label for="reply3">
+!insmath u'(x)
+$() =</label>	     
+!read oef/embed.phtml reply3, 15 
+$() $val11	   <label for="reply4">
+!insmath v'(x) = 
+$()</label>  
+!read oef/embed.phtml reply4, 15 
+$() </div>	  </li> 
+!else
+$() 	  <li>
+!insmath f = \frac{u}{v}
+$() $val13:	  <div class="wimscenter"><p>
+!insmath u(x) = $val26
+$() $val11 
+!insmath u'(x) = $val32
+$() </p>	  <p>
+!insmath v(x) = $val27 
+$() $val11 
+!insmath v'(x) = $val33
+$() </p>	  </div>	</li>	 
+!endif
+$()	
+!if $m_step==2 
+$()	  <li> $(val14[1]) 
+!insmath f = \frac{u}{v}
+$() $(val14[2])	  <div class="wimscenter"> 
+!read oef/embed.phtml reply5 
+$()</div>	  </li><li>$val15:	<div class="wimscenter">  
+!read oef/embed.phtml reply6 
+$()</div>	</li> 
+!endif
+$()	
+!if $m_step==3 
+$()	<li>	
+!insmath f
+$() $(val14[2]) 
+!if $val29==1 
+$()$m_RR 
+!else
+$() 
+!insmath \RR \setminus\{$val28 \}
+$() 
+!endif
+$().	</li><li>	$val15: $val44	</li>	<li>$val16 :	<div class="wimscenter">
+!insmath f'(x)
+$() =  
+!read oef/embed.phtml reply7, 50 
+$()</div>	</li> 
+!endif
+$()	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <div class='oef_feedbacks'><b>$(val8[1])</b> $(val8[2])	  
+!if $val29!=1 
+$()$(val8[3]) 
+!insmath $val28
+$() 
+!endif
+$() $(val8[4]) &nbsp;	  
+!insmath f'(x) = $val36
+$() &nbsp; ($(val8[5])).	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,14,15,16,26,27,28,29,32,33,36,44
+embedcnt=7

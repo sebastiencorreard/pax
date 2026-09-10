@@ -1,0 +1,224 @@
+!!compatible avec geogebra3.2
+
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Geogebra Applet
+slib_author=Paul, Byache; Bernadette, Perrin-Riou
+
+slib_example=Z=(-3,6.78);W=(0.2,5.8);a=Circle[Z,W];Ellipse[Z,W,5];u=Line[W,Z];showMenuBar=true;showAlgebraView=false;showToolBar=true;language=en;customToolBar="0|40@10||1|2";width=600;height=300;setCoordSystem(-9,7,1,11.5);setAxesVisible(true, true)\
+A=(0,3.5);B=(0,5);a=Cercle[A,B];d:y=2x+1;number=6;width=600;language=fr;showToolBar=true;customToolBar="0|40";showAlgebraView=false\
+A=(0,3);B=(0,4);C=(2,3);s=Segment[A,C];Angle[C,A,B];a=Droite[C,B];D=Point[a];b=3;f(x)=b+sin(x);width=600;language=fr;showAlgebraView=false\
+ggbBase64=UEsDBBQACAAIAE9zJ0AAAAAAAAAAAAAAAAAMAAAAZ2VvZ2VicmEueG1s3VZNc9s2ED03vwLDeygQ/J6RnFGcHjKTpge3OfQGkbCEGgQYAJQp/fosAJKSXM/0K6fY46Hxdrl4+3YXxPrd2Al0ZNpwJTdREuMIMdmolsv9Jhrs49sqenf3Zr1nas92mqJHpTtqN1Eak8jhA79789PaHNQzosK7fOHseRM9UmFYhEyvGW3NgTF7g9Nh5IJTffp19ydrrLkYQpCPsh/sAjZd+4kbWFs9sGjld+wFtx/4kbdMI6GaTVTkwB3++8K05Q0VmyjDASGbiLwwApQ660FpflbSOvdL8EdAEDL8zEAS4rD1yme6ZkMjeMupdNl4HuCE0DNv7WET1T4k4/sDcM3LPERrlNLtw8lY1qHxD6YV0Elyp/QprNKwMsALNsyxN12vfBh2fGDWQl0MoiO7KLbXvL1ZfDTvlbhAveLS3tPeDtoXNZ2gB3tyG8Be2hHeyr1gE5aA5AfWPO3U+BBESEPo3069f8UT2u3vlVAaaSdvDg7Tcxee3scxXbyw98HeY4rhgi72pCbewz934em9BJeB2pR5Mmed4HkbbpADnIzQi0vygu4YlDZCg+T207yAFni6pOpe+Dx0OxiC6yZYYibfK+Z69aJ91k9MSyZCk0io7aAGg46uGcNenkjLGt7BMhgmSagr1+9AIKAt22s2Ew8jFATzVnzdiC/g9Wom4TgY4NpYOAsgH+tyYcZQ7ubVwqi4PFtqAXazzwTrGAyK9U3he2oRZxstx4LyEz6pMNsvMoP51QbxrURFf6CAzDMg6AnG/TonH+8X1d5mSiUo5tOAqetdAFeTnrFQTju1MeohoB+KK7m9SgaNQCEuK3z9A215gmPFzec5HJb+jTBO7iDwHNKp1kGevxHq/Y8gVBKnhZeGxEX2/bS5/xG0wXFFbpoomZuouIHzf6dbo7qOyhZJ2gGLn4XgPezt3uTu04kodkOIaOJaDFHi1AxSDXa2NyHoFOovxYDjgDeL2E10exLbAxx4Eo4HdyQtYqz+b8Xwf6/XP+IGH2cmj8BMaYPQiN0+JSFJXVc1KfIkrV0lTh4v6qSosgxnhNQ5hosAOuPpjjSCrm9f8zglr0c8J1fFhbbSfERb7O4ocVrWeVnAb5ljksAgbcE3A+cMoBknMFdb4vA6hr+MFDit0zyFD/M2BS4l7JlVsMhgkZdxDdaqrHFNMlI7PAc8ITgmVVYXpCqqOsVlMYnyVQbhTPiA8Q5uVw23L5tudf2F8Jei6Vp49w1QSwcI9HqTJaEDAABICgAAUEsBAhQAFAAIAAgAT3MnQPR6kyWhAwAASAoAAAwAAAAAAAAAAAAAAAAAAAAAAGdlb2dlYnJhLnhtbFBLBQYAAAAAAQABADoAAADbAwAAAAA=; width=600; height=400\
+
+!exit
+
+:proc
+!set name_clickgeogebra_fr=Initialiser
+
+!default name_clickgeogebra_$lang=Init
+
+!reset slib_out
+
+slib_data=!trim $wims_read_parm
+
+slib_data= !items2lines $wims_read_parm
+slib_data=!replace internal $	$ by $\
+$ in $slib_data
+
+slib_data = !rows2lines $slib_data
+slib_data= !replace internal ; by $\
+$ in $slib_data
+slib_data=!nonempty lines $slib_data
+
+slib_z2= $slib_data
+
+slib_option= !item 2 to -1 of $wims_read_parm
+slib_option= !replace internal , by @ in $slib_option
+slib_option= !replace internal ; by $\
+$ in $slib_option
+!!only for compatibility, only one js method in js=[]
+slib_extra= !getopt js in $slib_data
+slib_extra=!declosing $slib_extra
+slib_extra= !replace internal @ by , in $slib_extra
+slib_extra=!words2lines $slib_extra
+slib_extra = !rows2lines $slib_extra
+slib_data=$slib_data\
+$slib_extra
+
+slib_list_ap = enableLabelDrags,enableShiftDragZoom,errorDialogsActive,file,showToolBar,showAlgebraView,showMenuBar,showResetIcon,showToolBarHelp,enableRightClick,showAlgebraInput,customToolBar,language,debug
+slib_list_ap1=!items2words $slib_list_ap
+
+!for slib_a in width,height,language,$slib_list_ap
+  slib_$slib_a=!getopt $slib_a in $slib_data
+!next slib_a
+slib_number1=!getopt number in $slib_data
+!if $slib_number1!=
+  slib_number=$slib_number1
+!endif
+slib_data_l1=!line 1 of $slib_data
+!! ne pas utiliser getopt car en cas d'un = dans le filestring, il ne sera pas pris en entier
+!if ggbBase64 isin $slib_data_l1
+    slib_ggbBase64=!replace internal ggbBase64= by in $slib_data_l1
+    slib_ggbBase64=!replace internal ggbBase64 = by in $slib_ggbBase64
+    slib_ggbBase64=!replace internal ggbBase64$ $ by in $slib_ggbBase64
+    slib_data=!line 2 to -1 of $slib_data
+!else
+  !reset slib_ggbBase64
+!endif
+slib_customToolBar1= !nospace $slib_customToolBar
+slib_customToolBar=$slib_customToolBar1
+slib_customToolBar= !replace internal @ by , in $slib_customToolBar
+slib_customToolBar= !replace internal || by % in $slib_customToolBar
+slib_customToolBar= !replace internal | by ,|, in $slib_customToolBar
+slib_customToolBar= !replace internal % by ,||, in $slib_customToolBar
+slib_customToolBar= !items2words  $slib_customToolBar
+!default slib_width=300
+!default slib_height=300
+!default slib_enableRightClick=true
+!default slib_showToolBar=false
+!default slib_showToolBarHelp=true
+!default slib_showMenuBar=false
+!default slib_showResetIcon=false
+!default slib_showAlgebraInput=false
+!default slib_language=$module_language
+!default slib_enableLabelDrags=true
+!default slib_enableShiftDragZoom=true
+!default slib_errorDialogsActive=true
+!default slib_debug=false
+!default slib_customToolBar=
+!default slib_number=1
+slib_number=$[$slib_number-1]
+!if $slib_showAlgebraView=false and $slib_ggbBase64=$empty and $slib_file=$empty
+  slib_ggbBase64=UEsDBBQACAAIALOqKEAAAAAAAAAAAAAAAAAMAAAAZ2VvZ2VicmEueG1srVTJbtswED03X0Hw3lhLHSSA5KBNLwGC9uA2h94oaSxNTZECF8fO13dIykt87omaN08zbxayetyPku3AWNSq5vltxhmoVneo+pp7t/l8zx9XN1UPuofGCLbRZhSu5uVtwQPucXXzqbKDfmNCRsorwlvNN0Ja4MxOBkRnBwD3ARd+jxKFOfxs/kLr7NmRgjyrybsT2I7dC1qynfHAFzHjJNF9xx12YJjUbc3vlqSdvl7BOGyFrPmXLCFFzYsrJ0Fl8A7a4LtWLtDPwaVoQFIH1u4ggbFd8JbJtSEyYxbfgbpVBKxaxCZU4FuJHQoVCo0SicTYG3ZuIG52/0DpAPuB6rgr5nCt1qZbH6yDke3/gNEkNV+GKRySVSbLkmbKuMyi69KKYWC3BudIsWViD+du9ga7D8az/ablGZo0KvckJudNHHg5Q7HwmlMuEwR/Vb2EGctpHAO020bv16kLZQr96zDFX6Kgpn/SUhtmQuuXRJjPJp2RE5SeWFnkZJExxwhBT/78oYiMeDbpTLNClaTNlefHqvPsmAYtC0BoI+3pqfg45Zpz5hW6l6NB67E9lxp++OHHhi7I5YKcYub/K2a1uNqfagtGgUxLomi2XnubVjHlikI6aHEkMznmlogwrt8kIKEd9AaOwtP1Sg2L3uxyEa/ganEUETRY0to6eieoHhdqMcaEm+zoEoUqO+EIDK/C4pIdb8j8fKz+AVBLBwiP4PFZGgIAAHAEAABQSwECFAAUAAgACACzqihAj+DxWRoCAABwBAAADAAAAAAAAAAAAAAAAAAAAAAAZ2VvZ2VicmEueG1sUEsFBgAAAAABAAEAOgAAAFQCAAAAAA==
+!endif
+!! ne trouve pas le fichier (? getXML ?)
+!!slib_algebraview=<script type="text/javascript">\
+!!/*<![CDATA[*/\
+!!function algebraview() {\
+!! var myapplet = document.applet$slib_number; \
+!! var ch=new String(myapplet.getXML());\
+!! var f=new String('"false"'); var t=new String('"true"');\
+!! var cmd=new String('cmdList');var alg=new String('algebraView');\
+!! var i=ch.indexOf(alg + '=' + t) ;\
+!! if (i>-1){ ch=ch.substr(0,i)+ alg +'='+ f+ch.substring(i+alg.length+1+t.length,ch.length);}\
+!! var j=ch.indexOf(cmd +'=' + t) ;\
+!! if (j>-1){ ch=ch.substr(0,j)+cmd+'='+f +ch.substring(i+cmd.length+1+t.length,ch.length);}\
+!! myapplet.setXML(ch);\
+!!}\
+/*]]>*/\
+!!</script>
+!!slib_out=$slib_algebraview
+
+slib_js_parm=evalCommand setValue setCoords setColor setVisible \
+  setLabelVisible setLabelStyle setFixed setTrace\
+  setAxesVisible setGridVisible setCoordSystem setUndoPoint\
+  deleteObject renameObject setLayer setLayerVisible\
+  setLineStyle setThickness setPointStyle setPointSize\
+  setFilling setAnimating setAnimationSpeed\
+  startAnimation stopAnimation isAnimationRunning
+
+slib_cnt=!linecnt $slib_data
+
+slib_data1=!replace internal = by , in $slib_data
+slib_data1=!replace internal ( by , in $slib_data1
+
+
+slib_appletcommand=
+slib_appletoption=
+slib_geogebracommand=
+
+slib_out=$slib_out\
+<object type="application/x-java-applet;jpi-version=1.4" name="applet$slib_number" id="applet$slib_number"\
+  classid="java:geogebra.GeoGebraApplet" width="$slib_width" height="$slib_height" MAYSCRIPT>\
+ <param name="java_codebase" value="java/geogebra3">\
+ <param name="java_code" value="geogebra.GeoGebraApplet">\
+ <param name="java_archive" value="geogebra.jar">\
+ <param name="framePossible" value="false">\
+ <param name="language" value="$slib_language">\
+ <param name="showToolBar" value="$slib_showToolBar">\
+ <param name="showToolBarHelp" value="$slib_showToolBarHelp">\
+ <param name="showResetIcon" value="$slib_showResetIcon">\
+ <param name="enableRightClick" value="$slib_enableRightClick">\
+ <param name="showMenuBar" value="$slib_showMenuBar">\
+ <param name="showAlgebraInput" value="$slib_showAlgebraInput">
+!if $slib_ggbBase64 != $empty
+   slib_out=$slib_out\
+ <param name="ggbBase64" value="$slib_ggbBase64">
+!endif
+!for slib_u=1 to $slib_cnt
+  slib_line=!line $slib_u of $slib_data
+  slib_line=!nospace $slib_line
+  slib_line1=!replace internal = by , in $slib_line
+  slib_line1=!replace internal ( by , in $slib_line1
+  slib_first=!item 1 of $slib_line1
+  !if $slib_first iswordof width height $slib_list_ap1
+    slib_out=!append line <param name="$slib_first" value="$(slib_$slib_first)"> to $slib_out
+    !if $slib_first != customToolBar
+      slib_appletoption=!append line $slib_first=$(slib_$slib_first) to $slib_appletoption
+    !else
+      slib_appletoption=!append line $slib_first=$(slib_$(slib_first)1) to $slib_appletoption
+    !endif
+  !else
+    !if $slib_first iswordof $slib_js_parm
+      slib_appletcommand=!append line  myapplet.$slib_line; to $slib_appletcommand
+      slib_geogebracommand=!append line $slib_line to $slib_geogebracommand
+    !else
+      !if $slib_first notwordof height width
+        slib_appletcommand=!append line myapplet.evalCommand("$slib_line"); to $slib_appletcommand
+        slib_geogebracommand=!append line $slib_line to $slib_geogebracommand
+      !endif
+    !endif
+  !endif
+!next
+
+!if $slib_file!=$empty
+  slib_mod = $module_category
+  slib_mod = !items2words $slib_mod
+  !if document iswordof $slib_mod
+    slib_image_dir=$Docdir/$doc/files
+  !endif
+  !if oef iswordof $slib_mod
+    slib_image_dir=$imagedir
+  !endif
+  !if adm/createxo isin $module_dir
+    slib_image_dir=$imagedir
+  !endif
+  !if adm/doc isin $module_dir
+      slib_image_dir=$wims_ref_name?session=$wims_session&+cmd=getfile&+special_parm=doc
+  !endif
+  !default slib_image_dir=$module_dir
+
+  slib_out=$slib_out\
+ <param name="filename" value="$slib_image_dir/$slib_file">
+!endif
+
+!if $slib_customToolBar!=$empty
+  slib_out=$slib_out \
+ <param name="customToolBar" value="$slib_customToolBar">
+!endif
+slib_out=$slib_out\
+Sorry - the GeoGebra Applet could not be started. Please make sure that Java 1.4.2 (or later) is installed and activated. (<a href="http://java.sun.com/getjava">click here to install Java now</a>)\
+</object>
+
+!if $slib_appletcommand!=
+ slib_out=<input type="button" style="background-color:$wims_ref_button_bgcolor;color:$wims_ref_button_color;" value="$(name_clickgeogebra_$lang)" onclick="Construction$slib_number();">\
+ $slib_out\
+ <script type="text/javascript">\
+/*<![CDATA[*/\
+ function Construction$slib_number() {\
+ var myapplet = document.getElementById("applet$slib_number"); \
+ myapplet.setRepaintingActive(false); \
+ $slib_appletcommand\
+ myapplet.setRepaintingActive(true);\
+}\
+/*]]>*/\
+</script>
+
+!endif
+slib_number=$[$slib_number+2]
+slib_z1=$wims_read_parm
+!if $slib_debug=true
+  slib_out=$slib_out \
+<br><br>Parameters read by the applet : $slib_z1<br><br>The slib_data : $slib_z2 --> $slib_data
+!endif

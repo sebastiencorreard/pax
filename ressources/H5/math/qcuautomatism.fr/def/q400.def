@@ -1,0 +1,134 @@
+!set title=Question 400 T Proportion de proportion
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz,percentage,percents,fraction
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-techno-1_0.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+tmp=!nonempty items 80,40
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 70,80,90,50,40,30
+
+tmp1=!randitem $tmp
+tmp=!nonempty items 70,80,90,40,50,30
+
+tmp2=!randitem $tmp
+tmp=!trim 25,$(tmp0),\frac{1}{4}	10,$(tmp1),\frac{1}{10}	20,$(tmp2),\frac{1}{5}	
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+val10=$[$val9/100]
+val11=$[rint($(val8[2]))]
+val12=$[$val11/1000]
+!readproc slib/lang/fname  
+tmp0=$slib_out
+val13=$(tmp0)
+tmp=!nonempty items samedi,dimanche
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+val15=$val13 consacre \($val9 \% \) de sa journée de $val14 à faire ses devoirs.	\($val11 \% \) du temps consacré aux devoirs est consacré à faire un exposé.	<br>Le pourcentage du temps consacré à l’exposé par rapport à la journée de $val14	est égal à&nbsp;&#58;
+val16=\( $(val8[3]) \times $val11 \% \)
+val17=\($val11 \%-$val9 \%\),\( $val12 \times $val9 \%\),Cela dépend de la durée de la journée du $val14.
+val18=La bonne réponse est \( $(val8[3]) \times $val11 \% \) puisque \($val9 \%\) de \( $val11 \% \) se calcule en faisant \( $val10 \times $val11 \%\) et que \( $val10=$(val8[3])\)
+val19=$val16,$val17
+tmp0=!shuffle 4
+
+val20=$(tmp0)
+tmp0=!positionof item 1 in $val20
+
+val21=$[rint($(tmp0))]
+val22=\latexversion	    \item	    $val15	    \begin{radio}	    \item $(val19[1])	    \item $(val19[2])	    \item $(val19[3])	    \item $(val19[4])	    \end{radio}
+val22=$val22 \end{enumerate}
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val21;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val22 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val15	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val19[$(val20[1])]) </td><td>$(val19[$(val20[2])]) </td><td>$(val19[$(val20[3])]) </td><td>$(val19[$(val20[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val22 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val18!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val18	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,15,18,19,20,22
+embedcnt=1

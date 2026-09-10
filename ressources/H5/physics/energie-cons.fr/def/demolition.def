@@ -1,0 +1,273 @@
+!set title=Démolition d'une maison
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 8, 12
+
+val6=$[$(tmp0)]
+tmp0=!randint 8, 12
+
+val7=$[$(tmp0)/10]
+val8=$[$val7/$val6]
+tmp0=!randint 23, 26
+
+val9=$[$(tmp0)]
+val10=$[$val9/100]
+val11=$[$val10/$val6]
+val12=$[4/3*pi*$val10^3]
+val13=$[7.8e3]
+val14=$[$val13*$val12]
+!readproc slib/text/sigunits $val14,3 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!randint 25, 35
+
+val16=$[$(tmp0)]
+val17=$[$val16/180*pi]
+val18=$[arcsin($val7/$val6)]
+val19=$[$val18/pi*180]
+!readproc slib/text/sigunits $val19,3 
+tmp0=$slib_out
+val20=$(tmp0)
+!readproc slib/text/sigunits $val18,3 
+tmp0=$slib_out
+val21=$(tmp0)
+val22=$[-1*$val6*cos($val17)]
+val23=$[-1*$val6*cos($val18)]
+!readproc slib/text/sigunits $val22,3 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/text/sigunits $val23,3 
+tmp0=$slib_out
+val25=$(tmp0)
+val26=$[9.8]
+val27=$[$val14*$val26*$val22]
+val28=$[$val14*$val26*$val23]
+!readproc slib/text/sigunits $val27,3 
+tmp0=$slib_out
+val29=$(tmp0)
+!readproc slib/text/sigunits $val28,3 
+tmp0=$slib_out
+val30=$(tmp0)
+val31=$[$val28-$val27]
+!readproc slib/text/sigunits $val31,3 
+tmp0=$slib_out
+val32=$(tmp0)
+val33=$[-1*$val31]
+!readproc slib/text/sigunits $val33,3 
+tmp0=$slib_out
+val34=$(tmp0)
+val35=$[$val33]
+val36=$[sqrt(2*$val35/$val14)]
+!readproc slib/text/sigunits $val36,3 
+tmp0=$slib_out
+val37=$(tmp0)
+val38=-0.8,-2,-0.8,-0.5,-0.4,0,0,-0.5,0,-2
+val39=
+!for val40 =1 to 10 step 2 
+val41=$[$(val38[$val40])-$val8]
+val42=$[$(val38[$val40+1])]
+val39=$val39 $val41, $val42,
+!next
+val43=$[acos(-1*$val18/$val17)/(2*pi)]
+val44=animate 15, 0.1, 0	trange 0,1	xrange -1.2,1.2	yrange -2.2,0.2	point blue,0,0	dvline 0,0,blue	text blue, -$val8,0.1,medium,d = $val7 m	plot blue,0.2*cos(t*$val17-pi/2),0.2*sin(t*$val17-pi/2)	text blue,0.2,-0.1, medium, alpha = $val16°	plot blue,cos(($val17+$val18)*t-pi/2-$val18),sin(($val17+$val18)*t-pi/2-$val18)	//arc 0,0,2,2,-90-$val19, -90+$val16, blue	segment 0,0,cos($val17*cos(2*pi*s*$val43)-pi/2),sin($val17*cos(2*pi*s*$val43)-pi/2), green	dsegment 0, 0, cos($val17-pi/2), sin($val17-pi/2), blue	text blue,0.1+0.5*cos($val17-pi/2), 0.5*sin($val17-pi/2),medium, l = $val6 m	plot blue,cos($val17*cos(2*pi*s*$val43)-pi/2)+$val11*cos(2*pi*t),sin($val17*cos(2*pi*s*$val43)-pi/2)+$val11*sin(2*pi*t)	fillpoly red,$val39	dvline -$val8,0,red	
+val45=$[rint(0)]
+oefsteps=r1,r2	r3,r4	r5,r6,r7	r8 
+nextstep=!nosubst r1,r2	r3,r4	r5,r6,r7	r8 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=
+replygood1=$val14 kg
+replytype2=units
+replyname2=
+replygood2=$val19 °
+replytype3=units
+replyname3=
+replygood3=$val22 m
+replytype4=units
+replyname4=
+replygood4=$val23 m
+replytype5=units
+replyname5=
+replygood5=$val27 J
+replytype6=units
+replyname6=
+replygood6=$val28 J
+replytype7=units
+replyname7=
+replygood7=$val35 J
+replytype8=units
+replyname8=
+replygood8=$val36 m/s
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val45=1 
+$()	<h3>debug</h3>	dessin=$val44<br>	<p>	 
+!endif
+$()	<div style="float:left;width:300px;margin-right:5%;">	 
+!read oef/draw.phtml 300,300 \
+$val44 
+$()<br>	<div style="background:lightyellow;font-size:80%;color:green;">	La précision des réponses numériques doit être meilleure que un 	pour cent. <b>Attention</b>, les calculs doivent être faits avec	une précision plus grande tant qu'on n'a pas encore fait la	soustraction des énergies potentielles, car après soustraction la 	marge d'erreur augmente relativement.	</div>	</div>	Une boule de démolition peut être modélisée comme un sphère	de fer de rayon r=$val9 cm, suspendue par un câble idéal à une 	distance l=$val6 m	d'un point fixe. Ce point fixe est à la distance d=$val7 m du plan d'un mur à démolir.	<p>	La boule est lâchée sans vitesse initiale alors que le câble 	fait un angle 	$val16° avec la verticale, dans un plan perpendiculaire au mur.		<ol>	<li>Calculez la masse m de la boule d'acier&nbsp;:<br> m= 
+!read oef/embed.phtml r1 
+$()	<br><span style="color:green;font-size:70%;">préciser l'unité&nbsp;; prendre la masse volumique du fer&nbsp;: &mu;<sub>Fe</sub>=7,8&times;10<sup>3</sup>&nbsp;kg.m<sup>-3</sup>.</span></li>	<li>Calculez l'angle 
+!insmath \beta
+$() que fera le câble avec la verticale quand	la boule sera au contact du mur &nbsp;:<br>  
+!insmath \beta
+$()= 
+!read oef/embed.phtml r2 
+$()	<br><span style="color:green;font-size:70%;">préciser l'unité (° pour degré ou rien pour radian)</span></li>	
+!if $m_step>1 
+$()	<li>On prend pour origine des altitudes (et aussi pour origine des énergies potentielles),	le point de fixation du 	câble. Calculer l'altitude z<sub>1</sub> du point de départ de 	la boule (angle $val16°) et l'altitude z<sub>2</sub> de la boule 	quand celle-ci fait un angle 
+!insmath \beta
+$() avec la verticale et touche le	mur.<br>	z<sub>1</sub>= 
+!read oef/embed.phtml r3 
+$() z<sub>2</sub>= 
+!read oef/embed.phtml r4 
+$()	<br><span style="color:green;font-size:70%;">préciser les unités</span>	</li>	 
+!endif
+$()	
+!if $m_step>2 
+$()	<li>Calculez les énergies potentielles de la boule E<sub>pp1</sub> et 	E<sub>pp2</sub> au début et à la fin de sa trajectoire&nbps;:	<br>E<sub>pp1</sub>= 
+!read oef/embed.phtml r5 
+$() E<sub>pp2</sub>= 
+!read oef/embed.phtml r6 
+$()	<br><span style="color:green;font-size:70%;">prendre g = 9,8 N.kg<sup>-1</sup>, préciser les unités</span></li>	<li>Déterminez l'énergie cinétique E<sub>c</sub> de la boule de démolition quand celle-ci touche le mur&nbsp;:	<br>E<sub>c</sub>=  
+!read oef/embed.phtml r7 
+$()	<br><span style="color:green;font-size:70%;">préciser l'unité</span></li>	 
+!endif
+$()	
+!if $m_step>3 
+$()	<li>Déduisez-en la vitesse v de la boule de démolition quand celle-ci touche le mur à démolir&nbsp;:	v= 
+!read oef/embed.phtml r8 
+$()	<br><span style="color:green;font-size:70%;">préciser l'unité</span></li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ol>	<li>masse m de la boule d'acier&nbsp;:<br> 
+!insmath m=\mu_{Fe} \times 4/3 \pi r^3 = $val13 \times 4/3 \times \pi ($val10)^3
+$() = 
+!insmath $val15 kg
+$()</li>	<li>Le sinus de 
+!insmath \beta
+$() est calculable&nbsp;: 
+!insmath sin(\beta)=d/l = $val7/$val6
+$(). On détermine l'arcsinus de cette valeur&nbsp;:	
+!insmath \beta=arcsin($val7/$val6)
+$() donc 
+!insmath \beta
+$() vaut 
+!insmath $val20
+$()° ou 
+!insmath $val21
+$() rad.</li>	
+!if $m_step>1 
+$()	<li>
+!insmath z1=- l \times cos(\alpha) = - $val6 \times cos($val16^o)
+$() = 
+!insmath $val24 m
+$() <br>
+!insmath z2=- l \times cos(\beta) = - $val6 \times cos($val19^o)
+$() = 
+!insmath $val25 m
+$() .	</li>	 
+!endif
+$()	
+!if $m_step>2 
+$()	<li>
+!insmath E_{pp1}=-mgz_1=-$val15 \times $val26 \times $val24
+$() = 
+!insmath $val29 J
+$() <br> 
+!insmath E_{pp2}=-mgz_2=-$val15 \times $val26 \times $val25
+$() = 
+!insmath $val30 J
+$() </li>	<li>La conservation de l'énergie mécanique, qui n'est ici composée que d'énergie cinétique et potentielle de pesanteur, donne	l'équation suivante&nbsp;:<br>	
+!insmath 0=\Delta E_m=\Delta E_c + \Delta E_{pp}
+$(), donc 
+!insmath \Delta E_c= -\Delta E_{pp} = (E_{pp1})-(E_{pp2})=$val29 - $val30
+$() = 
+!insmath $val34 J
+$(). <br>	Comme l'énergie initiale est nulle, l'énergie finale se confond avec 
+!insmath \Delta E_c
+$(). Donc 
+!insmath E_c
+$() = 
+!insmath $val34 J
+$().</li>	 
+!endif
+$()	
+!if $m_step>3 
+$()	<li>Il suffit de résoudre l'équation 
+!insmath 1/2mv^2=E_c
+$()&nbsp;: 
+!insmath v=\sqrt{2E_c/m}=\sqrt{2*$val34/$val15}
+$() = 
+!insmath $val37
+$() m.s<sup>-1</sup>.</li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,13,15,16,19,20,21,24,25,26,29,30,34,37,44,45
+embedcnt=8

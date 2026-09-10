@@ -1,0 +1,132 @@
+\title{Distance entre droites non coplanaires}
+
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\format{html}
+\precision{1000}
+\matrix{V=slib(matrix/invertible 3,3)}
+\matrix{u=\V[1;]}
+\matrix{v=\V[2;]}
+\matrix{w=\V[3;]}
+\integer{ux=\V[1;1]}
+\integer{uy=\V[1;2]}
+\integer{uz=\V[1;3]}
+\integer{vx=\V[2;1]}
+\integer{vy=\V[2;2]}
+\integer{vz=\V[2;3]}
+\integer{wx=\V[3;1]}
+\integer{wy=\V[3;2]}
+\integer{wz=\V[3;3]}
+\integer{xa=randint(-9..9)}
+\integer{ya=randint(-9..9)}
+\integer{za=randint(-9..9)}
+\integer{xb=\xa+\wx}
+\integer{yb=\ya+\wy}
+\integer{zb=\za+\wz}
+
+//// Equation paramétrique de D1
+\text{eqx1=x=simplify(\ux*t+(\xa))}
+\text{eqy1=y=simplify(\uy*t+(\ya))}
+\text{eqz1=z=simplify(\uz*t+(\za))}
+\text{eqx1tex=texmath(\eqx1)}
+\text{eqy1tex=texmath(\eqy1)}
+\text{eqz1tex=texmath(\eqz1)}
+//// Equation paramétrique de D2
+\text{eqx2=x=simplify(\vx*t+(\xb))}
+\text{eqy2=y=simplify(\vy*t+(\yb))}
+\text{eqz2=z=simplify(\vz*t+(\zb))}
+\text{eqx2tex=texmath(\eqx2)}
+\text{eqy2tex=texmath(\eqy2)}
+\text{eqz2tex=texmath(\eqz2)}
+
+//// vecteur orthogonal à u et v
+\integer{nx=\uy*(\vz) - (\uz)*(\vy)}
+\integer{ny=\uz*(\vx) - (\ux)*(\vz)}
+\integer{nz=\ux*(\vy) - (\uy)*(\vx)}
+
+//// Plan (D1,n)
+//// vecteur normal à P1
+\integer{n1x=(\uy)*(\nz) - (\uz)*(\ny)}
+\integer{n1y=(\uz)*(\nx) - (\ux)*(\nz)}
+\integer{n1z=(\ux)*(\ny) - (\uy)*(\nx)}
+\integer{d1=(\n1x)*(\xa)+(\n1y)*(\ya)+(\n1z)*(\za)}
+\text{eqpl1=simplify((\n1x)*x+(\n1y)*y+(\n1z)*z -(\d1))=0}
+
+//// intersection Plan (D1,n) et D2
+\rational{t2=((\d1) - (\n1x)*(\xb)-(\n1y)*(\yb)-(\n1z)*(\zb))/((\n1x)*(\vx)+(\n1y)*(\vy)+(\n1z)*(\vz))}
+\rational{hx=(\vx)*(\t2)+(\xb)}
+\rational{hy=\vy*(\t2)+(\yb)}
+\rational{hz=\vz*(\t2)+(\zb)}
+\matrix{cH=\hx,\hy,\hz}
+
+//// Plan (D2,n)
+//// vecteur normal à P2
+\integer{n2x=\ny*(\vz) - (\nz)*(\vy)}
+\integer{n2y=\nz*(\vx) - (\nx)*(\vz)}
+\integer{n2z=\nx*(\vy) - (\ny)*(\vx)}
+\integer{d2=\n2x*(\xb)+(\n2y)*(\yb)+(\n2z)*(\zb)}
+\text{eqpl2=simplify((\n2x)*x+(\n2y)*y+(\n2z)*z -(\d2))=0}
+
+//// intersection Plan (D2,n) et D1
+\rational{t1=(\d2 - (\n2x)*(\xa)-(\n2y)*(\ya)-(\n2z)*(\za))/((\n2x)*(\ux)+(\n2y)*(\uy)+(\n2z)*(\uz))}
+\rational{kx=\ux*(\t1)+(\xa)}
+\rational{ky=\uy*(\t1)+(\ya)}
+\rational{kz=\uz*(\t1)+(\za)}
+\matrix{cK=\kx,\ky,\kz}
+
+////distance HK
+\real{dist=pari(sqrt((\kx-(\hx))^2+(\ky-(\hy))^2+(\kz-(\hz))^2))}
+
+\statement{
+On considère deux droites \(D_1) et \(D_2) de l'espace définies par des
+équations paramétriques
+<div class="wimscenter">
+\(D1\) :
+\(\left \lbrace
+\begin{array}{l}
+\eqx1tex\\
+\eqy1tex\\
+\eqz1tex
+\end{array} \)
+
+&nbsp;&nbsp;
+
+\(D2\) :
+\(\left \lbrace
+\begin{array}{l}
+\eqx2tex\\
+\eqy2tex\\
+\eqz2tex
+\end{array} \)
+</div>
+On veut calculer la distance entre ces deux droites.
+<ol>
+<li> Déterminer un vecteur directeur \(\vec{n}\) orthogonal à \(D_1\) et à \(D_2\) :
+<div class="wimscenter"> \(\vec{n}\)=\embed{reply1}</div>
+</li><li>
+Déterminer l'équation cartésienne du plan \(P_1\) passant par \(D_1\) et contenant une droite dirigée par \(\vec{n}\) :
+<div class="wimscenter"> Équation de \(P_1\) : \embed{reply2}</div>
+</li><li>
+Déterminer les coordonnées du point \(H\) intersection de \(P_1\) et \(D_2\) :
+<div class="wimscenter"> \(H\)=\embed{reply3}</div>
+</li><li>
+Déterminer l'équation cartésienne du plan \(P_2\) passant par \(D_2\) et contenant une droite dirigée par \(\vec{n}\) :
+<div class="wimscenter"> Équation de \(P_2\) : \embed{reply4}</div>
+</li><li>
+Déterminer les coordonnées du point \(K\) intersection de \(P_2\) et \(D_1\) :
+<div class="wimscenter"> \(K\) = \embed{reply5}</div>
+</li><li>
+La distance cherchée est donc la distance \(H K\) :
+<div class="wimscenter"> \(H K\)=\embed{reply6}</div>
+</li></ol>
+}
+\answer{\(\vec{n}\)}{\rep1}{type=vector}
+\answer{Équation de \(P_1\)}{\eqpl1}{type=equation}
+\answer{Coordonnées de \(H\)}{\cH}{type=vector}
+\answer{Équation de \(P_2\)}{\eqpl2}{type=equation}
+\answer{Coordonnées de \(K\)}{\cK}{type=vector}
+\answer{distance}{\dist}{type=numeric}
+\rational{ortho1=\rep1[1]*\ux+\rep1[2]*\uy+\rep1[3]*\uz}
+\rational{ortho2=\rep1[1]*\vx+\rep1[2]*\vy+\rep1[3]*\vz}
+
+\condition{vecteur normal}{\ortho1=0 and \ortho2=0}

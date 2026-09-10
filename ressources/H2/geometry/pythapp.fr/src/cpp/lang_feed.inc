@@ -1,0 +1,1 @@
+#include "lang_feed_fr.inc"

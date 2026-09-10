@@ -1,0 +1,132 @@
+!set title=Équation avec module
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=equations
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=3000
+computeanswer=yes
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+t_=!rawmath $val6+$val7*i
+t_=!exec pari print($t_)
+val8=!mathsubst I=i in $t_
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!item $val9 of +,-
+
+val10=$(tmp0)
+tmp0=!item $val9 of ,-
+
+val11=$(tmp0)
+val12=$[$val7]
+val13=$[(($val6)^2-($val7)^2)/(2*($val6))]
+
+!ifval ($val6>0 and $val9=1) or ($val6<0 and $val9=2)
+t_=!rawmath $val13+($val12)*i
+t_=!exec pari print($t_)
+val14=!mathsubst I=i in $t_
+!else
+t_=!rawmath 0+0*i
+t_=!exec pari print($t_)
+val14=!mathsubst I=i in $t_
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=Résoudre dans \(\mathbb{C}) l'équation
+val17=Tapez,si vous pensez que l'équation n'a pas de solution
+val18=Dans le plan complexe,l'origine et les points d'affixe,doivent former un losange (pourquoi?)
+replytype1=complex
+
+replyname1=\(z)
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val16 
+!insmath z$val10|z|=$val8
+$().	<div class="wims_instruction">	$(val17[1]) <span class="tt">0</span> $(val17[2]).	</div>	
+$()
+!exit
+
+:hint
+$()$(val18[1]), $(val18[2]) 
+!insmath z
+$(), 
+!insmath $val11|z|
+$(),	
+!insmath $val8
+$() $(val18[3]).
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,11,16,17,18
+embedcnt=0

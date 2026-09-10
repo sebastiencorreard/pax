@@ -1,0 +1,240 @@
+!set title=Ongelijkheden in graad 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Frédéric PITOUN
+email=lva.pitoun@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,-1
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 6
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 6
+
+val8=$[rint($(tmp0))]
+val9=$[rint(-2*$val6*$val7)]
+val10=$[rint(-$val6*$val8)]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val6+$val11)]
+val15=$[rint($val9+$val12)]
+val16=$[rint($val10+$val13)]
+t_=!replace internal \( by ( in expand(($val6)*x^2+($val9)*x+$val10)
+tmp0=!exec maxima $t_
+
+val17=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand(($val11)*x^2+($val12)*x+$val13)
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand(($val14)*x^2+($val15)*x+$val16)
+tmp0=!exec maxima $t_
+
+val19=!rawmath $(tmp0)
+tmp0=!randint 1, 4
+
+val20=$[rint($(tmp0))]
+val21=>
+val22=\ge
+val23=<
+val24=\le
+tmp0=!item $val20 of $val21,$val22,$val23,$val24
+
+val25=$(tmp0)
+val26=\lbrack a ; b \rbrack
+val27=\rbrack a ; b \lbrack
+val28=\rbrack - \infty ; a \rbrack \cup \lbrack  b ; + \infty \rbrack
+val29=\rbrack - \infty ; a \lbrack \cup \rbrack  b ; + \infty \rbrack
+val30=$[rint(($val9)^2-4*($val6)*($val10))]
+
+!ifval (($val6>0) and ($val20=1))
+val31=4
+!endif
+
+!ifval (($val6>0) and ($val20=2))
+val31=3
+!endif
+
+!ifval (($val6>0) and ($val20=3))
+val31=2
+!endif
+
+!ifval (($val6>0) and ($val20=4))
+val31=1
+!endif
+
+!ifval (($val6<0) and ($val20=1))
+val31=2
+!endif
+
+!ifval (($val6<0) and ($val20=2))
+val31=1
+!endif
+
+!ifval (($val6<0) and ($val20=3))
+val31=4
+!endif
+
+!ifval (($val6<0) and ($val20=4))
+val31=3
+!endif
+tmp0=!item $val31 of $val26, $val27, $val28, $val29
+
+val32=$(tmp0)
+tmp=!translate ";': to $     $ in 	((-1)*$val9-\sqrt($val30))/(2*$val6)	
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in 	((-1)*$val9+\sqrt($val30))/(2*$val6)	
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val34=!rawmath $(tmp0)
+val35=$[$val34-$val33]
+
+!ifval ($val35>=0)
+val36=!rawmath $val33
+!else
+val36=!rawmath $val34
+!endif
+
+!ifval ($val35>=0)
+val37=!rawmath $val34
+!else
+val37=!rawmath $val33
+!endif
+oefsteps=reply1	reply2,reply3 
+nextstep=!nosubst reply1	reply2,reply3 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=Vorm van de oplossingsverzameling:
+replygood1=$val31;1,2,3,4
+replytype2=formal
+replyname2=Eerste wortel
+replygood2=$val36
+replytype3=formal
+replyname3=Tweede wortel
+replygood3=$val37
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Los de volgende ongelijkheid op 
+!insmath $val19
+$() 
+!insmath $val25
+$() 
+!insmath $val18
+$().</br>		 
+!if $m_step=1 
+$()	De verzameling oplossingen van deze ongelijkheid is van de vorm:  
+!read oef/embed.phtml reply 1 
+$()</br>			<p align="center">	<ol>	<li> 
+!insmath $val26
+$() </li>	<li> 
+!insmath $val27
+$() </li>	<li> 
+!insmath $val28
+$() </li>	<li> 
+!insmath $val29
+$() </li>	</ol>	</p>		 
+!endif
+$()	 
+!if $m_step=2 
+$()Ja, de verzameling oplossingen van de ongelijkheid  	
+!insmath $val19
+$() 
+!insmath $val25
+$() 
+!insmath $val18
+$() is van de vorm 
+!insmath $val32
+$(). Geef nu:	 <p align="center">	De waarde van a :  
+!read oef/embed.phtml reply  2 
+$() <br/>	De waarde van b : 
+!read oef/embed.phtml reply  3 
+$() <br/>	</p>		<b>Let op:</b> Voor 
+!insmath \sqrt{a}
+$(), moet je "sqrt(a)" typen.	 
+!endif
+$()			
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,25,26,27,28,29,32
+embedcnt=3

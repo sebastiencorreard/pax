@@ -1,0 +1,118 @@
+!set title=Droite et segment 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,E,F,G,R,S,T
+
+val6=$(tmp0)
+val7=$[0.1]
+val8=$[rint(150)]
+val9=$[rint(20)]
+tmp0=!randint 20, 99
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 110-$val10, 270-$val10
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val9+$val10)]
+val13=$[rint($val12+$val11)]
+!readproc oef/draw.phtml 300,300 \
+linewidth 1	segment $val9,$val8+4,$val9,$val8-4,black	text black,$val9,$val8-20,medium,$(val6[1])	segment $val12,$val8+4,$val12,$val8-4,black	text black,$val12,$val8-20,medium,$(val6[2])	segment $val13,$val8+4,$val13,$val8-4,black	text black,$val13,$val8-20,medium,$(val6[3])	segment $val9,$val8,$val13,$val8,black	segment 0,$val8,300,$val8,black	 
+tmp0=$ins_url
+val14=$(tmp0)
+tmp0=!shuffle 3
+
+val15=$(tmp0)
+val16=Nous avons trois points $(val6[1]), $(val6[2]) et $(val6[3]) alignés.	<br>Choisir toutes les bonnes réponses :
+val17=le point $(val6[$(val15[1])]) appartient au segment [$(val6[$(val15[2])])$(val6[$(val15[3])])]
+val18=le point $(val6[$(val15[1])]) appartient à la droite ($(val6[$(val15[2])])$(val6[$(val15[3])]))
+val19=le point $(val6[$(val15[1])]) appartient à la demi-droite &#91;$(val6[$(val15[2])])$(val6[$(val15[3])])&#41;
+tmp=!trim 2	1,2,3	2,3	0	2,3	1,2,3	2
+val20=!translate internal $	\
+$ to ;; in $tmp
+val21=$[rint(2*$(val15[1])+$(val15[2])-$(val15[3]))]
+tmp=!translate internal $	$ to ; in $val20
+
+tmp=!row $val21 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+replytype1=checkbox
+replyname1=
+replygood1=$val20;$val17,$val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col"><img src="$val14" alt=""></div>	 <div class="medium_size text_col">	$val16	<ul><li> 
+!read oef/embed.phtml r1,1 
+$()</li>	<li> 
+!read oef/embed.phtml r1,2 
+$()</li>	<li> 
+!read oef/embed.phtml r1,3 
+$()</li>	</ul>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,16
+embedcnt=3

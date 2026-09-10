@@ -1,0 +1,364 @@
+\title{3- Compléter une décomposition en produit de facteurs premiers (avec exposants)}
+\language{fr}
+
+\author{Euler,Versailles}
+%%%LG et GM %%%
+
+\email{euler.wims@ac-versailles.fr}
+
+%%% Mots clés : prendre de préférence les mots clés officiels en anglais séparés par des virgules, complétés par d'autres s'il le faut %%%
+\keywords{}
+
+%%% Les confparm %%%
+\text{conf1=\confparm1!= ? \confparm1:1}
+\text{conf2=\confparm2!= ? \confparm2:2}
+\text{conf3=\confparm3!= ? \confparm3:1}
+\text{conf4=\confparm4!= ? \confparm4:3}
+
+%%% Description de l'exercice destinée à l'élève %%% 
+%%% peut apparaître dans la feuille d'exercice et au survol du titre de l'exercice %%%
+\description{Dans cet exercice d'apprentissage, vous devez compléter les exposants d'une décomposition en produit de facteurs premiers d'un nombre entier 
+non premier généré par le serveur.}
+
+%%% Observations de l'exercice destinée à l'enseignant %%%
+\observation{Dans cet exercice d'apprentissage, il est demandé de compléter les exposants d'une décomposition en produit de facteurs premiers d'un nombre entier 
+non premier généré aléatoirement par le serveur en fonction de certains paramètres que vous pouvez régler dans INTRO/CONFIG.}
+
+
+%%% Rajouter s'il le faut computeanswer precision et range  %%%
+\computeanswer{no}
+
+
+%%% CSS particulière pour l'exercice %%%
+\css{
+<style>
+.oefstatement sup {
+  line-height: 4em;
+}
+/*sup{
+  top:-0.38em;
+}*/
+.expo{
+  vertical-align: sub;
+  line-height: 4em;
+}
+.exposol{
+  vertical-align: super;
+  line-height: 4em;
+  border:solid black 1px;
+}
+input#reply1{
+  padding-left:0.1rem;
+  padding-right:0.1rem;
+}
+input#reply2{
+  padding-left:0.1rem;
+  padding-right:0.1rem;
+}
+input#reply3{
+  padding-left:0.1rem;
+  padding-right:0.1rem;
+}
+input#reply4{
+  padding-left:0.1rem;
+  padding-right:0.1rem;
+}
+
+.wims_matrix1 tr:nth-child(1)>td:nth-child(2) {border-bottom:2px solid black;}
+.wims_matrix1 td:nth-child(1) {border-right:2px solid black;padding-right:0.3em;}
+.wims_matrix1 td:nth-child(2) {padding-left:0.3em;}
+.wims_matrix1 tr:nth-child(1)>td{padding-top:0.2em;padding-bottom:0.2em;}
+.wims_matrix1 tr:nth-child(2)>td{padding-top:1.2em;padding-bottom:0.3em;}
+.diviseur{
+  color: blue;
+  font-weight: bold;
+  background-color:#fffd94;
+}
+
+.wims_matrix2 td:nth-child(1) {border-right:2px solid black;}
+
+.division {
+  -webkit-display: -webkit-box;
+    -webkit-display: -webkit-flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    /*display: flex;*/
+    flex-direction:row;
+    flex-wrap:wrap;
+}
+.item{margin-right:1.5em;}
+</style>
+}
+%%%% Génération du nombre à décomposer %%%%
+\if{\conf1=1}
+  {\integer{maxi=100}}
+  {\if{\conf1=2}
+    {\integer{maxi=1000}}
+    {\integer{maxi=5000}}
+  }
+\if{\conf2=1}
+  {\integer{maxnbfact=1}}
+  {\if{\conf2=2}
+   {\integer{maxnbfact=2}}
+   {\integer{maxnbfact=randint(2..3)}}
+  }
+\if {\conf3=1}
+  {\integer{nbprimes=4}}
+  {\if {\conf3=2}
+    {\integer{nbprimes=10}}
+    {\integer{nbprimes=25}}
+  }
+%%%%%%% Ensembles de secours %%%%%%
+\text{ex=}
+\for{hh=1 to 3}
+{\matrix{mattemp=}
+\for{l=0 to 2}
+ {\text{line=}
+  \for{c=1 to 3}
+  {\text{elem=[wims(record 3*(\l+3*\hh-3)+\c of data/ensembles)]}
+   \text{line=wims(append item \elem to \line)}
+  }
+ \matrix{mattemp=\mattemp
+\line}
+}
+\text{ex=wims(append item [\mattemp] to \ex)}
+}
+
+
+\text{listprimes=pari(primes(\nbprimes))}
+\integer{count=0}
+\integer{nb=0}
+
+\while{\nb=0 or \nb>\maxi}
+  {
+    \if{\count<4}
+      {
+      \text{listfact=slib(data/random \maxnbfact,item,\listprimes)}
+      \if {\maxnbfact=1}
+        {\text{listexpo=randint(2..6)}}
+        {\text{listexpo=pari(concat(vector(\maxnbfact-1,i,random\({[1,2]})),random\({[2,3]})))}}
+      \integer{nb=\listfact[1]^\listexpo[1]}
+      \if{\maxnbfact>1}
+        {\for{k=2 to \maxnbfact}
+          {\integer{nb=\nb*\listfact[\k]^\listexpo[\k]}}
+        }
+      \integer{count=1+\count}
+      }
+      {
+      \text{prendre=wims(item \conf1 of \ex)}
+      \text{prendre=wims(declosing \prendre)}
+      \text{prendre=\prendre[\conf2;\conf3]}
+      \text{prendre=wims(declosing \prendre)}
+      \integer{nb=wims(randitem \prendre)}
+      } 
+  }
+
+\integer{nbprem=pari(omega(\nb))}
+\text{sumpuis=pari(bigomega(\nb))}
+\text{factor=pari(factor(\nb))}
+\text{facteurs=\factor[;1]}
+\text{puissances=\factor[;2]}
+
+%%%% Affichages avec exposants%%%%
+\text{nbaff=slib(numeration/ecriturenombre \nb,tex)}
+\text{decomp=wims(replace internal , by ^ in \factor)}
+\text{decomp=wims(replace internal ; by \times in \decomp)}
+
+%%%% Pour la solution détaillée %%%%%
+\text{lignesol=pari(
+facteurs=[\facteurs];
+puissances=[\puissances];
+sumpuis=\sumpuis;
+nb=\nb;
+v=vector(sumpuis);
+k=0;
+for(j=1,#facteurs,for(i=1,puissances[j],v[i+k]=facteurs[j]);k=k+puissances[j]);
+sol=vector(sumpuis,i,m=v[1..i];concat(m,nb/prod(t=1,#m,m[t])))
+)}
+
+\text{solaff=}
+\for{li=1 to \sumpuis}{
+  \text{ligne=}
+  \text{ligne=wims(declosing \lignesol[\li])}
+  \text{ligne=wims(replace internal item number -1 by slib(numeration/ecriturenombre \ligne[-1],tex) in \ligne)}
+  \text{ligne=wims(replace internal , by \times in \ligne)}
+  \text{ligne=\nbaff= \ligne}
+  \text{solaff=\solaff,\ligne}
+}
+
+%%%% Pour les divisions successives %%%%%
+
+\text{division=pari(
+w=concat([Vec(nb)],sol);
+vector(sumpuis,i,concat(w[i][#w[i]],w[i+1][-2..-1]))
+)}
+
+\matrix{divaff=}
+\for{li=1 to \sumpuis}{
+  \text{ligne=}
+  \text{ligne=wims(declosing \division[\li])}
+  \text{ligne=slib(numeration/ecriturenombre \ligne[1],tex),slib(numeration/ecriturenombre \ligne[2],tex),slib(numeration/ecriturenombre \ligne[3],tex)}
+  \matrix{divaff=\divaff
+  \ligne}
+}
+
+%%%% Création du nombre variable de embed pour codeinput%%%%
+\matrix{reponses=\puissances}
+\integer{nbrep=\nbprem}
+\text{listrep=wims(makelist reply x for x=1 to \nbrep)}
+\text{listrep=wims(nospace \listrep)}
+\text{listrep1=wims(items2lines \listrep)}
+
+%%%% Création du nombre variable de sc_reply %%%%
+\text{listsc_rep=wims(makelist \sc_reply x for x=1 to \nbrep)}
+\text{listsc_rep=wims(nospace \listsc_rep)}
+
+%%%% Création du nombre de questions %%%%
+\text{ETAPE=wims(makelist r x for x=1 to \nbrep)}
+\steps{\ETAPE}
+
+%%%% Affichage question %%%%
+\if{\maxnbfact=1}
+{\text{consigne=Compléter cette décomposition du nombre <strong> \(\nbaff\) </strong> en produit de facteurs premiers en indiquant l'exposant qui convient.}}
+{\text{consigne=Compléter cette décomposition du nombre <strong> \(\nbaff\) </strong> en produit de facteurs premiers en indiquant, pour chaque facteur, l'exposant qui convient.}}
+
+\text{question=<div class="unbreakable">\(\nbaff = \facteurs[1]\,\)<sup class="expo">\listrep[1]</sup>}
+\for{k=2 to \nbrep}
+  {\text{question=wims(append line \(\times \, \facteurs[\k]\,\)<sup class="expo">\listrep[\k]</sup> to \question)}}
+\text{question=wims(append line </div> to \question)}
+
+\text{questionsol=\question}
+\for{kk=1 to \nbrep}
+  {\text{questionsol=wims(replace internal \listrep[\kk] by \(\quad\) in \questionsol)}}
+\text{questionsol=wims(replace internal expo by exposol in \questionsol)}
+
+\text{screplist=}
+
+
+\statement{ 
+
+<div class="euler_quest">
+  <p>\consigne</p>
+</div>
+<div class =\if{\sc_reply1=}{"euler_answer"}{\if{0 isitemof \screplist}{"euler_rep_bad"}{"euler_rep_good"}}>
+  \if{\sc_reply1!=}{Vous avez saisi :}
+  \special{codeinput [\question],1,div
+  \listrep1
+   }
+</div>
+}
+
+%%% La partie answer pour analyser les réponses en fonction des types de réponses déclarés %%%
+%%% Avec éventuellement condition %%%
+\answer{}{\reponses[1]}{type=numexp}{option=noreduction}
+\answer{}{\reponses[2]}{type=numexp}{option=noreduction}
+\answer{}{\reponses[3]}{type=numexp}{option=noreduction}
+\text{screplist=\sc_reply1,\sc_reply2,\sc_reply3,\sc_reply4,\sc_reply5,\sc_reply6,\sc_reply7,\sc_reply8,\sc_reply9}
+\text{screplist=wims(nonempty items \screplist)}
+
+
+%%% Pour les différents feedbacks au cours de l'exercice en fonction des réponses de l'élève %%%
+\text{replist=\reply1,\reply2,\reply3}
+\text{replist=wims(nonempty items \replist)}
+\text{result=1}
+\text{isexpoint=}
+\text{isexponeg=}
+\for{g=1 to \nbrep}
+  { \text{temp=(\facteurs[\g])^(\replist[\g])}
+    \text{result=wims(eval (\result)*(\temp))}
+    \text{temp2=pari(frac(\replist[\g])==0)}
+    \text{isexpoint=\isexpoint,\temp2}
+    \text{temp3=pari(sign(\replist[\g])==-1)}
+    \text{isexponeg=\isexponeg,\temp3}
+    
+  }
+\if{(0 notitemof \isexpoint) and (1 notitemof \isexponeg)}{\text{isint=1}}{\text{isint=0}}
+
+\if{(\result>=10^8) or (\result=Inf)}{\integer{bignb=1}}{\integer{bignb=0}}
+\text{resultaff=slib(numeration/ecriturenombre \result,tex)}
+\if{(\result != \nb ) or (\result=Inf)}{\text{test=1}}{\text{test=0}}
+
+\feedback{(\isint=1) and (\test=1) }
+ {<div class="wims_msg warning">Votre décomposition en facteurs premiers est celle \if{\bignb=0}{du nombre \(\resultaff\)}{d'un nombre entier supérieur à \(10^8\)}.</div>}
+\feedback{(0 isitemof \isexpoint) || (1 isitemof \isexponeg)}
+ {<div class="wims_msg warning">Vous devez saisir des exposants entiers positifs.</div>}
+
+%%% Pour faire apparaître en fin d'exercice une solution détaillée avec possibilité de l'imprimer seule %%%
+\solution{
+
+<div class="euler_quest_nobg">
+  <p>\consigne<br>\questionsol</p>
+  
+</div>
+\if{3 isitemof \conf4}{
+  <div class="euler_rep_good_nobg" >
+    <div>Une décomposition du nombre \(\nbaff\) en produit de facteurs premiers peut être obtenue en 
+écrivant \(\nbaff\) en un produit de deux entiers et en remplaçant successivement les entiers non premiers en 
+produit de facteurs premiers&nbsp;: 
+    </div>  
+    <div class="unbreakable">
+    \for{lig=1 to \sumpuis}{
+      \(\solaff[\lig]\)<br>
+      }
+    \(\nbaff=\decomp\)
+    </div>
+ </div>
+}
+\if{1 isitemof \conf4}{
+  <div class="euler_rep_good_nobg " >
+    <div>Une décomposition du nombre \(\nbaff\) en produit de facteurs premiers est le produit des 
+    diviseurs premiers obtenus dans les divisions successives suivantes&nbsp;:  
+    </div>
+    <div class="division">
+    \for{d=1 to \sumpuis}{
+     <div class="item">
+       <table class="wimsnoborder wimscenter wims_matrix1">
+       <tr>
+        <td>\(\divaff[\d;1]\)</td>
+        <td class="diviseur">\(\divaff[\d;2]\)</td>
+       </tr>
+       
+       <tr>
+        <td>\(0\)</td>
+        <td>\(\divaff[\d;3]\)</td>
+       </tr>
+      </table>
+     </div>
+    }
+      <div class="item">
+        <div class="spacer"></div>
+        \(\solaff[-2]\) soit \(\nbaff=\decomp\)
+      </div>
+    </div>
+   </div>
+}
+   
+\if{2 isitemof \conf4}{
+   <div class="euler_rep_good_nobg" >
+    <div>Une décomposition du nombre \(\nbaff\) en produit de facteurs premiers est le produit des 
+    diviseurs premiers obtenus dans la deuxième colonne dans les divisions successives présentées ainsi&nbsp;:
+    </div>  
+    <div class="division">
+      <div class="item">
+        <table class="wimsnoborder wimscenter wims_matrix2">
+         \for{e=1 to \sumpuis}{
+         <tr>
+          <td>\(\divaff[\e;1]\)</td>
+          <td class="diviseur">\(\divaff[\e;2]\)</td>
+         </tr>
+         }
+         <tr>
+          <td>\(1\)</td>
+          <td></td>
+         </tr>
+        </table>
+      </div>
+      <div class="item">
+        <div class="spacer"></div>
+        \(\solaff[-2]\) soit \(\nbaff=\decomp\)
+      </div>
+    </div>
+   </div>
+}
+
+}

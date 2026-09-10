@@ -1,0 +1,135 @@
+!set title=Prévoir la phase de la Lune 2 (P)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oui,non
+val7=aucune
+val8=Pour s'aider, il est possible de tracer un segment.	  Il n'en sera pas tenu compte dans la notation.
+val9=Nord, Sud
+val10=On est dans l'hémisphère
+tmp=!trim Aujourd'hui, on voit la Lune comme cela&nbsp;	  Comment la verra-t-on dans, jours&nbsp;
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=2
+t_=!replace internal \( by ( in [[1,1],[sqrt(2)/2,1],[0,1],[-sqrt(2)/2,1],[-1,-1],[-sqrt(2)/2,-1],[0,-1],[sqrt(2)/2,-1]]
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+val14=grey
+val15=yellow
+val16=grey
+val17=black
+val18=grey
+val19=red
+val20=0,0
+val21=2
+val22=-90,90,270
+val23=3
+val24=$[rint($val23%2)]
+val25=$[rint(($val23-$val24)/2)]
+val26=0,-1,1,0
+val27=
+val28=
+val29=1
+val30=80
+tmp0=!makelist <img src="$val1/moon/x.gif" width="$val30" alt=""> for x=1 to 8
+
+val31=$(tmp0)
+val32=$val31
+val33=1
+val34=$(val9[$val33])
+
+!ifval $val33=2
+val32=$(val32[1,8,7,6,5,4,3,2])
+!endif
+val35=$val30 x$val30
+tmp0=!shuffle 8
+
+val36=$(tmp0)
+val36=$(val36[1,2])
+val37=$(val36[2])
+
+!ifval $(val36[1])<$(val36[2]) 
+val38=$[rint( $(val36[2])-$(val36[1]))]
+!else
+val38=$[rint(8+$(val36[2])-$(val36[1]))]
+!endif
+val39=$[28/8*$val38]
+tmp0=!values x for x=1 to 8
+
+val40=$(tmp0)
+replytype1=clickfill
+replyoption1=shuffle 
+replyname1=
+replygood1=$(val32[$val37]);$val32
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_question">	  $val10 $val34. $(val11[1;]):	  <div class="wimscenter">	  $(val32[$(val36[1])]).	</div>	  $(val11[2;1]) $val39 $(val11[2;2])?	   
+!read oef/embed.phtml r1,$val35 
+$()	  </div>		<div class="wims_credits">P. Causeret / CLEA</div>			
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,32,34,35,36,39
+embedcnt=1

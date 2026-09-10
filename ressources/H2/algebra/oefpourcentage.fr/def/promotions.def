@@ -1,0 +1,242 @@
+!set title=2. Les soldes - Calcul de pourcentage
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r
+varcnt=20
+prevarcnt=9
+postvarcnt=10
+replycnt=7
+choicecnt=0
+conditioncnt=4
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of style.css
+
+val6=$(tmp0)
+tmp0=!record 0 of help/ProduitenCroix.txt
+
+val7=$(tmp0)
+tmp0=!record 0 of help/Arrondicentieme.txt
+
+val8=$(tmp0)
+val9=200x80x1
+val10=
+val11=image1,image2,image3,image4,image5,image6
+tmp=!nonempty items $val11
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp=!trim reply1, reply2, reply3	reply4	
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=Ouvrez un nouvel onglet de votre navigateur en appuyant simultanément 	sur les touches Ctrl + t. A l'aide de votre moteur de recherche	 favori, allez sur un site marchand. Trouvez un article en promotion. Les informations	 sur ce produit doivent vous permettre de répondre aux questions suivantes :	 
+dynsteps=yes
+oefsteps=$val13 
+nextstep=!nosubst $val13 
+!readproc oef/steps.proc
+replytype1=atext
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=?analyze 15
+replytype2=numeric
+replyoption2=noanalyzeprint 
+replyname2=
+replygood2=?analyze 16
+replytype3=numeric
+replyoption3=noanalyzeprint 
+replyname3=
+replygood3=?analyze 17
+replytype4=numeric
+replyoption4=noanalyzeprint 
+replyname4=
+replygood4=?analyze 18
+replytype5=numeric
+replyoption5=noanalyzeprint 
+replyname5=
+replygood5=?analyze 19
+replytype6=numeric
+replyoption6=noanalyzeprint 
+replyname6=
+replygood6=?analyze 20
+replytype7=numeric
+replyoption7=noanalyzeprint 
+replyname7=
+replygood7=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br>	<div class="consigne">	<div id="haut"><div class="wimscenter">	<img src="$val1/$val12.jpg" alt="Pub">	</div></div>	<p class="problematique"> Quel est le prix de l'article soldé ?</p>	<div class="consigne">$val14</div>	<br> 		
+!if $m_step = 1 
+$() 	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Relevez les informations suivantes :	<br>	le nom de l'article :  
+!read oef/embed.phtml reply1 
+$()	<br>	le prix de l'article :  
+!read oef/embed.phtml reply2 
+$() 	<br>	le pourcentage de la remise :  
+!read oef/embed.phtml reply3, 4 
+$() %	</div>	<br>	 
+!endif
+$() 	
+!if $m_step==2 
+$()	<br>	<div class="consigne">Le prix de l'article est donc de $val16 € et la réduction est de	 $val17 %.</div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Complétez le tableau suivant pour calculer la réduction. Vous devez	 arrondir le résultat aux centimes donc à 0,01 près.	<br>	<table class="wimscenter wimsborder">	<tr>	<td>$m_reply3 % =></td>	<td>$m_reply3 pour</td>	<td>100</td>	</tr><tr>	<td></td>	<td> 
+!read oef/embed.phtml reply4,$val9 
+$()</td>	<td>$m_reply2 </td>	</tr></table>	<br>	</div>	 
+!read oef/special.phtml help Aide, Super Aide 
+$()	 
+!endif
+$()	
+!if $m_step==3 
+$()	<br>	<div class="consigne">Le prix de l'article est donc de $m_reply2 € et	 la remise est donc de $val18 €.</div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Le prix avec la remise est de :  
+!read oef/embed.phtml reply5, 4 
+$() € .</div>	 
+!read oef/special.phtml help Prixremise, Super Aide 
+$()	 
+!endif
+$()	
+!if $m_step==4 
+$()	<br>	<div class="consigne">Une autre méthode plus rapide permet	 d'arriver au même résultat. Il suffit de calculer le pourcentage	 du prix avec la remise. Le prix de l'article est donc toujours 	de $m_reply2 € et la réduction est de $m_reply3 %. </div>		<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	 
+!read oef/draw.phtml 1024,120 \
+	frect 10,10,410,30,blue	text blue,420,13,large, 100 % du prix	frect 10,50,410*\reply3/100,70,green	text green,410*\reply3/100+10,53,large, \reply3 % de remise	frect 10,90,410*\reply3/100,110,green	frect 410*\reply3/100,90,410,110,blue	text black,420,93,large,  Le rectangle bleu indique le pourcentage du prix avec la remise.	 
+$()	<br>	Le pourcentage du prix avec la remise est donc de  
+!read oef/embed.phtml reply6, 4 
+$() %.	</div>	 
+!read oef/special.phtml help PourcentagePrixremise, Super Aide 
+$()	 
+!endif
+$()		
+!if $m_step==5 
+$()	<div class="consigne">Le prix de l'article est donc de $m_reply2 €	et le pourcentage du prix avec la remise est donc $m_reply6 %.</div>	<br>	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Complétez le tableau suivant pour calculer la réduction. Vous devez	 arrondir le résultat aux centimes donc à 0,01 près.	<br>	<table class="wimscenter wimsborder">	<tr>	<td>$m_reply6 % =></td>	<td>$m_reply6 pour</td>	<td>100</td>	</tr><tr>	<td></td>	<td> 
+!read oef/embed.phtml reply7,$val9 
+$()</td>	<td>$m_reply2 </td>	</tr></table>	</div>	 
+!read oef/special.phtml help Aide, Super Aide 
+$()	 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() $val6	  
+!if  $m_help_subject issametext Aide 
+$()<div class="aide">$val7	<br><br>	$val8	</div> 
+!endif
+$()	 
+!if  $m_help_subject issametext Prixremise 
+$()<div class="aide">	Le prix avec la remise se calcule en réalisant la différence entre	 le prix "normal" et la remise.	<center><b>Prix avec la remise = Prix - Remise</b></center>	</div> 
+!endif
+$()	
+!if  $m_help_subject issametext PourcentagePrixremise 
+$()<div class="aide">Le pourcentage avec la remise se calcule en	 réalisant la différence entre le pourcentage "normal", 100 %, et le 	pourcentage de remise.	<center><b>Pourcentage du prix avec la remise = 100 - Poucentage de Remise</b></center>	</div> 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val22=$[rint($val16*$val17)]
+val23=$[$val22/100]
+val24=$[$val16-$val23]
+val25=$[100-$val17]
+val26=$[$val16-$val23]
+val13=
+
+!ifval ($m_step=3 and $val18=$val23) 
+val13= reply5
+!endif
+
+!ifval ($m_step=4 and $val19=$val24) 
+val13= reply6
+!endif
+
+!ifval ($m_step=5 and $val20=$val25) 
+val13= reply7
+!endif
+
+!ifval ($m_step=6 and $val21=$val26) 
+val13= 
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val18=$val23
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=la bonne réponse est de $val23 € 
+
+!ifval $val19=$val24
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=la bonne réponse est $val24 € 
+
+!ifval $val20=$val25
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=la bonne réponse est de $val25 % 
+
+!ifval $val21=$val26
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=le prix de l'article avec la remise est de $val26 € 
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,9,12,14,15,16,17,18,19,20,21
+embedcnt=11

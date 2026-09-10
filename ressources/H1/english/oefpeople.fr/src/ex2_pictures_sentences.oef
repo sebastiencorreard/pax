@@ -1,0 +1,394 @@
+%Le source de cet exercice a été créé à l'aide de Quicktool.
+%Le type de l'exercice est GAP.
+% Vous pouvez le modifier si vous désirez l'adapter.
+
+\title{Describing People}
+\author{Csilla, Ducrocq}
+\email{csilla.ducrocq@u-psud.fr}
+\language{fr}
+\computeanswer{no}
+\format{html}
+\text{file=ex2_pictures_sentences}
+\text{file0=\file[1]}
+\text{instruction=asis(Choose the sentences that describe the picture and drag them under the relevant heading.
+  <i>(Glisser les phrases à côté du texte qu'elles décrivent)</i>)}
+\text{instruction2=wims(subst )}
+\text{choice=}
+\text{audio_file=no}
+\text{reading_file=no}
+\text{image_file=}
+\css{<style type="text/css">
+.question{background-color: #FF6666;
+margin: 2% 5%;
+padding: 1%;}
+.reponse{background-color: #FFCC99;
+color: black;
+margin: 2% 5%;
+padding: 0%;}
+ol li {list-style: upper-alpha; }
+</style>
+}
+\text{alea=yes}
+\text{size=450 x 30}
+\text{partialscore=}
+\text{percent=1}
+\text{instruction=\instruction issametext ? wims(getdef instruction in \file0)}
+\text{instruction2=\instruction2 issametext ? wims(getdef instruction2 in \file0)}
+\text{size=\size issametext ? wims(getdef size in \file0)}
+\text{reading_file=\reading_file issametext ? wims(getdef reading_file in \file0)}
+\text{reading = wims(record 0 of \reading_file)}
+
+\text{audio_file = \audio_file issametext ? wims(getdef audio_file in \file0)}
+\text{audio=\audio_file notsametext  and  \audio_file notsametext no?
+<p class="wimscenter">slib(media/audio \imagedir/\audio_file)</p>}
+
+\text{image_file=\image_file issametext ? wims(getdef image_file in \file0)}
+\text{image=\image_file notsametext  and  \image_file notsametext no?
+wims(makelist <img src="\imagedir/x" alt=""> for x in \image_file)}
+
+\text{video_file=\video_file issametext ? wims(getdef video_file in \file0)}
+\text{video=\video_file notsametext  and  \video_file notsametext no?
+<a wims_target=external href="\imagedir/\video_file">[video] </a></p>}
+
+peut ne servir à rien :
+\text{choix=\choice issametext ? wims(getdef choice in \file0):\choice}
+
+\text{format=clickfill}
+\text{common=}
+\text{pos_rep=}
+\text{second_step=}
+\text{answer_given=yes}
+\text{try=2}
+\text{try =\try notwordof 1 2 3 4 5 6 7 8 9 10 ? 1}
+
+\integer{cnt_question= wims(recordcnt \file0)}
+\text{MAX=1}
+\text{N=1}
+\text{M=3}
+\integer{N = min(\cnt_question,\N)}
+\integer{MAX=min(\N*\MAX,\cnt_question)}
+
+\text{battage=\alea issametext yes ? shuffle(\cnt_question) :
+wims(makelist x for x = 1 to \cnt_question)}
+     \text{cnt_file=items(\file)}
+
+\text{texte=}
+\if{\alea=no}{
+  \for{i = 1 to \N}{
+     \text{image_test=wims(record \i of \file0)}
+     \text{image_test1=row(1,\image_test)}
+     \text{image_test2=\image_test}
+     \if{.gif isin \image_test1 or .jpg isin \image_test1 or
+        .GIF isin \image_test1 or .JPG isin \image_test1}{
+        \text{texte= \texte <p class="wimscenter"><img src="\imagedir/\image_test1" alt=""></p>}
+        \text{image_test2=wims(line 2 to -1 of \image_test)}
+      }
+    \if{.mp3 isin \image_test1}{
+        \text{texte= \texte <p class="wimscenter">slib(media/audio \imagedir/\image_test1)</p>}
+        \text{image_test2=wims(line 2 to -1 of \image_test)}
+     }
+     \text{texte=\texte  <p> \image_test2 </p>}
+  }
+}
+{ alea=yes ne sert à rien
+ \for{i = 2 to \cnt_file}{
+   \integer{cnt= wims(recordcnt \file[\i])}
+   \text{ v= shuffle(\cnt)}
+   \matrix{battage=\battage
+   \v[1..\N]}
+ }
+\for{i = 1 to \N}{
+     \text{image_test=wims(record \battage[\i] of \file0)}
+     \text{image_test1=row(1,\image_test)}
+     \text{image_test2=\image_test}
+     \if{.gif isin \image_test1 or .jpg isin \image_test1 or
+        .GIF isin \image_test1 or .JPG isin \image_test1}{
+        \text{texte= \texte <p class="wimscenter"><img src="\imagedir/\image_test1" alt=""></p>}
+        \text{image_test2=wims(line 2 to -1 of \image_test)}
+      }
+      \if{.mp3 isin \image_test1}{
+        \text{texte= \texte <p class="wimscenter">slib(media/audio \imagedir/\image_test1)</p>}
+        \text{image_test2=wims(line 2 to -1 of \image_test)}
+      }
+     \text{texte=\texte  <p> \image_test2 </p>}
+  }
+}
+
+text{texte = wims(nonempty items \texte)}
+\text{texte=wims(embraced randitem \texte)}
+\text{u =  0}
+\text{u1= -1}
+
+\matrix{texte = slib(text/cutchoice2 \texte)}
+\text{cntrow=rows(\texte)}
+\integer{cntQ=(\cntrow+\u1*\cntrow%2)/2}
+
+\matrix{trou=}
+\matrix{trouR=}
+\matrix{trouF=}
+\matrix{trouV=}
+\text{Trou=}
+\text{listeCNT=}
+\matrix{rep=}
+\for{i= 1 to \cntQ}{
+la reponse, dans le format GAP, un seul élément
+si plusieurs éléments, ce sont des choix possibles
+  \text{trou0=\texte[2*\i - \u;]}
+  \text{cnt = items(\trou0)}
+  \text{mix = shuffle(\cnt)}
+  mauvaises réponses
+  \text{trou2=\trou0[2..-1]}
+  bonnes réponses
+  \text{trou1=wims(replace internal | by , in \trou0[1])}
+ matrice des bonnes réponses
+ \matrix{trou=\trou
+  \trou1}
+  \text{trou1 = randitem(\trou1)}
+  \text{trou0=\trou1,\trou2}
+  \text{trou0= wims(listuniq wims(singlespace \trou0,\choix))}
+  un choix de bonnes réponses
+  \matrix{trouR=\trouR
+  \trou0}
+  toutes les réponses proposées
+  \matrix{trouF=\trouF
+  \trou0}
+  \matrix{rep = \rep
+  position(\trou1,\trou0)}
+  \text{listeCNT = \listeCNT,\cnt}
+}
+\text{listeCNT=wims(nonempty items \listeCNT)}
+
+\matrix{trouV =\common issametext yes ? \trouR : \trouF}
+
+\if{\format iswordof menu and \common issametext yes }{
+   \text{choix = \choix,wims(lines2items wims(rows2lines \trouV))}
+   \matrix{trouV1=}
+   \matrix{rep=} il faut aussi refaire la matrice de réponse
+   \for{ i = 1 to \cntQ}{
+      \matrix{trouV1 = \trouV1
+      wims(listuniq \trouV[\i;],\choix)}
+      \matrix{rep = \rep
+  position(\trouV[\rep[\i;]],\trouV1[\i;])}
+   }
+    \matrix{trouV = \trouV1}
+ }
+l'ancien rep ne sert en fait à rien car on teste avec condition
+\matrix{rep=\format iswordof clickfill case dragfill menu raw ? \trou}
+\text{choix=\choix notsametext ? wims(append item wims(replace internal ; by , in \trou) to \choix)}
+\text{STEP=wims(makelist r x for x=1 to \cntQ)}
+
+\text{condition=wims(makelist x for x=1 to \cntQ)}
+\text{nstep=\STEP}
+\nextstep{\nstep}
+\conditions{\condition}
+\text{size=\format iswordof dragfill clickfill ? \size x 1}
+\statement{\instruction
+  \if{\reading notsametext }{\special{help reading,[à lire]}}
+  \if{\image notsametext }{\special{help image,[à regarder]}}
+  \audio\video
+  <div class="question">
+\if{\format iswordof case dragfill clickfill raw}
+   {
+   \for{k = 1 to \cntQ}{
+    \texte[2*\k-1-\u;]  \if{r \k isitemof \nstep}{\embed{\STEP[\k],\size}}{
+       \if{\Trou[\k;] issametext \trou[\k;]}{<span class="oef_indgood">\Trou[\k;]</span>}
+   {
+   \if{\answer_given=yes}{<span class="oef_indgood">\trou[\k;1]</span>}
+   <span class="oef_indbad"><strike>\Trou[\k;]</strike></span>}
+   }
+  }
+  \texte[2*\cntQ+1-\u;]
+}
+\if{\format iswordof menu}
+   {
+   \for{k = 1 to \cntQ}{
+    \texte[2*\k-1-\u;]  \if{r \k isitemof \nstep}{\embed{\STEP[\k]}}{
+       \if{\Trou[\k;] issametext \trou[\k;]}{<span class="oef_indgood">\Trou[\k;]</span>}
+   {
+   \if{\answer_given=yes}{<span class="oef_indgood">\trou[\k;1]</span>}
+   <span class="oef_indbad"><strike>\Trou[\k;]</strike></span>}
+   }
+  }
+  \texte[2*\cntQ+1-\u;]
+}
+
+\if{\format iswordof mark}
+{
+  \for{k = 1 to \cntQ}{
+    \texte[2*\k-1-\u;]  \if{r \k isitemof \nstep}{/
+      \for{K = 1 to \listeCNT[\k]}{ \embed{\STEP[\k],\K}/}
+   }{
+       \if{\Trou[\k;] issametext \rep[\k;]}{<span class="oef_indgood">\trouV[\k;\Trou[\k;]]</span>}
+   {
+   \if{\answer_given=yes}{<span class="oef_indgood">\trou[\k;1]</span>}
+   <span class="oef_indbad"><strike>\trouV[\k;\Trou[\k;]]</strike></span>}
+   }
+  }
+  \texte[2*\cntQ+1-\u;]
+}
+  </div>
+
+\if{\choix notsametext and \format=case}{
+<div class="reponse">\choix</div>
+}
+}
+
+\answer{}{\Trou1;\trouV[1;]}{type=\format}{option=shuffle}
+\answer{}{\Trou2;\trouV[2;]}{type=\format}{option=shuffle}
+\answer{}{\Trou3;\trouV[3;]}{type=\format}{option=shuffle}
+\answer{}{\Trou4;\trouV[4;]}{type=\format}{option=shuffle}
+\answer{}{\Trou5;\trouV[5;]}{type=\format}{option=shuffle}
+\answer{}{\Trou6;\trouV[6;]}{type=\format}{option=shuffle}
+\answer{}{\Trou7;\trouV[7;]}{type=\format}{option=shuffle}
+\answer{}{\Trou8;\trouV[8;]}{type=\format}{option=shuffle}
+\answer{}{\Trou9;\trouV[9;]}{type=\format}{option=shuffle}
+\answer{}{\Trou10;\trouV[10;]}{type=\format}{option=shuffle}
+\answer{}{\Trou11;\trouV[11;]}{type=\format}{option=shuffle}
+\answer{}{\Trou12;\trouV[12;]}{type=\format}{option=shuffle}
+\answer{}{\Trou13;\trouV[13;]}{type=\format}{option=shuffle}
+\answer{}{\Trou14;\trouV[14;]}{type=\format}{option=shuffle}
+\answer{}{\Trou15;\trouV[15;]}{type=\format}{option=shuffle}
+\answer{}{\Trou16;\trouV[16;]}{type=\format}{option=shuffle}
+\answer{}{\Trou17;\trouV[17;]}{type=\format}{option=shuffle}
+\answer{}{\Trou18;\trouV[18;]}{type=\format}{option=shuffle}
+\answer{}{\Trou19;\trouV[19;]}{type=\format}{option=shuffle}
+\answer{}{\Trou20;\trouV[20;]}{type=\format}{option=shuffle}
+\answer{}{\Trou21;\trouV[21;]}{type=\format}{option=shuffle}
+\answer{}{\Trou22;\trouV[22;]}{type=\format}{option=shuffle}
+\answer{}{\Trou23;\trouV[23;]}{type=\format}{option=shuffle}
+\answer{}{\Trou24;\trouV[24;]}{type=\format}{option=shuffle}
+\answer{}{\Trou25;\trouV[25;]}{type=\format}{option=shuffle}
+\answer{}{\Trou26;\trouV[26;]}{type=\format}{option=shuffle}
+\answer{}{\Trou27;\trouV[27;]}{type=\format}{option=shuffle}
+\answer{}{\Trou28;\trouV[28;]}{type=\format}{option=shuffle}
+\answer{}{\Trou29;\trouV[29;]}{type=\format}{option=shuffle}
+\answer{}{\Trou30;\trouV[30;]}{type=\format}{option=shuffle}
+\answer{}{\Trou31;\trouV[31;]}{type=\format}{option=shuffle}
+\answer{}{\Trou32;\trouV[32;]}{type=\format}{option=shuffle}
+\answer{}{\Trou33;\trouV[33;]}{type=\format}{option=shuffle}
+\answer{}{\Trou34;\trouV[34;]}{type=\format}{option=shuffle}
+\answer{}{\Trou35;\trouV[35;]}{type=\format}{option=shuffle}
+\answer{}{\Trou36;\trouV[36;]}{type=\format}{option=shuffle}
+\answer{}{\Trou37;\trouV[37;]}{type=\format}{option=shuffle}
+\answer{}{\Trou38;\trouV[38;]}{type=\format}{option=shuffle}
+\answer{}{\Trou39;\trouV[39;]}{type=\format}{option=shuffle}
+\answer{}{\Trou40;\trouV[40;]}{type=\format}{option=shuffle}
+\answer{}{\Trou41;\trouV[41;]}{type=\format}{option=shuffle}
+\answer{}{\Trou42;\trouV[42;]}{type=\format}{option=shuffle}
+\answer{}{\Trou43;\trouV[43;]}{type=\format}{option=shuffle}
+\answer{}{\Trou44;\trouV[44;]}{type=\format}{option=shuffle}
+\answer{}{\Trou45;\trouV[45;]}{type=\format}{option=shuffle}
+\answer{}{\Trou46;\trouV[46;]}{type=\format}{option=shuffle}
+\answer{}{\Trou47;\trouV[47;]}{type=\format}{option=shuffle}
+\answer{}{\Trou48;\trouV[48;]}{type=\format}{option=shuffle}
+\answer{}{\Trou49;\trouV[49;]}{type=\format}{option=shuffle}
+\matrix{Trou=\Trou1
+\Trou2
+\Trou3
+\Trou4
+\Trou5
+\Trou6
+\Trou7
+\Trou8
+\Trou9
+\Trou10
+\Trou11
+\Trou12
+\Trou13
+\Trou14
+\Trou15
+\Trou16
+\Trou17
+\Trou18
+\Trou19
+\Trou20
+\Trou21
+\Trou22
+\Trou23
+\Trou24
+\Trou25
+\Trou26
+\Trou27
+\Trou28
+\Trou29
+\Trou30
+\Trou31
+\Trou32
+\Trou33
+\Trou34
+\Trou35
+\Trou36
+\Trou37
+\Trou38
+\Trou39
+\Trou40
+\Trou41
+\Trou42
+\Trou43
+\Trou44
+\Trou45
+\Trou46
+\Trou47
+\Trou48
+\Trou49
+}
+\text{nstep=}
+\if{\step<=\try}{
+\for{i=1 to \cntQ}{
+  \text{nstep= \Trou[\i;] notsametext \rep[\i;] ? \nstep,r \i}
+}
+}
+
+\condition{1}{\Trou1 issametext \rep[1;]}{option=hide}
+\condition{2}{\Trou2 issametext \rep[2;]}{option=hide}
+\condition{3}{\Trou3 issametext \rep[3;]}{option=hide}
+\condition{4}{\Trou4 issametext \rep[4;]}{option=hide}
+\condition{5}{\Trou5 issametext \rep[5;]}{option=hide}
+\condition{6}{\Trou6 issametext \rep[6;]}{option=hide}
+\condition{7}{\Trou7 issametext \rep[7;]}{option=hide}
+\condition{8}{\Trou8 issametext \rep[8;]}{option=hide}
+\condition{9}{\Trou9 issametext \rep[9;]}{option=hide}
+\condition{10}{\Trou10 issametext \rep[10;]}{option=hide}
+\condition{11}{\Trou11 issametext \rep[11;]}{option=hide}
+\condition{12}{\Trou12 issametext \rep[12;]}{option=hide}
+\condition{13}{\Trou13 issametext \rep[13;]}{option=hide}
+\condition{14}{\Trou14 issametext \rep[14;]}{option=hide}
+\condition{15}{\Trou15 issametext \rep[15;]}{option=hide}
+\condition{16}{\Trou16 issametext \rep[16;]}{option=hide}
+\condition{17}{\Trou17 issametext \rep[17;]}{option=hide}
+\condition{18}{\Trou18 issametext \rep[18;]}{option=hide}
+\condition{19}{\Trou19 issametext \rep[19;]}{option=hide}
+\condition{20}{\Trou20 issametext \rep[20;]}{option=hide}
+\condition{21}{\Trou21 issametext \rep[21;]}{option=hide}
+\condition{22}{\Trou22 issametext \rep[22;]}{option=hide}
+\condition{23}{\Trou23 issametext \rep[23;]}{option=hide}
+\condition{24}{\Trou24 issametext \rep[24;]}{option=hide}
+\condition{25}{\Trou25 issametext \rep[25;]}{option=hide}
+\condition{26}{\Trou26 issametext \rep[26;]}{option=hide}
+\condition{27}{\Trou27 issametext \rep[27;]}{option=hide}
+\condition{28}{\Trou28 issametext \rep[28;]}{option=hide}
+\condition{29}{\Trou29 issametext \rep[29;]}{option=hide}
+\condition{30}{\Trou30 issametext \rep[30;]}{option=hide}
+\condition{31}{\Trou31 issametext \rep[31;]}{option=hide}
+\condition{32}{\Trou32 issametext \rep[32;]}{option=hide}
+\condition{33}{\Trou33 issametext \rep[33;]}{option=hide}
+\condition{34}{\Trou34 issametext \rep[34;]}{option=hide}
+\condition{35}{\Trou35 issametext \rep[35;]}{option=hide}
+\condition{36}{\Trou36 issametext \rep[36;]}{option=hide}
+\condition{37}{\Trou37 issametext \rep[37;]}{option=hide}
+\condition{38}{\Trou38 issametext \rep[38;]}{option=hide}
+\condition{39}{\Trou39 issametext \rep[39;]}{option=hide}
+\condition{40}{\Trou40 issametext \rep[40;]}{option=hide}
+\condition{41}{\Trou41 issametext \rep[41;]}{option=hide}
+\condition{42}{\Trou42 issametext \rep[42;]}{option=hide}
+\condition{43}{\Trou43 issametext \rep[43;]}{option=hide}
+\condition{44}{\Trou44 issametext \rep[44;]}{option=hide}
+\condition{45}{\Trou45 issametext \rep[45;]}{option=hide}
+\condition{46}{\Trou46 issametext \rep[46;]}{option=hide}
+\condition{47}{\Trou47 issametext \rep[47;]}{option=hide}
+\condition{48}{\Trou48 issametext \rep[48;]}{option=hide}
+\condition{49}{\Trou49 issametext \rep[49;]}{option=hide}
+
+\integer{step1=\step-1}
+\feedback{1=1}{\if{\try > 1}{Vous avez eu besoin de \step1 \if{\step1=1}{essai.}{essais.}}
+}

@@ -1,0 +1,129 @@
+!set title=Matrice de transition
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie,Lemaire
+email=Sophie.Lemaire@math.u-psud.fr
+precision=1000
+computeanswer=yes
+
+ansorder=r,r,r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 95
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 5, 95
+
+val7=$[$(tmp0)/100]
+val8=$[1-$val6]
+val9=$[1-$val7]
+tmp=!trim $val8,$val6	$val7,$val9
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=xrange -8,8	yrange -3,3	circle -4,0, 16,black	circle 4,0, 16,black	text black,-4.1,0.2,,1	text black,3.9,0.2,,2	arc -5,0, 2,2, 35,335,blue	arc 5,0, 2,2, 215,515,blue	arc 0,0, 8,3.5, 15,165,blue	arc 0,0, 8,3.5, 205,345,blue	arrow -4.2,0.55,-4,0.35,10,blue	arrow 4.2,-0.55,4,-0.35,10,blue	arrow 3.8,0.45,3.9,0.35,10,blue	arrow -3.8,-0.45,-3.9,-0.35,10,blue	text navy, -0.2,2.5,,$val6	text navy, -0.2,-2,,$val7	text navy, -7.2,0.1,,$val8	text navy, 6.2,0.1,,$val9	
+!readproc oef/draw.phtml 400,150 \
+$val11 
+tmp0=$ins_url
+val12=$(tmp0)
+val13=reply1,reply2,reply3,reply4
+val14=Donner la matrice de transition du graphe probabiliste suivant :
+!readproc oef/draw.phtml 25,50 \
+xrange -1,2	yrange -1.1,1.2	arc 0,0, 1,2, 100,260,black 
+tmp0=$ins_url
+val15=$(tmp0)
+!readproc oef/draw.phtml 25,50 \
+xrange -1,2	yrange -1.1,1.2	arc 0,0, 1,2, 260,100,black 
+tmp0=$ins_url
+val16=$(tmp0)
+oefsteps=$val13 
+nextstep=!nosubst $val13 
+!readproc oef/steps.proc
+replytype1=formal
+replyweight1=\poids1 
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$(val10[1;1])
+replytype2=formal
+replyweight2=\poids1 
+replyoption2=noanalyzeprint 
+replyname2=
+replygood2=$(val10[1;2])
+replytype3=formal
+replyweight3=\poids1 
+replyoption3=noanalyzeprint 
+replyname3=
+replygood3=$(val10[2;1])
+replytype4=formal
+replyweight4=\poids1 
+replyoption4=noanalyzeprint 
+replyname4=
+replygood4=$(val10[2;2])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val14	<p class="wimscenter"> <img src="$val12" alt=""></p>		<p>	  La matrice de transition est :	</p>	<div class="wimscenter">	 
+!read oef/special.phtml mathmlinput [\begin{pmatrix}$(val13[1])&$(val13[2])\\$(val13[3])&$(val13[4])\end{pmatrix}],3,noanswer	reply1	reply2	reply3	reply4 
+$()	</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La matrice de transition est 
+!insmath [$val10]
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12,13,14
+embedcnt=1

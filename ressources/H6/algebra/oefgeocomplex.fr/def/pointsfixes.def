@@ -1,0 +1,326 @@
+!set title=Points fixes d'une isométrie
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David
+email=mcld@math.u-psud.fr
+computeanswer=yes
+precision=1000
+oefcss=<style type="text/css"> .question {background-color : #FFFFCC; margin : 2% 5%; padding : 2%; text-align:center; } </style>
+
+ansorder=r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 0, 1	0, 1	0, 1	0, 1	0, 1	pi/6,(sqrt(3)+i)/2	pi/4,sqrt(2)*(1+i)/2	pi/3,(1 + sqrt(3)*i)/2	pi/2,i	2*pi/3,(-1 + sqrt(3)*i)/2	3*pi/4,sqrt(2)*(-1+i)/2	5*pi/6,(-sqrt(3)+i)/2	pi,-1	-pi/6,(sqrt(3)-i)/2	-pi/4,sqrt(2)*(1-i)/2	-pi/3,(1 - sqrt(3)*i)/2	-pi/2,-i	-2*pi/3,(-1 - sqrt(3)*i)/2	-3*pi/4,sqrt(2)*(-1-i)/2	-5*pi/6,(-sqrt(3)-i)/2	
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim pi/3,(1 + sqrt(3)*i)/2,2*pi/3,(-1 + sqrt(3)*i)/2,(1 + sqrt(3)*i)/2,(1 - sqrt(3)*i)/2	pi/2,i,3*pi/4,sqrt(2)*(-1+i)/2,sqrt(2)*(1+i)/2,sqrt(2)*(1-i)/2	2*pi/3,(-1 + sqrt(3)*i)/2,-3*pi/4,sqrt(2)*(-1-i)/2,sqrt(2)*(1-i)/2,sqrt(2)*(1+i)/2	pi,-1,pi,-1,(-1+i),(-1-i)	-pi/3,(1 - sqrt(3)*i)/2,pi/3,(1 + sqrt(3)*i)/2,(-1 + sqrt(3)*i)/2,(-1 - sqrt(3)*i)/2	-pi/2,-i,pi/4,sqrt(2)*(1+i)/2,sqrt(2)*(-1+i)/2,sqrt(2)*(-1-i)/2	-2*pi/3,(-1 - sqrt(3)*i)/2,pi/6,(sqrt(3)+i)/2,(sqrt(3)-i)/2,(sqrt(3)+i)/2	pi/3,(1 + sqrt(3)*i)/2,-pi/3,(1 - sqrt(3)*i)/2,(-1 - sqrt(3)*i)/2,(-1 + sqrt(3)*i)/2	pi/2,i,-pi/4,sqrt(2)*(1-i)/2,sqrt(2)*(-1-i)/2,sqrt(2)*(-1+i)/2	2*pi/3,(-1 + sqrt(3)*i)/2,pi/4,sqrt(2)*(1+i)/2,sqrt(2)*(-1+i)/2,sqrt(2)*(-1-i)/2	pi,-1,0,1,(1-i),(1+i)	-pi/3,(1 - sqrt(3)*i)/2,-2*pi/3,(-1 - sqrt(3)*i)/2,(1 - sqrt(3)*i)/2,(1 + sqrt(3)*i)/2	-pi/2,-i,-3*pi/4,sqrt(2)*(-1-i)/2,sqrt(2)*(1-i)/2,sqrt(2)*(1+i)/2	-2*pi/3,(-1 - sqrt(3)*i)/2,-5*pi/6,(-sqrt(3)-i)/2,(-sqrt(3)+i)/2,(-sqrt(3)-i)/2	
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items 1,-1,-2
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+
+!ifval $val8<0 
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9= $(tmp0)
+!else
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp1)
+!endif
+t_=!replace internal \( by ( in $(val9[2])
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+!if $val10= 1 and $val8 > 0 
+val8=$[rint($val8 + 1)]
+!else
+val8=$[rint($val8)]
+!endif
+!if $val8 > 0 
+tmp0=!randint -2, 2
+
+tmp1=!randint -3, 3
+
+t_=!rawmath $(tmp0) + $(tmp1)*i
+t_=!exec pari print($t_)
+val11=!mathsubst I=i in $t_
+
+!ifval $val8=1 
+t_=!replace internal \( by ( in ($val11)/(1-$(val9[2]))
+tmp0=!exec maxima $t_
+
+val12= $(tmp0)
+!else
+val12= 0
+!endif
+val13=centre
+
+!ifval $val8 = 2 
+val13= bonne réponse
+!endif
+val14=$(val9[1])
+t_=!rawmath $val11
+t_=!exec pari print($t_)
+val15=!mathsubst I=i in $t_
+!else
+
+!ifval $val8=-2 
+val11= $(val9[5])
+!else
+val11=$(val9[4])
+!endif
+
+!ifval $val8=-2 
+val16= $(val9[6])
+!else
+val16=0
+!endif
+t_=!replace internal \( by ( in ($val11)/2
+tmp0=!exec maxima $t_
+
+val12=$(tmp0)
+val13=point de l'axe
+t_=!replace internal \( by ( in (($val10)*($val16) +($val11))/2
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+val14=($(val9[1]))/2
+!endif
+t_=!replace internal \( by ( in expand(rectform($val12))
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+t_=!replace internal \( by ( in expand(rectform($val15))
+tmp0=!exec maxima $t_
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in expand(rectform($val14))
+tmp0=!exec maxima $t_
+
+val19=$(tmp0)
+
+!ifval $val8>0 and $val11=0 
+tmp0=!texmath $val10 * z
+
+val20=$(tmp0) 
+!endif
+
+!ifval $val8>0 and $val11=0 and ($val10)=1 
+tmp0=!texmath z
+
+val20= $(tmp0) 
+!endif
+
+!ifval $val8>0 and $val11=0 and ($val10)=-1 
+tmp0=!texmath -z
+
+val20= $(tmp0) 
+!endif
+
+!ifval $val8 > 0 and $val11 !=0  
+tmp0=!texmath $val10 * z + $val11
+
+val20= $(tmp0)
+!endif
+
+!ifval $val8 > 0 and $val11 !=0 and ($val10)=1 
+tmp0=!texmath  z + $val11
+
+val20= $(tmp0)
+!endif
+
+!ifval $val8 > 0 and $val11 !=0 and ($val10)=-1
+tmp0=!texmath - z + $val11
+
+val20= $(tmp0)
+!endif
+
+!ifval $val8<0 and $val11=0 
+tmp0=!texmath $val10 
+
+val20= $(tmp0) \bar{z} 
+!endif
+
+!ifval $val8<0 and $val11=0 and ($val10)=1 
+tmp0=!texmath \bar{z}
+
+val20= $(tmp0) 
+!endif
+
+!ifval $val8<0 and $val11=0 and ($val10)=-1 
+tmp0=!texmath -\bar{z}
+
+val20= $(tmp0) 
+!endif
+
+!ifval $val8 < 0 and $val11 !=0 
+tmp0=!texmath $val10 
+
+tmp1=!texmath $val11
+
+val20= $(tmp0) \bar{z}+ $(tmp1)
+!endif
+
+!ifval $val8 < 0 and $val11 !=0 and ($val10)=1
+tmp0=!texmath $val11
+
+val20= \bar{z}+ $(tmp0)
+!endif
+
+!ifval $val8 < 0 and $val11 !=0 and ($val10)=-1 
+tmp0=!texmath $val11
+
+val20= - \bar{z}+ $(tmp0)
+!endif
+val21=\(f\) n'a pas de point fixe, \(f\) a un unique point fixe, \(f\) a plusieurs points fixes
+
+!ifval $val8 =2 
+val22= 1
+!endif
+
+!ifval $val8 =1 
+val22= 2
+!endif
+
+!ifval $val8 =-1 
+val22= 3
+!endif
+
+!ifval $val8 =-2 
+val22= 1
+!endif
+replytype1=radio
+replyname1=
+replygood1=$val22;$val21
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On  se place dans le plan affine euclidien muni d'un repère orthonormé direct d'origine 
+!insmath O
+$() 	et on considère la transformation 
+!insmath f
+$() qui à un point 
+!insmath M
+$() 	d'affixe 
+!insmath z
+$() associe le point 
+!insmath M'
+$() d'affixe 
+!insmath z'
+$() donné	par <div class="question">
+!insmath z'=$val20 
+$(). </div>	Que peut-on dire de l'isométrie 
+!insmath f
+$() ?	
+$()
+!exit
+
+:hint
+$()<p>Les isométries positives n'ont aucun point fixe (translation) ou ont un unique point fixe (rotation).	L'écriture complexe d'une translation est facilement identifiable ; donc dans le cas d'une isométrie positive, aucun calcul n'est requis.</p>	<p>Les isométries négatives n'ont aucun point fixe (symétrie glissée) ou admettent une droite de points fixes (réflexion). Dans les deux cas, pour  
+!insmath B=f(O)
+$(), le milieu 
+!insmath C
+$() de 
+!insmath [O B]
+$() appartient à l'axe de 
+!insmath f
+$(). L'isométrie négative 
+!insmath f
+$() est une réflexion si et seulement  si 
+!insmath C
+$() est fixe.	</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val8=1
+ <div class='oef_feedbacks'>L'unique point fixe de la rotation est son centre d'affixe 
+!insmath $val17
+$().
+$()</div>
+!endif
+!ifval $val8 = -1
+ <div class='oef_feedbacks'>Un point fixe de 
+!insmath f
+$() est 
+!insmath $val17
+$(). C'est le milieu du segment d'extrémités 
+!insmath O
+$() et 
+!insmath f(O)
+$().
+$()</div>
+!endif
+!ifval $val8 = -2
+ <div class='oef_feedbacks'>La transformation n'a aucun point fixe, c'est une symétrie glissée.
+$()</div>
+!endif
+!ifval $val8=2
+ <div class='oef_feedbacks'>La transformation n'a aucun point fixe. C'est  une translation de vecteur d'affixe 
+!insmath $val18
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,17,18,20
+embedcnt=0

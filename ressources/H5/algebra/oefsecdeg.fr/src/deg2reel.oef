@@ -1,0 +1,165 @@
+\title{Équation du second degré à coefficients réels}
+\language{fr}
+\author{Bruno, Mifsud}
+\email{bruno.mifsu@laposte.net}
+
+\keywords{equation}
+\observation{ax^2+bx+c=0 : les inconnues sont aléatoirement x,y,z,t,k,n,p,q <br>P(Discriminant<0)=2/3,P(Discriminant=0)=1/6,<br>Quand le discrimant est positif P(c=0)=1/3,<br>Quand le disciminant est non nul : P(b=0)&#8776;1/7}
+
+\text{inc=random(x,y,z,t,k,n,p,q)}
+%%%%%% cas= signe du discriminant %%%%%%
+\text{cas=random(-1,-1,-1,-1,0,1)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if{\cas=0}{
+\integer{discrim=0}
+\integer{x1=randint(0..6)*randint(-1,1)}
+\integer{a=random(1..6)*randint(-1,1)}
+\integer{b=-2*\a*\x1}
+\integer{c=\x1*\x1*\a}
+\text{rep=\x1}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if{\cas>0}{
+\integer{a=random(1..6)*randint(-1,1)}
+\integer{tempc=random(0,1,1)}
+%%%%%%%%%%%%% test tempc %%%%%%%%%%%%%%%%%%%
+\if{\tempc=0}{
+\text{x1=0}
+\text{x2=simplify(randint(1..6)*randint(-1,1))}
+\text{b=simplify(\a*(-1)*(\x1+\x2))}
+\text{c=0}
+}{
+%%%%% x1=x11+ x12 x13, avec x13=sqrt(...)
+%%%%% x1=x11+ x14 %%%%%%%%%%%%%%
+%%%%% x2=x11- x14 %%%%%%%%%%%%%%
+\integer{x11=random(1..6)*randint(-1,1)*random(0,1,1,1,1,1,1)}%%%%%%% p(b=0)&#8776;1/7 %%%%%
+\integer{x12=random(1,7,11,13)*randint(-1,1)}
+\text{x13=random(sqrt(2),sqrt(3),sqrt(5),1,1,1,1)}
+\text{x14=simplify(\x12*\x13)}
+\text{x1=simplify(\x11+\x14)}
+\text{x2=simplify(\x11-\x14)}
+\text{b=simplify(\a*(-1)*(\x1+\x2))}
+\text{c=simplify(\a*(\x11*\x11-\x12*\x12*\x13*\x13))}
+}
+\real{discrim=\b*\b-4*\a*\c}
+\text{rep=\x1,\x2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if{\cas<0}{
+\integer{a=random(1..6)*randint(-1,1)}
+%%%%% x1=x11+i x12 x13, avec x13=sqrt(...)
+%%%%% x1=x11+ x14 %%%%%%%%%%%%%%
+%%%%% x2=x11- x14 %%%%%%%%%%%%%%
+%%%%%%% p(b=0) approx 1/7 %%%%%
+\integer{x11=random(1..6)*randint(-1,1)*random(0,1,1,1,1,1,1)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\integer{x12=random(1..6)*randint(-1,1)}
+\text{x13=random(sqrt(2),sqrt(3),sqrt(5),1,1,1,1)}
+\text{x14=simplify(\x12*i*\x13)}
+\text{x1=simplify(\x11+\x14)}
+\text{x2=simplify(\x11-\x14)}
+\text{b=simplify(\a*(-2)*(\x11))}
+\text{c=simplify(\a*(\x11*\x11+\x12*\x12*\x13*\x13))}
+\text{discrim=simplify(\b*\b-4*\a*\c)}
+\text{rep=\x1,\x2}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\function{pol=maxima(\a*\inc*\inc+\b*\inc+\c)}
+\text{eq=\pol=0}
+
+
+%%%%%%%%%%%%%%Pour la solution %%%%%%%%%%%%%%%%
+%%%% Si delta=0 %%%%%%%%%%
+\text{x1sol=simplify(\x1)}
+\text{x2sol=simplify(\x2)}
+\if{\discrim=0}{
+\text{eq1=maxima(\a*(\inc-\x1)*(\inc-\x1))=0}
+}
+\if{\c=0}{
+\text{eq2=maxima(factor(\a*\inc*\inc+\b*\inc))=0}
+}
+\if{\discrim<0 and \b=0}{
+\text{temp=simplify(-\c/\a)}
+\text{eq3=\inc^2=\temp}
+}
+\if{\discrim<0}{
+\text{temp=simplify(-1*\discrim)}
+\text{rdiscrim=\sqrt{\temp}}
+}
+%%%%% énoncé %%%%
+\text{enonce=random(Quel est l'ensemble des solutions de l'équation suivante , Résoudre l'équation suivante)}
+
+\statement{
+\enonce : \(\eq).
+<div class="wims_question"><label for="reply1">L'ensemble des solutions est</label> :
+\embed{r1,30} </div>
+<div class="wims_instruction"><ul class="wims_nopuce">
+<li>S'il y a plusieurs solutions, les séparer par une virgule.</li>
+<li>Pour \(sqrt(2)\) saisir sqrt(2)</li>
+</ul>
+</div>}
+\answer{Les solutions sont :}{\rep}{type=fset}
+
+\solution{
+<p>Il faut résoudre : \(\eq). C'est une équation du second degré à coefficients réels. </p>
+<p><i>Le rappel des formules à connaitre est en fin de solution.</i></p>
+\if{\discrim=0}{<p>On peut reconnaitre que l'équation
+\(\eq) s'écrit aussi \(\eq1). Ce qui donne commeunique solution \(\x1)</p>
+<p>Sinon, on applique la méthode avec le discriminant :</p>
+<ul class="wims_nopuce">
+<li>on calcule le discriminant qui vaut \(\Delta=\discrim).</li>
+<li>\(\Delta=0) il y a donc une unique solution : \(\inc=\x1)</li>
+</ul>
+}
+\if{\discrim>0}{
+\if{\c=0}{<p>On peut reconnaitre que l'équation
+\(\eq) s'écrit aussi \(\eq2). Ce qui donne comme solutions \(\inc=\x1sol) et \(\inc=\x2sol).</p>
+<p>Sinon: on applique la méthode avec le discriminant.</p>}
+{<p>On applique la méthode avec le discriminant.</p>}
+<ul class="wims_nopuce">
+<li>on calcule le discriminant qui vaut \(\Delta=\discrim).</li>
+<li>\(\Delta>0) il y a donc deux solutions : \(\inc=\x1sol) et \(\inc=\x2sol)</li>
+</ul>
+
+}
+\if{\discrim<0}{
+\if{\b=0}{<p>On peut résoudre directement l'équation
+\(\eq) qui est équivalente à : \(\eq3). Ce qui donne comme solutions \(\inc=\x1sol) et \(\inc=\x2sol).</p>
+<p>Sinon: on applique la méthode avec le discriminant.</p>}
+{<p>On applique la méthode avec le discriminant.</p>}
+<ul class="wims_nopuce">
+<li>on calcule le discriminant qui vaut \(\Delta=\discrim=(\rdiscrim i)^2 ).</li>
+<li>\(\Delta<0) il y a donc deux solutions complexes : \(\inc=\x1) et \(\inc=\x2)</li>
+</ul>
+
+}
+<div class="feedback">
+<p>Rappels</p>
+<p>Notations : L'équation est de la forme \(a \inc^2+b\inc+c=0), où :
+<ul><li>L'inconnu est \(\inc)</li>
+<li>\(a) vaut \(\a)</li>
+<li>\(b) vaut \(\b)</li>
+<li>\(c) vaut \(\c)</li>
+</ul>
+<p>On procéde par étapes :</p>
+<p>Calcul du discriminant \(\Delta) avec la formule \(\Delta=b^2-4ac). Ici \(\Delta=\discrim)</p>
+<p>Ensuite trois cas sont à envisager :</p>
+<ul><li> Si le discriminant est strictement positif, il y a deux solutions réelles :
+\({\inc}_1=\frac{-b +\sqrt{\Delta}}{2a}) et \({\inc}_2=\frac{-b -\sqrt{\Delta}}{2a})
+\if{\discrim>0}{<br>C'est le cas ici. Les deux solutions sont \(\x1sol) et \(\x2sol).}
+</li>
+<li> Si le discriminant est nul, il y a une unique solution réelle :
+\(\inc=\frac{-b }{2a})
+\if{\discrim=0}{<br>C'est le cas ici. La solution est \(\x1).}
+</li>
+<li>
+Si le discriminant est strictement négatif, il y a deux solutions complexes :
+\({\inc}_1=\frac{-b +i\sqrt{\lvert \Delta \rvert}}{2a}) et \({\inc}_2=\frac{-b -i\sqrt{\lvert \Delta \rvert}}{2a})
+\if{\discrim<0}{<br>C'est le cas ici. Les deux solutions sont \(\x1) et \(\x2).}
+</li>
+</ul>
+</div>
+
+
+}

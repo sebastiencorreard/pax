@@ -1,0 +1,143 @@
+!set title=Parallèle (éq. cartésienne)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+precision=1000
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+!if $val6=fr 
+!endif
+!if $val6=fr 
+!endif
+val7=We consider in the plane the line \(L\)	  defined by the equation
+tmp=!trim An equation of the line passing through the point with coordinates	  and parallel to \(L) is
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Equation of the line
+!if $val6=fr 
+val7=Dans le plan muni d'un repère, on considère la droite \(L)	  d'équation cartésienne&nbsp;
+tmp=!trim Une équation de la droite passant par le point de coordonnées	  et parallèle à \(L) est
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Équation de la droite
+!endif
+!if $val6=nl 
+val7=We consider in the plane the line \(L)	  defined by the equation
+tmp=!trim An equation of the line passing through the point with coordinates	  and parallel to \(L\) is
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Equation of the line
+!endif
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val12=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val13=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val14=$[rint($(tmp0))]
+val15=$[rint(gcd($val10,$val11))]
+val15=$[rint(gcd($val15,$val12))]
+val10=$[rint($val10/$val15)]
+val11=$[rint($val11/$val15)]
+val12=$[rint($val12/$val15)]
+val16=$[rint($val10*($val13) + ($val11)*($val14))]
+t_=!replace internal \( by ( in $val10*x + $val11*y
+tmp0=!exec pari $t_
+
+val17=$(tmp0) = $val12
+val18=!rawmath $val10*x + $val11*y = $val16
+replytype1=equation
+replyname1=$val9
+replygood1=!rawmath $val18,x,y
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7:	  <div class="wimscenter">
+!insmath $val17
+$().</div>	  <label for="reply1">$(val8[1;]) 
+!insmath ($val13, $val14)
+$() $(val8[2;])</label>  
+!read oef/embed.phtml reply1,15 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,13,14,17
+embedcnt=1

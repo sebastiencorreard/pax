@@ -1,0 +1,157 @@
+!set title=Utilisation de la forme canonique d'un trinôme
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=rbelloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val6*(x-$val7)^2+$val8
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+!if $val10=1 
+val11=décroissante puis croissante,croissante puis décroissante
+
+!ifval $val6>0
+val12=$[rint(1)]
+!else
+val12=$[rint(2)]
+!endif
+!else
+val11=croissante puis décroissante,décroissante puis croissante
+
+!ifval $val6>0
+val12=$[rint(2)]
+!else
+val12=$[rint(1)]
+!endif
+!endif
+replytype1=menu
+replyname1=Variations
+replygood1=$val12;$val11
+replytype2=auto
+
+replyname2=abscisse du sommet
+replygood2=$val7
+replytype3=auto
+
+replyname3=ordonnée du sommet
+replygood3=$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère le trinôme 
+!insmath f(x)=$val9
+$().		Déterminez les variations de 
+!insmath f
+$().	<div>
+!insmath f
+$() est :  
+!read oef/embed.phtml reply 1 
+$().</div>		Déterminez les coordonnées du sommet de la parabole qui représente 
+!insmath f
+$().	<ul><li><label for="reply2">L'abscisse du sommet est</label>  
+!read oef/embed.phtml reply 2,20 
+$().</li>	<li><label for="reply3">L'ordonnée du sommet est</label>  
+!read oef/embed.phtml reply 3,20 
+$().</li></ul>	
+$()
+!exit
+
+:hint
+$()La forme canonique d'un trinôme est 
+!insmath a(x + d)^2 + e
+$().	<ul><li>	Si 
+!insmath a
+$() est strictement positif, la fonction a un minimum,
+!insmath e
+$() qui est atteint lorsque 
+!insmath x = - d
+$().	</li><li>	Si 
+!insmath a
+$() est strictement négatif, la fonction a un maximum,
+!insmath e
+$() qui est atteint lorsque 
+!insmath x = - d
+$().	</li><li>	Les coordonnées du sommet de la parabole représentant le trinôme sont 
+!insmath - d
+$() et 
+!insmath e
+$().	</li></ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9
+embedcnt=3

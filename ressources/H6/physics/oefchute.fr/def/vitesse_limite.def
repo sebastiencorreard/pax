@@ -1,0 +1,205 @@
+!set title=Vitesse limite et temps caractéristique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 200
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 3, 8
+
+val7=$[rint($(tmp0))]
+val8=$[$val7/(10*$val6)]
+tmp0=!randint 5, 20
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/10]
+val11=$[2*$val10/$val6]
+val12=$[$val10/$val6]
+!readproc slib/text/sigunits $val12 m/s,2 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!randint 20, 60
+
+val14=$[rint($(tmp0))]
+val15=$[$val14]
+!readproc slib/text/sigunits $val15 s,1 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=$[2*$val15]
+val18=$[$val15/2]
+val19=!rawmath $val10*(1-e^(-x/$val15))
+val20=!rawmath $val10*(1-e^(-2*x/$val15))
+val21=!rawmath ($val7/10)*(1-e^(-x/($val15*2)))
+!readproc slib/graphpaper/func_milli 8,8,,,8/$val6 max v(m/s),,,,,\f,[] 
+tmp0=$slib_out
+val22=$(tmp0)
+!readproc slib/graphpaper/func_milli 12,12,,,10*$val15 max t(s),1.1*$val10/$val6 max v(m/s),,,,$val19/$val6,[] 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/graphpaper/func_milli 6,6,,,10*$val15 max t(s),1.1*$val10/$val6 max v(m/s),white,grey,,$val19/$val6,[] 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/graphpaper/func_milli 6,6,,,10*$val15 max t(s),1.1*$val10/$val6 max v(m/s),white,grey,,$val20/$val6,[] 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/graphpaper/func_milli 6,6,,,10*$val15 max t(s),1.1*$val7/(10*$val6) max v(m/s),white,grey,,$val21/$val6,[] 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/graphpaper/func_milli 6,6,,,10*$val15 max t(s),1.1*2*$val10/$val6 max v(m/s),white,grey,,2*$val19/$val6,[] 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc oef/draw.phtml 120,120 \
+$val25 
+tmp0=$ins_url
+val25=$(tmp0)
+!readproc oef/draw.phtml 120,120 \
+$val26 
+tmp0=$ins_url
+val26=$(tmp0)
+!readproc oef/draw.phtml 120,120 \
+$val27 
+tmp0=$ins_url
+val27=$(tmp0)
+val28=<img src="$val25">, <img src="$val26">, <img src="$val27">
+tmp=!trim <img src="$val25">, $val12, $val18	<img src="$val26">, $val8,$val17	<img src="$val27">, $val11,$val15
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 1,2,3
+
+val30=$(tmp0)
+tmp=!trim $(val29[$(val30[1]);])	$(val29[$(val30[2]);])	$(val29[$(val30[3]);])
+val31=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/sigunits $(val31[1;2]) m/s,2 
+tmp0=$slib_out
+val32=$(tmp0)
+!readproc slib/text/sigunits $(val31[1;3]) s,1 
+tmp0=$slib_out
+val33=$(tmp0)
+!readproc slib/text/sigunits $(val31[2;2]) m/s,2 
+tmp0=$slib_out
+val34=$(tmp0)
+!readproc slib/text/sigunits $(val31[2;3]) s,1 
+tmp0=$slib_out
+val35=$(tmp0)
+!readproc slib/text/sigunits $(val31[3;2]) m/s,2 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc slib/text/sigunits $(val31[3;3]) s,1 
+tmp0=$slib_out
+val37=$(tmp0)
+replytype1=sigunits
+replyname1=v<sub>lim1</sub>
+replygood1=$val13 
+replytype2=sigunits
+replyname2=\tau<sub>1</sub>
+replygood2=$val16
+replytype3=sigunits
+replyname3=v<sub>lim2</sub>
+replygood3=$val32
+replytype4=sigunits
+replyname4=\tau<sub>1</sub>
+replygood4=$val33
+replytype5=sigunits
+replyname5=v<sub>lim2</sub>
+replygood5=$val34
+replytype6=sigunits
+replyname6=\tau<sub>1</sub>
+replygood6=$val35
+replytype7=sigunits
+replyname7=v<sub>lim2</sub>
+replygood7=$val36
+replytype8=sigunits
+replyname8=\tau<sub>1</sub>
+replygood8=$val37
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Quatre billes sont lancées sans vitesse initiale dans différents liquides. 	On trace l'évolution de la vitesse de ces quatre billes au cours du temps. On obtient les courbes ci-dessous.	<br>Pour chacune des courbes, déterminez graphiquement la vitesse 	limite ainsi que le temps caractéristique (voir l'aide au besoin). <br>On donnera le résultat 	avec <b>2 chiffres significatifs</b> pour la vitesse limite et avec 	<b>1 chiffre significatif</b> pour &tau; et sans oublier l'unité.	<br>		<br>Pour faciliter la lecture, vous avez à votre disposition des droites que vous pouvez "déplacer" avec votre souris,	vous pouvez aussi modifier la taille ainsi que l'angle de rotation avec les "boutons" + et -. N'hésitez pas à faire un clic droit et zoomer pour "agrandir" les droites	<br>	<div style="position:absolute;top:300px; left:200px; z-index:1; "><br>	<center>	<table border=2>	    <tr><td align=center> 
+!read oef/draw.phtml 120,120 \
+$val24 
+$()</td><td align=center>$(val31[1;1])</td></tr>	    <tr><td align=center>Courbe 1<br> v<sub>lim</sub>= 
+!read oef/embed.phtml reply1,10 
+$()<br><br> $m_tau= 
+!read oef/embed.phtml reply2,10 
+$()</td><td align=center>Courbe 2<br> v<sub>lim</sub>= 
+!read oef/embed.phtml reply3,10 
+$()<br><br> $m_tau= 
+!read oef/embed.phtml reply4,10 
+$()</td></tr>	    <tr><td align=center>$(val31[2;1])</td><td align=center>$(val31[3;1])</td></tr>	    <tr><td align=center>Courbe 3<br> v<sub>lim</sub>= 
+!read oef/embed.phtml reply5,10 
+$()<br><br> $m_tau= 
+!read oef/embed.phtml reply6,10 
+$()</td><td align=center>Courbe 4<br> v<sub>lim</sub>= 
+!read oef/embed.phtml reply7,10 
+$()<br><br> $m_tau= 
+!read oef/embed.phtml reply8,10 
+$()</td></tr>	</table></center><br></div>	<table>	<tr><td>	<div style="position:absolute; top:325px; left:200px; z-index:3;"><br>	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="400" height="325" id="$val1/tangentes" align="left">	<param name="allowScriptAccess" value="sameDomain" >	<param name="movie" value="$val1/tangentes.swf" >	<param name="quality" value="high" >	<param name="wmode" value="transparent" >	<embed src="$val1/tangentes.swf"  quality="high" wmode="transparent" width="400" height="325" name="tangentes" align="left" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" >	</object>		</div>	</td>	<td>	<div style="position:absolute; top:325px; left:600px; z-index:3;"><br>	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="400" height="325" id="$val1/tangentes" align="left">	<param name="allowScriptAccess" value="sameDomain" >	<param name="movie" value="$val1/tangentes.swf" >	<param name="quality" value="high" >	<param name="wmode" value="transparent" >	<embed src="$val1/tangentes.swf"  quality="high" wmode="transparent" width="400" height="325" name="tangentes" align="left" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" >	</object>		</div>	</tr>	<tr><td>	<div style="position:absolute; top:800px; left:200px; z-index:3;"><br>	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="400" height="325" id="$val1/tangentes" align="left">	<param name="allowScriptAccess" value="sameDomain" >	<param name="movie" value="$val1/tangentes.swf" >	<param name="quality" value="high" >	<param name="wmode" value="transparent" >	<embed src="$val1/tangentes.swf"  quality="high" wmode="transparent" width="400" height="325" name="tangentes" align="left" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" >	</object>		</div>	</td>	<td>	<div style="position:absolute; top:800px; left:600px; z-index:3;"><br>	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="400" height="325" id="$val1/tangentes" align="left">	<param name="allowScriptAccess" value="sameDomain" >	<param name="movie" value="$val1/tangentes.swf" >	<param name="quality" value="high" >	<param name="wmode" value="transparent" >	<embed src="$val1/tangentes.swf"  quality="high" wmode="transparent" width="400" height="325" name="tangentes" align="left" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" >	</object>		</div>	</tr>	</table>	<br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><br><br><br>	<br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><br><br><br>	<br><br><br><br><br><br><br><br><br><br><br><br><br><br>	<br><br><br>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()Le temps caractéristique $m_tau se détermine en prenant	 l'abscisse du point d'intersection de l'asymptote horizontale 	et de la tangente à l'origine. Voir <a href="http://www.chimix.com/an8/bac8/image/ant803.gif" target="_blank">ici</a>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,24,31
+embedcnt=8

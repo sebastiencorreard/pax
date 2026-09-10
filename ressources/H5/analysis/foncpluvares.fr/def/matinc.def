@@ -1,0 +1,113 @@
+!set title=Multiplication de matrices et inconnues
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=matrix
+author=Frédéric, Pitoun
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/random 2,3,5 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/random 3,1,5 
+tmp0=$slib_out
+val7=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];B=[$val7];C=A*B;print(C)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val10=$[rint($(tmp0))]
+t_=!replace internal \( by ( in A=[$val6];C=matrix(2,3,i,j,A[i,j]);C[$val9,$val10]=x;print(C)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=$[rint($(val6[$val9;$val10]))]
+replytype1=default
+replyname1=x
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Déterminer 
+!insmath x
+$() pour que le produit de la matrice 
+!insmath [$val11]
+$() et de la matrice	
+!insmath [$val7]
+$() soit égal à 
+!insmath [$val8]
+$().	<div class="spacer">	On a 
+!insmath x=
+$()  
+!read oef/embed.phtml reply 1,5 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11
+embedcnt=1

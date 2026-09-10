@@ -1,0 +1,36 @@
+!set n=!recordcnt src/data
+!reset objlist
+!for i=1 to $n
+ !set l=!record $i of src/data
+ !set l=!line 1 of $l
+ !set objlist=!append item $l to $objlist
+!next i
+
+<tr><td align=center>要填充的对象:
+</td><td>
+!set wims_formselect_switch=multiple size=5
+!set confparm3=50 0
+!formselect confparm3 list 1 0,2 0,3 0,\
+    50 0,0 1,0 2,\
+    0 50,1 1,2 1,\
+    2 2,50 50\
+    prompt \
+    1 项, 2 项, 3 项,\
+    所有项, 1 个运算, 2 个运算,\
+    所有运算, 1 项 + 1 个运算,2 项 + 1 个运算,\
+    2 项 + 2 个运算, 所有
+!reset wims_formselect_switch
+<tr><td align=center>项的类型:
+</td><td>
+!set confparm1=1
+!formselect confparm1 from 1 to $n prompt $objlist
+</td>
+<tr><td align=center>运算的类型:
+</td><td>
+!set confparm2=2
+!formselect confparm2 from 1 to 3 prompt \
+    + -, + - &times;, + - &times; &divide;
+<tr><td align=center>多余项数:
+</td><td>
+!set confparm4=1
+!formselect confparm4 from 0 to 5

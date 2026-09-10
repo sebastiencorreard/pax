@@ -1,0 +1,164 @@
+!set title=Suites arithmétiques ou géométriques : formule explicite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul@byache.fr
+keywords=sequence,geometric_sequence,arithmetic_sequence
+language=fr
+computeanswer=yes
+precision=1000
+oefobservation=En fonction de la configuration de l'exercice sur le module, l'exercice contiendra : Que des suites arithmétiques, que celui des suites géométriques ou aléatoirement l'un ou l'autre. 
+
+ansorder=r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val3
+
+
+!ifval $(tmp0)=0 
+tmp1=!randitem A,G,AG
+
+val3= $(tmp1)
+!else
+val3=$val3
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 10
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 10, 20
+
+val7=$[rint($(tmp0))]
+!if $val3==A 
+val8=$[rint(1)]
+!endif
+!if $val3==G 
+val8=$[rint(2)]
+!endif
+!if $val3==AG 
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+!endif
+!if $val8=1 
+tmp0=!randitem -1,1
+
+tmp1=!randint 10, 50
+
+val9=$[rint($(tmp0)*$(tmp1))]
+val10=arithmétique
+val11=$[rint($val6+$val9*$val7)]
+val12=formal
+val13=$val6+$val9*$val7
+!else
+tmp0=!randitem 0.5,2,3,10,0.1,0.25
+
+val9=$[$(tmp0)]
+val10=géométrique
+val12=numeric
+val11=$[$val6*$val9^$val7]
+val13=$val6*$val9^$val7
+!endif
+
+!ifval $val9<0
+val14=($val9)
+!else
+val14=$val9
+!endif
+!if $val8=1 
+val15=Comme la suite est arithmétique, on sait que \(u_$val7=u_0+$val7 \times r\), où \(r\) est la raison.
+!endif
+!if $val8=2 
+val15=Comme la suite est géométrique, on sait que \(u_$val7=u_0 \times q^$val7\), où \(q\) est la raison.
+!endif
+val15=$val15 <br> Il suffit alors de remplacer par les valeurs.
+replytype1=algexp
+replyname1=Calcul
+replygood1=$val13
+replytype2=$val12
+
+replyname2=Valeur
+replygood2=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On considère une suite <b>$val10</b> telle que 
+!insmath u_{0}=$val6
+$() et de raison 
+!insmath $val9
+$().</p> 	<p>On peut calculer la valeur de
+!insmath u_{$val7}
+$() directement à partir de la valeur de 
+!insmath u_{0}
+$()</p>	<div class="wims_question">	<p>Saisir le calcul à effectuer :  
+!read oef/embed.phtml reply 1,16 
+$()</p>	<p>Ce qui donne : 
+!insmath u_{$val7}=
+$()  
+!read oef/embed.phtml reply 2,16 
+$()</p>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1 <1
+ <div class='oef_feedbacks'><div class="feedback">$val15</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,15
+embedcnt=2

@@ -1,0 +1,180 @@
+!set title=Tableau 1 (bonbons)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 14,16,18
+
+val6=$[rint($(tmp0)*10)]
+tmp0=!randint 2, 6
+
+val7=$[rint(($(tmp0))*20)]
+val8=$[rint($val6-$val7)]
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!item $val9 of 10%,20%,Un quart,La moitié,Les trois quarts
+
+val11=$(tmp0)
+tmp0=!item $val9 of 0.1,0.2,0.25,0.5,0.75
+
+val12=$[$(tmp0)]
+tmp0=!item $val10 of 10%,20%,Un quart,La moitié,Les trois quarts
+
+val13=$(tmp0)
+tmp0=!item $val10 of 0.1,0.2,0.25,0.5,0.75
+
+val14=$[$(tmp0)]
+val15=$[rint(($val7*$val12) )]
+val16=$[rint(($val8*$val14))]
+val17=$[rint(($val7-$val15) )]
+val18=$[rint(($val8-$val16) )]
+val19=$[rint(($val15+$val16) )]
+val20=$[rint(($val17+$val18) )]
+val21=$[($val19/$val6)]
+oefsteps=reply3, reply6, reply9	    reply1, reply4, reply7	    reply2, reply5, reply8	    reply10 
+nextstep=!nosubst reply3, reply6, reply9	    reply1, reply4, reply7	    reply2, reply5, reply8	    reply10 
+!readproc oef/steps.proc
+replytype1=raw
+replyname1=1
+replygood1=$val15
+replytype2=raw
+replyname2=2
+replygood2=$val17
+replytype3=raw
+replyname3=3
+replygood3=$val7
+replytype4=raw
+replyname4=4
+replygood4=$val16
+replytype5=raw
+replyname5=5
+replygood5=$val18
+replytype6=raw
+replyname6=6
+replygood6=$val8
+replytype7=raw
+replyname7=7
+replygood7=$val19
+replytype8=raw
+replyname8=8
+replygood8=$val20
+replytype9=raw
+replyname9=9
+replygood9=$val6
+replytype10=numeric
+replyoption10=comma 
+replyname10=10
+replygood10=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		 Alyssa achète des bonbons dans un petit magasin à proximité de chez elle. Le paquet est composé de  <span class="wims_emph"> $val7 "nounours" et $val8 "bouteilles". </span> <br>	 Elle sort les bonbons du sac un par un et au hasard.	<p class=wimscenter><img src="$val1/nounours.jpg" alt="nounours"> Les bonbons	       sont dans un sac opaque <img src="$val1/eau.jpg" alt="eau"></p>	<p><span style="color:blue; font-weight:bolder">Problématique :</span>	Quelle est la probabilité que le premier bonbon sorti soit un bonbon rouge ?</p>	
+!if  $m_step = 1  
+$()	<strong>Compléter une première partie du tableau avec les données connues.</strong>	<table class="wimscenter wimsborder">	<tr>  <td ></td>	  <th>Bonbons rouges </th>	  <th>Autres couleurs </th>	  <th>Total </th>	</tr>	<tr>	  <th>Nounours </th>	  <td> </td>	  <td> </td>	  <td>  
+!read oef/embed.phtml reply3,5 
+$()</td>	 </tr>	<tr>	  <th>Bouteilles</th>	  <td> </td>	  <td> </td>	  <td>  
+!read oef/embed.phtml reply6,5 
+$() </td>	 </tr>	<tr>	  <th>Total </th>	  <td> </td>	  <td>  </td>	  <td>  
+!read oef/embed.phtml reply9,5 
+$() </td>	  </tr>	</table> 
+!endif
+$()		
+!if  $m_step = 2 
+$()	<ul>	  <li> $val11 des nounours  sont rouges.</li>	  <li> $val13 des bouteilles sont rouges.</li>	</ul>	<strong>Compléter la seconde partie du tableau avec les données connues.</strong>	<table class="wimscenter wimsborder">	<tr>	  <td> </td>	  <th>Bonbons rouges </th>	  <th>Autres couleurs </th>	  <th>Total </th>	</tr>	<tr>	<th>Nounours </th>	<td>  
+!read oef/embed.phtml reply1,5 
+$() </td>	<td> </td>	<td> $val7</td>	 </tr>	<tr>	<th>Bouteilles</th>	<td>  
+!read oef/embed.phtml reply4,5 
+$() </td>	<td> </td>	<td> $val8</td>	 </tr>	<tr>	<th>Total </th>	<td>  
+!read oef/embed.phtml reply7,5 
+$() </td>	<td>  </td>	<td> $val6 </td>	 </tr>	</table> 
+!endif
+$()		
+!if  $m_step = 3 
+$()	<strong>Compléter la dernière partie du tableau.</strong>	<table class="wimscenter wimsborder">	<tr>	  <td > </td>	  <th >Bonbons rouges </th>	  <th >Autres couleurs </th>	  <th >Total </th>	</tr>	<tr>	<th >Nounours </th>	<td > $val15</td>	<td >  
+!read oef/embed.phtml reply2,5 
+$()</td>	<td > $val7</td>	 </tr>	<tr>	<th >Bouteilles</th>	<td > $val16</td>	<td >  
+!read oef/embed.phtml reply5,5 
+$() </td>	<td> $val8 </td>	 </tr>	<tr>	<th>Total </th>	<td> $val19 </td>	<td>  
+!read oef/embed.phtml reply8,5 
+$() </td>	<td> $val6 </td>	 </tr>	</table> 
+!endif
+$()		
+!if  $m_step = 4  
+$()	<span class="oef_indgood">Bonnes réponses </span>		<table class="wimscenter wimsborder">	<tr>	  <td> </td>	  <th>Bonbons rouges </th>	  <th>Autres couleurs </th>	  <th>Total </th>	</tr>	<tr>	<th>Nounours </th>	<td> $val15</td>	<td> $val17</td>	<td> $val7</td>	 </tr>	<tr>	<th>Bouteilles</th>	<td> $val16 </td>	<td> $val18</td>	<td> $val8 </td>	 </tr>	<tr>	<th>Total </th>	<td>$val19</td>	<td> $val20</td>	<td> $val6 </td>	 </tr>	</table ><br>	Les bonbons sont dans un sac opaque (chaque bonbon a la même probabilité d'être choisi).<br>	 <div class="wims_emph"> Quelle est la probabilité que le premier bonbon sorti soit un bonbon rouge ?</div>	La probabilité que le premier bonbon sorti soit rouge est p(R)=  
+!read oef/embed.phtml reply10,5 
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,11,13,15,16,17,18,19,20
+embedcnt=10

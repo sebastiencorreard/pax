@@ -1,0 +1,141 @@
+%%%%%%%%%%% Finir correction
+
+\title{Labyrinthe des nombres premiers}
+\author{Bruno, Mifsud}
+\email{communaute.mutuwims@laposte.net}
+\credits{MutuWIMS}
+
+
+\keywords{primes}
+%%%%%%%%% si \confparm1 sans valeur
+\text{confparm1= items(\confparm1)=0 ? random(1,2):\confparm1}
+%%%%%%%%%%%%%%
+\integer{bsup=\confparm1=1 ? 30 :100}
+
+%%%%%%%% faire 4*4 sinon la case 5 marche toujours, ou on ajoute des lignes...
+\matrix{choix=shuffle(6)}               %%% pour avoir les autres entiers (tous distincts)
+\text{clef=item(1,\choix)  }            %%% la valeur des cases du chemin
+\text{passages=D,2,2,2,3,1,3,4,2,3,1,5,2,2,2,A
+D,1,4,5,2,2,1,6,3,3,3,1,6,4,5,A
+D,2,4,5,1,2,3,6,3,1,3,3,6,4,1,A
+D,1,1,5,2,2,4,1,3,3,3,1,6,4,5,A
+2,1,D,2,1,2,5,2,1,3,4,3,A,2,5,2
+6,6,D,2,5,4,2,1,2,3,1,3,A,1,2,5
+}
+\text{passage=randomrow(\passages)}
+\text{listpos=}
+%%%%% Prime=P1
+\text{prime=2}
+  \for{j=3 to \bsup}{\text{prime=pari(isprime(\j))=1? wims(append item \j to \prime)}}
+  \text{prime=shuffle(\prime)}
+%%%%%%%% Not prime
+  
+\text{notprime=}
+  \for{j=1 to \bsup}{\text{notprime=pari(isprime(\j))=0? wims(append item \j to \notprime)}}
+    \text{notprime=shuffle(\notprime)} 
+  
+\integer{q=1}
+\for{j=1 to 16}
+{
+\if{\j=1}{\if{\passage[\j]==D}{\text{N=Départ}}
+             {\text{N=\passage[\j]=1 ? \prime[\q] : \notprime[\j]} %%% on prend le premier de la liste
+             \if{\passage[\j]=1}{\integer{q=\q+1}}}
+         }            
+    {\if{\passage[\j]==D}{\text{N=\N,Départ}}
+        {\if{\passage[\j]==A}
+              {\text{N=\N,Arrivée}}
+             {\text{N=\passage[\j]=1 ? \N,\prime[\q] : \N,\notprime[\j]}
+             \if{\passage[\j]=1}{\integer{q=\q+1}}}}}
+
+\if{\j=1}
+{
+\text{list=\N[1]}
+}
+{\text{list=\list,\N[\j]}
+}
+%%%%%%
+\integer{temp=\N[\j]}
+
+
+\if{\j=1}
+{\text{listval=\temp}
+}
+{\text{listval=\listval,\temp}
+}
+
+\text{listpos= pari(isprime(\temp))=1?  wims(append item \j to \listpos)}
+
+}
+
+\integer{listcnt=items(\list)}
+
+\text{defprime=<b>Définition :</b> On appelle nombre premier tout entier positif qui admet exactement deux diviseurs positifs : 1 et lui-même.
+<br/>Exemple : 5 est un nombre premier
+<br/>Contre exemple : 6 n'est pas un nombre premier.
+Il est divisible à la fois par 1, 2, 3 et 6.
+}
+
+\text{name_instruction1=Aidez Ludivine à sortir du labyrinthe.}
+\text{name_instruction2=En partant de la case <b>Départ</b>, cliquez sur les cases qui 
+contiennent un nombre premier pour aller jusqu'à la case <b>Arrivée</b>.}
+\statement{
+<p>\name_instruction1</p>
+<p>\name_instruction2</p>
+<div class=wimscenter>
+<table class="wimsborder">
+<tr>
+\for{k=1 to 4}{
+<th>\if{\passage[\k]=D}{Départ}{\if{\passage[\k]=A}{Arrivée}{\embed{r1,\k}}} </th>}
+</tr>
+<tr>
+\for{k=5 to 8}{
+<th>\if{\passage[\k]=D}{Départ}{\if{\passage[\k]=A}{Arrivée}{\embed{r1,\k}}} </th>}
+</tr>
+<tr>
+\for{k=9 to 12}{
+<th>\if{\passage[\k]=D}{Départ}{\if{\passage[\k]=A}{Arrivée}{\embed{r1,\k}}} </th>}
+</tr>
+<tr>
+\for{k=13 to 16}{
+<th>\if{\passage[\k]=D}{Départ}{\if{\passage[\k]=A}{Arrivée}{\embed{r1,\k}}} </th>}
+</tr>
+</table>
+</div>
+<div class="wims_instruction">
+En partant de la case départ, on doit se déplacer d'une case à l'autre, de proche en proche. Vers le haut, le bas, à droite, à gauche et en diagonale.</div>
+
+}
+\answer{}{\listpos;\list}{type=mark}
+\hint{\defprime}
+\solution{Voici le labyrinthe avec les nombres premiers :
+<div class=wimscenter>
+<table class="wimsborder">
+<tr>
+\for{m=1 to 4}{
+<th>
+\list[\m]
+\if{\passage[\m]=D}{}{
+\if{\passage[\m]=1}{<font color="green"> est premier</font>}
+}</th>}
+</tr>
+<tr>
+\for{m=5 to 8}{
+<th>\list[\m]
+\if{\passage[\m]=1}{<font color="green"> est premier</font>}
+ </th>}
+</tr>
+<tr>
+\for{m=9 to 12}{
+<th>\list[\m]
+\if{\passage[\m]=1}{<font color="green"> est premier</font>}
+ </th>}
+</tr>
+<tr>
+\for{m=13 to 16}{
+<th>\list[\m]
+\if{\passage[\m]=A}{}{
+\if{\passage[\m]=1}{<font color="green"> est premier</font>}
+}</th>}
+</tr>
+</table>
+</div>}

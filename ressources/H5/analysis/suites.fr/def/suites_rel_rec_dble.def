@@ -1,0 +1,128 @@
+!set title=Récurrence double
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+
+!ifval $val2= 
+val10=$[rint( 2)]
+!else
+val10=$[rint($val2)]
+!endif
+tmp0=!randint 2, $val10
+
+val11=$[rint($(tmp0))]
+t_=!replace internal \( by ( in 	m=matrix(1,6);	m[1,1]=$val8;	m[1,2]=$val9;	for(i=3,6,m[1,i]=$val6*m[1,i-1]+$val7*m[1,i-2]);	print(m);	
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+val13=$[rint($(val12[1;$val11+1]))]
+!readproc slib/text/comblin [$val6,$val7],[u_{n+1},u_n] 
+tmp0=$slib_out
+val14=$(tmp0)
+replytype1=default
+replyname1=Réponse
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la suite 
+!insmath (u_n)_{n\in\mathbb{N}}
+$() définie par 
+!insmath u_0=$val8
+$(), 
+!insmath u_1=$val9
+$() et  la relation de récurrence		<p class="wimscenter">	
+!insmath u_{n+2}=$val14
+$()	</p>	  		 <br/>	Calculer 
+!insmath u_$val11
+$().<br/>	<p class="wimscenter">	Le terme  
+!insmath u_$val11
+$() vaut  
+!read oef/embed.phtml reply 1,5 
+$()<br/>	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,14
+embedcnt=1

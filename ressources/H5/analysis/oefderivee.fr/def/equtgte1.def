@@ -1,0 +1,162 @@
+!set title=Equation d'une tangente - 2 informations données
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items -1,1,2
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 2,2,3
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+
+!ifval ($val7==2)
+tmp=!nonempty items -3,-2,-1,1,2,3,4
+
+tmp0=!randitem $tmp
+val8=$[rint( $(tmp0))]
+!else
+tmp1=!randint -5, 5
+
+val8=$[rint($(tmp1))]
+!endif
+tmp0=!randint -8, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+val10=$[rint($(tmp0)*$(tmp1))]
+
+!ifval ($val7==2)
+t_=!replace internal \( by ( in $val8*x^2+$val9*x+$val10
+tmp0=!exec maxima $t_
+
+val11=!rawmath  $(tmp0)
+!else
+t_=!replace internal \( by ( in $val6*x^3+$val8*x^2+$val9*x+$val10
+tmp1=!exec maxima $t_
+
+val11=!rawmath $(tmp1)
+!endif
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val12=!rawmath $(tmp1)
+tmp0=!randint -5, 5
+
+val13=$(tmp0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val13) in $evaltmp
+tmp0=($evaltmp)
+val14=$[rint($(tmp0))]
+evaltmp=$val12
+
+evaltmp=!mathsubst x=($val13) in $evaltmp
+tmp0=($evaltmp)
+val15=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val15*(x-$val13)+$val14)
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+replytype1=equation
+replyname1=
+replygood1=!rawmath y=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction 
+!insmath f
+$() définie pour tout réel 
+!insmath x
+$() par : 
+!insmath f(x)=$val11
+$().<br>	On donne 
+!insmath f($val13)=$val14
+$() et 
+!insmath f'($val13)=$val15
+$().<br>	Déterminer une équation de la tangente à la courbe représentative de 
+!insmath f
+$() au point d'abscisse 
+!insmath $val13
+$().	<br>Une équation de la tangente est  
+!read oef/embed.phtml r1,6 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,14,15
+embedcnt=1

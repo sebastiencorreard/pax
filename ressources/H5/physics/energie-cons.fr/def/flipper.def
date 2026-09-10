@@ -1,0 +1,162 @@
+!set title=Lancement d'une boule de flipper
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+precision=100
+
+ansorder=r,r,r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 0.8,0.9,1,1.1,1.2
+
+val6=$[$(tmp0)]
+val7=$[$val6/2*25.4e-3]
+!readproc slib/text/sigunits $val7,3 
+tmp0=$slib_out
+val8=$(tmp0)
+val9=$[4/3*pi*$val7^3*7.8e3]
+!readproc slib/text/sigunits $val9,3 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!randint 10, 14
+
+val11=$[$(tmp0)/10]
+tmp0=!randint 8, 12
+
+val12=$[$(tmp0)]
+val13=$[$val12/100]
+val14=$[$val11*$val13]
+!readproc slib/text/sigunits $val14,3 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=$[$val9*9.8*$val14]
+!readproc slib/text/sigunits $val16,3 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!randint 45, 60
+
+val18=$[$(tmp0)*10]
+val19=$[sqrt(2*$val16/$val18)]
+!readproc slib/text/sigunits $val19,3 
+tmp0=$slib_out
+val20=$(tmp0)
+oefsteps=r1,r2	r3,r4 
+nextstep=!nosubst r1,r2	r3,r4 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=
+replygood1=$val9 kg
+replytype2=units
+replyname2=
+replygood2=$val14 m
+replytype3=units
+replyname3=
+replygood3=$val16 J
+replytype4=units
+replyname4=
+replygood4=$val19 m
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="float:left;width:300px; border: solid 1px grey; padding:2px; margin-right: 2em;">	<img src="$val1/Flipperkast.jpg" width="300"> 	<br>Image placée par <i>Michiel1972</i> dans Wikipedia, licence	<a href="http://fr.wikipedia.org/wiki/Licence_de_documentation_libre_GNU">GFDL</a>.	</div>	Dans un flipper, le jeu commence quand une boule est lancée du bas en haut de la table de billard à l'aide	d'un ressort tendu à la main et brusquement relâché. Ce ressort pousse la boule et lui transfère son énergie interne.	<h4>données :</h4>	<ul>	<li>La constante de raideur de ce ressort est $val18 N.m<sup>-1</sup>. </li>	<li>La boule est en acier, son diamètre est  $val6 pouce (1 pouce = 25,4 mm).  La masse volumique de l'acier est	&mu;<sub>Fe</sub>=7,8&times;10<sup>3</sup>&nbsp;kg.m<sup>-3</sup>.</li>	<li>La table de jeu du flipper mesure $val11 m de long et a une pente de $val12 %.</li>	<li>L'accélération de la pesanteur est g = 9,8 N.kg<sup>-1</sup></li>	</ul>	<h4>questions</h4>	<ol>	<li>calculer la masse d'une boule&nbsp;:<br>	m= 
+!read oef/embed.phtml r1 
+$()	<br><span style="color:green;font-size:70%">précisez les unités, donnez trois chiffres significatifs.</span>	</li>	<li>Déterminer la différence d'altitude entre le bas et le haut de la table de billard&nbsp;:<br>	&Delta;z= 
+!read oef/embed.phtml r2 
+$()	<br><span style="color:green;font-size:70%">précisez les unités, donnez trois chiffres significatifs.</span>	</li>	 
+!if $m_step>1 
+$()	<li>Calculer la variation de l'énergie potentielle d'une boule de ce billard quand elle passe du bas jusqu'en haut du billard&nbsp;:	<br>&Delta;E<sub>pp</sub>= 
+!read oef/embed.phtml r3 
+$()	<br><span style="color:green;font-size:70%">précisez les unités, donnez trois chiffres significatifs.</span>	</li>	<li>quelle est la déformation minimale 
+!insmath x
+$() du ressort de lancement de la balle nécessaire pour avoir une chance de commencer 	à jouer une partie&nbsp;?<br>	x<sub>min</sub>= 
+!read oef/embed.phtml r4 
+$()	<br><span style="color:green;font-size:70%">précisez les unités, donnez trois chiffres significatifs.</span>	</li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ol>	<li>La masse de la boule est égale à son volume multiplié par la masse volumique de l'acier. Le rayon est égal à la moitié 	du diamètre&nbsp;:<br>r=d/2=$val6/2&times;
+!insmath 25,4e-3
+$()=
+!insmath $val8
+$() m&nbsp;;	<br>
+!insmath m=4/3 \pi r^3 \mu_{Fe}
+$()=4/3
+!insmath \pi
+$()(
+!insmath $val8
+$())<sup>3</sup>&times;
+!insmath 7.8e3
+$()=
+!insmath $val10
+$() kg.	</li>	<li>La pente est le sinus de l'angle de la table avec l'horizontale. Donc la différence d'altitude s'obtient	en multipliant la longueur par la pente&nbsp;; &Delta;z=$val11&times;
+!insmath $val13
+$()=
+!insmath $val15
+$()&nbsp;m.	</li>	 
+!if $m_step>1 
+$()	<li>La variation d'énergie potentielle est &Delta;E<sub>pp</sub>=mg&Delta;z=
+!insmath mkg
+$()&times;9,8&times;
+!insmath $val15
+$()=
+!insmath $val17
+$()&nbsp;J.	</li>	<li>On obtient la déformation minimale du ressort en écrivant qu'au mimimum, l'énergie potentielle élastique du ressort	(E<sub>pe</sub>=1/2kx<sup>2</sup>) est égale à la variation d'energie potentielle de pesanteur de la boule.<br>	Donc 1/2k(x<sub>min</sub>)<sup>2</sup>=&Delta;E<sub>pp</sub>&nbsp;;<br>	D'où 
+!insmath x_{min}=\sqrt{2\Delta E_{pp}/k}=\sqrt{2\times $val17 / $val18}
+$() = 
+!insmath $val20
+$() m.	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,8,10,11,12,13,15,17,18,20
+embedcnt=4

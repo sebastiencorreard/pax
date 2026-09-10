@@ -1,0 +1,144 @@
+!set title=Fluctuation (sondage électoral)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=Norbert.Rey@ac-lyon.fr
+keywords=prediction_interval
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 510, 530
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 540, 560
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem $val6,$val7
+
+val8=$[$(tmp0)/1000]
+val9=$[$val8*100]
+val10=$[$val8-1/sqrt(1000)]
+val11=$[$val8+1/sqrt(1000)]
+val12=$[rint(1000*$val10)/1000]
+val13=$[rint(1000*$val11)/1000]
+
+!ifval $val8>0.535 
+val14=$[rint( 1)]
+!else
+val14=$[rint(2)]
+!endif
+oefsteps=reply1	    reply2	    reply3, reply4 
+nextstep=!nosubst reply1	    reply2	    reply3, reply4 
+!readproc oef/steps.proc
+replytype1=default
+replyoption1=comma 
+replyname1=
+replygood1=$val12
+replytype2=default
+replyoption2=comma 
+replyname2=
+replygood2=$val13
+replytype3=radio
+replyname3=
+replygood3=$val14;oui,non
+replytype4=radio
+replyoption4=shuffle 
+replyname4=
+replygood4=$val14;\($val12>0.5 \),\($val12<0.5 \),\($val8>0.5 \),\($val13<0.5 \),\($val13>0.5 \)
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!read oef/img.phtml $val1/sondage.jpg  
+$() Un sondage avant le second tour des élections est réalisé sur un panel de <strong>1000 personnes</strong>, représentatif des électeurs.<br>	<p>Lors de ce sondage, le candidat arrivant en tête recueille <strong> $val9 %</strong> des intentions de vote. 
+!read oef/img.phtml $val1/election.jpg  
+$()</p>	<div class="wims_emph wimscenter">Problématique : Peut-on affirmer que le candidat est certain d'être élu ?</div>	
+!if  $m_step = 1  
+$()Déterminer la borne inférieure de l'intervalle de confiance au seuil de 95 %  :  
+!read oef/embed.phtml  reply 1,5  
+$() <div class="wims_instruction">arrondir au millième</div> 
+!endif
+$()	
+!if  $m_step = 2  
+$()Déterminer la borne supérieure de l'intervalle de confiance au seuil de 95 %  :  
+!read oef/embed.phtml  reply 2,5  
+$()<div class="wims_instruction">arrondir au millième</div> 
+!endif
+$()	
+!if  $m_step = 3  
+$() L'intervalle de confiance au seuil de 95 % est donc <span class="oef_indgood"> [$val12 ; $val13 ]</span>. <br>	Peut-on affirmer que le candidat est certain d'être élu ? <span class="wims_smallremark">Avec un risque d'erreur inférieur à 5 % </span><br>	   
+!read oef/embed.phtml reply 3 
+$()   <br>	Quelle inégalité vous permet de justifier votre réponse ?  <br>   
+!read oef/embed.phtml reply 4 
+$()  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() L'intervalle de fluctuation est donné par la formule	
+!insmath \left[p -\frac{1}{\sqrt{n}}  ; p +\frac{1}{\sqrt{n}} \right]
+$()</strong>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,12,13
+embedcnt=4

@@ -1,0 +1,125 @@
+!set title=Question 114 NS Vitesse moyenne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud;Cyrille,Douriez
+email=communaute.mutuwims@laposte.net;cyrille.douriez@ac-amiens.fr
+keywords=quizz
+oefobservation=
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+oefobservation=Question du sujet zéro sujet-specifique-3_0.pdf publié sur EDUSCOL en juin 2025 
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+tmp=!trim 5,1,1,1,1.5,1.5	6,1,1,1.5,2,2	10,1.5,2,2,2.5,3	15,2,2,2.5,3,4	12,1.5,2,2,3,3	20,2,3,4,5,6	30,4,5,6,7,8
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp0=!randint 2, 6
+
+val10=$[rint($(tmp0))]
+val11=$[rint($(val9[$val10])*60/$(val9[1]))]
+val12=$[rint($val11-2)]
+val13=$[rint($val11+2)]
+tmp=!nonempty items -4,4,4
+
+tmp0=!randitem $tmp
+val14=$[rint($val11+$(tmp0))]
+val15=Un coureur parcourt $(val9[$val10]) km en $(val9[1]) min. Quelle est sa vitesse moyenne&nbsp;&#63; 
+val16=$val11 km/h
+val17=$val12 km/h,$val13 km/h,$val14 km/h
+val18=$[rint(60/$(val9[1]))]
+val19=La bonne réponse était $val16.<br> En effet&#44; 1h=60 min=$val18 \({}\times{}\) $(val9[1]) min donc le coureur en une heure parcourt $(val9[$val10])\({}\times{}\)$val18=$val16. 
+val20=$val16,$val17
+tmp0=!shuffle 4
+
+val21=$(tmp0)
+tmp0=!positionof item 1 in $val21
+
+val22=$[rint($(tmp0))]
+val23=\latexversion	    \item	    $val15	    \begin{radio}	    \item $(val20[1])	    \item $(val20[2])	    \item $(val20[3])	    \item $(val20[4])	    \end{radio}
+val23=$val23 \end{enumerate}
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val22;Réponse A,Réponse B,Réponse C,Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val23 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val15	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder"><tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val20[$(val21[1])]) </td><td>$(val20[$(val21[2])]) </td><td>$(val20[$(val21[3])]) </td><td>$(val20[$(val21[4])]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val23 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val19!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val19	  </div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,15,19,20,21,23
+embedcnt=1

@@ -1,0 +1,301 @@
+!set title=Associer courbe et fonction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+
+ansorder=r
+varcnt=72
+prevarcnt=71
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val5 = 
+val6=$[rint( 4 )]
+!else
+val6=$[rint( $val5)]
+!endif
+
+!ifval $val3 = 
+val3= 1,2,3 
+!else
+val3= $val3
+!endif
+
+!ifval $val2 = 
+val2= A,B,C 
+!else
+val2= $val2
+!endif
+
+!ifval $val4 issametext A 
+tmp=!nonempty items $val2
+
+tmp0=!randitem $tmp
+val7= $(tmp0) 
+!else
+val7= $val2
+!endif
+tmp0=!itemcnt $val2
+
+val8=$[rint($(tmp0))]
+
+!ifval F isitemof $val2 
+val8=$[rint( $val8+1)]
+!endif
+tmp0=!itemcnt $val7
+
+val9=$[rint($(tmp0))]
+
+!ifval F isitemof $val7 
+val9=$[rint( $val9+1)]
+!endif
+!if $val3 issametext 1 and $val9<$val6  
+!if $val8 >= $val6 
+val7=$val2
+!else
+!if $val8>=3 
+val7=$val2
+val6=$val8
+!else
+tmp0=!listuniq A,B,C,$val2
+
+val7=$(tmp0)
+val6=3
+!endif
+!endif
+!endif
+tmp0=!randitem 0.5,0.1,0.2,0.8
+
+val10=$(tmp0)
+val11=$[1/$val10]
+tmp0=!replace internal A by x in $val7
+
+val12=$(tmp0)
+tmp0=!replace internal B by (x)^2 in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal C by 1/(x) in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal D by abs(x) in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal E by sqrt(x) in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal F by sin(x),cos(x) in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal G by (x)^3 in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal H by ($val10)^x,($val11)^x in $val12
+
+val12=$(tmp0)
+tmp0=!replace internal (x)^ by x^ in $val12
+
+val13=$(tmp0)
+tmp0=!makelist \(x \mapsto)\( g \) for g in $val13
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+val14=$[rint($(tmp0))]
+
+!ifval $val14 = 1 
+val15= de la fonction de référence 
+!else
+val15= d'une des fonctions de référence
+!endif
+
+!ifval 1 isitemof $val3 
+val16= $val12 
+!else
+val16=
+!endif
+tmp0=!listcomplement 1 in $val3 
+
+val17=$(tmp0)
+tmp0=!itemcnt $val17
+
+val18=$[rint($(tmp0))]
+!if $val18 > 0 
+tmp0=!shuffle -1,1/2,3/2,2,-1/2,-3/2,-2
+
+val19=$(tmp0) 
+!if ($val2 issametext H ) and ($val3=2) and ($val4 issametext A) 
+!if $val5<5 
+val19=$(val19[1]),$(val19[1]),$(val19[2]),$(val19[2])
+!else
+val19=$(val19[1]),$(val19[1]),$(val19[2]),$(val19[2]),$(val19[3]),$(val19[3])
+!endif
+!endif
+tmp0=!shuffle 1,-1,1/2,3/2,2,-1/2,-3/2,-2
+
+val20=$(tmp0)
+tmp0=!shuffle 1,-1,1/2,3/2,2,-1/2,-3/2,-2
+
+val21=$(tmp0)
+!for val22  = 1 to $val6 
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val23=!rawmath $(tmp0)
+!if $val2 issametext H 
+val23=!rawmath $(val12[$val22%2+1])
+!endif
+t_=!replace internal \( by ( in x+$(val21[$val22])
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+tmp0=!replace internal x by $val24 in $val23
+
+val25=$(tmp0)
+tmp0=!replace internal x by $val24 in $val23+$(val20[$val22])
+
+val26=$(tmp0)
+tmp0=!replace internal x by $val24 in $(val19[$val22])*$val23+$(val20[$val22])
+
+val27=$(tmp0)
+val28=$val23, $(val19[$val22])*$val23,$val23+$(val20[$val22]),$(val19[$val22])*$val23+$(val20[$val22]),$val25,$val26,$val27 
+tmp=!nonempty items $val17
+
+tmp0=!randitem $tmp
+val29=$[rint($(tmp0))]
+!if $val23 issametext x 
+
+!ifval $val29 = 5 
+val29=$[rint( 3)]
+!endif
+
+!ifval $val29 = 6 
+val29=$[rint( 3)]
+!endif
+
+!ifval $val29 = 7 
+val29=$[rint( 4)]
+!endif
+!endif
+val30=$(val28[$val29])
+t_=!replace internal \( by ( in expand($(val28[$val29]))
+tmp0=!exec maxima $t_
+
+val30=$(tmp0)
+tmp0=!append item $val30 to $val16
+
+val16=$(tmp0)
+!next
+!endif
+tmp0=!shuffle $val16
+
+val16=$(tmp0)
+val16=$(val16[1..$val6])
+tmp0=!replace internal (x)^ by x^ in $val16
+
+val16=$(tmp0)
+tmp0=!makelist \(j\) for j in $val16
+
+val31=$(tmp0)
+val32=
+!for val33 =1 to $val6 
+tmp0=!append item \(x \mapsto {}\)\( $(val16[$val33]) \) to $val32
+
+val32=$(tmp0)
+!next
+val34=grey
+val35=xrange -3,3	yrange -3,3	linewidth 1	vline 1,0,$val34	vline 2,0,$val34	vline -1,0,$val34	vline -2,0,$val34	hline 0,1,$val34	hline 0,2,$val34	hline 0,-1,$val34	hline 0,-2,$val34	linewidth 1	vline 0,0,black	hline 0,0,black	linewidth 2	segment 1,-0.1,1,0.1,black	segment -0.1,1,0.1,1,black	text red,0.9,-0.1,medium,I	text red,-0.4,1.2,medium,J	text black,-0.2,-0.1,medium,O	
+val36=180
+val37=
+val38=
+!for val21 =1 to $val6 
+!readproc oef/draw.phtml $val36,$val36 \
+    $val35	    linewidth 2	    plot blue,$(val16[$val21])  
+tmp0=$ins_url
+val39=$(tmp0) 
+val40=<img src='$val39' alt=''>	    
+val41=<table class="wimscenter">	      <tr>	        <td>	    $val40	  </td>	      </tr>	    </table>	  
+tmp0=!append item $val40 to $val37
+
+val37=$(tmp0)
+tmp0=!append item $val41 to $val38
+
+val38=$(tmp0)
+!next
+val42=$val36 x $val36 x $val36
+val43=repère \((O,I,J)\) 
+replytype1=correspond
+replyname1=
+replygood1=$val38;$val32
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Chaque courbe est la représentation graphique dans le $val43 d'une fonction 
+!insmath f
+$() qui à 
+!insmath x
+$() associe 
+!insmath f(x)
+$().<br>	Associer chaque courbe avec l'expression de 
+!insmath f(x)
+$() qui convient. <br class="clearall" >	<div class="wimscenter"> 
+!read oef/embed.phtml reply 1,$val42 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=42,43
+embedcnt=1

@@ -1,0 +1,75 @@
+target=ln2
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\text{l=shuffle(x,y,z,t,u,v)}
+\text{a=item(1,\l)}
+\text{b=item(2,\l)}
+\integer{s=random(-1,1)}
+\integer{n0=random(2..5)}
+\integer{n=\n0*\s}
+\integer{s=random(-1,1)}
+\integer{m0=random(2..5)}
+\integer{m=\s*\m0}
+\function{p=(\a^\n)*(\b^\m)}
+\text{sum=\s=1?\n*ln(\a) + \m*ln(\b):\n*ln(\a) - \m0*ln(\b)}
+
+\text{AA=\sum,ln(\p)}
+\integer{cas=random(1,2)}
+\text{A=item(\cas,\AA)}
+
+\statement{
+<div class="wims_question">
+\name_enonce0[1] \(A = \A\) \name_enonce0[2]
+<p>\name_enonce[\cas;].</p>
+  <div class="wimscenter">
+\if{\cas=1}{
+ \(A = ln(\a^n \b^m)\)
+}{
+  \(A = n ln(\a) + m ln(\b)\)
+}
+  </div>
+avec \(n\) = \embed{reply1,5} et \(m\) = \embed{reply2,5}.
+</div>
+}
+\answer{}{\n}{type=integer}
+\answer{}{\m}{type=integer}
+\hint{Les règles de calcul des logarithmes sont :
+  <div>
+  \(\ln (a \times b) = \ln(a) + \ln(b) \)<br>
+  \(\ln (\frac{a}{b}) = \ln(a) - \ln(b)\)<br>
+  \(\ln(a^{n}) = n \ln(a)\) <br>
+  \(\ln(\frac{1}{a}) = - \ln(a)\)
+  </div>
+}
+\feedback{0=0}{
+  Voici un corrigé :<br>
+  \if{\cas=1}{
+    \(\n ln(\a) = ln(\a^\n)) et \(\m ln(\b) = ln(\b^\m)\)<br>
+    \( \sum = ln(\a^\n) + ln(\b^\m) = ln(\a^\n * \b^\m)
+    = ln(\p) \)
+  }
+  \if{\cas=2}{
+    En appliquant la règle du logarithme d'un produit : <br>
+    \(\ln(\a^{\n}\times \b^{\m}) = \ln(\a^{\n}) + \ln(\b^{\m}) = \n\ln(\a) + \m\ln(\b)\)
+  }
+  \if{\cas=2 && \m>0 && \n<0}{<br>
+    En appliquant la règle du logarithme d'un quotient : <br>
+    \(\ln(\a^{\n}\times\b^{\m}) = \ln(\frac{\b^{\m}}{\a^{\n0}}) = \ln(\b^{\m}) - \ln(\a^{\n0}) = \m\ln(\b) - \n0\ln(\a)\)
+  }
+  \if{\cas=2 && \n>0 && \m<0}{<br>
+    En appliquant la règle du logarithme d'un quotient : <br>
+    \( \ln(\a^{\n}\times\b^{\m}) = \ln(\frac{\a^{\n}}{\b^{\m0}}) = \ln(\a^{\n}) - \ln(\b^{\m0}) = \n\ln(\a) - \m0\ln(\b)\)
+  }
+  \if{\cas=2 && \n<0 && \m<0}{<br>
+    En appliquant la règle du logarithme d'un quotient : <br>
+    \( \ln(\a^{\n}\times\b^{\m}) = \ln(\frac{1}{\a^{\n0}\b^{\m0}}) = -\ln(\a^{\n0}\b^{\m0}) = - (\ln(\a^{\n0})+ \ln(\b^{\m0}))
+    = - (\n0\ln(\a) + \m0\ln(\b)) = -\n0\ln(\a) - \m0\ln(\b)\)
+  }
+}

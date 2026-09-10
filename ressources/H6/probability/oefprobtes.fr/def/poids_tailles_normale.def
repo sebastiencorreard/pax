@@ -1,0 +1,314 @@
+!set title=Loi normale : taille, poids d'une personne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=4,7,11,16,18
+val7=100,118,141,163,164
+val8=4,4.5,5,5,5
+val9=101,119,141,171,175
+val10=4,5,5,6,5
+val11=15,23,33,58,64
+val12=1.5,1.5,3.3,6,6
+val13=16,21,33,52,52
+val14=1.5,2.5,5,6,6
+tmp0=!randint 1, 5
+
+val15=$[rint($(tmp0))]
+val16=garçon,fille
+val17=taille,poids
+tmp0=!randint 1, 2
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val19=$[rint($(tmp0))]
+!if $val19=1 
+val20=cm
+!else
+val20=kg
+!endif
+tmp0=!randint 1, 30
+
+val21=$[$(tmp0)/10]
+tmp0=!randint 1, 30
+
+val22=$[$(tmp0)/10]
+!if $val18=1 and $val19=1 
+val23=$[$(val9[$val15])+$val22*$(val10[$val15])]
+!endif
+!if $val18=1 and $val19=2 
+val23=$[$(val11[$val15])+$val22*$(val12[$val15])]
+!endif
+!if $val18=2 and $val19=1 
+val23=$[$(val7[$val15])+$val22*$(val8[$val15])]
+!endif
+!if $val18=2 and $val19=2 
+val23=$[$(val13[$val15])+$val22*$(val14[$val15])]
+!endif
+!if $val18=1 and $val19=1 
+val24=$[$(val9[$val15])-$val21*$(val10[$val15])]
+!endif
+!if $val18=1 and $val19=2 
+val24=$[$(val11[$val15])-$val21*$(val12[$val15])]
+!endif
+!if $val18=2 and $val19=1 
+val24=$[$(val7[$val15])-$val21*$(val8[$val15])]
+!endif
+!if $val18=2 and $val19=2 
+val24=$[$(val13[$val15])-$val21*$(val14[$val15])]
+!endif
+val25=inférieure,supérieure
+val26=inférieur,supérieur
+tmp0=!randint 1, 2
+
+val27=$[rint($(tmp0))]
+val28=moins, plus
+tmp0=!randint 1, 2
+
+val29=$[rint($(tmp0))]
+!if $val19=1 
+val30=$(val25[$val27])
+!else
+val30=$(val26[$val27])
+!endif
+!if $val27=1 
+val31=\(\le)
+!else
+val31=\(\ge)
+!endif
+!if $val27=1 
+tmp=!translate ;";': to $     $ in 1/sqrt(2*pi)*exp(-x^2/2),x,-10^99,$val22 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val32=$[$(tmp1)]
+!endif
+!if $val27=2 
+tmp=!translate ;";': to $     $ in 1/sqrt(2*pi)*exp(-x^2/2),x,$val22,10^99 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val32=$[$(tmp1)]
+!endif
+val33=$[rint($val32*1000)/1000]
+!if $val29=1 
+val34=\(\ge)
+!else
+val34=\(\le)
+!endif
+!if $val29=1 
+tmp=!translate ;";': to $     $ in 1/sqrt(2*pi)*exp(-x^2/2),x,-$val21,10^99 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val35=$[$(tmp1)]
+!endif
+!if $val29=2 
+tmp=!translate ;";': to $     $ in 1/sqrt(2*pi)*exp(-x^2/2),x,-10^99,-$val21 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val35=$[$(tmp1)]
+!endif
+val36=$[rint($val35*1000)/1000]
+tmp=!translate ;";': to $     $ in 1/sqrt(2*pi)*exp(-x^2/2),x,-$val21,$val22 
+tmp=!lower $tmp
+!readproc slib/function/integrate $tmp
+tmp0=$slib_out
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val37=$[100*$(tmp1)]
+val38=$[rint($val37*10)/10]
+val39=\(\le),\(\ge)
+replytype1=clickfill
+replyname1=
+replygood1=$val31;$val39
+replytype2=numeric
+replyname2=
+replygood2=$[$val33]
+replytype3=clickfill
+replyname3=
+replygood3=$val34;$val39
+replytype4=numeric
+replyname4=
+replygood4=$[$val36]
+replytype5=numeric
+replyname5=
+replygood5=$[$val38]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	
+!if $val19=1 
+$()La 
+!else
+$() Le 
+!endif
+$() $(val17[$val19]), en $val20, 
+!if $val18=1 
+$()d'un 
+!else
+$() d'une 
+!endif
+$() $(val16[$val18]) 
+!if $val18=1 
+$()agé 
+!else
+$() agée 
+!endif
+$()	 de $(val6[$val15]) ans, est une variable aléatoire X qui suit une loi normale d'espérance m=	
+!if $val18=1 and $val19=1 
+$()$(val9[$val15]) 
+!endif
+$() 	
+!if $val18=1 and $val19=2 
+$()$(val11[$val15]) 
+!endif
+$()	
+!if $val18=2 and $val19=1 
+$()$(val7[$val15]) 
+!endif
+$()	
+!if $val18=2 and $val19=2 
+$()$(val13[$val15]) 
+!endif
+$() $val20 et d'écart-type 
+!insmath \sigma
+$()= 	
+!if $val18=1 and $val19=1 
+$()$(val10[$val15]) 
+!endif
+$() 	
+!if $val18=1 and $val19=2 
+$()$(val12[$val15]) 
+!endif
+$()	
+!if $val18=2 and $val19=1 
+$()$(val8[$val15]) 
+!endif
+$()	
+!if $val18=2 and $val19=2 
+$()$(val14[$val15]) 
+!endif
+$() $val20.	<div class="icon-consigne">	Les probabilités seront arrondies au millième et les pourcentages au dixième.	</div>	</div>				<div class="question">	Quelle est la probabilité que 
+!if $val19=1 
+$()la 
+!else
+$() le 
+!endif
+$() $(val17[$val19]) 
+!if $val18=1 
+$()d'un 
+!else
+$() d'une 
+!endif
+$() $(val16[$val18]) de cet âge 	soit $val30 à  $val23 $val20 ?	<div class="reponse">	P(X 
+!read oef/embed.phtml r1,50 
+$()$val23) &asymp;  
+!read oef/embed.phtml r2,5 
+$()	</div>	</div>		<div class="question">	Quelle est la probabilité qu'
+!if $val18=1 
+$()il 
+!else
+$() elle 
+!endif
+$() 
+!if $val19=1 
+$()mesure 
+!else
+$() pèse 
+!endif
+$() au $(val28[$val29]) $val24 	$val20 ?	<div class="reponse">	P(X 
+!read oef/embed.phtml r3,50 
+$()$val24) &asymp;  
+!read oef/embed.phtml r4,5 
+$()	</div>	</div>		<div class="question">	Quelle est le pourcentage de $(val16[$val18]) de $(val6[$val15]) ans, 
+!if $val19=1 
+$()mesurant 
+!else
+$() pesant 
+!endif
+$() entre	 entre $val24 $val20 et $val23 $val20 ?	<div class="reponse">  	p &asymp;  
+!read oef/embed.phtml r5,5 
+$() %	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,23,24,28,29,30
+embedcnt=5

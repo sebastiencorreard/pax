@@ -1,0 +1,138 @@
+!set title=Ecriture d'entiers dans une base
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=sophie.lemaire@math.u-psud.fr
+language=fr
+computeanswer=yes
+title_it=Scrittura degli interi in base b
+
+ansorder=r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6-1)]
+tmp0=!randint 2, 8
+
+val8=$[rint($(tmp0))]
+val9=$[rint(($val6-1)*$val6^($val8-1))]
+val10=$[rint($val8-1)]
+val11=$[rint($val6^($val8))]
+tmp0=!randint 0, $val7
+
+val12=$[rint($(tmp0))]
+!if $val12=0 
+val13=$[rint(($val8-1)*$val7^($val8-1))]
+!else
+val13=$[rint($val7^($val8-2)*($val8*$val7+1-$val8))]
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=Combien de nombres entiers positifs ont-ils une écriture en base $val6 constituée de $val8 chiffres ?
+val16=Oui, il y a $val9 nombres entiers positifs dont l'écriture en base $val6 est constituée de $val8 chiffres.
+val17=Dans combien de ces nombres le chiffre $val12 apparaît-il une fois ?
+val18=Réponse
+val19=Attention, le nombre que vous avez donné est le cardinal de
+val20=Les suites de $val8 chiffres commençant	 par 0 ne sont pas des nombres à $val8 chiffres. 
+!if $val14=it 
+val15=Quanti numeri interi positivi ammettono una scrittura in base $val6 costituita da $val8 cifre?
+val16=Sì, ci sono $val9 numeri interi positivi per cui la scrittura in base $val6 è costituita da $val8 cifre.
+val17=In quanti di questi numeri la cifra $val12 appare una e una sola volta?
+val18=Risposta
+val19=Attenzione, il numero che avete dato è in realtà la cardinalità di
+val20=Le sequenze di $val8 cifre che cominciano per 0	    non sono numeri a $val8 cifre.
+!endif
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=1- $val18
+replygood1=$[$val9]
+replytype2=numeric
+replyname2=2- $val18
+replygood2=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<ul class="wims_nopuce"><li>	  $val15	  
+!if $m_step=1 
+$()	  <div class="wimscenter"> 
+!read oef/embed.phtml r1,6 
+$()</div>	  <li>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<div class="oef_indgood">	$val16	</div>	</li><li>	  $val17	 <div class="wimscenter"> 
+!read oef/embed.phtml r2,6 
+$()</div>	 </li> 
+!endif
+$()	 </ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1=$val11
+ <div class='oef_feedbacks'>	<div class="oef_indbad"> $val19	 
+!insmath \{0,...,$val7\}^$val8 
+$(). $val20</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,15,16,17,19,20
+embedcnt=2

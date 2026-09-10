@@ -1,0 +1,93 @@
+\title{Méthode des tangentes}
+\author{Benoît, MARKEY}
+\email{benoit.markey@ac-lille.fr}
+
+\text{donnee=
+éthanoïque,CH_3COOH,CH_3COO^-,4.75;
+benzoïque,C_6H_5COOH,C_6H_5COO^-,4.20;
+méthanoïque,HCOOH,HCOO^-,3.75;
+hypochloreux,HClO,HClO^-,7.30;
+fluorhydrique,HF,F^-,3.2;
+chlorhydrique,H_3O^+ (+Cl^-), H_2O,-6.3;
+nitrique,H_3O^+ (+NO_3^-), H_2O,-1.8;
+}
+\text{tir=randomrow(\donnee)}
+\integer{cb1=randint(1..10)}
+\real{cb=\cb1/10}
+\integer{Va=random(10,20,50)}
+\integer{Vb=randint(5..17)}
+\integer{dec1=randint(0..3)}
+\real{dec=\dec1/10}
+\real{sign=random(+1,-1)}
+\real{Vb2=\Vb+\sign*\dec}
+\real{min=\Vb2-2}
+\real{max=\Vb2+2}
+\real{min2=\Vb-2}
+\real{max2=\Vb+2}
+\text{Vb2_rep=slib(text/sigunits \Vb2 ,3)}
+\real{ca=\cb*\Vb2/\Va}
+\text{cb_rep=slib(text/sigunits \cb ,2)}
+
+
+
+
+\real{\Vmax=2*\ca*\Va/\cb}
+
+
+\text{V=\Va*(10^(14*t-14)+\ca*(10^(14*t-\tir[4])/(10^(14*t-\tir[4])+1)-10^(-14*t))/(10^(-14*t)+\cb-10^(14*t-14)))}
+
+\text{pH=14*t}
+
+\text{B=slib(graphpaper/func_milli 10,,0,,\Vmax max,2,,,,[\V,\pH] )}
+
+\real{i=0.01}
+\real{pHeq=0}
+\while{\Va*(10^(14*\i-14)+\ca*(10^(14*\i-\tir[4])/(10^(14*\i-\tir[4])+1)-10^(-14*\i))/(10^(-14*\i)+\cb-10^(14*\i-14)))<\Vb2}{
+\real{pHeq=14*\i}
+\real{i=\i+0.01}
+}
+\text{A=draw(300,300
+\B
+text green,5,78,medium,pH
+text green,85,5,medium,V (mL))
+}
+
+\text{graph=<img src="\A">}
+
+
+\statement{
+<p>On réalise le dosage pHmétrique de l'acide \tir[1] par de la soude.<br>
+Pour cela, le volume d'acide \tir[1] versé dans le bécher est \(\Va\) mL et la soude a une concentration
+ initiale \(c_b =\cb_rep\) \(mol \times \mathrm{L}^{-1}\).<br>
+Avec la méthode des tangentes, vous déterminerez le point d'équivalence, noté E(Véq,pHéq).<br>
+Vous pouvez "déplacer" les tangentes avec votre souris,
+et modifier l'écartement ainsi que l'angle de rotation.</p>
+
+<div style="top:180px; left:200px; z-index:1;padding:10px">
+\graph</div>
+<div style="position:absolute; top:180px; left:200px; z-index:3;">
+<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="580" height="480" id="\imagedir/tangentes">
+<param name="allowScriptAccess" value="sameDomain">
+<param name="movie" value="\imagedir/tangentes.swf">
+<param name="quality" value="high">
+<param name="wmode" value="transparent">
+<embed src="\imagedir/tangentes.swf"  quality="high" wmode="transparent" width="580"
+height="480" name="tangentes" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"target="wims_external">
+</object>
+
+</div>
+<ol>
+<li>Déterminez les coordonnées du point à l'équivalence E(\embed{reply 1,5};\embed{reply 2,5})</li>
+<li>En déduire la concentration de la solution d'acide \tir[1] étudiée \(c_a =\)\embed{reply 3,5}\(mol \times \mathrm{L}^{-1}\)</li>
+</ol>
+<div class="wims_instruction">
+<p>Le séparateur de décimales est un point.</p>
+<p>Si vous ne voyez pas la courbe,
+mais simplement une image à fond jaune,
+il vous faut installer flash player 10
+<a href=http://get.adobe.com/fr/flashplayer/target="wims_external">ici</a></p>
+</div>
+}
+\answer{\(x_{E}\)}{\Vb2-0.2,\Vb2+0.2}{type=range}
+\answer{\(pH_{E}\)}{\pHeq-0.2,\pHeq+0.2}{type=range}
+\answer{Concentration d'acide}{\ca-0.2,\ca+0.2}{type=range}

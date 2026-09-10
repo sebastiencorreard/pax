@@ -53,12 +53,13 @@ _DETTE = frozenset({
 #
 # Ce relevé-ci est **statique** : il compte des `replytype<n>=` dans les
 # `.def`, et à ce titre il sur-rapporte. Ce qu'un fichier déclare n'est pas ce
-# qui parvient au checker — le moteur replie, masque ou écarte cinq de ces
+# qui parvient au checker — le moteur replie, masque ou écarte quatre de ces
 # onze types avant le dispatch. La partition qui suit dit lesquels, et c'est
-# `_DETTE_ATTEINTE` qui ordonne le travail.
+# `_DETTE_ATTEINTE` qui ordonne le travail. Six y sont entrés avec l'import de
+# H1, H2, H5 et H6 (2026-09-10).
 _DETTE_EMPLOYEE = frozenset({
-    "draft", "dragfill",
-    "matrix", "reaction", "symtext",
+    "chset", "clicktile", "complex", "compose", "crossword", "draft",
+    "dragfill", "matrix", "reaction", "reorder", "symtext",
 })
 
 # Employés par le corpus, jamais parvenus à `check_answer` : le moteur les
@@ -68,25 +69,41 @@ _DETTE_EMPLOYEE = frozenset({
 #
 #   dragfill  →  replié sur `clickfill` (`_normalize_reply_type`), voir plus bas
 #   draft     →  capté en `options["draft"]`, champ brouillon non noté
-#   matrix    →  ses 7 champs portent tous `?analyze`, qui masque le type en
-#                `analyze` ; la notation passe par `:test` (et pour 7 d'entre
-#                eux, plus du tout : rien ne les éprouve, ils sont `ungraded`)
-#   symtext   →  idem, ses 2 champs sont `?analyze`
+#   symtext   →  ses 2 champs portent `?analyze`, qui masque le type en
+#                `analyze` ; la notation passe par `:test`
 #   reaction  →  `?analyze` *et* `replyweight=0` : le type de module
 #                d'oefstatistiques ne corrige rien, il dresse un tableau HTML
 #                des temps relevés et conclut `diareply=good` sans condition
+#
+# `matrix` en faisait partie tant que le corpus s'arrêtait à H3/H4, où ses
+# champs portent tous `?analyze`. Ceux de H5/H6 n'en portent pas : il est passé
+# en `_DETTE_ATTEINTE`.
 _DETTE_INTERCEPTEE = frozenset({
-    "draft", "dragfill", "matrix", "reaction", "symtext",
+    "draft", "dragfill", "reaction", "symtext",
 })
 
 # Ce qui reste vraiment à porter : les types qui atteignent `check_text` sur au
 # moins un champ **pesant** (`replyweight` non nul) du corpus. Mesuré au rendu,
 # non déclaré — cf. `test_ce_qui_atteint_vraiment_le_checker`.
 #
-# Vide : plus rien n'atteint `check_text` sur un champ noté. Le dernier,
-# `js2wims1`, a été porté le 2026-09-03 en même temps que `runcode`, dont il
-# dépend — son `.input` relit les variables d'une exécution Python.
-_DETTE_ATTEINTE: frozenset[str] = frozenset()
+# Le 2026-09-03, plus rien ne l'atteignait : `js2wims1`, le dernier, avait été
+# porté avec `runcode`, dont il dépend. L'import de H1, H2, H5 et H6 le
+# 2026-09-10 en a réveillé sept, sur des champs notés où la comparaison de
+# texte refuse toute écriture autre que celle de la référence. Déclarations
+# relevées dans les `.def` des niveaux importés :
+#
+#   complex    63  H5, H6 — oefcomplexes, cplxcalc, cplxgeom, SecondDegreRetC
+#   chset      21  H2 — OEFangle.fr / .nl
+#   clicktile  15  H1, H2 — oefratio, oeffrieze
+#   compose     9  H1, H2, H6 — geobase, oefoptics, oefcalcul
+#   matrix      7  H5, H6 — oefsecdeg, foncpluvares, OEFphmetrie
+#   crossword   5  H1, H2 — oefvocmarine, oefsolaire
+#   reorder     3  H1 — oefoptics
+#
+# Recensés, non portés : un chantier par type (TODO I.3 c), `complex` d'abord.
+_DETTE_ATTEINTE: frozenset[str] = frozenset({
+    "chset", "clicktile", "complex", "compose", "crossword", "matrix", "reorder",
+})
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")
 

@@ -1,0 +1,145 @@
+!set title=Majorer le carré III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang Xiao
+email=xiao@unice.fr
+language=fr
+title_en=Upper-bound the square III
+
+varcnt=25
+prevarcnt=19
+postvarcnt=5
+replycnt=0
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Montrez que
+val8=et
+val9=Trouvez la meilleure borne supérieure pour, quand
+!if $val6=en 
+val7=Prove
+val8=and
+val9=Find the best upper bound for, when
+!endif
+m_options=nofloat
+m_methods=ineq/addterm, ineq/mulexp, ineq/exsides,	ineq/trans, ineq/constineq, ineq/addineq, ineq/mulineq,	ineq/sqrpos
+m_minsteps=2
+tmp=!nonempty items a,b,c,d,r,s,t,x,y,z
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp0=!randint 10, 50
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 10, 50
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+val14=$[rint(max($val11-($val13),$val12+($val13)))]
+val15=$[rint($val14^2)]
+val16=!rawmath $val10+$val13
+tmp0=!randitem ,=
+
+val17=$(tmp0)
+val18=<$val17
+val19=>$val17
+val20=$val10 $val19 -$val11
+val21=$val10 $val18 $val12
+m_context=$val20	$val21	
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val9[1]) 
+!insmath ($val16)^2
+$(), $(val9[2])	<div class="wimscenter">
+!insmath -$val11 $val18 $val10 $val18 $val12
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val22=
+tmp0=!translate internal <=> to , ; in $m_newobject
+
+val23=$(tmp0)
+!if ; notin $val23 and , isin $val23 
+tmp0=!item 1 of $val23
+
+val20=$(tmp0)
+tmp0=!item 2 of $val23
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in Simplify(($val16)^2 - ($val20))
+tmp0=!exec yacas $t_
+
+val22=$(tmp0)
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val22 issametext 0 and $val21 = $val15
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=9,10,11,12,15,16,18,20,21
+embedcnt=0

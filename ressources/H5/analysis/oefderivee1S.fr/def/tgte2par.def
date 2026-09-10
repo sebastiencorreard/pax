@@ -1,0 +1,437 @@
+!set title=Tangente à deux paraboles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=tangent
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=63
+prevarcnt=62
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -2, 2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val7=$[rint($(tmp0))]
+tmp0=!randint $val6+1, 6
+
+val8=$[rint($(tmp0))]
+tmp0=!randint $val7+1, 6
+
+val9=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in ($val9-($val7))/($val8-($val6))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val10=!rawmath $(tmp0)
+t_=!rawmath $val10
+val10=!exec pari print($t_)
+val11=!rawmath $val10*(x-$val6)+$val7
+tmp=!translate ";': to $     $ in $val11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in y= $val11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=$(tmp0)
+tmp0=!randint 1, 5
+
+val13=$[rint($(tmp0))]
+t_=!rawmath $val10 - 2*$val13*($val8)
+val14=!exec pari print($t_)
+t_=!rawmath $val9 - $val13*($val8)^2 - ($val14)*($val8)
+val15=!exec pari print($t_)
+val16=$[rint(2*$val6- $val8)]
+val17=$[rint(2*$val7 - $val9)]
+val18=$[rint(-($val13))]
+t_=!rawmath $val10 +2*$val13*($val16)
+val19=!exec pari print($t_)
+t_=!rawmath $val17 - $val18*($val16)^2 - ($val19)*($val16)
+val20=!exec pari print($t_)
+val21=!rawmath $val13*(x)^2+$val14*x+$val15
+tmp=!translate ";': to $     $ in $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp0)
+tmp0=!replace internal * by in $val21
+
+val22=$(tmp0)
+val23=!rawmath $val18*(x)^2+$val19*x+$val20
+tmp=!translate ";': to $     $ in $val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+tmp0=!replace internal * by in $val23
+
+val24=$(tmp0)
+t_=!rawmath -$val14/(2*$val13)
+val25=!exec pari print($t_)
+t_=!rawmath -(($val14)^2-4*$val13*($val15))/(4*$val13)
+val26=!exec pari print($t_)
+t_=!rawmath -$val19/(2*$val18)
+val27=!exec pari print($t_)
+t_=!rawmath -(($val19)^2-4*$val18*($val20))/(4*$val18)
+val28=!exec pari print($t_)
+tmp=!translate ;";': to $     $ in $val21,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val29=!rawmath $(tmp0)
+val30=$[rint($val8)]
+evaltmp=$val29
+
+evaltmp=!mathsubst x=($val30) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val10=!exec pari print($t_)
+tmp0=!mathsubst x=($val30) in $val21
+
+val31=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val31
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=!rawmath $(tmp0)
+tmp0=!mathsubst x=a in $val29
+
+val32=$(tmp0)
+tmp0=!mathsubst x=a in $val21
+
+val33=$(tmp0)
+val34=($val32)*(x - a)+ ($val33)
+tmp0=!mathsubst x=$val6 in $val34
+
+val35=$(tmp0) -($val7)
+tmp0=!mathsubst a=x in $val35
+
+val36=$(tmp0)
+t_=!replace internal \( by ( in expand(($val36));
+tmp0=!exec maxima $t_
+
+val37=$(tmp0)
+t_=!replace internal \( by ( in factor(($val37));
+tmp0=!exec maxima $t_
+
+val38=$(tmp0)
+t_=!replace internal \( by ( in polroots(numerator($val38))
+tmp0=!exec pari $t_
+
+val39=$(tmp0)
+val39=$(val39[1;1])
+tmp0=!replace internal + by , in $val39
+
+val39=$(tmp0)
+val40=[]
+tmp0=!text remove $val40 in $val39
+
+val39=$(tmp0)
+val41=$(val39[1])
+val42=$(val39[3])
+tmp0=!mathsubst x=a in $val37
+
+val36=$(tmp0)
+tmp0=!mathsubst x=a in $val38
+
+val38=$(tmp0)
+
+!ifval $val41=$val30
+val43=$[rint($val42)]
+!else
+val43=$[rint($val41)]
+!endif
+tmp0=!mathsubst x=($val43) in $val21
+
+val44=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val44
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val44=!rawmath $(tmp0)
+evaltmp=$val29
+
+evaltmp=!mathsubst x=($val43) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val45=!exec pari print($t_)
+tmp=!translate ";': to $     $ in y= $val45*(x-($val43))+($val44)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val46=$(tmp0)
+
+!ifval $val10>$val45
+val47=$val46
+!else
+val47=$val12
+!endif
+
+!ifval $val10>$val45
+val48=$val12
+!else
+val48=$val46
+!endif
+
+!ifval $val10>$val45
+val49=$[rint($val43)]
+!else
+val49=$[rint($val30)]
+!endif
+
+!ifval $val10>$val45
+val50=$[rint($val30)]
+!else
+val50=$[rint($val43)]
+!endif
+
+!ifval $val10>$val45
+t_=!rawmath $val45
+val51=!exec pari print($t_)
+!else
+t_=!rawmath $val10
+val51=!exec pari print($t_)
+!endif
+
+!ifval $val10<$val45
+t_=!rawmath $val45
+val52=!exec pari print($t_)
+!else
+t_=!rawmath $val10
+val52=!exec pari print($t_)
+!endif
+val53=$[rint(2*$val6-$val49)]
+val54=$[rint(2*$val6-$val50)]
+tmp0=!texmath $val29
+
+val29=$(tmp0)
+replytype1=equation
+replyname1=
+replygood1=!rawmath $val47,x,y
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=
+replygood2=$val49
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=
+replygood3=$val53
+replytype4=equation
+replyname4=
+replygood4=!rawmath $val48,x,y
+replytype5=numexp
+replyoption5=noreduction 
+replyname5=
+replygood5=$val50
+replytype6=numexp
+replyoption6=noreduction 
+replyname6=
+replygood6=$val54
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère deux polynômes 
+!insmath f
+$() et 
+!insmath g
+$() définis sur 
+!insmath \,\RR
+$() par&nbsp;:	<div class="wimscenter">
+!insmath f(x)=$val22
+$() et <span class="nowrap">
+!insmath g(x)=$val24
+$().</span></div>	 Déterminer les équations réduites des deux tangentes communes	aux courbes représentatives de 
+!insmath f
+$() et de <span class="nowrap">
+!insmath g
+$()&nbsp;:</span>	<ol>	<li><label for="reply1">Première équation (celle de pente la plus faible)&nbsp;:</label>	  
+!read oef/embed.phtml reply1 
+$()	</li>	<li>Déterminer l'abscisse 
+!insmath x_1
+$() du point de tangence à la courbe	représentative de <span class="nowrap">
+!insmath f
+$()&nbsp;:</span>	<div class="unbreakable"><label for="reply2">
+!insmath x_1 =
+$()</label> 
+!read oef/embed.phtml reply2,12 
+$().</div></li>	<li>Déterminer l'abscisse 
+!insmath x^{\prime}_1
+$() du point de tangence	à la courbe représentative de <span class="nowrap">
+!insmath g
+$()&nbsp;:</span>	<div class="unbreakable"><label for="reply3">
+!insmath x^{\prime}_1 =
+$()</label> 
+!read oef/embed.phtml reply3,12 
+$().</div></li>	<li><label for="reply4">Deuxième équation (celle de pente la plus forte)&nbsp;:</label>	  
+!read oef/embed.phtml reply4 
+$().	</li>	<li>Déterminer l'abscisse 
+!insmath x_2
+$() du point de tangence	à la courbe représentative de <span class="nowrap">
+!insmath f
+$()&nbsp;:</span>	<div class="unbreakable"><label for="reply5">
+!insmath x_2 =
+$()</label> 
+!read oef/embed.phtml reply5,12 
+$().</div></li>	<li>Déterminer l'abscisse 
+!insmath x^{\prime}_2
+$() du point de tangence	à la courbe représentative de <span class="nowrap">
+!insmath g
+$()&nbsp;:</span>	<div class="unbreakable"><label for="reply6">
+!insmath x^{\prime}_2 =
+$()</label> 
+!read oef/embed.phtml reply6,12 
+$().</div></li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	On remarque tout d'abord que les paraboles 
+!insmath C_f
+$() et 
+!insmath C_g
+$() n'ont pas la même orientation	 mais le même écartement de branches.	<div style="color:red">Elles peuvent donc se déduire l'une de l'autre par	symétrie centrale.	<br>Le centre de symétrie est le milieu des sommets des paraboles.	</div>	On cherche donc les coordonnéees des sommets de 
+!insmath C_f
+$() et de <span class="nowrap">
+!insmath C_g
+$()&nbsp;:</span><br>	On trouve par la forme canonique&nbsp;: 
+!insmath S_f=($val25;$val26)
+$() et <span class="nowrap">
+!insmath S_g=($val27;$val28)
+$().</span><br>	Le centre de symétrie est donc le point 
+!insmath I($val6;$val7)
+$() milieu de <span class="nowrap">
+!insmath \lbrack S_f;S_g \rbrack
+$().</span>		<div style="color:red">On cherche donc une tangente à 
+!insmath C_f
+$() passant par I.</div>		Calculons la dérivée de <span class="nowrap">
+!insmath f
+$()&nbsp;:</span> <span class="nowrap">
+!insmath f^{\prime}(x)=$val29
+$().</span><br>	Donc l'équation générale d'une tangente est de la forme&nbsp;:	<div class="unbreakable">	
+!insmath y=f^{\prime}(a)(x - a)+f(a)
+$()<br>	
+!insmath y=$val34
+$().	</div>	On remplace 
+!insmath y
+$() et 
+!insmath x
+$() par les coordonnées de 
+!insmath I
+$() et	on résout l'équation pour trouver <span class="nowrap">
+!insmath a
+$().</span>	<div class="unbreakable">	
+!insmath $val35 = 0
+$() 
+!insmath \iff
+$()	
+!insmath $val36 = 0
+$() 
+!insmath \iff
+$()	
+!insmath $val38 = 0
+$()	</div>	On a donc, pour <span class="nowrap">
+!insmath x_1=$val49
+$(),</span> une tangente à 
+!insmath C_f
+$() d'équation 
+!insmath $val47
+$()	qui est également tangente à 
+!insmath C_g
+$() au point d'abscisse <span class="nowrap">
+!insmath x^{\prime}_1=$val53
+$().</span><br>	En effet la tangente à 
+!insmath C_g
+$() au point d'abscisse 
+!insmath x^{\prime}_1
+$() a même coefficient directeur car 
+!insmath g^{\prime}($val53)=$val51
+$() et passe par I.	<br>Et on a, pour <span class="nowrap">
+!insmath x_2=$val50
+$(),</span> une tangente à
+!insmath C_f
+$() d'équation 
+!insmath $val48
+$()	qui est également tangente à 
+!insmath C_g
+$() au point d'abscisse <span class="nowrap">
+!insmath x^{\prime}_2=$val54
+$().</span><br>	En effet la tangente à 
+!insmath C_g
+$() au point d'abscisse 
+!insmath x^{\prime}_2
+$() a même coefficient directeur car 
+!insmath g^{\prime}($val54)=$val52
+$() et passe par I.	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1=$val50 and $m_reply2=$val49
+ <div class='oef_feedbacks'>Attention&nbsp;:	  la pente de la tangente en 
+!insmath x=$val49
+$() est inférieure	  à la pente de la tangente en <span class="nowrap">
+!insmath x=$val50
+$().</span>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,22,24,25,26,27,28,29,34,35,36,38,47,48,49,50,51,52,53,54
+embedcnt=6

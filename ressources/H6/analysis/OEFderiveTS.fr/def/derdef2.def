@@ -1,0 +1,147 @@
+!set title=Dérivabilité 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+
+ansorder=r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -2, 2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($val6+$(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=a*x+b,\(x \leq $val6),$val8*x^2+$val9*x+$val10,\({x > $val6}),2*$val8*$val6+$val9,-$val8*($val6)^2+$val10, \mathbb{R}	a*x+b,\(x \leq $val6),$val8/(x-$val7),\({x > $val6}),-$val8/($val6-$val7)^2,$val8*(2*$val6-$val7)/($val6-$val7)^2, \mathbb{R} \setminus \lbrace $val7 \rbrace	x^2+a*x+b,\(x \leq $val6),$val8*x^2+$val9*x+$val10,\({x > $val6}),2($val8-1)*$val6+$val9,-($val8-1)*($val6)^2+$val10, \mathbb{R}	-x^2+a*x+b,\(x \leq $val6),$val8*x^2+$val9*x+$val10,\({x > $val6}),2*($val8+1)*$val6+$val9,-($val8+1)*($val6)^2+$val10, \mathbb{R}	x^2+a*x+b,\(x \leq $val6),$val8/(x-$val7)+$val9,\({x > $val6}),-$val8/($val6-$val7)^2 -2*$val6,$val8*(2*$val6-$val7)/($val6-$val7)^2 +($val6)^2 +$val9, \mathbb{R} \setminus \lbrace $val7 \rbrace	
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val12=$[rint($(tmp1))]
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val12 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+t_=!replace internal \( by ( in $(val13[1])
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val14=$(tmp1)
+t_=!replace internal \( by ( in $(val13[3])
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val16=\(f(x)=$val14) pour $(val13[2]) et \(f(x)=$val15) pour $(val13[4])
+t_=!rawmath $(val13[5])
+val17=!exec pari print($t_)
+t_=!rawmath $(val13[6])
+val18=!exec pari print($t_)
+replytype1=numexp
+replyname1=\(a)
+replygood1=$val17
+replytype2=numexp
+replyname2=\(b)
+replygood2=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div>	Trouver les valeurs de 
+!insmath a
+$() et de 
+!insmath b
+$() pour que la fonction définie sur 
+!insmath $(val13[7])
+$() par	<div class="wimscenter">$val16</div>	soit continue et dérivable sur 
+!insmath \RR\;
+$().	</div>	<div class="wims_question">	<ul class="wims_nopuce"><li>	<label for="reply1">Valeur de 
+!insmath a
+$() =</label>  
+!read oef/embed.phtml reply1,7 
+$()	</li><li>	<label for="reply2">Valeur de 
+!insmath b
+$() =</label>  
+!read oef/embed.phtml reply2,7 
+$()	</li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,16
+embedcnt=2

@@ -1,0 +1,173 @@
+!set title=F3. Rouges et vertes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+keywords=events,modelling,probability
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+oefdescription=Exercice de modélisation
+oefobservation=Tirage de 3 à 7 balles. Les balles sont rouges ou vertes
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Il y a 
+val7=balles
+val8=et
+val9=dans un sac
+val10=du sac
+val11=Si
+val12=sont tirées
+val13=quelle est la probabilité d'obtenir 
+val14=aléatoirement
+val15=La probabilité est égale à 
+val16=La réponse est demandée avec au moins 3 chiffres significatifs.
+val17=façons de tirer
+val18=Donc la probabilité demandée est
+val19=parmi
+val20=signifie que l'on suppose que toutes les balles du sac ont la même chance d'être tirée.
+val21=rouges,rouge
+val22=vertes,verte
+val23=deux
+val24=une
+val25=balle
+tmp0=!randint 8, 20
+
+val26=$[rint($(tmp0))]
+tmp0=!randint 8, 20
+
+val27=$[rint($(tmp0))]
+val28=$[rint($val26+$val27)]
+tmp0=!randint 3, 7
+
+val29=$[rint($(tmp0))]
+tmp0=!randint 1, $val29-1
+
+val30=$[rint($(tmp0))]
+val31=$[rint($val29-$val30)]
+val32=$[binomial($val26,$val30)*binomial($val27,$val31)/binomial($val28,$val29)]
+!readproc slib/text/approximation $val32,3 
+tmp0=$slib_out
+val33=$(tmp0)
+val34=$(val33[3])
+val35=$val6 $val26 $val7 $(val21[1]) $val8 $val27 $(val22[1]) $val9.
+!if $val30=1 
+val36=$val24
+val37=$(val21[2])
+val38=$val25
+!else
+val36=$val30
+val37=$(val21[1])
+val38=$val7
+!endif
+!if $val31=1 
+val39=$val24
+val40=$(val22[2])
+val41=$val25
+!else
+val39=$val31
+val40=$(val22[1])
+val41=$val7
+!endif
+val42=$val13 $val36 $val37 $val8 $val39 $val40
+val43=$val17 $val29 $val7 $val19 $val28 $val7
+val44=$val17 $val36 $val38 $val37 $val19 $val26 $val7 $(val21[1])
+val45=$val17 $val39 $val41 $val40 $val19 $val27 $val7 $(val22[1])
+replytype1=range
+replyname1=$val15
+replygood1=!rawmath $(val33[1..2]),$val32
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst <span class=wims_emph>"$val14"</span> $val20
+
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val35 \newline $val11 $val29 $val7 $val12 \special{help alea, $val14} $val10, $val42~? (\emph{\small $val16}) \end{statement} \begin{solution} $val6 \begin{enumerate} \item \(\displaystyle\binom{$val28}{$val29}\) $val43~; \item \(\displaystyle\binom{$val26}{$val30}\) $val44~; \item \(\displaystyle\binom{$val27}{$val31}\) $val45. \end{enumerate} $val18~: \(\frac{\displaystyle\binom{$val26}{$val30}\times \displaystyle\binom{$val27}{$val31}}{\displaystyle\binom{$val28}{$val29}}\simeq $val34\). \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val35	<div class="wims_question"> $val11 $val29 $val7 $val12  
+!read oef/special.phtml help alea, $val14 
+$()	 $val10, $val42&nbsp;?	 <div class="wimscenter"><label for="reply1">$val15</label>  
+!read oef/embed.phtml reply1 
+$()</div>	</div>	<div class="wims_instruction"> $val16</div> 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<span class=wims_emph>"$val14"</span> $val20
+$()
+!exit
+
+:solution
+$()$val6	<ul><li>
+!insmath \displaystyle\binom{$val28}{$val29}
+$() $val43 ;</li>	<li> 
+!insmath \displaystyle\binom{$val26}{$val30}
+$() $val44 ;</li>	<li> 
+!insmath \displaystyle\binom{$val27}{$val31}
+$() $val45.</li>	</ul>	  $val18&nbsp;: 
+!insmath \frac{\displaystyle\binom{$val26}{$val30}\times	\displaystyle\binom{$val27}{$val31}}{\displaystyle\binom{$val28}{$val29}}\simeq $val34
+$().	
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val35 $m_newline $val11 $val29 $val7 $val12  
+!read oef/special.phtml help alea, $val14 
+$() $val10, $val42~? ($m_emph{$m_small $val16}) $m_end{statement} $m_begin{solution} $val6 $m_begin{enumerate} $m_item 
+!insmath \displaystyle\binom{$val28}{$val29}
+$() $val43~; $m_item 
+!insmath \displaystyle\binom{$val26}{$val30}
+$() $val44~; $m_item 
+!insmath \displaystyle\binom{$val27}{$val31}
+$() $val45. $m_end{enumerate} $val18~: 
+!insmath \frac{\displaystyle\binom{$val26}{$val30}\times \displaystyle\binom{$val27}{$val31}}{\displaystyle\binom{$val28}{$val29}}\simeq $val34
+$(). $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,14,15,16,18,20,26,27,28,29,30,31,34,35,42,43,44,45
+embedcnt=3

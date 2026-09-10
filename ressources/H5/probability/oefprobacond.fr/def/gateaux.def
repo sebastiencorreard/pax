@@ -1,0 +1,223 @@
+!set title=Gateaux et probabilités
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+computeanswer=yes
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=13
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle 6
+
+val6=$(tmp0)
+tmp0=!randint 0, 8
+
+val7=$[rint(100+50*$(tmp0))]
+val8=$[rint(2*$(val6[1]))]
+val9=$[rint($val7*$val8/100)]
+val10=$[rint(2*$(val6[2]))]
+val11=$[rint($val7*$val10/100)]
+val12=$[rint($val7-$val9)]
+val13=$[rint($val7-$val11)]
+val6=min($val11,$val9)
+val14=$[rint($val6/2)]
+tmp0=!randint $val14, $val6
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val11-$val15)]
+val17=$[rint($val12-$val16)]
+val18=$[rint($val13-$val17)]
+val19=$[rint(100-$val8)]
+val20=$[rint(100-$val10)]
+tmp=!trim $val12 gâteaux ont un poids correct dont $val17 ont une teneur correcte. De plus $val10% des gâteaux ont une teneur incorrecte	$val9 gâteaux ont un poids incorrect dont $val18 ont une teneur correcte. De plus $val10% des gâteaux ont une teneur incorrecte	$val19% des gâteaux ont un poids correct dont $val17 ont une teneur correcte. De plus $val11 gâteaux ont une teneur incorrecte	$val19% des gâteaux ont un poids correct dont $val16 ont une teneur incorrecte. De plus $val13 gâteaux ont une teneur correcte	$val12 gâteaux ont un poids correct dont $val16 ont une teneur incorrecte. De plus $val20% des gâteaux ont une teneur correcte	$val8% des gâteaux ont un poids incorrect dont $val18 ont une teneur correcte. De plus $val11 gâteaux ont une teneur incorrecte	$val9 gâteaux ont un poids incorrect dont $val15 ont une teneur incorrecte. De plus $val20% des gâteaux ont une teneur correcte	$val8% des gâteaux ont un poids incorrect dont $val15 ont une teneur incorrecte. De plus $val13 gâteaux ont une teneur correcte	
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 8
+
+val22=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val23=$[rint($(tmp0))]
+
+!ifval ($val22<=2)
+t_=!rawmath  $val9/$val7
+val24=!exec pari print($t_)
+!else
+t_=!rawmath $val11/$val7
+val24=!exec pari print($t_)
+!endif
+t_=!rawmath $val15/$val7
+val25=!exec pari print($t_)
+t_=!rawmath ($val15+$val18+$val16)/$val7
+val26=!exec pari print($t_)
+!if $val23=1 
+
+!ifval ($val22<=2)
+t_=!rawmath  $val17/$val13
+val27=!exec pari print($t_)
+!else
+t_=!rawmath $val18/$val13
+val27=!exec pari print($t_)
+!endif
+!else
+
+!ifval ($val22<=2)
+t_=!rawmath  $val16/$val11
+val27=!exec pari print($t_)
+!else
+t_=!rawmath $val15/$val11
+val27=!exec pari print($t_)
+!endif
+!endif
+replytype1=numeric
+replyname1=1
+replygood1=$[$val17]
+replytype2=numeric
+replyname2=2
+replygood2=$[$val18]
+replytype3=numeric
+replyname3=3
+replygood3=$[$val13]
+replytype4=numeric
+replyname4=4
+replygood4=$[$val16]
+replytype5=numeric
+replyname5=5
+replygood5=$[$val15]
+replytype6=numeric
+replyname6=6
+replygood6=$[$val11]
+replytype7=numeric
+replyname7=7
+replygood7=$[$val12]
+replytype8=numeric
+replyname8=8
+replygood8=$[$val9]
+replytype9=numeric
+replyname9=9
+replygood9=$[$val7]
+replytype10=numexp
+replyname10=10
+replygood10=$val24
+replytype11=numexp
+replyname11=11
+replygood11=$val25
+replytype12=numexp
+replyname12=12
+replygood12=$val26
+replytype13=numexp
+replyname13=13
+replygood13=$val27
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Un fabricant de gâteaux secs à l'orange fait contrôler $val7 gâteaux de sa production. 	Ceux-ci peuvent présenter deux défauts : une erreur de poids et une erreur de teneur en orange.</p>	<p>Le contrôle donne les résultats suivants : $(val21[$val22;1]).</p>		<p>Compléter le tableau ci-dessous :</p>	<table class="wimscenter, wimsborder">	<tr><td></td><th>Poids correct</th><th>Poids incorrect</th><th>Total</th></tr>	<tr><th>Teneur correcte</th><td> 
+!read oef/embed.phtml r1,4 
+$()</td><td> 
+!read oef/embed.phtml r2,4 
+$()</td><td> 
+!read oef/embed.phtml r3,4 
+$()</td></tr>	<tr><th>Teneur incorrecte</th><td> 
+!read oef/embed.phtml r4,4 
+$()</td><td> 
+!read oef/embed.phtml r5,4 
+$()</td><td> 
+!read oef/embed.phtml r6,4 
+$()</td></tr>	<tr><th>Total</th><td> 
+!read oef/embed.phtml r7,4 
+$()</td><td> 
+!read oef/embed.phtml r8,4 
+$()</td><td> 
+!read oef/embed.phtml r9,4 
+$()</td></tr>	</table></p>	On note 
+!insmath A
+$() l'événement "le poids du gâteau est correct" et 
+!insmath B
+$() l'événement "la teneur en orange du gâteau est correcte".	Calculer la probabilité (<i>donner le résultat sous forme fractionnaire ou décimale exacte</i>):	<ul>	<li>que le gâteau ait 
+!if $val22<=2 
+$()un poids incorrect 
+!else
+$() une teneur incorrecte en orange 
+!endif
+$() :  
+!read oef/embed.phtml r10,6 
+$()</li>	<li>que le gâteau ait les deux défauts :  
+!read oef/embed.phtml r11,6 
+$()</li>	<li>que le gâteau ait au moins un défaut :  
+!read oef/embed.phtml r12,6 
+$()</li>	<li>que le gâteau ait 
+!if $val22<=2 
+$()un poids correct 
+!else
+$() un poids incorrect 
+!endif
+$() sachant que la teneur en orange est 	
+!if $val23=1 
+$()correcte 
+!else
+$() incorrecte 
+!endif
+$() :  
+!read oef/embed.phtml r13,6 
+$()</li>	</ul> 				
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,21,22,23
+embedcnt=13

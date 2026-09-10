@@ -1,0 +1,356 @@
+!set title=Repérage de points 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r
+varcnt=112
+prevarcnt=111
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Cliquer sur le point de coordonnées
+val7=Les coordonnées de certains sommets du pavé sont écrites sur la figure.
+val8=Seuls certains points sont cliquables, contenant la solution.
+
+!ifval $val2 notwordof 1 2
+val2= 1
+!endif
+
+!ifval $val3 notwordof 1 2 3 
+val3= 1
+!endif
+
+!ifval $val5 notwordof 0 1 
+val5= 0
+!endif
+
+!ifval $val4 notwordof grid nogrid
+val4= grid
+!endif
+
+!ifval $val5=1
+val4=nogrid
+!endif
+val9=-3*pi/4
+val10=sqrt(2)/2
+val11=x,y,z
+val12=1,$val10*cos($val9),0;0,$val10*sin($val9),1
+val12=0,$val10*cos($val9),1;1,$val10*sin($val9),0
+val12=$val10*cos($val9),1,0;$val10*sin($val9),0,1
+tmp0=!shuffle A,B,C,D,E,G,H,F
+
+val13=$(tmp0)
+!if $val3=1 
+tmp0=!randint 3, 6
+
+val14=$(tmp0)
+val14=$val14,$val14,$val14
+!endif
+!if $val3=2 
+tmp0=!randint 3, 6
+
+val14=$(tmp0)
+tmp0=!randint 3, 6
+
+val14=$(tmp0),$val14,$val14
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+!endif
+!if $val3=3 
+tmp0=!shuffle 6
+
+val14=$(tmp0)
+val14=$(val14[1,2,3])
+tmp0=!replace internal 1 by 7 in $val14
+
+val14=$(tmp0)
+!endif
+tmp=!trim 0,0,0	$(val14[1]),0,0	$(val14[1]),$(val14[2]),0	0,$(val14[2]),0	0,0,$(val14[3])	$(val14[1]),0,$(val14[3])	$(val14[1]),$(val14[2]),$(val14[3])	0,$(val14[2]),$(val14[3])	
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,3,4,1	5,6,7,8,5	1,5,2,6,3,7,4,8
+val16=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val5=1
+val17= 1,1,1
+!else
+val17=0,0,0
+!endif
+t_=!replace internal \( by ( in tr=[$val17];matrix(8,3,i,j,tr[j])+[$val15]
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in [$val15]*[$val12]~
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+val19=
+!for val20 =1 to 2 
+val21=$(val16[$val20;])
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+!for val23 =1 to $val22-1 
+val24=$(val15[$(val21[$val23]);])
+val25=$(val15[$(val21[$val23+1]);])
+t_=!replace internal \( by ( in ([$val24]+[$val25])/2
+tmp0=!exec pari $t_
+
+tmp=!trim $val19	$(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+!next
+!next
+val21=$(val16[3;])
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+!for val23 =1 to $val22/2 
+val24=$(val15[$(val21[2*$val23-1]);])
+val25=$(val15[$(val21[2*$val23]);])
+t_=!replace internal \( by ( in ([$val24]+[$val25])/2
+tmp0=!exec pari $t_
+
+tmp=!trim $val19	$(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+!next
+val26=
+!for val20 =1 to 2 
+val21=$(val16[$val20;])
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+!for val23 =1 to $val22-1 
+val24=$(val15[$(val21[$val23]);])
+val25=$(val15[$(val21[$val23+1]);])
+t_=!replace internal \( by ( in (2*[$val24]+[$val25])/3
+tmp0=!exec pari $t_
+
+t_=!replace internal \( by ( in ([$val24]+2*[$val25])/3
+tmp1=!exec pari $t_
+
+tmp=!trim $val26	$(tmp0)	$(tmp1)
+val26=!translate internal $	\
+$ to ;; in $tmp
+!next
+!next
+val21=$(val16[3;])
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+!for val23 =1 to $val22/2 
+val24=$(val15[$(val21[2*$val23-1]);])
+val25=$(val15[$(val21[2*$val23]);])
+t_=!replace internal \( by ( in (2*[$val24]+[$val25])/3
+tmp0=!exec pari $t_
+
+t_=!replace internal \( by ( in ([$val24]+2*[$val25])/3
+tmp1=!exec pari $t_
+
+tmp=!trim $val26	$(tmp0)	$(tmp1)
+val26=!translate internal $	\
+$ to ;; in $tmp
+!next
+t_=!replace internal \( by ( in round(1000*[$val19]*[$val12]~)/1000.
+tmp0=!exec pari $t_
+
+val27=$(tmp0)
+t_=!replace internal \( by ( in round(1000*[$val26]*[$val12]~)/1000.
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+!if $val4 iswordof grid 
+val29=1
+val29=grid 1,1,grey,$val29,$val29,6,grey
+!else
+val29=
+!endif
+t_=!replace internal \( by ( in vecmax(abs([$val15]*[$val12]~ ))
+tmp0=!exec pari $t_
+
+val30=$[$(tmp0)]
+val31=$[1.2*$val30]
+val32=$[1.5*$val30]
+val33=500,500
+val34=0.4
+val35=
+val36=
+!if $val5=0 
+val35=arrow 0,0,2*$val31*$(val12[1;1]),2*$val31*$(val12[2;1]),10,grey	  arrow 0,0,$val32*$(val12[1;2]),1.5*$val31*$(val12[2;2]),10,grey	  arrow 0,0,$val32*$(val12[1;3]),$val32*$(val12[2;3]),5,grey	  text black,2*($val31-0.7)*$(val12[1;1])+0.1,2*($val31-0.7)*$(val12[2;1])+$val34,large,$(val11[1])	  text black,($val32-0.7)*$(val12[1;2])+0.1,($val32-0.5)*$(val12[2;2])+$val34,large,$(val11[2])	  text black,($val32-0.7)*$(val12[1;3])+0.1,($val32-0.7)*$(val12[2;3])+$val34,large,$(val11[3])	  text black,$(val12[1;1])-$val34,$(val12[2;1]),large,1	  text black,$(val12[1;2])+$val34,$(val12[2;2]),large,1	  text black,$(val12[1;3])+$val34,$(val12[2;3]),large,1	  
+val36=crosshairs black,$(val12[1;1]),$(val12[2;1])	crosshairs black,$(val12[1;2]),$(val12[2;2])	crosshairs black,$(val12[1;3]),$(val12[2;3])
+!endif
+val37=xrange -$val31,$val32	yrange -$val31,$val32	axis	comment axisnumbering	opacity 255,255	linewidth 2	$val35	precision 10	linewidth 1	$val29	
+val38=$(val18[$(val16[1;]);])
+val39=$(val18[$(val16[2;]);])
+val40=$(val18[$(val16[3;]);])
+tmp0=!replace internal ; by , in $val38
+
+val38=$(tmp0)
+tmp0=!replace internal ; by , in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal ; by , in $val40
+
+val40=$(tmp0)
+val37=$val37	opacity 255,255	linewidth 3	polyline brown,$val38	polyline brown,$val39	segments brown,$val40	linewidth 2	$val36	fontfamily bold 10pt Ariel
+val41=
+val42=
+val43=
+tmp=!nonempty items 3,6,7,8
+
+tmp0=!randitem $tmp
+val44=$(tmp0)
+!for val10 =1 to 8 
+!if $val10 iswordof 1 2 4 5 
+
+!ifval $(val15[$val10;2])= 0 
+val45=$[ -1.5*$val34]
+!else
+val45=$[1.5*$val34]
+!endif
+tmp0=!replace internal , by ; in $(val15[$val10;])
+
+val46=centered	string black,$(val18[$val10;1])+$val45,$(val18[$val10;2])+$val34,$(val13[$val10])($(tmp0))
+!else
+val46=
+!endif
+val43=$val43	  $val46
+tmp0=!replace internal , by ; in $(val15[$val10;])
+
+val46=$(val13[$val10]): $(tmp0)
+val46=centered	string black,$(val18[$val10;1]),$(val18[$val10;2])+$val34,$val46
+val42=$val42	  $val46
+!next
+val47=$(val15[$val44;])
+tmp0=!replace internal ; by , in $val18
+
+val48=$(tmp0)
+tmp=!nonempty items 12,24
+
+tmp0=!randitem $tmp
+val49=$(tmp0)
+tmp0=!shuffle $val49
+
+val44=$(tmp0)
+
+!ifval $val49=12
+val50= $val27
+!else
+val50=$val28
+!endif
+
+!ifval $val49=12
+val48= $val48,$val27
+!else
+val48= $val48,$val28
+!endif
+tmp0=!replace internal ; by , in $val48
+
+val48=$(tmp0)
+val51=$(val50[$(val44[1]);])
+val52=1
+tmp0=!rows2lines $val18
+
+val53=$(tmp0)
+!while $val51 islineof $val53 and $val52 < $val49 
+val52=$val52+1
+val51=$(val50[$(val44[$val52]);])
+!endwhile
+
+!ifval $val49=12
+val47=$(val19[$(val44[$val52]);])
+!else
+val47=$(val26[$(val44[$val52]);])
+!endif
+val54=$val37
+val55=$val37
+val54=$val54	$val43
+tmp0=!replace internal , by ; in $val47
+
+val46=centered	string black,$(val51[1]),$(val51[2])+$val34,($(tmp0))
+val55=$val55	$val43	crosshairs green,$val51	$val46	
+val54=$val54	snaptopoints $val48
+!readproc oef/canvasdraw.phtml $val33 \
+$val54 
+tmp0=$canvasdraw_out
+val56=$(tmp0)
+tmp0=!replace internal , by ; in $val47
+
+val47=$(tmp0)
+replytype1=draw
+
+replyname1=
+replygood1=[$val54]; crosshairs,$val51
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val6 ($val47).	 
+!read oef/embed.phtml r1,500x500 
+$()	<div class="wims_instruction">$val7	$val8</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	 
+!read oef/canvasdraw.phtml $val33 \
+	$val55 
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,33,47,55
+embedcnt=1

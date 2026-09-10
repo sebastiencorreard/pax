@@ -1,0 +1,226 @@
+!set title=Ordre de grandeur multiplication 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r,r
+varcnt=61
+prevarcnt=60
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/utilities/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Trouver l'ordre de grandeur des nombres&nbsp;
+val8=Ordre de grandeur,Donc l'ordre de grandeur du résultat est
+val9=Vous utiliserez la virgule comme séparateur décimal,	  respecterez l'espace tous les trois chiffres et éviterez les zéros inutiles.
+val10=1 000 000 000,100 000 000,10 000 000,1 000 000,100 000,10 000,1 000,100,10,1,0.1,0.01,0.001,0.000 1
+tmp0=!itemcnt $val10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 4, 8
+
+val12=$[rint($(tmp0))]
+val13=$[rint(0)]
+val14=$[rint(0)]
+val15=0,0,0
+!for val16 =1 to 8 
+tmp0=!randint 4-$val12, 8-$val12
+
+val17=$(tmp0)
+tmp0=!append item $val17 to $val15
+
+val15=$(tmp0)
+!next
+tmp=!nonempty items $val15
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+tmp0=!randint 1100, 9900
+
+val18=$[$(tmp0)]
+tmp0=!randint 1100, 9900
+
+val19=$[$(tmp0)]
+tmp0=!char 1 to 1 of $val18
+
+val20=$(tmp0)
+tmp0=!char 2 to 2 of $val18
+
+val21=$(tmp0)
+!if $val21>4 
+!if $val20=9 
+val14=$[rint(1)]
+val20=$[rint(1)]
+!else
+val20=$[rint($val20+1)]
+!endif
+!endif
+val22=
+!for val16 =1 to $val11 
+tmp0=!item $val16 of $val10
+
+val23=$(tmp0)
+val23=$[$val23*$val20]
+!readproc slib/numeration/ecriturenombre $val23 
+tmp0=$slib_out
+val23=$(tmp0)
+tmp0=!append item $val23 to $val22
+
+val22=$(tmp0)
+!next
+tmp0=!char 1 to 1 of $val19
+
+val24=$(tmp0)
+tmp0=!char 2 to 2 of $val19
+
+val25=$(tmp0)
+!if $val25>4 
+!if $val24=9 
+val13=$[rint(1)]
+val24=$[rint(1)]
+!else
+val24=$[rint($val24+1)]
+!endif
+!endif
+val26=
+!for val16 =1 to $val11 
+tmp0=!item $val16 of $val10
+
+val23=$(tmp0)
+val23=$[$val23*$val24]
+!readproc slib/numeration/ecriturenombre $val23 
+tmp0=$slib_out
+val23=$(tmp0)
+tmp0=!append item $val23 to $val26
+
+val26=$(tmp0)
+!next
+val18=$[$val18/10^($val12-5)]
+val19=$[$val19/10^($val12+$val15-5)]
+!readproc slib/numeration/ecriturenombre $val18 
+tmp0=$slib_out
+val18=$(tmp0)
+tmp0=!translate . to , in $val18
+
+val18=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val19 
+tmp0=$slib_out
+val19=$(tmp0)
+tmp0=!translate . to , in $val19
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in $val20*$val24
+tmp0=!exec pari $t_
+
+val27=$(tmp0)
+val27=$[rint($val20*$val24)]
+val28=
+!for val16 =1 to $val11 
+tmp0=!item $val16 of $val10
+
+val23=$(tmp0)
+val23=$[$val23*$val27/10]
+!readproc slib/numeration/ecriturenombre $val23 
+tmp0=$slib_out
+val23=$(tmp0)
+tmp0=!append item $val23 to $val28
+
+val28=$(tmp0)
+!next
+val29=$(val22[$val12-$val14+2])
+val30=$(val26[$val15+$val12-$val13+2])
+val31=$(val28[2*$val12+$val15-$val14-$val13-9+2])
+tmp0=!translate . to , in $val29
+
+val29=$(tmp0)
+tmp0=!translate . to , in $val30
+
+val30=$(tmp0)
+tmp0=!translate . to , in $val31
+
+val31=$(tmp0)
+val32=\times
+val33=10
+replytype1=raw
+replyname1=
+replygood1=$val29
+replytype2=raw
+replyname2=
+replygood2=$val30
+replytype3=raw
+replyname3=
+replygood3=$val31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7	<table class="wimscenter wimsnoborder">	  <tr>	    <td></td>	    <td><span class="larger">$val18</span></td>	    <td><span class="larger">
+!insmath $val32
+$()</span></td>	    <td><span class="larger">$val19</span></td>	  </tr><tr>	    <th>$(val8[1])</th>	    <td><span class="larger"> 
+!read oef/embed.phtml r1,$val33 
+$()</span></td>	    <td><span class="larger">
+!insmath $val32
+$()</span></td>	    <td><span class="larger"> 
+!read oef/embed.phtml r2,$val33 
+$()</span></td>	  </tr>	</table>	$(val8[2]):	 
+!read oef/embed.phtml r3,$val33 
+$()	<div class="wims_instruction">$val9</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,18,19,32,33
+embedcnt=3

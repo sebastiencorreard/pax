@@ -1,0 +1,58 @@
+target=adjacentes
+\title{Suites adjacentes}
+#include "author.inc"
+
+\format{html}
+
+\integer{a=randint(1..10)*randint(1,-1)}
+\integer{a2=2*\a}
+\integer{b=randint(1..10)}
+\integer{c=\b+randint(1..10)}
+\integer{d=random(1,3,5,7,9)}
+\integer{k=randint(1..4)}
+\integer{e=\k*\c}
+\integer{f=\b+\a*\k}
+\integer{g=-\b-randint(1..3)+\a*\k}
+
+\text{data=texmath(\a+\b/n),texmath(\a-\c/n),1,\a,
+texmath(\a+\b/n),texmath(\a+\c/n),2,1,
+texmath(\a+(-1)^{n+1}/n),texmath(\a+(-1)^{n}/n),2,1,
+texmath(n+\a/n),texmath(n-\a/n),2,1,
+texmath(10^{-3}+1/n),texmath(10^{-4}-1/n),2,2,
+texmath(1/(2*n+\d)),texmath(1/(2*n-\d)),2,1,
+texmath(\a+1/(\b*n+1)),texmath(\a-1/(\c*n+1)),1,\a,
+texmath((\a*n+\f)/(\c*n+\e)),texmath((\a*n+\g)/(\c*n+\e)),1,\a/\c,
+texmath((\a*n+\f)/(\c*n+\e)),texmath((\a2*n+\g)/(\c*n+\e)),2,2,
+}
+\integer{nq=rows(\data)}
+\integer{i=randint(1..\nq)}
+integer{i=9}
+\text{cedata=row(\i,\data)}
+\text{an=\cedata[1]}
+\text{bn=\cedata[2]}
+\integer{rep=\cedata[3]}
+\if{\rep=1}
+ {
+ \rational{limi=\cedata[4]}
+ \text{tfeed=Les deux conditions sont bien remplies et la limite commune est \(\limi).}
+ }
+ {
+ \text{tfeed=\cedata[4]=1?Ici,la deuxième condition n'est pas remplie.:
+  Ici, la première condition n'est pas remplie.}
+ }
+
+\statement{
+  On considère les suites \((a_n)) et \((b_n)) définies par
+  <div class="wimscenter">\( a_n=\an) et \(b_n=\bn)</div>
+
+  Les suites \((a_n)) et \((b_n)) sont-elles adjacentes ?
+  <div class="wimscenter">\embed{reply1}</div>
+}
+\answer{adjacentes}{\rep;Oui,Non}{type=radio}
+
+\solution{Pour avoir deux suites adjacentes, il faut remplir deux conditions:
+<ol>
+<li> \(\displaystyle\lim (a_n-b_n)=0)</li>
+<li> une suite doit être croissante et l'autre décroissante,à partir d'un certain rang.</li>
+</ol>
+\tfeed}

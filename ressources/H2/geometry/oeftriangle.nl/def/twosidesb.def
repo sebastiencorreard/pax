@@ -1,0 +1,145 @@
+!set title=de scherphoekige driehoek
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang, XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefobservation=Exercice demandant de la réflexion ayant une indication après une réponse fausse.
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 10, 40
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 10, 40
+
+val8=$[rint($(tmp0))]
+val9=$[rint(max($val7,$val8))]
+val10=$[rint(min($val7,$val8))]
+
+!ifval $val7>$val8
+val11=AB
+!else
+val11=BC
+!endif
+
+!ifval $val7>$val8
+val12=BC
+!else
+val12=AB
+!endif
+val13=$[$val9^2+$val10^2]
+val14=$[$val9^2-$val10^2]
+val15=$[sqrt($val13)]
+val16=$[sqrt($val14)]
+val17=$[rint((ceil($val15)-1) - (floor($val16)+1) + 1)]
+val18=$[rint(($val7+$val8-1) - (floor($val15)+1) + 1)]
+val19=$[rint((ceil($val16)-1) - ($val9-$val10+1) + 1)]
+
+!ifval $val19<0
+val19=$[rint(0)]
+!endif
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val20=$[rint($(tmp0))]
+val21=acute, obtuse
+val22=Om \(A B C\) een scherphoekige driehoek te laten zijn, moet \(A C^2\) meer zijn dan	  \($val11^2-$val12^2=$val14=$val14\) en minder dan	  \(A B^2+B C^2=$val13=$val13\) zijn, de stelling vam Pythagoras.
+val23=Om \(A B C\) een driehoek te laten zijn, moet \(A C\) op zijn minst	  $val9-$val10+1 zijn en maximaal $val7+$val8-1.<p>	  Als $val11 de langste zijde is van de driehoek, moet \(A C\) (stelling van Pythagoras)	  minder zijn dan $val16.	  Als \(A C\) de langste zijde is, moet deze langer zijn dan $val15	  (wederom de stelling van Pythagoras),</p><p>	  Hierdoor zijn $val19 (respectievelijk. $val18) stompe driehoeken,	  met als langste zijde $val11 (resp. \(A C\)).</p>
+tmp=!trim Hoeveel	  driehoeken \(A B C\) zijn er, met \(A C\) een integer,
+val24=!translate internal $	\
+$ to ;; in $tmp
+val25=Aantal Driehoeken
+tmp0=!item $val20 of $val21
+
+val26=$(tmp0)
+tmp0=!item $val20 of $val17,$val18+$val19
+
+val27=$[rint($(tmp0))]
+
+!ifval $val20=1
+val28=$val22
+!else
+val28=$val23
+!endif
+replytype1=default
+replyname1=$val25
+replygood1=$val27
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val28
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val24[1;]) $val26 $(val24[2;])	<div class="wimscenter">	  
+!insmath A B = $val7
+$(), 
+!insmath B C = $val8
+$()&nbsp;?	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val28
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,24,26,28
+embedcnt=0

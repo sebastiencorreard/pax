@@ -1,0 +1,256 @@
+!set title=La discothèque
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=remi.belloeil@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(600)]
+tmp0=!randitem 1,2,3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 9, 15
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8-$val7)]
+val10=$[rint($val7*$val7)]
+val11=$[rint(2*$val7)]
+val12=$[rint(4*$val7)]
+val13=$[rint(8*$val7)]
+val14=$[rint($val8*$val8)]
+val15=$[rint($val14-$val10)]
+val16=$[rint($val15-$val12)]
+val17=$[rint(2*$val16)]
+val18=!rawmath 2*x^2+$val12*x-$val13
+val19=!rawmath x^2+$val11*x-$val12
+val20=!rawmath x^2+$val11*x
+val21=!rawmath x^2+$val11*x+$val10
+val22=(x+$val7)^2
+val23=xrange -4,38	yrange -3,11	linewidth 2		rect 0,0,20+$val12,10,black	frect 10,0,10+$val12,2,brown	arrow2 -0.5,0,-0.5,10,8,black	arrow2 0,-0.5,10,-0.5,8,black	arrow2 10,-0.5,10+$val12,-0.5,8,black	arrow2 10+$val12,-0.5,20+$val12,-0.5,8,black	arrow2 9.5,0,9.5,2,8,black		text black,-2,6,medium,x	text black,4.5,-1,medium,x	text black,9.5+$val11,-1,medium,$val12	text black,14+$val12,-1,medium,x	text black,8,1.5,medium,2	
+!readproc oef/draw.phtml $val6,$val6/3 \
+$val23 
+tmp0=$ins_url
+val24=$(tmp0)
+val25=L'espace de danse est formé d'un carré de côté x, un rectangle de côtés x et $val12 privé d'un rectangle de $val12 m sur 2 et d'un carré de côté x
+val26=$val23	frect 0,0,10,10,lightblue	frect 10+$val12,0,20+$val12,10,lightblue	frect 10,0,10+$val12,10,yellow	rect 10,0,10+$val12,2,brown	arrow2 9.5,0,9.5,2,8,black	text black,8,1.5,medium,2	text black,5,6,medium,x	text black,5.5,6.3,medium,2	text black,9.5+$val11,6,medium,$val12 x	text black,14+$val12,6,medium,x	text black,14.5+$val12,6.3,medium,2	text black,9.5+$val11,1,medium,$val13	
+oefsteps=reply1	reply2,reply3,reply4,reply5	reply6	reply7 
+nextstep=!nosubst reply1	reply2,reply3,reply4,reply5	reply6	reply7 
+!readproc oef/steps.proc
+replytype1=function
+replyname1=Aire
+replygood1=!rawmath $val18
+replytype2=function
+replyname2=Équation 1
+replygood2=!rawmath $val19
+replytype3=function
+replyname3=Équation 2
+replygood3=!rawmath $val20
+replytype4=function
+replyname4=Équation 3
+replygood4=!rawmath $val21
+replytype5=numeric
+replyname5=Carré
+replygood5=$[$val14]
+replytype6=litexp
+replyname6=Équation 4
+replygood6=$val22
+replytype7=numeric
+replyname7=x
+replygood7=$[$val9]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	<div class="medium_size img_col">	<img src="$val24" alt="$val25">	</div><div class="medium_size text_col">	<p>	Ce plan représente une salle de danse d'une discothèque avec	un rectangle de $val12 m sur 2 m pour le bar.</p>	<p>Le problème est de déterminer 
+!insmath x
+$() pour que l'espace réservé aux danseurs ait une aire de $val17 m².	</p>	</div></div>	
+!if $m_step=1 
+$()	<h2>Étape 1</h2>	Donnez l'expression développée et ordonnée de l'aire réservée aux danseurs en fonction de 
+!insmath x
+$().<br>	<label for="reply1">Réponse :</label>  
+!read oef/embed.phtml reply 1 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()	<h2>Étape 2</h2>	<ul class="wims_nopuce">	<li><b>L'aire réservée aux danseurs est bien 
+!insmath $val18
+$().</b></li>	<li>On cherche à présent 
+!insmath x
+$() tel que : 
+!insmath $val18
+$() = $val17</li>	<li>On va simplifier cette équation.</li>	<li>On divise chaque membre par 2.</li>	<li>On obtient :</li>	<li> 
+!read oef/embed.phtml reply 2,10 
+$() = $val16</li>	<li>Puis on ajoute $val12 à chaque membre.</li>	<li>On obtient :</li>	<li> 
+!read oef/embed.phtml reply 3,10 
+$() = $val15</li>	<li>Enfin on complète le premier membre de façon à	obtenir une expression du type 
+!insmath a^2+2*a*b+b^2
+$()	en ajoutant un même nombre aux deux membres de l'équation.</li>	<li> 
+!read oef/embed.phtml reply 4,10 
+$() =  
+!read oef/embed.phtml reply 5,3 
+$()</li>	</ul>	   
+!endif
+$()	
+!if $m_step=3 
+$()	<h2>Étape 3</h2>	<ul class="wims_nopuce">	<li>L'équation 
+!insmath $val18=$val17
+$() équivaut à 
+!insmath $val21=$val14
+$().</li>	<li>On peut écrire le premier membre sous la forme d'un carré</li>	<li> 
+!read oef/embed.phtml reply 6,10 
+$() = 
+!insmath $val8^2
+$().</li>	</ul>	   
+!endif
+$()	
+!if $m_step=4 
+$()	<h2>Étape 4</h2>	<ul class="wims_nopuce">	<li>L'équation 
+!insmath $val18=$val17
+$() équivaut à 
+!insmath (x+$val7)^2=($val8)^2
+$().</li>	<li>Donc 
+!insmath x+$val7=-$val8
+$() ou 
+!insmath x+$val7=$val8
+$().</li>	<li>Mais une seule des 2 solutions convient.</li>	<li>Conclusion : </li>	<li>Pour que l'espace réservé aux danseurs ait une aire de $val17 m²	il faut que <label for="reply7">
+!insmath x
+$() =</label>  
+!read oef/embed.phtml reply 7,3 
+$() m.</li>	</ul>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	
+!if $m_step<4 
+$()Pour écrire 
+!insmath x^2
+$(), taper x^2.	    
+!endif
+$()	
+!if $m_step=1 
+$()	<p>	On peut décomposer la salle de danse en 3 rectangles comme sur ce dessin	sans oublier de retrancher l'aire du rectangle marron.</p>	 
+!read oef/draw.phtml 600,200 \
+$val26 
+$()	    
+!endif
+$()	
+!if $m_step=2 
+$()	<ul><li>	Diviser chaque terme de la somme 
+!insmath $val18
+$() par 2.	</li><li>	Puis ajouter $val12 fait disparaître le terme sans 
+!insmath x
+$() du premier membre.	<div class="wimscenter">	 
+!insmath a^2+2*a*b+b^2=$val21
+$()</div>	
+!insmath a=x
+$() et il faut que 
+!insmath 2*b=$val11
+$() en déduire 
+!insmath b
+$()</li><li>	puis il faut ajouter 
+!insmath b^2
+$() à chaque membre.	</li></ul>	    
+!endif
+$()	
+!if $m_step=3 
+$()	 
+!insmath a^2+2*a*b+b^2=(a+b)^2
+$()<br>	
+!insmath a=x
+$() et il faut que 
+!insmath 2*b=$val11
+$() en déduire 
+!insmath b
+$().	   
+!endif
+$()	
+!if $m_step=4 
+$()	La solution doit être positive.	   
+!endif
+$()	 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	 
+!read oef/draw.phtml 600,200 \
+$val26 
+$()	<div class="wimscenter">	<p>L'espace réservé aux danseurs est :</p>	<ul class="wims_nopuce">	<li>
+!insmath $val18
+$() = $val17</li>	<li>Ce qui équivaut à :</li>	<li>
+!insmath $val19
+$() = $val16 </li>	<li>
+!insmath $val20
+$() = $val15 </li>	<li>
+!insmath $val21
+$() = $val14 </li>	<li>
+!insmath $val22=($val8)^2
+$() </li>	<li>
+!insmath x+$val7=-$val8
+$() ou 
+!insmath x+$val7=$val8
+$()</li>	<li>
+!insmath x=-$val8-$val7
+$() ou 
+!insmath x=$val8-$val7
+$()</li>	</ul>	<p>La première solution est négative donc ne convient pas.</p>	<p>Pour que l'espace réservé aux danseurs ait une aire de $val17 m² il faut que 
+!insmath x
+$() = $val9 m.</p>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,14,15,16,17,18,19,20,21,22,24,25,26
+embedcnt=7

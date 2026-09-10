@@ -1,0 +1,93 @@
+reply$i=!rawmath $(reply$i)
+reply$i=!trim $(reply$i)
+parleft=(
+dd=$(reply$i)
+c=!char 1 of $dd
+!if $c=+ or $c=-
+ dd=!char 2 to -1 of $dd
+!endif
+!if ( + isin $dd or - isin $dd or * isin $dd or ^ isin $dd \
+	or $parleft isin $dd )
+ test=NaN nocompute
+ !exit
+!endif
+
+test=$[$(reply$i)]
+m_reply$i=$(reply$i)
+!if NaN isin $test
+ !exit
+!endif
+
+good=$[$(replygood$i)]
+!if NaN isin $good or Inf isin $good
+ Test=bad $i
+ !exit
+!endif
+************************
+reply_$i=$(reply$i)
+!if / isin $(reply$i)
+	tmp=!replace internal / by , in $(reply$i)
+	!distribute item $tmp into num,den
+	!for name in num,den
+	 !if . isin $($name)
+	  tmp=!replace internal . by , in $($name)
+	  !distribute item $tmp into tmp1,tmp2
+	  nbdec=!charcnt $tmp2
+	  t1_$name=$[$($name)*10^$nbdec]
+	  t2_$name=$[10^$nbdec]
+	 !else
+	  t1_$name=$($name)
+	  t2_$name=1
+	 !endif
+	 reply$i=$(t1_num)*$(t2_den)/($(t1_den)*$(t2_num))
+	!next name
+!endif
+************************
+good=$(replygood$i)
+
+tmp=!exec maxima print(is(equal($(reply$i),$(replygood$i))));\
+print($(reply$i)); 
+!distribute line $tmp into mres,reduced
+!if $mres!=true
+ diareply$i=bad
+ !exit
+!endif
+
+!if $good=0 and $(reply$i) notsametext 0
+ test=NaN badform
+ !exit
+!endif
+
+!if / isin $(reply$i) and noreduction notitemof $(replyoption$i) and $(reply$i) notsametext $reduced
+ test=NaN badform noreduced
+ !exit
+!endif
+
+!for name in reply,replygood
+ !if . isin $($name$i)
+  tmp=!replace internal . by , in $($name$i)
+  !distribute item $tmp into tmp1,tmp2
+  nbdec=!charcnt $tmp2
+  t1_$name=$[$($name$i)*10^$nbdec]
+  t2_$name=$[10^$nbdec]
+ !else
+  tmp=!replace internal / by , in $($name$i)
+  nb=!itemcnt $tmp
+  !if $nb=1
+   t1_$name=$($name$i)
+   t2_$name=1
+  !else
+   !distribute item $tmp into t1_$name,t2_$name
+  !endif
+ !endif
+!next name
+mres=$[($t1_reply)*($t2_replygood) - $(t1_replygood)*($t2_reply)]
+
+!if $mres!=0
+ diareply$i=bad
+ !exit
+!endif
+
+diareply$i=good
+
+!advance freegot

@@ -1,0 +1,403 @@
+!set title=3 - parallel
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=en
+title_fr=3 - Parallèle
+title_nl=3 - parallel schakeling
+
+ansorder=r
+varcnt=148
+prevarcnt=147
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(20)]
+val7=10,15,22,33,47,68
+val8=10,12,15,18,22,27,33,39,47,56,68,82
+val9=10,11,12,13,15,16,18,20,22,24,27,30,33,36,39,43,47,51,56,62,68,75,82,91
+val10=1,1.2,1.5,1.8,2,2.5,3,3.5,4,4.5,5,6,7,8,9
+tmp=!nonempty items 1,10,100
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items 1,10,100,1000
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+!if $val11 > $val12 
+val13=1
+val14=A
+!else
+val13=1000
+val14=mA
+!endif
+!if $val12 >=  100 
+val15=1000
+val16=K\(Omega)
+!else
+val15=1
+val16=\(Omega)
+!endif
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val17=$[$(tmp0)*$val11]
+tmp0=!values x*10 for x in $val8
+
+val18=$(tmp0)
+tmp0=!randint 1, 10
+
+val19=$(tmp0)
+tmp0=!item $val19 to $val19+8 of $val8,$val18
+
+val20=$(tmp0)
+tmp0=!shuffle $val20
+
+val20=$(tmp0)
+tmp0=!values x*$val12 for x in $val20
+
+val20=$(tmp0)
+val21=
+val22=
+!for val23 =1 to 4 
+val24=$[rint(floor($(val20[$val23])/1000))]
+
+!ifval $(val20[$val23])<1000
+val25=$[$(val20[$val23])]
+!else
+val25=$[$(val20[$val23])/1000]
+!endif
+
+!ifval $(val20[$val23])<1000
+val24=$val25
+!else
+val24=$(val25[])K
+!endif
+
+!ifval $(val20[$val23])<1000
+val26=OMEGA
+!else
+val26=
+!endif
+val21=$val21$val24,
+val22=$val22$val26,
+!next
+val27=$[$(val20[1])]
+val28=$[$(val20[2])]
+val29=$[$(val20[3])]
+val30=$[$(val20[4])]
+val31=$(val21[1])
+val32=$(val21[2])
+val33=$(val21[3])
+val34=$(val21[4])
+val35=$(val22[1])
+val26=$(val22[2])
+val36=$(val22[3])
+val24=$(val22[4])
+val37=
+val38=8/closepar3r
+val39=bat _V1_,iArrow @@I,res _R1_,chas,wire,res _R2_,wire,res _R_
+val40=v1/r1+v1/r2+v1/r
+val41=v1
+val42=v1/r
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val43=$(tmp0)
+
+!ifval $val2 issametext 
+val2= $val5
+!endif
+val44=
+!for val45  in $val2 
+!if (a2 notin $val45 or $val42 notsametext a1) and	     (v2 notin $val45 or $val41 notsametext v1) 
+tmp0=!append item $val45 to $val44
+
+val44=$(tmp0)
+!endif
+!next
+tmp=!nonempty items $val44
+
+tmp0=!randitem $tmp
+tmp1=!translate internal / to , in $(tmp0)
+
+val46=$(tmp1)
+
+!ifval $val46 issametext 
+val46= v1+r,a1
+!endif
+tmp0=!translate a+b to a b in $(val46[1])
+
+val47=$(tmp0)
+val48=$(val46[2])
+
+!ifval $val3>0 and $val3<=7
+val49=$[rint($val3)]
+!else
+val49=$[rint(3)]
+!endif
+tmp0=!item $val49 of 10,5,2,1,0.5,0.2,0.1
+
+val49=$(tmp0)
+tmp=!trim the voltage of the source U	  the voltage on point A	  the current intensity I	  the current intensity going through  R	  the value of R	
+val50=!translate internal $	\
+$ to ;; in $tmp
+val51=degrees
+val52=In the circuit on the right, the source S is a sinusoidal alternate voltage
+val53=of
+tmp=!trim the current intensity is	  the current intensity going through R is	  the voltage on point A is	
+val54=!translate internal $	\
+$ to ;; in $tmp
+val55=What is
+val56=Attention
+val57=The error tolerance for your reply is
+val58=Pay attention to the error tolerance!	  You seem to have made an error exceeding the tolerance in your computation.
+!if $val43=fr 
+tmp=!trim la tension de la source U&nbsp;	  la tension sur le point A&nbsp;	  l'intensité du courant I&nbsp;	  l'intensité du courant passant par R&nbsp;	  la valeur de R&nbsp;	
+val50=!translate internal $	\
+$ to ;; in $tmp
+val59=Dans le schéma ci-contre
+val53=de
+tmp=!trim l'intensité du courant est	  l'intensité du courant passant par R est	  la tension sur le point A est de	
+val54=!translate internal $	\
+$ to ;; in $tmp
+val55=Quelle est
+val57=Vous avez droit à une marge d'erreur de
+val60=dans la réponse
+val56=Attention
+val58=Attention à la tolérance d'erreur !	  Votre calcul semble avoir une marge d'erreur trop importante.
+!endif
+!if $val43=nl 
+tmp=!trim het voltage van de spanningsbron U	  de spanning over A (volt)	  de stroomsterkte I	  de stroomsterkte door R	  de waarde van R	
+val50=!translate internal $	\
+$ to ;; in $tmp
+val51=graden
+val59=Bekijk het stroomschema hiernaast
+val53=van
+tmp=!trim De stroomsterkte	  de stroomsterkte door R is	  de spanning in A is	
+val54=!translate internal $	\
+$ to ;; in $tmp
+val55=Wat is hierin 
+val56=ATTENTIE
+val57=De fouttolerantie in je antwoord mag 
+val60=zijn
+val58=Let op de fouttolerantie!	  Het lijkt erop dat je de fouttolerantie overschreden hebt.
+!endif
+val61=v1,r1,r2,r3,r
+val10=$val17,$val27,$val28,$val29,$val30
+tmp0=!itemcnt $val10
+
+val62=$[rint($(tmp0))]
+val63=$val40,$val42,$val41
+val64=
+
+!ifval $val49>=1
+val65=3
+!else
+val65=4
+!endif
+!for val66  in $val63 
+val67=$val66
+!for val23 =1 to $val62 
+tmp0=!mathsubst $(val61[$val23])=($(val10[$val23])) in $val67
+
+val67=$(tmp0)
+!next
+val68=$[rint(floor(log10($val67)))]
+val67=$[rint(($val67)*10^($val65-($val68)))*10^($val68-$val65)]
+val64=$val64$val67,
+!next
+val69=$[$(val64[1])*$val13]
+val70=$[$(val64[2])*$val13]
+val71=$(val64[3])
+val72=$val39
+tmp0=!replace internal _R1_ by $val31 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal _R2_ by $val32 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal _R3_ by $val33 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal _R1_ by $val35 in $val72
+
+val72=$(tmp0)
+tmp0=!replace internal _R2_ by $val26 in $val72
+
+val72=$(tmp0)
+tmp0=!replace internal _R3_ by $val36 in $val72
+
+val72=$(tmp0)
+!if v1 iswordof $val47 
+tmp0=!replace internal _V1_ by $val17 V in $val39
+
+val39=$(tmp0)
+!else
+tmp0=!replace internal _V1_ by U in $val39
+
+val39=$(tmp0)
+!endif
+!if r iswordof $val47 
+!if a2 isin $val46 
+tmp0=!replace internal _R_ by R=$val34 in $val39
+
+val39=$(tmp0)
+!else
+tmp0=!replace internal _R_ by $val34 in $val39
+
+val39=$(tmp0)
+!endif
+tmp0=!replace internal _R_ by $val24 in $val72
+
+val72=$(tmp0)
+!else
+tmp0=!replace internal _R_ by @@R in $val39
+
+val39=$(tmp0)
+!endif
+!if v1 iswordof $val48 
+val73=$(val50[1;])
+val74=V
+val75=$val17
+!endif
+!if v2 iswordof $val48 
+val73=$(val50[2;])
+val74=V
+val75=$val71
+!endif
+!if a1 iswordof $val48 
+val73=$(val50[3;])
+val74=$val14
+val75=$val69
+!endif
+!if a2 iswordof $val48 
+val73=$(val50[4;])
+val74=$val14
+val75=$val70
+!endif
+!if r iswordof $val48 
+val73=$(val50[5;])
+val74=$val16
+val75=$[$val30/$val15]
+!endif
+val76=
+!if $val37 notsametext and v2 isin $val46 
+val76=linewidth 7	point $val37,black	text black,$(val37[1])+0.4,$(val37[2])+0.3,large,A	 
+!endif
+!readproc slib/circuits/draw $val38,$val6,black,$val39 
+tmp0=$slib_out
+val77=$(tmp0)	$val76
+tmp0=!line 1 of $val77
+
+val78=$(tmp0)
+tmp0=!word 2 to -1 of $val78
+
+val78=$(tmp0)
+
+!ifval $val78=
+val78=300,300
+!endif
+!readproc oef/draw.phtml $val78 \
+$val77 
+tmp0=$ins_url
+val77=$(tmp0)
+val79=$[$val75*(1-$val49/100)]
+val80=$[$val75*(1+$val49/100)]
+val81=$[$val75*(1-2*$val49/100)]
+val82=$[$val75*(1+2*$val49/100)]
+val83=$val79,$val80,$val75
+val84=
+
+!ifval a1 isin $val47
+val85=$(val54[1;]) I = $val69 $val14
+!else
+val85=
+!endif
+
+!ifval a2 isin $val47
+tmp0=!append item $val84 $(val54[2;]) $val70 $val14 to $val85
+
+val85=$(tmp0)
+!endif
+
+!ifval v2 isin $val47
+tmp0=!append item $val84 $(val54[3;]) $val71 V to $val85
+
+val85=$(tmp0)
+!endif
+replytype1=range
+replyname1=$val73
+replygood1=!rawmath $val83
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"><img src="$val77" alt=""></div>	 <div class="medium_size text_col">	
+!if $val85 notsametext  
+$()	 $val59, $val85.	 
+!endif
+$()	$val55 <label for="reply1">$val73</label>?	 
+!read oef/embed.phtml r1,8 
+$() $val74.	<div class="wims_instruction">	$val56. $val57 $val49% $val60.	</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_reply1 > $val80 and $m_reply1<=$val82) or	($m_reply1 < $val79 and $m_reply1 >= $val81)
+ <div class='oef_feedbacks'>$val58
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=49,55,56,57,58,59,60,73,74,77,79,80,81,82,85
+embedcnt=1

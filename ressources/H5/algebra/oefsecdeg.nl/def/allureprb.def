@@ -1,0 +1,148 @@
+!set title=Ligging van een parabool
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=F. PITOUN
+email=lva.pitoun@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val8*(x-$val6)^2+$val7)
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+val10=$[rint(4*$val8^2*$val6^2-4*$val8*($val7+$val6^2))]
+!if $val8<0 
+val11=a&#60;0
+!else
+val11=a&#62;0
+!endif
+val12=a&#60;0
+val13=a&#62;0
+val14=\(\Delta)&#60;0
+val15=\(\Delta)&#62;0
+val16=\(\Delta)&#61;0
+!if $val10>0 
+val17=\(\Delta)&#62;0
+!endif
+!if $val10=0 
+val17=\(\Delta)&#61;0
+!endif
+!if $val10<0 
+val17=\(\Delta)&#60;0
+!endif
+t_=!replace internal \( by ( in $val9-\a*x-\b-\p
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+t_=!replace internal \( by ( in \a*x+b
+tmp0=!exec maxima $t_
+
+val19=!rawmath $(tmp0)
+t_=!replace internal \( by ( in \a*x+\b
+tmp0=!exec maxima $t_
+
+val20=!rawmath $(tmp0)
+val21=$[rint(-10)]
+val22=$[rint(10)]
+val23=$[rint($val22-$val21+1)]
+val24=animate 10,0.5,0	xrange=-6,6	yrange $val21,$val22	linewidth 1	parallel -6,$val21,-6,$val22,1,0,13,blue	parallel -6,$val21,6,$val21,0,1,$val23,blue	linewidth 2	line -6,0,6,0,red	line 0,$val21,0,$val22,red	arrow 0,0,1,0,10,red	arrow 0,0,0,1,10,red	plot green,$val9	plot blue,\a*x+s*20-10	
+replytype1=dragfill
+replyname1=Het teken van a is \(\Delta)
+replygood1=$val11,$val17 | $val17,$val11;$val12,$val13,$val14,$val15,$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Gegeven de parabool <b>P</b> met vergelijking 
+!insmath y=ax^2+bx+c
+$() <br>	(zie grafiek hieronder)		<hr>	<p align="center">	 
+!read oef/draw.phtml 300,300 \
+	$val24	 
+$()	</p>		<br>	<p align=center>	Uit de grafiek kunnen we concluderen dat :	<p align=center>	   
+!read oef/embed.phtml reply 1,50 25 
+$()	</p>		</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<ul>	<li>	Een parabool is een bergparabool als geldt a &lt; 0.	</li>	<li>	Een parabool heeft twee snijpunten met de 
+!insmath x
+$()-as (de lijn 
+!insmath y=0
+$()) als de discriminant &gt; 0 <br>	Dus 
+!insmath \Delta
+$() &gt; 0.	</li>	<li>	Een parabool heeft &eacute;&eacute;n snijpunt met de 
+!insmath x
+$()-as als geldt 
+!insmath \Delta
+$() = 0	</li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24
+embedcnt=1

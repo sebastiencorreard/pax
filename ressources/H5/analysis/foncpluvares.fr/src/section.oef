@@ -1,0 +1,86 @@
+\title{Section d'une surface par un plan}
+\language{fr}
+\range{-5..5}
+\keywords{plane_section}
+\author{Frédéric, Pitoun}
+\email{frederic.pitoun@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\integer{alv=random(1..6)}
+
+\integer{nb=random(-10..10)}
+
+\matrix{c1=slib(matrix/random 1,6,5)}
+
+\if{\alv=1 or \alv=2}{
+\matrix{c1=slib(matrix/random 1,6,5)}
+}
+
+\if{\alv=3}{
+\matrix{c1=random(-5,5),0,0,random(-5,5),random(-5,5),random(-5,5)}
+}
+
+\if{\alv>=4}{
+\matrix{c1=0,random(-1,1)*random(-5,5),0,random(-5,5),random(-5,5),random(-5,5)}
+\if{\c1[6]=\nb}{
+\integer{nb=\nb+1}
+}
+}
+
+\text{fonc=pari([\c1]*[x^2;x*y;y^2;x;y;1])}
+\text{fonc=maxima(expand(\fonc))}
+
+
+\if{\alv=1}{
+\text{var=x}
+\function{\foncs=maxima(subst(\nb,x,\fonc))}
+\integer{d=pari(poldegree(\foncs))}
+\if{\d=1}{
+\integer{nrep=2}
+}{
+\integer{nrep=1}
+}
+}
+\if{\alv=2}{
+\text{var=y}
+\function{\foncs=maxima(subst(\nb,y,\fonc))}
+\integer{d=pari(poldegree(\foncs))}
+\if{\d=1}{
+\integer{nrep=2}
+}{
+\integer{nrep=1}
+}
+}
+
+
+\if{\alv=3}{
+\text{var=z}
+\function{\foncs=maxima(subst(\nb,y,0))}
+\integer{d=pari(poldegree(\foncs))}
+\if{\d=1}{
+\integer{nrep=2}
+}{
+\integer{nrep=1}
+}
+}
+
+\if{\alv>=4}{
+\text{var=z}
+\integer{nrep=3}
+}
+
+\text{nature=parabole,droite,hyperbole}
+
+
+\statement{On considère la surface \(S) d'équation \(z=\fonc) et le plan \(P)
+d'équation \(\var=\nb).
+ Quelle est la nature de la section de la surface \(S) par le plan \(P) ?
+ <div class="spacer">
+L'intersection de \(S) et de \(P) est une \embed{reply 1}.
+</div>
+}
+
+
+\answer{Nature}{\nrep;\nature}{type=menu}

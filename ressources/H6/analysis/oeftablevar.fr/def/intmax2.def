@@ -1,0 +1,536 @@
+!set title=Intervalle maximal II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=71
+prevarcnt=70
+postvarcnt=0
+replycnt=23
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Soit une fonction \(f: \RR \to \RR\) continue et dérivable ayant	  le tableau de variation suivant.
+val7=100000000
+tmp0=!randitem 4,5,6,7,8
+
+tmp1=!randitem 3,4,5,6,7
+
+tmp2=!randitem 3,4,5,6,7
+
+tmp3=!randitem 3,4,5,6,7
+
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 4,5,10
+
+val8=1,2,3,4,5,6,7,8,9,10,	11,12,13,14,15,16,17,18,19,20,21,23,24,25,27,30,	$(tmp0)0,$(tmp1)5,$(tmp2)2,	$(tmp3)8,$(tmp4)00,$(tmp5)00	
+
+!ifval frac isitemof $val2
+val8=$val8,	 1/2,3/2,5/2,7/2,9/2,11/2,13/2,	 1/3,2/3,4/3,5/3,7/3,8/3,10/3	
+!endif
+
+!ifval root isitemof $val2
+val8=$val8,	sqrt(3),sqrt(5),sqrt(6),sqrt(7),sqrt(8),sqrt(11),sqrt(12),	sqrt(18),sqrt(20),sqrt(30),sqrt(40),sqrt(60)	
+!endif
+
+!ifval pie isitemof $val2
+val8=$val8,	pi,e,sqrt(2),pi+1,pi-1,e+1,e-1,	pi^2,e^2,pi^3,e^3,1/pi,1/e,2*pi,2*e,4*pi,4*e	
+!endif
+
+!ifval log isitemof $val2
+val8=$val8,	ln(2),ln(3),ln(4),ln(5),ln(8),ln(10),ln(15),ln(20),ln(30),ln(50)	
+!endif
+
+!ifval exp isitemof $val2
+val8=$val8,	2^e,3^e,2^pi,3^pi,pi^e,e^pi,pi^pi,e^e,	4^e,5^e,2^-e,2^-pi,pi^-e,e^-pi	
+!endif
+tmp0=!makelist -x for x in $val8
+
+val8=$(tmp0),0,$val8
+tmp0=!sort numeric items $val8
+
+val8=$(tmp0)
+tmp0=!itemcnt $val8
+
+val9=$[rint($(tmp0))]
+val10=$[rint(4)]
+tmp0=!shuffle $val9
+
+tmp1=!item 1 to 11 of $(tmp0)
+
+tmp2=!sort numeric items $(tmp1)
+
+val11=$(tmp2)
+tmp0=!item $val11 of $val8
+
+val12=$(tmp0)
+tmp0=!randint $val9/4, $val9*3/4
+
+val13=$[rint($(tmp0))]
+tmp0=!item 3 to $val13-3 of $val8
+
+tmp1=!shuffle $(tmp0)
+
+val14=$(tmp1)
+tmp0=!item $val13+3 to $val9-2 of $val8
+
+tmp1=!shuffle $(tmp0)
+
+val15=$(tmp1)
+tmp0=!randitem 1,2
+
+val16=$[rint($(tmp0))]
+!if $val16=1 
+val17=ne,se,ne,se
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val18=-\infty
+!else
+val18=$(val14[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val19=-\infty
+!else
+val19=$(val14[3])
+!endif
+val20=$val18,$(val15[1]),$(val14[2]),$(val15[2]),$val19
+val21=bottom,top,bottom,top,bottom
+!else
+val17=se,ne,se,ne
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val18=+\infty
+!else
+val18=$(val15[1])
+!endif
+tmp0=!random 0, 10
+
+
+!ifval $(tmp0)>8
+val19=+\infty
+!else
+val19=$(val15[3])
+!endif
+val20=$val18,$(val14[1]),$(val15[2]),$(val14[2]),$val19
+val21=top,bottom,top,bottom,top
+!endif
+tmp0=!replace internal \infty by $val7 in $val20
+
+val22=$(tmp0)
+val23=
+!for val24 =1 to 4 
+val25=
+!for val26  in $val8 
+!if $val26>min($(val22[$val24]),$(val22[$val24+1])) and $val26<max($(val22[$val24]),$(val22[$val24+1])) 
+tmp0=!append item $val26 to $val25
+
+val25=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val25
+
+tmp1=!item 1 to 2 of $(tmp0)
+
+val25=$(tmp1)
+
+!ifval $(val17[$val24]) issametext ne
+tmp0=!sort numeric items $val25
+
+val25=	    $(tmp0)
+!else
+tmp1=!sort reverse numeric items $val25
+
+val25=	    $(tmp1)
+!endif
+val23=$val23$val25;
+!next
+val27=$(val12[1,2]);$(val12[4,5]);$(val12[7,8]);$(val12[10,11])
+val28=-\infty, $(val12[3,6,9]), +\infty
+tmp0=!makelist \(x) for x in $val28
+
+val29=$(tmp0)
+tmp0=!makelist \(x) for x in $val20
+
+val30=$(tmp0)
+val31=1
+val32=&#91;
+val33=&#93;
+val34=
+val35=20x30x1
+val36=100x30x4
+val37=10
+tmp0=!randint 1, 4
+
+val38=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val39=$(val27[$val38;$(tmp0)])
+tmp0=!randitem 1,2
+
+val40=$(val23[$val38;$(tmp0)])
+val41=$val32,$val33
+
+!ifval $val38=1
+val42=2
+!else
+val42=1
+!endif
+
+!ifval $val38=4
+val43=2
+!else
+val43=1
+!endif
+val44=$(val41[$val42])
+val45=$(val41[3-$val43])
+val46=$(val29[$val38])
+val47=$(val29[$val38+1])
+
+!ifval $val38=1
+val48=-inf
+!else
+val48=$(val28[$val38])
+!endif
+
+!ifval $val38=4
+val49=inf
+!else
+val49=$(val28[$val38+1])
+!endif
+
+!ifval $(val17[$val38]) issametext ne
+val50=$(val20[$val38])
+!else
+val50=$(val20[$val38+1])
+!endif
+
+!ifval $(val17[$val38]) issametext ne
+val51=$(val20[$val38+1])
+!else
+val51=$(val20[$val38])
+!endif
+tmp0=!replace internal \infty by inf in $val50
+
+val52=$(tmp0)
+tmp0=!replace internal \infty by inf in $val51
+
+val53=$(tmp0)
+
+!ifval $(val17[$val38]) issametext ne
+val54=$val44
+!else
+val54=$(val41[$val43])
+!endif
+
+!ifval $(val17[$val38]) issametext ne
+val55=$val45
+!else
+val55=$(val41[3-$val42])
+!endif
+
+!ifval $(val17[$val38]) issametext ne
+val56=croissante
+!else
+val56=décroissante
+!endif
+tmp0=!listcomplement $val56 in croissante,décroissante
+
+val57=$(tmp0)
+val58=injective mais pas surjective,	surjective mais pas injective,injective et surjective	donc bijective,ni injective ni surjective
+val59=Oui. Toujours, Non. Jamais, Cela dépend de \(f)
+oefsteps=r1,r2,r3,r4	 r5,r6,r7,r8	 r9	 r10,r11	 r12,r13,r14,r15, r16,r17,r18,r19	 r20,r21,r22,r23 
+nextstep=!nosubst r1,r2,r3,r4	 r5,r6,r7,r8	 r9	 r10,r11	 r12,r13,r14,r15, r16,r17,r18,r19	 r20,r21,r22,r23 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=Crochet à gauche de I
+replygood1=$val44;$val41
+replytype2=function
+replyname2=Début de I
+replygood2=!rawmath $val48,inf
+replytype3=function
+replyname3=Fin de I
+replygood3=!rawmath $val49,inf
+replytype4=clickfill
+replyname4=Crochet à droite de I
+replygood4=$val45;$val41
+replytype5=clickfill
+replyname5=Crochet à gauche de f(I)
+replygood5=$val54;$val41
+replytype6=function
+replyname6=Début de f(I)
+replygood6=!rawmath $val52,inf
+replytype7=function
+replyname7=Fin de f(I)
+replygood7=!rawmath $val53,inf
+replytype8=clickfill
+replyname8=Crochet à droite de f(I)
+replygood8=$val55;$val41
+replytype9=menu
+replyname9=Nature de \(f_I\)
+replygood9=3;$val58
+replytype10=clickfill
+replyname10=\(f_I\) est injective car elle est
+replygood10=strictement,$val56;$val57,dérivable,et
+replytype11=clickfill
+replyname11=\(f_I\) est surjective car elle est
+replygood11=continue
+replytype12=clickfill
+replyname12=Domaine de \(f_I^{-1}\), crochet 1
+replygood12=$val54;$val41
+replytype13=function
+replyname13=Domaine de \(f_I^{-1}\) gauche
+replygood13=!rawmath $val52,inf
+replytype14=function
+replyname14=Domaine de \(f_I^{-1}\) droite
+replygood14=!rawmath $val53,inf
+replytype15=clickfill
+replyname15=Domaine de \(f_I^{-1}\), crochet 2
+replygood15=$val55;$val41
+replytype16=clickfill
+replyname16=Image \(f_I^{-1}\), crochet 1
+replygood16=$val44
+replytype17=function
+replyname17=Image de \(f_I^{-1}\) gauche
+replygood17=!rawmath $val48,inf
+replytype18=function
+replyname18=Image de \(f_I^{-1}\) droite
+replygood18=!rawmath $val49,inf
+replytype19=clickfill
+replyname19=Image \(f_I^{-1}\), crochet 2
+replygood19=$val45
+replytype20=menu
+replyname20=Nature de \(f_I^{-1}\)
+replygood20=3;$val58
+replytype21=clickfill
+replyname21=Croissance de \(f_I^{-1}\)
+replygood21=strictement,$val56;	$val57
+replytype22=menu
+replyname22=Continuité de \(f_I^{-1}\)
+replygood22=1;$val59
+replytype23=menu
+replyname23=Dérivabilité de \(f_I^{-1}\)
+replygood23=2;$val59
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6		<table class="wimscenter wimsnoborder" style="border: solid black 1px;">	<tr style="border: solid black 1px;"><th style="border-right: solid black 1px;">
+!insmath x
+$()</th>	 
+!for m_t=1 to $val10 
+$()<td>$(val29[$m_t])</td><td></td> 
+!next
+$()	<td>$(val29[$val10+1])</td></tr>	<tr style="border: solid black 1px;">	 <th style="border: solid black 1px;">
+!insmath f(x)
+$()</th>	 
+!for m_t=1 to $val10 
+$()	 <td valign="$(val21[$m_t])">$(val30[$m_t])</td>	 <td><img src="$val1/$(val17[$m_t])$val31.gif" alt="$(val17[$m_t])"></td>	 
+!next
+$()	<td valign="$(val21[$val10+1])">$(val30[$val10+1])</td></tr>	</table>		  Déterminez l'intervalle maximal 
+!insmath I
+$() contenant le nombre 
+!insmath $val39
+$(),	sur lequel la restriction de 
+!insmath f
+$() est injective.	
+!if $m_step=1 
+$()	<div class="wimscenter">	 
+!insmath I
+$() =  
+!read oef/embed.phtml r1,$val35 
+$() 
+!read oef/embed.phtml r2,$val37 
+$() ,  
+!read oef/embed.phtml r3,$val37 
+$() 
+!read oef/embed.phtml r4,$val35 
+$()	</div>	<div class="wims_instruction">	Tapez <span class="tt">inf</span> pour $m_infty.	</div>	
+!exit
+{}	 
+!endif
+$()	<div class="wimscenter">	 
+!insmath I
+$() = $val44$val46 , $val47$val45	</div>	
+!if $m_step<=3 
+$()	Soit 
+!insmath f_I
+$() la restriction de 
+!insmath f
+$() sur 
+!insmath I
+$(). Quelle est l'image de	
+!insmath f_I
+$()&nbsp;?	
+!if $m_step=2 
+$()	<div class="wimscenter">	 image(
+!insmath f_I
+$()) =  
+!read oef/embed.phtml r5,$val35 
+$() 
+!read oef/embed.phtml r6,$val37 
+$() ,  
+!read oef/embed.phtml r7,$val37 
+$() 
+!read oef/embed.phtml r8,$val35 
+$()	</div>	<div class="wims_instruction">	Tapez <span class="tt">inf</span> pour $m_infty.	</div>	
+!exit
+{}	 
+!endif
+$()	<div class="wimscenter">	 image(
+!insmath f_I
+$()) = $val54
+!insmath $val50
+$() , 
+!insmath $val51
+$()$val55	</div>	
+!if $m_step=3 
+$()	Quelle est la nature de la restriction 
+!insmath f_I
+$(): 
+!insmath I -> f(I)
+$()&nbsp;?	<p>	Elle est  
+!read oef/embed.phtml r9 
+$().	</p>	
+!exit
+{}	 
+!endif
+$() 
+!endif
+$()	Soit 
+!insmath f_I
+$(): 
+!insmath I ->
+$() $val54
+!insmath $val50
+$() , 
+!insmath $val51
+$()$val55 la restriction de	
+!insmath f
+$().	
+!if $m_step=4 
+$()	<ul>	<li>Pourquoi 
+!insmath f_I
+$() est-elle injective ? Parce qu'elle est	 
+!read oef/embed.phtml r10,$val36 
+$(). </li>	<li>Pourquoi 
+!insmath f_I
+$() est-elle surjective ? Parce qu'elle est	 
+!read oef/embed.phtml r11,$val36 
+$().</li>	</ul>	
+!exit
+{}	 
+!endif
+$()	<p>	
+!insmath f_I
+$() est bijective, donc elle admet une fonction réciproque	</p> <div class="wimscenter">	
+!if $m_step=5 
+$()	 
+!insmath f_I^{-1}
+$():  
+!read oef/embed.phtml r12,$val35 
+$() 
+!read oef/embed.phtml r13,$val37 
+$() ,	  
+!read oef/embed.phtml r14,$val37 
+$() 
+!read oef/embed.phtml r15,$val35 
+$()	 
+!insmath ->
+$()	  
+!read oef/embed.phtml r16,$val35 
+$() 
+!read oef/embed.phtml r17,$val37 
+$() ,  
+!read oef/embed.phtml r18,$val37 
+$() 
+!read oef/embed.phtml r19,$val35 
+$() .	 </div>	<div class="wims_instruction">	 Tapez <span class="tt">inf</span> pour $m_infty.	 </div>	 
+!exit
+{}	 
+!endif
+$()	<div>	 
+!insmath f_I^{-1}
+$(): $val54
+!insmath $val50
+$() , 
+!insmath $val51
+$()$val55 
+!insmath -> I
+$().	</div class="wimscenter">	
+!insmath f_I^{-1}
+$() est  
+!read oef/embed.phtml r20 
+$() et	 
+!read oef/embed.phtml r21,100x30x2 
+$().	<ul><li>	Est-elle partout continue ?  
+!read oef/embed.phtml r22 
+$()	</li><li>	Est-elle partout dérivable ?  
+!read oef/embed.phtml r23 
+$()	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,10,17,21,29,30,31,35,36,37,39,44,45,46,47,50,51,54,55
+embedcnt=23

@@ -1,0 +1,286 @@
+!set title=Mouvement parabolique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey
+email=benoit.markey@ac-lille.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 20
+
+val6=$[rint($(tmp0))]
+val7=$[$val6/10]
+!readproc slib/text/sigunits $val7 ,2 
+tmp0=$slib_out
+val8=$(tmp0)
+val9=$[rint($val6+5)]
+tmp0=!randint $val9, 40
+
+val10=$[rint($(tmp0))]
+val11=$[$val10/10]
+!readproc slib/text/sigunits $val11,2 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!randint 50, 70
+
+val13=$[rint($(tmp0))]
+val14=$[$val13/10]
+!readproc slib/text/sigunits $val14,2 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=$[atan(($val10-$val6)/$val13)]
+val17=$[rint($val16*180/pi+5)]
+val18=$[rint($val17+35)]
+tmp0=!randint $val17, $val18
+
+val19=$[rint($(tmp0))]
+val20=$[$val19*pi/180]
+val21=$[tan($val20)]
+val22=$[9.81*$val15*$val15]
+val23=$[2*($val15*tan($val20)+$val7-$val11)]
+val24=$[$val23*cos($val20)*cos($val20)]
+val25=$[$val22/$val24]
+val26=$[sqrt($val25)]
+!readproc slib/text/sigunits $val26 ,2 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc slib/text/sigunits $val26 m/s,2 
+tmp0=$slib_out
+val28=$(tmp0)
+val29=$[$val15/($val27*cos($val20))]
+!readproc slib/text/sigunits $val29 s,2 
+tmp0=$slib_out
+val30=$(tmp0)
+val31=$[1/9.81*($val27*sin($val20)+sqrt(($val27*sin($val20))^2 + 2*9.81*$val8))]
+!readproc slib/text/sigunits $val31 s,2 
+tmp0=$slib_out
+val32=$(tmp0)
+val33=$[$val31*$val27*cos($val20)]
+!readproc slib/text/sigunits $val33 m,2 
+tmp0=$slib_out
+val34=$(tmp0)
+val35=$val33*s
+val36=$val31*(-$val31*9.81/2*s*s+sin($val20)*$val27*s)+$val7
+tmp0=!replace internal *s by *t in $val35
+
+val37=$(tmp0)
+tmp0=!replace internal *s by *t in $val36
+
+val38=$(tmp0)
+val39=animate 51,0.2,1	xrange -$val15/10,1.1*$val33	yrange -$val11/10,1.5*$val11	linewidth 1	text green,$val15,$val11,medium,B	text green,-0.25,$val7,medium,A	plot red,$val37,$val38	dline 0,$val7,$val15/5,$val7,black	arc 0,$val7,$val15/5,$val15/5,0,$val19,black	arrow 0,$val7,($val26/10)*cos($val20),$val7+($val26/10)*sin($val20),10,brown	text brown,($val26/10)*cos(2*$val20),$val7+($val26/10)*sin(2*$val20),medium,v0	arrow ($val26/10)*cos(2*$val20)-0.05,$val7+($val26/10)*sin(2*$val20)+0.05,($val26/10)*cos(2*$val20)+0.5,$val7+($val26/10)*sin(2*$val20)+0.05,7,brown	text black,$val15/5,1.2*$val7,medium,a	arrow 0,0.25,$val33,0.25,10,grey	text darkgrey,$val33/2,0.45,medium,xF1	arrow 0,0.5,$val15,0.5,10,skyblue	text skyblue,$val15/2,0.75,medium,d	linewidth 3	arrow 0,0,0,1.4*$val11,10,black	text black,0.5,1.4*$val11,medium,y	arrow 0,0,1.05*$val33,0,10,black	text black,$val33,0.5,medium,x	arrow 0.5,0,0.5,$val7-0.05,10,green	text green,0.7,$val7/2,medium,h	arrow $val15,0,$val15,0.95*$val11,10,green	text green,$val15-1,$val11/2,medium,l	linewidth 3	circle $val35,$val36,30,blue	linewidth 7	point $val35,$val36,blue	point $val14, $val11, black	
+replytype1=numeric
+replyname1=1
+replygood1=$[0]
+replytype2=algexp
+replyname2=2
+replygood2=-g
+replytype3=algexp
+replyname3=3
+replygood3=v0*cos(a)
+replytype4=algexp
+replyname4=4
+replygood4=-g*t + v0*sin(a)
+replytype5=algexp
+replyname5=5
+replygood5=v0*cos(a)*t
+replytype6=algexp
+replyname6=6
+replygood6=-1/2*g*t^2 + v0*sin(a)*t+h
+replytype7=algexp
+replyname7=7
+replygood7=-1/2*(g*x^2)/(v0*cos(a))^2 + x*tan(a)+h
+replytype8=sigunits
+replyname8=8
+replygood8=$val28
+replytype9=sigunits
+replyname9=9
+replygood9=$val30
+replytype10=sigunits
+replyname10=10
+replygood10=$val32
+replytype11=sigunits
+replyname11=11
+replygood11=$val34
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter"> 
+!read oef/draw.phtml 400,400 \
+$val39 
+$()	</div>	<div>Un mobile de masse 
+!insmath m
+$() est lancé depuis un point 
+!insmath A
+$() vers un point 
+!insmath B
+$(). Il 	est lancé vers le haut à la vitesse 
+!insmath \vec v_0
+$() faisant un angle 
+!insmath a
+$() 	avec l'horizontale.</div>	<div class="wims_instruction"><p>Dans la première partie, on attend  des réponses littérales avec les lettres 
+!insmath g
+$(), 
+!insmath v_0
+$(), 
+!insmath h
+$(), 
+!insmath a
+$(), 
+!insmath l
+$() 
+!insmath d
+$() et 
+!insmath t
+$(). <br>	Notations : La puissance 
+!insmath t^2
+$() se note t^2 et 	les arguments des fonctions trigonométriques doivent être entre parenthèses. Exemple : 
+!insmath \cos
+$()<b>(</b>
+!insmath a
+$()<b>)</b>.</p>	<p>Dans la deuxième partie, on donnera les résultats en 	tenant compte des chiffres significatifs et des unités. On prendra 	
+!insmath g = 9,81\, \textrm{m}\cdot\textrm{s}^{-2}
+$(). </p></div>	<ol>	<li>En fonction du schéma ci-dessus, établir les équations horaires 	paramétriques du mouvement :<br>	
+!insmath \ddot{x}(t) = 
+$()  
+!read oef/embed.phtml reply1,30 
+$()	
+!insmath \quad\ddot{y}(t) = 
+$()  
+!read oef/embed.phtml reply2,30 
+$()	  <br>	
+!insmath \dot{x}(t) = 
+$()  
+!read oef/embed.phtml reply3,30 
+$() 
+!insmath \quad\dot{y}(t) = 
+$()  
+!read oef/embed.phtml reply4,30 
+$()	<br>	 
+!insmath  x(t)= 
+$()  
+!read oef/embed.phtml reply5,30 
+$()	 
+!insmath \quad y(t) = 
+$()  
+!read oef/embed.phtml reply6,30 
+$()</li>	 <li>En déduire l'équation de la trajectoire:	
+!insmath y(x)= 
+$() 
+!read oef/embed.phtml reply7,50 
+$()</li></ol>	<p ="wimscenter"><B>Applications numériques</B></p>	Le mobile est lancé à partir du point 
+!insmath A
+$() (
+!insmath x=0.0  \; \textrm{m}
+$() ; 
+!insmath y=h=$val8 \; \textrm{m}
+$()),	l'angle 
+!insmath a=$val19\deg
+$(). On souhaite que le mobile passe en 
+!insmath B
+$() (
+!insmath x=d=$val14  \; \textrm{m}
+$() ; 
+!insmath y=l=$val12 \; \textrm{m}
+$()).	Déterminer : 	<ol>	<li>La valeur 
+!insmath v_0
+$() de la vitesse initiale pour que le mobile	 passe en B : 
+!insmath v_0 = 
+$() 
+!read oef/embed.phtml reply8,30 
+$()</li>	<li>Le temps 
+!insmath t_B
+$() où le mobile passe en B : 
+!insmath t_B = 
+$()	 
+!read oef/embed.phtml reply9,30 
+$()</li>	<li>Le temps 
+!insmath t_F
+$() au bout duquel le mobile touche le sol : 
+!insmath t_F = 
+$() 
+!read oef/embed.phtml reply10,30 
+$()</li>	<li>L'abscisse 
+!insmath x_F
+$() à laquelle le mobile touche le sol : 
+!insmath x_F = 
+$()	 
+!read oef/embed.phtml reply11,30 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<ol>	<li>Pour le calcul de 
+!insmath v_0
+$(), utilisez l'équation de la trajectoire et les coordonnées du point 
+!insmath B
+$().</li>	<li>Pour le calcul de 
+!insmath t_B
+$(), utilisez une des 2 équations paramétriques de position: 
+!insmath x(t)
+$() ou 
+!insmath y(t)
+$(). Soyez malin !</li>	<li>Pour le calcul de 
+!insmath t_B
+$() : c'est l'instant au bout duquel 
+!insmath y=0
+$()</li>	</ol>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,12,14,19,39
+embedcnt=11

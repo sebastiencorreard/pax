@@ -1,0 +1,236 @@
+!set title=Somme de termes consécutifs d'une suite géométrique, limite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Khalid, EL HMOUZI
+email=khalidhmouzi@gmail.com
+language=fr
+precision=10000000
+
+ansorder=r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=$[1]
+!while $val7=1 or $val7<=0 
+tmp0=!randint -3, 3
+
+tmp1=!randint -2, 2
+
+val7=$[1$val6 2^($(tmp0))*5^($(tmp1))]
+!endwhile
+tmp0=!randint 1, 2
+
+val8=$[rint($(tmp0))]
+!if $val8=1 
+val9=$[rint(0)]
+!else
+val9=$[rint(1)]
+!endif
+tmp0=!randint 2, 3
+
+val10=$[rint($(tmp0))]
+val6=\(1+$val7+$val7^2+...+$val7^n),\($val7+$val7^2+...+$val7^n)
+!if $val8=1 
+val11=$[1/(1-$val7)]
+!else
+val11=$[$val7/(1-$val7)]
+!endif
+val12=$[$val7/($val7-1)]
+!if $val12>0 
+val13=+
+!else
+val13=
+!endif
+t_=!replace internal \( by ( in sum($val7^n,n,$val9,$val10)
+tmp0=!exec maxima $t_
+
+val14=$[$(tmp0)]
+!if $val8=1 
+val15=\(\frac{1-$val7^{n+1}}{1-$val7})
+!else
+val15=\($val7\times\frac{1-$val7^n}{1-$val7})
+!endif
+val16=$[$val11]
+val17=$[$val12]
+val18=$[$val11+$val12]
+val19=\($val7\times\frac{1-$val7^n}{1-$val7}),\(\frac{1-$val7^n}{1-$val7}),	\($val7\times\frac{1-$val7^{n+1}}{1-$val7}),\(\frac{1-$val7^{n+1}}{1-$val7}),	
+val20=\(+\infty),\(-\infty),$val11,$val12,$val18,0
+!if $val7>1 
+val21=\(+\infty)
+!else
+val21=$[$val11]
+!endif
+oefsteps=r1	r2	r3,r4	r5 
+nextstep=!nosubst r1	r2	r3,r4	r5 
+!readproc oef/steps.proc
+replytype1=numeric
+replyweight1=10 
+replyoption1=nonstop 
+replyname1=S<sub>$val10</sub>
+replygood1=$[$val14]
+replytype2=clickfill
+replyoption2=nonstop 
+replyweight2=2 
+replyname2=S<sub>n</sub>:
+replygood2=$val15;$val19
+replytype3=numeric
+replyweight3=20 
+replyname3=a
+replygood3=$[$val16]
+replytype4=numeric
+replyweight4=20 
+replyname4=b
+replygood4=$[$val17]
+replytype5=clickfill
+replyweight5=20 
+replyname5=
+replygood5=$val21;$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		<div id="enonce">	On considère la suite 
+!insmath (S_n)
+$() définie par 
+!insmath S_n
+$()=$(val6[$val8])	pour tout entier naturel n 
+!if $val8=2 
+$()non nul 
+!endif
+$().	</div>		
+!if $m_step=1 
+$()	<div class="question">	Calculer :	<div class="reponse">	
+!insmath S_{$val10}
+$()= 
+!read oef/embed.phtml r1,5 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=2 and $m_reply1!=$val14 
+$()	<div class="question">	<div class="non">	On a 
+!insmath S_{$val10}
+$()=$val14	</div>	Exprimer 
+!insmath S_n
+$() en fonction de 
+!insmath n
+$().	<div class="reponse">	S<sub>n</sub>= 
+!read oef/embed.phtml r2,200x50 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $m_step=2 and $m_reply1=$val14 
+$()	<div class="question">	Exprimer 
+!insmath S_n
+$() en fonction de 
+!insmath n
+$().	<div class="reponse">	S<sub>n</sub>= 
+!read oef/embed.phtml r2,200x50 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=3 and $m_reply2=$val15 
+$()	<div class="question">	<div class="oui">	Effectivement 
+!insmath S_n
+$()=$val15	</div>	Simplifier cette expression en l'écrivant sous la forme 
+!insmath S_n
+$()=
+!insmath a+b\times$val7^n
+$().	<p class="consigne">Commencer par calculer le dénominateur.</p>	<div class="reponse">	a= 
+!read oef/embed.phtml r3 
+$()<br>	b= 
+!read oef/embed.phtml r4 
+$()	</div>	</div>	 
+!endif
+$()		
+!if $m_step=3 and $m_reply2!=$val15 
+$()	<div class="question">	<div class="non">	S<sub>n</sub>=$val15	</div>	Simplifier cette expression en l'écrivant sous la forme 
+!insmath S_n
+$()=
+!insmath a+b\times$val7^n
+$().	<p class="consigne">Commencer par calculer le dénominateur.</p>	<div class="reponse">	a= 
+!read oef/embed.phtml r3 
+$()<br>	b= 
+!read oef/embed.phtml r4 
+$()	</div>	</div>	 
+!endif
+$()			
+!if $m_step=4 
+$()	<div class="question">	<div class="oui">Très bien ! 
+!insmath S_n
+$()=
+!insmath $val11$val13$val12\times$val7^n
+$()	</div>	Quelle est la limite de 
+!insmath S_n
+$() lorsque n tend vers 
+!insmath +\infty
+$() ?	<p class="consigne">Commencer par calculer 
+!insmath \lim_{n\to+\infty}$val7^n
+$() .</p>	<div class="reponse">	
+!insmath \lim_{n\to+\infty}S_n
+$()= 
+!read oef/embed.phtml r5 
+$()	</div>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,12,13,14,15
+embedcnt=8

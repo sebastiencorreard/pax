@@ -1,0 +1,50 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=2\
+10,n\
+4,k
+
+slib_author=Sophie, Lemaire
+slib_title=Tirage uniforme d'une composition d'un entier 
+slib_example=100,6
+10,4
+slib_require=pari
+slib_out= renvoie une liste de k entiers strictement positifs de somme n\
+  tiree selon la loi uniforme sur les k-compositions de l'entier n\
+
+slib_comment= Algorithme :\
+  on construit un (k-1)-arrangement A de {1,..,n-1} selon la loi uniforme\
+  On ordonne par ordre croissant, ce qui donne 0<A(1)<A(2)<..<A(k-1)<n\
+  On retourne : A(1), A(2)-A(1),..., A(k-1)-A(k-2), n-A(k-1)
+  
+!exit
+
+:proc
+
+!distribute item $wims_read_parm into slib_n,slib_k
+
+!default slib_n = 10
+!default slib_k = 4
+
+!if $slib_n<$slib_k or $slib_k<=0
+	slib_out=0
+	!exit
+!endif
+
+slib_out=!exec pari { n = round($slib_n);k = round($slib_k);\
+  X = vector(n-1,i,i);\
+  for(j=1,k-1,\
+    h = floor(k-1+(n-1-j)*random(1.0));\
+    Y = X[h]; X[h] = X[j]; X[j] = Y;\
+    );\
+  A = vector(k-1,i,X[i]);\
+  A = vecsort(A);\
+  R = vector(k,i,A[1]);\
+  for( j=2, k-1, R[j] = A[j]-A[j-1] );\
+  R[k] = n-A[k-1];\
+  print(R);}
+  
+slib_out=!trim $slib_out
+

@@ -1,0 +1,221 @@
+!set title=Autour du théorème de Gauss 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r
+varcnt=51
+prevarcnt=50
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2,3,5,7,11
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 2,3,5,7,11
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7*$val6)]
+tmp0=!randint 2, 15
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=$val8
+val9=$[rint($val9+1)]
+!endif
+val10=$[rint(gcd($val9,$val8))]
+val11=$[rint($val9/$val10)]
+val12=$[rint($val8/$val10)]
+tmp0=!randint 2, 15
+
+tmp1=!randint 2, 15
+
+tmp2=!randint 2, 15
+
+tmp3=!randitem $(tmp0), $(tmp1), $(tmp2)*$val10
+
+val13=$[rint($(tmp3))]
+
+!ifval $val13=$val9
+val13=$[rint($val13+1)]
+!endif
+tmp0=!randint 2, 10
+
+val10=$[rint($(tmp0))]
+val9=$[rint($val11*$val10)]
+val8=$[rint($val12*$val10)]
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+!if $val14=1 
+tmp0=!randint 1, $val12-1
+
+val13=$[rint($(tmp0)*$val10)]
+!endif
+val15=$[rint($val13%$val10)]
+
+!ifval $val15=0
+val16=$val10
+!else
+val16=0
+!endif
+val17=$[rint($val13/$val10)]
+val18=PGCD($val9,$val8)=$val10 divise $val13, on est ramené à résoudre \( $val11 x \equiv $val17\) mod $val12 dans $val10 ensembles de nombres distincts. Ce genre d'équations admet $val10 solutions distinctes.
+
+!ifval $val10=1
+val18= les nombres $val9 et $val8 sont premiers entre eux, ce genre d'équation admet une solution unique.
+!endif
+
+!ifval $val15>0 and $val10>1
+val18= les nombres $val9 et $val8 ne sont pas premiers entre eux, et leur PGCD $val10 ne divise pas $val13. Ce genre d'équation n'admet aucune solution.
+!endif
+val19=$[rint($val11)]
+val20=$[rint($val12)]
+val21=$[rint(1)]
+val22=$[rint(0)]
+val23=$[rint($val19)]
+val24=$[rint(0)]
+val25=$[rint(1)]
+val26=$[rint($val20)]
+!while $val23<>0 
+val27=$[rint($val21)]
+val28=$[rint($val22)]
+val29=$[rint($val23)]
+val21=$[rint($val24-$val21*floor($val26/$val23))]
+val22=$[rint($val25-$val22*floor($val26/$val23))]
+val23=$[rint($val26-$val23*floor($val26/$val23))]
+val24=$[rint($val27)]
+val25=$[rint($val28)]
+val26=$[rint($val29)]
+!endwhile
+val30=$[rint($val24)]
+val31=$[rint($val25)]
+!while $val30<0 
+val30=$[rint($val30+$val12)]
+val31=$[rint($val31-$val11)]
+!endwhile
+t_=!replace internal \( by ( in lift(Mod($val13*$val30,$val12))
+tmp0=!exec pari $t_
+
+val32=$[rint($(tmp0))]
+val33=$val11 et $val12 sont premiers entre eux, il existe donc deux entiers \(u) et \(v) tels que \($val11 u + $val12 v= 1\).<br>	  On cherche un couple (u;v) avec \(0 < u \leq $val12) et on trouve \($val11 \times $val30 + $val12 \times ($val31) = 1).<p>	  On en déduit la solution \(x=$val30).</p>
+val34=A partir de cette solution on trouve la solution de \( $val11 x \equiv $val13 \;($val12)\) en prenant \($val13\times$val30\; ($val12)\).
+val35=A partir de cette solution on trouve la solution de \( $val11 x \equiv $val17 \;($val12)\) en prenant \($val17\times$val30\; ($val12)\).
+t_=!replace internal \( by ( in lift(Mod($val17*$val30,$val12))
+tmp0=!exec pari $t_
+
+val32=$[rint($(tmp0))]
+
+!ifval $val32=0
+val32=$[rint( $val32+$val12)]
+!endif
+
+!ifval $val16>0
+val16=$[rint(1)]
+!else
+val16=$[rint(2)]
+!endif
+
+!ifval $val14=1
+val36=r1	r2
+!else
+val36=r1
+!endif
+oefsteps=$val36 
+nextstep=!nosubst $val36 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=Existence de solutions
+replygood1=$val16;Oui,Non
+replytype2=numeric
+replyname2=\( $val9*x\) \equiv $val13 mod $val8
+replygood2=$[$val32]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()	  L'équation de congruence:	<div class="wimscenter">
+!insmath  $val9*x
+$() $m_equiv $val13 mod $val8</div>	  possède-t-elle des solutions?  
+!read oef/embed.phtml reply1 
+$()	  
+!else
+$() 	  Résoudre l'équation de congruence:	<p class="wimscenter">
+!insmath  $val9*x
+$() $m_equiv $val13 mod $val8</p>	<div class="wims_instruction">	  Donner la valeur de 
+!insmath x
+$() appartenant à l'ensemble 
+!insmath \lbrace 1,2,\cdots,$val8\rbrace
+$()	  la plus petite possible</div>.	<div class="wimscenter"> 
+!insmath x=
+$() 
+!read oef/embed.phtml reply2,4 
+$().</div>	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>$val18</p>	
+!if $val14=1 
+$()	<p>$val33</p>	 $val35 
+!endif
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,13,14,18,33,35
+embedcnt=2

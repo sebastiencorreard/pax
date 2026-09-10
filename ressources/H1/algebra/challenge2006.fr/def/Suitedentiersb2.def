@@ -1,0 +1,129 @@
+!set title=Suite d'entiers bien rangée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=1
+postvarcnt=12
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 3,4,5,6,7
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+replytype1=auto
+
+replyname1=Réponse
+replygood1=?analyze 7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Une suite d'entiers est "bien rangée" si la moyenne arithmétique de deux quelconques d'entre eux n'est jamais située entre eux dans la suite.	<br>	Par exemple, la suite "1,3,4,2" est "bien rangée". Par contre la suite "1,2,4,3" ne l'est pas parce que la moyenne de 1 et 3 est 2 et est située entre eux.	<br>	Trouver une suite de $val6 entiers "bien rangée" ne commençant pas par 1,3,4,2.<br>	<div class="wims_instruction">Vous devez séparer les valeurs par des virgules.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!text select 0123456789, in $val7
+
+val8=$(tmp0)
+
+!ifval $val8 issametext $val7
+val9=1
+!else
+val9=0
+!endif
+tmp0=!itemcnt $val7
+
+val10=$[rint($(tmp0))]
+!if $val10=$val6 and $val9=1 
+!for val11 =1 to $val6-1 
+!for val12 =$val11+2 to $val6 
+val13=$[($(val7[$val11])+$(val7[$val12]))/2]
+tmp0=!item $val11+1 to $val12-1 of $val7
+
+val14=$(tmp0)
+
+!ifval $val13 isitemof $val14
+val9=0
+!endif
+!next
+!next
+!endif
+val15=$[rint(min($val6,4))]
+tmp0=!item 1 to $val15 of $val7
+
+val12=$(tmp0)
+val16=1,3,4,2
+tmp0=!item 1 to $val15 of $val16
+
+val16=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val12 issametext $val16
+ <div class='oef_feedbacks'>Votre suite ne devez pas commencer par $val16.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val10=$val6 and $val9=1 and $val12 notsametext $val16
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Suite bien rangée
+
+!exit
+
+:stat
+vsavelist=6,7
+embedcnt=0

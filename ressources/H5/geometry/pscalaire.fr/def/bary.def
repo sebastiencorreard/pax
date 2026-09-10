@@ -1,0 +1,210 @@
+!set title=Distance et barycentre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=René, Chaffard
+email=chafrene@club-internet.fr
+oefobservation=utilisation d'un produit scalaire pour calculer la distance entre un sommet d'un triangle quelconque et un barycentre
+language=fr
+computeanswer=no
+precision=1000
+leftrange=-5.000000
+rightrange=5.000000
+
+ansorder=r,r,r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem a,b,c
+
+val6=$(tmp0)
+tmp0=!shuffle A,B,C
+
+val7=$(tmp0)
+val8=$(val7[1])
+val9=$(val7[2])
+val10=$(val7[3])
+tmp0=!randint 2, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val12=$[rint($(tmp0))]
+val13=$[rint(abs($val11-$val12)+1)]
+val14=$[rint($val11+$val12-1)]
+tmp0=!randint $val13, $val14
+
+val15=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in (($val11)^2+($val12)^2-($val15)^2)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val17=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val19=$[rint($(tmp0)*$(tmp1))]
+val20=$[rint($val17+$val18+$val19)]
+!if $val20=0 
+val19=$[rint(2*$val19)]
+!endif
+val20=$[rint($val17+$val18+$val19)]
+tmp=!translate ";': to $     $ in $val17/$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$(tmp0)
+tmp=!translate ";': to $     $ in $val18/$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+tmp=!translate ";': to $     $ in sqrt(($val21*$val11)^2+($val22*$val12)^2+2*$val21*$val22*$val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$(tmp0)
+val24=$val8 G
+tmp0=!shuffle \($val8 $val9 = $val11 ) , \($val9 $val10 = $val15) ,  \($val10 $val8 = $val12)
+
+val25=$(tmp0)
+oefsteps=reply 1,reply 2	reply 3	reply 4 
+nextstep=!nosubst reply 1,reply 2	reply 3	reply 4 
+!readproc oef/steps.proc
+replyname1=\(k_1)
+replygood1=$val21
+replyname2=\(k_2)
+replygood2=$val22
+replyname3=Produit scalaire
+replygood3=$val16
+replytype4=formal
+replyname4=Distance \($val24)
+replygood4=$val23
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère un triangle 
+!insmath A B C
+$() tel que :<br>	<p class="wimscenter">$(val25[1]),  $(val25[2]), $(val25[3]). </p>	Soit 
+!insmath G
+$() le barycentre de (
+!insmath $val8
+$() , $val19), (
+!insmath $val9
+$() , $val17), (
+!insmath $val10
+$() , $val18).	On veut calculer la distance 
+!insmath $val24
+$().	<br>	<hr>	
+!if $m_step=1 
+$()Déterminer tout d'abord 
+!insmath k_1
+$() et 
+!insmath k_2
+$() tels que :	  <p class="wimscenter">
+!insmath  \overrightarrow{$val8 G} = k_{1}	  \overrightarrow{$val8 $val9} + k_{2} \overrightarrow{$val8 $val10} 
+$()</p>	  
+!endif
+$()	
+!if $m_step=2 
+$()Calculer le produit scalaire :	<p class="wimscenter">
+!insmath  \overrightarrow{$val8 $val9} \cdot \overrightarrow{$val8 $val10} 
+$()</p>	  
+!endif
+$()	
+!if $m_step=3 
+$()Sachant que 
+!insmath k_1 = $val21
+$() et 
+!insmath k_2 = $val22
+$()  et que le produit scalaire	 
+!insmath  \overrightarrow{$val8 $val9} \cdot \overrightarrow{$val8 $val10} 
+$() est égal à $val16,	 il ne reste plus qu'à répondre.	<div class="wims_instruction">En cas de besoin on pourra utiliser la fonction sqrt.	Ex : sqrt(2) = 
+!insmath  \sqrt{2} 
+$()</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	Si 
+!insmath G
+$() est le barycentre de 
+!insmath (A , a)
+$(), 
+!insmath (B , b)
+$() et 
+!insmath (C , c)
+$() alors, pour tout point 
+!insmath O
+$() :	<p class="wimscenter">
+!insmath  \overrightarrow{O G}=\frac{1}{a+b+c}(a\overrightarrow{O A}+b\overrightarrow{O B}+c\overrightarrow{O C}) 
+$()</p>		Il faudra choisir un point 
+!insmath O
+$() en fonction de la question posée.	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,16,17,18,19,21,22,24,25
+embedcnt=0

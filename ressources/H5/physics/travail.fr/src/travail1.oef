@@ -1,0 +1,92 @@
+\title{Travail d'une force (1)}
+
+\real{f=randint(12..35)/10}
+\text{fN=slib(text/sigunits \f N,2)}
+\real{alphadegre=randint(-160..160)}
+\integer{alea=randint(0..100)}
+\real{seuil=75}
+\if{\alea>\seuil}{                       // dans 25 % des cas,
+  \real{alphadegre=random(-90,90)} // ce sera orthogonal
+}
+\text{alphaTexte=\alphadegre °}
+\real{alpha=\alphadegre/180*pi}
+\real{l=randint(15..45)/100}
+\text{lcm=slib(text/sigunits \l m,3,,cm)}
+\real{w=\l*\f*cos(\alpha)}
+\if{\alea>\seuil}{
+\real{w=0}
+}
+\text{wJ=slib(text/sigunits \w J,2)}
+\text{mr=un travail moteur, un travail résistant, nul}
+\if{\alphadegre=90 or \alphadegre=-90}{
+  \integer{rep1=3}
+}{
+  \if{cos(\alpha)<0}{
+    \integer{rep1=2}
+  }{
+    \integer{rep1=1}
+  }
+}
+
+\real{echforce=0.1}                //échelle des forces : 0.1 m pour 1 N
+\real{fleche=0.03 }                 //taille de la flèche
+\real{ff=3}                        // finesse de la flèche
+\real{fx=\echforce*\f*cos(\alpha)} //pointe de fleche
+\real{fy=\echforce*\f*sin(\alpha)}
+\real{fx1=\fx+\fleche*cos(\alpha+pi)+\fleche/\ff*cos(\alpha+pi/2)}
+\real{fy1=\fy+\fleche*sin(\alpha+pi)+\fleche/\ff*sin(\alpha+pi/2)}
+\real{fx2=\fx+\fleche*cos(\alpha+pi)+\fleche/\ff*cos(\alpha-pi/2)}
+\real{fy2=\fy+\fleche*sin(\alpha+pi)+\fleche/\ff*sin(\alpha-pi/2)}
+
+\text{schema=animate 50,0.04,0
+xrange -0.20,0.60
+yrange -0.40,0.40
+linewidth 1
+hline 0,0, blue
+linewidth 7
+point 0,0, blue
+text black,0,0,medium,A
+point \l,0, blue
+text black,\l,0,medium,B
+linewidth 3
+segment 0,0,\l,0, blue
+linewidth 7
+point s*\l,0, red
+text black,s*\l,0, medium, M
+linewidth 2
+segment s*\l,0,s*\l+\fx, \fy, red
+segment s*\l+\fx, \fy, s*\l+\fx1, \fy1, red
+segment s*\l+\fx, \fy, s*\l+\fx2, \fy2, red
+}
+
+
+\integer{debug=0}
+\statement{
+\if{\debug=1}{
+<div style="font-size:80%;background:lightyellow; border:1px solid black;">
+<h3>debug</h3>
+l = \lcm, f= \fN, alpha=\alphaTexte
+fx=\fx, fy=\fy<br>
+alpha = \alpha rad cos(alpha)=\[cos(\alpha)]
+</div>
+}
+
+<table><tr><td>
+\draw{300,300}{\schema}
+</td><td>
+Un objet mobile M est se déplace entre un point de départ A et 
+un point d'arrivée B, distants de \lcm, en ligne droite. Cet objet est soumis à une 
+force F de valeur \fN, qui fait un angle de \alphaTexte avec le 
+vecteur AB.
+<p>
+Le travail de la force F est \embed{r1}
+<p>
+La valeur de ce travail est \embed{r2}
+<span style="font-size:80%;color:grey;">
+Attention au nombre de chiffres significatifs, précisez l'unité.
+</span>
+</td></tr></table>
+}
+
+\reply{}{\rep1;\mr}{type=menu}
+\reply{}{\wJ}{type=sigunits}

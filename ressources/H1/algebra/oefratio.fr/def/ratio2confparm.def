@@ -1,0 +1,440 @@
+!set title=Ratio avec 2 grandeurs #
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=ratio, proportion,proportionality
+language=fr
+computeanswer=no
+precision=100000000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss=<style> .macss{background-color: #FAFAD2;} .damier {width:3px;height:3px;} .col1 {background-color:#FFFF00} .col2 {background-color:#FF0000} .wims_matrix td{padding:0} .unepart{width:100%;height:1em} .part_1{background-color:red} .part_2{background-color:blue} .part_3{background-color:maroon} .ecrit_1{color:red} .ecrit_2{color:blue} .ecrit_3{color:maroon} </style>
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=59
+prevarcnt=58
+postvarcnt=0
+replycnt=32
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=<span class="ecrit_1">$(tmp0)</span>
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val7=<span class="ecrit_2">$(tmp0)</span>
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val8=<span class="ecrit_3">$(tmp0)</span>
+tmp0=!shuffle $val6,$val7,$val8
+
+val9=$(tmp0)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+val10=$[rint($(tmp0))]
+!if $val10<3 
+tmp0=!shuffle Pierre,Diane,Albane
+
+val9=$(tmp0)
+val6=<span class="ecrit_1">$(val9[1])</span>
+val7=<span class="ecrit_2">$(val9[2])</span>
+val8=<span class="ecrit_3">$(val9[3])</span>
+!endif
+tmp0=!randint 5, 20
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 3, 20
+
+val12=$[rint($val11*$(tmp0))]
+tmp0=!randint 1, $val11-1
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val11-$val13)]
+!while $val14=$val13 or $val13<1 
+tmp0=!randint 1, 3
+
+val15=$[rint($(tmp0))]
+val13=$[rint($val13-$val15)]
+val14=$[rint($val14+$val15)]
+!endwhile
+val16=$[rint(gcd($val13,$val14))]
+val13=$[rint($val13/$val16)]
+val14=$[rint($val14/$val16)]
+val11=$[rint($val13+$val14)]
+val17=$[rint($val12/$val11)]
+val18=$[rint($val13*$val17)]
+val19=$[rint($val12-$val18)]
+val20=$val13,$val14
+val21=gâteaux,billes,&oelig;ufs,euros
+!if $val13=1 
+val22=gâteau,bille,&oelig;uf,euro
+val23=part
+!else
+val22=$val21
+val23=parts
+!endif
+!if $val14=1 
+val24=gâteau,bille,&oelig;uf,euro
+val25=part
+!else
+val24=$val21
+val25=parts
+!endif
+tmp0=!randint 1, 4
+
+val26=$[rint($(tmp0))]
+
+!ifval $val26>2
+val27= d'
+!else
+val27= de 
+!endif
+val28=\textcolor{red}{$val13} : \textcolor{blue}{$val14}
+!if $val2= 
+val2=1
+!endif
+!if $val3= 
+val3=1
+!endif
+!if $val4= 
+val4=2
+!endif
+!if ($val2=1 and $val3=1) 
+val29=$[rint(1)]
+!endif
+!if $val2=1 and $val3=2 
+val29=$[rint(2)]
+!endif
+!if $val2=1 and $val3=3 
+val29=$[rint(3)]
+!endif
+!if $val2=2 and $val3=1 
+val29=$[rint(4)]
+!endif
+!if $val2=2 and $val3=2 
+val29=$[rint(5)]
+!endif
+!if $val2=2 and $val3=3 
+val29=$[rint(6)]
+!endif
+val30=Nombre total de parts
+val31=
+!for val32 =1 to $val13  
+val31=$val31<div class="unepart part_1"> </div>
+!if  $val32 < $val13  
+val31=$val31,
+!endif
+!next
+!for val33 =1 to $val14 
+!if  $val33 < $val14  
+!endif
+val31=$val31,<div class="unepart part_2"> </div>
+!next
+!readproc slib/text/matrixhtml	  [$val31],	  wimscenter wimsborder,	  TH=1	  CAPTION="Nombre total de parts"	  COLSPAN=[1,1,$val13;1,$val32,$val14]	 
+tmp0=$slib_out
+val34=$(tmp0)
+
+!ifval $val29=1 
+val35= r1,r2,r3,r4,r5,r6
+!endif
+
+!ifval $val29=2 
+tmp0=!makelist r x for x=7 to 23
+
+val35= $(tmp0)
+!endif
+
+!ifval $val29=3 
+val35= r24,r25,r26,r27,r28,r29,r30
+!endif
+!if $val29=4 or $val29=5 or $val29=6 
+val35=r31,r32
+!endif
+oefsteps=$val35 
+nextstep=!nosubst $val35 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=
+replygood1=$val13
+replytype2=numexp
+replyname2=
+replygood2=$val14
+replytype3=numexp
+replyname3=
+replygood3=$val11
+replytype4=numexp
+replyname4=
+replygood4=$val17
+replytype5=numexp
+replyname5=
+replygood5=$val18
+replytype6=numexp
+replyname6=
+replygood6=$val19
+replytype7=numexp
+replyname7=
+replygood7=$val11
+replytype8=numexp
+replyname8=
+replygood8=$val13
+replytype9=numexp
+replyname9=
+replygood9=$val11
+replytype10=numexp
+replyname10=
+replygood10=$val12
+replytype11=numexp
+replyname11=
+replygood11=$val13
+replytype12=numexp
+replyname12=
+replygood12=$val11
+replytype13=numexp
+replyname13=
+replygood13=$val12
+replytype14=numexp
+replyname14=
+replygood14=$val18
+replytype15=numexp
+replyname15=
+replygood15=$val14
+replytype16=numexp
+replyname16=
+replygood16=$val11
+replytype17=numexp
+replyname17=
+replygood17=$val12
+replytype18=numexp
+replyname18=
+replygood18=$val14
+replytype19=numexp
+replyname19=
+replygood19=$val11
+replytype20=numexp
+replyname20=
+replygood20=$val12
+replytype21=numexp
+replyname21=
+replygood21=$val19
+replytype22=numexp
+replyname22=
+replygood22=$val18
+replytype23=numexp
+replyname23=
+replygood23=$val19
+replytype24=numexp
+replyname24=
+replygood24=$val13
+replytype25=numexp
+replyname25=
+replygood25=$val14
+replytype26=numexp
+replyname26=
+replygood26=$val11
+replytype27=numexp
+replyname27=
+replygood27=$val18
+replytype28=numexp
+replyname28=
+replygood28=$val19
+replytype29=numexp
+replyname29=
+replygood29=$val18
+replytype30=numexp
+replyname30=
+replygood30=$val19
+replytype31=numexp
+replyname31=
+replygood31=$val18
+replytype32=numexp
+replyname32=
+replygood32=$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question">$val6 et $val7 se partagent 
+!insmath $val12
+$() $(val21[$val26]) selon le ratio 
+!insmath $val28
+$().	<p>Déterminer le nombre $val27$(val21[$val26]) que recevra chaque personne.</div>	
+!if $val29=1 
+$()	On commence par déterminer le nombre total de parts.	<br>On peut illustrer la situation par le dessin suivant :	<br>Part de $val6 <span class="unepart part_1 ecrit_1">AAA</span> Part de $val7 <span class="unepart part_2 ecrit_2">AAA</span>	$val34	<br><label for="reply1">Avec le ratio 
+!insmath $val28
+$(), $val6 reçoit  
+!read oef/embed.phtml r1,3 
+$() $val23</label><label for="reply2"> pendant que $val7 reçoit  
+!read oef/embed.phtml r2,3 
+$()$val25</label>.	<br><label for="reply3">Le partage est donc composé de</label> 
+!read oef/embed.phtml r3,3 
+$() parts égales.	<br>Comme il y a $val12 $(val21[$val26]),<label for="reply4"> chaque part est composée de</label>  
+!read oef/embed.phtml r4,3 
+$() $(val21[$val26]).	<br><label for="reply5">$val6 reçoit</label>  
+!read oef/embed.phtml reply5,3 
+$() $(val21[$val26]).	<br><label for="reply6">$val7 reçoit</label>  
+!read oef/embed.phtml reply6,3 
+$() $(val21[$val26]). 
+!endif
+$()	
+!if $val29=2 
+$()	<p>Avec le ratio 
+!insmath  $val13 : $val14 
+$(), on peut faire le dessin suivant :</p>	<br>Part de $val6 <span class="unepart part_1 ecrit_1">AAA</span> Part de $val7 <span class="unepart part_2 ecrit_2">AAA</span>	$val34	<label for="reply7">le partage est composé de</label> 
+!read oef/embed.phtml r7,3 
+$() parts égales.<br>	<span class="unbreakable">$val6 reçoit alors	 
+!read oef/special.phtml mathmlinput [\frac{reply8}{reply9}], 3	reply8	reply9 
+$()	des  
+!read oef/embed.phtml r10,3 
+$() $(val21[$val26]).</span><br>	<span class="unbreakable">C'est à dire  
+!read oef/special.phtml mathmlinput [\frac{reply11}{reply12} \times {reply13}={reply14}], 3	reply11	reply12	reply13	reply14 
+$().</span><br>	<span class="unbreakable">De même, $val7 reçoit  
+!read oef/special.phtml mathmlinput [\frac{reply15}{reply16}], 3	reply15	reply16 
+$()	des  
+!read oef/embed.phtml r17,3 
+$() $(val21[$val26]).</span><br>	<span class="unbreakable">C'est à dire  
+!read oef/special.phtml mathmlinput [\frac{reply18}{reply19} \times {reply20}={reply21}], 3	reply18	reply19	reply20	reply21 
+$()	.</span><br>	Ainsi,<label for="reply22"> $val6 reçoit</label> 
+!read oef/embed.phtml r22,3 
+$() $(val21[$val26]) et<label for="reply23"> $val7 reçoit</label> 
+!read oef/embed.phtml r23,3 
+$() $(val21[$val26]). 
+!endif
+$()	
+!if $val29=3 
+$()Comme le ratio est une situation de proportionnalité, on complète ce tableau de proportionnalité en commençant par le remplir grâce aux données de l'énoncé.	<div class="unbreakable">	<table class="wimscenter wimsborder">	<tr>	<td colspan="1"><label for="reply24">$val6</label></td>	<td colspan="1"><label for="reply25">$val7</label></td>	<td colspan="1"><label for="reply26">Total</label></td>	</tr>	<tr>	<td colspan="1"> 
+!read oef/embed.phtml r24,3 
+$()</td>	<td colspan="1"> 
+!read oef/embed.phtml r25,3 
+$()</td>	<td colspan="1"> 
+!read oef/embed.phtml r26,3 
+$()</td>	</tr>	<tr>	<td colspan="1"> 
+!read oef/embed.phtml r27,3 
+$()</td>	<td colspan="1"> 
+!read oef/embed.phtml r28,3 
+$()</td>	<td colspan="1">$val12</td>	</tr>	</table>	</div>	puis on conclut :	<br class="spacer">	<label for="reply29">$val6 recevra</label>  
+!read oef/embed.phtml r29,3 
+$() $(val21[$val26])	<br class="spacer">	et <label for="reply30">$val7 recevra</label>  
+!read oef/embed.phtml r30,3 
+$() $(val21[$val26]). 
+!endif
+$()	
+!if $val29=4 or $val29=5 or $val29=6 
+$()	<br><label for="reply31">$val6 reçoit</label>  
+!read oef/embed.phtml reply31,3 
+$() $(val21[$val26]).	<br><label for="reply32">$val7 reçoit</label>  
+!read oef/embed.phtml reply32,3 
+$() $(val21[$val26]). 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!if $val29=1 or $val29=4 
+$()	<br>Avec le ratio 
+!insmath  $val13 : $val14 
+$(), le partage est composé de 
+!insmath $val13 \plus $val14 = $val11
+$() parts égales.	<br>Chaque part est composée de 
+!insmath \frac{$val12}{$val11}=$val17 
+$() $(val21[$val26]).	<br>$val6 reçoit 
+!insmath $val13 \times $val17 = $val18
+$() $(val21[$val26]).	<br>$val7 reçoit 
+!insmath $val14 \times $val17 = $val19 
+$() $(val21[$val26]). 
+!endif
+$()	
+!if $val29=2 or $val29=5 
+$()	<p>Avec le ratio 
+!insmath  $val13 : $val14 
+$(), le partage est composé de 
+!insmath $val13 \plus $val14 = $val11
+$() parts égales.<br>	$val6 reçoit alors 
+!insmath \frac{$val13}{$val11}
+$() des $val12 $(val21[$val26]).<br>	C'est à dire 
+!insmath \frac{$val13}{$val11} \times $val12 = $val18 
+$().<br>	De même, $val7 reçoit 
+!insmath \frac{$val14}{$val11} 
+$() des $val12 $(val21[$val26]).<br>	C'est à dire 
+!insmath \frac{$val14}{$val11} \times $val12 = $val19.
+$()<br>	Ainsi,$val6 reçoit $val18 $(val21[$val26]) et $val7 reçoit $val19 $(val21[$val26]). 
+!endif
+$()	
+!if $val29=3 or $val29=6 
+$()	"$val6 et $val7 se partagent 
+!insmath $val12
+$() $(val21[$val26]) selon le ratio 
+!insmath $val28
+$()" signifie que lorsque $val6 reçoit 
+!insmath  $val13
+$() $(val22[$val26]) alors	$val7 reçoit 
+!insmath  $val14
+$() $(val24[$val26]), ce qui permet de remplir la 1ère ligne du tableau.	<table class="wimscenter wimsborder">	<tr>	<td colspan="1">$val6</span></td>	<td colspan="1">$val7</span></td>	<td colspan="1">Total</span></td>	</tr>	<tr>	<td colspan="1">$val13</td>	<td colspan="1">$val14</td>	<td colspan="1">$val11</td>	</tr>	<tr>	<td colspan="1"></td>	<td colspan="1"></td>	<td colspan="1">$val12</td>	</tr>	</table>	Le ratio traduisant une situation de proportionnalité, on détermine le coefficient de proportionnalité&nbsp;: 
+!insmath \frac{$val12}{$val11}=$val17
+$().	<p>
+!insmath  $val13 \times $val17 = $val18
+$() et 
+!insmath  $val14 \times $val17 = $val19
+$().</p> <p>Cela permet de remplir la 2nde ligne du tableau et de conclure .<p>	<table class="wimscenter wimsborder">	<tr>	<td colspan="1">$val6</span></td>	<td colspan="1">$val7</span></td>	<td colspan="1">Total</span></td>	</tr>	<tr>	<td colspan="1">$val13</td>	<td colspan="1">$val14</td>	<td colspan="1">$val11</td>	</tr>	<tr>	<td colspan="1">$val18</td>	<td colspan="1">$val19</td>	<td colspan="1">$val12</td>	</tr>	</table>	<p>$val6 recevra $val18 $(val21[$val26]) et $val7 recevra $val19 $(val21[$val26]).</p> 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_reply5=$val19 and $m_reply6=$val18) or ($m_reply22=$val19 and $m_reply23=$val18) or ($m_reply29=$val19 and $m_reply30=$val18) or ($m_reply31=$val19 and $m_reply32=$val18)
+ <div class='oef_feedbacks'><div class="macss">Faites attention à la conclusion, vous avez inversé vos réponses&nbsp;!</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11,12,13,14,17,18,19,21,22,23,24,25,26,27,28,29,34
+embedcnt=24

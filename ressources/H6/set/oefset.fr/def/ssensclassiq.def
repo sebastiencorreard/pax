@@ -1,0 +1,340 @@
+!set title=C3 - Cardinal d'un ensemble classique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie, Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+keywords=set_theory,combinatorics
+language=fr
+oefdescription=il s'agit de calculer le nombre d'éléments d'un ensemble. Le type de l'ensemble peut varier en renouvelant l'exercice.
+computeanswer=yes
+precision=10000
+oefobservation=La question porte sur 14 types d'ensembles lorsque le paramètre "Complexité des ensembles" n'est pas fixé ou dans des groupes de 4 à 5 ensembles différents en fonction de la valeur de ce paramètre.
+title_it=C3 - Cardinalità di un insieme classico
+title_es=C3 - Cardinalidad de un conjunto clásico
+
+ansorder=r
+varcnt=96
+prevarcnt=94
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim est un sous-ensemble de	et	Avez-vous donné la bonne réponse	L'ensemble \(E\) a	élément,éléments	et non	On peut représenter \(E\) comme l'ensemble des points à coordonnées entières inclus dans	le rectangle, le carré	applications,applications bijectives,applications injectives
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=Quel est le cardinal de l'ensemble \(E\) suivant&nbsp;
+!if $val6=it 
+tmp=!trim è un sottoinsieme di	e	Hai dato la risposta corretta	L'insieme \(E\) ha	elemento,elementi	e non	Si può rappresentare \(E\) come l'insieme dei punti a coordinate intere compresi nel	rettangolo,quadrato	applicazioni,applicazioni biunivoche,applicazioni iniettive
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=Qual è la cardinalità dell'insieme \(E\) seguente
+!endif
+!if $val6=es 
+tmp=!trim es un subconjunto de	y	Ha entregado la respuesta correcta	El conjunto \(E\) tiene	elemento,elementos	y no	Podemos \(E\) como el conjunto de puntos de coordenadas enteras incluídas en	el rectángulo, el cuadrado	funciones,funciones biyectivas,funciones inyectivas
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=¿Cuál es la cardinalidad del siguiente conjunto \(E\) 
+!endif
+
+!ifval $val2<3 
+tmp0=!randint 3, 6
+
+val9=$[rint( $(tmp0))]
+!else
+tmp1=!randint 5, 10
+
+val9=$[rint( $(tmp1))]
+!endif
+tmp0=!randint 2, ($val9-1)
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 2, ($val9-1)
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 0, 20
+
+val12=$[rint($(tmp0)-10)]
+tmp0=!randint 2, 8
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 5, 8
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val14+($val12)-1)]
+tmp0=!makelist x for x=-20 to 20
+
+val16=$(tmp0)
+!readproc slib/data/random $val13,item, $val16 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!sort numeric list of $val17
+
+val18=$(tmp0)
+val19=$val12, ..., $val15
+!if $val2=1 
+tmp0=!randint 0, 4
+
+val20=$[rint($(tmp0))]
+!else
+!if $val2=2 
+tmp0=!randint 5, 9
+
+val20=$[rint($(tmp0))]
+!else
+!if $val2=3 
+tmp0=!randint 10, 13
+
+val20=$[rint($(tmp0))]
+!else
+tmp0=!randint 0, 13
+
+val20=$[rint($(tmp0))]
+!endif
+!endif
+!endif
+!if $val20=0 
+val21={\({\omega}\), \({\omega}\) $(val7[1;]) \(\{$val19 \} \)}
+val22=$[rint(2^($val14))]
+!endif
+!if $val20=1 
+tmp0=!randint 2, 5
+
+val23=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val9=$[rint(min($(tmp0),8-$val23))]
+val21=\(\{$val18\}^{$val23}\times\{$val19\}^{$val9} \)
+val22=$[rint(($val13)^($val23)*($val14)^($val9))]
+!endif
+!if $val20=2 
+tmp0=!randint 2, ($val14-1)
+
+val11=$[rint($(tmp0))]
+val21={ \(\omega,\; \omega \subset\{$val19\}\) $(val7[2;]) Card( \({\omega}\) ) = $val11 } 
+val22=$[rint(binomial($val14,$val11))]
+!endif
+!if $val20=3 
+val21={ \((x_1,..,x_{$val9})\) \(\in\{0,1\}^{$val9}\), \(\sum_{i=1}^{$val9}x_i=$val11\)} 
+val22=$[rint(binomial($val9,$val11))]
+!endif
+!if $val20=4 
+tmp0=!randint 3, $val14
+
+val24=$[rint($(tmp0))]
+val21={ \((x_1,..,x_{$val24})\) \(\in\{$val19\}^{$val24}\), \(\forall i\neq j\), \(x_i\neq x_j\) }
+val22=$[rint(factorial($val14)/factorial($val14-$val24))]
+!endif
+!if $val20=5 
+tmp0=!randint 2, ($val10-1)
+
+val11=$[rint($(tmp0))]
+val21={ \((x_1,..,x_{$val9})\) \(\in\{0,1\}^{$val9}\), \(\sum_{i=1}^{$val10}x_i=$val11\) }
+val22=$[rint(binomial($val10,$val11)*2^($val9-$val10))]
+!endif
+!if $val20=6 
+tmp0=!randitem 1,2
+
+val25=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val26=$[rint($(tmp0))]
+!if $val25=1 
+val27=$val18
+val28=$[rint($val13)]
+!else
+val27=$val19
+val28=$[rint($val14)]
+!endif
+!if $val26=1 
+val29=$val18
+val30=$[rint($val13)]
+!else
+val29=$val19
+val30=$[rint($val14)]
+!endif
+val21={ $(val7[9;1]) \(f\) : {$val27} \(\rightarrow\) {$val29} }
+val22=$[rint($val30^($val28))]
+!endif
+!if $val20=7 
+tmp0=!randitem 1,2
+
+val25=$[rint($(tmp0))]
+!if $val25=1 
+val27=$val18
+val28=$[rint($val13)]
+!else
+val27=$val19
+val28=$[rint($val14)]
+!endif
+val21={ $(val7[9;2]) \(f\) : {$val27} \(\rightarrow\) {$val27} }
+val22=$[rint(($val28)!)]
+!endif
+!if $val20=8 
+!if $val13<$val14 
+val27=$val18
+val29=$val19
+val28=$[rint($val13)]
+val30=$[rint($val14)]
+!else
+val27=$val19
+val29=$val18
+val28=$[rint($val14)]
+val30=$[rint($val13)]
+!endif
+val21={ $(val7[9;3]) \(f\) : {$val27} \(\rightarrow\) {$val29} }
+val22=$[rint(($val30)!/($val30-$val28)!)]
+!endif
+!if $val20=9 
+tmp0=!randint 3, ($val14-1)
+
+val11=$[rint($(tmp0))]
+val21=\(\{ (x_1,..,x_{$val11})\in\{$val19\}^{$val11}, x_1<...<x_{$val11} \} \)
+val22=$[rint(binomial($val14,$val11))]
+!endif
+!if $val20=10 
+tmp0=!randint 2, ($val9-2)
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, ($val10-1)
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, ($val9-$val10)
+
+val31=$[rint($(tmp0))]
+val32=$[rint($val10+1)]
+val21={ \((x_1,..,x_{$val9})\) \(\in\{0,1\}^{$val9}\), \(\sum_{i=1}^{$val10}x_i=$val11\) $(val7[2;]) \(\sum_{i=$val32}^{$val9}x_i=$val31\) }
+val22=$[rint(binomial($val10,$val11)*binomial($val9-$val10,$val31))]
+!endif
+!if $val20=11 
+tmp0=!randint 3, 5
+
+val33=$[rint($(tmp0))]
+val34=a,b,c,d,e
+tmp0=!shuffle $val33
+
+val35=$(tmp0)
+val36=$(val34[$(val35[1])])
+val37=$(val34[$(val35[2])])
+tmp0=!randint 1, ($val9-2)
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, ($val9-$val11)
+
+val31=$[rint($(tmp0))]
+val38=$[rint($val9-$val11-$val31)]
+val32=$[rint($val10+1)]
+val21={\( (x_1,..,x_{$val9})\) \(\in\{$(val34[1..$val33])\}^{$val9}\),	Card( {i, \( x_i = $val36\)} ) = $val11 $(val7[2;]) Card( {i, \( x_i = $val37\)} ) = $val31 }
+val22=$[rint(binomial($val9,$val11)*binomial($val9-$val11,$val31)*($val33-2)^$val38)]
+!endif
+!if $val20=12 
+tmp0=!randint 3, ($val14-1)
+
+val11=$[rint($(tmp0))]
+val21=\(\{ (x_1,..,x_{$val11})\in\{$val19\}^{$val11}, x_1 \leq ...\leq x_{$val11} \} \)
+val22=$[rint(binomial($val14+$val11-1,$val11))]
+!endif
+!if $val20=13 
+tmp0=!randint 3, 5
+
+val11=$[rint($(tmp0))]
+val21=\(\{ (x_1,..,x_{$val11})\in\NN^{$val11}, x_1 + ...+ x_{$val11}=$val9 \} \)
+val22=$[rint(binomial($val9+$val11-1,$val9))]
+!endif
+replytype1=numeric
+replyname1=Card( E )
+replygood1=?analyze 39
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8?	<div class="wimscenter" style="background-color:#F0F0F0">
+!insmath E
+$()= $val21</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in abs($val39-$val22)
+tmp0=!exec pari $t_
+
+val40=$[$(tmp0)]
+
+!exit
+
+:feedback
+!ifval $val40==0
+ <div class='oef_feedbacks'><div class="oef_indgood">	$(val7[4;]) $val22 $(val7[5;2]).	</div>
+$()</div>
+!endif
+!ifval $val40>0
+ <div class='oef_feedbacks'><div class="oef_indbad">	$(val7[4;]) $val22 $(val7[5;2]) $(val7[6;]) $val39	
+!if $val39=1 or $val39=0 
+$()$(val7[5;1]). 
+!else
+$() $(val7[5;2]). 
+!endif
+$()	</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+condoption1=hide 
+
+!ifval $val40==0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val7[3;])
+
+!exit
+
+:stat
+vsavelist=7,8,21,22,39
+embedcnt=0

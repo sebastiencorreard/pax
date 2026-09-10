@@ -1,0 +1,150 @@
+!set title=Asked argument
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_fr=Argument demandé
+title_nl=Argument II
+
+ansorder=r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Give the module and argument of the complex number
+val8=is an argument of
+!if $val6=fr 
+val7=Donner le module et un argument du nombre complexe
+val8=est un argument de
+!endif
+!if $val6=nl 
+val7=Gegeven de modules en argument van het complexe getal
+val8=is eenn argument van
+!endif
+tmp0=!randint -20, 20
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 20
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val10>=0
+val11=+$val10
+!else
+val11=$val10
+!endif
+val12=$[sqrt(($val9)^2+($val10)^2)]
+
+!ifval $val10>0
+val13=$[pi/2]
+!else
+val13=$[-pi/2]
+!endif
+
+!ifval $val9=0
+val14=$[$val13]
+!else
+val14=$[arctan($val10/($val9))]
+!endif
+
+!ifval $val9<0
+val15=$[$val14+pi]
+!else
+val15=$[$val14]
+!endif
+replyname1=\(|z|)
+replygood1=$val12
+replyname2=arg(z)
+replygood2=?analyze 16
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val7 \(z=$val9$val11 i\). \begin{itemize} \item \(|z|\) = \item \(arg(z)\) = \end{itemize} \end{statement} \begin{solution} \begin{itemize} \item \(|z| = $val12\) \item \(arg(z) \equiv $val16 $val12 2\pi\). \end{itemize} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val7 
+!insmath z=$val9$val11 i
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val7 
+!insmath z=$val9$val11 i
+$(). $m_begin{itemize} $m_item 
+!insmath |z|
+$() = $m_item 
+!insmath arg(z)
+$() = $m_end{itemize} $m_end{statement} $m_begin{solution} $m_begin{itemize} $m_item 
+!insmath |z| = $val12
+$() $m_item 
+!insmath arg(z) \equiv $val16 $val12 2\pi
+$(). $m_end{itemize} $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval abs(($val16-$val15)/(2*pi)-round(($val16-$val15)/(2*pi)))<0.0001
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val16 $val8 \(z)
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,15,16
+embedcnt=0

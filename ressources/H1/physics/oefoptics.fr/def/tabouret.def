@@ -1,0 +1,145 @@
+!set title=Tabouret 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+
+ansorder=r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=oui,non
+val7=aucune
+val8=Pour s'aider, il est possible de tracer un segment.	  Il n'en sera pas tenu compte dans la notation.
+val9=ombre portée
+val10=On considère un tabouret de hauteur	  HHHH cm avec une assise circulaire de XXXX cm de diamètre.	  Sur la normale passant par le centre de l'assise,	  se trouve une source lumineuse ponctuelle placée au plafond soit	  à YYYY m du sol. Sous le tabouret se forme une zone sombre.	
+tmp=!trim Cette zone s'appelle	Son diamètre est
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=La zone est un disque sombre (forme circulaire).
+val13=250,500
+val14=2
+tmp0=!randint 4, 6
+
+val15=$(tmp0)
+tmp=!nonempty items 16,18,20
+
+tmp0=!randitem $tmp
+val15=$val15,$(tmp0)
+!if $(val15[2])=18 
+tmp0=!randint 2, 4
+
+val16=$[rint(3*$(tmp0))]
+tmp0=!randint 2, 3
+
+val17=$[rint(3*$(tmp0))]
+val15=$val17,$(val15[2])
+!else
+tmp0=!randint 5, 10
+
+val16=$(tmp0)
+!endif
+val18=-$(val15[2])/4,$(val15[2])/4
+val19=-1,$(val15[2])+2
+val20=$[rint($val16*5)]
+val21=$[$(val15[2])/10]
+val22=$[10*$val16*($(val15[2])-$(val15[1]))/$(val15[2])]
+val23=$[rint($(val15[1])*10)]
+tmp0=!replace internal XXXX by $val22 in $val10
+
+val24=$(tmp0)
+tmp0=!replace internal HHHH by $val23 in $val24
+
+val24=$(tmp0)
+tmp0=!replace internal YYYY by $val21 in $val24
+
+val24=$(tmp0)
+t_=!replace internal \( by ( in [$val18]
+tmp0=!exec pari $t_
+
+t_=!replace internal \( by ( in [$val19]
+tmp1=!exec pari $t_
+
+t_=!replace internal \( by ( in [-$val16/2,0,-$val16/(2*$(val15[2])),$(val15[2]),$val16/2,0,$val16/(2*$(val15[2])),$(val15[2])]
+tmp2=!exec pari $t_
+
+t_=!replace internal \( by ( in [$val16*($(val15[2])-$(val15[1]))/$(val15[2]),$val14*($(val15[2])-$(val15[1]))/$(val15[2])]
+tmp3=!exec pari $t_
+
+val25=xrange $(tmp0)	yrange $(tmp1)	fellipse 0,0,$val16,$val14,grey	segments orange,$(tmp2)	linewidth 3	points orange, 0,$(val15[2])	linewidth 1	segments black, 0,$(val15[2]), 0,0	fellipse 0,$(val15[1]),$(tmp3),blue	
+replytype1=atext
+replyname1=
+replygood1=$val9
+replytype2=numeric
+replyname2=
+replygood2=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml $val13 \
+$val25 
+$()</div>	 <div class="medium_size text_col">	$val24	<div>	<label for="reply1">$(val11[1;])</label>  
+!read oef/embed.phtml r1,10 
+$()	</div>	$val12	<div>	<label for="reply2">$(val11[2;])</label>  
+!read oef/embed.phtml r2,5 
+$()cm.	</div>	</div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,24,25
+embedcnt=2

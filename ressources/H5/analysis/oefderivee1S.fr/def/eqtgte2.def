@@ -1,0 +1,298 @@
+!set title=Nombre dérivé et équation de la tangente 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=derivative,tangent
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+val9=x^2, $val6*x^2, $val6/x, $val6/(x-$val7),$val6/(x+$val7),$val6*x^2 + $val7*x,$val6*x^2 - $val7*x, $val6*x^2 + $val7*x + $val8,$val6*x^2 - $val7*x + $val8, $val6*x^2 +$val7*x -$val8, $val6*x^2 -$val7*x -$val8,$val6*x+$val8,$val6*x -$val8
+val10=\(\,\RR), \(\,\RR), \(\,\RR^*), \(\RR \setminus \left\lbrace $val7 \right\rbrace\),\(\RR \setminus\left\lbrace -$val7\right\rbrace\),\(\,\RR) ,\(\,\RR),\(\,\RR),\(\,\RR),\(\,\RR), \(\,\RR),\(\,\RR), \(\,\RR)
+tmp0=!itemcnt $val9
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!item $val12 of $val9
+
+val13=!rawmath $(tmp0)
+val14=$(val10[$val12])
+tmp0=!item $val12 of x^2, $val6 x^2, \frac{$val6}{x}, \frac{$val6}{x-$val7},\frac{$val6}{x+$val7},$val6 x^2 + $val7 x,$val6 x^2 - $val7 x,$val6 x^2 + $val7 x + $val8,$val6 x^2 - $val7 x + $val8,$val6 x^2 + $val7 x - $val8,$val6 x^2 - $val7 x - $val8,$val6 x+$val8, $val6 x - $val8
+
+val15=$(tmp0)
+tmp0=!randint -3, 3
+
+val16=$[rint($(tmp0))]
+!if $val12=3 and $val16=0 
+tmp0=!randint 1, 3
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+val16=$[rint($(tmp0)*$(tmp1))]
+!endif
+!if $val12=4 and $val16=$val7 
+val16=$[rint($val16+1)]
+!endif
+!if $val12=5 and $val16=-$val7 
+val16=$[rint($val16+1)]
+!endif
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val16) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val18=!exec pari print($t_)
+tmp0=!mathsubst x=($val16) in $val13
+
+val19=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val19
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=!rawmath $(tmp0)
+tmp0=!mathsubst x=($val16+h) in $val13
+
+val20=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val20
+tmp0=!exec pari $t_
+
+val20=!rawmath $(tmp0)
+val21=!rawmath ($val20 - ($val19))/h
+tmp=!translate ";': to $     $ in $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in y= $val18*(x-($val16))+($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+tmp0=!texmath $val13
+
+val23=$(tmp0)
+!if $val16>=0 
+tmp0=!replace internal x by $val16 in $val23
+
+val23=$(tmp0)
+!else
+!if $val12 isin 345 
+tmp0=!replace internal x by $val16 in $val23
+
+val23=$(tmp0)
+!else
+tmp0=!replace internal x by ($val16) in $val23
+
+val23=$(tmp0)
+!endif
+!endif
+tmp0=!replace internal x by ($val16) in $val13
+
+val24=$(tmp0)
+tmp0=!replace internal x by ($val16+h) in $val13
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in $val25
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+t_=!replace internal \( by ( in $val25
+tmp0=!exec pari $t_
+
+tmp1=!texmath $(tmp0)
+
+val27=$(tmp1)
+tmp0=!replace internal x by ($val16)  in $val17
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in $val21
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+tmp0=!texmath $val21
+
+val29=$(tmp0)
+tmp0=!texmath $val19
+
+val30=$(tmp0)
+tmp0=!texmath $val24
+
+val31=$(tmp0)
+tmp0=!texmath $val20
+
+val32=$(tmp0)
+tmp0=!texmath $val18
+
+val33=$(tmp0)
+t_=!replace internal \( by ( in x-($val16)
+tmp0=!exec pari $t_
+
+val34=$(tmp0)
+t_=!replace internal \( by ( in $val22
+tmp0=!exec pari $t_
+
+val35=$(tmp0)
+tmp0=!texmath $val35
+
+val35=$(tmp0)
+tmp0=!texmath $val17
+
+val17=$(tmp0)
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$val18
+replytype2=equation
+replyname2=
+replygood2=!rawmath $val22,x,y
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soit la fonction 
+!insmath f
+$() définie sur <span class="nowrap">$val14</span> d'expression algébrique	<span class="nowrap">
+!insmath f(x)=
+$()
+!insmath $val15
+$().</span>		<div class="wims_question"><ol>	<li>Calculer <span class="nowrap"><label for="reply1">
+!insmath f^'($val16)=
+$()</label> 
+!read oef/embed.phtml reply1,8 
+$()</span></li>	<li>Déterminer l'équation de la tangente à la courbe représentative	  
+!insmath f
+$() au point d'abscisse <span class="nowrap">
+!insmath $val16
+$()&nbsp;:</span>	<div class="unbreakable"><label for="reply2">Votre réponse&nbsp;:</label> 
+!read oef/embed.phtml reply2,16 
+$()</div></li>	</ol></div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Rappel : la fonction 
+!insmath f
+$() est définie sur <span class="nowrap">$val14</span> par	<span class="nowrap">
+!insmath f(x)=
+$()
+!insmath $val15
+$().</span>	<ol>		<li>On calcule la fonction dérivée de <span class="nowrap">
+!insmath f
+$()&nbsp;:</span><br>	Pour tout <span class="nowrap">
+!insmath x \in 
+$()$val14,</span> <span class="nowrap">
+!insmath f^{\prime}(x)=$val17
+$().</span><br>	Et ainsi 
+!insmath f^{\prime}($val16)=$val33
+$()</li>			<li>Pour l'équation de la tangente à la courbe représentative de 
+!insmath f
+$() au point d'abscisse	<span class="nowrap">
+!insmath $val16
+$(),</span> on sait qu'elle est de la forme&nbsp;: 
+!insmath y= f^{\prime}($val16)($val34)+f($val16)
+$()	 	  <br class="spacer">On calcule <span class="nowrap">
+!insmath f($val16)
+$()&nbsp;:</span>	  <div class="unbreakable">	  
+!insmath f($val16)=$val23
+$()	  
+!if $val23 issametext $val30 
+$() 
+!else
+$()	     <br>
+!insmath \phantom{f($val16)}=$val30
+$() 
+!endif
+$()	  </div>	 	 <br>Donc ici, en utilisant les résultats précédents&nbsp;:	
+!if $val19>=0 
+$()
+!insmath y= $val33 ($val34)+$val30
+$() 
+!else
+$()	   
+!insmath y= $val33 ($val34) $val30
+$() 
+!endif
+$()	<br>L'équation de la tangente est donc&nbsp;: 
+!insmath y=$val35
+$().</li>		</ol>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15,16,17,19,23,30,33,34,35
+embedcnt=2

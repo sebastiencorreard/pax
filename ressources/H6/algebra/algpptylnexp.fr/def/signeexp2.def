@@ -1,0 +1,481 @@
+!set title=Signe d'une expression avec exp (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer; Chantal, Causse
+email=royer.veronique@orange.fr, chantal.causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c,c,r,c,r,c,r,c,c,c
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=3
+choicecnt=7
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=ne peut pas être déterminé sans calcul supplémentaire,est toujours le signe +,est toujours le signe -
+val7=positif,négatif,nul
+tmp0=!randitem 1,-1
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9*$val8)]
+tmp0=!randitem 1,-1
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val12*$val11)]
+tmp0=!randitem 1,-1
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val15=$[rint($(tmp0)*$val14)]
+tmp0=!randint -10, 10
+
+val16=$[rint($(tmp0))]
+tmp=!nonempty items x,t
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+
+!ifval ($val13=0)
+val18=!rawmath $val10$val17
+!else
+val18=!rawmath $val10$val17+$val13
+!endif
+
+!ifval ($val16=0)
+val19=!rawmath  $val15*e^($val18)
+!else
+val19=!rawmath $val15*e^($val18) - $val16
+!endif
+val20=>
+
+!ifval ($val15>0)
+val21=$val20
+!else
+val21=<
+!endif
+t_=!rawmath $val16/$val15
+val22=!exec pari print($t_)
+
+!ifval ($val22=0)
+val23=$(val7[3])
+!endif
+
+!ifval ($val22>0)
+val23=$(val7[1])
+!endif
+
+!ifval ($val22<0)
+val23=$(val7[2])
+!endif
+
+!ifval ($val23 issametext $(val7[1]))
+val24=$[rint(1)]
+!else
+val24=$[rint(2)]
+!endif
+val25=$[rint(1)]
+!if $val24=2 
+
+!ifval ($val15 > 0)
+val25=$[rint(2)]
+!else
+val25=$[rint(3)]
+!endif
+!endif
+tmp0=!item $val25 of $val6
+
+val26=$(tmp0)
+val27=$[rint($val10*$val15)]
+
+!ifval ($val27>0)
+val28=$val20
+!else
+val28=<
+!endif
+val29=!rawmath ln($val22)
+
+!ifval ($val10=1)
+val30=!rawmath ln($val22)-$val13
+!else
+val30=!rawmath (ln($val22)-$val13)/($val10)
+!endif
+
+!ifval ($val10=-1)
+val30=!rawmath $val13-ln($val22)
+!endif
+
+!ifval ($val13<0)
+val31=+$val12
+!else
+val31=-$val13
+!endif
+
+!ifval ($val10=1)
+val32=\ln($val22) $val31
+!else
+val32=\frac{\ln($val22) $val31}{$val10}
+!endif
+
+!ifval ($val10<0 || $val22=1)
+val33=$[rint(1)]
+!else
+val33=$[rint(0)]
+!endif
+!if $val33=1 
+
+!ifval ($val22=1)
+t_=!rawmath -$val13/$val10
+val34=!exec pari print($t_)
+!endif
+
+!ifval ($val22!=1 && $val10<0)
+val34=\frac{$val13 - \ln($val22)}{$val9}
+!endif
+
+!ifval ($val22!=1 && $val10=-1)
+val34=$val13 - \ln($val22)
+!endif
+!else
+val34=$val32
+!endif
+val35=$val19 $val20 0
+!if $val24=2 
+
+!ifval ($val21 issametext <)
+val36=$[rint(1)]
+!else
+val36=$[rint(2)]
+!endif
+!endif
+!if $val24=1 
+
+!ifval $val28 issametext <
+val37=+
+!else
+val37=-
+!endif
+
+!ifval $val28 issametext <
+val38=-
+!else
+val38=+
+!endif
+!endif
+!if $val24=2 
+
+!ifval $val36=2
+val39=+
+!else
+val39=-
+!endif
+!endif
+val40=la règle \(e^u $val21 v \Longleftrightarrow u $val21 ln(v)\)
+!if $val24=1 
+val41=choice2,reply1,choice3,reply2,choice4,reply3
+val42=choice5,choice6
+!else
+val41=choice7
+!endif
+oefsteps=choice1	$val41	$val42 
+nextstep=!nosubst choice1	$val41	$val42 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=nonstop 
+replyname1=Deuxième question a2.
+replygood1=$val22
+replytype2=formal
+replyoption2=nonstop 
+replyname2=Deuxième question b2.
+replygood2=$val29
+replytype3=formal
+replyweight3=2 
+replyoption3=nonstop 
+replyname3=Deuxième question c2.
+replygood3=$val30
+choiceoption1=noidontknow 
+choicename1=Première question
+choicegood1=$val26
+choicebad1=$val6
+choiceoption2=nonstop  noidontknow 
+choicename2=Deuxième question a1.
+choicegood2=$val21
+choicebad2=<,>
+choiceoption3=nonstop  noidontknow 
+choicename3=Deuxième question b1.
+choicegood3=$val21
+choicebad3=<,>
+choiceoption4=nonstop  noidontknow 
+choicename4=Deuxième question c1.
+choicegood4=$val28
+choicebad4=<,>
+choiceoption5=noidontknow 
+choicename5=Tableau de signes a.
+choicegood5=$val37
+choicebad5=+,-
+choiceoption6=noidontknow 
+choicename6=Tableau de signes b.
+choicegood6=$val38
+choicebad6=+,-
+choiceoption7=noidontknow 
+choicename7=Tableau de signes
+choicegood7=$val39
+choicebad7=+,-
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On veut étudier en fonction de 
+!insmath $val17
+$() le signe de : 
+!insmath $val19
+$() .	  
+!if $m_step=1 
+$()	  <p>	  Pour ce faire, on commence par regarder si ce signe peut être déterminé de manière immédiate.	  </p>	  Sachant que 
+!insmath e^{$val17}>0
+$() pour tout réel $val17, on conclut que le signe de 
+!insmath $val19
+$()	   
+!read oef/embed.phtml choice1 
+$().	   
+!endif
+$()	  
+!if $m_step=2 && $val24=1 
+$()	    Le signe de 
+!insmath f
+$() ne pouvant pas être trouvé de manière immédiate,	    on résout l'inéquation : 
+!insmath $val35
+$().	   On peut écrire les équivalences suivantes :	    <div class="wimscenter">	      ($val35) 
+!insmath \Longleftrightarrow
+$() 
+!insmath e^($val18)
+$()  
+!read oef/embed.phtml choice2 
+$()  
+!read oef/embed.phtml reply1,5 
+$()	    </div><div class="wimscenter">	    
+!insmath \Longleftrightarrow
+$() 
+!insmath $val18
+$()  
+!read oef/embed.phtml choice3 
+$()  
+!read oef/embed.phtml reply2,10 
+$().	    </div><div class="wimscenter">	    
+!insmath \Longleftrightarrow
+$() 
+!insmath $val17
+$()  
+!read oef/embed.phtml choice4 
+$()  
+!read oef/embed.phtml reply3 
+$().	    </div>	   
+!endif
+$()	  
+!if $m_step=2 && $val24=2 
+$()	    <div>	    Sachant que 
+!insmath e^{t}>0
+$() pour tout réel 
+!insmath t
+$(),	    le signe de 
+!insmath $val19
+$() <span style="color:blue">$val26</span>.	    </div>	    On dresse alors le tableau de signes suivant :	    <table style="width:60%" class="wimsborder wimscenter">	    <tr>	    <td style="width:15%;">
+!insmath $val17
+$()</td>	    <td style="width:5%;">
+!insmath -\infty
+$()</td>	    <td style="width:75%;"></td>	    <td style="width:5%;"> 
+!insmath +\infty
+$()</td>	    </tr><tr>	    <td>
+!insmath $val19
+$()</td>	    <td></td>	    <td> 
+!read oef/embed.phtml choice7 
+$()</td>	    <td></td>	    </tr>	    </table>	   
+!endif
+$()	  
+!if $m_step=3 && $val24=1 
+$()	    <p>En résolvant 
+!insmath $val35
+$() on obtient :</p>	    <div class="wimscenter">
+!insmath $val35
+$() 
+!insmath \Longleftrightarrow
+$() 
+!insmath $val17
+$() $val28 
+!insmath $val34
+$()</font>.	    </div>	    Posons 
+!insmath \alpha = $val34 
+$().	    On dresse alors le tableau de signes suivant :	    <table style="width:75%" class="wimsborder wimscenter">	    <tr>	    <td style="width:15%;">
+!insmath $val17
+$()</td>	    <td style="width:40%;text-align:left">
+!insmath -\infty
+$()</td>	    <td style="width:5%;">
+!insmath \,\alpha
+$()</td>	    <td style="width:40%;text-align:right"> 
+!insmath +\infty
+$()</td>	    </tr><tr>	    <td>
+!insmath $val19
+$()</td>	    <td> 
+!read oef/embed.phtml choice5 
+$()</td>	    <td>0</td>	    <td> 
+!read oef/embed.phtml choice6 
+$()</td>	    </tr>	    </table>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>	  <b>Voici une étude de signe détaillée de 
+!insmath $val19
+$() :</b>	  <p>La fonction exponentielle est définie sur 
+!insmath \,\RR
+$(),	  donc il n'y a pas de précaution de définition à prendre.</p>	  
+!if $val24=1 
+$()	    <p> Le signe de 
+!insmath $val19
+$() ne peut pas être déterminé de manière	    immédiate en utilisant le fait que l'exponentielle	    est strictement positive,	    car c'est la somme d'un terme positif et d'un terme négatif.	    On résout donc l'inéquation 
+!insmath $val35
+$() :	     </p><div class="wimscenter">	    
+!insmath $val35
+$() 
+!insmath \Longleftrightarrow
+$() 
+!insmath e^($val18)
+$() $val21 $val22	    </div>	    On peut appliquer $val40, car le logarithme du	    second membre est défini ($val22 > 0\):	    <div class="wimscenter">	    
+!insmath $val35
+$() 
+!insmath \Longleftrightarrow
+$() 
+!insmath $val18 $val21 ln($val22)
+$()	    <br>	    
+!insmath $val35
+$() 
+!insmath \Longleftrightarrow
+$() 
+!insmath $val10$val17 $val21 ln($val22) $val31 
+$()	     <br>	    
+!insmath $val35
+$() 
+!insmath \Longleftrightarrow
+$() 
+!insmath $val17 $val28 $val32 
+$()	     <br>	    
+!if $val33=1 
+$()
+!insmath $val35
+$() 
+!insmath \Longleftrightarrow
+$() 
+!insmath $val17 $val28 $val34 
+$() 
+!endif
+$()	    </div>	    <p>On obtient le tableau de signes suivant, où 
+!insmath  \alpha = $val34
+$()</p> :	    <table style="width:75%" class="wimsborder wimscenter">	    <tr>	    <td style="width:15%;">
+!insmath $val17
+$()</td>	    <td style="width:40%;text-align:left">
+!insmath -\infty
+$()</td>	    <td style="width:5%;">
+!insmath \alpha
+$()</td>	    <td style="width:40%;text-align:right"> 
+!insmath +\infty
+$()</td>	    </tr><tr>	    <td>
+!insmath $val19
+$()</td>	    <td>$val37</td>	    <td>0</td>	    <td>$val38</td>	    </tr></table>	   
+!endif
+$()	  
+!if $val24=2 
+$()	    <p>On sait que 
+!insmath e^{\alpha}>0
+$() pour tout réel 
+!insmath \alpha
+$().</p>	    <p>On en déduit	    
+!if $val36=1 
+$()que 
+!insmath $val19
+$() est la somme de deux nombres strictement négatifs.</p>	    Donc, 
+!insmath $val19
+$() a toujours le signe -.  
+!else
+$()	     que 
+!insmath $val19
+$() est la somme de deux nombres strictement positifs.</p>	    Donc, 
+!insmath $val19
+$() a toujours le signe +.  
+!endif
+$()	    <p>D'où le tableau de signes suivant :</p>	    <table style="width:60%" class="wimsborder wimscenter">	    <tr>	    <td style="width:10%;">
+!insmath $val17
+$()</td>	    <td style="width:5%;">
+!insmath -\infty
+$()</td>	    <td style="width:80%;"> </td>	    <td style="width:5%;"> 
+!insmath +\infty
+$()</td>	    </tr><tr>	    <td>
+!insmath $val19
+$()</td>	    <td></td>	    <td>$val39</td>	    <td></td>	    </tr></table>	   
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,17,18,19,21,22,24,26,28,31,32,33,34,35,36,37,38,39,40
+embedcnt=10

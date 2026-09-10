@@ -1,0 +1,97 @@
+target=deriverPolys
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\integer{a = random(-1,1)*random(1..10)}
+\integer{b = random(-1,1)*random(1..10)}
+\integer{c = random(-1,1)*random(1..10)}
+\integer{d = random(-1,1)*random(1..10)}
+\integer{e = random(-1,1)*random(1..10)}
+
+\rational{a1 = \a/randint(2..5)}
+\rational{b1 = \b/randint(2..5)}
+\rational{c1 = \c/randint(2..5)}
+\rational{d1 = \d/randint(2..5)}
+%%%% MB ajout du simplify dans les 4 lignes suivantes pour éviter les mauvais affichages
+\real{a2 = simplify(random(-1,1)*randint(1..100)/10)}
+\real{b2 = simplify(random(-1,1)*randint(1..100)/10)}
+\real{c2 = simplify(random(-1,1)*randint(1..100)/10)}
+\real{d2 = simplify(random(-1,1)*randint(1..100)/10)}
+
+\function{f0=randitem(
+\b*x^3+ \c*x^2 + \d*x + \e,
+\a*x^3+ random(\c*x^2 , \d*x) + \e,
+ \a*x^2 + \d*x+ \e,
+ \a*x^2 + \e)}
+\function{f1=randitem(
+\a1*x^3+ random(\b1*x^2 , \c1*x) + \d1,
+\a1*x^2 + \c1*x + \d1,
+\a1*x^2 + \d1)}
+\function{f2=randitem(
+\a2*x^3+ random(\b2*x^2 , \c2*x) + \d2,
+\a2*x^2 + \c2*x + \d2,
+\a2*x^2 + random(\d2*x,\d2)
+)}
+
+\function{f0 = pari(\f0)}
+\text{Tf0 = texmath(\f0)}
+\function{f1 = pari(\f1)}
+\text{Tf1 = texmath(\f1)}
+\function{f2 = pari(\f2)}
+\text{Tf2 = texmath(\f2)}
+
+/** bonnes réponses **/
+\function{df0 = simplify(diff(\f0,x))}
+\function{df0 = pari(\df0)}
+\text{Tdf0 = texmath(\df0)}
+\function{df1 = simplify(diff(\f1,x))}
+\function{df1 = pari(\df1)}
+\text{Tdf1 = texmath(\df1)}
+\text{df2 = simplify(diff(\f2,x))}
+\text{df2=pari(default(format,"f.4"); \df2)}
+\text{Tdf2 = texmath(\df2)}
+
+\statement{
+<div class="wims_question">
+<ul><li>\name_ifthen[1] \(f(x) = \Tf0\), \name_ifthen[2] : <label for="reply1">\(f'(x)\)</label> = \embed{reply1,30}</li>
+<li>\name_ifthen[1] \(f(x) = \Tf1\), \name_ifthen[2] : <label for="reply2">\(f'(x)\)</label> = \embed{reply2,30}</li>
+<li>\name_ifthen[1] \(f(x) = \Tf2\), \name_ifthen[2] : <label for="reply3">\(f'(x)\)</label> = \embed{reply3,30}
+</li></ul>
+</div>
+}
+\answer{}{\df0}{type=function}{option=noanalyzeprint}{weight=1}
+\answer{}{\df1}{type=function}{option=noanalyzeprint}{weight=1}
+\answer{}{\df2}{type=function}{option=noanalyzeprint}{weight=1}
+
+\solution{
+<ul><li>\name_ifthen[1] \(f(x) = \Tf0\), \name_ifthen[2] \(f'(x) = \Tdf0\).</li>
+<li>\name_ifthen[1] \(f(x) = \Tf1\), \name_ifthen[2] \(f'(x) = \Tdf1\).</li>
+<li>\name_ifthen[1] \(f(x) = \Tf2\), \name_ifthen[2] \(f'(x) = \Tdf2\).</li>
+</ul
+}
+\hint{
+<p>\name_hint[1]: <ul><li>
+\name_hint[2] : \name_ifthen[1] \(f(x) = u(x) + v(x)\), \name_ifthen[2]
+  \(f'(x) = u'(x) + v'(x)\).
+</li><li>
+  \name_hint[3]: \name_ifthen[1] \( f(x) = a x^n\), \name_ifthen[2]
+  \(f'(x) = a \times (n x^{n-1}) = (a \times n) x^{n-1}\).
+</li></ul>
+ \name_hint[4]:
+ <ul><li>
+ \name_ifthen[1] \(f(x) = a = a x^0\),
+  \name_ifthen[2] \(f'(x) = a \times 0 = 0 \).
+</li><li>
+  \name_ifthen[1] \(f(x)=a x^2+b x+c\), \name_ifthen[2] \(f'(x)=2 a x +b\).
+</li><li>
+  \name_ifthen[1] \(f(x)=a x^3+b x^2+c x+d\),
+  \name_ifthen[2] \(f'(x)=3 a x^2+2 b x+c\).
+</li></ul>
+}

@@ -1,0 +1,236 @@
+!set title=Trouver un ratio à partir d'un damier
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel Verbecq
+email=Lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+oefcss=<style>.damier {width:10px;height:10px;} .col1 {background-color:#FFFFFF} .col2 {background-color:#A020F0} .disp_columns{ display: flex; flex-wrap: wrap;} .macss{background-color: #FAFAD2;} </style>
+
+ansorder=r,r
+varcnt=30
+prevarcnt=28
+postvarcnt=1
+replycnt=2
+choicecnt=0
+conditioncnt=2
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 6
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val6*$val7)]
+tmp0=!randint 1, $val8-1
+
+val9=$[rint($(tmp0))]
+val10=1:1
+!for val11 =1 to $val7 
+!for val12 =1 to $val6 
+val10=$val10,$val11:$val12
+!next
+!next
+tmp0=!item 2 to $val6*$val7+1 of $val10
+
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0) 
+tmp0=!item 1 to $val9 of $val10
+
+val13=$(tmp0)
+val14=<table class="wimsborder">
+!for val15 =1 to $val7 
+val14=$val14 <tr>
+!for val16 =1 to $val6 
+!if $val15:$val16 isitemof $val13 
+val14=$val14 <td class="damier col2"></td>
+!else
+val14=$val14 <td class="damier col1"></td>
+!endif
+!next
+val14=$val14 </tr>
+!next
+val14=$val14 </table>
+val17=Est-ce la bonne réponse&nbsp;?
+val18=La réponse est
+val19=$[rint($val9)]
+val20=$[rint($val8-$val9)]
+t_=!rawmath $val9/($val8-$val9)
+val21=!exec pari print($t_)
+t_=!rawmath ($val8-$val9)/$val9
+val22=!exec pari print($t_)
+val23=$[rint(gcd($val19,$val20))]
+val24=$[rint($val19/$val23)]
+val25=$[rint($val20/$val23)]
+replytype1=numexp
+replyname1=
+replygood1=?analyze 26
+replytype2=numexp
+replyname2=
+replygood2=?analyze 27
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Compléter la phrase après avoir observé le damier.	<div class="disp_columns">	  <div class="medium_size">	  </div>	  <div class="medium_size">	   <div class="wimscenter">$val14</div>	  </div>	</div>	
+!if $val19>1 and $val20>1 
+$()<label for="reply1">Les cases colorées</label> et <label for="reply2">les cases non colorées sont dans le ratio </label> 
+!endif
+$()	
+!if $val19>1 and $val20=1 
+$()<label for="reply1">Les cases colorées</label> et <label for="reply2">la case non colorée sont dans le ratio </label> 
+!endif
+$()	
+!if $val19=1 and $val20>1 
+$()<label for="reply1">La case colorée</label> et <label for="reply2">les  cases non colorées sont dans le ratio </label> 
+!endif
+$()	<span class="nowrap"> 
+!read oef/embed.phtml rep1,3 
+$()<strong>:</strong> 
+!read oef/embed.phtml rep2,3 
+$().</span>	<br class="spacer">	<div class=" wims_instruction">On pensera à donner le ratio sous la forme la plus simple possible.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Il y a $val19 
+!if $val19>1 
+$()cases colorées 
+!else
+$() case colorée 
+!endif
+$() et $val20 
+!if $val20>1 
+$()cases non colorées. 
+!else
+$() case non colorée. 
+!endif
+$()<p>	
+!if $val19>1 and $val20>1 
+$()Les cases colorées et les cases non colorées sont dans le ratio 
+!endif
+$()	
+!if $val19>1 and $val20=1 
+$()Les cases colorées et la case non colorée sont dans le ratio 
+!endif
+$()	
+!if $val19=1 and $val20>1 
+$()La case colorée et les cases non colorées sont dans le ratio 
+!endif
+$()	<span class="nowrap">
+!insmath $val19 : $val20
+$().</span></p>	<p> On regarde ensuite si on peut simplifier ce ratio.</p>	
+!if $val23=1 
+$() On ne peut pas simplifier ce ratio. 
+!else
+$() On peut simplifier ce ratio par $val23 car $val19 et $val20 sont divisibles par $val23.	<p>
+!insmath $val19 \div $val23 = $val24
+$() et 
+!insmath $val20 \div $val23 = $val25
+$() 
+!endif
+$()</p>	<p>On conclut :	
+!if $val19>1 and $val20>1 
+$()Les cases colorées et les cases non colorées 
+!endif
+$()	
+!if $val19>1 and $val20=1 
+$()Les cases colorées et la case non colorée 
+!endif
+$()	
+!if $val19=1 and $val20>1 
+$()La case colorée et les cases non colorées 
+!endif
+$()	sont dans le ratio <span class="nowrap">
+!insmath $val24 : $val25
+$().</span></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val28=$[rint(gcd($val26,$val27))]
+
+!exit
+
+:feedback
+!ifval $val26/$val27=$val21 and $val28<>1
+ <div class='oef_feedbacks'><div class="macss">Attention,votre réponse est partiellement correcte. Pensez à simplifier le ratio.</div>
+$()</div>
+!endif
+!ifval $val26/$val27=$val22 and $val28<>1 and $val19<>$val20
+ <div class='oef_feedbacks'><div class="macss">Attention, vous avez inversé, dans l'écriture du ratio, l'ordre donné dans l'énoncé.	Le premier nombre du ratio correspond au nombre de cases colorées et le second nombre du ratio correspond au nombre de cases non colorées.	Pensez également à simplifier le ratio.</div>
+$()</div>
+!endif
+!ifval $val26=$val25 and $val27=$val24 and $val19<>$val20
+ <div class='oef_feedbacks'><div class="macss">Attention, vous avez inversé, dans l'écriture du ratio, l'ordre donné dans l'énoncé.	Le premier nombre du ratio correspond au nombre de cases colorées et le deuxième nombre correspond au nombre de cases non colorées.</div>
+$()</div>
+!endif
+!ifval $val26/$val27<>$val21 and $val26/$val27<>$val22
+ <div class='oef_feedbacks'> <div class="macss">Avez-vous correctement compté le nombre de cases colorées et le nombre de cases non colorées&nbsp;?</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=3 
+
+!ifval $val26/$val27=$val21
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Avez-vous le bon ratio&nbsp;?
+condweight2=1 
+
+!ifval $val26/$val27=$val21 and $val28=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Avez-vous donné le bon ratio sous forme simplifiée (quand c'est possible)&nbsp;?
+
+!exit
+
+:stat
+vsavelist=14,19,20,21,22,23,24,25,26,27
+embedcnt=2

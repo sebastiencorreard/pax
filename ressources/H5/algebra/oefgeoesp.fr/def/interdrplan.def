@@ -1,0 +1,159 @@
+!set title=Intersection d'une droite et d'un plan
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/invertible 3,6 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+val7=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,1]);print(M)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,2]);print(M)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];M=matrix(1,3,i,j,A[j,3]);print(M)
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 10
+
+val11=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in [$val7]+$val11*[$val10]
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in u=[$val8];v=[$val9];M=[u[2]*v[3]-u[3]*v[2],u[3]*v[1]-u[1]*v[3],u[1]*v[2]-u[2]*v[1]];print(M)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in [$val7]*mattranspose([$val13])
+tmp0=!exec pari $t_
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in ordergreat(x,y,z,t)
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in expand($(val13[1])*x+$(val13[2])*y+$(val13[3])*z)
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+tmp0=!texmath $val16
+
+val17=$(tmp0)
+replytype1=default
+replyname1=xI
+replygood1=$(val7[1])
+replytype2=default
+replyname2=yI
+replygood2=$(val7[2])
+replytype3=default
+replyname3=zI
+replygood3=$(val7[3])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère le plan 
+!insmath P
+$() d'équation 
+!insmath $val17=$val14
+$() et la droite 
+!insmath d
+$() passant par le point	
+!insmath A($val12)
+$() et dirigé par le vecteur 
+!insmath \overrightarrow{w}($val10)
+$(). Déterminer les coordonnées du point 
+!insmath I
+$(),	intersection de 
+!insmath d
+$() et 
+!insmath P
+$().	<div class="wimscenter">	Le point 
+!insmath I
+$() a pour coordonnées ( 
+!read oef/embed.phtml reply 1,5 
+$(), 
+!read oef/embed.phtml reply 2,5 
+$(), 
+!read oef/embed.phtml reply 3,5 
+$()).	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12,14,17
+embedcnt=3

@@ -1,0 +1,129 @@
+\title{Variations avec exponentielle 2}
+\language{fr}
+\range{-5..5}
+\author{Chantal, Causse}
+\email{Chantal.Causse@noos.fr}
+\computeanswer{yes}
+\format{html}
+\precision{9000}
+\keywords{derivative, function_variation, exponential}
+\description{Exercice comportant deux étapes aboutissant à la construction du tableau de variations d'une fonction}
+\observation{Construction du tableau de variations d'une fonction de la forme ax + b + k exp(dx)}
+\text{taille=45x40}
+
+\integer{B = random(-1,1)}
+\integer{C = random(-1,1)}
+\integer{b = \B * random(1..4)}
+\integer{c = \C * random(1..4)}
+\integer{a = random(-(\b)*(\c), 0 , \B*\C*random(1..6), \B*\C*random(-6..-1) ,\B*\C*random(-6..-1))}
+\integer{k = random(-6..6)}
+
+\integer{\nbcol= \a*\b*\c < 0 ? 2 : 1}
+\text{etapes= reply3,reply4}
+\text{etapes= \nbcol >1 ? \etapes,reply5,reply6,reply7,reply8 : \etapes}
+\steps{reply1,reply2
+\etapes}
+
+\text{zero= \nbcol =2 ? ln(-(\a)/(\b * \c))/\c:}
+\text{zero = simplify(\zero)}
+\text{zero2=wims(replace internal log by ln in \zero)}
+\function{f= pari(\a *x + \k )+ \b* e^(\c*x)}
+\text{ft=texmath(\f)}
+\function{d=diff(\f,x)}
+\text{dt=texmath(\d)}
+
+\text{inf= - \infty}
+\text{sup= + \infty}
+
+
+\text{fz=evalue(\f,x=\zero)}
+\text{fz=simplify(\fz)}
+\text{fz=wims(replace internal log by ln in \fz)}
+
+
+\text{signes= + , - }
+\text{variations = \(\nearrow\),\(\searrow\)}
+
+
+***par colonnes : 1 pour croissant, 2 pour décroissant
+
+\text{cc= \B < 0 ? 1,2 : 2,1}
+\text{cc= \nbcol = 1 ? (3-\B*\C)/2}
+\text{s=\signes[\cc]}
+\text{v=\variations[\cc]}
+\text{instruction= Pour \(x\) entrer sa valeur exacte.
+ Pour \(f(x)\), indiquer soit la valeur exacte, soit une valeur approchée en gardant
+ au moins 5 chiffres significatifs.
+ }
+
+\statement{<p>Soit \(f\) la fonction définie par \(f(x) = \ft\) pour tout \(x\in \RR\).</p>
+
+\if{\step=1}{Calculer \(f'(x)\). <div class="wimscenter">\(f'(x) = \)\embed{reply1}</div>
+ Combien y a-t-il de valeurs dans \(\rbrack \inf ; \sup \lbrack\) annulant \(f'(x)\) ? \embed{reply2}}
+\if{\step=2}{<p>Vous avez trouvé que sa dérivée est : \(f'(x) = \dt\).</p>
+Compléter le tableau de variation de \(f\).
+
+<table class="wimscenter wimsborder" style="width:70%;">
+<tr>
+<td style="width:10%;"> \(x\)</td><td style="width:5%;text-align:left">\(\inf\)</td><td style="width:25%;" ></td>
+\if{\nbcol>1}{<td style="width:5%;">\embed{reply5,10}</td><td style="width:25%;" ></td>
+}
+<td style="width:5%; text-align:right">\(\sup\)</td>
+</tr>
+<tr>
+<td>\(f'(x)\)</td><td></td><td> \embed{reply3,\taille} </td>
+\if{\nbcol>1}{<td>0</td><td> \embed{reply7,\taille} </td>}
+<td></td>
+</tr>
+<tr>
+<td>\(f(x)\)</td><td style="text-align:left"> </td><td> \embed{reply4,\taille} </td>
+\if{\nbcol>1}{<td>\embed{reply6,12}</td><td> \embed{reply8,\taille} </td>}
+<td style="text-align:right"> </td>
+</tr>
+</table>
+\if{\nbcol>1}{<div class="wims_instruction"> \instruction</div>}
+}
+}
+
+\answer{}{\d}{type=formal}
+\answer{}{\nbcol ; 0,1,2,3,autre}{type=menu}
+\answer{}{\s[1];
+\variations,\signes}{type=clickfill}
+\answer{}{\v[1] }{type=clickfill}
+\answer{}{\zero}{type=function}{option=noanalyzeprint}
+\answer{}{\fz}{type=function}{option=noanalyzeprint}
+\answer{}{\s[2] }{type=clickfill}
+\answer{}{\v[2] }{type=clickfill}
+
+
+
+\text{err1 = vous avez trouvé que la dérivée \(f'(x)\) est négative ; vous devriez donc dire que la fonction \(f\) est décroissante sur cet intervalle.}
+\text{err2 = vous avez trouvé que la dérivée \(f'(x)\) est positive ; vous devriez donc dire que la fonction \(f\) est croissante sur cet intervalle.}
+
+\feedback{\reply3 isitemof \variations or \reply7 isitemof \variations}{Pour obtenir les variations de \(f\), on indique le SIGNE de la dérivée \(f'(x)\).}
+\feedback{\reply4 isitemof \signes or \reply8 isitemof \signes }{Ce sont les VARIATIONS de la fonction \(f(x)\) qu'on cherche, et pas son signe.}
+\feedback{\reply3 isitemof - and \reply4 isitemof \(\nearrow\)}{Incohérence dans la première colonne du tableau : \err1}
+\feedback{\reply3 isitemof + and \reply4 isitemof \(\searrow\)}{Incohérence dans la première colonne du tableau : \err2}
+\feedback{\reply7 isitemof - and \reply8 isitemof \(\nearrow\)}{Incohérence dans la deuxième colonne du tableau : \err1}
+\feedback{\reply7 isitemof + and \reply8 isitemof \(\searrow\)}{Incohérence dans la deuxième colonne du tableau : \err2}
+
+\solution{\(f'(x) = \dt\). <br />Cette dérivée
+\if{\nbcol=1}{ ne s'annule pas.}
+\if{\nbcol=2}{ s'annule une fois : pour \(x = \zero2\).}<br/>On en déduit le tableau de variations de \(f\) :
+
+<table class="wimscenter wimsborder" style="width:70%;">
+<tr>
+<td style="width:10%;"> \(x)</td><td style="width:5%;text-align:left">\(\inf\)</td><td style="width:25%;"></td>
+\if{\nbcol>1}{<td style="width:5%;">\zero2</td><td style="width:25%;"></td>}
+<td style="width:5%;text-align:right">\(\sup)</td>
+</tr><tr>
+<td>\(f'(x)\)</td><td></td><td> \s[1] </td>
+\if{\nbcol>1}{<td>0</td><td> \s[2] </td>}
+<td></td>
+</tr><tr>
+<td>\(f(x)\)</td><td></td><td> \v[1] </td>
+\if{\nbcol>1}{<td>\fz</td><td> \v[2] </td>}
+<td></td>
+</tr>
+</table>
+}

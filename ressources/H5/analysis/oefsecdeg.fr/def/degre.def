@@ -1,0 +1,550 @@
+!set title=Classer les fonctions polynômes suivant leur degré 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Guillet
+email=mathextra@free.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=102
+prevarcnt=82
+postvarcnt=19
+replycnt=10
+choicecnt=0
+conditioncnt=20
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=$[rint(8)]
+val7=$[rint(4)]
+val8=
+val9=200x40
+val10=Degré 1,Degré 2,Degré 3
+tmp=!trim 
+val11=!translate internal $	\
+$ to ;; in $tmp
+!for val12 =1 to 10 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 30
+
+val13=$[$(tmp0)*$(tmp1)/10]
+tmp0=!randint -20, 20
+
+val14=$[$(tmp0)/10]
+tmp0=!randint -20, 20
+
+val15=$[$(tmp0)/10]
+tmp0=!randitem 0,1
+
+val14=$[rint($(tmp0))]
+
+!ifval $val14=0 
+val16= $val13*x^2+$val14*x+$val15 
+!else
+val16= $val14*x+$val15+$val13*x^2
+!endif
+tmp=!trim $val11	  \($val16\),Degré 2
+val11=!translate internal $	\
+$ to ;; in $tmp
+!next
+!for val12 =1 to 5 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 30
+
+val13=$[$(tmp0)*$(tmp1)/10]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 20
+
+val14=$[$(tmp0)*$(tmp1)/10]
+val16=!rawmath $val13*x+$val14
+tmp=!trim $val11	  \($val16\),Degré 1
+val11=!translate internal $	\
+$ to ;; in $tmp
+!next
+!for val12 =1 to 5 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 30
+
+val13=$[$(tmp0)*$(tmp1)/10]
+val16=!rawmath $val13*x
+tmp=!trim $val11	  \($val16\),Degré 1
+val11=!translate internal $	\
+$ to ;; in $tmp
+!next
+!for val12 =1 to 10 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 30
+
+val13=$[$(tmp0)*$(tmp1)/10]
+tmp0=!randint -20, 20
+
+val14=$[$(tmp0)/10]
+tmp0=!randint -20, 20
+
+val15=$[$(tmp0)/10]
+tmp0=!randint -20, 20
+
+val17=$[$(tmp0)/10]
+val16=!rawmath $val13*x^3+ $val14*x^2+$val15*x+$val17
+tmp=!trim $val11	  \($val16\),Degré 3
+val11=!translate internal $	\
+$ to ;; in $tmp
+!next
+val18=
+val19=Classez les fonctions polynômes ci-dessous selon leur degré.
+val20=
+val21=est de
+val22=n'appartient à aucune catégorie
+tmp0=!itemcnt $val10
+
+val23=$[rint($(tmp0))]
+
+!ifval $val8=
+val8=$[rint( $val23)]
+!endif
+val8=$[rint(min($val8,$val23))]
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+val24=$[rint($(tmp0))]
+val25=$[rint($val7+1)]
+
+!ifval $val6<$val23
+val6=$[rint($val23)]
+!endif
+
+!ifval $val23>1 and shuffle iswordof $val18
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+!endif
+val26=
+val27=
+val28=
+val29=
+val30=
+val31=
+!for val12 =1 to $val8 
+tmp0=!select $val11 where column 2 issametext $(val10[$val12])
+
+tmp=!translate internal $	$ to ; in $(tmp0)
+
+tmp=!column 1 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+tmp2=!shuffle $(tmp1)
+
+val32=$(tmp2)
+tmp0=!itemcnt $val32
+
+val33=$[rint(min($val7,$(tmp0)))]
+tmp0=!append item $(val32[1]) to $val26
+
+val26=$(tmp0)
+tmp0=!append item $val12 to $val27
+
+val27=$(tmp0)
+!if $val33 > 1 
+tmp0=!append item $(val32[2..$val33]) to $val28
+
+val28=$(tmp0)
+tmp0=!makelist $val12 for x=2 to $val33
+
+tmp1=!append item $(tmp0) to $val29
+
+val29=$(tmp1)
+!endif
+!next
+!if $val8<$val23 
+tmp0=!select $val11 where column 2 issametext $(val10[$val8+1])
+
+tmp=!translate internal $	$ to ; in $(tmp0)
+
+tmp=!column 1 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+tmp2=!shuffle $(tmp1)
+
+val32=$(tmp2)
+tmp0=!itemcnt $val32
+
+val33=$[rint(min($val7,$(tmp0)))]
+tmp0=!append item $(val32[1]) to $val30
+
+val30=$(tmp0)
+tmp0=!append item $val12 to $val31
+
+val31=$(tmp0)
+!endif
+!if $val6>$val8 
+tmp0=!itemcnt $val28
+
+val34=$[rint($(tmp0))]
+val35=$[rint(min($val6-$val8,$val34))]
+val6=$[rint($val8+$val35)]
+tmp0=!shuffle $val34
+
+val36=$(tmp0)
+val36=$(val36[1..$val35])
+tmp0=!item $val36 of $val28
+
+val28=$(tmp0)
+tmp0=!item $val36 of $val29
+
+val29=$(tmp0)
+val37=$val26,$val28
+val38=$val27,$val29
+!else
+val37=$val26
+val38=$val27
+!endif
+tmp0=!nonempty items $val37
+
+val37=$(tmp0)
+tmp0=!listuniq $val37
+
+val37=$(tmp0)
+tmp0=!itemcnt $val37
+
+val39=$[rint($(tmp0))]
+tmp0=!shuffle $val39
+
+val40=$(tmp0)
+tmp0=!item $val40 of $val37
+
+val37=$(tmp0)
+tmp0=!item $val40 of $val38
+
+val38=$(tmp0)
+val10=$(val10[1..$val8])
+tmp0=!tolower $val10
+
+val41=$(tmp0)
+tmp0=!tolower $val37
+
+val42=$(tmp0)
+val43=$val9 x $val25
+tmp0=!makelist r x for x=1 to 10
+
+tmp1=!item 1 to $val8 of $(tmp0)
+
+val44=$(tmp1)
+
+!ifval $val30!= 
+val45=$[rint( 1 )]
+!else
+val45=$[rint( 0)]
+!endif
+oefsteps=$val44 
+nextstep=!nosubst $val44 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=$(val10[1])
+replygood1=?analyze 46;$val37,$val30
+replytype2=dragfill
+replyname2=$(val10[2])
+replygood2=?analyze 47
+replytype3=dragfill
+replyname3=$(val10[3])
+replygood3=?analyze 48
+replytype4=dragfill
+replyname4=$(val10[4])
+replygood4=?analyze 49
+replytype5=dragfill
+replyname5=$(val10[5])
+replygood5=?analyze 50
+replytype6=dragfill
+replyname6=$(val10[6])
+replygood6=?analyze 51
+replytype7=dragfill
+replyname7=$(val10[7])
+replygood7=?analyze 52
+replytype8=dragfill
+replyname8=$(val10[8])
+replygood8=?analyze 53
+replytype9=dragfill
+replyname9=$(val10[9])
+replygood9=?analyze 54
+replytype10=dragfill
+replyname10=$(val10[10])
+replygood10=?analyze 55
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="instruction">	$val19	</div>	<table class="wimsnoborder">	 
+!for m_k=1 to $val8 
+$()	 <tr><th>$(val10[$m_k])</th>	 <td style="text-align:left"> 
+!read oef/embed.phtml reply \k, $val43 
+$()	 </td></tr>	 
+!next
+$()	</table>	$val20	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!items2words $val46
+
+tmp1=!items2words $val47
+
+tmp2=!items2words $val48
+
+tmp3=!items2words $val49
+
+tmp4=!items2words $val50
+
+tmp5=!items2words $val51
+
+tmp6=!items2words $val52
+
+tmp7=!items2words $val53
+
+tmp8=!items2words $val54
+
+tmp9=!items2words $val55
+
+tmp10=!item 1 to $val8 of 	 $(tmp0),	 $(tmp1),	 $(tmp2),	 $(tmp3),	 $(tmp4),	 $(tmp5),	 $(tmp6),	 $(tmp7),	 $(tmp8),	 $(tmp9)
+
+val56=$(tmp10)
+val57=
+val58=
+!for val32 =1 to $val39 
+val59=$[rint(0)]
+!for val60 =1 to $val8 
+
+!ifval $(val37[$val32]) iswordof $(val56[$val60])
+val59=$[rint($val60)]
+!endif
+!next
+!if $val59 > 0 
+val57=$val57 $val21 $(val41[$val59]),
+
+!ifval $(val38[$val32])=$val59
+val58=$val58 1,
+!else
+val58=$val58 0,
+!endif
+!else
+val57=$val57 $val22,
+val58=$val58 0,
+!endif
+!next
+!if $val30!= 
+!for val32 =1 to 1 
+val59=$[rint(0)]
+!for val60 =1 to $val8 
+
+!ifval $(val30[$val32]) iswordof $(val56[$val60])
+val59=$[rint($val60)]
+!endif
+!next
+!if $val59 = 0 
+val57=$val57 $(val30[$val32]) $val22,
+val58=$val58 1,
+!else
+val57=$val57 $(val30[$val32]) $val21 $(val41[$val59]),
+val58=$val58 0,
+!endif
+!next
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+tmp0=!makelist x for x=1 to $val39 + $val45
+
+
+condlist=$(tmp0)
+
+!ifval $(val58[1])=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$(val37[1]) $(val57[1])
+
+!ifval $(val58[2])=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$(val37[2]) $(val57[2])
+
+!ifval $(val58[3])=1
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$(val37[3]) $(val57[3])
+
+!ifval $(val58[4])=1
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=$(val37[4]) $(val57[4])
+
+!ifval $(val58[5])=1
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=$(val37[5]) $(val57[5])
+
+!ifval $(val58[6])=1
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=$(val37[6]) $(val57[6])
+
+!ifval $(val58[7])=1
+ condtest7=1
+!else
+ condtest7=0
+!endif
+condname7=$(val37[7]) $(val57[7])
+
+!ifval $(val58[8])=1
+ condtest8=1
+!else
+ condtest8=0
+!endif
+condname8=$(val37[8]) $(val57[8])
+
+!ifval $(val58[9])=1
+ condtest9=1
+!else
+ condtest9=0
+!endif
+condname9=$(val37[9]) $(val57[9])
+
+!ifval $(val58[10])=1
+ condtest10=1
+!else
+ condtest10=0
+!endif
+condname10=$(val37[10]) $(val57[10])
+
+!ifval $(val58[11])=1
+ condtest11=1
+!else
+ condtest11=0
+!endif
+condname11=$(val37[11]) $(val57[11])
+
+!ifval $(val58[12])=1
+ condtest12=1
+!else
+ condtest12=0
+!endif
+condname12=$(val37[12]) $(val57[12])
+
+!ifval $(val58[13])=1
+ condtest13=1
+!else
+ condtest13=0
+!endif
+condname13=$(val37[13]) $(val57[13])
+
+!ifval $(val58[14])=1
+ condtest14=1
+!else
+ condtest14=0
+!endif
+condname14=$(val37[14]) $(val57[14])
+
+!ifval $(val58[15])=1
+ condtest15=1
+!else
+ condtest15=0
+!endif
+condname15=$(val37[15]) $(val57[15])
+
+!ifval $(val58[16])=1
+ condtest16=1
+!else
+ condtest16=0
+!endif
+condname16=$(val37[16]) $(val57[16])
+
+!ifval $(val58[17])=1
+ condtest17=1
+!else
+ condtest17=0
+!endif
+condname17=$(val37[17]) $(val57[17])
+
+!ifval $(val58[18])=1
+ condtest18=1
+!else
+ condtest18=0
+!endif
+condname18=$(val37[18]) $(val57[18])
+
+!ifval $(val58[19])=1
+ condtest19=1
+!else
+ condtest19=0
+!endif
+condname19=$(val37[19]) $(val57[19])
+
+!ifval $(val58[20])=1
+ condtest20=1
+!else
+ condtest20=0
+!endif
+condname20=$(val37[20]) $(val57[20])
+
+!exit
+
+:stat
+vsavelist=8,10,19,20,21,22,30,32,37,38,39,41,43,45,46,47,48,49,50,51,52,53,54,55
+embedcnt=1

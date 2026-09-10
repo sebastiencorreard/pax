@@ -1,0 +1,222 @@
+!set title=Somme classique 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie,Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+language=fr
+precision=1000
+oefdescription=Exercice comportant trois questions
+oefobservation=somme géométrique
+
+ansorder=r,r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp1=!randitem -2,0,1
+
+t_=!rawmath $(tmp0)/10+$(tmp1)
+val6=!exec pari print($t_)
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val7+$val8)]
+val10=\sum_{i=$val7}^{n}($val6)^i
+val11=\sum_{k=0}^{n-$val7}($val6)^{k+$val7}
+val12=$[rint(0)]
+val13=!rawmath n-$val7
+val14=!rawmath ($val6)^(k+$val7)
+t_=!rawmath ($val6)^($val7)/(1-($val6))
+val15=!exec pari print($t_)
+t_=!rawmath ($val6)/($val6-1)
+val16=!exec pari print($t_)
+t_=!rawmath $val15+$val16*($val6)^$val9
+val17=!exec pari print($t_)
+val18=On considère la suite \((S_n)_n\) définie par 
+val19=pour tout entier
+val20=Calculer
+tmp=!trim Donner une autre écriture de	en fonction de
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Cette somme s'écrit sous la forme	Donner les valeurs des coefficients 
+val22=!translate internal $	\
+$ to ;; in $tmp
+val23=et
+val24=Réponse incorrecte
+val25=Bonne réponse
+val26=Donner les valeurs exactes des coefficients en utilisant des fractions si nécessaire.
+val27=Indication &#58; la transformation faite à la question 2 permet d'utiliser la formule classique suivante&#32;
+val28=nombre réel
+val29=Plus grande valeur de l'indice de sommation
+val30=Terme générale de la somme
+val31=\(a\)
+val32=a + b\times($val6)^n
+val31=$val31 $val23 \(b\)&#32;
+oefsteps=reply1	reply2,reply3	reply4,reply5 
+nextstep=!nosubst reply1	reply2,reply3	reply4,reply5 
+!readproc oef/steps.proc
+replytype1=numeric
+replyweight1=4 
+replyoption1=nonstop 
+replyname1=1. \(S_{$val9}\)
+replygood1=$[$val17]
+replytype2=formal
+replyoption2=nonstop 
+replyweight2=3 
+replyname2=2. $val29
+replygood2=$val13
+replytype3=formal
+replyoption3=nonstop 
+replyweight3=3 
+replyname3=2. $val30
+replygood3=$val14
+replytype4=numexp
+replyweight4=5 
+replyname4=a
+replygood4=$val15
+replytype5=numexp
+replyweight5=5 
+replyname5=b
+replygood5=$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val18 
+!insmath \displaystyle{S_n=$val10}
+$() $val19 
+!insmath n\geq $val7
+$().	<ol><li> $val20 
+!insmath S_{$val9}
+$().	
+!if $m_step=1 
+$()	<div class="wimscenter">	<label for="reply1">
+!insmath S_{$val9}
+$()</label> =  
+!read oef/embed.phtml r1,5 
+$()	</div>	 
+!endif
+$()	
+!if $m_step>1 
+$()<div>
+!if $m_sc_reply1<1 
+$()<span class="oef_indbad">$val24,</span>  
+!else
+$()	   <span class="oef_indgood">$val25,</span> 
+!endif
+$() 
+!insmath S_{$val9}=$val17
+$().</div> 
+!endif
+$()	</li>	
+!if $m_step>1 
+$()	<li> $(val21[1;]) 
+!insmath S_n
+$() $(val21[2;]) 
+!insmath n
+$().	
+!if $m_step=2 
+$()	<div class="center">	 
+!read oef/special.phtml mathmlinput [\displaystyle{S_n=\sum_{k=$val12}^{reply2}reply3}],8,noanswer	reply2,3	reply3,8 
+$()	</div>	 
+!endif
+$()	
+!if $m_step>2 
+$()<div>
+!if $m_sc_reply2<1 or $m_sc_reply3<1 
+$()<span class="oef_indbad">$val24,</span>  
+!else
+$()	 <span class="oef_indgood">$val25,</span> 
+!endif
+$()
+!insmath \displaystyle{S_n=$val11}
+$().</div> 
+!endif
+$()	</li>	
+!if $m_step=3 
+$()	<li> $(val22[1;]) 
+!insmath S_n = $val32
+$() $val19 
+!insmath n\geq $val7
+$(). $(val22[2;]) $val31:	<div class="wimscenter">		<label for="reply4">
+!insmath a = 
+$()</label> 
+!read oef/embed.phtml reply4,5 
+$() $val23	  <label for="reply5">
+!insmath b = 
+$()</label> 
+!read oef/embed.phtml reply5,5 
+$().	</div>	<div class="wims_instruction">$val26 </div>		</li> 
+!endif
+$()	 
+!endif
+$()	</ol>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val27:	<div class="wimscenter">$val19 
+!insmath n\geq 0
+$() $val23 $val28  
+!insmath r\neq 1
+$(), 
+!insmath \displaystyle{\sum_{\ell=0}^{n}r^\ell = \frac{1-r^{n+1}}{1-r}}
+$().</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,11,12,17,18,19,20,21,22,23,24,25,26,27,28,31,32
+embedcnt=4

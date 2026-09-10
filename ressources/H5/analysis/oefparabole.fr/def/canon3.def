@@ -1,0 +1,145 @@
+!set title=Différentes formes d'un trinôme
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi, Belloeil
+email=rbelloeil@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val6*(x-$val7)^2-$val6*($val8)^2
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val9)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val6*(x-$val7-$val8)*(x-$val7+$val8)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+oefsteps=reply 1	reply 2 
+nextstep=!nosubst reply 1	reply 2 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=Forme factorisée
+replygood1=$val11
+replytype2=algexp
+replyname2=Forme développée
+replygood2=$val10
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère le trinôme 
+!insmath f(x)=$val9
+$().	
+!if $m_step=1 
+$()	<p>Déterminer la forme factorisée de 
+!insmath f
+$().</p>	<div><label for="reply1">La forme factorisée de 
+!insmath f
+$() est :</label>  
+!read oef/embed.phtml reply 1,20 
+$().</div>	<div class="wims_instruction">	La forme factorisée sera donnée sous la forme 
+!insmath (x-u)(x-v)
+$() ou 
+!insmath -(x-u)(x-v)
+$().	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<p>La forme factorisée de 
+!insmath f
+$() est 
+!insmath f(x)=$val11
+$().</p>	<div><label for="reply2">La forme développée de 
+!insmath f
+$() est alors</div>  
+!read oef/embed.phtml reply 2,20 
+$().</p>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()<p>La forme canonique d'un trinôme est 
+!insmath a(x-d)^2+k
+$(), où 
+!insmath d
+$() et	
+!insmath k
+$() sont les abscisses et ordonnées du sommet de la parabole représentant le trinome.</p>	<p>Pour déterminer la forme factorisée à partir de la forme canonique, on peut	utiliser l'identité remarquable 
+!insmath a^2-b^2=(a-b)(a+b)
+$().</p>	<p>En cas de message vous invitant à écrire la forme factorisée autrement,	pensez à changer l'ordre des facteurs.</p>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11
+embedcnt=2

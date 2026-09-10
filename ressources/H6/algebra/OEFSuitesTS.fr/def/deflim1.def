@@ -1,0 +1,147 @@
+!set title=Limites: Définition 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+tmp0=!texmath ($val6*n+$val7)/($val8*n+$val9)
+
+val10=$(tmp0)
+val11=\(u_n=$val10\) pour tout \(n \in \mathbb{N}\)
+tmp=!translate ";': to $     $ in $val6/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+tmp0=!randint -4, -2
+
+val13=$[rint($(tmp0))]
+val14=10^{$val13}
+val15=10^{-p}
+val16=-$val9/$val8+abs(($val7-($val12)*$val9)*10^(-($val13))/$val8)
+val17=$[rint(ceil($val16))]
+t_=!replace internal \( by ( in $val17==$val16
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1 
+val17=$[rint( $val17+1)]
+!endif
+replytype1=numeric
+replyname1=Rang \(n_0\)
+replygood1=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère la suite 
+!insmath (u_n)
+$() définie par :	  <div class="wimscenter"> $val11.</div>	  On veut montrer que sa limite est 
+!insmath $val12
+$().<br>	  Pour cela, étant donné un entier positif 
+!insmath p
+$(), il existe un rang 
+!insmath n_0
+$()	   à partir duquel tous les termes de la suite sont dans l'intervalle	  <div class="wimscenter"> &#93; 
+!insmath \,$val12-\epsilon
+$();
+!insmath \,$val12+\epsilon
+$() &#91;</div>	  avec 
+!insmath \,\epsilon=$val15
+$().	  Déterminer le plus petit entier 
+!insmath n_0
+$() vérifiant cette propriété pour 
+!insmath \epsilon=$val14
+$().	  <div class="wimscenter"><label for="reply1">
+!insmath n_0
+$()=</label> 
+!read oef/embed.phtml reply1 
+$().</div>	
+$()
+!exit
+
+:hint
+$()Calculer 
+!insmath v_n = |u_n - $val12|
+$(). Trouver le plus entier 
+!insmath n_0
+$()	  tel que 
+!insmath v_n
+$() soit majoré par 
+!insmath $val14
+$().
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14,15
+embedcnt=1

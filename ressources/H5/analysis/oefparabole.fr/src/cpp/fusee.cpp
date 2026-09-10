@@ -1,0 +1,306 @@
+target=fusee1 fusee2
+\language{fr}
+\range{-5..5}
+\author{Rémi, Belloeil}
+\email{remi.belloeil@orange.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+#define TITRE La fusée retardée
+\integer{d=randint(1..4)}
+\integer{t=randint(2..5)}
+
+#if defined TARGET_fusee1
+\title{TITRE 1}
+\matrix{kaXc=
+4,4/3,3,1
+4,1/2,8,2
+4.5,1.5,3,1
+3,1,6,4}
+#endif
+#if defined TARGET_fusee2
+\title{TITRE 2}
+\matrix{kaXc=
+4,1,4,1
+4,2,4,4
+4,3,4,5
+4,4,4,10}
+#endif
+
+\real{k=\kaXc[\d;1]}
+\rational{a=\kaXc[\d;2]}
+\integer{Xc=\kaXc[\d;3]}
+\integer{pas=\kaXc[\d;4]}
+\integer{p=\a*\Xc/\k}
+\integer{Xs=\Xc+\p}
+\real{Yc=\a*\Xc^2}
+\integer{max=\Yc+\k*\p^2}
+\real{X3=sqrt(\max/\k)}
+\real{X2=\Xs+\X3}
+\integer{dt=\Xs+\t}
+
+\function{c=\a*x^2+sqrt(x)*0+sqrt(\Xc+0.05-x)*0}
+\function{r=-\k*x^2+\max+sqrt(x+\p-0.02)*0+sqrt(\X3+0.01-x)*0}
+\function{g=-\k*(x-\Xs)^2+\max+sqrt(x-\Xc+0.02)*0+sqrt(\X2+0.015-x)*0}
+\function{f=\a*(x-\t)^2}
+\function{u=-\k*(x-\dt)^2+\max}
+\function{f1=\a*(x-\t)^2+sqrt(x-\t+0.05)*0+sqrt(\Xc+\t+0.05-x)*0}
+\function{u1=-\k*(x-\dt)^2+\max+sqrt(x-\Xc-\t+0.05)*0+sqrt(\X2+\t+0.02-x)*0}
+
+\integer{Xmin=-\p-1}
+\integer{Xmax=25+\Xmin}
+\integer{Ymin=-(floor(\max/10)+1)}
+\integer{Ymax=1.125*\max}
+
+\function{g1=-\k*(x-\Xs)^2+\max}
+\function{g3=maxima(expand(\g1))}
+\integer{b1=2*\k*\Xs}
+\integer{c1=\k*(\Xs^2)-\max}
+\function{g2=-\k*x^2+\b1*x-\c1}
+
+\text{s = (0.5*animstep-\p)}
+
+\text{tA = text black,-\p-0.2,-0.2,small,-\p}
+\for{i = 1 to 20 }{
+  \text{tA = \tA
+text black,\i-0.2,-0.2,small,\i}
+}
+
+#if defined TARGET_fusee1
+\text{Ord=text black,-0.8,1.3*\pas,small,\pas}
+\for{i = 2*\pas to \max step \pas}{
+  \text{Ord=\Ord ; text black,-0.8,\i+0.3*\pas,small,\i}
+}
+#endif
+#if defined TARGET_fusee2
+\integer{q=\max/\k}
+\text{s3=sqrt(\q)}
+\text{s2=\Xs+\s3}
+\text{s4=\dt+\s3}
+\text{Ord=}
+\for{i = \pas to \Ymax-2 step \pas}{
+  \text{Ord=\Ord ; text black,-1.2,\i+0.4*\pas,small,\i}
+}
+#endif
+
+\text{cadre=xrange \Xmin,\Xmax
+yrange \Ymin,\Ymax
+linewidth 1
+parallel \Xmin,0,\Xmin,\Ymax,1,0,\Xmax+3,lightblue
+parallel \Xmin,\pas,\Xmax,\pas,0,\pas,\Ymax,lightblue
+text black,0.5,\Ymax,medium,altitude en m
+text black,\Xmax-4.5,\pas,medium,temps en s
+linewidth 2
+arrow \Xmin,0,\Xmax,0,10, black
+arrow 0,\Ymin,0,\Ymax,10, black
+text black \Xmin,-\p,medium,- \p
+\tA
+\Ord
+plotsteps 1000
+text green,0.8*\p,\pas,medium,c
+text black,0.8*\p,\max-\pas,medium,r
+
+plot green,\c
+plot black,\r
+}
+\text{graph1=\cadre
+plot red,\g
+text red,\Xs,\max-\pas,medium,g
+}
+\text{graph2=animate 2*\X3+2*\p+1,1,0
+\graph1
+linewidth 2
+arrow \s,\max-\k*\s^2,\s+\Xs,\max-\k*\s^2,10,black
+text black,\s-0.2,0.5*\Ymin,medium,x-\Xs
+text black,\s+\Xs-0.2,0.5*\Ymin,medium,x
+dsegment \s,0,\s,\max-\k*\s^2,black
+dsegment \s+\Xs,0,\s+\Xs,\max-\k*\s^2,black
+}
+\text{graph3=animate 2*\X3+2*\p+1,1,0
+\cadre
+plot red,\g
+plot green,\f1
+plot red,\u1
+text red,\Xs,\max-3,medium,g
+text red,\dt,\max-3,medium,u
+text green,\t+\p,\pas,medium,f
+linewidth 2
+arrow \s+\Xs,\max-\k*\s^2,\s+\Xs+\t,\max-\k*\s^2,10,black
+text black,\s-0.2,0.5*\Ymin,medium,x-\dt
+text black,\s+\Xs-1,0.5*\Ymin,medium,x - \t
+text black,\s+\Xs+\t-0.2,0.5*\Ymin,medium,x
+dsegment \s,0,\s,\max-\k*\s^2,black
+dsegment \s+\Xs,0,\s+\Xs,\max-\k*\s^2,black
+dsegment \s+\dt,0,\s+\dt,\max-\k*\s^2,black
+}
+\text{ga=\(g(x) = r(x)+\Xs)}
+\text{gb=\(g(x) = r(x+\Xs))}
+\text{gc=\(g(x) = r(x-\Xs))}
+\text{gd=\(g(x) = r(x)-\Xs)}
+#if defined TARGET_fusee1
+\text{t2=}
+#endif
+#if defined TARGET_fusee2
+\text{t1= <div class="wims_instruction">Calculer une valeur exacte. \(sqrt(2)) s'écrit
+sqrt(2).</div>}
+\text{t2= <p>Tu peux résoudre \(u(x) = 0) et pour cela te ramener à \((x - \Xs )^2 =
+K).<br>
+Ou te rappeler que pour \(g), la solution était \s2.</p>}
+
+\text{sol=<p>Pour calculer l'image de \(x) par \(g)
+on utilise l'image de \(x - \Xs) par \(r).</p>
+ \(g(x) = \g1 = \g2)<br>
+\(g(x) = 0) équivaut à :
+<ul class="wims_nopuce">
+<li>\(-\k*(x-\Xs)^2+\max = 0)</li>
+<li>\(-\k*(x-\Xs)^2 = -\max)</li>
+<li>\((x-\Xs)^2 = \q)</li>
+<li>\(x-\Xs = -sqrt(\q)) ou \(x-\Xs = sqrt(\q))</li>
+<li>\(x = \Xs - sqrt(\q)) ou \(x = \Xs + sqrt(\q))</li>
+<li>Mais la solution cherchée ici est supérieure à \Xs</li>
+<li>donc c'est \(x = \Xs + sqrt(\q)).</li>
+</ul>
+}
+
+\text{sol2=<p>Pour calculer l'image de \(x) par \(u)
+on utilise l'image de \(x - \Xs - \t) par \(r).</p>
+ \(u(x) = \u )<br>
+\(u(x) = 0) équivaut à :
+<ul class="wims_nopuce">
+<li>\(-\k*(x-\dt)^2+\max = 0)</li>
+<li>\(-\k*(x-\dt)^2 = -\max)</li>
+<li>\((x-\dt)^2 = \q)</li>
+<li>\(x-\dt = -sqrt(\q)) ou \(x-\dt = sqrt(\q))</li>
+<li>\(x = \dt - sqrt(\q)) ou \(x = \dt + sqrt(\q))</li>
+<li>Mais la solution cherchée ici est supérieure à \dt</li>
+<li>donc c'est \(x = \dt + sqrt(\q)).</li>
+</ul>
+}
+#endif
+
+\steps{reply1
+reply2
+reply3
+reply4,reply5}
+
+\statement{
+<div class="wims_question">
+<ul class="wims_nopuce">
+<li>Un club organise le lancement d'une fusée. Maud explique que la fusée va d'abord monter
+grâce à la puissance de son moteur pendant \Xc secondes.</li>
+<li>Dans cette phase son altitude en mètres sera égale à \a multiplié par le carré du temps
+\(x) écoulé depuis l'instant 0 en secondes,\(\a*x^2).</li>
+<li>Elle montre la courbe en vert de la fonction notée \(f).</li>
+<li>Au bout de \Xc secondes, le moteur va s'arrêter et la fusée va continuer à monter
+pendant \p s jusqu'à \max m puis elle va redescendre jusqu'au sol.</li>
+<li>Dans cette deuxième phase, la courbe sera obtenue par une translation à partir de celle
+de la fonction \(r) avec \(r(x) = \max -\k*x^2) qu'elle a tracée en noir.</li>
+</ul>
+</div>
+<div class="wimscenter">
+\draw{500,400}{\graph1}
+</div>
+\if{\step=1}{
+Quelle est la formule de la fonction \(g) ainsi représentée en rouge ?
+<ul class="wims_nopuce">
+<li>\embed{reply 1,1}</li><li>\embed{reply 1,2}</li><li>\embed{reply 1,3}</li>
+<li>\embed{reply 1,4}</li>
+</ul>
+}
+\if{\step=2}{
+<p>Tu as trouvé \gc. Donne l'expression de \(g) en fonction de \(x) sans la lettre \(r).<p>
+<Rappel \(r(x) = -\k*x^2+\max).</p>
+<ul class="wims_nopuce">
+<li>Vérifie que \(g(\Xc) = \Yc) et que \(g(\Xs) = \max).</li>
+<li><label for="reply2">\(g(x) = )</label> \embed{reply 2,25}.</li>
+</ul>
+}
+\if{\step=3}{
+<p>Tu as trouvé \gc donc \(g(x) = \g1).</p>
+<p>A quel instant la fusée retombe-t-elle au sol (altitude 0) ?
+<label for="reply3">\(x =)</label> \embed{reply 3,10}</p>
+\t1
+}
+\if{\step=4}{
+<p>Tu as trouvé \gc donc \(g(x) = \g1 = \g2).</p>
+<p>Mais en fait <b>la fusée part avec un retard de \t secondes</b>.</p>
+#if defined TARGET_fusee1
+<p>On appelle \(f) la fonction correspondant à la première phase et \(u) la fonction
+correspondant à la deuxième phase.</p>
+<p>Trouve les expressions de \(f) et \(u).</p>
+<ul>
+<li><label for="reply4">\(f(x) =)</label>
+\embed{reply 4,25} correspondant à la fonction \(c) avec \(c(x) = \a*x^2)
+</li>
+<li><label for="reply5">\(u(x) =)</label> \embed{reply 5,25}</li>
+</ul>
+#endif
+#if defined TARGET_fusee2
+<div>On appelle \(u) la fonction correspondant à la deuxième phase.<br>
+Trouve l'expression de \(u).<br>
+<label for="reply4">\(u(x) =)</label> \embed{reply 4,25}</div>
+<div>Dans ce cas, à quel instant la fusée retombe-t-elle au sol ?
+<label for="reply5">\(x =)</label> \embed{reply 5,10}
+</div>
+\t1
+#endif
+}
+}
+
+#if defined TARGET_fusee1
+\answer{\(g(x))}{3;\ga,\gb,\gc,\gd}{type=radio}{option=shuffle}
+\answer{\(g(x) =)}{\g1,x}{type=function}
+\answer{\(x =)}{\X2}{type=numeric}
+\answer{\(f(x) =)}{\f,x}{type=function}
+\answer{\(u(x) =)}{\u,x}{type=function}
+#endif
+#if defined TARGET_fusee2
+\answer{}{3;\ga,\gb,\gc,\gd}{type=radio}{option=shuffle}
+\answer{\(g(x))}{\g1,x}{type=function}
+\answer{\(x)}{\s2}{type=numex}
+\answer{\(u(x))}{\u,x}{type=function}
+\answer{\(x_2)}{\s4}{type=numex}
+#endif
+\hint{
+  \if{\step=1}{
+    Pour calculer l'image de \(x) par \(g) on utilise l'image de \(x - \Xs) par \(r).<br>
+    \draw{500,400}{\graph2}
+  }
+  \if{\step=2}{
+  L'expression de la fonction peut être donnée sous la forme canonique \(a) *(x - \(k) )^2+
+  \(c) en déterminant les nombres \(a), \(k) et \(c)<br>
+  ou sous la forme développée \(a) *x^2+ \(b) *x+ \(c) en déterminant les nombres \(a),
+  \(b) et \(c).
+}
+\if{\step=3}{
+#if defined TARGET_fusee1
+  Il suffit de lire sur le graphique la valeur \(x_2) pour laquelle \(g(x_2) = 0) mais il est bon
+  de vérifier le résultat par le calcul.
+#endif
+#if defined TARGET_fusee2
+  Il faut résoudre \(g(x) = 0) et pour cela te ramener à \((x - \Xs )^2 = K).
+#endif
+}
+\if{\step=4}{
+<ul class="wims_nopuce">
+<li>L'expression de la fonction peut être donnée sous la forme canonique \(a) *(x - \(k) )^2+ \(c)
+en déterminant les nombres \(a), \(k) et \(c)</li>
+<li>ou sous la forme développée \(a) *x^2+ \(b) *x+ \(c) en déterminant les nombres \(a),
+\(b) et \(c).</li></ul>
+\t2
+}
+}
+\solution{
+#if defined TARGET_fusee1
+\draw{500,400}{\graph2}<br> puis<br>\draw{500,400}{\graph3}
+#endif
+#if defined TARGET_fusee2
+<table class="wimscenter"><tr>
+<td>\draw{500,400}{\graph2}</td><td>\sol</td>
+</tr></table>
+ puis
+<table class="wimscenter"><tr>
+<td>\draw{500,400}{\graph3}</td><td>\sol2</td>
+</tr></table>
+#endif
+}

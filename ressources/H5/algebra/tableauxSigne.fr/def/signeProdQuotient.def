@@ -1,0 +1,506 @@
+!set title=Signe d'une fonction produit ou quotient
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=89
+prevarcnt=83
+postvarcnt=5
+replycnt=17
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Erreur
+val8=Vous avez marqué YYYY comme valeur interdite du quotient \(f(x)\).	  Rappelons qu'une valeur interdite est un nombre qui annule le <strong>dénominateur</strong>	du quotient. Or ici YYYY annule le <strong>numérateur</strong> de \(f(x)\).
+tmp=!trim On réécrit, sous forme d'un quotient pour en étudier le signe	 Vous avez mal ordonné les valeurs dans la première ligne du tableau.
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Vous avez fait une erreur sur la valeur interdite VVVV :	  toute valeur qui annule le dénominateur de \(f(x)\)	  est une "valeur interdite" ; dans la ligne du quotient	  on la signale par une double-barre.
+val11=Vous avez marqué XXXX comme valeur interdite du quotient \(f(x)\).	  Rappelons qu'une valeur interdite est un nombre qui annule le	  <strong>dénominateur</strong> du quotient. Or ici XXXX annule	  le <strong>numérateur</strong> de \(f(x)\).
+val12=Vous avez marqué YYYY comme valeur interdite du quotient \(f(x)\).	  Rappelons qu'une valeur interdite est un nombre qui annule le	  <strong>dénominateur</strong> du quotient. Or ici YYYY annule le	  <strong>numérateur</strong> de \(f(x)\).
+val13=Le binôme \(a x + b\) s'annule en \(x_0=-\frac{b}{a}\) et change de signe en \(x_0\).	  Il est du signe de \(a\) lorsque \(x > x_0\).
+val14=Lorsque \(a x + b\) est en facteur au dénominateur de \(f(x)\)	  alors \(-\frac{b}{a}) est une valeur interdite de \(f(x)\)
+val15=Construire le tableau de signes de la fonction \(f\) définie
+val16=pour tout \(x\) réel tel que
+val17=par
+val18=sur
+val15=Construire le tableau de signes de la fonction \(f\) définie
+val16=pour tout \(x\) réel tel que
+val17=par
+val18=sur
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+val2= 3
+!else
+val2=$val2
+!endif
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val19=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val20=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val21=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val22=$[rint((-1)^$(tmp0)*$(tmp1))]
+t_=!rawmath -($val20)/($val19)
+val23=!exec pari print($t_)
+
+!ifval (-($val22)/($val21)=$val23)
+val22=$[rint(-$val22)]
+!endif
+t_=!rawmath -($val22)/($val21)
+val24=!exec pari print($t_)
+val25=!rawmath $val19*x + $val20
+
+!ifval $val19==1
+val25=!rawmath x + $val20
+!endif
+
+!ifval $val19==-1
+val25=!rawmath -x + $val20
+!endif
+val26=!rawmath $val21*x + $val22
+
+!ifval $val21==1
+val26=!rawmath x + $val22
+!endif
+
+!ifval $val21==-1
+val26=!rawmath -x + $val22
+!endif
+!if $val2=3 
+tmp0=!randitem 1,2
+
+val27=$[rint($(tmp0))]
+!else
+val27=$[rint($val2)]
+!endif
+val28=P,Q
+tmp0=!item $val27 of $val28
+
+val29=$(tmp0)
+val30=($val25)($val26),($val25)/($val26)
+tmp0=!item $val27 of $val30
+
+val31=!rawmath $(tmp0)
+t_=!rawmath $val24
+val32=!exec pari print($t_)
+
+!ifval $val23<$val24
+val33=$[rint(1)]
+!else
+val33=$[rint(2)]
+!endif
+
+!ifval $val33==1
+t_=!rawmath $val23
+val34=!exec pari print($t_)
+!else
+t_=!rawmath $val24
+val34=!exec pari print($t_)
+!endif
+
+!ifval $val33==1
+t_=!rawmath $val24
+val35=!exec pari print($t_)
+!else
+t_=!rawmath $val23
+val35=!exec pari print($t_)
+!endif
+evaltmp=$val25
+
+evaltmp=!mathsubst x=($val34-1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val36=!exec pari print($t_)
+evaltmp=$val25
+
+evaltmp=!mathsubst x=(($val34+$val35)/2) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val37=!exec pari print($t_)
+evaltmp=$val25
+
+evaltmp=!mathsubst x=($val35+1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val38=!exec pari print($t_)
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val34-1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val39=!exec pari print($t_)
+evaltmp=$val26
+
+evaltmp=!mathsubst x=(($val34+$val35)/2) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val40=!exec pari print($t_)
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val35+1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val41=!exec pari print($t_)
+val42=+,-
+val43=0,||,|
+val44=+,-
+val45=0,||,|
+val46=+,-
+val47=+,-
+val48=0,||,|
+val49=+,-
+val50=0,||,|
+val51=+,-
+val52=+,-
+val53=0,||,|
+val54=+,-
+val55=0,||,|
+val56=+,-
+t_=!rawmath $val34
+val57=!exec pari print($t_)
+t_=!rawmath $val35
+val58=!exec pari print($t_)
+
+!ifval $val36>0
+val59=1
+!else
+val59=2
+!endif
+
+!ifval $val34==$val23
+val60=1
+!else
+val60=3
+!endif
+
+!ifval $val37>0
+val61=1
+!else
+val61=2
+!endif
+
+!ifval $val35==$val23
+val62=1
+!else
+val62=3
+!endif
+
+!ifval $val38>0
+val63=1
+!else
+val63=2
+!endif
+
+!ifval $val39>0
+val64=1
+!else
+val64=2
+!endif
+
+!ifval $val34==$val24
+val65=1
+!else
+val65=3
+!endif
+
+!ifval $val40>0
+val66=1
+!else
+val66=2
+!endif
+
+!ifval $val35==$val24
+val67=1
+!else
+val67=3
+!endif
+
+!ifval $val41>0
+val68=1
+!else
+val68=2
+!endif
+
+!ifval $val59*$val64==2
+val69=2
+!else
+val69=1
+!endif
+
+!ifval $val27==2 and $val34==$val32
+val70=2
+!else
+val70=1
+!endif
+
+!ifval $val61*$val66==2
+val71=2
+!else
+val71=1
+!endif
+
+!ifval $val27==2 and $val35==$val32
+val72=2
+!else
+val72=1
+!endif
+
+!ifval $val63*$val68==2
+val73=2
+!else
+val73=1
+!endif
+tmp0=!replace internal YYYY by $val35 in $val12
+
+val74=$(tmp0)
+tmp0=!replace internal VVVV by $val32 in $val10
+
+val75=$(tmp0)
+tmp0=!replace internal XXXX by $val34 in $val11
+
+val76=$(tmp0)
+tmp0=!replace internal YYYY by $val35 in $val12
+
+val77=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val57
+replytype2=numexp
+replyname2=
+replygood2=$val58
+replytype3=menu
+replyname3=
+replygood3=$val59 ; $val42
+replytype4=menu
+replyname4=
+replygood4=$val60 ; $val43
+replytype5=menu
+replyname5=
+replygood5=$val61 ; $val44
+replytype6=menu
+replyname6=
+replygood6=$val62 ; $val45
+replytype7=menu
+replyname7=
+replygood7=$val63 ; $val46
+replytype8=menu
+replyname8=
+replygood8=$val64 ; $val47
+replytype9=menu
+replyname9=
+replygood9=$val65 ; $val48
+replytype10=menu
+replyname10=
+replygood10=$val66 ; $val49
+replytype11=menu
+replyname11=
+replygood11=$val67 ; $val50
+replytype12=menu
+replyname12=
+replygood12=$val68 ; $val51
+replytype13=menu
+replyname13=
+replygood13=$val69 ; $val52
+replytype14=menu
+replyname14=
+replygood14=$val70 ; $val53
+replytype15=menu
+replyname15=
+replygood15=$val71 ; $val54
+replytype16=menu
+replyname16=
+replygood16=$val72 ; $val55
+replytype17=menu
+replyname17=
+replygood17=$val73 ; $val56
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <p>$val13</p><p>$val14</p>
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="monenonce">		  <p>$val15	  
+!if $val27==1 
+$()$val18 
+!insmath \,\RR
+$()  
+!else
+$() , $val16 
+!insmath x\neq$val32
+$(),  
+!endif
+$() $val17 
+!insmath f(x) = $val31
+$().	  </p>		  </div>	<div class="center">	<table class="wimsborder">	<tr>	<td style="width:20%;text-align:center">
+!insmath x
+$()</td>	<td style="width:20%;text-align:left">
+!insmath -\infty
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply1,3 
+$()</td>	<td style="text-align:center"></td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply2,3 
+$()</td>	<td style="width:20%;text-align:right">
+!insmath +\infty
+$()</td>	</tr><tr>	<td style="text-align:center"> 
+!insmath $val25
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply3 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply4 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply5 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply6 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply7 
+$()</td>	</tr><tr>	<td style="text-align:center">
+!insmath $val26
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply8 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply9 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply10 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply11 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply12 
+$()</td>	</tr><tr>	<td style="text-align:center">
+!insmath f(x)
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply13 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply14 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply15 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply16 
+$()</td>	<td style="text-align:center"> 
+!read oef/embed.phtml reply17 
+$()</td>	</tr>	</table>	</div>	
+$()
+!exit
+
+:hint
+$()<p>$val13</p><p>$val14</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $m_reply1>$m_reply2
+val78=$[rint(1)]
+!else
+val78=$[rint(0)]
+!endif
+
+!ifval ($val27==2 and $val78==0 and $val34=$val32 and $m_reply14 notsametext ||)
+val79=$[rint(1)]
+!else
+val79=$[rint(0)]
+!endif
+
+!ifval ($val27==2 and $val78==0 and $val35=$val32 and $m_reply16 notsametext ||)
+val79=$[rint(1)]
+!endif
+
+!ifval ($val27==2 and $val78==0 and $val34!=$val32 and $m_reply14 issametext ||)
+val80=$[rint(1)]
+!else
+val80=$[rint(0)]
+!endif
+
+!ifval ($val27==2 and $val78==0 and $val35!=$val32 and $m_reply16 issametext ||)
+val80=$[rint(2)]
+!endif
+
+!exit
+
+:feedback
+!ifval $val78==1
+ <div class='oef_feedbacks'><div class="macorrection enrouge">$val9</div
+$()</div>
+!endif
+!ifval $val79==1
+ <div class='oef_feedbacks'><div class="macorrection enrouge">$val10</div>
+$()</div>
+!endif
+!ifval $val80==1
+ <div class='oef_feedbacks'><div class="macorrection enrouge">$val76</div>
+$()</div>
+!endif
+!ifval $val80==2
+ <div class='oef_feedbacks'><div class="macorrection enrouge">$val74</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,13,14,15,16,17,18,25,26,27,31,32,34,35,74,76
+embedcnt=17

@@ -1,0 +1,479 @@
+!set title=Inéquation avec quotient
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=98
+prevarcnt=96
+postvarcnt=1
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Résoudre algébriquement sur \(\RR\;\) l'inéquation (1)
+val8=avec
+val9=L'inéquation (1) équivaut à l'inéquation suivante 
+val10=On a montré que résoudre (1) équivaut à résoudre l'inéquation (2)
+val11=et
+val12=Numérateur dans l'inéquation (2)
+val13=les binômes du premier degré suivants
+val14=On étudie le signe du quotient XXXX en fonction de \(x\).	  On obtient le tableau suivant
+val15=D'après le tableau de signe, l'ensemble des solutions de (1) et (2) est
+val16=On définit les ensembles suivants
+val17=Vous vous êtes trompés dans l'expression du numérateur de l'inéquation (2).
+val18=Reprenez attentivement les calculs et cherchez votre erreur.	 Avez-vous travaillé avec une inégalité dans le même sens que celui imposé par l'énoncé ;	  avez-vous correctement réduit au même dénominateur, avez-vous correctement distribué	  les signes dans une somme, etc
+tmp0=!randint 1, 2
+
+val19=$[rint($(tmp0))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val20=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val21=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val22=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val23=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val24=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randitem 0,1
+
+tmp1=!randint 1, 10
+
+val25=$[rint((-1)^$(tmp0)*$(tmp1))]
+tmp0=!randint 1, 2
+
+val19=$[rint($(tmp0))]
+val26=!rawmath $val20 *x + $val21
+
+!ifval $val20==1
+val26=!rawmath x + $val21
+!endif
+
+!ifval $val20==-1
+val26=!rawmath -x + $val21
+!endif
+val27=!rawmath $val22 *x + $val23
+
+!ifval $val22==1
+val27=!rawmath x + $val23
+!endif
+
+!ifval $val22==-1
+val27=!rawmath -x + $val23
+!endif
+val28=<,>,\leq,\geq
+tmp0=!shuffle $val28
+
+tmp1=!item 1 of $(tmp0)
+
+val29=$(tmp1)
+val30=!rawmath $val25/($val27)
+val31=!rawmath $val24/($val26)
+val32=\($val24 $val29) \($val30), \($val31) \($val29 $val25)
+tmp0=!item $val19 of $val32
+
+val33=!rawmath $(tmp0)
+val34=($val24*($val27)-$val25),($val24-$val25*($val26))
+val35=$val27,$val26
+tmp0=!item $val19 of $val34
+
+t_=!replace internal \( by ( in expand($(tmp0))
+tmp1=!exec maxima $t_
+
+val36=!rawmath $(tmp1)
+tmp0=!item $val19 of $val35
+
+val37=!rawmath $(tmp0)
+val38=!rawmath ($val36)/($val37)
+t_=!replace internal \( by ( in polcoeff($val36,1)
+tmp0=!exec pari $t_
+
+val39=$[rint($(tmp0))]
+t_=!replace internal \( by ( in polcoeff($val36,0)
+tmp0=!exec pari $t_
+
+val40=$[rint($(tmp0))]
+t_=!rawmath -$val40/$val39
+val41=!exec pari print($t_)
+
+!ifval $val19==1
+t_=!rawmath -$val23/$val22
+val42=!exec pari print($t_)
+!endif
+
+!ifval $val19==2
+t_=!rawmath -$val21/$val20
+val42=!exec pari print($t_)
+!endif
+
+!ifval $val41<$val42
+val43=$[rint(1)]
+!else
+val43=$[rint(2)]
+!endif
+
+!ifval $val43==1
+t_=!rawmath $val41
+val44=!exec pari print($t_)
+!else
+t_=!rawmath $val42
+val44=!exec pari print($t_)
+!endif
+
+!ifval $val43==1
+t_=!rawmath $val42
+val45=!exec pari print($t_)
+!else
+t_=!rawmath $val41
+val45=!exec pari print($t_)
+!endif
+t_=!rawmath ($val44+$val45)/2
+val46=!exec pari print($t_)
+evaltmp=$val36
+
+evaltmp=!mathsubst x=($val44-1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val47=!exec pari print($t_)
+evaltmp=$val36
+
+evaltmp=!mathsubst x=($val46) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val48=!exec pari print($t_)
+evaltmp=$val36
+
+evaltmp=!mathsubst x=($val45+1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val49=!exec pari print($t_)
+evaltmp=$val37
+
+evaltmp=!mathsubst x=($val44-1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val50=!exec pari print($t_)
+evaltmp=$val37
+
+evaltmp=!mathsubst x=($val46) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val51=!exec pari print($t_)
+evaltmp=$val37
+
+evaltmp=!mathsubst x=($val45+1) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val52=!exec pari print($t_)
+t_=!rawmath $val44
+val53=!exec pari print($t_)
+t_=!rawmath $val45
+val54=!exec pari print($t_)
+
+!ifval $val47>0
+val55=+
+!else
+val55=-
+!endif
+
+!ifval $val44==$val41
+val56=0
+!else
+val56=
+!endif
+
+!ifval $val48>0
+val57=+
+!else
+val57=-
+!endif
+
+!ifval $val45==$val41
+val58=0
+!else
+val58=
+!endif
+
+!ifval $val49>0
+val59=+
+!else
+val59=-
+!endif
+
+!ifval $val50>0
+val60=+
+!else
+val60=-
+!endif
+
+!ifval $val44==$val42
+val61=0
+!else
+val61=
+!endif
+
+!ifval $val51>0
+val62=+
+!else
+val62=-
+!endif
+
+!ifval $val45==$val42
+val63=0
+!else
+val63=
+!endif
+
+!ifval $val52>0
+val64=+
+!else
+val64=-
+!endif
+
+!ifval $val55 issametext $val60
+val65=+
+!else
+val65=-
+!endif
+
+!ifval $val44==$val42
+val66=db
+!else
+val66=0
+!endif
+
+!ifval $val57 issametext $val62
+val67=+
+!else
+val67=-
+!endif
+
+!ifval $val45==$val42
+val68=db
+!else
+val68=0
+!endif
+
+!ifval $val59 issametext $val64
+val69=+
+!else
+val69=-
+!endif
+!readproc slib/function/tabsignes [x,-Inf,,$val44,,$val45,,+Inf;$val36,,$val55,$val56,$val57,$val58,$val59; $val37,,$val60,$val61,$val62,$val63,$val64;f(x),,$val65,$val66,$val67,$val68,$val69] 
+tmp0=$slib_out
+val70=$(tmp0)
+val71=<table class="wimsborder">	<tr>	<th style="width:15%">\(x)</th>	<td style="width:25%;text-align:left">\(-\infty)</td>	<td style="width:5%">$val44</td>	<td style="width:25%;text-align:right"></td>	<td style="width:5%">$val45</td>	<td style="width:25%;text-align:right">\(+\infty)</td>	</tr><tr>	<th>\($val36)</th>	<td>$val55</td>	<td>$val56</td>	<td>$val57</td>	<td>$val58</td>	<td>$val59</td>	</tr><tr>	<th>\($val37)</th>	<td>$val60</td>	<td>$val61</td>	<td>$val62</td>	<td>$val63</td>	<td>$val64</td>	</tr><tr>	<th>\(f(x))</th>	<td>$val65</td>	<td>$val66</td>	<td>$val67</td>	<td>$val68</td>	<td>$val69</td>	</tr>	</table>
+val72=&#93; -&#8734; &#44;$val44 &#91; 
+val73=&#93; -&#8734; &#44;$val44 &#93; 
+val74=&#91; $val45 &#44; +&#8734; &#91; 
+val75=&#93; $val45 &#44; +&#8734; &#91; 
+val76=$val72 \(\cup) $val74
+val77=$val72 \(\cup) $val75 
+val78=$val73 \(\cup) $val74
+val79=$val73 \(\cup) $val75 
+val80=&#91; $val44 &#44; $val45 &#91; 
+val81=&#91; $val44 &#44; $val45 &#93; 
+val82=&#93; $val44 &#44; $val45 &#91; 
+val83=&#93; $val44 &#44; $val45 &#93; 
+val84=<i>S</i><sub>1</sub>,<i>S</i><sub>2</sub>,	<i>S</i><sub>3</sub>,<i>S</i><sub>4</sub>, <i>S</i><sub>5</sub>,<i>S</i><sub>6</sub>,	<i>S</i><sub>7</sub>,<i>S</i><sub>8</sub>
+
+!ifval ($val29 issametext < and $val67 issametext -) or	($val29 issametext > and $val67 issametext +)
+val85=7
+!endif
+
+!ifval ($val29 issametext > and $val65 issametext +) or	($val29 issametext < and $val65 issametext -)
+val85=2
+!endif
+
+!ifval ($val29 issametext \leq and $val65 issametext - and $val44==$val42)
+val85= 1
+!endif
+
+!ifval ($val29 issametext \leq and $val65 issametext - and $val44!=$val42)
+val85= 4
+!endif
+
+!ifval ($val29 issametext \leq and $val67 issametext - and $val44==$val42)
+val85= 8
+!endif
+
+!ifval ($val29 issametext \leq and $val67 issametext - and $val44!=$val42)
+val85= 5
+!endif
+
+!ifval ($val29 issametext \geq and $val65 issametext + and $val44==$val42)
+val85= 1
+!endif
+
+!ifval ($val29 issametext \geq and $val65 issametext + and $val44!=$val42)
+val85= 4
+!endif
+
+!ifval ($val29 issametext \geq and $val67 issametext + and $val44==$val42)
+val85= 8
+!endif
+
+!ifval ($val29 issametext \geq and $val67 issametext + and $val44!=$val42)
+val85= 5
+!endif
+tmp0=!replace internal XXXX by \(f(x) = $val38 \) in $val14
+
+val86=$(tmp0)
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=algexp
+replyoption1=nonstop 
+replyname1=$val12
+replygood1=$val36
+replytype2=radio
+replyoption2=nonstop 
+replyname2=
+replygood2=$val85 ; $val84
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	$val7: $val33.	</div>	<ol><li>	
+!if $m_step==1 
+$()	$val9 
+!insmath \frac{u(x)}{v(x)} $val29 0
+$() $val8 
+!insmath u(x)
+$() $val11 
+!insmath v(x)
+$()	$val13:	<div class="wimscenter">
+!insmath u(x)
+$() =  
+!read oef/embed.phtml reply1, 12 
+$() $val11 
+!insmath  v(x)
+$() = 
+!insmath $val37
+$().</div> 
+!else
+$()	 $val10 : 
+!insmath $val38
+$()
+!insmath $val29 0 
+$(). 
+!endif
+$()	</li>	
+!if $m_step==2 
+$()<li>$val86	<div class="wimscenter">$val71</div>	</li>	 
+!endif
+$()	
+!if $m_step==2 
+$()<li> $val16:	<ul class="wims_nopuce">	<li>
+!insmath S_1
+$() = $val76</li>	<li>
+!insmath S_2
+$() = $val77</li>	<li>
+!insmath S_3
+$() = $val78</li>	<li>
+!insmath S_4
+$() = $val79</li>	<li>
+!insmath S_5
+$() = $val80</li>	<li>
+!insmath S_6
+$() = $val81</li>	<li>
+!insmath S_7
+$() = $val82</li>	<li>
+!insmath S_8
+$() = $val83</li></ul>	$val15:	<div class="wimscenter"> 
+!read oef/embed.phtml reply2 
+$().</div>	</li>	 
+!endif
+$()	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!translate ";': to $     $ in $m_reply1-($val36)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val87=!rawmath $(tmp0)
+
+!exit
+
+:feedback
+!ifval $val87 != 0 
+ <div class='oef_feedbacks'>	  <div><span class="oef_indbad">$val17</span> $val18?</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,13,15,16,17,18,29,33,36,37,38,71,76,77,78,79,80,81,82,83,86
+embedcnt=2

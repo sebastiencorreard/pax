@@ -1,0 +1,93 @@
+!set title=Le prix Hors Taxe
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+precision=100
+
+ansorder=r
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1000, 3000
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 50
+
+val7=$[rint($(tmp0))]
+t_=!rawmath 1+$val7/100
+val8=!exec pari print($t_)
+t_=!rawmath $val6*$val8
+val9=!exec pari print($t_)
+val9=$[rint($val9)]
+val10=Puisqu'il s'agit d'une augmentation, on utilise la formule:	  \(HT = \frac{TTC}{1 + \frac{p}{100}})
+replytype1=numeric
+replyname1=av
+replygood1=$[$val6]
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val10
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Le prix TTC d'un objet est $val9 euros, sachant que la Taxe est de $val7 % sur le prix Hors Taxe,	</p>	<label for="reply1">Quel était son prix Hors Taxe ?</label>		<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$() euros.</div>	<div class="wims_instruction">Arrondir à l'euro</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val10
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10
+embedcnt=1

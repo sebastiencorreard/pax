@@ -1,0 +1,114 @@
+\title{Deux urnes}
+\author{Cyrille,Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+
+\integer{n1=randitem(2,2,3,3)}##Nombre de couleurs urne 1##
+\integer{n2=(\n1=2)? randitem(3,3,3,4):randitem(2,2,3,3)}##Nombre de couleurs urne 2##
+\integer{eprident=0}##épreuves identiques##
+
+##Couleurs des boules##
+\text{listecouleurs=blanche,noire,jaune,verte,rouge,bleue,grise}
+\text{listecouleurs=wims(shuffle(\listecouleurs))}
+\text{coul1=\listecouleurs[1..\n1]}
+\integer{ident=(\n1*\n2<10)? 2:3}##couleurs identiques##
+\text{coul2=\coul1[1..\ident],\listecouleurs[(\n1+1)..7]}
+\text{coul2=\coul2[1..\n2]}
+
+##Répartition des boules##
+\matrix{mini=1
+0.25
+0.2,0.25
+0.2,0.15,0.15
+0.15,0.1,0.1,0.1}##pourcentage de boules minimum (i boules pour la ligne i, dernier % inutile)##
+\matrix{maxi=1
+0.7
+0.45,0.4
+0.35,0.3,0.25
+0.25,0.2,0.2,0.2}
+\integer{N1=randitem(10,20,25,40,50)}##Nombre de boules urne 1##
+\integer{cumul1=randint((\mini[\n1;1]*\N1)..(\maxi[\n1;1]*\N1))}##Somme des effectifs##
+\text{repart1=\cumul1}##Les effectifs des couleurs de l'urne 1##
+\text{descr1=(\cumul1=1)? \cumul1 boule \coul1[1]:\cumul1 boules \coul1[1]s}##Composition urne 1##
+\for{i=2 to (\n1-1)}{
+\integer{eff1=randint((\mini[\n1;\i]*\N1)..(\maxi[\n1;\i]*\N1))}
+\integer{cumul1=\cumul1+\eff1}
+\text{repart1=\repart1,\eff1}
+\text{descr1=(\eff1=1)? \descr1, \eff1 boule \coul1[\i]:\descr1, \eff1 boules \coul1[\i]s}
+}
+\integer{eff1=\N1-\cumul1}
+\text{repart1=\repart1,\eff1}
+\text{descr1=(\eff1=1)? \descr1 et \eff1 boule \coul1[\n1]:\descr1 et \eff1 boules \coul1[\n1]s}
+
+\integer{N2=randitem(10,20,25,40,50)}##Nombre de boules urne 2##
+\integer{cumul2=randint((\mini[\n2;1]*\N2)..(\maxi[\n2;1]*\N2))}
+\text{repart2=\cumul2}
+\text{descr2=(\cumul2=1)? \cumul2 boule \coul2[1]:\cumul2 boules \coul2[1]s}
+\for{i=2 to (\n2-1)}{
+\integer{eff2=randint((\mini[\n2;\i]*\N2)..(\maxi[\n2;\i]*\N2))}
+\integer{cumul2=\cumul2+\eff2}
+\text{repart2=\repart2,\eff2}
+\text{descr2=(\eff2=1)? \descr2, \eff2 boule \coul2[\i]:\descr2, \eff2 boules \coul2[\i]s}
+}
+\integer{eff2=\N2-\cumul2}
+\text{repart2=\repart2,\eff2}
+\text{descr2=(\eff2=1)? \descr2 et \eff2 boule \coul2[\n2]:\descr2 et \eff2 boules \coul2[\n2]s}
+
+##Cas épreuves identiques##
+\if{\eprident=1}{\text{coul2=\coul1}
+\integer{n2=\n1}
+\text{repart2=\repart1}
+\text{descr2=\descr1}
+}
+
+##Paramètres questions##
+\integer{q1=randitem(1,2)}
+\integer{q2=3-\q1}##(q1,q2)=(1,2) ou (2,1)##
+
+##Réponses##
+\rational{rep1=(\repart1[\q1]/\N1)*(\repart2[\q1]/\N2)}
+\rational{rep2=(\n1*\n2<13)? (\repart1[1]/\N1)*(\repart2[1]/\N2)+(\repart1[2]/\N1)*(\repart2[2]/\N2):(\repart1[1]/\N1)*(\repart2[1]/\N2)+(\repart1[2]/\N1)*(\repart2[2]/\N2)+(\repart1[3]/\N1)*(\repart2[3]/\N2)}
+\rational{rep3=1-\rep2}
+\rational{rep4=\repart1[\q2]/\N1+((\N1-\repart1[\q2])/\N1)*(\repart2[\q2]/\N2)}
+
+\statement{L'urne 1 contient \descr1 indiscernables au toucher.<br>
+L'urne 2 contient \descr2 indiscernables au toucher. <br>
+On tire successivement une boule dans l'urne 1 puis une boule dans l'urne 2 et on relève les couleurs obtenues.
+<div class="wims_question">Calculer les probabilités suivantes.</div>
+<ol><li>La probabilité d'avoir 2 boules \coul1[\q1]s est \embed{reply1,6}</li>
+<li>La probabilité d'avoir 2 boules de la même couleur est \embed{reply2,6}</li>
+<li>La probabilité d'avoir 2 boules de couleurs différentes est \embed{reply3,6}</li>
+<li>La probabilité d'avoir au moins une boule \coul1[\q2] est \embed{reply4,6}</li></ol>
+
+}
+\hint{Il est recommandé de dessiner un arbre pondéré représentant la situation.}
+
+\answer{}{\rep1}{type=formal}
+\answer{}{\rep2}{type=formal}
+\answer{}{\rep3}{type=formal}
+\answer{}{\rep4}{type=formal}
+
+\solution{Il y a \N1 boules dans l'urne 1 et \N2 boules dans l'urne 2. Dans la suite, on note une issue (noire,blanche) pour désigner un tirage où la première boule tirée est noire et la seconde boule tirée est blanche.
+<ol><li>La probabilité d'avoir 2 boules \coul1[\q1]s est \(\frac{\repart1[\q1]}{\N1} \times \frac{\repart2[\q1]}{\N2}=\rep1).</li>
+<li>L'événement "avoir 2 boules de la même couleur" est formé des issues (\coul1[1],\coul2[1]) de probabilité
+\(\frac{\repart1[1]}{\N1} \times \frac{\repart2[1]}{\N2})\if{\n1*\n2<13}{ et}{,} (\coul1[2],\coul2[2]) de probabilité
+\(\frac{\repart1[2]}{\N1} \times \frac{\repart2[2]}{\N2})\if{\n1*\n2>=13}{et (\coul1[3],\coul2[3]) de probabilité
+\(\frac{\repart1[3]}{\N1} \times \frac{\repart2[3]}{\N2}) } donc sa probabilité est \(\frac{\repart1[1]}{\N1} \times \frac{\repart2[1]}{\N2}+\frac{\repart1[2]}{\N1} \times \frac{\repart2[2]}{\N2})
+\if{\n1*\n2>=13}{\(+\frac{\repart1[3]}{\N1} \times \frac{\repart2[3]}{\N2})}\(=\rep2).</li>
+<li>L'événement "avoir 2 boules de couleurs différentes" est l'événement contraire de l'événement "avoir 2 boules de la même couleur"
+donc sa probabilité est \(1-\rep2=\rep3).</li>
+<li>L'événement "avoir au moins une boule \coul1[\q2]" est formé des issues 
+(\coul1[\q2],\coul2[1]) de probabilité \(\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[1]}{\N2}), 
+(\coul1[\q2],\coul2[2]) de probabilité \(\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[2]}{\N2})
+\if{\n2>=3}{, (\coul1[\q2],\coul2[3]) de probabilité \(\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[3]}{\N2})}
+\if{\n2>=4}{, (\coul1[\q2],\coul2[4]) de probabilité \(\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[4]}{\N2})}
+\if{\n1=2}{et}{, }(\coul1[\q1],\coul2[\q2]) de probabilité \(\frac{\repart1[\q1]}{\N1} \times \frac{\repart2[\q2]}{\N2})
+\if{\n1=3}{et (\coul1[3],\coul2[\q2]) de probabilité \(\frac{\repart1[3]}{\N1} \times \frac{\repart2[\q2]}{\N2})}
+donc sa probabilité est 
+\(\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[1]}{\N2}+\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[2]}{\N2})
+\if{\n2>=3}{\(+\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[3]}{\N2})}
+\if{\n2>=4}{\(+\frac{\repart1[\q2]}{\N1} \times \frac{\repart2[4]}{\N2})}
+\(+\frac{\repart1[\q1]}{\N1} \times \frac{\repart2[\q2]}{\N2})
+\if{\n1=3}{\(+\frac{\repart1[3]}{\N1} \times \frac{\repart2[\q2]}{\N2})}\(=\rep4).
+
+</li></ol>
+}

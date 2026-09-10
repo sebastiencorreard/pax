@@ -1,0 +1,116 @@
+!set title=Construction d'un angle 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim doit construire un angle,de	  Elle a tracé la demi-droite	  Ensuite, elle a placé un trait en utilisant les graduations du rapporteur pour tracer la deuxième demi-droite.	  Le trait est-il bien placé
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Si , continue sa construction	  elle obtiendra un angle qui aura pour mesure: 
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=oui,non
+tmp0=!randitem 20,30,40,50,60,70,80,110,120,130,140,150,160
+
+val9=$[rint($(tmp0))]
+!readproc oef/draw.phtml 300,200 \
+xrange -15,15	yrange -4,16	copy -15.4,15.2,-1,-1,-1,-1,rapporteurperso6.jpg	linewidth 2	segment cos($val9*pi/180)*13.5,sin($val9*pi/180)*13.5,cos($val9*pi/180)*14.5,sin($val9*pi/180)*14.5,blue	segments blue,0,0,-15,0,0,-0.2,0,0.2	text blue,0.5,2,medium,A	text blue,-15,1.5,medium,x 
+tmp0=$ins_url
+val10=$(tmp0)
+!readproc oef/draw.phtml 300,200 \
+xrange -15,15	yrange -4,16	copy -15.4,15.2,-1,-1,-1,-1,rapporteurperso6.jpg	linewidth 2	segment cos($val9*pi/180)*13.5,sin($val9*pi/180)*13.5,cos($val9*pi/180)*14.5,sin($val9*pi/180)*14.5,blue	segments blue, 0,0,15,0,0,-0.2,0,0.2	text blue,-0.5,2,medium,A	text blue,14.2,1.5,medium,x 
+tmp0=$ins_url
+val11=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val12=$(tmp0)
+val13=<img src="$val10" alt="">,<img src="$val11" alt="">
+tmp0=!randint 1, 2
+
+val14=$[rint($(tmp0))]
+!if $val14=1 
+val15=$[rint(180-$val9)]
+!else
+val15=$[rint($val9)]
+!endif
+val16=$[rint(180-$val15)]
+replytype1=menu
+replyname1=
+replygood1=2;$val8
+replytype2=raw
+replyname2=
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12 $(val6[1;1]) 
+!insmath \widehat{xAy}
+$() $(val6[1;2]) $val16 °.	<ul class="wims_nopuce">	<li>$(val6[2;]) &#91;Ax&#41;.	</li><li>	$(val6[3;])	</li></ul>	<div class="wimscenter">$(val13[$val14])</div>	$(val6[4;])? :  
+!read oef/embed.phtml r1 
+$().	<div class="spacer">	$(val7[1;1]) $val12 $(val7[1;2]),	<label for="reply2">$(val7[2;])</label>:  
+!read oef/embed.phtml r2,3 
+$()°	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,12,13,14,16
+embedcnt=2

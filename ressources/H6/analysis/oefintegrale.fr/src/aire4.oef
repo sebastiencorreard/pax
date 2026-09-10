@@ -1,0 +1,125 @@
+\title{Calcul d'aire (avec exp)}
+\language{fr}
+\range{-5..5}
+\author{Chantal,Causse}
+\email{Chantal.Causse@noos.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+droite (axe des abscisses si choix = 0, autre sinon)
+\integer{choix = random(0,1)}
+\integer{aa=\choix*randint(1..4)*random(-1,1)}
+\integer{bb=\choix*randint(1..4)*random(-1,1)}
+
+bornes de l'intervalle
+\integer{a = randint(-2..2)}
+\integer{b = \a+ randint(1..3)}
+
+fonction
+\integer{signe = random(-1,1)}
+
+\integer{c=random(1..3)*random(-1,1)}
+\integer{d=random(1..4)*random(-1,1)}
+
+\function{f = random(
+e^(\c*x),
+e^(x/\c),
+e^(\c*x+\d),
+e^(x/\c+\d),
+e^(\c*x) + \d*random(x,x^2),
+e^(x/\c)+\d*random(x,x^2)
+)}
+Pour que f soit positive
+\text{A=slib(function/bounds \f, x,\a,\b)}
+\integer{min = round(\A[1]) - 1}
+\function{f = \f - \min }
+\function{f = maxima(expand(\f))}
+\text{ft=texmath(\f)}
+
+Pour que la fonction qu'on ajoute à lin soit du signe voulu
+\function{ff = simplify((\f)*\signe)}
+
+\function{lin = pari(\aa*x+\bb)}
+\text{lint=texmath(\lin)}
+\text{droite = item(\choix+1,l'axe des abscisses, la droite d'équation \(y = \lint)) }
+\function{s = maxima(expand((\ff) + (\lin)))}
+\text{st=texmath(\s)}
+
+\function{g=int(\f,x)}
+\function{Ha = maxima(subst(x=\a,\g))}
+\function{Hb = maxima(subst(x=\b,\g))}
+\text{gt=texmath(\g)}
+
+coordonnées d'un point dans le domaine
+\real{xmil = (\a + \b)/2}
+\real{ymil = (maxima(subst(x=\xmil,\s))+maxima(subst(x=\xmil,\lin)))/2}
+
+\real{xmin=\a-0.3}
+\real{xmax=\b+0.3}
+
+\text{B=slib(function/bounds \s, x,\xmin,\xmax)}
+\text{C=slib(function/bounds \lin, x,\xmin,\xmax)}
+
+\text{I=slib(function/integrate \f,x,\a,\b,fast)}
+\text{I = maxima(expand(\I))}
+
+\real{ymin= min(\B[1],\C[1])-1}
+\real{ymax= max(\B[2],\C[2])+1}
+
+
+\text{position= \signe = 1?au dessus:en dessous}
+\text{expl = \signe = 1? (\s) - (\lin) : (\lin) - (\s)}
+
+\feedback{\reply1<0}{Attention, une aire ne peut pas être négative ! }
+
+\statement{
+Déterminer la <em>valeur exacte</em> de l'aire du domaine compris entre la courbe
+  représentative de la fonction \(f) définie par :
+\(f(x)=\s), \droite, et les droites verticales d'équations \(x=\a) et \(x=\b).
+<p>
+La courbe représentative de \(f) est tracée en bleu, et \droite  en rouge ;
+le domaine est colorié en jaune.
+</p>
+Le rectangle noir indique l'unité d'aire.
+<div class="wimscenter">
+\draw{500,300}{
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+
+segment \b,\ymin,\b,\ymax,green
+segment \a,\ymin,\a,\ymax,green
+linewidth 2
+plot blue,\s
+plot red,\lin
+fill \xmil,\ymil,yellow
+textup green,\b,\ymin,medium,x = \b
+textup green,\a,\ymin,medium,x = \a
+
+rect \a,\ymax-1,\a +1,\ymax,black
+}
+</div>
+}
+
+\hint{La courbe de la fonction \(f) est \position de l'axe des abscisses
+sur l'intervalle [\a,\b], donc l'aire cherchée est donnée en unités d'aires par :
+
+<div class="wimscenter">
+\(A=integrate(\expl, x=\a..\b)\).
+</div>
+Il faut commencer par chercher une primitive de \(f) pour enfin calculer l'intégrale.
+}
+
+\answer{Valeur de l'aire (en unités d'aire)}{\I}{type=formal}
+\solution{La courbe de la fonction \(f\) est \position de l'axe des
+abscisses sur [\a,\b], donc l'aire cherchée est donnée en unités d'aires par :
+
+<div class="wimscenter">
+\(A= \signe*integrate(\s,x=\a..\b)\).
+</div>
+ Une primitive de \(x \mapsto f(x) = \ft) est la fonction \(F\) définie par \(F(x) = \gt) avec 
+\(F(\a) = \Ha) et \(F(\b) = \Hb). On obtient donc
+<div class="wimscenter">
+\(A= integrate(\expl,x=\a..\b) = F(\b) - F(\a) = \Hb - (\Ha) = \I\).
+</div>
+}

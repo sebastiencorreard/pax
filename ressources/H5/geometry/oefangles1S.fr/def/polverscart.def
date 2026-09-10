@@ -1,0 +1,149 @@
+!set title=Coordonnées polaires vers cartésiennes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=0
+val8=0
+!else
+val8=\frac{$val6 \pi}{$val7}
+!endif
+tmp0=!randitem 1,-1
+
+val9=$[rint($(tmp0))]
+t_=!rawmath $val9*$val6 / $val7
+val10=!exec pari print($t_)
+!if $val10!=0 
+
+!ifval $val9=-1
+val8=-$val8
+!endif
+!endif
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val12=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val11 / $val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val13=!exec pari print($t_)
+val14=$val13
+tmp0=!replace internal / by , in $val14
+
+val14=$(tmp0)
+tmp0=!itemcnt $val14
+
+
+!ifval $(tmp0)=1
+val15=$(val14[1])
+!else
+val15=\frac{$(val14[1])}{$(val14[2])}
+!endif
+evaltmp=$val13* cos(x*pi)
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val16=$[$(tmp0)]
+evaltmp=$val13* sin(x*pi)
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val17=$[$(tmp0)]
+replyname1=abscisse
+replygood1=$val16
+replyname2=ordonnée
+replygood2=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Déterminer les coordonnées cartésiennes du point 
+!insmath M
+$() de coordonnées polaires:	<div class="wimscenter"> &#91;
+!insmath $val15;$val8
+$()&#93;</div>	 Votre réponse	<div class="wimscenter">abscisse = 
+!read oef/embed.phtml reply 1,10 
+$() <br>	ordonnée = 
+!read oef/embed.phtml reply 2,10 
+$()	</div>	<div class="wims_instruction">	Aide à la saisie: pour saisir une racine carrée, taper	<span class="tt">sqrt(..)</span>, ex pour 
+!insmath \frac{\sqrt(2)}{2}
+$(), taper	<span class="tt">sqrt(2)/2</span>.	</div>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,15
+embedcnt=2

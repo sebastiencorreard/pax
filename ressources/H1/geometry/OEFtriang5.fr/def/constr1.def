@@ -1,0 +1,113 @@
+!set title=Construction (longueur des côtés)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul@byache.fr
+language=fr
+
+ansorder=r
+varcnt=8
+prevarcnt=6
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle 5
+
+val6=$(tmp0)
+val7=$[rint($(val6[2]))]
+val6=$[rint($(val6[1]))]
+
+!ifval $val7<$val6 
+tmp0=!randint $val6-$val7+1, $val6+$val7-1
+
+val8=$[rint( $(tmp0) )]
+!else
+tmp1=!randint $val7-$val6+1, $val6+$val7-1
+
+val8=$[rint( $(tmp1))]
+!endif
+val9=height=400	width=600	showToolBar=true	enableRightClick=true	customToolBar=0|40|1|34|45|16|6	file=blank2.ggb	
+val10=Tracer un triangle dont les longueurs des côtés vérifient	<div class="wimscenter">\( AB = $val8), \(AC = $val7) et \(BC = $val6) </div>
+replytype1=geogebra
+
+replyoption1=output=nocoord extra=yes 
+replyname1=Vérification des longueurs :
+replygood1=n,abs((x_A-x_B)^2+(y_A-y_B)^2-$val8^2)<10^(-5),La longueur AB est-elle égale à $val8 ?;	n,abs((x_A-x_C)^2+(y_A-y_C)^2-$val7^2)<10^(-5),La longueur AC est-elle égale à $val7 ? ;	n,abs((x_C-x_B)^2+(y_C-y_B)^2-$val6^2)<10^(-5),La longueur BC est-elle égale à $val6 ?;	n,abs((x_A-x_B)^2+(y_A-y_B)^2-$val8^2)+abs((x_A-x_C)^2+(y_A-y_C)^2-$val7^2)+abs((x_C-x_B)^2+(y_C-y_B)^2-$val6^2)<4,hiden
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val10		<div class="wimscenter">	 
+!read oef/embed.phtml r1, 600 x 400	$val9 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!trim $m_sc_reply1
+val11=!translate internal $	\
+$ to ;; in $tmp
+
+!exit
+
+:feedback
+!ifval circle notin $m_reply1
+ <div class='oef_feedbacks'><font color=red>Pensez à utiliser des cercles !</font>
+$()</div>
+!endif
+!ifval $(val11[1;1])<>1 and $(val11[2;4])=1
+ <div class='oef_feedbacks'><font color=red>L'un des points doit être à l'intersection de deux cercles.</font>	<br>On ne doit pas pouvoir déplacer ce point, sauf si on déplace les autres points et les cercles.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10
+embedcnt=1

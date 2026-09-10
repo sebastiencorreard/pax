@@ -1,0 +1,119 @@
+!set title=Tableau de nombres 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Ce tableau est-il un tableau de proportionnalité &#63;
+val11=Sur la vitrine d'une boulangerie,voit afficher :
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val12=$(tmp0)
+val13=$val10
+val10=$(val11[1]), $val12 $(val11[2])
+tmp0=!randint 2, 9
+
+val14=$[rint($(tmp0))]
+tmp0=!shuffle 11,12,13,14,15,16,17,18,19
+
+val15=$(tmp0)
+tmp0=!item 1 to 3 of $val15
+
+val15=$(tmp0)
+val16=
+tmp0=!randint 1, 5
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val18=$[rint($(tmp0))]
+!for val19 =1 to 3 
+
+!ifval $val18=1 and $val19=3
+val20=$[rint($(val15[$val19])*$val14+$val17)]
+!else
+val20=$[rint($(val15[$val19])*$val14)]
+!endif
+tmp0=!append item $val20 to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!item $val18 of $val9
+
+val21=$(tmp0)
+choicename1=$val7
+choicegood1=$val21
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10	<table class="wimscenter wimsborder">	 <tr>	  <td>$(val15[1])</td>	  <td>$(val15[2])</td>	  <td>$(val15[3])</td>	 </tr><tr>	  <td >$(val16[1])</td>	  <td >$(val16[2])</td>	  <td >$(val16[3])</td>	 </tr>	 </table>	$val13
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,13,15,16
+embedcnt=0

@@ -1,0 +1,177 @@
+!set title=Dérivée d'une composée u(a x + b)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+title_en=Derivative of a combined function \(u(a x + b)\)
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Dérivée
+val8=Écrire
+val9=pour
+val10=L'expression de la dérivée est
+val11=Calculer la dérivée de la fonction \(f\) définie sur, par
+val12=Soit \(f\) la composée de la fonction affine \(x\mapsto a x+b\)	  suivie de la fonction \(u\). <br> Si, lorsque \(x\) varie dans l'intervalle \(I\)	  les valeurs \(a x+b\) varient dans un intervalle \(J\) où la fonction \(u\) est dérivable, alors \(f\) est dérivable	  sur \(I\) et \(f'(x) = a u'(a x+b) \). 
+!if $val6=en 
+val7=Derivative
+val8=Write
+val9=for
+val10=The derivative is
+val11=Calculate the derivative of the function \(f\) defined in, by
+val12=Let \(f\) be the composite of the affine function \(x\mapsto a x+b\)	  and of the function \(u\). <br> If, when \(x\) varies in the interval \(I\)	  the values \(a x+b\) vary in an interval \(J\) where the function \(u\) is differentiable,	  then \(f\) is differentiable on \(I\) and \(f'(x) = a u'(a x+b)\).
+!endif
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+val16=!rawmath $val13*x+$val14
+t_=!rawmath -$val14/$val13
+val17=!exec pari print($t_)
+tmp0=!randitem 2,3
+
+tmp1=!randitem 2,3
+
+val18=!rawmath sqrt($val16),	 $val15/($val16),	 $val15*($val16)^$(tmp0),	 ($val16)^$(tmp1)+$val15,	
+tmp0=!randint 1, 4
+
+val19=$[rint($(tmp0))]
+tmp0=!item $val19 of $val18
+
+val20=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val20,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val21=!rawmath $(tmp0)
+val22=&#8734;
+
+!ifval $val19==1 and $val13>0
+val23=\($val17)
+!endif
+
+!ifval $val19==1 and $val13>0
+val24=+$val22
+!endif
+
+!ifval $val19==1 and $val13<0
+val24=\($val17)
+!endif
+
+!ifval $val19==1 and $val13<0
+val23=-$val22
+!endif
+
+!ifval $val19==1
+val25=&#93; $val23 &#44; $val24 &#91;
+!endif
+
+!ifval $val19==2
+val25= \(\RR \setminus \{$val17\}\)
+!endif
+
+!ifval $val19>2
+val25= \(\, \RR\) 
+!endif
+replytype1=formal
+replyname1=name_answer \(f'(x)\)
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val12
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	$(val11[1]) $val25 $(val11[2]) 
+!insmath f(x) = $val20 
+$() :	<div class="wimscenter"> 
+!insmath f'(x)
+$() =  
+!read oef/embed.phtml reply1, 40 
+$()</div>	</div>	
+!if $val19==1 
+$()	  <div class="wims_instruction">	    $val8 "sqrt(a x+b)" $val9 
+!insmath sqrt(a x+b)
+$()</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()$val12
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <div class='oef_feedbacks'>$val10: 
+!insmath f'(x) = $val21
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,19,20,21,25
+embedcnt=1

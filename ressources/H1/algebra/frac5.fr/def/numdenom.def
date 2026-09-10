@@ -1,0 +1,175 @@
+!set title=Dénominateur ou numérateur manquant
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang,Xiao;Paul, Byache
+email=byachepaul@yhoo.fr
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2,3,4
+
+val6=$[rint($(tmp0))]
+tmp0=!item $val6 of numérateur,dénominateur,numérateur,dénominateur
+
+val7=$(tmp0)
+tmp0=!randint 2, 11
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val9=$(tmp0)
+tmp0=!randint 1, 10
+
+val10=$(tmp0)
+
+!ifval ($val10=1 and $val6=2) 
+val10= 7 
+!else
+val10= $val10
+!endif
+val11=$[rint($val9*$val8)]
+val12=$[rint($val10*$val8)]
+tmp0=!item $val6 of $val9,$val10,$val11,$val12
+
+val13=$(tmp0)
+val14=<hr>
+val15=60
+val16=<span class="larger">
+val17=</span>
+val18=2
+val19=Remplissez le $val7 ci-dessous pour établir l'égalité&nbsp;:
+replytype1=numeric
+replyname1=Le $val7
+replygood1=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val19 \par \LARGE \begin{center} \ifnum$val6=1 \(\frac{\cdots}{$val10}=\frac{$val11}{$val12}\) \fi \ifnum$val6=2 \(\frac{$val9}{\cdots}=\frac{$val11}{$val12}\) \fi \ifnum$val6=3 \(\frac{$val9}{$val10}=\frac{\cdots}{$val12}\) \fi \ifnum$val6=4 \(\frac{$val9}{$val10}=\frac{$val11}{\cdots}\) \fi \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$m_name_answer:	<table class="wimscenter wimsnoborder">	<tr>	
+!if $val10=1 
+$()	<td rowspan="3">$val16	
+!if $val6=1 
+$() 
+!read oef/embed.phtml reply 1,$val18	autocomplete="off" 
+$() 
+!else
+$() $val9 
+!endif
+$()$val17</td> 
+!else
+$() 	<td>$val16	
+!if $val6=1 
+$() 
+!read oef/embed.phtml reply 1,$val18	autocomplete=off 
+$() 
+!else
+$() $val9 
+!endif
+$()$val17</td> 
+!endif
+$()	<td rowspan="3">$val16&nbsp;&nbsp;=&nbsp;&nbsp;$val17</td>	<td>$val16	
+!if $val6=3 
+$() 
+!read oef/embed.phtml reply 1,$val18	autocomplete="off" 
+$() 
+!else
+$() $val11 
+!endif
+$()$val17</td>	</tr><tr>	<td>$val14</td>	
+!if $val10<>1 
+$()<td>$val14</td> 
+!endif
+$()	</tr><tr>	
+!if $val10<>1 
+$()<td>$val16	
+!if $val6=2 
+$() 
+!read oef/embed.phtml reply 1,$val18	autocomplete="off" 
+$() 
+!else
+$() $val10 
+!endif
+$()$val17</td> 
+!endif
+$()	<td>$val16	
+!if $val6=4 
+$() 
+!read oef/embed.phtml reply 1,$val18	autocomplete=off 
+$() 
+!else
+$() $val12 
+!endif
+$()$val17</td>	</tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val19 $m_par $m_LARGE $m_begin{center} $m_ifnum$val6=1 
+!insmath \frac{\cdots}{$val10}=\frac{$val11}{$val12}
+$() $m_fi $m_ifnum$val6=2 
+!insmath \frac{$val9}{\cdots}=\frac{$val11}{$val12}
+$() $m_fi $m_ifnum$val6=3 
+!insmath \frac{$val9}{$val10}=\frac{\cdots}{$val12}
+$() $m_fi $m_ifnum$val6=4 
+!insmath \frac{$val9}{$val10}=\frac{$val11}{\cdots}
+$() $m_fi $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,11,12,14,16,17,18,19
+embedcnt=5

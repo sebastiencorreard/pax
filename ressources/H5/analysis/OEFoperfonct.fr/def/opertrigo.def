@@ -1,0 +1,182 @@
+!set title=Opérations sur fonctions trigo
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+
+ansorder=r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+val7=xrange -2,2	yrange -2.5,2.5	gridfill 0,0,5,5,$val6	linewidth 3	vline 1,0,$val6	vline 2,0,$val6	vline -1,0,$val6	vline -2,0,$val6	hline 0,1,$val6	hline 0,2,$val6	hline 0,-1,$val6	hline 0,-2,$val6	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	
+tmp0=!randitem -2,-1,-3/2,1,3/2,2
+
+val8=$(tmp0)
+tmp0=!randitem -pi,-pi/2,-pi/4,pi/4,pi/2,pi,pi/3
+
+val9=$(tmp0)
+tmp0=!randitem -pi/6,-pi/2,-pi/4,pi/4,pi/2,pi/6,pi/3
+
+val10=$(tmp0)
+tmp0=!randitem -1,-1/2,1/2,1/4
+
+val11=$(tmp0)
+
+!ifval $val8*$val10=pi or $val8*$val10=-pi or $val8*$val10=2*pi or $val8*$val10=-2*pi
+val10=pi/6
+!else
+val10=$val10
+!endif
+val12=3.14
+val13=
+val14=
+val15=\(cos($val8*x+$val9))
+val16=\(cos($val8*x+$val9))
+val17=\(cos($val8*(x+$val10)+$val9))
+val18=\(f(x+$val10))
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+val17=\(cos($val8*(x-$val10)+$val9))
+val18=\(f(x-$val10))
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+val17=\(cos($val8*x+$val9)+$val11)
+val18=\(f(x)+$val11)
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+val17=\($val11*cos($val8*x+$val9))
+val18=\($val11*f(x))
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+tmp0=!shuffle red,blue,orange,green
+
+val19=$(tmp0)
+val20=160
+val21=
+!for val22 =1 to 4 
+!readproc oef/draw.phtml $val20,$val20 \
+    $val7	    plot $(val19[$val22]),$(val13[$val22])	     
+tmp0=$ins_url
+val23=<img src=	    "$(tmp0)"	    width="$val20"	    height="$val20"	    alt=""	   >	    
+tmp0=!append item $val23 to $val21
+
+val21=$(tmp0)
+!next
+!readproc oef/draw.phtml $val20,$val20 \
+    $val7	    plot black,$val16	     
+tmp0=$ins_url
+val24=<img src=	    "$(tmp0)"	    width="$val20"	    height="$val20"	    alt=""	   >	    
+val25=$val20 x$val20 x$val20
+replytype1=correspond
+replyname1=Correspondance graphe/fonction
+replygood1=$val21;$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	   Dans le plan muni d'un repère orthonormé 
+!insmath \left(O,\overrightarrow{i},\overrightarrow{j} \right)
+$(), on a tracé	  le graphe de la fonction 
+!insmath f 
+$() définie sur 
+!insmath \,\RR
+$() par	 
+!insmath f(x)
+$()= $val15 :</p>	<div class="wimscenter">$val24</div>	<p> Associez à chacune des fonctions ci-contre son graphe.	</p>		<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val25 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()On obtient, à partir de la courbe représentative de la fonction 
+!insmath f
+$(), celle des fonctions:	<p> 
+!insmath g(x)=f(x+a)
+$(): par translation de vecteur 
+!insmath -a\vec(i)
+$()</p>	<ul><li>si a > 0, on décale horizontalement vers la gauche</li>	<li> si a < 0, on décale horizontalement vers la droite </li>	</ul>	<p> 
+!insmath h(x)=f(x)+a
+$(): par translation de vecteur 
+!insmath a\vec(j)
+$()</p>	<ul><li>si a > 0, on décale verticalement vers le haut	</li><li>si a < 0, on décale verticalement vers le bas	</li></ul>	<p> 
+!insmath k(x)=a*f(x)
+$(): par dilatation verticale de coefficient a:</p>	<ul>	<li>si 0 < a < 1, rétrécissement vertical: moins grande amplitude du signal	</li><li>si a > 1, agrandissement vertical: plus grande amplitude du signal	</li><li>si a < 0, attention:	 on trace 
+!insmath k_1(x)=-a*f(x)
+$() puis on symétrise par rapport à (O x)	</li></ul>	<p> 
+!insmath k(x)=f(a*x)
+$(): par dilatation horizontale de coefficient a</p>	<ul><li>si 0 < a < 1, rétrécissement horizontal: plus petite période du signal	</li><li>si a > 1, agrandissement horizontal: plus grande période du signal	</li><li>si a < 0, attention: on trace 
+!insmath k_1(x)=-a*f(x)
+$() puis on symétrise par rapport à (O x)	</li></ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,24,25
+embedcnt=1

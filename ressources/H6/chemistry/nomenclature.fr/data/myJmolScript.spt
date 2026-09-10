@@ -1,0 +1,1418 @@
+distMirror=0.3;
+scMirror=1.2;
+colorMirror="purple"
+if(! translMirror>0){translMirror=0.8}
+distAxe=2.3;
+scAxe=0.7;
+colorAxe="purple"
+scInv=5.0;
+colorInv="purple"
+colpoignees="purple"
+colpoigneesop="yellow"
+colhalos="purple"
+nbdrawn=0;
+reptabinvariant=array();
+reptaborder=array();
+repelem=array()
+topdrawninvariant=array();
+topdrawnorder=array();
+tabptsdrawn=array();
+listnotdel=array();
+set appendnew false;
+
+function drawfacetab(tab,style,colorface,coloredge){
+ if(style.find("opaque","i")>0){
+  transl=0.0;
+ }else{
+  if(style.find("none","i")>0){
+    transl=1.0;
+  }else{
+   if(style.find("trans","i")>0){
+    transl=0.5;
+   }else{
+    transl=0.0+style;
+   }
+  }
+ }
+ sall="({"+(tab[1]-1)+" ";
+ s1=sall+"})";
+ s2="({"+(tab[2]-1)+"})";
+ connect @s1 @s2 single create;
+
+ for(s=2;s<tab.size;s++){
+  sall=sall+" "+(tab[s]-1);
+  s2="({"+(tab[s]-1)+"})";
+  s3="({"+(tab[s+1]-1)+"})";
+  ch_face="face_"+tab[1]+"_"+tab[s]+"_"+tab[s+1];
+  connect @s2 @s3 single create;
+  
+  draw ID @ch_face  @s1 @s2 @s3 color @colorface translucent @transl;
+ }
+ s2="({"+(tab[0]-1)+"})";
+ connect @s1 @s2 single create;
+
+ sall=sall+" "+(tab[0]-1)+"})";
+ select sall; color bonds @coloredge ;
+}
+
+
+
+function myface (numface,colorbords,colorface){
+ sel=tabface[numface]
+ select sel;
+ color bonds @{colorbords};
+ nbvert={sel}.size;
+ tabvert=array({sel}[1]);
+ voisins={sel} and connected(tabvert[1]);
+ tabvert+={voisins}[1];
+ last={voisins}[2];
+
+ ch_fa="face_"+numface;
+
+ for(var i=2;i<nbvert;i++){
+  tabvert+={sel} and connected(tabvert[i]) and not tabvert[i-1];
+  ch_face=ch_fa+"_"+@{i-1};
+  draw @ch_face 0 @{tabvert[1]} @{tabvert[i]} @{tabvert[i+1]} color @colorface
+ }
+}
+
+function sym(op,at){
+ var atx=n2atx(at);
+ var temp=all.symop(op,@atx);
+ atx=within(0.0001,@temp);
+ if(atx.size>0){
+  return atx2n(atx);
+ }else{
+   return " ";
+ }
+}
+
+function symtab(op,tab){
+ var tim=array();
+ for(nat=1;nat<=tab.size;nat++){
+  tim+=sym(op,tab[nat]);
+ }
+ return tim;
+}
+
+function tabsym(tabop,at){
+ var tim=array();
+ for(iop=1;iop<=tabop.size;iop++){
+  op=tabop[iop];
+  tim+=sym(op,at);
+ }
+ return tim;
+}
+
+function atx2n(chat){
+ tabnumat=for(xx;{chat};xx.atomno)
+/* var sz=(@chat).size;
+ var tabnumat=array();
+ chat=""+chat;
+ chat=chat[3][-2];
+ if(sz >1){
+  tabnumat= chat.split(" ");
+ }else{
+  tabnumat[1]= chat.;
+ }
+ for(var i=1;i<=sz;i=i+1){
+  tabnumat[i]=@{tabnumat[i]+1};
+ }*/
+ return tabnumat;
+}
+function n2atx(tabnumat){
+ var old={selected}
+ select none;
+ if(tabnumat.size<0){
+  expr={atomno=tabnumat}
+ }else{
+  for(var i=1;i<=tabnumat.size;i++){
+   ii=tabnumat[i];
+   select {selected} or atomno=ii 
+  };
+  expr={selected}
+ }
+ select old ;
+ return expr;
+}
+function isinvariant(op,tab){
+ var tim=array();
+ for(nat=1;nat<=tab.size;nat++){
+  temp1=tab[nat];
+  temp2=sym(op,temp1);
+  temp1=n2atx(temp1)
+  temp2=n2atx(temp2)
+  if(temp2==temp1){
+   tim+=TRUE;
+  }else{
+   tim+=FALSE;
+  }
+ }
+ return tim;
+}
+function alltrue(tab){
+ var b=true;
+ for(i=1;i<=tab.size;i++){
+  b=b & tab[i] ;
+ }
+ return b;
+}
+function sommetsOfArete(a){
+ if(a>nbsommets){
+  s1=tsommets[taretes[a-nbsommets]];
+  s2=tsommets2[taretes[a-nbsommets]];
+  return [s1 s2];
+ }else{
+  return "";
+ }
+}
+function drawpoly(){
+ connect (*) (*) delete;
+ for(fa=1;fa<=nbfaces;fa++){
+  drawface(fa,ttransp[fa]);  
+ }
+ select all;
+ color atoms @atomecolor;
+ wireframe @sizearete;
+ hideclic(hidec);
+# spacefill @sizeatome;
+}
+function drawface(nf,style){
+ deb=debfaces[nf]+1;
+ fin=debfaces[nf+1];
+ tab=tsommets[deb][fin];
+ colorf=tcolorface.lines[nf];
+ colore=tcoloredge.lines[nf];
+ drawfacetab(tab,style,colorf,colore);
+}
+function drawSelectedOp(){
+ tab={selected};
+ dim=tab.size;
+ if(dim==2){
+  draw ID drawnOp 200 {@tab[1]} {@tab[2]};
+ }else{
+  if(dim==3){
+   draw ID drawnOp 300  {@tab[1]} {@tab[2]} {@tab[3]};
+  }
+ }
+}
+function myload(a,b,c,al,be,ga,spgr){
+ load "" {555 555 0} SPACEGROUP @spgr unitcell {@a @b @c @al @be @ga};
+ unitcell off;
+ set axes off;
+}
+function hideclic(type){
+# 1 : Sommets
+# 2 : Aretes
+# 4 : Faces
+ select all;spacefill @sizeatome
+ if(type%2==1){
+  select _S;spacefill 0.0;
+  type=type-1;
+ }
+ if(type%4==2){
+  select _Ar;spacefill 0.0;
+  type=type-2;
+ }
+ if(type==4){
+  select _F;spacefill 0.0;
+  type=type-2;
+ }
+ select none;
+}
+function changealltransp(type){
+ for(ifa=1;ifa<ttransp.size;ifa=ifa+1){ttransp[ifa]=type;}
+}
+function allequiv(nat){
+ tabequiv=array();
+ for(var i=1;i<=nbsymop;i++){
+  tabequiv=tabequiv+sym(@i,nat);
+ }
+ return tabequiv
+}
+function loadvarsop(){
+ nbA2=0;
+ nbA3=0;
+ nbA4=0;
+ nbA6=0;
+ nbm=0;
+ nbi=0;
+ tabA2=array();
+ tabA3=array();
+ tabA4=array();
+ tabA6=array();
+ tabm=array();
+ tabi=array();
+ ch_space=script("show spacegroup").lines
+  ch_space=ch_space.replace("C2 axis","|Rotation d\'ordre 2")
+  ch_space=ch_space.replace("C3 axis","|Rotation d\'ordre 3")
+  ch_space=ch_space.replace("C4 axis","|Rotation d\'ordre 4")
+  ch_space=ch_space.replace("C6 axis","|Rotation d\'ordre 6")
+  ch_space=ch_space.replace("inversion center","|Inversion")
+  ch_space=ch_space.replace("mirror plane","|Réflexion")
+ nbsymop=ch_space.find("symmetry operations").split(" ")[1]
+ temp=1-nbsymop;
+ tabsymop=ch_space[temp][0];
+ var tabgrpop=array()
+ for(var i=1;i<=nbsymop;i++){
+  tabgrpop=symop(i,'array');
+  if(tabgrpop[3].find("C2")>0){
+   nbA2++;
+   tabA2[nbA2]=i;
+  }
+  if(tabgrpop[3].find("C3")>0){
+   nbA3++;
+   tabA3[nbA3]=i;
+  }
+  if(tabgrpop[3].find("C4")>0){
+   nbA4++;
+   tabA4[nbA4]=i;
+  }
+  if(tabgrpop[3].find("C6")>0){
+   nbA6++;
+   tabA6[nbA6]=i;
+  }
+  if(tabgrpop[3].find("mirror")>0){
+   nbm++;
+   tabm[nbm]=i;
+  }
+  if(tabgrpop[3].find("inversion")>0){
+   nbi++;
+   tabi[nbi]=i;
+  }
+ }
+}
+function showsallop(){
+ for(var iop=2;iop<=nbop;iop++){
+ shows1op(iop);
+  delay 2 ;
+ }
+}
+
+function shows1op(iop){
+ tabdeb=array();
+ tabfin=array();
+ tabstep=array();
+ var nbstep=10;
+  strop=tabsymop[iop]
+  echo @strop
+  if (symop(iop,"description").find("axis","v")){
+   tabdeb=for(vx;{*};vx.xyz);
+   tabfin=for(vx;{*};symop(iop,vx));
+   tabstep=for(vx;{*};(symop(iop,vx)-vx.xyz)/(nbstep));
+    for(var iat=1;iat<=tabstep.size;iat++){
+     select {*}[iat];
+     if({selected}.elemno=16){
+      p1=point(tabdeb[iat])
+      p2=point(tabfin[iat])
+      strdraw='draw id line'+@iat+' width 0.01 color black '+@p1+' '+@p2
+      delay 0.02
+      script inline @strdraw
+     }
+    }
+ delay 1
+   for(var ii=0;ii<nbstep;ii++){
+    for(var iat=1;iat<=tabstep.size;iat++){
+     select {*}[iat];
+     translateSelected  @{tabstep[iat]}
+    }
+    delay 0.1
+   }
+#  drawpoly();
+  } else {
+  select all; spin symop @{iop} 140 ;
+  }
+ delay 2
+ draw id line* delete;
+}
+function getinvariant(iop){
+ var tabdeb=array();
+ var tabfin=array();
+ var tabinvar=array();
+ var vx={*}
+ var wx={*}
+   tabdeb=for(wx;{*};wx.xyz);
+   var io=getorder(iop)
+   if(io<-1){
+    tabfin=for(vx;{*};-symop(iop,vx));
+   }else{
+    tabfin=for(vx;{*};symop(iop,vx));
+   }
+    for(var iat=1;iat<=tabdeb.size;iat++){
+     if(distance(tabdeb[iat],tabfin[iat])<0.01){
+       tabinvar=tabinvar+@iat;
+  }
+ }
+ return tabinvar;
+}
+function drawplane(tabat){
+var tabxyz=array()
+var mysel=n2atx(tabat);
+var strspt='';
+var ii=0;
+tabxyz=for(vx;@mysel;vx.xyz);
+tabxyz=tabmultscal(tabxyz,1.3);
+ for(var it1=1;it1<tabxyz.size;it1++){
+  for(var it2=it1+1;it2<=tabxyz.size;it2++){
+   ii++;
+   strspt='draw id platom'+ii+' @{tabxyz[it1]}  @{tabxyz[it2]} {0.0,0.0,0.0}';
+   script inline @strspt ;
+}
+}
+}
+
+function normvec(vec){
+ if(vec.size<0){
+  return sqrt(vec.x*vec.x+vec.y*vec.y+vec.z*vec.z);
+ }else{
+  var tn=array();
+  for(var it=1;it<=vec.size;it++){
+   tn[it]=sqrt(vec[it].x*vec[it].x+vec[it].y*vec[it].y+vec[it].z*vec[it].z);
+  }
+  return tn;
+ }
+}
+
+function tabmulttab(t1,t2){
+  tm=array();
+ if(t1.size<t2.size){minsize=t1.size}else{minsize=t2.size}
+ for(var it=1;it<=minsize;it++){
+  tm[it]=t1[it]*t2[it];
+ }
+ return tm;
+}
+
+function tabdivtab(t1,t2){
+  td=array();
+ if(t1.size<t2.size){minsize=t1.size}else{minsize=t2.size}
+ for(var it=1;it<=minsize;it++){
+  td[it]=t1[it]*1.0/t2[it];
+ }
+ return td;
+}
+
+function tabmultscal(tab,scal){
+ for(var it=1;it<=tab.size;it++){
+  tab[it]=tab[it]*scal;
+ }
+  return tab;
+}
+
+function crossprod(v1,v2){
+ return point(v1.y*v2.z-v2.y*v1.z, v1.z*v2.x-v2.z*v1.x, v1.x*v2.y-v2.x*v1.y)
+}
+
+function sumtab(tab){
+var sumt=0;
+ for(var it=1;it<=tab.size;it++){
+  sumt=sumt+tab[it]
+ }
+  return sumt;
+}
+
+function cbetweenab(a,b,c,centr){
+var tol=0.1
+ return abs(angle(a,centr,c)+angle(b,centr,c)-angle(a,centr,b))<tol
+}
+
+function drawcross(p,sz,lab){
+hg=point(-sz,sz,0);
+hd=point(sz,sz,0);
+bg=point(-sz,-sz,0);
+bd=point(sz,-sz,0);
+sz=sz/2;
+p1=p-hg;
+p2=p-bd;
+p3=p-hd;
+p4=p-bg;
+strscr ='draw id '+lab+'_1 width @sz color black @p1 @p2 '
+script inline @strscr
+strscr ='draw id '+lab+'_2 width @sz color black @p3 @p4 '
+script inline @strscr
+}
+ 
+function drawcirc(p,sz,lab){
+sz=sz*2.2
+strscr ='draw id '+lab+'_1 circle @p diameter @sz ;draw id '+lab+'_1 color [4,4,4]'
+script inline @strscr
+sz=sz*0.70
+strscr ='draw id '+lab+'_2 circle color white @p diameter @sz fill'
+script inline @strscr
+}
+function drawprojst(sz){
+ draw id cerclwulf color black circle {0 0 0} {0 0 1} diameter @{2*sz} mesh nofill
+ for(var i=1;i<=tprojst.size;i++){
+  if(tprojstup[i]){
+   strscr='drawcross('+tprojst[i]*@sz+','+@{sz/25}+',"stfa'+i+'")'; 
+  }else{
+   strscr='drawcirc('+tprojst[i]*@sz+','+@{sz/20}+',"stfa'+i+'")'; 
+  }
+  script inline @strscr
+ }
+}
+
+function ortho(pos){
+var u=pos.x;
+var v=pos.y;
+var w=pos.z;
+if(w!=0.0){
+var y1=1.0
+var z1=-v/w
+var n1=sqrt(1+z1*z1);
+}else{
+var y1=0.0
+var z1=1.0
+var n1=1.0}
+var oh1=point(0.0,@y1/@n1,@z1/@n1)
+var x2=v*z1-w*y1
+var y2=-u*z1
+var z2=u*y1
+var n2=sqrt(x2*x2+y2*y2+z2*z2);
+var oh2=point(@x2/@n2,@y2/@n2,@z2/@n2)
+var tortho=array(@oh1,@oh2)
+return tortho
+}
+
+function draweye(normal,pos,sc,colo,lab){
+var tortho=ortho(normal);
+var oh1=tortho[1]*sc/(2.5);
+var oh2=tortho[2]*sc/1.0;
+sc=sc/5.0;
+var oh1p=oh1+pos
+var oh1m=pos-oh1
+var oh2p=oh2+pos
+var oh2m=pos-oh2
+var strscr='draw id "'+lab+'eye1" width '+sc+' color '+colo+' curve '+@oh2m+' '+@oh1p+' '+@oh2p+';'
+script inline @strscr
+ strscr='draw id "'+lab+'eye2" width '+sc+' color '+colo+' curve '+@oh2m+' '+@oh1m+' '+@oh2p+';'
+script inline @strscr
+}
+
+function drawtri(normal,pos,sc,colo,lab){
+var tortho=ortho(normal);
+var oh1=tortho[1]*sc;
+var oh2=tortho[2]*sc*(2.0);
+sc=sc/5.0;
+var h=sqrt(3)/2.0
+var t1=pos+oh1/1.0-oh2*sqrt(3)/6.0
+var t2=pos+oh2*sqrt(3)/3.0
+var t3=pos-oh1/1.0-oh2*sqrt(3)/6.0
+var strscr='draw id "'+lab+'tri1" width '+sc+' color '+colo+' '+@t1+' '+@t2+';'
+script inline @strscr
+var strscr='draw id "'+lab+'tri2" width '+sc+' color '+colo+' '+@t2+' '+@t3+';'
+script inline @strscr
+var strscr='draw id "'+lab+'tri3" width '+sc+' color '+colo+' '+@t3+' '+@t1+';'
+script inline @strscr
+}
+
+function drawcerc(normal,pos,sc,colo,lab){
+ var tortho=ortho(normal);
+ var oh1=tortho[1]*sc/2.5;
+ var oh2=tortho[2]*sc/2.5;
+ sc=sc/5.0;
+ var strcurv='draw id "'+lab+'cerc" width '+sc+' color '+colo+' curve'
+ for(ang=0;ang<=360;ang=ang+30){
+  var c=cos(ang);
+  var s=sin(ang);
+  var p=pos+oh1*c+oh2*s;
+  strcurv=strcurv+" "+p;
+ }
+ strcurv=strcurv+";"
+ script inline @strcurv
+}
+
+function drawtribar(normal,pos,sc,colo,lab){
+ drawtri(normal,pos,sc,colo,lab);
+ drawcerc(normal,pos,sc,colo,lab);
+}
+
+function drawsq(normal,pos,sc,colo,lab){
+var tortho=ortho(normal);
+var oh1=tortho[1]*sc/1.0;
+var oh2=tortho[2]*sc/1.0;
+sc=sc/5.0;
+var ed1=pos+oh1;
+var ed2=pos+oh2;
+var ed3=pos-oh1;
+var ed4=pos-oh2
+var strscr='draw id "'+lab+'sq1" width '+sc+' color '+colo+' '+@ed1+' '+@ed2+';'
+script inline @strscr
+var strscr='draw id "'+lab+'sq2" width '+sc+' color '+colo+' '+@ed2+' '+@ed3+';'
+script inline @strscr
+var strscr='draw id "'+lab+'sq3" width '+sc+' color '+colo+' '+@ed3+' '+@ed4+';'
+script inline @strscr
+var strscr='draw id "'+lab+'sq4" width '+sc+' color '+colo+' '+@ed4+' '+@ed1+';'
+script inline @strscr
+}
+
+function drawhex(normal,pos,sc,colo,lab){
+var tortho=ortho(normal);
+var oh1=tortho[1]*sc*(1.0);
+var oh2=tortho[2]*sc*(2.0);
+sc=sc/5.0;
+var h=sqrt(3)/2.0
+var t1=pos+oh1/1.0-oh2*sqrt(3)/6.0
+var t2=pos+oh1/1.0+oh2*sqrt(3)/6.0
+var t3=pos+oh2*sqrt(3)/3.0
+var t4=pos-oh1/1.0+oh2*sqrt(3)/6.0
+var t5=pos-oh1/1.0-oh2*sqrt(3)/6.0
+var t6=pos-oh2*sqrt(3)/3.0
+var strscr='draw id "'+lab+'hex1" width '+sc+' color '+colo+' '+@t1+' '+@t2+';'
+script inline @strscr
+var strscr='draw id "'+lab+'hex2" width '+sc+' color '+colo+' '+@t2+' '+@t3+';'
+script inline @strscr
+var strscr='draw id "'+lab+'hex3" width '+sc+' color '+colo+' '+@t3+' '+@t4+';'
+script inline @strscr
+var strscr='draw id "'+lab+'hex4" width '+sc+' color '+colo+' '+@t4+' '+@t5+';'
+script inline @strscr
+var strscr='draw id "'+lab+'hex5" width '+sc+' color '+colo+' '+@t5+' '+@t6+';'
+script inline @strscr
+var strscr='draw id "'+lab+'hex6" width '+sc+' color '+colo+' '+@t6+' '+@t1+';'
+script inline @strscr
+}
+
+function addextat(pt1,pt2,sc,colo,lab){
+ var strat='data "append ex"|2||';
+ strat=strat+'X ';
+ strat=strat+pt1.x+' '+pt1.y+' '+pt1.z+' |';
+ strat=strat+'X ';
+ strat=strat+pt2.x+' '+pt2.y+' '+pt2.z+' |';
+ strat=strat+'end "append ex"';
+ script inline @strat;
+ selectionhalos on;
+ select within(0.001,pt1) or within(0.001,pt2);
+ color atoms @colo
+ connect ({selected}) (*) delete;
+ spacefill 0.0;
+ tabptsdrawn[nbdrawn]={selected};
+ select none;
+}
+
+function addcenter(sc,colo,lab){
+ var strat='data "append ex"|1||';
+ strat=strat+'X 0.0 0.0 0.0 |';
+ strat=strat+'end "append ex"';
+ script inline @strat;
+ selectionhalos on;
+ select within(0.001,{0,0,0}) 
+ color atoms "grey";
+ connect ({selected}) (*) delete;
+ spacefill 0.0;
+ tabptsdrawn[nbdrawn]={selected};
+ select none;
+}
+function drawA2(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ draweye(dir,pt1,sc,colo,lab+'1_')
+ draweye(dir,pt2,sc,colo,lab+'2_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+
+function drawA3(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ drawtri(dir,pt1,sc,colo,lab+'1_')
+ drawtri(dir,pt2,sc,colo,lab+'2_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+
+function drawA3b(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ drawtribar(dir,pt1,sc,colo,lab+'1_')
+ drawtribar(dir,pt2,sc,colo,lab+'2_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+
+function drawA4(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ drawsq(dir,pt1,sc,colo,lab+'1_')
+ drawsq(dir,pt2,sc,colo,lab+'2_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+
+function drawA4b(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ drawsq(dir,pt1,sc,colo,lab+'1_')
+ draweye(dir,pt1,sc,colo,lab+'2_')
+ drawsq(dir,pt2,sc,colo,lab+'3_')
+ draweye(dir,pt2,sc,colo,lab+'4_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+
+function drawA6(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ drawhex(dir,pt1,sc,colo,lab+'1_')
+ drawhex(dir,pt2,sc,colo,lab+'2_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+
+function drawA6b(p1,p2,dist,sc,colo,lab){
+ dir=p2-p1;
+ d1=distance(p2,p1);
+ dir=dir/d1
+ pt1=p1-dir*dist
+ pt2=p2+dir*dist
+ addextat(pt1,pt2,sc,colo,lab)
+ drawhex(dir,pt1,sc,colo,lab+'1_')
+ drawtri(dir,pt1,sc,colo,lab+'2_')
+ drawhex(dir,pt2,sc,colo,lab+'3_')
+ drawtri(dir,pt2,sc,colo,lab+'4_')
+ strsc='draw id "'+lab+'axe" width '+@{sc/5.0}+' color '+colo+' '+@pt1+' '+@pt2
+ script inline @strsc
+}
+  
+function drawm(pts,dist,sc,colo){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ var p1=pts[1];
+ var p2=pts[2];
+ var p3=pts[3];
+ dist=dist+1.0;
+ sc=sc*0.1;
+ select within (0,plane,@{plane(p1,p2,p3)})
+ var mysel={selected and atomno<=nbt}
+ var lab="op_0_"+mysel.size+"_"+(atx2n(mysel)).join("_")
+ tsorted=around(mysel);
+ var cent={selected}.xyz
+var before={*}[0].atomno
+ var strat='data "append ex"|'+mysel.size+'||';
+ for(var iat=1;iat<mysel.size;iat++){
+  var a1=mysel[tsorted[iat]].xyz 
+  var v1=a1-cent;
+  var cv1=distance(a1,cent)
+  var n1=v1/cv1
+  var d1=n1*dist
+  a1=a1*dist;
+  var a2=mysel[tsorted[iat+1]].xyz 
+  var v2=a2-cent;
+  var cv2=distance(a2,cent)
+  var n2=v2/cv2
+  var d2=n2*dist
+  a2=a2*dist;
+  var strsc='draw id "'+lab+'_tri_'+iat+'" color '+colo+' '+cent+' '+a1+' '+a2+' translucent '+translMirror+' ;'
+  strsc=strsc+'draw id "'+lab+'_border_'+iat+'" width '+sc+' color '+colo+' '+a1+' '+a2+';'
+  strat=strat+'X ';
+  strat=strat+a1.x+' '+a1.y+' '+a1.z+' |';
+  script inline @strsc
+ }
+  var a1=mysel[tsorted[1]].xyz 
+  var v1=a1-cent;
+  var cv1=distance(a1,cent)
+  var n1=v1/cv1
+  var d1=n1*dist
+  a1=a1*dist;
+  var a2=mysel[tsorted[mysel.size]].xyz 
+  var v2=a2-cent;
+  var cv2=distance(a2,cent)
+  var n2=v2/cv2
+  var d2=n2*dist
+  a2=a2*dist;
+  var strsc='draw id "'+lab+'_tri_'+mysel.size+'" color '+colo+' '+cent+' '+a1+' '+a2+' translucent '+translMirror+';'
+  strsc=strsc+'draw id "'+lab+'_border_'+iat+'" width '+sc+' color '+colo+' '+a1+' '+a2+';'
+  script inline @strsc
+  strat=strat+'X ';
+  strat=strat+a1.x+' '+a1.y+' '+a1.z+' |';
+  strat=strat+'end "append ex"';
+  script inline @strat;
+var after={*}[0].atomno
+  tabptsdrawn[nbdrawn]={atomno>before and atomno<=after};
+  selectionhalos on
+  select within (0,plane,@{plane(p1,p2,p3)}) and atomno>nbt
+  color atoms @colo;
+ connect ({selected}) (*) delete;
+ spacefill 0.0;
+  select none
+ set drawhover false;
+}
+ 
+function isaligned(tabat){
+ var ans=false;
+ var sz=tabat.size;
+ var p1={0 0 0};
+ var p2={0 0 0};
+ var p3={0 0 0};
+ var v1={0 0 0};
+ var v2={0 0 0};
+ var tol=0.0001;
+ var ans=true;
+ if(sz>1){
+  if(sz>2){
+   var tabxyz=array()
+   var mysel=n2atx(tabat)
+   tabxyz=for(vx;@mysel;vx.xyz);
+   for(var iat=1;iat<=sz-2;iat++){
+    p1=tabxyz[iat]
+    p2=tabxyz[iat+1]
+    p3=tabxyz[iat+2]
+    v1=p2-p1;
+    v2=p3-p1;
+    n1=sqrt(v1*v1);
+    n2=sqrt(v2*v2);
+    if(abs(v1*v2)/(n1*n2)<1-tol){
+     ans=false
+    }
+   }
+  }else{
+   ans=true;
+  }
+ }else{
+  ans=false;
+ }
+ return ans;
+}
+
+function resizeop(){
+ distAxe=distAxe*sizeop;
+ distMirror=distMirror*sizeop;
+ distInv=distInv*sizeop;
+ scAxe=scAxe*sizeop;
+ scMirror=scMirror*sizeop;
+ scInv=scInv*sizeop;
+}
+function clickaxe(){
+ resizeop();
+ taille=mataille();
+ select none;
+ selectionhalos on;
+ color selectionhalos @colhalos;
+ var sz=sizeatome
+ showpoignees(@colpoignees,sz)
+ set drawhover false;
+ hover off;
+ set picking select;
+ changealltransp(0.4);
+ updateallfaces();
+}
+
+function hidepoignees(){
+ showpoignees(@colpoignees,0.0);
+}
+
+function showpoignees(colo,sz){
+ showsommets(colo,sz);
+ showaretes(colo,sz);
+ showfaces(colo,sz);
+}
+
+function showsommets(colo,sz){
+ var savesel={(selected)};
+ select (_S);
+print sz
+ spacefill @sz ;
+ color atoms @colo;
+ color bonds @{tcoloredge[1]};
+ select savesel;
+}
+
+function showaretes(colo,sz){
+ var savesel={(selected)};
+ select (_Ar);
+ spacefill @sz ;
+ color atoms @colo;
+ select savesel;
+}
+
+function showfaces(colo,sz){
+ var savesel={(selected)};
+ select (_F);
+ spacefill @sz ;
+ color atoms @colo;
+ select savesel;
+}
+
+function drawAxe(iord,sel,dist,sc,colo){
+ dist=dist*1.05
+ var nbt=nbsommets+nbaretes+nbfaces;
+ if(sel.size==2){
+  var allsel=n2atx(allaligned2(sel[1],sel[2]))
+  sel=maxdistaxe2(allsel);
+  var p1=sel[1].xyz
+  var p2=sel[2].xyz
+   nbdrawn=nbdrawn+1;
+   topdrawnorder[nbdrawn]=iord;
+   myinv=allaligned2(sel[1],sel[2]);
+   topdrawninvariant[nbdrawn]=n2atx(allaligned2(sel[1],sel[2]));
+  lab='op_'
+  lab=lab+iord+'_'+myinv.size+'_'+myinv.join('_')+'_';
+   listnotdel[nbdrawn]=true;
+  if(iord==2){
+   drawA2(p1,p2,dist,sc,colo,lab);
+  }
+  if(iord==3){
+   drawA3(p1,p2,dist,sc,colo,lab);
+  }
+  if(iord==-3){
+   drawA3b(p1,p2,dist,sc,colo,lab);
+  }
+  if(iord==4){
+   drawA4(p1,p2,dist,sc,colo,lab);
+  }
+  if(iord==-4){
+   drawA4b(p1,p2,dist,sc,colo,lab);
+  }
+  if(iord==6){
+   drawA6(p1,p2,dist,sc,colo,lab);
+  }
+  if(iord==-6){
+   drawA6b(p1,p2,dist,sc,colo,lab);
+  }
+  select none;
+ }else{
+  javascript alert("Vous devez sélectionner 2 points pour dessiner un axe de rotation");
+ }
+}
+
+function drawMirror(sel,dist,sc,colo){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ if(sel.size==3){
+  var pts=for(p;sel;p.xyz)
+  var iat=for(p;sel;p.atomno)
+  if(isaligned(iat)){
+   javascript alert("Vous devez sélectionner 3 points non alignés pour dessiner un miroir");
+  }else{
+   nbdrawn=nbdrawn+1;
+   var p1=pts[1];
+   var p2=pts[2];
+   var p3=pts[3];
+   var mysel={ within (0,plane,@{plane(p1,p2,p3)}) and atomno<=nbt}
+   topdrawnorder[nbdrawn]=0;
+   topdrawninvariant[nbdrawn]=@mysel
+   var inv=atx2n(mysel)
+   listnotdel[nbdrawn]=true;
+   drawm(mysel,dist,sc,colo);
+   select none;
+  }
+ }else{
+  javascript alert("Vous devez sélectionner 3 points non alignés pour dessiner un miroir");
+ }
+}
+
+function drawInversion(sc,colo){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ sc=sc*0.3;
+ draw id "op_-1_0_" width @sc color @colo {0,0,0}
+   nbdrawn=nbdrawn+1;
+   topdrawnorder[nbdrawn]=-1;
+   topdrawninvariant[nbdrawn]={within(0.01,{0 0 0}) and atomno<=nbt}
+   listnotdel[nbdrawn]=true;
+   addcenter(sc,colo,"op_-1_0_")
+}
+
+function around(sel){
+if(sel.size==3){return [1 2 3]}
+ var cen={sel}.xyz;
+ var atsel=within(0.01,({sel}).xyz)
+ var tsorted=array()
+ tsorted[1]=1;
+ var nbsorted=1;
+ var talready=array();
+ for(var i=2;i<=sel.size;i++){
+  talready[i]=sel[i].xyz==atsel.xyz
+ }
+ talready[1]=true;
+ for(var nbsorted=1;nbsorted<sel.size;nbsorted++){
+  for(var i=2;i<=sel.size;i++){
+   if(! talready[i]){
+    if(cbetweenab(sel[tsorted[nbsorted-1]],sel[i],sel[tsorted[nbsorted]],({sel}).xyz)){
+     next=i;
+     break;
+    }
+   }
+  }
+  var tmp=tsorted[nbsorted];
+  for(var j=2;j<=sel.size;j++){
+   if((! talready[j]) && j!=next){
+    var a=sel[tmp]
+    var b=sel[next]
+    var c=sel[j]
+    if(cbetweenab(a,b,c,({sel}).xyz) ){
+     next=j
+    }
+   }
+  }
+  talready[next]=true;
+  tsorted[nbsorted+1]=next;
+ }
+ return tsorted
+}
+
+function isplaneorigined(tabat){
+var aa=angle(tabat[1],tabat[2],tabat[3],{0,0,0});
+aa=(aa<-90 ? aa+180 : aa)
+aa=(aa>90 ? aa-180 : aa)
+return abs(aa)<0.5
+}
+
+function allaligned(at1,at2){
+ var tol=0.001;
+ var nbat={*}[0].atomno;
+ var nbaligned=2;
+ var tabaligned=array();
+ var v1=at2.xyz-at1.xyz;
+ var n1=sqrt(v1*v1);
+ var iat1=at1.atomno;
+ var iat2=at2.atomno;
+ tabaligned[1]=iat1;
+ tabaligned[2]=iat2;
+ for(var iat=1;iat<=nbat;iat++){
+  if(iat!=iat1 && iat!=iat2){
+   var v2={atomno=iat}.xyz-at1.xyz;
+   var n2=sqrt(v2*v2);
+   if(1-abs(v1*v2/(n1*n2))<tol){
+    nbaligned=nbaligned+1;
+    tabaligned[nbaligned]=iat;
+   }
+  }
+ }
+ return atx2n(n2atx(tabaligned));
+}
+
+function nbtrue(t){
+ var nt=0;
+ var n=t.size;
+ if(n<0){
+  nt=(t ? 1 : 0 );
+ }else{
+  for(var i=1;i<=n;i++){
+   if(t[i]){nt++}
+  }
+ }
+ return nt;
+}
+
+function update_bigstr(){
+ javascript vide(1);
+ var str=tabop2str(topdrawnorder,topdrawninvariant)
+ var strsc="javascript imprim('"+str+"',1);"
+ script inline @strsc
+}
+
+function printfin(){
+
+print tabop2str(topdrawnorder,topdrawninvariant)
+}
+
+function get3foraplane(tab){
+var nat=tab.size;
+var notfound=true;
+var tol=0.01;
+var iat=0;
+while(notfound){
+ iat++;
+ notfound=abs(angle(tab[iat],tab[iat+1],tab[iat+2])-90)>90-tol;
+ }
+ return tab[iat][iat+2]
+}
+
+function maxdistaxe(tab){
+var ia=tab[1];
+var ib=tab[2];
+ tab=n2atx(allaligned(ia,ib));
+var tt=array();
+var tmax=array();
+var mymax=0;
+ for(var ii=1;ii<=tab.size;ii++){
+  tt=for(jj;tab;jj.distance(tab[ii]));
+  tmax[ii]=tt.max;
+ }
+ mymax=tmax.max;
+ for(var ii=1;ii<=tab.size;ii++){
+  tt=for(jj;tab;jj.distance(tab[ii]));
+  if(tt.max==mymax){
+   ia=tab[ii];
+   for(var kk=1;kk<=tab.size;kk++){
+    if(abs(tab[kk].distance(ia)-mymax)<0.001){
+     ib=tab[kk];
+     var found=true;
+     break;
+    }
+   }
+  }
+  if(found==true){break}
+ }
+ return {ia or ib}
+}
+
+
+function tabop2str(taborder,tabinvar){
+ var bigstr="";
+ if(taborder.size>0){
+ bigstr=bigstr+taborder.size+"|";
+ for(var iop=1;iop<=taborder.size;iop++){
+  bigstr=bigstr+taborder[iop]+"_"
+  var tt=atx2n(tabinvar[iop]);
+  var nbinv=tt.size
+  bigstr=bigstr+nbinv+"_";
+  for(var iinv=1;iinv<nbinv;iinv++){
+   bigstr=bigstr+tt[iinv]+"_";
+  }
+  if(iop==taborder.size){
+   bigstr=bigstr+tt[nbinv];
+  }else{
+   bigstr=bigstr+tt[nbinv]+"|";
+  }
+ }
+ }else{
+  bigstr=bigstr+taborder+"_"
+  var tt=atx2n(tabinvar);
+  var nbinv=tt.size
+  bigstr=bigstr+nbinv+"_";
+  for(var iinv=1;iinv<nbinv;iinv++){
+   bigstr=bigstr+tt[iinv]+"_";
+  }
+  bigstr=bigstr+tt[nbinv];
+ }
+ return bigstr;
+}
+
+function str2draw(str){
+ var taborder=array();
+ var tabinv=array();
+ var tmp1=str.split("|");
+ if(tmp1.size>1){
+  var nb=tmp1[1];
+  var decal=1;
+ }else{
+  var nb=1
+  var decal=0;
+ }
+ for(var iop=1;iop<=nb;iop++){
+  tmp2=tmp1[iop+decal].split("_");
+  taborder[iop]=tmp2[1];
+  tabinv[iop]=n2atx(tmp2[3][0]);
+ }
+ return [taborder tabinv];
+}
+
+function drawstrop(str,colo){
+ var tmp=str2draw(str);
+ var torder=tmp[1];
+ var nb=torder.size;
+ var tinv=tmp[2]
+ for(var iop=1;iop<=nb;iop++){
+  var ninv=tinv[iop].size;
+  if(torder[iop]==-1){
+    var lab="-1_0_";
+    drawInversion(@{scInv*sizeop},colo)
+  }
+  if(torder[iop]==0){
+    var sel=get3foraplane(tinv[iop]);
+    drawMirror(sel,distMirror,@{scMirror*sizeop},colo)
+  }
+  if(torder[iop]>=2){
+    var sel=maxdistaxe(tinv[iop]);
+    print @{scAxe*sizeop}
+    drawAxe(torder[iop],sel,distAxe,scAxe,colo)
+  }
+    nbdrawn++;
+    topdrawnorder[nbdrawn]=torder[iop]
+    topdrawninvariant[nbdrawn]=tinv[iop]
+ }
+}
+ 
+function removedrawn(idraw){
+ var str='op_'+tabop2str(topdrawnorder[idraw],topdrawninvariant[idraw])
+ changecolordrawn(str,@colpoigneesop,0.0)
+ hidedrawpt();
+ 
+ var strsc='javascript maconfirm("Voulez vous supprimer cet élément de symmétrie",'+idraw+')';
+ script inline @strsc ;
+ }
+
+function removedrawnok(idraw){
+  var ats=tabptsdrawn[idraw];
+  delete ats
+  if(idraw<=nbdrawn && idraw>0){
+   var tmpO=array()
+   var tmpI=array()
+   var tmpP=array()
+   var inew=0;
+   for(var idr=1;idr<=nbdrawn;idr++){
+    if(idr==idraw){
+     var lab='op_'+ tabop2str(topdrawnorder[idr],topdrawninvariant[idr])+'*'
+     strsc='draw id "'+lab+'" delete'
+     script inline @strsc
+    }else{
+     inew++ ;
+     tmpO[inew]=topdrawnorder[idr]
+     tmpI[inew]=topdrawninvariant[idr]
+     tmpP[inew]=tabptsdrawn[idr]
+    }
+   }
+   topdrawnorder=tmpO;
+   topdrawninvariant=tmpI;
+   tabptsdrawn=tmpP;
+   nbdrawn=nbdrawn-1
+  }
+}
+function removedrawncancel(idraw){
+  var str='op_'+tabop2str(topdrawnorder[idraw],topdrawninvariant[idraw])
+  if(topdrawnorder[idraw]==0){
+   tr=translMirror;
+  }else{
+   tr=0.0;
+  }
+  changecolordrawn(str,@colpoignees,tr)
+ }
+
+function changecolordrawn(lab,colo,transl){
+ var strsc='draw id "'+lab+'"* color '+colo +' translucent '+transl+' ;'
+ strsc=strsc+'draw id "'+lab+'_border"* color '+colo +' translucent '+0.0+' ;'
+ script inline @strsc
+}
+
+function getorder(iop){
+ var descr=symop(iop,"description").split(" ")[1];
+ if(descr[1]=="C"){
+  return (1*descr[2]);
+ }else{
+  if(descr.find("bar")>0){
+   return (-1*descr[1]);
+  }else{
+   if(descr=="inversion"){
+    return -1
+   }else{
+    if(descr=="mirror"){
+     return 0
+    }else{
+     if(descr=="identity"){
+     return 1
+     }
+    }
+   }
+  }
+ }
+}
+function buildreptabs(){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ for(var i=1;i<=nbop;i++){
+  reptaborder[i]=getorder(i);
+  var tmp=n2atx(getinvariant(i));
+  tmp={tmp and atomno<=nbt};
+  reptabinvariant[i]=tmp;
+ }
+ getelem();
+}
+
+function drawrep(){
+ resizeop();
+ if(strgood != 0){ drawstrop(strgood,"green")};
+ if(strbad != 0){ drawstrop(strbad,"red")};
+ if(strforget != 0){ drawstrop(strforget,"orange")};
+ set echo myechof [5 90%];font echo 18 serif bold;color echo orange;echo Oublié
+ set echo myechob [5 85%];font echo 18 serif bold;color echo red;echo Incorrect
+ set echo myechog [5 80%];font echo 18 serif bold;color echo green;echo Correct
+}
+
+function faceon(){
+draw id face* on
+}
+
+function faceoff(){
+draw id face* off
+}
+
+function colorAllFaces(colo,trans){
+ faceon();
+ draw id face* color @colo translucent @trans;
+}
+
+function effacedraw(){
+hidepoignees()
+ showdrawpt()
+ set pickcallback "eff"
+}
+
+function effacedraw2(str){
+ var sat=str.split(' ')[1];
+  var iat={atomname=sat}.atomno;
+  var xxat=n2atx(iat);
+ var nbt=nbsommets+nbaretes+nbfaces;
+ if(iat>nbt){
+  for(var iop=1;iop<=nbdrawn;iop++){
+   tpp=tabptsdrawn[iop];
+   if({xxat and tpp}.size>0){
+      removedrawn(iop);
+      break;
+    }
+  }
+ }
+ set pickcallback none
+ selectionhalos on;
+ hidedrawpt()
+ showpoignees(@colpoignees,sizeatome)
+}
+
+function ptsofdrawn(idr){
+ var iorder=topdrawnorder[idr];
+ var nbt=nbsommets+nbaretes+nbfaces;
+ if(abs(iorder)>1 ){
+  var sel=topdrawninvariant[idr];
+ }else{
+  if(iorder==-1 ){
+   var sel={within(0.01,{0.0,0.0,0.0})};
+  }else{
+   var tab=get3foraplane(topdrawninvariant[idr]);
+   var sel=within(0,plane,@{plane(tab[1],tab[2],tab[3])});
+   sel={sel and atomno>nbt};
+  }
+ }
+ return sel;
+}
+
+function allinplane(sel){
+ var mysel=get3foraplane(sel);
+ return within(0,plane,@{plane(mysel[1],mysel[2],mysel[3])});
+}
+
+function drawfa(ifa){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ var sstart=debfaces(ifa);
+ var send=debfaces(ifa+1);
+ var tsn=tsommets[sstart+1][tsend];
+ var mysel=allinplane(n2atx(tsn));
+ mysel={mysel and atomno<nbt};
+ var ptcent={mysel}.xyz;
+ }
+
+
+function getelem(){
+ var already=array();
+  already[1]=true;
+ var centrosym=false;
+ var nbelem=1
+
+ for(var iop=2;iop<=nbop;iop++){
+  if(reptaborder[iop]==-1){
+   centrosym=true;
+  }
+  already[iop]=false;
+ }
+ if(centrosym){
+  for(var iop=2;iop<=nbop;iop++){reptaborder[iop2]=abs(reptaborder[iop2])}
+ }
+ for(var iop=2;iop<=nbop;iop++){
+  if(! already[iop]){
+   repelem[nbelem]=iop;
+   var inv=reptabinvariant[iop];
+   var sz=inv.size;
+   var io=reptaborder[iop];
+   for(var iop2=iop+1;iop2<=nbop;iop2++){
+    if(! already[iop2]){
+     var inv2=reptabinvariant[iop2];
+     var sz2=inv2.size;
+     if(sz==sz2){
+      var mysel={inv and inv2}
+      if(mysel.size==sz){
+       var io2=reptaborder[iop2];
+       if(centrosym){
+        if(io2>io){
+         repelem[nbelem]=iop2;
+        }
+       }else{
+        if(io2<0){
+         if(abs(io2)>abs(io)){
+          repelem[nbelem]=iop2;
+         }
+        }
+       }
+       already[iop2]=true;
+      }
+     }
+     already[iop]=true;
+    }
+   }
+   nbelem=nbelem+1;
+  }
+ }
+}
+
+function onlyelem(t,e){
+ var t2=array();
+ for (var i=1;i<=e.size;i++){
+  t2[i]=t[e[i]];
+ }
+ return t2;
+}
+
+function maxdistaxe2(sel){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ return {sel and atomno<=nbt}
+}
+
+function allaligned2(s1,s2){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ var sel=n2atx(allaligned(s1,s2));
+ sel={sel and atomno<=nbt};
+ return atx2n(sel)
+}
+
+function updateallfaces(){
+  strsc='';
+ for(var ifa=1;ifa<=nbfaces;ifa++){
+  strsc=strsc+'draw id "face_'+ifa+'_*" color '+tcolorface[ifa]+' translucent '+ttransp[ifa]+' ;'
+ }
+ script inline @strsc ;
+}
+
+function mataille(){
+var tt=for(aa;{*};aa.distance({0,0,0}))
+return tt.max;
+}
+
+function hidedrawpt(){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ var nbt1=nbt+1
+ {atomno<=nbt}.spacefill=sizeatome
+ select atomno>nbt;
+ spacefill 0.00;
+ color halos @colpoignees
+select none;
+}
+function showdrawpt(){
+ var nbt=nbsommets+nbaretes+nbfaces;
+ var sf=sizeatome*2
+ select atomno>nbt;
+ spacefill @sf
+ color atoms @colpoigneesop
+ color halos @colpoigneesop
+select none;
+}
+function printrep(){
+ buildreptabs();
+ for(var i=1;i<=repelem.size;i++){print 'opnum :'+i+'  order:'+reptaborder[repelem[i]]+'  inv :'+reptabinvariant[repelem[i]]}
+}

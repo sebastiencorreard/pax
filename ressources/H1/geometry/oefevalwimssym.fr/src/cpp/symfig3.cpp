@@ -1,0 +1,173 @@
+target=oefsymfig3
+#define NUM 3
+#include "lang_titles.inc"
+#include "author.inc"
+#include "lang.inc"
+\keywords{symmetry}
+\text{tri1=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+)}
+
+\text{tri2=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+triangle 80-80*s,0,140-80*s,0,80-s*80,104,blue
+triangle 90-80*s,10,120-80*s,10,90-s*80,55,blue
+fill 85-80*s,5,grey
+fill 85-80*s,45,grey
+fill 85-80*s,85,grey
+fill 135-80*s,5,grey)}
+
+\text{tri3=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+triangle 0,0,60,0,0,104,blue
+triangle 10,10,40,10,10,55,blue
+fill 5,5,grey
+fill 5,85,grey
+segment 0,70,0,50-140*s,black
+fill 55,5,grey)}
+
+\text{tri4=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+linewidth 1
+segment 0,70,0,-90,black
+linewidth 2
+arc 0,0,100,100,500-s*220,500,red)}
+
+\text{tri5=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+linewidth 1
+segment 0,70,0,-90,black
+arc 0,0,100,100,290,330,black
+linewidth 2
+)}
+
+\text{tri6=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+linewidth 1
+segment 0,70,0,-90,black
+arc 0,0,100,100,290,330,black
+linewidth 2
+text black,20,-55,medium,A')}
+
+\text{tri7=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+linewidth 1
+segment 0,70,0,-90,black
+arc 0,0,100,100,290,330,black
+linewidth 2
+text black,20,-55,medium,A'
+arc 0,-50,120,120,0,380*s,red)}
+
+\text{tri8=draw(200,200
+animate 40,0.01,0
+xrange -100,100
+yrange -100,100
+linewidth 2
+rotate 40
+segment -150,0,150,0, black
+circle 0,50,120,black
+segment -4,54,4,46, black
+segment 4,54,-4,46, black
+text black,20,60,medium,A
+text black,95,0,medium,(d)
+linewidth 1
+segment 0,70,0,-90,black
+arc 0,0,100,100,290,330,black
+linewidth 2
+text black,20,-55,medium,A'
+arc 0,-50,120,120,0,380,black)}
+
+\text{fig=<img src="\tri1" alt="">,<img src="\tri2" alt="">,<img src="\tri3" alt="">,
+<img src="\tri4" alt="">,<img src="\tri5" alt="">,<img src="\tri6" alt="">,
+<img src="\tri7" alt="">,<img src="\tri8" alt="">}
+
+\text{tri=\tri1,\tri2,\tri3,\tri4,\tri5,\tri6,\tri7,\tri8}
+\text{fig=}
+\for{j=1 to 8}{
+  \text{fig=\fig<img src="\tri[\j]" alt="\name_step \j">,}
+}
+\statement{
+  \name_enonce
+  <ul class="inline wims_nopuce">
+    \for{k=1 to 8}{<li><div>\name_step \k <br>\fig[\k] <br>\embed{r\k,250x80}</div></li>}
+  </ul>
+}
+
+\answer{}{\rep[1]}{type=dragfill}{option=shuffle}
+\answer{}{\rep[2]}{type=dragfill}
+\answer{}{\rep[3]}{type=dragfill}
+\answer{}{\rep[4]}{type=dragfill}
+\answer{}{\rep[5]}{type=dragfill}
+\answer{}{\rep[6]}{type=dragfill}
+\answer{}{\rep[7]}{type=dragfill}
+\answer{}{\rep[8]}{type=dragfill}

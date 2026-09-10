@@ -1,0 +1,202 @@
+!set title=Sur un cercle 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Déterminer le lieu du milieu \(I) du segment \([F M])
+val7=!rawmath r/2
+val8=Soit \(h) l'homothétie de centre \(F) et de rapport 0.5&nbsp;:<br>	\(I) est l'image de \(M) et \(\Omega) est l'image de \(O) par \(h).<br>	Donc \(\overrightarrow{\Omega I}=0.5 \overrightarrow{O M}) donc \(R=\frac{r}{2}).
+val9=\(\overrightarrow{F \Omega}),\(\overrightarrow{F O}),\(\overrightarrow{F I}),\(\overrightarrow{F M}),\(\overrightarrow{O M}),\(\overrightarrow{O H}),\(\overrightarrow{F H}),\(\overrightarrow{I H}),\(\overrightarrow{I O})
+tmp0=!randint 5, 10
+
+t_=!rawmath $(tmp0)/12
+val10=!exec pari print($t_)
+tmp0=!randint 2, 4
+
+val11=$[rint($(tmp0))]
+val12=$[rint(-4)]
+val13=$[rint(-2)]
+val14=$[$val11*cos($val10*pi)]
+val15=$[$val11*sin($val10*pi)]
+val16=$[($val14+$val12)/2]
+val17=$[($val15+$val13)/2]
+val18=$[($val15-$val13)/($val14-$val12)]
+val19=$[($val18*$val12-$val13)/($val18+1/$val18)]
+val20=$[-$val19/$val18]
+t_=!rawmath $val12/2
+val21=!exec pari print($t_)
+t_=!rawmath $val13/2
+val22=!exec pari print($t_)
+val23=$[$val11]
+val24=point $val21,$val22,red	 copy $val21,$val22,-1,-1,-1,-1,mathfonts/109/Omega.gif	 linewidth 1	 segment $val12,$val13,0,0,green	 circle $val21,$val22,$val23*30,green	
+val25=$[rint(2)]
+val26=cercle
+val27=80x50x1
+val28=r1	r2,r3,r4	r5
+val29=xrange -5,5	 yrange -5,5	 circle 0,0,$val11*60,blue	 segment $val12,$val13,$val14,$val15,blue	 dsegment 0,0,$val19,$val20,orange	 linewidth 5	 points red,0,0,$val12,$val13,$val14,$val15,$val16,$val17,$val19,$val20	 text red,0,0,medium,O	 text blue,$val12,$val13,medium,F	 text blue,$val14,$val15,medium,M	 text red,$val16,$val17,medium,I	 text orange,$val19,$val20,medium,H	
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=nature du lieu
+replygood1=$val25;un point,un cercle, un arc de cercle, une droite
+replytype2=clickfill
+replyname2=
+replygood2=?analyze 30;$val9
+replytype3=numeric
+replyname3=
+replygood3=?analyze 31
+replytype4=clickfill
+replyname4=
+replygood4=?analyze 32;$val9
+replytype5=function
+replyname5=
+replygood5=!rawmath $val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	 
+!if $m_step=3 
+$() 
+!read oef/draw.phtml 300,300 \
+$val29	 $val24 
+$()	  
+!else
+$() 	  
+!read oef/draw.phtml 300,300 \
+$val29 
+$()	  
+!endif
+$()	</div>	 <div class="medium_size text_col">	  <p>	  Dans le plan, soit 
+!insmath (C)
+$() un cercle de centre 
+!insmath O
+$() et de rayon 
+!insmath r
+$()	  et 
+!insmath F
+$() un point extérieur à 
+!insmath (C)
+$().<br>	  Un point 
+!insmath M
+$() décrit le cercle 
+!insmath (C)
+$().<br>	  Le point 
+!insmath H
+$() est le projeté orthogonal du point 
+!insmath O
+$() sur la droite 
+!insmath (F M)
+$().	  </p>	  $val6.	  
+!if $m_step=1 
+$()	    <div class="wimscenter"> Il s'agit d' 
+!read oef/embed.phtml repy1 
+$()</div>	   
+!else
+$() 	    <p> Il s'agit d'un $val26 de centre 
+!insmath \Omega
+$().</p>	    
+!if $m_step=2 
+$()	      Donner une égalité vectorielle caractérisant ce centre.	      <div class="wimscenter"> 
+!read oef/embed.phtml reply2,$val27 
+$()= 
+!read oef/embed.phtml reply3,3 
+$() 
+!read oef/embed.phtml reply4,$val27 
+$()</div>	     
+!else
+$() 	      avec 
+!insmath \overrightarrow{F\Omega}=\frac{1}{2}\overrightarrow{F O}
+$().	      <p>	       Déterminer le rayon 
+!insmath R
+$() de ce cercle en fonction du rayon 
+!insmath r
+$() de 
+!insmath (C)
+$()	       et de la distance 
+!insmath a=F O
+$().	      </p>	      <div class="wimscenter"> 
+!insmath R
+$()= 
+!read oef/embed.phtml reply5,5 
+$()</div>	     
+!endif
+$()	   
+!endif
+$()	  </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val8
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval ($m_reply2 issametext $(val9[1]) and $m_reply4 issametext $(val9[2]) and $m_reply3=0.5) or ($m_reply2 issametext $(val9[2]) and $m_reply4 issametext $(val9[1]) and $m_reply3=2)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=6,8,9,24,26,27,29,30,31,32
+embedcnt=5

@@ -1,0 +1,225 @@
+\title{Combinaison linéaire de deux vecteurs}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\integer{width=400}
+\integer{height=400}
+\integer{margin=20}
+\integer{xmax=6}
+\integer{ymax=6}
+\real{pas=1}
+\text{donnees=slib(draw/repere \width,\height,\margin,-\xmax,\xmax,-\ymax,\ymax,\pas,\pas,black,gray)}
+
+\text{tmp=row(1,\donnees)}
+#coordonnéées de l'origine du repère
+\integer{Ox=item(1,\tmp)}
+\integer{Oy=item(2,\tmp)}
+
+\text{tmp=row(2,\donnees)}
+#échelle des axes
+\integer{ex=item(1,\tmp)}
+\integer{ey=item(2,\tmp)}
+
+\text{grille=wims(line 3 to 6 of \donnees)}
+\text{grille=linewidth 2
+\grille}
+#on a retiré les axes
+#pour placer l'origine, il faut écrire du texte
+integer{X=random(-1,1)*random(1..5)}
+integer{Y=random(-1,1)*random(1..5)}
+#on ne veut pas X=0
+
+#ensuite on place deux vecteurs (X,Y)
+\integer{ax=\Ox+random(-2..2)*\ex}
+\integer{bx=\Ox+random(-2..2)*\ex}
+\integer{cx=\Ox+random(-2..2)*\ex}
+\integer{dx=\Ox+random(-2..2)*\ex}
+\integer{ay=\Oy+random(-2..2)*\ey}
+\integer{by=\Oy+random(-2..2)*\ey}
+\integer{cy=\Oy+random(-2..2)*\ey}
+\integer{randy=random(-2..2)}
+\integer{dy=\Oy+\randy*\ey}
+
+\integer{c1=random(-2,-1,1,2)}
+\integer{c2=random(-2,-1,1,2)}
+
+controle des vecteurs
+\integer{ay=(\by-\ay=0) and \ay=\Oy?\ay+2*\ey:\ay}
+\integer{ax=(\bx-\ax=0) and \ax=\Ox?\ax+2*\ex:\ax}
+\integer{ax=(\ax=\bx) and (\ay=\by)?2*\Ox-\ax:\ax}
+\integer{cy=(\dy-\cy=0) and \cy=\Oy?\cy+2*\ey:\cy}
+\integer{cx=(\dx-\cx=0) and \cx=\Ox?\cx+2*\ex:\cx}
+\integer{cx=(\cx=\dx) and (\cy=\dy)?2*\Ox-\cx:\cx}
+
+\integer{colin=(\bx-\ax)*(\dy-\cy)-(\by-\ay)*(\dx-\cx)}
+
+\if{\colin=0}
+  {\if {\dx=\cx}
+    {\integer{dx=\Ox+1*\ex}
+    }
+    {\if{\dy=\cy}
+      {\integer{dy=\Oy+1*\ey}
+      }
+      {\integer{dy=\Oy+(-1)*(\randy)*\ey}}
+    }
+  }
+
+\text{vecAB=arrow \ax,\ay,\bx,\by,10,orange}
+\text{vecCD=arrow \cx,\cy,\dx,\dy,10,blue}
+
+calcul des coordonnées de M
+\integer{fx=\Ox+\c1*(\bx-\ax)+\c2*(\dx-\cx)}
+\integer{fy=\Oy+\c1*(\by-\ay)+\c2*(\dy-\cy)}
+
+test pour l'affichage de la combinaison
+
+\if{\fx>\width-\margin or \fx<\margin or \fy>\height-\margin or \fy<\margin}
+  {\rational{c1=\c1/2}
+  \rational{c2=\c2/2}
+  \rational{fx=\Ox+\c1*(\bx-\ax)+\c2*(\dx-\cx)}
+  \rational{fy=\Oy+\c1*(\by-\ay)+\c2*(\dy-\cy)}
+  }
+\if{\fx>2*(\width-\margin) or \fx<2*\margin or \fy>2*(\height-\margin) or \fy<2*\margin}
+  {\rational{c1=\c1/2}
+  \rational{c2=\c2/2}
+  \rational{fx=\Ox+\c1*(\bx-\ax)+\c2*(\dx-\cx)}
+  \rational{fy=\Oy+\c1*(\by-\ay)+\c2*(\dy-\cy)}
+  }
+
+\function{trx=(x-(\Ox))/\ex}
+\function{try=(y-(\Oy))/\ey}
+\text{fxx=simplify(evalue(\trx,x=\fx))}
+\text{fyy=simplify(evalue(\try,y=\fy))}
+
+#### TEST pour construction
+\if{\fxx>\xmax or \fxx<-\xmax or \fyy>\ymax or \fyy<-\ymax}{\text{alert=PB}}{\text{alert=OK}}
+\real{c1ABx=\c1*(\bx-\ax)/\ex}
+\real{c1ABy=\c1*(\by-\ay)/\ex}
+\real{c2CDx=\c2*(\dx-\cx)/\ey}
+\real{c2CDy=\c2*(\dy-\cy)/\ey}
+\if{\c1ABx>\xmax  or \c1ABx<-\xmax  or \c1ABy >\ymax or \c1ABy <-\ymax}{\text{decompo1=PB}}{\text{decompo1=OK}}
+\if{\c2CDx>\xmax or \c2CDx<-\xmax or \c2CDy>\ymax or \c2CDy<-\ymax }{\text{decompo2=PB}}{\text{decompo2=OK}}
+
+
+calcul des pentes des vecteurs pour affichage des lettres
+\integer{offax=\bx-\ax>=0?-10:10}
+\integer{offay=\by-\ay>=0?-5:5}
+\integer{offbx=\bx-\ax>=0?10:-10 }
+\integer{offby=\by-\ay>=0?5:-5}
+\integer{offcx=\dx-\cx>=0?-10:10}
+\integer{offcy=\dy-\cy>=0?-5:5}
+\integer{offdx=\dx-\cx>=0?10:-10 }
+\integer{offdy=\dy-\cy>=0?5:-5}
+\integer{offmx=\fx>=0?10:-10}
+\integer{offmy=\fy>=0?5:-5}
+
+\text{grille2=linewidth 1
+parallel \margin,\margin+\ex/2,\width-\margin,\margin+\ex/2,0,\ex,2*\xmax,lightgrey
+parallel \margin+\ex/2,\margin,\margin+\ex/2,\height-\margin,\ex,0,2*\xmax,lightgrey
+}
+
+\text{data=crosshair \Ox,\Oy,black
+text black,\Ox-10,\Oy+5,medium,O
+linewidth 2
+\vecAB
+text orange,\ax+\offax,\ay+\offay,medium,A
+text orange,\bx+\offbx,\by+\offby,medium,B
+\vecCD
+text blue,\cx+\offcx,\cy+\offcy,medium,C
+text blue,\dx+\offdx,\dy+\offdy,medium,D}
+
+affichage du dessin
+\text{image=draw(400,400
+\grille
+\grille2
+\data)
+}
+
+
+réaffichage du dessin
+\if{\decompo1=OK}
+  {\integer{m1x=\Ox+\c1*(\bx-\ax)}
+  \integer{m1y=\Oy+\c1*(\by-\ay)}
+  \text{vecABtr=dasharrow \Ox,\Oy,\m1x,\m1y,10,orange}
+  \integer{m2x=\m1x+\c2*(\dx-\cx)}
+  \integer{m2y=\m1y+\c2*(\dy-\cy)}
+  \text{vecCDtr=dasharrow \m1x,\m1y,\m2x,\m2y,10,blue}
+  }
+  {\integer{m1x=\Ox+\c2*(\dx-\cx)}
+  \integer{m1y=\Oy+\c2*(\dy-\cy)}
+  \text{vecCDtr=dasharrow \Ox,\Oy,\m1x,\m1y,10,blue}
+  \integer{m2x=\m1x+\c1*(\bx-\ax)}
+  \integer{m2y=\m1y+\c1*(\by-\ay)}
+  \text{vecABtr=dasharrow \m1x,\m1y,\m2x,\m2y,10,orange}
+  }
+\text{vecOMtr=dasharrow \Ox,\Oy,\m2x,\m2y,10,green}
+\text{repimage=\grille
+\grille2
+\data
+\vecABtr
+\vecCDtr
+arrow \Ox,\Oy,\fx,\fy,10,green
+text green,\fx+\offmx,\fy+\offmy,medium,M
+}
+
+
+\rational{cc1=\c1}
+\rational{cc2=\c2}
+
+\if{\c1=1}
+  {\text{c1=}}
+  {\if{\c1=-1}
+    {\text{c1=-}}
+    {\text{c1=texmath(\c1)}}
+  }
+
+\if{\c2>0}{\text{op=+}}{\text{op=-}}
+
+\if{\c2=1 or \c2=-1}
+  {\text{c2=}}
+  {\rational{ccc2=abs(\c2)}
+   \text{c2= texmath(\ccc2)}
+  }
+
+\if{\op=-}{\text{op2=\op}}{\text{op2=}}
+
+\statement{
+Le plan est rapporté à une grille sur laquelle sont représentés un point \(O\) et deux vecteurs  \(\overrightarrow{A B}\) et <span class="nowrap">\(\overrightarrow{C D}\).</span>
+<br>Le but de l'exercice est de construire le représentant d'origine \(O\)
+du vecteur <span class="nowrap">\(\c1\overrightarrow{A B} \op \c2 \overrightarrow{C D}\).</span>
+<br>Cliquer à l'emplacement de l'extrémité \(M\) du vecteur
+<span class="nowrap">\(\overrightarrow{O M} = \c1\overrightarrow{A B} \op \c2 \overrightarrow{C D}\).</span>
+
+<div class="wimscenter \if{\sc_reply1=}{unbreakable}">\embed{r1}</div>
+}
+
+\answer{f(\X)}{\image;circle,\fx,\fy,\ex/3}{type=coord}
+
+
+\solution{
+\if{\decompo1=OK}
+{On peut commencer par construire :
+<ul>
+<li>le représentant du vecteur \( \c1\overrightarrow{A B}\)
+d'origine \(O\) (en pointillé orange)&nbsp;;</li>
+<li>puis le représentant du vecteur \(\op2 \c2\overrightarrow{C D}\) d'origine l'extrémité du vecteur précédent (en pointillé bleu).</li>
+</ul>
+}
+{
+On peut commencer par construire :
+<ul>
+<li>le représentant du vecteur \(\op2 \c2\overrightarrow{C D}\) d'origine \(O\) (en pointillé bleu)&nbsp;;</li>
+<li>puis le représentant du vecteur \( \c1\overrightarrow{A B}\) d'origine l'extrémité du vecteur précédent (en pointillé orange).</li>
+</ul>
+}
+
+On en déduit le vecteur \(\overrightarrow{O M}\) (en vert) qui est la somme de ces deux vecteurs.
+<div class="wimscenter">
+\draw{\width,\height}{\repimage}
+</div>
+}

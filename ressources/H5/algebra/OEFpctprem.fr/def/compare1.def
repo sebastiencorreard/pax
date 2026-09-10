@@ -1,0 +1,126 @@
+!set title=Comparaison 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Dans une entreprise,la moyenne des salaires masculins est de,20,40,100,euros,celle des salaires féminins est de,hommes gagnent, que les femmes,femmes gagnent, que les hommes	  Dans un lycée,la moyenne des tailles des garçons est de,160,190,1,cm,celle des filles est de,garçons mesurent, que les filles,filles mesurent, que les garçons	  Dans une ville,la durée de vie moyenne des femmes est de,60,90,1,ans,celle des hommes est de,femmes vivent, que les hommes,hommes vivent, que les femmes	
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!makelist x for x=$(val7[3]) to $(val7[4])
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$[rint($(val8[1])*$(val7[5]))]
+val10=$[rint($(val8[2])*$(val7[5]))]
+
+!ifval $val9<$val10
+val11=$[rint($val10)]
+!else
+val11=$[rint($val9)]
+!endif
+
+!ifval $val9<$val10
+val12=$[rint($val9)]
+!else
+val12=$[rint($val10)]
+!endif
+t_=!rawmath ($val11-$val12)/ $val12
+val13=!exec pari print($t_)
+val13=$[rint(10000*$val13)]
+val13=$[$val13/100]
+t_=!rawmath ($val11-$val12)/ $val11
+val14=!exec pari print($t_)
+val14=$[rint(10000*$val14)]
+val14=$[$val14/100]
+val15=$[rint($val11-$val12)]
+val16=<div class="spacer">	  <p>Les $(val7[8]) $val15 $(val7[6]) de plus $(val7[9]).</p>	  <p>Dans la première phrase, la valeur de référence est $val12.<br> \(\frac{$val15}{$val12}\times 100 \simeq $val13\)<br>	  Les $(val7[8]) donc $val13&nbsp;% de plus $(val7[9]).</p>	  </div>	<div class="spacer">	  <p>Les $(val7[10]) $val15 $(val7[6]) de moins $(val7[11]).</p>	  <p>Dans la deuxième phrase, la valeur de référence est $val11.<br> \(\frac{$val15}{$val11}\times 100 \simeq $val14\)<br>	  Les $(val7[10]) donc $val14&nbsp;% de moins $(val7[11]).</p>	</div>	
+replytype1=numeric
+replyname1=
+replygood1=$[$val13]
+replytype2=numeric
+replyname2=
+replygood2=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	$(val7[1]), $(val7[2]) $val11 $(val7[6]), $(val7[7]) $val12 $(val7[6]).<br>	  Compléter les phrases suivantes avec une précision de 0.01 %&nbsp;:	</p>	<ul>	<li><label for="reply1">les $(val7[8])</label><span class="nowrap"> 
+!read oef/embed.phtml reply1,4 
+$()&nbsp;%</span>	de plus $(val7[9]).</li>	<li> <label for="reply2">les $(val7[10])</label><span class="nowrap"> 
+!read oef/embed.phtml reply2,4 
+$()&nbsp;%</span> de moins $(val7[11]).</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val13<>$m_reply1 or $val14 <>$m_reply2
+ <div class='oef_feedbacks'>$val16
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,12,13,14,16
+embedcnt=2

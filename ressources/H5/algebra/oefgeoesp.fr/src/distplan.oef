@@ -1,0 +1,88 @@
+\title{Distance d'un point à un plan}
+\author{Bruno, Mifsud;Hubert, Prohal}
+\email{communaute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr}
+%%% maj 2022 03 28
+\keywords{plane_equation,equation,distance,normal_vector}
+\computeanswer{yes}
+\precision{100000}
+\observation{Au moins l'une des coordonnées du vecteur normal est nulle, avec une probabilité égale à 0.5.}
+
+%%%%% Point A 
+\text{A=random(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T)}
+\integer{xA=random(1..6)*random(-1,1)}
+\integer{yA=random(1..6)*random(-1,1)}
+\integer{zA=random(1..6)*random(-1,1)}
+
+%%%% Coord du vecteur normal
+%%%%% pour avoir au moins une coord nulle 1 fois sur 2
+\text{cas=randint(1,2,3,4,4,4)} %%% place du zéro
+\integer{a=\cas=1 ?0:random(1..6)*randint(-1,1)} 
+\integer{b=\cas=2 ?0:random(1..6)*randint(-1,1)}
+\integer{c=\cas=3 ?0:random(1..6)*randint(-1,1)}
+%%%% vérification si pas vecteur nul
+\integer{test=\a^2+\b^2+\c^2}
+\if{\a^2+\b^2+\c^2=0}
+{\integer{a=random(1..6)*randint(-1,1)}
+\integer{b=random(1..6)*randint(-1,1)}
+\integer{c=random(1..6)*randint(-1,1)}}
+%%%%% Simplification des coordonnées
+\integer{gcdab=gcd(\a,\b)}
+\integer{gcdbc=gcd(\b,\c)}
+\integer{pg= gcd(\gcdab,\gcdbc)}
+\integer{a=\a/\pg}
+\integer{b=\b/\pg}
+\integer{c=\c/\pg}
+\integer{d=-1*\a*\xA-\b*\yA-\c*\zA}
+\matrix{n=\a
+\b
+\c}
+%%%%% Point M
+\integer{xM=random(1..6)*random(-1,1)}
+\integer{yM=random(1..6)*random(-1,1)}
+\integer{zM=random(1..6)*random(-1,1)}
+%%% test si M est sur le plan
+\integer{zM=\a*\xM+\b*\yM+\c*\zM+\d=0? \zM+randint(1..6)*randint(-1,1)} 
+
+\text{eqplan=\a*x+\b*y+\c*z+\d=0}
+\text{rep=maxima(abs(\a*\xM+\b*\yM+\c*\zM-(\a*\xA+\b*\yA+\c*\zA))/sqrt(\a*\a+\b*\b+\c*\c))}
+
+%%% pour solution%%%
+\text{eq1=simplify(\a*x+\b*y+\c*z)}
+\text{eq2=simplify(\a*x+\b*y+\c*z+\d)}
+\text{eq3=wims(replace x by x_\A in \eq1)}
+\text{eq3=wims(replace y by y_\A in \eq3)}
+\text{eq3=wims(replace z by z_\A in \eq3)}
+
+
+\text{b1=\b<0? (\b):\b}
+\text{c1=\c<0? (\c):\c}
+\text{xA1=\xA<0? (\xA):\xA}
+\text{zA1=\zA<0? (\zA):\zA}
+\text{yA1=\yA<0? (\yA):\yA}
+\text{rep1=simplify(\rep)}
+\real{rep2=\rep}
+
+
+\statement{<p>On se place dans un repère othonormé de l'espace.</p>
+<p>On considère le plan \((P)) qui passe par le point \(\A(\xA;\yA;\zA)) et dont un vecteur normal est : \(\vec{n}) \([\n]).</p>
+<p> Calculez la distance de \((P)) au point \(M(\xM;\yM;\zM)).</p>
+<div class="wims_question">La <label for="reply1">distance</label> de \(M) à \((P)) est égale à  \embed{r1,30}.</div>
+}
+
+\answer{}{\rep}{type=numeric}{option=comma}
+
+\solution{
+<p>Le calcul se fait en deux étapes, on notera \((x_\A;y_\A;z_\A)\) les coordonnées du point \(\A).</p>
+<p class="wims_emph">Etape 1 : Equation du plan</p>
+<p><u>On sait que :</u> le plan \((P)) a pour équation \(\eq1+k=0) <i>(\(k) réel)</i> 
+puisque vecteur \([\a;\b;\c]) est un vecteur normal du plan. </p>
+<p>Ainsi, il reste à déterminer la valeur de \(k) pour que les coordonnées de \(\A(\xA;\yA;\zA)) 
+vérifient l'équation : \(\eq1+k=0).</p>
+<ul class="wims_nopuce"><li> Il faut donc résoudre : \(\eq3 +k=0).</li>
+<li> On trouve :\(k=\d)</li></ul>
+<p> <u>Bilan :</u>\(\eq2=0) est une équation de ce plan.</p>
+<p class="wims_emph">Etape 2 : Calcul de la distance.</p>
+<p> On sait que : la distance de \(M) au plan est : 
+\(\frac{ \left| a x_M+b y_M+c z_M-(a x_\A+b y_\A+c z_\A)\right|}{\sqrt{a^2+b^2+c^2}}).</p>
+<p> Ainsi, en remplaçant par les valeurs, on obtient : \(\rep) \(\approx \rep2).</p>
+}

@@ -1,0 +1,504 @@
+!set title=Figures usuelles : Associer chaque script à la figure qui lui correspond
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=bruno.mifsud@laposte.net
+
+ansorder=r
+varcnt=131
+prevarcnt=130
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Aucun logiciel n'est autorisé pour répondre à cet exercice,	 sans quoi il ne sert pas à grand chose pour progresser.
+val7=donnee_scriptfig
+!readproc slib/utilities/notepad Notepad,small 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!nosubst Associez à chaque script la figure qu'il trace.
+
+val9=$(tmp0)
+tmp0=!nosubst 
+
+val10=$(tmp0)
+val11=
+val12=
+val13=no
+val14=no
+val15=no
+val16=no
+val17=yes
+val18=200x200x200
+val19=split
+val20=1
+val21=aucune de ces possibilités
+val22=clickfill
+val23=mark
+val24=
+val25=
+val26=
+val27=
+val28=
+val29=
+val30=yes
+val31=inside
+val32=yes
+val33=1
+val34=
+val35=
+val36=
+val37=
+val38=
+!readproc slib/oef/env givegood 
+tmp0=$slib_out
+val39=$(tmp0)
+
+!ifval $val39 issametext 
+val39= 1
+!endif
+
+!ifval $val39>0
+val34= yes
+!endif
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val40=$(tmp0)
+tmp0=!recordcnt $val40
+
+val41=$[rint($(tmp0))]
+val42=1
+val43=1
+val44=3
+
+!ifval $val23 iswordof flashcard
+val45=show
+!endif
+
+!ifval $val23 iswordof flashcard 
+val46=s;&nbsp;
+!endif
+
+!ifval $val22 iswordof case nocase 
+val47= autocomplete="off"
+!endif
+tmp0=!replace internal - by in $val37
+
+val37=$(tmp0)
+val48=$val24,$val25,$val26,$val27
+
+!ifval $val28 = 
+val28=++>
+!endif
+
+!ifval $val33 notwordof 0 
+val33=$[rint( 1)]
+!endif
+
+!ifval $val29!=yes 
+val49= noreaccent
+!else
+val49=
+!endif
+
+!ifval $val30 issametext no 
+!readproc slib/utilities/nopaste  
+tmp0=$slib_out
+val50= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction in $val40
+
+val9= $(tmp0)
+!endif
+tmp0=$val9
+
+val9=$(tmp0)
+
+!ifval $val10 issametext 
+tmp0=!getdef instruction2 in $val40
+
+val10= $(tmp0)
+!endif
+tmp0=$val10
+
+val10=$(tmp0)
+
+!ifval $val18 issametext 
+tmp0=!getdef size in $val40
+
+val18= $(tmp0)
+!endif
+
+!ifval $val14 issametext 
+tmp0=!getdef reading_file in $val40
+
+val14= $(tmp0)
+!endif
+tmp0=!record 0 of $val14
+
+val51=$(tmp0)
+tmp0=$val51
+
+val51=$(tmp0)
+
+!ifval $val13 issametext 
+tmp0=!getdef audio_file in $val40
+
+val13= $(tmp0)
+!endif
+
+!ifval $val13 notsametext and $val13 notsametext no
+!readproc slib/media/audio $val1/$val13,$val38,player=$val37 
+tmp0=$slib_out
+val52=	<div class="wimscenter">$(tmp0)</div>
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef image_file in $val40
+
+val15= $(tmp0)
+!endif
+
+!ifval $val15 notsametext and $val15 notsametext no
+tmp0=!makelist <img src="$val1/x " alt="" /> for x in $val15
+
+val53=	$(tmp0)
+!endif
+
+!ifval $val16 issametext 
+tmp0=!getdef video_file in $val40
+
+val16= $(tmp0)
+!endif
+!if $val16 notsametext and $val16 notsametext no 
+
+!ifval http notin $val16 
+val16= $val1/$val16
+!endif
+
+!ifval $val16 notsametext 
+val54= <div><a target="wims_external" href="$val16">[video]</a></div>
+!endif
+!endif
+
+!ifval $val11 issametext 
+tmp0=!getdef choice in $val40
+
+val55= $(tmp0)
+!else
+val55=$val11
+!endif
+
+!ifval $val35 notwordof 1 2 3 4 5 6 7 8 9 10 
+val35= 1
+!endif
+
+!ifval $val22 iswordof dragfill clickfill 
+val18= $val18 x 1
+!endif
+val43=$[rint(min($val41,$val43))]
+val42=$[rint(min($val43*$val42,$val41))]
+
+!ifval $val17 issametext yes 
+tmp0=!shuffle $val41
+
+val56= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val41
+
+val56=	$(tmp1)
+!endif
+tmp0=!randrecord $val7
+
+val57=$(tmp0)
+tmp0=!embraced randitem $val57
+
+val57=$(tmp0)
+val58=$val57
+tmp=!translate internal $	$ to ; in $val58
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val58=$(tmp0)
+!if $val58 notsametext  
+tmp0=!getopt audio in $val58
+
+val59=$(tmp0)
+tmp0=!getopt image in $val58
+
+val60=$(tmp0)
+tmp0=!getopt title in $val58
+
+val61=$(tmp0)
+tmp0=!getopt intro in $val58
+
+val62=$(tmp0)
+
+!ifval $val59$val60$val61$val62 notsametext 
+val63=$[rint( 1 )]
+!else
+val63=$[rint( 0)]
+!endif
+val64=
+
+!ifval $val61 notsametext 
+val64=$val64<div class="wimscenter">$val61</div>
+!endif
+
+!ifval $val62 notsametext 
+val64=$val64 $val62
+!endif
+
+!ifval $val60 notsametext 
+val64= $val64 <div class="wimscenter"><img src="$val1/$val60" alt="" /></div>
+!endif
+!if $val59 notsametext  
+
+!ifval . isin $val59 or $val36= 
+!readproc slib/media/audio $val1/$val59,$val38,player=$val37 
+tmp0=$slib_out
+val65=	       $(tmp0)
+!else
+!readproc slib/lang/swac $val59,$val36,player=$val37,$val38 
+tmp1=$slib_out
+val65=$(tmp1)
+!endif
+val64=$val64 <div class="wimscenter">$(val65[1;1])</div>
+!endif
+
+!ifval $val63=1 
+val66= $val64
+!else
+val66=&nbsp;
+!endif
+!else
+val63=$[rint(2)]
+!endif
+
+!ifval $val63=1 or $val63=2 
+tmp0=!line 2 to -1 of $val57
+
+tmp=!trim  $(tmp0)
+val57=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $val57
+val57=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val57
+
+tmp0=!rowcnt $tmp
+val67=$[rint($(tmp0))]
+
+!ifval $val44 issametext all 
+val44=$[rint( $val67)]
+!else
+val44=$[rint(min($val67,$val44))]
+!endif
+tmp0=!shuffle $val67
+
+val55=$(tmp0)
+tmp=!trim $(val57[$(val55[1..$val44]);])
+val57=!translate internal $	\
+$ to ;; in $tmp
+val68=
+val69=
+!for val70  = 1 to $val44 
+!if .mp3 isin $(val57[$val70;2]) or .jpg isin $(val57[$val70;2]) or .gif isin $(val57[$val70;2]) or .png isin $(val57[$val70;2]) 
+!if .mp3 isin $(val57[$val70;2]) 
+tmp0=!nospace $(val57[$val70;2])
+
+val71=$(tmp0)
+!readproc slib/media/audio $val1/$(val57[$val70;2]),$val38,player=$val37 
+tmp0=$slib_out
+val71=$(tmp0)
+!endif
+!if .jpg isin $(val57[$val70;2]) or .gif isin $(val57[$val70;2]) or .png isin $(val57[$val70;2]) 
+tmp0=!nospace $(val57[$val70;2])
+
+val71=$(tmp0)
+tmp0=!replace internal image= by in $val71
+
+val71=$(tmp0)
+tmp0=!replace internal imag= by in $val71
+
+val71=$(tmp0)
+val71=imgrename($val1/$val71 )
+!endif
+!else
+tmp0=!getopt audio in $(val57[$val70;2])
+
+val72=$(tmp0)
+!if $val72 notsametext  
+!readproc slib/lang/swac $val72,$val36,player=$val37,$val38 
+tmp0=$slib_out
+val71=$(tmp0)
+val71=$(val71[1;1])
+!else
+val71=$(val57[$val70;2])
+!endif
+!endif
+tmp0=!append item $val71 to $val69
+
+val69=$(tmp0)
+!next
+!for val70  = 1 to $val44 
+!if .mp3 isin $(val57[$val70;1]) or .jpg isin $(val57[$val70;1]) or .gif isin $(val57[$val70;1]) or .png isin $(val57[$val70;1]) 
+!if .mp3 isin $(val57[$val70;1]) 
+tmp0=!nospace $(val57[$val70;1])
+
+val71=$(tmp0)
+!readproc slib/media/audio $val1/$(val57[$val70;1]),$val38,player=$val37 
+tmp0=$slib_out
+val71=$(tmp0)
+!endif
+!if .jpg isin $(val57[$val70;1]) or .gif isin $(val57[$val70;1]) or .png isin $(val57[$val70;1]) 
+tmp0=!nospace $(val57[$val70;1])
+
+val71=$(tmp0)
+tmp0=!replace internal image= by in $val71
+
+val71=$(tmp0)
+tmp0=!replace internal imag= by in $val71
+
+val71=$(tmp0)
+val71=imgrename($val1/$val71 )
+!endif
+!else
+tmp0=!getopt audio in $(val57[$val70;1])
+
+val72=$(tmp0)
+!if $val72 notsametext  
+!readproc slib/lang/swac $val72,$val36,player=$val37,$val38 
+tmp0=$slib_out
+val71=$(tmp0)
+val71=$(val71[1;1])
+!else
+val71=$(val57[$val70;1])
+!endif
+!endif
+tmp0=!append item $val71 to $val68
+
+val68=$(tmp0)
+!next
+val73=
+val74=
+val75=
+!for val76 =1 to $val44 
+tmp0=!lookup $(val57[$val76;2]) in imagesize
+
+val77=$(tmp0)
+tmp0=!append item $(val77[1]) to $val73
+
+val73=$(tmp0)
+tmp0=!lookup $(val57[$val76;1]) in imagesize
+
+val78=$(tmp0)
+tmp0=!append item $(val78[1]) to $val74
+
+val74=$(tmp0)
+tmp0=!append item $(val78[2]),$(val77[2]) to $val75
+
+val75=$(tmp0)
+!next
+t_=!replace internal \( by ( in [vecmax([$val75]),vecmax([$val74]),vecmax([$val73])]
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+tmp0=!replace internal , by x in $val18
+
+val18=$(tmp0)
+replytype1=correspond
+replyoption1=$val19 
+replyname1=
+replygood1=$val68; $val69
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val50 <div class="instruction">$val9</div> $val66	  
+!if $val51 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val53 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val52$val54	  <div class="wimscenter question"> 
+!read oef/embed.phtml reply1,$val18 
+$()</div>	  <div class="wims_instruction">	  $val6	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<b>Bonnes réponses :</b>	<table class="wimscenter wimsnoborder">	 
+!for m_k = 1 to 3 
+$()	<tr>	<td> 
+!read oef/img.phtml $val1/$(val57[$m_k;1])  
+$()</td>	<td>
+!insmath \leftrightarrow
+$()</td>	<td> 
+!read oef/img.phtml $val1/$(val57[$m_k;2])  
+$()</td>	</tr> 
+!next
+$()	</table>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,9,18,50,51,52,53,54,57,66
+embedcnt=3

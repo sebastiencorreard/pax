@@ -1,0 +1,279 @@
+!set title=Objet et image réels ou virtuels
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=62
+prevarcnt=61
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+
+!ifval $val6 issametext fr 
+val7= violet,orange,bleu marine, bleu ciel
+!endif
+
+!ifval $val2=1 
+val8=$[rint( -1)]
+!else
+val8=$[rint( 1)]
+!endif
+
+!ifval $val2= or $val2 = 3 
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val8=$[rint( $(tmp0))]
+!endif
+val9=1
+tmp0=!randint 3, 6
+
+val10=$[rint($(tmp0))]
+tmp0=!randint floor(abs($val10/2)), 2*floor(abs($val10))
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 10*$val11/3, 2*$val11/3*10
+
+val12=$[$(tmp0)/10]
+tmp0=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$val11)]
+tmp0=!randitem 1,-1
+
+val12=$[$(tmp0)*$val12]
+val10=$[rint($val10*($val8))]
+
+!ifval $val11=$val10
+val11=$[rint( $val11-1)]
+!endif
+
+!ifval $val11!=$val10
+t_=!rawmath  1/(1/($val11)-1/($val10))
+val13=!exec pari print($t_)
+!else
+t_=!rawmath 100
+val13=!exec pari print($t_)
+!endif
+t_=!rawmath $val12*($val13)/($val11)
+val14=!exec pari print($t_)
+val15=!rawmath ($val12)/($val11)*t
+val16=!rawmath ($val14)/(-$val10)*(t-($val10))
+val17=!rawmath ($val12)/($val10)*(t+($val10))
+
+!ifval $val11!=$val10
+t_=!rawmath  $val13*1.2
+val18=!exec pari print($t_)
+!else
+t_=!rawmath -2*$val10
+val18=!exec pari print($t_)
+!endif
+evaltmp=$val17
+
+evaltmp=!mathsubst t=($val18) in $evaltmp
+tmp0=($evaltmp)
+val19=$[$(tmp0)]
+
+!ifval $val11<>$val10
+tmp0=!sort numeric item $val13,$val11,$val10,-$val10
+
+val20= $(tmp0)
+!else
+tmp1=!sort numeric item $val11,$val10,-$val10
+
+val20=$(tmp1) 
+!endif
+tmp0=!item 1 of $val20
+
+val21=$[min($(tmp0),-1)]
+tmp0=!item -1 of $val20
+
+val22=$[max($(tmp0),1)]
+val21=$[floor(1.2*$val21)]
+val22=$[ceil(1.2*$val22)]
+
+!ifval $val11<>$val10 
+val23=$[ max( abs($val12),abs($val14))]
+!else
+val23=$[abs($val12)]
+!endif
+val23=$[ceil($val23*1.5)]
+val24=$[($val22-$val21)/(2*$val23)]
+val25=$[rint(600)]
+val24=$[$val25*$val24^(-1)]
+val26=purple,orange,navy,skyblue
+tmp0=!shuffle $val26
+
+val27=$(tmp0)
+tmp0=!item 1 of $val27
+
+val28=$(tmp0)
+tmp0=!item 2 of $val27
+
+val29=$(tmp0)
+val30=$val28
+tmp0=!positionof item $val30 in  $val26
+
+val31=$(tmp0)
+
+!ifval $val7=
+val7= $val27
+!endif
+tmp0=!item $val31 of $val7
+
+val32=$(tmp0)
+val33=$[-$val23*1.3]
+val34=$[$val23]
+val35=xrange $val21,$val22	  yrange $val33,$val34	  hline 0,0, black	  linewidth 1	  arrow $val21+($val22-$val21)/20,-$val23*1.2,$val21+($val22-$val21)/10,-$val23*1.2,15, black	
+val36=linewidth 1	dhline 0,$val12, grey	dhline 0,$val14, grey
+val35=$val35	  linewidth 4	  vline 0,0,black	  linewidth 1	  text black, 0.2,-0.2,medium, O	  
+
+!ifval $val11<>$val10 
+val35= $val35	  dpolyline red,min($val11,0),$val12, 0,$val12	  dpolyline red,-min(-$val11,0),$val12, 0,$val12	  dpolyline red, -($val10),0,0,$val12	  dpolyline red, $val13,$val14,0,$val12	  dpolyline blue, 0,$val14,$val18,$val14	  dpolyline blue, 0,$val14,$val11,$val12	  dpolyline blue, 0,$val14,$val10,0
+!endif
+
+!ifval $val11=$val10
+val35= $val35	  polyline red, $val11,$val12, 0,$val12,-$val10,0,$val18,$val19	  polyline blue, $val11,$val12	  polyline green, $val11,$val12,	  polyline red, $val11,$val12, 0,$val12,-$val10,0	  polyline blue, $val10,0, $val11,$val12,0	  polyline green, $val11,$val12,-($val11),-($val12)
+!endif
+!if $val11!=0 
+
+!ifval $val11<0
+val37= trange $val11,0	  plot red, t,$val12
+!else
+val37=	  trange -$val11,0	  plot red, t,$val12
+!endif
+!endif
+
+!ifval $val11<>$val10 
+val35= $val35	  polyline blue, 0,$val14,abs($val18),$val14	  trange 0,$val22	  plot red, t,$val17	  $val37	  trange $val21,0	  plot blue, t,$val16	  trange $val21,$val22	  plot green, t, $val15	
+!endif
+val38=$[min(0,$val12)]
+
+!ifval $val9=1
+val39= textup black,$val11,$val38,large,$val32
+!endif
+
+!ifval $val11<>$val10 
+val35= $val35	  linewidth 4	  arrow $val11,0,$val11,$val12,6,$val28	  arrow $val13,0,$val13,$val14, 6,$val29	  $val39	  $val36	
+!endif
+
+!ifval $val11=$val10
+val35= $val35	  linewidth 4	  arrow $val11,0,$val11,$val12,6,$val28	  arrow $val13,0, $val13,$val14, 6,$val29	  $val39	  $val36	
+!endif
+
+!ifval $val30 issametext $val28 and $val11<0 
+val40= 1
+!endif
+
+!ifval $val30 issametext $val29 and $val13<0 
+val40= 4
+!endif
+
+!ifval $val30 issametext $val28 and $val11>0 
+val40= 2
+!endif
+
+!ifval $val30 issametext $val29 and $val13>0 
+val40= 3
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+
+!ifval $val2=1 
+val41= convergente
+!else
+val41=
+!endif
+
+!ifval $val2=2 
+val41= divergente
+!endif
+val42=Il s'agit d'un entier.
+val43=objet réel, objet virtuel,image réelle, image virtuelle
+val44=Dans le système optique suivant formé d'une	  lentille mince $val41 de centre optique \(O), le bâton de couleur $val32 est un
+val45=Nature
+replytype1=radio
+replyname1=$val45
+replygood1=$val40;$val43
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val44	<ul><li> 
+!read oef/embed.phtml reply 1,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply 1,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply 1,3 
+$()</li>	<li> 
+!read oef/embed.phtml reply 1,4 
+$()</li>	</ul>	<div class="wimscenter"> 
+!read oef/draw.phtml 600,200 \
+$val35 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=35,44
+embedcnt=4

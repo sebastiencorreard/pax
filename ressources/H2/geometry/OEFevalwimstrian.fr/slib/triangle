@@ -1,0 +1,69 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Triangle
+slib_parms=9\
+0,angle entre l'horizontale et OS1\
+2*pi/3,angle entre l'horizontale et 0S2\
+4*pi/3,angle entre l'horizontale et 0S3\
+white,couleur de la marque sur le segment S2S3\
+white,couleur de la marque sur le segment S1S3\
+white,couleur de la marque sur le segment S1S2\
+white,couleur de la marque de l'angle S3S1S2\
+white,couleur de la marque de l'angle S1S2S3\
+white,couleur de la marque de l'angle S2S3S1
+
+slib_author=Fabrice Guerimand 
+slib_out=Les donn&eacute;es pour insdraw.
+!exit
+
+
+:proc
+slib_input=$wims_read_parm
+!distribute item $wims_read_parm into slib_1,slib_2,slib_3,slib_4,slib_5,slib_6,slib_7,slib_8,slib_9
+!default slib_1=0
+!default slib_2=2*pi/3
+!default slib_3=4*pi/3
+!default slib_4=white
+!default slib_5=white
+!default slib_6=white
+!default slib_7=white
+!default slib_8=white
+!default slib_9=white
+
+slib_a=$slib_1,$slib_2,$slib_3
+slib_c=$slib_4,$slib_5,$slib_6,$slib_7,$slib_8,$slib_9
+slib_out=range -1.5,1.5,-1.5,1.5
+
+slib_t=!random 0,2*pi
+slib_s=$slib_2,$slib_3;$slib_1,$slib_3;$slib_1,$slib_2
+slib_an=($slib_3-($slib_2))/2,pi+($slib_1-($slib_3))/2,($slib_2-($slib_1))/2
+slib_d=pi/2+($slib_1)/2+$slib_t+($slib_2)/2,$slib_t+($slib_3)/2+pi/2+($slib_2)/2,$slib_t-pi/2+($slib_3)/2+$(slib_1)/2
+
+!for k=1 to 3
+ !if $(slib_c[$k])!=white
+  slib_out=$slib_out\
+circle (cos($(slib_s[$k;1])+$slib_t)+cos($(slib_s[$k;2])+$slib_t))/2,(sin($(slib_s[$k;1])+$slib_t)+sin($(slib_s[$k;2])+$slib_t))/2,11,$(slib_c[$k])
+ !endif
+ !if $(slib_c[$k+3])!=white
+  !if abs($(slib_an[$k])-pi/2)<10^(-10)
+   slib_t1=cos($(slib_a[$k])+$slib_t)
+   slib_t2=sin($(slib_a[$k])+$slib_t)
+   slib_t3=$slib_t1+0.15*cos($(slib_d[$k]))
+   slib_t4=$slib_t2+0.15*sin($(slib_d[$k]))
+   slib_t5=$slib_t1+0.15*cos($(slib_d[$k])+$(slib_an[$k]))
+   slib_t6=$slib_t2+0.15*sin($(slib_d[$k])+$(slib_an[$k]))
+   slib_t7=$slib_t3+$slib_t5-($slib_t1)
+   slib_t8=$slib_t4+$slib_t6-($slib_t2)
+   slib_out=$slib_out\
+polygon $(slib_c[$k+3]),$slib_t1,$slib_t2,$slib_t3,$slib_t4,$slib_t7,$slib_t8,$slib_t5,$slib_t6
+  !else
+   slib_out=$slib_out\
+arc cos($(slib_a[$k])+$slib_t),sin($(slib_a[$k])+$slib_t),0.4,0.4,($(slib_d[$k]))*180/pi,($(slib_d[$k])+$(slib_an[$k]))*180/pi,$(slib_c[$k+3])\
+arc cos($(slib_a[$k])+$slib_t),sin($(slib_a[$k])+$slib_t),0.46,0.46,($(slib_d[$k]))*180/pi,($(slib_d[$k])+$(slib_an[$k]))*180/pi,$(slib_c[$k+3])
+  !endif
+ !endif
+!next k
+
+slib_out=$slib_out\
+triangle cos($(slib_a[1])+$slib_t),sin($(slib_a[1])+$slib_t),cos($(slib_a[2])+$slib_t),sin($(slib_a[2])+$slib_t),cos($(slib_a[3])+$slib_t),sin($(slib_a[3])+$slib_t),black

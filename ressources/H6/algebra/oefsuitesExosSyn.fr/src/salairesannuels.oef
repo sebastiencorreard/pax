@@ -1,0 +1,114 @@
+\title{Cumul de salaires annuels}
+\language{fr}
+\range{-5..5}
+\author{Véronique Royer}
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\text{goodrep=shuffle(Exact,Bien,Juste,Bravo,Bonne réponse,Oui)}
+\text{erreur=shuffle(Erreur,Faux,Hélas,Inexact,Mauvaise réponse,Non)}
+\integer{cas=random(1,2)}
+\text{arrondi=\cas=1?:(arrondi à l'entier)}
+\text{valarrondie=\cas=1?valeur:valeur arrondie à l'entier}
+\real{t=\cas=1?randitem(5,10,15,20,25,30): randint(20..60)*0.01}
+\real{q=\cas=1?12*\t:1+0.01*\t}
+\text{unit=\cas=1?euros:%}
+\integer{m0=1000+random(1..10)*25}
+\integer{u0=12*\m0}
+\function{u=\cas=1?\u0+n*\q:\u0*\q^n}
+\function{m=\cas=1?\m0+n*\t:\m0*\q^n}
+\real{u1=evalue(\u,n=1)}
+\real{m1=evalue(\m,n=1)}
+\integer{rep2=pari(round(\u1))}
+\text{choix=arithmétique,géométrique}
+\text{nature=item(\cas,\choix)}
+\integer{n=randint(5..12)}
+\integer{\an=2007+\n}
+\real{un=evalue(\u,n=\n)}
+\integer{rep5=pari(round(\un))}
+\real{S=\cas=1?(\n+1)*(\u0+\un)/2:\u0*(1-\q^(\n+1))/(1-\q)}
+\integer{rep6=pari(round(\S))}
+\text{nom=random(Léo,Léa)}
+
+\steps{reply1
+reply2
+reply3,reply4
+reply5
+reply6}
+
+\statement{
+<div style="background-color:#FFFF66">
+
+<p>Le premier janvier 2007, \nom a signé un contrat de travail aux conditions suivantes :
+<ul><li>
+pendant la première année, son salaire <b>mensuel</b> est fixé à \(\m0) euros ; </li>
+<li>au premier janvier de chaque nouvelle année, son salaire mensuel augmente de \t \unit.</li>
+</ul>
+On note \(u_n) le salaire <b>annuel</b> de \nom pour l'année 2007+\(n).
+</p>
+<ul>
+<li>
+<b>Question 1 : </b> Quel  est le salaire annuel initial ?
+ <center> \(u_0) =  \embed{reply1,8}</center>
+</li>
+
+\if{\step>1}{
+   \if{\reply1=\u0}{<font color=green>\goodrep[1] !</font>}
+      {<font color=red>\erreur[1]...  \(u_0 = \m0 \times 12 = \u0).</font> }
+   <li><b>Question 2 </b>: Quelle  est la \valarrondie du salaire annuel en 2008 ?
+           <center> \(u_1) =  \embed{reply2,8}   &nbsp;\arrondi </center>
+    </li>
+}
+
+\if{\step>2}{
+   \if{\reply2=\rep2}{<font color=green>\goodrep[2] !</font>}
+      {<font color=red>\erreur[2]... <br>
+      \if{\cas=1}{\(m_1 = \m0 + \t = \m1 )} { \(m_1 = \m0 \times \q  = \m1 )  }
+       et \(u_1 = \m1 \times 12 = \u1)
+      \if{\cas=2}{soit  \rep2 en arrondissant à l'entier}.</font> }
+   <li><b>Question 3 </b>: De quelle nature est la suite des  salaires annuels (\(u_n)) ?
+<center> C'est une suite  \embed{reply3} de raison  \embed{reply4,5} </center>
+    </li>
+}
+
+\if{\step>3}{
+   \if{\reply3=\nature and \reply4=\q}{<font color=green>\goodrep[3] !</font>}
+      {<font color=red>\erreur[3]...  La suite est \nature de raison \(\q).</font> }
+   <li><b>Question 5 </b>: Quelle est la \valarrondie  du salaire annuel en  \an ?
+<center> \(u_\n) =  \embed{reply5,8}  &nbsp;\arrondi</center>
+    </li>
+}
+
+\if{\step>4}{
+   \if{\reply5=\rep5}{<font color=green>\goodrep[4] !</font>}
+      {<font color=red>\erreur[4]...
+        \if{\cas=1}{On a \(u_{\n} = u_0 + \n \times \q = \un).}
+                   {On a \(u_{\n}= u_0 \times  \q^{\n} = \un) soit \(u_{\n} \simeq \rep5) en arrondissant à l'entier.}
+      </font>}
+   <li><b>Question 6 </b>: Si \nom restait dans cette entreprise du premier janvier 2007 au 31 décembre
+  \an, quelle serait la somme  totale des salaires perçus par \nom  ?
+<center> S =   \embed{reply6, 12} &nbsp;\arrondi</center>
+    </li>
+}
+
+
+</ul></div>
+}
+
+\feedback{\step=5}{
+  \if{\reply6!=\rep6}
+  {<font color=red>Erreur à la question 5 : </br>
+D'après la  formule de somme d'une suite \nature :
+  \if{\cas=1}{\( S = u_0+u_1+...+u_n = (n+1)\times \frac{u_0+u_n}{2})}
+             {\( S = u_0+u_1+...+u_n = u_0\times \frac{1-q^{n+1}}{1-q})}
+ </br pour \( n = \n), on obtient \(S = \rep6). </font>}
+  }
+
+\answer{Salaire annuel initial}{\u0}{type=integer}{option=nonstop}
+\answer{Salaire mensuel la deuxième année}{\rep2}{type=numeric}{option=nonstop}
+\answer{Nature}{\cas;\choix}{type=menu}{option=nonstop}
+\answer{Raison}{\q}{type=numeric}{option=nonstop}
+\answer{Salaire l'année n}{\rep5}{type=integer}{option=nonstop}
+\answer{Salaires cumulés }{\rep6}{type=integer}

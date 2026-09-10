@@ -1,0 +1,216 @@
+!set title=Médiane et quartiles II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r
+varcnt=67
+prevarcnt=66
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 50
+
+val6=$[rint($(tmp0))]
+val7=
+val8=$[rint(20)]
+val9=$[rint($val8)]
+val10=$[rint(50)]
+val11=$[rint($val10)]
+tmp0=!randint 5, 10
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val10-$val8
+
+val13=$(tmp0)
+tmp0=!randint 1, $val12
+
+val14=$[rint($(tmp0))]
+val15=
+val16=$[rint(0)]
+val17=
+!for val18 =1 to $val12 
+tmp0=!append item $(val13[$val18]) to $val17
+
+val17=$(tmp0)
+!next
+tmp0=!sort numeric list $val17
+
+val17=$(tmp0)
+!for val18 =1 to $val12 
+!if $val18=$val14 
+tmp0=!randint 6, 10
+
+val19=$[rint($(tmp0))]
+val20=$[rint($(val17[$val18]))]
+!else
+tmp0=!randint 1, 5
+
+val19=$[rint($(tmp0))]
+!endif
+val16=$[rint($val16+$val19)]
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+val21=$[rint($(val17[$val18]))]
+!for val22 =1 to $val19 
+tmp0=!append item $val21 to $val7
+
+val7=$(tmp0)
+!next
+
+!ifval $val21<$val11
+val11=$[rint($val21)]
+!endif
+
+!ifval $val21>$val9
+val9=$[rint($val21)]
+!endif
+!next
+val23=$[rint(0)]
+val24=$[rint(-1)]
+val25=$[rint(-1)]
+val26=$[rint(-1)]
+val27=$[$val16/2]
+val28=$[$val16/4]
+val29=$[3*$val16/4]
+val30=$[rint(ceil($val27))]
+val31=$[rint(ceil($val28))]
+val32=$[rint(ceil($val29))]
+!for val18 =1 to $val12 
+val23=$[rint($val23+$(val15[$val18]))]
+!if $val23>=$val28 and $val24<0 
+val24=$[rint($(val17[$val18]))]
+!endif
+!if $val23>=$val27 and $val26<0 
+
+!ifval $val23=$val27
+val26=$[($(val17[$val18])+$(val17[$val18+1]))/2]
+!else
+val26=$[$(val17[$val18])]
+!endif
+!endif
+!if $val23>=$val29 and $val25<0 
+val25=$[rint($(val17[$val18]))]
+!endif
+!next
+tmp0=!shuffle $val7
+
+val33=$(tmp0)
+val34=$[rint($val9 - $val11)]
+val35=<table class="wimscenter wimsborder" style="background-color:skyblue">	  <tr>
+val36=$[rint(ceil($val16/10))]
+!for val18 =0 to $val36-1 
+val35=$val35 <tr>
+!for val22 =1 to 10 
+tmp0=!item $val18*10+$val22 of $val33
+
+val37=$(tmp0)
+val35=$val35 <td> $val37 </td>
+!next
+val35=$val35 </tr>
+!next
+val35=$val35 </table>
+val38=<table class="wimscenter wimsborder">
+val38=$val38<tr><th> Ages </th>
+!for val22 =1 to $val12 
+val38=$val38<td> $(val17[$val22]) </td>
+!next
+val38=$val38</tr><tr><th>Effectif</th>
+!for val22 =1 to $val12 
+val38=$val38<td> $(val15[$val22]) </td>
+!next
+val39=$val38</tr><tr><td>E.C.C</td>
+val40=$[rint(0)]
+!for val22 =1 to $val12 
+val40=$[rint($val40+$(val15[$val22]))]
+val39=$val39<td> $val40 </td>
+!next
+val39=$val39</tr></table>
+val38=$val38</tr></table>
+replytype1=numeric
+replyname1=Médiane
+replygood1=$[$val26]
+replytype2=numeric
+replyname2=Q1
+replygood2=$[$val24]
+replytype3=numeric
+replyname3=Q3
+replygood3=$[$val25]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Voici les âges recensés dans une population à la suite d'une étude: 	</p>		$val38		<ol><li> Quelle est la médiane de cette série:  
+!read oef/embed.phtml reply1 
+$()</li>	<li> Que vaut Q1: 
+!read oef/embed.phtml reply2 
+$()</li>	<li> Que vaut Q3: 
+!read oef/embed.phtml reply3 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <p><p> On commence par calculer les effectif cumulés croissants:</p>	$val39	<p>	L'effectif total de cette série est de $val16.<br>	Le rang de la médiane est donc $val30, la médiane vaut donc $val26.<br>	Le rang de Q1 est  $val31, Q1 vaut donc $val24.<br>	Le rang de Q3 est  $val32, Q3 vaut donc $val25.	</p>	
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16,24,25,26,30,31,32,38,39
+embedcnt=3

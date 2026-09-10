@@ -1,0 +1,430 @@
+!set title=Domaine de définition (Arcsin, Arccos)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_en=Definition domain(Arcsin, Arccos)
+
+ansorder=r,r,r,r,r
+varcnt=65
+prevarcnt=58
+postvarcnt=6
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Soit \(f\) la fonction définie par
+tmp=!trim Le domaine de définition de, est formé de,intervalle(s) disjoint(s).,	  Le domaine de définition est la réunion de,intervalle,intervalles	  donnez-en les extrémités dans l'ordre croissant
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=Si une des bornes est l'infini, écrire +inf ou -inf.
+val10=Nombre d'intervalles
+tmp=!trim Quel est le domaine de définition de la fonction	  N'hésitez pas à tracer le graphe de la fonction, et vérifiez par le calcul.
+val11=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+val7=Let \(f\) be the function defined by
+tmp=!trim The definition domain of, is composed of,disjoint intervals.	  The definition domain is the reunion of,interval,intervals	  What are their bounds in increasing order
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=If a bound is infinity, write  +inf or  -inf
+val10=Number of intervals
+tmp=!trim What is the definition domain of the function	  You can draw the graph of \(x\rightarrow \f_t) et check by computation.
+val11=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randitem Arcsin, Arccos
+
+val12=$(tmp0)
+tmp0=!randint 4, 7
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 7
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 7
+
+tmp1=!randitem 1,-1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val13=$val15
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val15=$[rint( $val13 +($(tmp0)*$(tmp1)))]
+!endif
+
+!ifval $val13=-$val15
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val15=$[rint( -($val13) +($(tmp0)*$(tmp1)))]
+!endif
+tmp0=!randint 1, 7
+
+tmp1=!randitem 1,-1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+tmp=!translate ";': to $     $ in (($val13)*x+($val14))/(($val15)*x+($val16))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+val19=(($val13)-($val15))*x+($val14)-($val16)
+val20=$[rint(($val13)-($val15))]
+val21=$[rint(($val14)-($val16))]
+val22=(($val13)+($val15))*x+($val14)+($val16)
+val23=$[rint(($val13)+($val15))]
+val24=$[rint(($val14)+($val16))]
+val25=$[max(-($val21)/($val20), -($val16)/($val15))]
+val26=$[min(-($val21)/($val20), -($val16)/($val15))]
+val27=$[max(-($val24)/($val23), -($val16)/($val15))]
+val28=$[min(-($val24)/($val23), -($val16)/($val15))]
+val29=$[max($val25,$val27)]
+val30=$[min($val26,$val28)]
+val31=$[max($val25,$val28)]
+val32=$[min($val27,$val26)]
+
+!ifval ($val20)*($val15)>0 and ($val23)*($val15)<0 
+val33=	$val30, $val29
+!endif
+
+!ifval ($val20)*($val15)>0 and ($val23)*($val15)>0 
+val33=	$val26, $val28	$val27,$val25	 
+!endif
+
+!ifval ($val20)*($val15)<0 and ($val23)*($val15)>0 
+val33=	-inf,$val30	 $val29,inf	
+!endif
+
+!ifval ($val20)*($val15)<0 and ($val23)*($val15)<0 
+val33=	 $val28,$val32	 $val31, $val27	
+!endif
+tmp=!translate internal $	$ to ; in $val33
+
+tmp0=!rowcnt $tmp
+val34=$[rint($(tmp0))]
+val35=
+!for val36 =1 to $val34 
+tmp=!translate internal $	$ to ; in $val33
+
+tmp=!row $val36 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val37=$(tmp0)
+tmp0=!item 1 of $val37
+
+tmp1=!item 2 of $val37
+
+tmp2=!item 1 of $val37
+
+tmp3=!item 2 of $val37
+
+
+!ifval $(tmp0)<$(tmp1) or inf isin $(tmp2) or inf isin $(tmp3) 
+tmp=!trim  $val35	$val37
+val35=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!next
+tmp=!translate internal $	$ to ; in $val35
+
+tmp0=!rowcnt $tmp
+val38=$[rint($(tmp0))]
+val39=$val35
+!if $val38=2 
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0) 
+
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 2 of $tmp
+tmp2=!translate internal $\
+$ to ; in $tmp
+tmp3=!item 1 of $(tmp2) 
+
+
+!ifval $(tmp1)>= $(tmp3)
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 1 of $tmp
+tmp4=!translate internal $\
+$ to ; in $tmp
+tmp5=!item 1 of $(tmp4)
+
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 2 of $tmp
+tmp6=!translate internal $\
+$ to ; in $tmp
+tmp7=!item 1 of $(tmp6)
+
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 1 of $tmp
+tmp8=!translate internal $\
+$ to ; in $tmp
+tmp9=!item 2 of $(tmp8)
+
+tmp=!translate internal $	$ to ; in $val35
+
+tmp=!row 2 of $tmp
+tmp10=!translate internal $\
+$ to ; in $tmp
+tmp11=!item 2 of $(tmp10)
+
+val39=	 min($(tmp5), $(tmp7)),max($(tmp9), $(tmp11))
+!endif
+!endif
+tmp=!translate internal $	$ to ; in $val35
+
+tmp0=!rowcnt $tmp
+val38=$[rint($(tmp0))]
+val40=
+!for val36 =1 to $val38 
+tmp=!translate internal $	$ to ; in $val39
+
+tmp=!row $val36 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 1 of $(tmp0)
+
+tmp=!translate internal $	$ to ; in $val39
+
+tmp=!row $val36 of $tmp
+tmp2=!translate internal $\
+$ to ; in $tmp
+tmp3=!item 1 of $(tmp2)
+
+
+!ifval $(tmp1)<-($val16)/($val15) and	-($val16)/($val15)< $(tmp3) 
+tmp=!translate internal $	$ to ; in $val39
+
+tmp=!row $val36 of $tmp
+tmp4=!translate internal $\
+$ to ; in $tmp
+tmp5=!item 1 of $(tmp4)
+
+tmp=!translate internal $	$ to ; in $val39
+
+tmp=!row $val36 of $tmp
+tmp6=!translate internal $\
+$ to ; in $tmp
+tmp7=!item 1 of $(tmp6)
+
+val40= $val40	$(tmp5), -($val16)/($val15)	-($val16)/($val15), $(tmp7)
+!else
+val40=	$val39
+!endif
+!next
+
+!ifval $val38=2 
+tmp=!translate internal $	$ to ; in $val40
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41= $(tmp0)
+!else
+val41=$val40
+!endif
+
+!ifval $val38=2
+tmp=!translate internal $	$ to ; in $val40
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val42= $(tmp0)
+!endif
+tmp0=!item 1 of $val41
+
+val43=$(tmp0)
+tmp0=!item 2 of $val41
+
+val44=$(tmp0)
+tmp0=!item 1 of $val42
+
+val45=$(tmp0)
+tmp0=!item 2 of $val42
+
+val46=$(tmp0)
+
+!ifval $val38=1
+tmp=!trim  reply 1	reply 2, reply 3	
+val47=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim reply 1	reply 2, reply 3, reply 4 ,reply 5
+val47=!translate internal $	\
+$ to ;; in $tmp
+!endif
+
+!ifval $val38=2 
+val48= \(\rbrack)
+!else
+val48=\(\lbrack)
+!endif
+oefsteps=$val47 
+nextstep=!nosubst $val47 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=$val10
+replygood1=$[$val38]
+replytype2=function
+replyname2=
+replygood2=!rawmath $val43,inf
+replytype3=function
+replyname3=
+replygood3=!rawmath $val44,inf
+replytype4=function
+replyname4=
+replygood4=!rawmath $val45,inf
+replytype5=function
+replyname5=
+replygood5=!rawmath $val46,inf
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7 
+!insmath f(x) = $val12($val17)
+$().	 
+!if $m_step<=1 
+$()$(val8[1;1]) 
+!insmath f
+$() <label for="reply1">$(val8[1;2])</label>	   
+!read oef/embed.phtml reply 1, 4 
+$() $(val8[1;3]) 
+!endif
+$()	
+!if $m_step=2 
+$()$(val8[2;1]) $val38 
+!if $val38=1 
+$()$(val8[2;2]) 
+!else
+$() $(val8[2;3]) 
+!endif
+$():	$(val8[3;])	<div class="wimscenter"> <label for="reply2">$val48</label>  
+!read oef/embed.phtml reply 2,5 
+$(),  
+!read oef/embed.phtml reply 3,5 
+$()
+!insmath \rbrack
+$()	 
+!if $val38=2 
+$()&nbsp;
+!insmath \lbrack 
+$()  
+!read oef/embed.phtml reply 4,5 
+$(),  
+!read oef/embed.phtml reply 5,5 
+$()
+!insmath \lbrack
+$() 
+!endif
+$(). </div>	<div class="wims_instruction">$val9</div>	 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()$(val11[1;]) 
+!insmath $val12
+$() ? $(val11[2;1]) 
+!insmath x\rightarrow $val18
+$() $(val11[2;2])
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval inf notin $m_reply1 
+val49= vline $m_reply2, 0,red
+!else
+val49=
+!endif
+val49=$val49	vline $m_reply3,0,red	
+
+!ifval $val38=2 
+val49=$val49	vline reply4,0,red
+!endif
+
+!ifval $val38=2 and inf notin $m_reply5 
+val49=$val49	vline reply5,0,red
+!endif
+val50=$[min($val26,$val28)-5]
+val51=$[max($val25,$val27)+5]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,17,18,25,26,27,28,38,48
+embedcnt=5

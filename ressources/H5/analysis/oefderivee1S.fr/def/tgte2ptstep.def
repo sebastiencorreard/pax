@@ -1,0 +1,422 @@
+!set title=Tangentes passant par 1 point avec étape
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude,David;Ophélie,Rouby
+email=ophelie.rouby@universite-paris-saclay.fr
+keywords=tangent
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=58
+prevarcnt=56
+postvarcnt=1
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val8=$[rint($(tmp0))]
+val9=x^2, $val6*x^2, $val6/x, $val6/(x-$val7),$val6/(x+$val7),$val6*x^2 + $val7*x,$val6*x^2 - $val7*x, $val6*x^2 + $val7*x + $val8,$val6*x^2 - $val7*x + $val8, $val6*x^2 +$val7*x -$val8, $val6*x^2 -$val7*x -$val8
+val10=\(\,\RR), \(\,\RR), \(\,\RR^*), \(\RR \setminus \left\lbrace $val7 \right\rbrace\),\(\RR \setminus\left\lbrace -$val7\right\rbrace\),\(\RR) ,\(\,\RR),\(\,\RR),\(\,\RR),\(\,\RR), \(\,\RR)
+tmp0=!itemcnt $val9
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!item $val12 of $val9
+
+val13=!rawmath $(tmp0)
+val14=$(val10[$val12])
+tmp0=!item $val12 of x^2, $val6 x^2, \frac{$val6}{x}, \frac{$val6}{x-$val7},\frac{$val6}{x+$val7},$val6 x^2 + $val7 x,$val6 x^2 - $val7 x,$val6 x^2 + $val7 x + $val8,$val6 x^2 - $val7 x + $val8,$val6 x^2 + $val7 x - $val8,$val6 x^2 - $val7 x - $val8
+
+val15=$(tmp0)
+tmp0=!randint -3, 3
+
+val16=$[rint($(tmp0))]
+!if $val12=3 and $val16=0 
+tmp0=!randint 1, 3
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+val16=$[rint($(tmp0)*$(tmp1))]
+!endif
+!if $val12=4 and $val16=$val7 
+val16=$[rint($val16+1)]
+!endif
+!if $val12=5 and $val16=-$val7 
+val16=$[rint($val16+1)]
+!endif
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val16) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val18=!exec pari print($t_)
+tmp0=!mathsubst x=($val16) in $val13
+
+val19=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val19
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in y= $val18*(x-($val16))+($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+val21=!rawmath $val18*(x-($val16))+($val19)
+tmp0=!randint 2, 5
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+val22=$[rint($val16+$(tmp0)*$(tmp1))]
+!if $val12=3 and $val22=0 
+tmp0=!randint 4, 6
+
+val22=$[rint($(tmp0))]
+!endif
+!if $val12=4 and $val22=$val7 
+tmp0=!randint $val7+3, 9
+
+val22=$[rint($(tmp0))]
+!endif
+!if $val12=5 and $val22=-$val7 
+val22=$[rint(-9)]
+!endif
+evaltmp=$val21
+
+evaltmp=!mathsubst x=($val22) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val23=!exec pari print($t_)
+
+!ifval $val23=0
+t_=!rawmath $val22+1
+val22=!exec pari print($t_)
+!endif
+evaltmp=$val21
+
+evaltmp=!mathsubst x=($val22) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val23=!exec pari print($t_)
+!if $val12 isitemof 3,4,5 
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val16) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath 2*$(tmp0)
+val24=!exec pari print($t_)
+!if $val23=$val24 
+val22=$[rint($val22+1)]
+evaltmp=$val21
+
+evaltmp=!mathsubst x=($val22) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val23=!exec pari print($t_)
+!endif
+!endif
+tmp0=!mathsubst x=a in $val17
+
+val25=$(tmp0)
+tmp0=!mathsubst x=a in $val13
+
+val26=$(tmp0)
+val27=($val25)*(x - a)+ ($val26)
+tmp0=!mathsubst x=$val22 in $val27
+
+val28=$(tmp0) -($val23)
+tmp0=!mathsubst a=x in $val28
+
+val29=$(tmp0)
+t_=!replace internal \( by ( in expand(($val29));
+tmp0=!exec maxima $t_
+
+val30=$(tmp0)
+t_=!replace internal \( by ( in factor(($val30));
+tmp0=!exec maxima $t_
+
+val31=$(tmp0)
+t_=!replace internal \( by ( in nfroots(,numerator($val31))
+tmp0=!exec pari $t_
+
+val32=$(tmp0)
+val33=$(val32[1])
+val34=$(val32[2])
+tmp0=!mathsubst x=a in $val30
+
+val29=$(tmp0)
+tmp0=!mathsubst x=a in $val31
+
+val31=$(tmp0)
+
+!ifval $val33=$val16
+t_=!rawmath $val34
+val35=!exec pari print($t_)
+!else
+t_=!rawmath $val33
+val35=!exec pari print($t_)
+!endif
+tmp0=!mathsubst x=($val35) in $val13
+
+val36=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val36
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val36=!rawmath $(tmp0)
+evaltmp=$val17
+
+evaltmp=!mathsubst x=($val35) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val37=!exec pari print($t_)
+tmp=!translate ";': to $     $ in y= $val37*(x-($val35))+($val36)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val38=$(tmp0)
+
+!ifval $val35<$val16
+t_=!rawmath $val35
+val39=!exec pari print($t_)
+!else
+t_=!rawmath $val16
+val39=!exec pari print($t_)
+!endif
+
+!ifval $val35<$val16
+t_=!rawmath $val16
+val40=!exec pari print($t_)
+!else
+t_=!rawmath $val35
+val40=!exec pari print($t_)
+!endif
+
+!ifval $val35<$val16
+val41=$val38
+!else
+val41=$val20
+!endif
+
+!ifval $val35<$val16
+val42=$val20
+!else
+val42=$val38
+!endif
+tmp0=!texmath $val17
+
+val17=$(tmp0)
+val43=Soit la fonction \(f\) définie sur	  <span class="nowrap">$val14</span> par&nbsp;:	  \(f(x)=$val15\) et soit le point 
+val44=Équation,Abscisse
+val45=r2,r4	r1,r3
+val46=Attention&nbsp;: Vous n'avez pas respecté l'ordre demandé	  pour les abscisses.
+oefsteps=$val45 
+nextstep=!nosubst $val45 
+!readproc oef/steps.proc
+replytype1=equation
+replyname1=$(val44[1])
+replygood1=!rawmath $val41,x
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=$(val44[2])
+replygood2=$val39
+replytype3=equation
+replyname3=$(val44[1])
+replygood3=!rawmath $val42,x
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=$(val44[2])
+replygood4=$val40
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<i>Cet exercice comporte deux étapes.</i>	  <p>$val43 <span class="nowrap">
+!insmath A($val22;$val23)
+$().</span></p>	  
+!if  $m_step=1  
+$()<div class="wims_question">1. Déterminer les abscisses 
+!insmath x_1
+$() et 
+!insmath x_2
+$()	  des points de la courbe représentative de 
+!insmath f
+$() tels que la tangente en ces points passe par	  
+!insmath A
+$().	  On note 
+!insmath x_1
+$() la plus petite abscisse.	  <div class="wimscenter"><label for="reply2">
+!insmath x_1
+$()</label>= 
+!read oef/embed.phtml reply2 
+$()	  et <label for="reply4">
+!insmath x_2
+$()</label>= 
+!read oef/embed.phtml reply4 
+$()</div></div> 
+!endif
+$()	  
+!if  $m_step=2  
+$()	  <p><span class="oef_indgood">Bonne réponse&nbsp;!</span>	    Les tangentes à la courbe représentative de 
+!insmath f
+$() aux points d'abscisse	  
+!insmath x_1=$val39
+$() et 
+!insmath x_2=$val40
+$() passent par 
+!insmath A
+$().</p>	  <div class="wims_question">2.	    Déterminer les équations réduites des deux tangentes à la courbe représentative	    de 
+!insmath f
+$() passant par A :	  <ul>	  <li><label for="reply1">Équation de la tangente au point d'abscisse 
+!insmath x_1=$val39
+$() :</label>	    
+!read oef/embed.phtml reply1 
+$()	  </li>	  <li><label for="reply3">Équation de la tangente au point d'abscisse 
+!insmath x_2=$val40
+$() :</label>	    
+!read oef/embed.phtml reply3 
+$()	  </li></ul></div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Pour tout 
+!insmath x
+$() dans $val14,	  la dérivée de 
+!insmath f
+$() en 
+!insmath x
+$() est&nbsp;: <span class="nowrap">
+!insmath f'(x)=$val17
+$().</span>	  L'équation générale de la tangente au point 
+!insmath (a,f(a))
+$() est &nbsp;:	  <div class="wimscenter">
+!insmath y=f'(a)(x - a)+f(a)
+$()</div>	  ici,	  <div class="wimscenter">
+!insmath y=$val27
+$().</div>	  On remplace 
+!insmath x
+$() et 
+!insmath y
+$() par les coordonnées 
+!insmath ($val22;$val23)
+$() de 
+!insmath A
+$().	  Les solutions de l'équation en 
+!insmath a
+$() obtenue sont les abscisses	  
+!insmath x_1
+$() et 
+!insmath x_2
+$() des points	  de la courbe où la tangente passe par 
+!insmath A
+$().	  On résout l'équation	  <p class="wimscenter">	  
+!insmath $val28=0
+$() 
+!insmath \iff
+$()	  
+!insmath $val29=0
+$() 
+!insmath \iff
+$()	  
+!insmath $val31=0
+$()</p>	 La tangente à la courbe au point d'abscisse 
+!insmath x_1=$val39
+$() a pour équation	 <span class="nowrap">
+!insmath $val41
+$()</span>,	 celle au point d'abscisse 
+!insmath x_2=$val40
+$() a pour équation	 <span class="nowrap">
+!insmath $val42
+$().</span>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $m_reply2=$val40 and $m_reply4=$val39
+val47= 1
+!else
+val47= 0
+!endif
+
+!exit
+
+:feedback
+!ifval $val47=1
+ <div class='oef_feedbacks'>$val46
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,17,22,23,27,28,29,31,39,40,41,42,43,46
+embedcnt=4

@@ -1,0 +1,137 @@
+!set title=Fractions I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Michel, Gosse
+email=michel.gosse@ac-poitiers.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_en=Fractions I
+title_es=Fracciones I
+title_nl=Fractions I
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=À faire sans calculatrice.
+val8=Votre réponse
+val9=Calculer et donner le résultat sous la forme d'une fraction irréductible
+val10=Pour additionner deux fractions, on réduit au même dénominateur.	  Dans cet exemple, le dénominateur commun est
+!if $val6=en 
+val7=À faire sans calculatrice.
+val8=Votre réponse
+val9=Calculer et donner le résultat sous la forme d'une fraction irréductible
+val10=Pour additionner deux fractions, on réduit au même dénominateur.	  Dans cet exemple, le dénominateur commun est
+!endif
+!if $val6=es 
+val7=À faire sans calculatrice.
+val8=Su respuesta
+val9=Determinar la fracción igual a la suma
+val10=Para añadir dos fracciones, se reduce al mismo denominador.	  En este ejemplo, el denominador común es \denom.
+!endif
+!if $val6=nl 
+val7=À faire sans calculatrice.
+val8=Votre réponse
+val9=Calculer et donner le résultat sous la forme d'une fraction irréductible
+val10=Pour additionner deux fractions, on réduit au même dénominateur.	  Dans cet exemple, le dénominateur commun est
+!endif
+tmp0=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10
+
+val13=$[rint($(tmp0))]
+tmp0=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val11/$val13+$val12/$val14);
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in abs($val13*$val14/gcd($val13,$val14));
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+replytype1=numexp
+replyname1=$val8
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val10 $val16.
+
+latex=!nosubst  \begin{statement} $val9: \begin{center} \(($val11)/($val13) + ($val12)/($val14)\) \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction"><strong>$val7</strong></div>	 $val9:	<div class="wimscenter">	
+!insmath ($val11)/($val13) + ($val12)/($val14)
+$()	</div>
+$()
+!exit
+
+:hint
+$()$val10 $val16.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val9: $m_begin{center} 
+!insmath ($val11)/($val13) + ($val12)/($val14)
+$() $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,11,12,13,14,16
+embedcnt=0

@@ -1,0 +1,112 @@
+!set title=Placer une fraction 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=1000
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim Nous avons une demi-droite graduée. Placer la fraction	en cliquant sur la demi-droite graduée.
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items 2,4,5,10
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=$[rint(1)]
+val9=$[rint($val7)]
+val10=$[rint(2)]
+val11=$[rint(0)]
+val12=0
+val13=
+!for val14 =$val11 to $val10 
+val12=$[rint($val14*1)]
+val15=$[rint($val14)]
+val13=$val13	    text blue, $val15,-1, medium,$val12
+!next
+val16=$[rint($val7)]
+val17=$[rint(1)]
+t_=!rawmath $val17/$val16
+val12=!exec pari print($t_)
+!readproc oef/draw.phtml 600,80 \
+xrange $val11-0.1,$val10+0.1	yrange -2,2.2	segment 0,0,2.2,0,black	parallel $val11,-0.8,$val11,0.4,1/$val8,0, 40, blue	parallel $val11,-0.3,$val11,0.3,1/$val9,0, 200, blue	parallel $val11,-0.8,$val11,0.6,1,0, 40, red	$val13 
+tmp0=$ins_url
+val18=$(tmp0)	
+val19=$[rint(600/($val10*10+2))]
+val20=$[rint($val19+(600-2*$val19)*$val17/($val10*$val16))]
+replytype1=coord
+replyname1=numérateur
+replygood1=$val18;rectangle,$val20-3,35,$val20+3,45
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val6[1;])	
+!insmath \frac{$val17}{$val16}
+$() $(val6[2;])	<div class="wimscenter">	 
+!read oef/embed.phtml r1 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,16,17
+embedcnt=1

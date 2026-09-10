@@ -1,0 +1,126 @@
+!set title=Reconnaître un patron 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Le dessin ci-contre est un patron de cube
+val8=vrai,faux,peut-être,je ne sais pas
+val9=black,white
+val10=$[rint(80)]
+tmp=!trim 6,1,2,3,6,10,14,1	5,1,2,3,6,10,2	5,2,5,6,7,10,2	6,1,2,6,7,11,12,1	6,2,5,6,10,11,14,1	6,1,2,6,10,11,15,1	6,6,9,10,11,12,14,1	6,1,2,6,9,10,11,2	7,2,6,9,10,11,12,14,2	6,1,2,6,10,14,15,1	5,5,6,10,11,15,2	6,5,6,10,14,15,16,2	6,3,7,8,10,11,14,1	6,2,5,6,7,11,12,1	6,6,7,9,10,11,12,2	6,2,5,6,7,8,11,1	6,5,6,7,8,10,14,2	7,1,2,3,4,8,12,16,2	6,2,3,6,7,10,11,2	6,2,6,10,13,14,15,1
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 20
+
+val12=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val12 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+val14=
+!for val15 =2 to $(val13[1])+1 
+val16=$[rint(floor(($(val13[$val15])-1)/4))]
+val17=$[rint(50+($(val13[$val15])-4*$val16-1)*$val10)]
+val18=$[rint(40+$val16*$val10)]
+tmp0=!append item $val17 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+!next
+!if $(val13[1])=5 
+val19=$[rint(0)]
+val20=$[rint(0)]
+!endif
+!if $(val13[1])=6 
+val19=$[rint(80)]
+val20=$[rint(0)]
+!endif
+!if $(val13[1])=7 
+val19=$[rint(80)]
+val20=$[rint(80)]
+!endif
+val21=$(val13[$(val13[1])+2])
+!readproc oef/draw.phtml 420,400 \
+square $(val14[1]),$(val14[2]),$val10,$(val9[1])	square $(val14[3]),$(val14[4]),$val10,$(val9[1])	square $(val14[5]),$(val14[6]),$val10,$(val9[1])	square $(val14[7]),$(val14[8]),$val10,$(val9[1])	square $(val14[9]),$(val14[10]),$val10,$(val9[1])	square $(val14[11]),$(val14[12]),$val19,$(val9[1])	square $(val14[13]),$(val14[14]),$val20,$(val9[1])	 
+tmp0=$ins_url
+val22=$(tmp0)
+replytype1=menu
+replyname1=
+replygood1=$val21;$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"><img src="$val22" alt=""></div>	 <div class="medium_size text_col">	$val7:  
+!read oef/embed.phtml r1 
+$()	</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,22
+embedcnt=1

@@ -1,0 +1,124 @@
+!set title=Lire un graphique 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Après un contrôle de mathématiques,	  le professeur dresse un tableau des notes obtenues	  par les élèves de sa classe. En utilisant le graphique,	  répondre&nbsp;	
+val7=aux questions suivantes&nbsp;
+val8=Quel est le nombre d'élèves qui ont pour note
+tmp0=!shuffle 0,4,7
+
+val9=$(tmp0)
+!for val10 =1 to 3 
+tmp0=!randint 2, 6
+
+val9=$val9,$(tmp0)
+!next
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp0=!shuffle 6
+
+val11=$(tmp0)
+val12=$[rint(4*($(val11[1])-1))]
+val13=$[rint(4*($(val11[2])-1))]
+val14=frect 1,0,2,$(val9[1]),red
+val15=frect 3,0,4,$(val9[2]),red
+val16=frect 5,0,6,$(val9[3]),red
+val17=frect 7,0,8,$(val9[4]),red
+val18=frect 9,0,10,$(val9[5]),red
+val19=frect 11,0,12,$(val9[6]),red
+val20=
+!for val10 =0 to 20 step 4 
+val20=$val20	  text black,$val10/2+1.4,-0.2,small,$val10
+!next
+!for val10 =1 to 10 
+val20=$val20	  text black,-0.7,$val10+0.2,small,$val10
+!next
+val21=fill 0,0,220,220,255
+!readproc oef/draw.phtml 506,308, \
+  xrange -1,22	  yrange -1,8	  $val21	  parallel 1,0,1,8,1,0,20,grey	  parallel 0,0.5,21,0.5,0,0.5,16,grey	  linewidth 2	  arrow -1,0,21,0,10,black	  arrow 0,-1,0,8,10,black	  text black,18.6,0.8,medium,Notes	  text black,0.5,7.9,medium,Nbre	  $val20	$val14	$val15	$val16	$val17	$val18	$val19	  
+tmp0=$ins_url
+val22=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$(val9[$(val11[1])])]
+replytype2=numeric
+replyname2=
+replygood2=$[$(val9[$(val11[2])])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_columns">	 <div class="medium_size img_col">	  <img src="$val22" alt="">	  </div>	  <div class="medium_size text_col">	  $val6 $val7:		<ul>	<li><label for="reply1">$val8 $val12 ?</label>  
+!read oef/embed.phtml r1,5 
+$()</li>	<li><label for="reply2">$val8 $val13 ?</label>  
+!read oef/embed.phtml r2,5 
+$()</li>	</ul>		</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,12,13,22
+embedcnt=2

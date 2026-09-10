@@ -1,0 +1,35 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=equation parabole (xA,yA), (xB,yB),(xC,yC) pour commande draw
+slib_parms=11\
+,xA,yA,xB,yB,xC,yC,xmin,xmax,ymin,ymax,color
+slib_author=Régine MANGEARD
+slib_out=plot color,a*t+b
+slib_example= -1,1,0,0,1,1
+!exit
+
+:proc
+slib_mat=!declosing $wims_read_parm
+!if $slib_mat=$empty
+ slib_out=
+!else
+  slib_xA=$(slib_mat[1])
+  slib_yA=$(slib_mat[2])
+  slib_xB=$(slib_mat[3])
+  slib_yB=$(slib_mat[4])
+  slib_xC=$(slib_mat[5])
+  slib_yC=$(slib_mat[6])
+  slib_xmin=$(slib_mat[7])
+  slib_xmax=$(slib_mat[8])
+  slib_ymin=$(slib_mat[9])
+  slib_ymax=$(slib_mat[10])
+  slib_color=$(slib_mat[11])
+  slib_pol1=$slib_yA*(x-$slib_xB)*(x-$slib_xC)/(($slib_xA-$slib_xB)*($slib_xA-$slib_xC))
+  slib_pol2=$slib_yB*(x-$slib_xA)*(x-$slib_xC)/(($slib_xB-$slib_xA)*($slib_xB-$slib_xC))
+  slib_pol3=$slib_yC*(x-$slib_xB)*(x-$slib_xA)/(($slib_xC-$slib_xB)*($slib_xC-$slib_xA))
+  slib_pol= $slib_pol1+$slib_pol2+$slib_pol3
+  slib_out=trange $slib_xmin,$slib_xmax\
+  plot $slib_color,$slib_pol
+
+!endif

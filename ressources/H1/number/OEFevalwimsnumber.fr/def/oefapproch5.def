@@ -1,0 +1,126 @@
+!set title=Valeur approchée 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@laposte.net
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+language=fr
+precision=10000
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=à l'unité par défaut,au dixième par défaut,au centième par défaut,	à l'unité par excès,au dixième par excès,au centième par excès
+val7=Nous avons le nombre,Donner la valeur approchée
+val8=Vous utiliserez la virgule comme séparateur décimal.
+tmp0=!randint 1, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+tmp1=!randint 1, 8
+
+tmp2=!randint 0, 9
+
+tmp3=!randint 0, 9
+
+tmp4=!randint 1, 9
+
+val10=$[rint($(tmp0)*10000+$(tmp1)*1000+$(tmp2)*100+$(tmp3)*10+$(tmp4))]
+tmp0=!randint 0, 99
+
+val11=$[rint($(tmp0))]
+val12=+,-
+val13=$[$val11+$val10/100000]
+val14=$[rint(floor($val13))]
+val15=$[rint(ceil($val13))]
+val16=$[floor($val13*10)/10]
+val17=$[ceil($val13*10)/10]
+val18=$[floor($val13*100)/100]
+val19=$[ceil($val13*100)/100]
+!if $val15=$val17 
+val17=$val17.0
+!endif
+val20=$val14,$val16,$val18,$val15,$val17,$val19
+tmp0=!replace internal . by , in $(val20[$val9])
+
+val21=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val13 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!replace internal . by , in $val13
+
+val13=$(tmp0)
+replytype1=raw
+replyname1=
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val7: $(val7[1]) $val13. $(val7[2]) $(val6[$val9]) \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) $val13. $(val7[2]) $(val6[$val9]) :	  
+!read oef/embed.phtml r1,8 
+$()	<div class="wims_instruction">$val8</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val7: $(val7[1]) $val13. $(val7[2]) $(val6[$val9]) $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,13
+embedcnt=1

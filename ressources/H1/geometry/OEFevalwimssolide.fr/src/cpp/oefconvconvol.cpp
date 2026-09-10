@@ -1,0 +1,119 @@
+target=oefconvconvol1 oefconvconvol2 oefconvconvol3 oefconvconvol4 oefconvconvol5
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\precision{1000000000}
+#if defined TARGET_oefconvconvol1 || defined TARGET_oefconvconvol3
+\text{unit1=\(\mathrm{m}^3),\(\mathrm{dm}^3),\(\mathrm{cm}^3),\(\mathrm{mm}^3)}
+\text{unit2=\(\mathrm{hL}),\(\mathrm{daL}),\(\mathrm{L}),\(\mathrm{dL}),\(\mathrm{cL}),\(\mathrm{mL})}
+#endif
+#if defined TARGET_oefconvconvol2  || defined TARGET_oefconvconvol4
+\text{unit2=\(\mathrm{m}^3),\(\mathrm{dm}^3),\(\mathrm{cm}^3),\(\mathrm{mm}^3)}
+\text{unit1=\(\mathrm{hL}),\(\mathrm{daL}),\(\mathrm{L}),\(\mathrm{dL}),\(\mathrm{cL}),\(\mathrm{mL})}
+#endif
+#if defined TARGET_oefconvconvol5
+\text{unit1=\(\mathrm{m}^3),\(\mathrm{hL}),\(\mathrm{daL}),\(\mathrm{dm}^3),
+  \(\mathrm{dL}),\(\mathrm{cL}),\(\mathrm{cm}^3),\(\mathrm{L}),\(\mathrm{mL}),\(\mathrm{mm}^3)}
+\text{unit2=\(\mathrm{m}^3),\(\mathrm{hL}),\(\mathrm{daL}),\(\mathrm{dm}^3),\(\mathrm{dL}),\(\mathrm{cL}),\(\mathrm{cm}^3),\(\mathrm{L}),\(\mathrm{mL}),\(\mathrm{mm}^3)}
+#endif
+#if defined TARGET_oefconvconvol1
+\integer{n1=randint(1..9)}
+\integer{u1=randint(1..3)}
+\if{\u1=1}{\integer{z1=randint(1..6)}}{\integer{z1=randint((\u1-1)*3..6)}}
+
+\integer{n2=randint(1..9)}
+\integer{u2=randint(1..3)}
+\if{\u2=1}{\integer{z2=randint(1..6)}}{\integer{z2=randint((\u2-1)*3..6)}}
+
+\real{rep1=\n1*10^(\z1-3*(\u1-1))}
+\real{rep2=\n2*10^(\z2-3*(\u2-1))}
+#endif
+
+#if defined TARGET_oefconvconvol2
+\integer{n1=randint(1..9)}
+\integer{z1=randint(1..3)}
+\if{\z1=1}{\integer{u1=randint(1..6)}}{\integer{u1=randint((\z1-1)*3..6)}}
+
+\integer{n2=randint(1..9)}
+\integer{z2=randint(1..3)}
+\if{\z2=1}{\integer{u2=randint(1..6)}}{\integer{u2=randint((\z2-1)*3..6)}}
+
+\real{rep1=\n1/10^(\u1-3*(\z1-1))}
+\real{rep2=\n2/10^(\u2-3*(\z2-1))}
+#endif
+#if defined TARGET_oefconvconvol3
+\integer{l1=randint(1..3)}
+\integer{d1=randint(1..4-\l1)}
+\integer{n1=randint(1111..9999)}
+\real{n1=floor(\n1/10^(\l1-1))/10^\d1}
+
+\integer{l2=randint(1..3)}
+\integer{d2=randint(1..4-\l2)}
+\integer{n2=randint(1111..9999)}
+\real{n2=floor(\n2/10^(\l2-1))/10^\d2}
+
+\integer{u1=randint(1..3)}
+\if{\u1=1}{\integer{z1=randint(1..6)}}{\integer{z1=randint((\u1-1)*3..6)}}
+
+\integer{u2=randint(1..3)}
+\if{\u2=1}{\integer{z2=randint(1..6)}}{\integer{z2=randint((\u2-1)*3..6)}}
+
+\real{rep1=\n1*10^(\z1-3*(\u1-1))}
+\real{rep2=\n2*10^(\z2-3*(\u2-1))}
+#endif
+#if defined TARGET_oefconvconvol4
+\integer{l1=randint(1..3)}
+\integer{d1=randint(1..4-\l1)}
+\integer{n1=randint(1111..9999)}
+\real{n1=floor(\n1/10^(\l1-1))/10^\d1}
+
+\integer{l2=randint(1..3)}
+\integer{d2=randint(1..4-\l2)}
+\integer{n2=randint(1111..9999)}
+\real{n2=floor(\n2/10^(\l2-1))/10^\d2}
+
+\integer{z1=randint(1..3)}
+\if{\z1=1}{\integer{u1=randint(1..6)}}{\integer{u1=randint((\z1-1)*3..6)}}
+
+\integer{z2=randint(1..3)}
+\if{\z2=1}{\integer{u2=randint(1..6)}}{\integer{u2=randint((\z2-1)*3..6)}}
+
+\real{rep1=\n1/10^(\u1-3*(\z1-1))}
+\real{rep2=\n2/10^(\u2-3*(\z2-1))}
+#endif
+#if defined TARGET_oefconvconvol5
+\integer{l1=randint(1..3)}
+\integer{d1=randint(1..5-\l1)}
+\integer{n1=randint(111..999)}
+\real{n1=floor(\n1/10^(\l1-1))/10^\d1}
+
+\integer{u1=random(1,4,7,10)}
+\integer{z1=random(2,3,5,6,8,9)}
+\integer{q1=\z1}
+\if{\z1=8}{\integer{q1=4}}
+\if{\z1=9}{\integer{q1=7}}
+
+\integer{l2=randint(1..3)}
+\integer{d2=randint(1..3-\l2)}
+\integer{n2=randint(111..999)}
+\real{n2=floor(\n2/10^(\l2-1))*10^\d2}
+
+\integer{u2=random(2,3,5,6,8,9)}
+\integer{z2=random(1,4,7,10)}
+\integer{q2=\z2}
+\if{\z2=8}{\integer{q2=4}}
+\if{\z2=9}{\integer{q2=7}}
+
+\real{rep1=\n1*10^(\q1-\u1)}
+\real{rep2=\n2*10^(\q2-\u2)}
+#endif
+
+\statement{
+\name_enonce:
+<ul><li><label for="reply1">\n1 \unit1[\u1] =</label> \embed{r1,10} \unit2[\z1]
+</li><li><label for="reply2">\n2 \unit1[\u2] =</label> \embed{r2,10} \unit2[\z2]
+</li></ul>
+}
+
+\answer{}{\rep1}{type=numeric}
+\answer{}{\rep2}{type=numeric}

@@ -1,0 +1,144 @@
+!set title=Règle et nombres relatifs
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+title_es=Regla y números relativos
+title_nl=Getallenlijn en getallen
+
+ansorder=r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Voici la droite graduée. Donner la valeur des points notés	  sur cette droite graduée.
+!if $val6=es 
+val7=En la siguiente recta graduada, dar el valor de	  los puntos anotados
+!endif
+!if $val6=nl 
+val7=Geef de waarden van de getoonde punten op de getallenlijn.
+!endif
+val8=$[rint(5)]
+val9=0
+val10=
+!for val11 =-$val8 to $val8 
+val9=$[rint($val11*1)]
+val12=$[rint($val11)]
+val10=$val10	text blue, $val12,-1, medium,$val9
+!next
+val13=$val8
+!for val11 =1 to 10*$val8 
+val14=$[-$val8+2*$val11*0.1]
+val13=$val13,$val14
+!next
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val15=$(tmp0)
+tmp0=!item 2 of $val13
+
+val16=$(tmp0)
+tmp0=!item 3 of $val13
+
+val17=$(tmp0)
+tmp0=!item 4 of $val13
+
+val18=$(tmp0)
+!if $val15>=0 and $val16>=0 and $val17>=0 and $val18>=0 
+val15=$[-$val15]
+val18=$[-$val18]
+!endif
+val10=xrange -$val8-0.1,$val8+0.1	yrange -2,2.2	hline black,0,0	arrow 2.5,0,$val8,0,10,black	parallel -$val8,-0.8,-$val8,0.4,1/2,0, 40, blue	parallel -$val8,-0.3,-$val8,0.3,1/10,0, 200, blue	parallel -$val8,-0.8,-$val8,0.6,1,0, 40, red	$val10	text black, $val15+0.1,2.2, medium,a	text black, $val16+0.1,2.2, medium,b	text black, $val17+0.1,2.2, medium,c	text black, $val18+0.1,2.2, medium,d	arrow $val15,2,$val15,0, 8, black	arrow $val16,2,$val16,0, 8, black	arrow $val17,2,$val17,0, 8, black	arrow $val18,2,$val18,0, 8, black
+!readproc oef/drawtikz.phtml 600,50 \
+$val10 
+tmp0=$ins_tikz
+val19=$(tmp0)
+replytype1=numeric
+replyname1=\(a\)
+replygood1=$[$val15]
+replytype2=numeric
+replyname2=\(b\)
+replygood2=$[$val16]
+replytype3=numeric
+replyname3=\(c\)
+replygood3=$[$val17]
+replytype4=numeric
+replyname4=\(d\)
+replygood4=$[$val18]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val7 \begin{center} $val19 \end{center} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val7	<div class="wimscenter">	 
+!read oef/draw.phtml 600,50 \
+$val10 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val7 $m_begin{center} $val19 $m_end{center} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,19
+embedcnt=0

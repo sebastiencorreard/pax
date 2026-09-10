@@ -1,0 +1,659 @@
+!set title=Généralités sur une fonction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=123
+prevarcnt=122
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 3, 9
+
+val7=$[rint($val6-$(tmp0))]
+val8=$[rint(2*$val6-$val7)]
+val9=$[rint($val7*$val8)]
+!if $val9=0 
+val7=$[rint($val7-1)]
+val8=$[rint($val8+1)]
+!endif
+tmp0=!shuffle 5,7,9,11
+
+val10=$(tmp0)
+val11=$[rint($val7-$(val10[1]))]
+val12=$[rint($val8+$(val10[2]))]
+tmp0=!randint 1, 4
+
+tmp1=!randitem 1,-1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+val14=$[rint($val9*$val13)]
+val15=!rawmath $val13*(x-$val7)*(x-$val8)
+t_=!replace internal \( by ( in expand($val15)
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+tmp0=!texmath $val16
+
+val17=$(tmp0)
+tmp0=!texmath $val15
+
+val18=$(tmp0)
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val19=$[rint($(tmp0))]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val12) in $evaltmp
+tmp0=($evaltmp)
+val20=$[rint($(tmp0))]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val6) in $evaltmp
+tmp0=($evaltmp)
+val21=$[rint($(tmp0))]
+!if $val13>0 
+val22=top,bottom,top
+val23=\(\searrow),\(\nearrow)
+!else
+val22=bottom,top,bottom
+val23=\(\nearrow),\(\searrow)
+!endif
+val24=<table class="wimscenter wimsnoborder" style="border: solid black 1px;">	 <tr style="border: solid black 1px;">	  <th width="15%"  style="border-right: solid black 1px;width:15%;">\(x)</th>	  <td width="15%" style="text-align:left"> $val11</td>	  <td width="8%"></td>	  <td width="15%">$val6</td>	  <td width="8%"></td>	  <td width="15%">$val12</td>	 </tr>	 <tr style="border: solid black 1px;">	  <th style="border-right: solid black 1px;">\(f(x))</th>	  <td width="15%" style="text-align:left;" valign="$(val22[1])">$val19</td>	  <td width="8%"> $(val23[1]) </td>	  <td width="15%" valign="$(val22[2])"> $val21 </td>	  <td width="8%"> $(val23[2])  </td>	  <td width="15%" valign="$(val22[3])"> $val20 </td>	 </tr>	</table>		
+tmp0=!randint $val11, $val6-1
+
+tmp1=!randint 1, 4
+
+val25=$[$(tmp0)+$(tmp1)/10]
+tmp0=!randint $val25+1, $val6
+
+tmp1=!randint 1, 4
+
+val26=$[$(tmp0)-$(tmp1)/10]
+tmp0=!randint $val6, $val12-1
+
+tmp1=!randint 1, 4
+
+val27=$[$(tmp0)+$(tmp1)/10]
+tmp0=!randint $val27+1, $val12
+
+tmp1=!randint 1, 4
+
+val28=$[$(tmp0)-$(tmp1)/10]
+tmp0=!randint $val11+1, $val6-1
+
+tmp1=!randint 1, 4
+
+val29=$[$(tmp0)+$(tmp1)/10]
+tmp0=!randint $val6+1, $val12-1
+
+tmp1=!randint 1, 4
+
+val30=$[$(tmp0)-$(tmp1)/10]
+val31=2,1
+
+!ifval $val13>0
+val32=$[rint(2)]
+!else
+val32=$[rint(1)]
+!endif
+tmp0=!randitem 1,2
+
+val33=$[rint($(tmp0))]
+
+!ifval $val33=1
+val34=$val25,$val26,$val32
+!else
+val34=$val26,$val25,$(val31[$val32])
+!endif
+
+!ifval $val13>0
+val35=$[rint(1)]
+!else
+val35=$[rint(2)]
+!endif
+tmp0=!randitem 1,2
+
+val33=$[rint($(tmp0))]
+
+!ifval $val33=1
+val34=$val34,	$val27,$val28,$val35
+!else
+val34=$val34,	$val28,$val27,$(val31[$val35])
+!endif
+tmp0=!randitem 1,2
+
+val33=$[rint($(tmp0))]
+
+!ifval $val33=1
+val34=$val34,	$val29,$val30,3
+!else
+val34=$val34,	$val30,$val29,3
+!endif
+tmp0=!shuffle 3
+
+val36=$(tmp0)
+tmp=!translate internal $	$ to ; in $val34
+
+tmp=!row $(val36[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val37=$(tmp0)
+val38=$[$(val37[1])]
+val39=$[$(val37[2])]
+val32=$[rint($(val37[3]))]
+tmp=!translate internal $	$ to ; in $val34
+
+tmp=!row $(val36[2]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val37=$(tmp0)
+val40=$[$(val37[1])]
+val41=$[$(val37[2])]
+val35=$[rint($(val37[3]))]
+tmp=!translate internal $	$ to ; in $val34
+
+tmp=!row $(val36[3]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val37=$(tmp0)
+val42=$[$(val37[1])]
+val43=$[$(val37[2])]
+val44=$[rint($(val37[3]))]
+val45=<,>,on ne peut pas savoir
+val46=&nbsp;
+val47=50x50x7
+val48=50x50x11
+val49=+,-,$val11,$val12,$val7,$val8,$val6,0,$val19,$val20,$val21,$val46
+tmp0=!listuniq $val49
+
+val49=$(tmp0)
+val50=$val11,$val46,$val7,$val46,$val8,$val46,$val12
+
+!ifval $val13>0
+val51=$val46,+,0,-,0,+,$val46
+!else
+val51=$val46,-,0,+,0,-,$val46
+!endif
+val52=<table class="wimscenter wimsnoborder" style="border:solid black 1px;">	<tr style="border: solid black 1px;">	  <th style="border-right: solid black 1px;" width="15%"> \(x)</th>	  <td width="15%" style="text-align:left">$val11</td>	  <td width="8%">&nbsp;</td>	  <td width="15%">$val7</td>	  <td width="8%">&nbsp;</td>	  <td width="15%">$val8</td>	  <td width="8%">&nbsp;</td>	  <td width="15%">$val12</td>	</tr><tr style="border: solid black 1px;">	  <th style="border-right: solid black 1px;" width="15%">\(f(x))</th>	  <td width="15%">&nbsp;</td>	  <td width="8%">$(val51[2])</td>	  <td width="15%">0</td>	  <td width="8%">$(val51[4])</td>	  <td width="15%">0</td>	  <td width="8%">$(val51[6])</td>	  <td width="15%">&nbsp;</td>	</tr>	</table>
+val53=$val7,$val8
+val54=$[rint($val7+$val8)]
+val55=0,$val54
+tmp0=!randint 1, 4
+
+val56=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val57=$[rint($(tmp0))]
+val58=<,\le,>,\ge
+val59=&#91;
+val60=&#93;
+val61=\(\cup)
+val62=\(\cap)
+val63=\(\emptyset)
+val64=&#59;
+
+!ifval $val57=1 or $val57=3
+val65=$val60
+!else
+val65=$val59
+!endif
+
+!ifval $val57=1 or $val57=3
+val66=$val59
+!else
+val66=$val60
+!endif
+!if $val13>0 
+!if $val56=1 
+tmp0=!randint $val21-10, $val21-1
+
+val67=$[rint($(tmp0))]
+
+!ifval $val57<3
+val68=$val63
+!else
+val68=$val59,$val11,$val64,$val12,$val60
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text -0.5,$val67,medium,$val67	  
+!endif
+!if $val56=2 
+tmp0=!randint $val7+1, $val6-1
+
+val25=$[rint($(tmp0))]
+val26=$[rint(2*$val6-$val25)]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp0=($evaltmp)
+val67=$[rint($(tmp0))]
+
+!ifval $val57<3
+val68=$val65,$val25,$val64,$val26,$val66
+!else
+val68=$val59,$val11,$val64,$val25,$val66,$val61,$val65,$val26,$val64,$val12,$val60
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text blue,-0.5,$val67,medium,$val67	 points blue,$val25,0,$val26,0	 text blue,$val25,-0.5,medium,$val25	 text blue,$val26,-0.5,medium,$val26	 linewidth 1	 dsegment $val25,0,$val25,$val67,blue	 dsegment $val26,0,$val26,$val67,blue	   
+!endif
+!if $val56=3 
+val70=$[rint($val6-$val11)]
+val71=$[rint($val12-$val6)]
+
+!ifval $val71>$val70
+tmp0=!randint 1, $val71-$val70-1
+
+val25=$[rint($val12-$(tmp0))]
+!else
+tmp1=!randint 1, $val70-$val71-1
+
+val25=$[rint($val11+$(tmp1))]
+!endif
+val26=$[rint(2*$val6 - $val25)]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp0=($evaltmp)
+val67=$[rint($(tmp0))]
+!if $val67<$val19 
+
+!ifval $val57<3
+val68=$val65,$val25,$val64,$val12,$val60
+!else
+val68=$val59,$val11,$val64,$val25,$val66
+!endif
+!else
+
+!ifval $val57<3
+val68=$val59,$val11,$val64,$val25,$val66
+!else
+val68=$val65,$val25,$val64,$val12,$val60
+!endif
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text blue,-0.5,$val67,medium,$val67	 points blue,$val25,0,$val26,0	 text blue,$val25,-0.5,medium,$val25	 linewidth 1	 dsegment $val25,0,$val25,$val67,blue	   
+!endif
+!if $val56=4 
+
+!ifval $val19<$val20
+tmp0=!randint $val20+1, $val20+10
+
+val67=$[rint($(tmp0))]
+!else
+tmp1=!randint $val19+1, $val19+10
+
+val67=$[rint($(tmp1))]
+!endif
+
+!ifval $val57<3
+val68=$val59,$val11,$val64,$val12,$val60
+!else
+val68=$val63
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text -0.5,$val67,medium,$val67	  
+!endif
+!else
+!if $val56=1 
+tmp0=!randint $val21+1, $val21+10
+
+val67=$[rint($(tmp0))]
+
+!ifval $val57>2
+val68=$val63
+!else
+val68=$val59,$val11,$val64,$val12,$val60
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text -0.5,$val67,medium,$val67	  
+!endif
+!if $val56=2 
+tmp0=!randint $val7+1, $val6-1
+
+val25=$[rint($(tmp0))]
+val26=$[rint(2*$val6-$val25)]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp0=($evaltmp)
+val67=$[rint($(tmp0))]
+
+!ifval $val57>2
+val68=$val65,$val25,$val64,$val26,$val66
+!else
+val68=$val59,$val11,$val64,$val25,$val66,$val61,$val65,$val26,$val64,$val12,$val60
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text blue,-0.5,$val67,medium,$val67	 points blue,$val25,0,$val26,0	 text blue,$val25,-0.5,medium,$val25	 text blue,$val26,-0.5,medium,$val26	 linewidth 1	 dsegment $val25,0,$val25,$val67,blue	 dsegment $val26,0,$val26,$val67,blue	   
+!endif
+!if $val56=3 
+val70=$[rint($val6-$val11)]
+val71=$[rint($val12-$val6)]
+
+!ifval $val71>$val70
+tmp0=!randint 1, $val71-$val70-1
+
+val25=$[rint($val12-$(tmp0))]
+!else
+tmp1=!randint 1, $val70-$val71-1
+
+val25=$[rint($val11+$(tmp1))]
+!endif
+val26=$[rint(2*$val6 - $val25)]
+evaltmp=$val15
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp0=($evaltmp)
+val67=$[rint($(tmp0))]
+!if $val67>$val19 
+
+!ifval $val57>2
+val68=$val65,$val25,$val64,$val12,$val60
+!else
+val68=$val59,$val11,$val64,$val25,$val66
+!endif
+!else
+
+!ifval $val57>2
+val68=$val59,$val11,$val64,$val25,$val66
+!else
+val68=$val65,$val25,$val64,$val12,$val60
+!endif
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text blue,-0.5,$val67,medium,$val67	 points blue,$val25,0,$val26,0	 text blue,$val25,-0.5,medium,$val25	 linewidth 1	 dsegment $val25,0,$val25,$val67,blue	   
+!endif
+!if $val56=4 
+
+!ifval $val19>$val20
+tmp0=!randint $val20-10, $val20-1
+
+val67=$[rint($(tmp0))]
+!else
+tmp1=!randint $val19-10, $val19-1
+
+val67=$[rint($(tmp1))]
+!endif
+
+!ifval $val57>2
+val68=$val59,$val11,$val64,$val12,$val60
+!else
+val68=$val63
+!endif
+val69=linewidth 5	 point 0,$val67,blue	 text -0.5,$val67,medium,$val67	  
+!endif
+!endif
+val72=f(x) $(val58[$val57]) $val67
+val73=$val59,$val60,$val63,$val61,$val62,$val64,$val11,$val12,$val6,$val25,$val26
+val74=$[rint($val11-1)]
+val75=$[rint($val12+1)]
+!if $val13>0 
+val76=$[rint($val21-12)]
+
+!ifval $val19>$val20
+val77=$[rint($val19+12)]
+!else
+val77=$[rint($val20+12)]
+!endif
+!else
+val77=$[rint($val21+12)]
+
+!ifval $val19<$val20
+val76=$[rint($val19-12)]
+!else
+val76=$[rint($val20-12)]
+!endif
+!endif
+val78=xrange $val74,$val75	 yrange $val76,$val77	 arrow $val74,0,$val75,0,10,black	 arrow 0,$val76,0,$val77,10,black	 trange $val11,$val12	 plot red,$val15	$val69	
+val79=r1,r2,r3	r4,r5	r6	r7,r8,r9,r10	r11
+oefsteps=$val79 
+nextstep=!nosubst $val79 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=nonstop 
+replyname1=Comparaison 1
+replygood1=$val32;$val45
+replytype2=menu
+replyoption2=nonstop 
+replyname2=Comparaison 2
+replygood2=$val35;$val45
+replytype3=menu
+replyoption3=nonstop 
+replyname3=Comparaison 3
+replygood3=$val44;$val45
+replytype4=clickfill
+replyoption4=nonstop 
+replyname4=ligne des x
+replygood4=$val50;$val49
+replytype5=clickfill
+replyoption5=nonstop 
+replyname5=ligne de f(x)
+replygood5=$val51;$val49
+replytype6=litexp
+replyoption6=nonstop 
+replyname6=Forme développée
+replygood6=$val16
+replytype7=checkbox
+replyoption7=nonstop 
+replyname7=choix forme 1
+replygood7=2;\($val16),\($val18)
+replytype8=fset
+replyoption8=nonstop 
+replyname8=Solution de l'équation 1
+replygood8=$val53
+replytype9=checkbox
+replyoption9=nonstop 
+replyname9=choix forme 2
+replygood9=1;\($val16),\($val18)
+replytype10=fset
+replyoption10=nonstop 
+replyname10=Solution de l'équation 2
+replygood10=$val55
+replytype11=clickfill
+replyname11=Solution de l'inéquation
+replygood11=$val68;$val73
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left spacer">	La fonction 
+!insmath f
+$() définie sur 
+!insmath &#91;$val11;$val12&#93;
+$() admet le tableau des	variations suivant:<div>	$val24	</div>	et vérifie 
+!insmath f($val7)=0
+$() et 
+!insmath f($val8)=0
+$().	
+!if $m_step=1 
+$()	  <p>	  Comparer si possible les images suivantes:	  </p>	<table class="wimsnoborder">	<tr><td> 
+!insmath f($val38)
+$()</td><td>  
+!read oef/embed.phtml reply1 
+$() </td><td>
+!insmath f($val39)
+$()</td></tr>	<tr><td> 
+!insmath f($val40)
+$()</td><td>  
+!read oef/embed.phtml reply2 
+$() </td><td>
+!insmath f($val41)
+$()</td></tr>	<tr><td> 
+!insmath f($val42)
+$()</td><td>  
+!read oef/embed.phtml reply3 
+$() </td><td>
+!insmath f($val43)
+$()</td></tr>	</table>	   
+!else
+$() 	   
+!if $m_step=2 
+$()	<p> Construire le tableau des signes de la fonction 
+!insmath f
+$():</p>	<table class="wimsborder">	<tr><td>
+!insmath x
+$()</td><td> 
+!read oef/embed.phtml reply4,$val47 
+$()</td></tr>	<tr><td>
+!insmath f(x)
+$()</td><td> 
+!read oef/embed.phtml reply5,$val47 
+$()</td><tr>	</table>	    
+!else
+$() 	<p>On connaît maintenant l'expression algébrique factorisée de 
+!insmath f
+$():</p>	<div class="wimscenter">
+!insmath f(x)=$val18
+$()</div>	    
+!if $m_step=3 
+$()	<p>Donner son expression développée:</p>	<div class="wimscenter">
+!insmath f(x)
+$()= 
+!read oef/embed.phtml reply6 
+$()</div>	     
+!else
+$() 	     
+!if $m_step=4 
+$()	<p>Choisir la bonne expression de 
+!insmath f
+$() pour résoudre algébriquement	les équations suivantes:	</p>	<ol>	<li>
+!insmath f(x)=0
+$():<br>	Choix de l'expression à utiliser:<br> 
+!read oef/embed.phtml reply7 
+$()<br>	Solution(s) de l'équation: S= 
+!read oef/embed.phtml reply8 
+$()</li>	<li>
+!insmath f(x)=$val14
+$():<br>	Choix de l'expression à utiliser:<br> 
+!read oef/embed.phtml reply9 
+$()<br>	Solution(s) de l'équation: S= 
+!read oef/embed.phtml reply10 
+$()</li>	</ol>	      
+!endif
+$()	     
+!endif
+$()	    
+!endif
+$()	   
+!endif
+$()	  </div>	<div class="float_right" style="background-color:lightgrey">	<b>Résultats</b>	
+!if $m_step>1 
+$()	<p>	On a:	</p>	<ul>	
+!if $val32<3 
+$()	<li> 
+!insmath f($val38)
+$() $(val45[$val32]) 
+!insmath f($val39)
+$()</li> 
+!endif
+$()	
+!if $val35<3 
+$()	<li> 
+!insmath f($val40)
+$() $(val45[$val35]) 
+!insmath f($val41)
+$()</li> 
+!endif
+$()	
+!if $val44<3 
+$()	<li> 
+!insmath f($val42)
+$() $(val45[$val44]) 
+!insmath f($val43)
+$()</li> 
+!endif
+$()	</ul>	   
+!if $m_step>2 
+$()	<p>Tableau des signes:</p>	$val52	     
+!endif
+$()	   
+!if $m_step>3 
+$()	<p>La forme développée de 
+!insmath f
+$() est 
+!insmath f(x)=$val16
+$().</p>	     
+!endif
+$()	   
+!if $m_step>4 
+$()	<p> On choisit la forme factorisée pour résoudre 
+!insmath f(x)=0
+$().<br>	    On choisit la forme développée pour résoudre 
+!insmath f(x)=$val14
+$().	    </p>	     
+!endif
+$()	   
+!endif
+$()	</div>	
+!if $m_step=5 
+$()	<div class="wimscenter"> 
+!read oef/draw.phtml 300,300 \
+$val78 
+$()</div>	On a dessiné la représentation graphique de la fonction 
+!insmath f
+$().	Résoudre graphiquement l'inéquation 
+!insmath $val72
+$().		<div class="wimscenter">	 
+!read oef/embed.phtml reply11,$val48 
+$()	</div>	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,14,16,18,24,32,35,38,39,40,41,42,43,44,45,47,48,52,72,78
+embedcnt=11

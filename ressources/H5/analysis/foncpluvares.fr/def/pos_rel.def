@@ -1,0 +1,174 @@
+!set title=Position relative d'un point et d'une surface
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+!if $val6=1 or $val6=2 
+!readproc slib/matrix/random 1,6,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=3 
+tmp0=!randitem -5,5
+
+tmp1=!randitem -5,5
+
+tmp2=!randitem -5,5
+
+tmp3=!randitem -5,5
+
+tmp=!trim $(tmp0),0,0,$(tmp1),$(tmp2),$(tmp3)
+val8=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6>=4 
+tmp0=!randitem -1,1
+
+tmp1=!randitem -5,5
+
+tmp2=!randitem -5,5
+
+tmp3=!randitem -5,5
+
+tmp4=!randitem -5,5
+
+tmp=!trim 0,$(tmp0)*$(tmp1),0,$(tmp2),$(tmp3),$(tmp4)
+val8=!translate internal $	\
+$ to ;; in $tmp
+!if $(val8[6])=$val7 
+val7=$[rint($val7+1)]
+!endif
+!endif
+t_=!replace internal \( by ( in [$val8]*[x^2;x*y;y^2;x;y;1]
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in expand($val9)
+tmp0=!exec maxima $t_
+
+val9=$(tmp0)
+tmp0=!randint 1, 3
+
+val10=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val12=$[rint($(tmp0))]
+t_=!replace internal \( by ( in subst($val11,x,$val9)
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+t_=!replace internal \( by ( in subst($val12,y,$val13)
+tmp0=!exec maxima $t_
+
+val14=!rawmath $(tmp0)
+!if $val10=1 
+val15=$[rint($val14+0)]
+!endif
+!if $val10=2 
+tmp0=!randint 1, 5
+
+val15=$[rint($val14+$(tmp0))]
+!endif
+!if $val10=3 
+tmp0=!randint 1, 5
+
+val15=$[rint($val14-$(tmp0))]
+!endif
+val16=sur,au dessus,au dessous
+replytype1=menu
+replyname1=Nature
+replygood1=$val10;$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la surface 
+!insmath S
+$() d'équation 
+!insmath z=$val9
+$() et le point 
+!insmath M($val11;$val12;$val15)
+$().	<div class="wimscenter">	Le point 
+!insmath M
+$() est situé  
+!read oef/embed.phtml reply 1 
+$() la surface.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11,12,15
+embedcnt=1

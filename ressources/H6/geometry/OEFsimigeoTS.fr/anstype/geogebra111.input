@@ -1,0 +1,233 @@
+!!Problèmes de javascript :
+!!* rien ne semble marcher sur opéra
+
+!set anstype=yes
+!set anstyle=dprompt
+!if $wims_read_parm=def
+ !exit
+!endif
+
+
+!read anstype/geogebra.fr
+
+!set noclue=!getopt dontknow in $(replyoption$i)
+
+!set maxobjects=!getopt max in $(replyoption$i)
+!if $maxobjects=$empty
+  !set maxobjects=10
+!endif
+!set name=!getopt name in $(replyoption$i)
+!set name=!replace internal & by , in $name
+!set name=!replace internal , by ',' in '$name'
+!set precision=!getopt precision in $(replyoption$i)
+!if $precision=$empty
+  !set precision=18
+!endif
+!set nameobjchk=!getopt check in $(replyoption$i)
+!set nameobjchk=!replace internal & by , in $nameobjchk
+
+<script type="text/javascript">
+
+function dontknow()
+{
+	!!tentative pour trouver un moyen pour que l'applet ne s'affiche plus lors de l'analyse de la réponse
+	!!mais cela ne marche pas...
+	!set wims_applet=$empty
+    var q="?";
+    q=encodeURIComponent(q);
+    var URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$i='+q ;
+    document.location.href = URL;
+}
+
+function geogebra2wims() {
+    var tot='';
+    var cond='';
+    var test,test2;
+    var points_of_polygon;
+    var a,b,c,d,e,f,g,h,n,x,y,p,max,r,s,t,i,it,whatisit,broken_up_string,thing,listcnt,def,name,prec;
+    var list_of_things = new Array();
+    var debug=0;
+
+    !!!!!!! WIMS !!!!!!!
+
+    !if $list_of_things=$empty
+	!! look for all possible object names
+		list_of_things=['point','line','circle','arc','segment','polygon','function','polynomial','conic','ellipse','hyperbola','parabola','vector','angle','numeric','text'];
+    !endif
+
+	prec=$precision;
+
+    listcnt=list_of_things.length;
+    var total = new Array();
+    var data = new Array();
+    var grec = new Array();
+
+	grec=['alpha','beta','gamma','delta','epsilon','zeta','eta','theta',\
+	'iota','kappa','lambda','mu','nu','xi','omicron','pi','rho','sigmaf',\
+	'sigma','tau','upsilon','phi','khi','psi','omega'];
+
+	!if $total=$empty
+        !if $nameobjchk=$empty
+	!! a very limited selection :trouble if pupils start fantasy renaming... This will be modified with the GeoGebra version 3
+	total=['A','B','C','D','E','F','G','H',\
+	'I','J','K','L','M','N','O','P','Q','R',\
+	'S','T','U','V','W','X','Y','Z',\
+	'a','b','c','d','e','f','g','h','i','j','k',\
+	'l','m','n','o','p','q','r','s','t','u','v',\
+	'w','z','y','z',\
+	'\u03b1','\u03b2','\u03b3',\
+	'\u03b4','\u03b5','\u03b6','\u03b7','\u03b8',\
+	'\u03b9',\
+	'T1','T2','T3',$name];
+         !else
+           total=[$nameobjchk];
+         !endif
+	!endif
+
+    max=total.length;
+
+	var totalobject_count = 0;
+
+	for ( i=0 ; i < max ; i++){
+	!! walk trough all objects
+	thing = total[i];
+	whatisit=document.applets[0].getObjectType(thing);
+	!! whatisit: ask the applet what "A" is ... and get the name like point,circle...
+
+	!! getting relations between the objects
+	cmd=document.applets[0].getCommandString(thing);
+	def=document.applets[0].getDefinitionString(thing);
+	!!replace the greek names of the angles
+	test=thing;
+	name=thing.charCodeAt(0);
+	if (name>944)
+		{
+		name=name-945;
+		test=grec[name];
+		}
+	cond=cond+test+'='+def+'&';
+
+
+	for ( p=0 ; p < listcnt ; p++)
+	    {
+		!! walk trough the selection of objects we are interested in
+		!! defined in Wimsvariable $list_of_things='point','circle','polygon'
+
+		it=list_of_things[p];
+
+		if (whatisit==it)
+		    {
+		    data=document.applets[0].getValueString(thing);
+		    data=encodeURIComponent(data);
+		    data=data.replace(/%C2%B/g,'^');
+
+		    data= decodeURIComponent(data);
+		    !! back to normal...
+		    def=encodeURIComponent(def);
+		    def=def.replace(/%C2%B/g,'^');
+
+		    def= decodeURIComponent(def);
+		    !! back to normal...
+
+
+		    if (data.indexOf("_") != 2 )
+			!! check e.g. no special tags like My_A My_B used to mask a *.ggb objects
+			{
+			totalobject_count=totalobject_count + 1;
+			if (it=="point"||it=="vector")
+				{
+				x=document.applets[0].getXcoord(thing);
+				x=(Math.round(x*Math.pow(10,prec)))/(Math.pow(10,prec));
+				y=document.applets[0].getYcoord(thing);
+				y=(Math.round(y*Math.pow(10,prec)))/(Math.pow(10,prec));
+				data=thing+'='+it+','+x+','+y;
+				}
+    			else if (it=="circle"||it=="line"||it=="polynomial"||it=="conic"||it=="parabola"||it=="ellipse"||it=="hyperbola")
+			    !! c:(x - 5.73)^2 + (y - 1.53)^2 = 16,
+    			    {
+				t=data.length;
+				c=data.indexOf(':');
+				d=data.indexOf('=');
+				e=data.substring(c+1,d-1);
+				f=data.substring(d+1,t);
+				data=thing+'='+it+','+e+'==('+f+')';
+    			    }
+			    	else if (it=="angle")
+    			    {
+				!!  on enleve le "degre" ("^0")
+				data=encodeURIComponent(data);
+				data=data.replace(/%5E0/g,'');
+				data=decodeURIComponent(data);
+				!!on ecrit le nom en toutes lettres
+				name=data.charCodeAt(0);
+				name=name-945;
+				name=grec[name];
+
+				data = data.split("=");
+				data = data[1];
+				data=name+'='+it+','+data;
+    			    }
+			    	else if (it=="text"||it=="numeric"||it=="segment"||it=="polygon"||it=="function")
+    			    {
+				data = data.split("=");
+				name = data[0];
+				data = data[1];
+				data=name+'='+it+','+data;
+    			    }
+			    	else if (it=="arc")
+    			    {
+				data = def.split("=");
+				name = data[0];
+				data = data[1];
+				data=name+'='+it+','+data;
+    			    }
+
+		    !! here we produce the URL string 'tot'
+
+			    tot=tot + data + '&' ;
+
+			}
+
+		    }
+	    }
+    }
+    tot1=tot;
+    tot=tot+";"+cond;
+!! use encoding on math '+' signs
+    tot=tot.replace(/undefined/g, '');
+!!    tot= encodeURIComponent( tot );
+!! replace the strange unicode for ^2
+    tot=tot.replace(/%C2%B/g,'^');
+    if (totalobject_count == 0)
+    {
+    }
+    else
+    if ( totalobject_count > $maxobjects )
+    {
+	alert("$inp0"+ $maxobjects +"$inp1");
+	}
+    else
+    {
+    if (debug=='1') {alert("You are about to send a reply:"+tot);}
+	document.getElementById('geog').value = tot;
+	}
+}
+</script>
+
+<input type=hidden name="reply$i" id="geog" value=>
+
+!form reply
+
+	<div class="wimscenter">
+		<input type="submit" style="" onclick="javascript:geogebra2wims();" name="button1" value="$inp2">
+
+!if $noclue = yes>>
+    	<input type="button" style="" onclick="javascript:dontknow();" name="button2" value="$inp3">
+!endif
+
+</div>
+
+!formend
+
+!set oef_formnosubmit=yes
+

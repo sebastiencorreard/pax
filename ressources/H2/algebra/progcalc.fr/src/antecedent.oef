@@ -1,0 +1,160 @@
+\title{Antécédent par un programme de calcul}
+\langage {fr}
+\author{Paul, Byache}
+\email{paul@byache.fr}
+\langage{html}
+\precision{10000}
+\css{<style>
+table.algo {border: 2px solid #999;}
+.fleche {font-size:2em;}
+</style>}
+\text{confparm1=\confparm1= ? 1,2,3,4,5:\confparm1}
+\text{confparm2=\confparm2= ?3:\confparm2}
+\text{confparm3=\confparm3= ? 1:\confparm3}
+\text{confparm4=\confparm4= ? 1:\confparm4}
+
+\integer{a=wims(randitem 4,5,8,10)}
+
+\integer{xx=random(1..10)}
+\if{\confparm3=2}{
+\rational{xx=randint(1..300)/10}
+}
+\if{\confparm3=2 and 1 notin \confparm1 and 2 notin \confparm1}{
+\real{xx=randint(1..300)/10}
+}
+\if{\confparm3=3}{
+\rational{xx=randint(1..10)/randint(3..10)}
+}
+
+\text{chop=wims(values x*2 for x in \confparm1)}
+\text{chop=\chop,wims(values x-1 for x in \chop)}
+#pour éviter d'avoir des sqrt de nombre négatif :
+\text{chop= 2 isin \chop ? wims(listcomplement 10 in \chop):\chop}
+\text{chop=wims(shuffle \chop)}
+\integer{taille=items(\chop)}
+
+\if{\confparm2=3 and \taille=2}{
+\integer{confparm2=2}
+}
+
+\integer{n1=item(1,\chop)}
+\integer{n2=item(2,\chop)}
+\integer{n3=item(3,\chop)}
+
+\text{sol=carré,racine carrée,inverse,inverse,double,moitié,divisé par \a,fois \a,plus \a,moins \a}
+\text{sol2=item([\chop],\sol)}
+\matrix{js=Math.pow(document.getElementById('caseXXX').value,2)
+Math.pow(document.getElementById('caseXXX').value,0.5)
+1/eval(document.getElementById('caseXXX').value)
+1/eval(document.getElementById('caseXXX').value)
+2*eval(document.getElementById('caseXXX').value)
+eval(document.getElementById('caseXXX').value)/2
+eval(document.getElementById('caseXXX').value)/\a
+eval(document.getElementById('caseXXX').value)*\a
+Math.log(Math.exp(document.getElementById('caseXXX').value)*Math.exp(\a))
+Math.log(Math.exp(document.getElementById('caseXXX').value)/Math.exp(\a))}
+
+\matrix{w=(XXX)^2
+sqrt(XXX)
+1/(XXX)
+1/(XXX)
+2*(XXX)
+(XXX)/2
+(XXX)/\a
+(XXX)*\a
+(XXX)+\a
+(XXX)-\a}
+
+\text{solu=wims(replace internal XXX by \xx in \w[\n1;])}
+\if{\confparm2>1}{
+\text{solu=wims(replace internal XXX by \solu in \w[\n2;])}
+\if{\confparm2>2}{
+\text{solu=wims(replace internal XXX by \solu in \w[\n3;])}
+}}
+\text{y=simplify(\solu)}
+
+\text{data1=document.getElementById('caseYYY').value=Math.round(\js[\n1;]*100000000000000000)/100000000000000000}
+\text{data2=document.getElementById('caseYYY').value=Math.round(\js[\n2;]*100000000000000000)/100000000000000000}
+\text{data3=document.getElementById('caseYYY').value=Math.round(\js[\n3;]*100000000000000000)/100000000000000000}
+\text{op1=wims(replace internal XXX by 1 in \data1)}
+\text{op1=wims(replace internal YYY by 2 in \op1)}
+\text{op2=wims(replace internal XXX by 2 in \data2)}
+\text{op2=wims(replace internal YYY by 3 in \op2)}
+\text{op3=wims(replace internal XXX by 3 in \data3)}
+\text{op3=wims(replace internal YYY by 4 in \op3)}
+
+\if{\confparm2==1}{\text{op=\op1;}}
+\if{\confparm2==2}{\text{op=\op1;\op2;}}
+\if{\confparm2==3}{\text{op=\op1;\op2;\op3;}}
+
+\integer{colsp=1+2*\confparm2}
+
+\text{HINT=(1 isin \confparm1 or 2 isin \confparm1) ?
+<iframe src=scripts/js/wincalc.html height=300 width=500 frameborder=0 align=right>
+</iframe>
+Il est plus pratique d'utiliser votre propre calculatrice mais voici une calculatrice.<br>Pour calculer \(sqrt(8)) par exemple, taper
+<span class="tt">8</span> puis la touche <span class="tt">sqrt</span>.
+<br>Notez les résultats sur une feuille de brouillon.<br>Quand vous avez fini vos calculs,
+cliquez sur "retour au travail" ci-dessous.:}
+
+\statement{ Voici un programme de calcul.
+<p>Quel nombre de départ faut-il choisir
+<b>pour que le résultat du programme de calcul soit \(\y) ?</b>
+</p>
+<div class="unbreakable">
+<table class="wimscenter algo">
+<tr><td></td><td>\sol[\n1]</td>
+\if{\confparm2>1}{<td></td><td>\sol[\n2]</td>
+\if{\confparm2>2}{<td></td><td>\sol[\n3]</td>
+}}<td></td></tr>
+<tr><td>
+<input type="text" style="color:blue;background:yellow" id="case1" size="5" value="3" />
+</td>
+<td class="fleche">&rarr;</td>
+<td>
+<input type="text" id="case2" size="10" />
+</td>
+\if{\confparm2>1}{
+<td class="fleche">&rarr;</td>
+<td>
+<input type="text" id="case3" size="10" />
+</td>
+\if{\confparm2>2}{
+<td class="fleche">&rarr;</td>
+<td>
+<input type="text" id="case4" size="10" />
+</td>}}</tr>
+
+\if{\confparm4=1}{
+<tr><td colspan="\colsp">
+<input type="button" value="Calcule" onclick="\op" />
+<input type="reset" value="Efface" />
+</td></tr>}
+</table>
+</div>
+\if{\confparm4=1}{
+<div class="wims_instruction">
+Pour t'aider, tu peux modifier le nombre de départ (case jaune) et
+cliquer sur <span class="tt">Calcule</span>.
+</div>}
+L'antécédent à choisir est : \embed{r1
+autocomplete="off"}
+}
+
+\answer{ }{\zz}{type=numeric}
+
+\text{soluRep=wims(replace internal XXX by \zz in \w[\n1;])}
+\if{\confparm2>1}{
+\text{soluRep=wims(replace internal XXX by \soluRep in \w[\n2;])}
+\if{\confparm2>2}{
+\text{soluRep=wims(replace internal XXX by \soluRep in \w[\n3;])}
+}}
+\real{ecart=abs(\soluRep-\y)}
+
+
+\condition{Votre réponse est correcte ? }{\ecart<10^(-12)}
+\condition{Votre réponse est proche d'une réponse correcte ? }{\ecart<10^(-2)}
+\solution{Vous avez répondu \zz ; une bonne réponse possible était : \xx (il y a parfois deux bonnes réponses possibles)}
+
+
+\hint{\HINT}

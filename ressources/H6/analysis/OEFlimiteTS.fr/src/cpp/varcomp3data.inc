@@ -1,0 +1,222 @@
+\text{vse=\(\searrow\)}
+\text{vne=\(\nearrow\)}
+\matrix{symb = \vse,\vne,\vse
+\vne,\vse,\vne}
+\text{variations = \(\nearrow\),\(\searrow\)}
+\text{monotone = \(\nearrow\),\(\searrow\)}
+
+\integer{a=randint(1..9)*randint(1,-1)}
+\integer{m=\a+randint(1..5)}
+\integer{m=\m=0? 1}
+\integer{b=\m+randint(1..5)}
+\integer{\b=\b=0? 1}
+
+\rational{a1=1/\a}
+\rational{b1=1/\b}
+\rational{m1=1/\m}
+\integer{a2=(\a)^2}
+\integer{b2=(\b)^2}
+\integer{m2=(\m)^2}
+
+\integer{k=randint(1..4)}
+integer{k=1}
+/// k= 1 fct croissante
+   k= 2 fct décroissante
+   k= 3 fct croissante puis déroissante
+   k= 4 fct décroissante puis croissante
+\text{consigne=\choix=1?mais on précisera les valeurs de la fonction aux bornes du domaines de défintion: mais on laissera un espace pour les limites de la fonction aux bornes du domaine de définition}
+\if{\k=1}
+  {
+  \integer{ya=randint(-10..-1)}
+  \rational{yb=simplify(\ya/(\a-\m)*(\b-\m))}
+  \integer{ym=\m}
+  \text{tinfocomp= et vérifiant \(f(\m)=0)}
+  }
+\if{\k=2}
+  {
+  \integer{yb=randint(-10..-1)}
+  \rational{ya=simplify(\yb/(\b-\m)*(\a-\m))}
+  \integer{ym=\m}
+  \text{tinfocomp= et vérifiant \(f(\m)=0)}
+  }
+\if{\k=3}
+  {
+  \integer{b=\choix=2?2*\m-\a}
+  \integer{ym=randint(-8..-1)}
+  \integer{ya=\ym-randint(1..10)}
+  \integer{yb=\choix=2?\ya:\ym-randint(1..10)}
+  \text{tinfocomp=}
+  }
+\if{\k=4}
+  {
+  \integer{b=\choix=2?2*\m-\a}
+  \integer{ym=randint(1..8)}
+  \integer{ya=\ym+randint(1..10)}
+  \integer{yb=\choix=2?\ya:\ym+randint(1..10)}
+  \text{tinfocomp=}
+  }
+
+\rational{ya1=1/(\ya)}
+\rational{yb1=1/(\yb)}
+\rational{ym1=1/(\ym)}
+\rational{ya2=(\ya)^2}
+\rational{yb2=(\yb)^2}
+\integer{ym2=(\ym)^2}
+
+\text{v0=\(0\)}
+\text{vx1=\(\a\)}
+\text{vx2=\(\b\)}
+\text{vx3=\(\m\)}
+\text{vx4=\(\a1\)}
+\text{vx5=\(\b1\)}
+\text{vx6=\(\m1\)}
+\text{vx7=\(\a2\)}
+\text{vx8=\(\b2\)}
+\text{vx9=\(\m2\)}
+
+\text{vy1=\(\ya\)}
+\text{vy2=\(\yb\)}
+\text{vy3=\(\ym\)}
+\text{vy4=\(\ya1\)}
+\text{vy5=\(\yb1\)}
+\text{vy6=\(\ym1\)}
+\text{vy7=\(\ya2\)}
+\text{vy8=\(\yb2\)}
+\text{vy9=\(\ym2\)}
+\text{vesp=&nbsp;}
+\text{infg=\(-\infty\)}
+\text{infd=\(+\infty\)}
+\text{empt=\(\emptyset\)}
+\text{nondef=\(\parallel\)}
+\text{ptvirg=&#59;}
+/// choix = 1 tableau des variations
+   choix = 2 courbe
+\text{bornexg=\choix=1?\vx1:\infg}
+\text{bornexd=\choix=1?\vx2:\infd}
+\text{borneyg=\choix=1?\vy7:\infd}
+\text{borneyd=\choix=1?\vy8:\infd}
+text{borneyg=\choix=1?\vy7:\vesp}
+text{borneyd=\choix=1?\vy8:\vesp}
+\if{\k=1 or \k=2}
+{
+
+\if{\k=1}
+  {
+ \text{pos=bottom,top}
+ \integer{var=1}
+ }
+ {
+ \text{pos=top,bottom}
+ \integer{var=2}
+ }
+ \text{tableau=
+<table class="wimscenter wimsnoborder" style="border: solid black 1px;">
+ <tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;;width:15%;">\(x)</th>
+  <td style="width:15%;text-align:left"> \a</td>
+  <td style="width:8%;"></td>
+  <td style="width:15%;text-align:right">\b</td>
+</tr><tr style="border: solid black 1px;">
+  <td style="border-right: solid black 1px;width:15%" valign="middle" rowspan="3" >\(var f)</td>
+  <td style="border-bottom: solid black 1px;width:15%;text-align:left" rowspan="3" valign="\pos[1]"> \ya </td>
+  <td style="border-bottom: solid black 1px;width:8%;" rowspan="3"> \monotone[\var] </td>
+  <td style="border-bottom: solid black 1px;width:15%;text-align:right" rowspan="3" valign="\pos[2]"> \yb </td>
+ </tr>
+</table>
+}
+
+\text{grepux=\bornexg,\vesp,\vx3,\vesp,\bornexd}
+\text{grepuy=\borneyg,\vse,\v0,\vne,\borneyd}
+\text{borneyg=\choix=1?\vy4:\v0}
+\text{borneyd=\choix=1?\vy5:\v0}
+text{borneyg=\choix=1?\vy4:\vesp}
+text{borneyd=\choix=1?\vy5:\vesp}
+\text{grepvx=\bornexg,\vesp,\vesp,\vx3,\vesp,\vesp,\bornexd}
+\text{grepvy=\k=1?\borneyg,\vse,\infg,\nondef,\infd,\vse,\borneyd:\borneyg,\vne,\infd,\nondef,\infg,\vne,\borneyd}
+\text{ladroite=slib(eqdtedraw \a,\ya,\b,\yb,\a-10,\a+10,-10,10,red)}
+\text{dessin=
+ xrange \a-10,\a+10
+ yrange -10,10
+ parallel \a-10,-10,\a-10,10,1,0,20,gray
+ parallel \a-10,-10,\a+10,-10,0,1,20,gray
+ arrow 0,-10,0,10,10,black
+ arrow \a-10,0,\a+10,0,10,black
+ segment -0.2,1,0.2,1,black
+ segment 1,-0.2,1,0.2,black
+ text black,-0.7,1.5,small,1
+ text black,0.7,-0.5,small,1
+
+ \ladroite
+}
+
+  }
+\if{\k=3 or \k=4}
+{
+
+\if{\k=3}
+  {
+ \text{pos=bottom,top,bottom}
+ \text{var=1,2}
+ }
+ {
+ \text{pos=top,bottom,top}
+ \text{var=2,1}
+ }
+ \text{tableau=<table class="wimscenter wimsnoborder" style="border: solid black 1px;">
+<tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;width:15%;"> \(x)</th>
+  <td style="width:15%;text-align:left"> \a</td>
+  <td style="width:8%;"></td>
+  <td style="width:15%;"> \m</td>
+  <td style="width:8%;"></td>
+  <td style="width:15%;text-align:right">\b</td>
+</tr><tr style="border: solid black 1px;">
+  <th style="border-right: solid black 1px;width:15%" valign="middle rowspan="3">
+  \(var f)</th>
+  <td style="border-bottom: solid black 1px;width:15%;text-align:left" rowspan="3" valign="\pos[1]"> \ya </td>
+  <td style="border-bottom: solid black 1px;width:8%;" rowspan="3"> \monotone[\var[1]] </td>
+  <td style="border-bottom: solid black 1px;width:15%;" rowspan="3" valign="\pos[2]"> \ym </td>
+  <td style="border-bottom: solid black 1px;width:8%;" rowspan="3"> \monotone[\var[2]] </td>
+  <td style="border-bottom: solid black 1px;width:15%;text-align:right" rowspan="3" valign="\pos[3]"> \yb </td>
+  </tr>
+</table>
+}
+\text{grepux=\bornexg,\vesp,\vx3,\vesp,\bornexd}
+\text{grepuy=\borneyg,\vse,\vy9,\vne,\borneyd}
+\text{borneyg=\choix=1?\vy4:\v0}
+\text{borneyd=\choix=1?\vy5:\v0}
+text{borneyg=\choix=1?\vy4:\vesp}
+text{borneyd=\choix=1?\vy5:\vesp}
+\text{grepvx=\bornexg,\vesp,\vx3,\vesp,\bornexd}
+\text{grepvy=\k=3?\borneyg,\vse,\vy6,\vne,\borneyd:\borneyg,\vne,\vy6,\vse,\borneyd}
+
+\text{ladroite=slib(eqparadraw \a,\ya,\m,\ym,\b,\yb,\a-10,\a+10,-10,10,red)}
+\text{dessin=
+ xrange \a-10,\a+10
+ yrange -10,10
+ parallel \a-10,-10,\a-10,10,1,0,20,gray
+ parallel \a-10,-10,\a+10,-10,0,1,20,gray
+ arrow 0,-10,0,10,10,black
+ arrow \a-10,0,\a+10,0,10,black
+ segment -0.2,1,0.2,1,black
+ segment 1,-0.2,1,0.2,black
+ text black,-0.7,1.5,small,1
+ text black,0.7,-0.5,small,1
+ \ladroite
+}
+  }
+\text{intro=\choix=2?La courbe donnée est celle d'une fonction \(f) définie sur \(\,\RR).:
+  Le tableau des variations donné est celui d'une fonction \(f) définie sur &#93; \(\a;\b) &#91; \tinfocomp.}
+
+\text{vx1=\(\a\)}
+\text{vx2=\(\b\)}
+\text{vx3=\(\m\)}
+\text{vx4=\(\a1\)}
+
+\text{permut=shuffle(\vx1,\vx2,\vx3,\vx4,\vx5,\vx6,\vx7,\vx8,\vx9,\vy1,\vy2,\vy3,\vy4,\vy5,\vy6,\vy7,\vy8,\vy9)}
+\text{permut= wims(listuniq \permut)}
+\text{clicList=
+\vse,\vne,\ptvirg,\vesp,\infg,\infd,\empt,\v0,\nondef,\permut
+}
+/// taille des symboles et des champs à remplir par clic LxHxnb ##
+\text{size=60x40x7}

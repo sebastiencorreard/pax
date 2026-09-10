@@ -1,0 +1,116 @@
+!set title=Comparer des proportions 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=Ils ont tous les deux le même score
+val11=dans la même classe et comparent	  leurs résultats aux évaluations sixième.
+val12=J'ai réussi,J'ai réussi les, des questions
+val13=et
+val14=dit&nbsp;
+val15=Qui a fait le meilleur score&nbsp;
+tmp0=!randint 2, 18
+
+val16=$[rint($(tmp0)*5)]
+tmp=!nonempty items 1/2,1/3,2/3,1/4,3/4,1/5,2/5,3/5,4/5,1/10,3/10,7/10,9/10
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val18=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val19=$(tmp0)
+val9=$val18,$val19,$val10
+
+!ifval $val16/100<$val17
+val20=$(val9[2])
+!else
+val20=$(val9[1])
+!endif
+
+!ifval $val16/100=$val17
+val20=$(val9[3])
+!else
+val20=$val20
+!endif
+choicename1=
+choicegood1=$val20
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val18 $val13 $val19 $val11	<ul><li>$val18 $val14:	 <span style="font-style:italic">$(val12[1]) $val16 % $(val12[3]).</span></li>	<li>$val19 $val14:	<span style="font-style:italic">$(val12[2]) 
+!insmath $val17
+$() $(val12[3]).</span></li>	</ul>	$val15?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,14,15,16,17,18,19
+embedcnt=0

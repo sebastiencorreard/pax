@@ -1,0 +1,262 @@
+!set title=了解一个函数
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=V閞onique Royer
+email=royer.veronique@orange.fr
+language=cn
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+tmp2=!randitem 1,2,3,5
+
+t_=!rawmath $(tmp0)*$(tmp1)/$(tmp2)
+val8=!exec pari print($t_)
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+tmp2=!randitem 1,2,3,5
+
+t_=!rawmath $(tmp0)*$(tmp1)/$(tmp2)
+val9=!exec pari print($t_)
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+tmp2=!randitem 1,2,3,5
+
+t_=!rawmath $(tmp0)*$(tmp1)/$(tmp2)
+val10=!exec pari print($t_)
+val11=$val8*x^2+$val9*x+$val10,	$val8*x^2+$val9*x,	$val8*x^2+$val10,	$val8*($val7*x+$val6)^2
+tmp0=!randint 1, 4
+
+val12=$[rint($(tmp0))]
+tmp0=!item $val12 of $val11
+
+val13=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val14=!rawmath $(tmp0)
+
+!ifval $val12<3
+t_=!rawmath -($val9)/(2*$val8) 
+val15=!exec pari print($t_)
+!endif
+
+!ifval $val12==3
+t_=!rawmath 0 
+val15=!exec pari print($t_)
+!endif
+
+!ifval $val12==4
+t_=!rawmath -($val6/$val7) 
+val15=!exec pari print($t_)
+!endif
+evaltmp=$val13
+
+evaltmp=!mathsubst x=($val15) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val16=!exec pari print($t_)
+val17=&#8734
+val18=\(\langle) -&#8734; ; \($val15) \(\rangle)
+val19=\(\langle) \($val15) ; +&#8734; \(\rangle)
+val20=+,-
+
+!ifval $val8>0
+val21=$[rint(2)]
+!else
+val21=$[rint(1)]
+!endif
+val22=+,-
+
+!ifval $val8>0
+val23=$[rint(1)]
+!else
+val23=$[rint(2)]
+!endif
+val24=上升,下降
+val25=$[rint($val21)]
+val26=上升,下降
+val27=$[rint($val23)]
+val28=极小,极大
+val29=$[rint($val27)]
+tmp0=!exec pari printtex($val13)
+
+val30=$(tmp0)
+tmp0=!exec pari printtex($val14)
+
+val31=$(tmp0)
+oefsteps=reply1,reply2,	reply3,reply4,reply5,reply6,reply7,reply8 
+nextstep=!nosubst reply1,reply2,	reply3,reply4,reply5,reply6,reply7,reply8 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=导函数 \(f'(x))
+replygood1=$val14
+replyname2=f'(x) 的零点是
+replygood2=$val15
+replytype3=menu
+replyname3=f' 的符号
+replygood3=$val21;$val20
+replytype4=menu
+replyname4=f' 的符号
+replygood4=$val23;$val22
+replytype5=menu
+replyname5=f 上升
+replygood5=$val25;$val24
+replytype6=menu
+replyname6=f 下降
+replygood6=$val27;$val26
+replytype7=menu
+replyname7=极值的类型
+replygood7=$val29;$val28
+replyname8=\(f) 的极值的值
+replygood8=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<table width="80%" align="center">	<tr bgcolor=#FFCC66><td>	已知 $m_RR 内的函数 
+!insmath f
+$() 定义为&nbsp;
+!insmath f(x) \,=\, $val30
+$().</p>	<p>	研究此函数并求出 
+!insmath f
+$() 的极值和极值点.	</p>	</td></tr></table>	 
+!if $m_step==1 
+$()	<ol>	<li>		函数 
+!insmath f
+$() 在 $m_RR 内可微 :<br>	对所有实数 
+!insmath x
+$() : &nbsp; 
+!insmath f'(x)\,=\,
+$()  
+!read oef/embed.phtml reply1,20 
+$()	</li>	<li>导函数 
+!insmath f'
+$() 的性质 :<br>	当 
+!insmath x
+$()  =   
+!read oef/embed.phtml reply2,10 
+$() 时导数 
+!insmath f'
+$() 等于 0	</li>	</ol>	 
+!endif
+$()	 
+!if $m_step>1 
+$()	<ol>	<li>
+!insmath f
+$() 的导数 : 	<center> 
+!insmath f'(x) \,=\, $val31 
+$()</center>	</li>	<li>
+!insmath f'
+$() 的符号的性质 : 	<center>	<table border=1 border="solid" width="50%">	<tr>	<td width="10%" align="center"> 
+!insmath x
+$()</td><td  width="30%" align="left">-$val17</td><td  width="5%" align="center">$val15</td>	<td width="30%" align="right">+$val17</td>	</tr>	<tr>	<td width="10%" align="center">
+!insmath f'(x)
+$()</td><td width="30%" align="center">  
+!read oef/embed.phtml reply3 
+$() </td><td  width="5%" align="center">0</td><td width="30%" align="center">  
+!read oef/embed.phtml reply4 
+$()</td>	</tr>	</table>	</center>	</li>	<li>
+!insmath f
+$() 的符号的性质 :	<ul>	<li>	
+!insmath f
+$() 在区间 $val18 上  
+!read oef/embed.phtml reply5 
+$()	/li>	<li>	
+!insmath f
+$() 在区间 $val19 上  
+!read oef/embed.phtml reply6 
+$()	</li>	</ul>	</li>	<li> 
+!insmath f
+$() 的极值 :	<ul>	<li> 
+!insmath f
+$() 在 
+!insmath $val15
+$() 达到  
+!read oef/embed.phtml reply7 
+$() 其值为  
+!read oef/embed.phtml reply8, 10 
+$() 	</li>	</ul>	</li>	</ol>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()当在一个特定的 x 值处导函数 f' 改变符号 ,<br> 	那么这就是 
+!insmath f
+$() 的``局部''极值 (极小值或极大值). 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,17,18,19,30,31
+embedcnt=8

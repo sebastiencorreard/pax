@@ -1,0 +1,257 @@
+!set title=Droite et plan affines dans l'espace 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss=<style> .special1 {font-size:x-large;background-color:lightblue;} .special2 {font-size:x-large;background-color:MistyRose;} .nonspecial {} </style> 
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2!=1 
+val6= wims_question
+!else
+val6=wimscenter special1
+!endif
+
+!ifval $val2!=1 
+val7= wims_question
+!else
+val7=wimscenter special2
+!endif
+val8=incluse dans le plan, strictement parallèle au plan, sécante avec le plan
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val9[1;])
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val9[2;])
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val9[3;])
+val12=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val16=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val17=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+val19=$[rint($(tmp0))]
+!if $val19=3 
+val20=3
+!else
+tmp=!trim $val10
+val21=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val11]*$val15+[$val12]*$val16)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val10=!translate internal $	\
+$ to ;; in $tmp
+!if $val19=1 
+val20=1
+t_=!replace internal \( by ( in print([$val11]*$val17+[$val12]*$val18+[$val13])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+!else
+val20=2
+t_=!replace internal \( by ( in print([$val11]*$val17+[$val12]*$val18+[$val13]+[$val21]*$val15)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val14=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!endif
+replytype1=menu
+replyname1=
+replygood1=$val19 ;$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="$val6">	 <p> On considère une droite et un plan de l'espace.</p>	 <p> La droite 
+!insmath d
+$() passe par le point 
+!insmath A($(val13[1]);$(val13[2]);$(val13[3]))
+$()	  et a pour vecteur directeur 
+!insmath \vec{u}
+$()
+!insmath ($val10)
+$().</p>	 <p> Le plan 
+!insmath P
+$() passe par le point 
+!insmath B($(val14[1]);$(val14[2]);$(val14[3]))
+$()	  et a pour vecteurs directeurs 
+!insmath \vec{v}
+$()
+!insmath ($val11)
+$() et 
+!insmath \vec{w}
+$()
+!insmath ($val12)
+$().	 </p>	</div>	<div class="$val7">	 Votre réponse :	 La droite 
+!insmath d
+$() est  
+!read oef/embed.phtml reply1 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()<ul>	<li> Si les vecteurs 
+!insmath \vec{u}
+$(), 
+!insmath \vec{v}
+$() et 
+!insmath \vec{w}
+$() sont coplanaires,	la droite est parallèle ou incluse dans le plan.	<ul>	<li> Elle est incluse dans le plan si 
+!insmath \overrightarrow{A B}
+$(), 
+!insmath \vec{v}
+$()	et 
+!insmath \vec{w}
+$() sont coplanaires.	</li><li> Elle est strictement parallèle au plan sinon.	</ul>	</li>	<li> Si les vecteurs 
+!insmath \vec{u}
+$(), 
+!insmath \vec{v}
+$() et 
+!insmath \vec{w}
+$() ne sont pas coplanaires,	 la droite est sécante avec le plan.	</li>	</ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 notsametext $(val8[$val19]) and $val19==1
+ <div class='oef_feedbacks'>	  
+!insmath \vec{u}
+$() = $val15*
+!insmath \vec{v}
+$() +$val16*
+!insmath \vec{w}
+$()<br>	  La droite est donc incluse dans le plan ou strictement parallèle<br>	  De plus, 
+!insmath \overrightarrow{A B}
+$()= $val17*
+!insmath \vec{v}
+$() +$val18*
+!insmath \vec{w}
+$()<br>,	  donc la droite est incluse dans le plan.
+$()</div>
+!endif
+!ifval $m_reply1 notsametext $(val8[$val19]) and $val19==2
+ <div class='oef_feedbacks'>	  
+!insmath \vec{u}
+$() = $val15*
+!insmath \vec{v}
+$() +$val16*
+!insmath \vec{w}
+$()<br>	  La droite est donc incluse dans le plan ou strictement parallèle.<br>	  De plus, 
+!insmath \overrightarrow{A B}
+$() n'est pas une combinaison linéaire de 
+!insmath \vec{v}
+$() et 
+!insmath \vec{w}
+$() <br>	  donc la droite est strictement parallèle au plan.
+$()</div>
+!endif
+!ifval $m_reply1 notsametext $(val8[$val19]) and $val19==3
+ <div class='oef_feedbacks'>	  
+!insmath \vec{u}
+$(), 
+!insmath \vec{v}
+$() et 
+!insmath \vec{w}
+$()ne sont pas coplanaires,	  donc la droite est sécante avec le plan.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,12,13,14,15,16,17,18,19
+embedcnt=1

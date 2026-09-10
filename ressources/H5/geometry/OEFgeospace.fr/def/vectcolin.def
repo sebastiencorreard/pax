@@ -1,0 +1,193 @@
+!set title=Vecteurs colinéaires et composantes 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss=<style> .special1 {font-size:x-large;background-color:lightblue;} .special2 {font-size:x-large;background-color:MistyRose;} .nonspecial {} </style> 
+
+ansorder=c
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2!=1 
+val6= wims_question
+!else
+val6=wimscenter special1
+!endif
+
+!ifval $val2!=1 
+val7= wims_question
+!else
+val7=wimscenter special2
+!endif
+val8=colinéaires,non colinéaires
+val9=La colinéarité est assurée si les composantes des vecteurs	  sont proportionnelles.
+val10=Les composantes des vecteurs	  \(\overrightarrow{u}\) et \(\overrightarrow{v}\) sont proportionnelles&nbsp;,	  donc les vecteurs sont colinéaires.
+val11=Les composantes des vecteurs	  \(\overrightarrow{u}\) et \(\overrightarrow{v}\) ne sont pas proportionnelles.	  Donc les vecteurs ne sont pas colinéaires.
+val12=Les vecteurs \(\overrightarrow{u}\) et \(\overrightarrow{v}\)	 dont les composantes dans un repère donné sont respectivement,	 sont-ils colinéaires&nbsp;
+val13=Votre réponse&nbsp;: les vecteurs sont
+
+!ifval confparm1=1 
+val14= 
+!else
+val14=x-large
+!endif
+!readproc slib/matrix/invertible 3,3 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val15=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/matrix/random 1,3,5 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val15[1;])
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 4, 11
+
+tmp1=!randitem -1,1
+
+tmp2=!randitem 1,2,3
+
+t_=!rawmath $(tmp0)*$(tmp1)/$(tmp2)
+val18=!exec pari print($t_)
+t_=!replace internal \( by ( in print([$val17]*$val18)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val16]+[$val17])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val20=$[rint($(tmp0))]
+
+!ifval $val20=1
+tmp=!trim  $val17 
+val21=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $(val15[2;])
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint 2, 5
+
+tmp1=!randitem -1,1
+
+tmp2=!randitem 1,7,11,13
+
+t_=!rawmath $(tmp0)*$(tmp1)/$(tmp2)
+val18=!exec pari print($t_)
+t_=!replace internal \( by ( in print([$val21]*$val18)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val21=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print([$val19]+[$val21])
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val22=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $val20=1
+val23= $(val8[1])
+!else
+val23=$(val8[2])
+!endif
+!if $val20=1 
+val24=$(val10[1])	  <div class="wimscenter">\(\overrightarrow{v}= $val18 \overrightarrow{u}\)	</div> $(val10[2])
+!else
+val24=$val11
+!endif
+choicename1=
+choicegood1=$val23
+choicebad1=$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val9
+
+solution=!nosubst  $val24
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="$val6">	$(val12[1])	<p class="wimscenter">	 
+!insmath \overrightarrow{u}\left(\begin{array}{c} $(val17[1]) \\ $(val17[2]) \\ $(val17[3])\end{array}\right)
+$(),	  
+!insmath \overrightarrow{v}\left(\begin{array}{c} $(val21[1]) \\ $(val21[2]) \\ $(val21[3])\end{array}\right)
+$()	</p>	 $(val12[2])?	</div>	<div class="$val7">	 $val13  
+!read oef/embed.phtml choice1,$val14 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()$val9
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() $val24
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,12,13,14,17,21,24
+embedcnt=1

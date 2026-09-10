@@ -1,0 +1,78 @@
+\title {conductivité d'une solution (1)}
+
+\precision{1000}
+
+\text{ligne=wims (randrecord conduc.dat)}
+\text{ligne=wims(words2items \ligne)}
+\text{ion=item(1,\ligne)}
+\text{nom=item(2,\ligne)}
+\text{sig=item(3,\ligne)}
+\text{sig= slib(text/sigunits \sig,2)}                              //arrondi de sigma à deux chiffres significatifs
+\text{sigsig=slib(text/sigunits \sig S.m^2.mol^-1,2,,S.m^2.mol^-1)} // expression avec l'unité
+
+\real{c=randitem(10,20,30,60,70)/10}                     // concentration en mol.m^-3
+\real{cmL=\c/1000}                                       // concentration en mol/L
+\text{cmL=slib(text/sigunits \cmL,2)}                    // ... et 2 chiffres significatifs
+\text{sigc=slib(text/sigunits \c mol.m^-3,2,,mol.m^-3)}  // c en mol.m^-3, 2 chiffres significatifs et l'unité
+\real{s=\c*\sig}
+\text{ssig=slib(text/sigunits \s S/m,2,,S/m)}
+\real{scm=10*\s}
+\real{scm2=slib(text/sigunits \scm,2)}            // valeur convertie en mS/cm sans l'unité
+\text{sigscm=slib(text/sigunits \s S/m,2,,mS/cm)} // expression avec l'unité mS/cm
+
+\steps{r1
+r2,r3
+}
+
+\integer{debug=0}
+\statement{
+\if{\debug=1}{<div style="font-size:70%; background:lightyellow;">
+ligne=\ligne <br> ion=\ion nom=\nom \({}\ion) sig=\sigsig<br>
+ssig=\ssig<br>cmL=\cmL
+</div>
+}
+L'ion \nom \({}\ion) a une conductivité molaire 
+\(\lambda_{\ion}) = \sigsig.
+<ol>
+\if{\step >=1}{
+<li>Sa concentration est c = \sigc&nbsp;;<br>
+donnez la valeur \(\sigma) de la participation de 
+l'ion \nom 
+à la conductivité<br>
+\(\sigma) =&nbsp;:
+\embed{r1} 
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs)</span>}
+\if{\step >=2}{
+<li>Convertissez cette valeur en mS.cm^-1&nbsp;: \embed{r2}
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs et ne répétez pas l'unité)</span>
+<li>Donnez la valeur de la concentration en mol/L&nbsp:
+\embed{r3}
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs et ne répétez pas l'unité)</span>}
+</ol>
+}
+
+\reply{}{\ssig}{type=sigunits}
+\reply{}{\scm2}{type=sigunits}
+\reply{}{\cmL}{type=sigunits}
+
+\solution{
+<p>
+<ol>
+<li>
+ \(\sigma = c_{\ion} \times \lambda_{\ion}= \c \times \sig = \ssig)
+<span style="color:grey;font-size:78%">(deux 
+chiffres significatifs)</span>
+\if{\step>=2}{<li>\({}\ssig = \sigscm)
+<li>\({}\sigc = \cmL mol.L^-1)}
+</ol>
+}
+
+\hint{La formule qui donne la conductivité totale d'une solution
+aqueuse avec n variétés différentes d'ions est donnée par la formule
+\(\sigma=\Sigma_{i=1}^{n} c_i \lambda_i)<p>
+Dans cet exercice, il s'agit de considérer à part la contribution d'un
+seul parmi les n variétés d'ions.
+}

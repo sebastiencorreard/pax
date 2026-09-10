@@ -1,0 +1,145 @@
+!set title=Encadrement d'une différence 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Noémie,Cochi; Olivier,Dupuy
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=4
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=et
+val7=Le type d'inégalités est imposé, on ne cherche pas à savoir si les bornes	  sont atteintes.
+val8=Trouvez le meilleur encadrement de
+val9=Pour encadrer la différence \(x -y\), commencez par encadrer \(-y\).
+val10=Votre réponse n'a pas de sens car
+val11=Vous avez soustrait les inégalités membre à membre.	  Ce n'est pas la règle pour encadrer une différence.
+val12=Vous avez encadré la somme, et non la différence.
+val13=Votre encadrement est juste, mais n'est pas le meilleur possible.
+val14=Soient \(x\) et \(y\) deux réels vérifiant
+val15=Les valeurs possibles de \(x\) et \(y\) sont figurées ci-dessous	  en <span style="color:red">rouge</span> pour \(x\) et	  <span style="color:green">en vert</span> pour \(y\).
+tmp0=!randint 0, 9
+
+tmp1=!randitem -1,1
+
+val16=$[$(tmp0)*$(tmp1)]
+tmp0=!randint $val16+1, 10
+
+val17=$[$(tmp0)]
+tmp0=!randint 0, 9
+
+tmp1=!randitem -1,1
+
+val18=$[$(tmp0)*$(tmp1)]
+tmp0=!randint $val18+1, 10
+
+val19=$[$(tmp0)]
+val20=$[$val16-$val19]
+val21=$[$val17-$val18]
+replytype1=numexp
+replyname1=
+replygood1=$val20
+replytype2=numexp
+replyname2=
+replygood2=$val21
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val7
+
+help=!nosubst $val9
+
+
+!goto stat
+
+!exit
+
+:question
+$()		$val14	  
+!insmath $val16 \;< \; x \; < \; $val17 
+$() et 
+!insmath  $val18 \; < \; y \;< \; $val19 
+$().		<label for="reply1">$val8 
+!insmath x - y
+$()&nbsp;:</label>	<div class="wimscenter">	   
+!read oef/embed.phtml r1,3 
+$()<label for="reply2">
+!insmath \;\leq \; x \;- \;y \; \leq \;
+$()</label>  
+!read oef/embed.phtml r2,3 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()$val7
+$()
+!exit
+
+:help
+$()$val9
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1>$m_reply2
+ <div class='oef_feedbacks'>$val10 
+!insmath $m_reply1 > $m_reply2
+$().
+$()</div>
+!endif
+!ifval $m_reply1=$val16-$val18 and $m_reply2=$val17-$val19
+ <div class='oef_feedbacks'>$val11
+$()</div>
+!endif
+!ifval $m_reply1=$val16+$val18 and $m_reply2=$val17+$val19
+ <div class='oef_feedbacks'>$val12
+$()</div>
+!endif
+!ifval $m_reply1<$val20 and $m_reply2>$val21
+ <div class='oef_feedbacks'>$val13
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,16,17,18,19,20,21
+embedcnt=2

@@ -1,0 +1,197 @@
+target=guidadd
+
+#include "header.inc"
+\computeanswer{no}
+
+\title{Vodeno se¹tevanje ulomkov}
+
+\integer{den1=random(8,9,10,12,14,15,16)}
+\integer{den2=random(randint(\den1/2+1..\den1-1),randint(\den1+1..2*\den1-1))}
+\integer{num1=randint(2..1.5*\den1)}
+\integer{num1=gcd(\num1,\den1)>1?\num1+1}
+\integer{num2=randint(2..1.5*\den2)}
+\integer{num2=gcd(\num2,\den2)>1?\num2+1}
+\text{hr=<HR noshade size=2>}
+\text{new=}
+\integer{test1=0}
+\text{big1=<font size=+2>}
+\text{big2=</font>}
+\text{objets=¹tevca, imenovalca,
+¹tevca in imenovalca}
+
+\text{gtext1=random(Raz¹iri ulomka na skupni imenovalec.,
+    Postavi ulomka na enak imenovalec.
+)}
+
+\text{method1=\gtext1,
+    Raz¹iri ulomka na skupni ¹tevec.,
+    Se¹tej oba ¹tevca.,
+    Se¹tej oba imenovalca.,
+    Se¹tej oba ¹tevca in pomno¾i oba imenovalca.,
+    Pomno¾i oba imenovalca.
+}
+\integer{cnt1=items(\method1)}
+\text{sh1=shuffle(\cnt1)}
+\integer{good1=position(1,\sh1)}
+\text{method1=item(\sh1,\method1)}
+
+\text{method2=Se¹tej oba ¹tevca in obdr¾i skupni imenovalec.,
+ Se¹tej oba ¹tevca in se¹tej oba imenovalca.
+}
+\integer{cnt2=items(\method2)}
+\text{sh2=shuffle(\cnt2)}
+\integer{good2=position(1,\sh2)}
+\text{method2=item(\sh2,\method2)}
+
+\text{nstep=r1}
+\nextstep{\nstep}
+
+\statement{Se¹tejte dana ulomka.
+<p><center>
+\(\num1/(\den1) + \num2/(\den2))
+</center> <p>
+
+\if{\step=1}{
+ Izberite zaèetni korak: <ul>
+ \for{k=1 to \cnt1}{ <li>\embed{r1,\k} }
+ </ul>
+ \exit{}
+}
+
+\if{\step=2 or \test1<1}{
+ Korak 1. Ulomka raz¹irimo na skupni imenovalec.
+ <p>
+ Z mno¾enjem \embed{r2} ulomka \(\num1/(\den1)) s ¹tevilom 
+\embed{r3,3} dobimo
+ <p><center><table border=0 cellpadding=3>
+  <tr>
+  <td align=center>\num1<td rowspan=3>&nbsp;\big1=\big2&nbsp;
+  <td align=center>\embed{r6,3}
+  <tr><td>\hr<td>\hr
+  <tr><td align=center>\den1
+  <td align=center>\embed{r7,3}
+ </table></center> <p>
+Z mno¾enjem \embed{r4} ulomka \(\num2/(\den2)) s ¹tevilom 
+\embed{r5,3} dobimo
+ <p><center><table border=0 cellpadding=3>
+  <tr>
+  <td align=center>\num2<td rowspan=3>&nbsp;\big1=\big2&nbsp;
+  <td align=center>\embed{r8,3}
+  <tr><td>\hr<td>\hr
+  <tr><td align=center>\den2
+  <td align=center>\embed{r9,3}
+ </table></center> <p>
+ \exit{}
+}
+Korak 1. Imamo enakosti \(\num1/(\den1) = \new[1]/(\new[2])) in
+ \(\num2/(\den2) = \new[3]/(\new[4])), s katerima dobimo preoblikovan izraz
+ <p><center>
+  \(\new[1]/(\new[2]) + \new[3]/(\new[4])) .
+ </center> <p>
+ \if{\step=3}{
+Kaj bo naslednji korak? <ul>
+  \for{k=1 to \cnt2}{ <li>\embed{r10,\k} }
+  </ul>
+  \exit{}
+ }
+Korak 2. Se¹tejemo ¹tevca in obdr¾imo skupni imenovalec, torej bo vsota enaka
+ <p><center>
+ <table border=0 cellpadding=2>
+ <tr><td align=center>\num1
+ <td rowspan=3>&nbsp;&nbsp;\big1+\big2&nbsp;&nbsp;</td>
+ <td align=center>\num2
+ <td rowspan=3>&nbsp;&nbsp;&nbsp;\big1=\big2&nbsp;&nbsp;&nbsp;</td>
+ <td align=center>\new[1]
+ <td rowspan=3>&nbsp;&nbsp;\big1+\big2&nbsp;&nbsp;</td>
+ <td align=center>\new[3]
+ <td rowspan=3>&nbsp;&nbsp;&nbsp;\big1=\big2&nbsp;&nbsp;&nbsp;</td>
+ <td align=center>\embed{r11,4}
+ <tr><td>\hr<td>\hr<td>\hr<td>\hr<td>\hr
+ <tr><td align=center>\den1
+ <td align=center>\den2
+ <td align=center>\new[2]
+ <td align=center>\new[4]
+ <td align=center>\embed{r12,4}
+ </table> 
+ </center> <p>
+
+}
+
+\answer{Pravilna izbira koraka 1}{\good1;\method1}{type=click}
+
+\answer{Pravilna izbira objektov za mno¾enje 1}{3;\objets}{type=menu}
+\answer{Pravilno izbran mno¾itelj 1}{\m1}{type=number}
+\answer{Pravilna izbira objektov za mno¾enje 2}{3;\objets}{type=menu}
+\answer{Pravilno izbran mno¾itelj 2}{\m2}{type=number}
+\answer{Novi ¹tevec 1}{\nn1}{type=number}
+\answer{Novi imenovalec 1}{\nd1}{type=number}
+\answer{Novi ¹tevec 2}{\nn2}{type=number}
+\answer{Novi imenovalec 2}{\nd2}{type=number}
+
+\answer{Pravilna izbira koraka 2}{\good2;\method2}{type=click}
+
+\answer{©tevec v vsoti}{\nsum}{type=number}
+\answer{Imenovalec v vsoti}{\dsum}{type=number}
+
+\if{\step=2}{
+ \text{nstep=r2,r3,r4,r5,r6,r7,r8,r9}
+}
+
+\text{test1=\test1<1 and \m1>0 and \m1=floor(\m1) and \m2>0 and \m2=floor(\m2)
+    and \nn1=\num1*\m1 and \nd1=\den1*\m1
+    and \nn2=\num2*\m2 and \nd2=\den2*\m2
+    and \nd1=\nd2?1}
+\if{\test1>0}{
+ \text{new=\nn1,\nd1,\nn2,\nd2}
+}
+
+\condition{Mno¾enja so pravilna}{\test1>0}
+
+\if{\step=3 and \test1>0}{
+ \text{nstep=r10}
+}
+
+\if{\step=4}{
+ \text{nstep=r11,r12}
+}
+
+\condition{Vsota je pravilna}{\test1>0 and \nsum=\nn1+\nn2 and \dsum=\nd1}
+
+\feedback{\step=1 and \reply1 notsametext ~\good1}{
+Ulomka imata razlièna imenovalca. Zato ju je potrebno najprej raz¹iriti tako, 
+da bosta imela enak imenovalec.
+}
+
+\feedback{\step=2 and (\reply2 notsametext ~3 or \reply4 notsametext ~3)}{
+Da se pri tem ne spremeni vrednost ulomka, je potrebno ¹tevec in imenovalec
+pomno¾iti z istim nenièelnim ¹tevilom.
+}
+
+\feedback{\step=3 and (\m1=0 or \m2=0)}{
+©tevca in imenovalca ni dovoljeno pomno¾iti s ¹tevilom 0!
+ <p>
+Dobili bi namreè nesmiselni ulomek \(0/(0)).
+}
+
+\feedback{\step=3 and (\m1<0 or \m2<0)}{
+Oprostite. Ta naloga ne dovoljuje mno¾enja z negativnimi ¹tevili.
+}
+
+\feedback{\step=3 and \m1>0 and \m2>0 and (\floor(\m1)!=\m1 or \floor(\m2)!=\m2)}{
+©tevec in imenovalec bi morali pomno¾iti s celim ¹tevilom.
+}
+
+\feedback{\step=3 and \nd1=\den1*\m1 and \nd2=\den2*\m2 and \nd1!=\nd2}{
+Ulomka ste ¾eleli raz¹iriti na skupni imenovalec, 
+a z va¹im mno¾enjem tega niste dosegli.
+}
+
+\feedback{\step=3 and (\nd1!=\den1*\m1 or \nn1!=\num1*\m1 or
+	\nd2!=\den2*\m2 or \nn2!=\num2*\m2)}{
+Naredili ste raèunsko napako pri mno¾enju.
+}
+
+\feedback{\step=3 and \reply10 notsametext ~\good2}{
+Da bi se¹teli ulomka z enakim imenovalcem, je potrebno se¹teti oba ¹tevca in
+ohraniti imenovalec.
+}

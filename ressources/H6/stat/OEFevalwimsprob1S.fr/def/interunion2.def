@@ -1,0 +1,151 @@
+!set title=Union et intersection d'événements 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=90
+
+ansorder=r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/stat/rcomposition 100,4 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=$[$(val6[4])/100]
+val8=$[$(val6[1])/100]
+val9=$[$(val6[2])/100]
+val10=$[$(val6[3])/100]
+val11=$[$val7+$val8]
+val12=$[$val7+$val9]
+val13=$[$val11+$val9]
+val14=\(P(\bar{A}\cup \bar{B})),1-$val7	\(P(\bar{A} \cap \bar{B})),$val10	\(P(A \cap \bar{B})),$val8	\(P(A \cup \bar{B})),$val11+$val10	\(P(\bar{A} \cap B)),$val9	\(P(\bar{A} \cup B)),1-$val11+$val7	\(P(\bar{A})),1-$val11	\(P(\bar{B})),1-$val12	
+val15=\(P(A)=$val11) , \(P(B)=$val12) et \(P(A \cup B)=$val13)
+val16=
+val17=\(P(A \cap B))
+val18=$val7
+val19=3
+tmp=!translate internal $	$ to ; in $val14
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)/2
+
+val20=$(tmp1)
+!for val21 =1 to $val19 
+tmp0=!randitem 1,0
+
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row 2*$val21+$(tmp0) of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp1)
+tmp0=!append item $(val22[1]) to $val17
+
+val17=$(tmp0)
+tmp0=!append item $(val22[2]) to $val18
+
+val18=$(tmp0)
+!next
+replytype1=numeric
+replyname1=$(val17[1])
+replygood1=$[$(val18[1])]
+replytype2=numeric
+replyname2=$(val17[2])
+replygood2=$[$(val18[2])]
+replytype3=numeric
+replyname3=$(val17[3])
+replygood3=$[$(val18[3])]
+replytype4=numeric
+replyname4=$(val17[4])
+replygood4=$[$(val18[4])]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Soit 
+!insmath \Omega\;
+$() un univers muni d'une probabilité 
+!insmath P
+$() et deux événements $val16 
+!insmath A
+$() et 
+!insmath B
+$() tels que</p>	<div class="wimscenter">$val15.</div>	<div class="wims_question"> Calculer :	<ul>	<li><label for="reply1"> $(val17[1]) =</label>  
+!read oef/embed.phtml reply1,3 
+$()</li>	<li><label for="reply2"> $(val17[2]) =</label>  
+!read oef/embed.phtml reply2,3 
+$()</li>	<li><label for="reply3"> $(val17[3]) =</label>  
+!read oef/embed.phtml reply3,3 
+$()</li>	<li><label for="reply4"> $(val17[4]) =</label>  
+!read oef/embed.phtml reply4,3 
+$()</li>	</ul></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Les calculs reposent sur les propriétés de 
+!insmath P
+$() suivantes :	<div class="wimscenter">	si 
+!insmath C
+$() et 
+!insmath D
+$() sont deux événements alors	
+!insmath P(\bar{D}) = 1 - P(D)
+$() et 
+!insmath P(C\cup D) = P(C) + P(D) - P(C\cap D)
+$().	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,16,17
+embedcnt=4

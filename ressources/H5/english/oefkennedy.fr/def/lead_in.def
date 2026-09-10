@@ -1,0 +1,403 @@
+!set title=B- Lead In
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Csilla, Ducrocq
+email=csilla.ducrocq@u-psud.fr
+language=fr
+computeanswer=no
+oefcss=<style> .question {background-color: #FFFFCC;margin: 2% 5%;padding: 2%;} .reponse {background-color: #FFCC99;color: black;margin: 2% 5%;padding: 2%;} ol li {list-style: upper-alpha; } </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=51
+prevarcnt=50
+postvarcnt=0
+replycnt=49
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lead_in
+val7=$(val6[1])
+tmp0=!subst Put the titles with the sentences.
+
+val8=$(tmp0)
+tmp0=!subst 
+
+val9=$(tmp0)
+val10=
+val11=no
+val12=no
+val13=no
+val14=yes
+val15=200x20
+
+!ifval $val8 issametext 
+tmp0=!getdef instruction in $val7
+
+val8= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction2 in $val7
+
+val9= $(tmp0)
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef size in $val7
+
+val15= $(tmp0)
+!endif
+
+!ifval $val12 issametext 
+tmp0=!getdef reading_file in $val7
+
+val12= $(tmp0)
+!endif
+tmp0=!record 0 of $val12
+
+val16=$(tmp0)
+
+!ifval $val11 issametext 
+tmp0=!getdef audio_file in $val7
+
+val11= $(tmp0)
+!endif
+
+!ifval $val11 notsametext  and  $val11 notsametext no
+!readproc slib/media/audio $val1/$val11 
+tmp0=$slib_out
+val17=	<p class="wimscenter">$(tmp0)</p>
+!endif
+
+!ifval $val13 issametext 
+tmp0=!getdef image_file in $val7
+
+val13= $(tmp0)
+!endif
+
+!ifval $val13 notsametext  and  $val13 notsametext no
+tmp0=!makelist <img src=$val1/x for x in $val13>
+
+val18=	$(tmp0)
+!endif
+
+!ifval \video_file issametext 
+tmp0=!getdef video_file in $val7
+
+val19= $(tmp0)
+!endif
+
+!ifval $val19 notsametext  and  $val19 notsametext no
+val20=	<a target="wims_external" href="$val1/$val19">[video] </a>
+!endif
+
+!ifval $val10 issametext 
+tmp0=!getdef choice in $val7
+
+val21= $(tmp0)
+!else
+val21=$val10
+!endif
+tmp0=!recordcnt $val7
+
+val22=$[rint($(tmp0))]
+val23=1
+val24=5
+val25=3
+val24=$[rint(min($val22,$val24))]
+val23=$[rint(min($val24*$val23,$val22))]
+val26=
+
+!ifval $val14 issametext yes 
+tmp0=!shuffle $val22
+
+val27= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val22
+
+val27=	$(tmp1)
+!endif
+val28=
+!if $val14=no 
+!for val29  = 1 to \cnt_record 
+tmp0=!record $val29 of $val7
+
+val28=$val28 <p> $(tmp0) </p>
+!next
+!else
+!for val29  = 1 to $val24 
+tmp0=!record $(val27[$val29]) of $val7
+
+val28=$val28 <p> $(tmp0)</p>
+!next
+!endif
+val28=$val28
+tmp0=!nospace $val28
+
+val30=$(tmp0)
+tmp0=!char 1 of $val30
+
+tmp1=!replace internal ? by | in $(tmp0)
+
+val31=$(tmp1)
+
+!ifval $val31 issametext | 
+val32= 1 
+!else
+val32= 0
+!endif
+
+!ifval $val32 = 0 
+val33= -1
+!else
+val33=1
+!endif
+!readproc slib/text/cutchoices $val28 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val28=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val28
+
+tmp0=!rowcnt $tmp
+val34=$(tmp0)
+val35=
+val36=$[rint(($val34+$val33*$val34%2)/2)]
+val37=
+!for val29 = 1 to $val36 
+val38=$(val28[2*$val29-$val32;])
+val35=$val35, $val38
+!next
+tmp0=!nonempty items $val35
+
+val35=$(tmp0)
+tmp0=!makelist r x for x=1 to $val36
+
+val39=$(tmp0)
+oefsteps=$val39 
+nextstep=!nosubst $val39 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=
+replygood1=$(val35[1]);$val21
+replytype2=clickfill
+replyname2=
+replygood2=$(val35[2]);$val21
+replytype3=clickfill
+replyname3=
+replygood3=$(val35[3]);$val21
+replytype4=clickfill
+replyname4=
+replygood4=$(val35[4]);$val21
+replytype5=clickfill
+replyname5=
+replygood5=$(val35[5]);$val21
+replytype6=clickfill
+replyname6=
+replygood6=$(val35[6]);$val21
+replytype7=clickfill
+replyname7=
+replygood7=$(val35[7]);$val21
+replytype8=clickfill
+replyname8=
+replygood8=$(val35[8]);$val21
+replytype9=clickfill
+replyname9=
+replygood9=$(val35[9]);$val21
+replytype10=clickfill
+replyname10=
+replygood10=$(val35[10]);$val21
+replytype11=clickfill
+replyname11=
+replygood11=$(val35[11]);$val21
+replytype12=clickfill
+replyname12=
+replygood12=$(val35[12]);$val21
+replytype13=clickfill
+replyname13=
+replygood13=$(val35[13]);$val21
+replytype14=clickfill
+replyname14=
+replygood14=$(val35[14]);$val21
+replytype15=clickfill
+replyname15=
+replygood15=$(val35[15]);$val21
+replytype16=clickfill
+replyname16=
+replygood16=$(val35[16]);$val21
+replytype17=clickfill
+replyname17=
+replygood17=$(val35[17]);$val21
+replytype18=clickfill
+replyname18=
+replygood18=$(val35[18]);$val21
+replytype19=clickfill
+replyname19=
+replygood19=$(val35[19]);$val21
+replytype20=clickfill
+replyname20=
+replygood20=$(val35[20]);$val21
+replytype21=clickfill
+replyname21=
+replygood21=$(val35[21]);$val21
+replytype22=clickfill
+replyname22=
+replygood22=$(val35[22]);$val21
+replytype23=clickfill
+replyname23=
+replygood23=$(val35[23]);$val21
+replytype24=clickfill
+replyname24=
+replygood24=$(val35[24]);$val21
+replytype25=clickfill
+replyname25=
+replygood25=$(val35[25]);$val21
+replytype26=clickfill
+replyname26=
+replygood26=$(val35[26]);$val21
+replytype27=clickfill
+replyname27=
+replygood27=$(val35[27]);$val21
+replytype28=clickfill
+replyname28=
+replygood28=$(val35[28]);$val21
+replytype29=clickfill
+replyname29=
+replygood29=$(val35[29]);$val21
+replytype30=clickfill
+replyname30=
+replygood30=$(val35[30]);$val21
+replytype31=clickfill
+replyname31=
+replygood31=$(val35[31]);$val21
+replytype32=clickfill
+replyname32=
+replygood32=$(val35[32]);$val21
+replytype33=clickfill
+replyname33=
+replygood33=$(val35[33]);$val21
+replytype34=clickfill
+replyname34=
+replygood34=$(val35[34]);$val21
+replytype35=clickfill
+replyname35=
+replygood35=$(val35[35]);$val21
+replytype36=clickfill
+replyname36=
+replygood36=$(val35[36]);$val21
+replytype37=clickfill
+replyname37=
+replygood37=$(val35[37]);$val21
+replytype38=clickfill
+replyname38=
+replygood38=$(val35[38]);$val21
+replytype39=clickfill
+replyname39=
+replygood39=$(val35[39]);$val21
+replytype40=clickfill
+replyname40=
+replygood40=$(val35[40]);$val21
+replytype41=clickfill
+replyname41=
+replygood41=$(val35[41]);$val21
+replytype42=clickfill
+replyname42=
+replygood42=$(val35[42]);$val21
+replytype43=clickfill
+replyname43=
+replygood43=$(val35[43]);$val21
+replytype44=clickfill
+replyname44=
+replygood44=$(val35[44]);$val21
+replytype45=clickfill
+replyname45=
+replygood45=$(val35[45]);$val21
+replytype46=clickfill
+replyname46=
+replygood46=$(val35[46]);$val21
+replytype47=clickfill
+replyname47=
+replygood47=$(val35[47]);$val21
+replytype48=clickfill
+replyname48=
+replygood48=$(val35[48]);$val21
+replytype49=clickfill
+replyname49=
+replygood49=$(val35[49]);$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() $val8	  
+!if $val16 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val18 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val17$val20	  <div class="question">	   
+!for m_k = 1 to $val36 
+$()	    $(val28[2*$m_k-1-$val32;])   
+!read oef/embed.phtml $(val39[$m_k]),$val15 
+$()	   
+!next
+$()	  $(val28[2*$val36+1-$val32;])	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,15,16,17,18,20,28,32,36,39
+embedcnt=3

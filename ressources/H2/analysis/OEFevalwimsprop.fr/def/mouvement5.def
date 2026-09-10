@@ -1,0 +1,126 @@
+!set title=Mouvement uniforme 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=c
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse
+val8=Oui,Non
+val9=$(val8[2]),$(val8[1])
+val10=remplit un récipient gradué d'eau.,	  Elle ouvre le robinet et note le temps mis pour atteindre chaque graduation	  dans le tableau ci-dessous&nbsp;
+val11=Graduation (en mL),Temps (en s)
+val12=Le débit du robinet est-il constant pendant la durée de l'expérience
+tmp0=!randint 1, 2
+
+val13=$[rint($(tmp0))]
+tmp=!nonempty items 1,2.5,5
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0)*100)]
+tmp0=!values $val14*t for t=0 to 5
+
+val14=$(tmp0)
+!if $val13=1 
+tmp0=!randint 2, 7
+
+val15=$(tmp0)
+tmp0=!values $val15 for v=1 to 5
+
+val15=$(tmp0)
+!else
+tmp0=!shuffle 2,3,4,5,6,7
+
+val15=$(tmp0)
+!endif
+val16=0
+!for val17 =1 to 5 
+val18=$[rint($(val16[$val17])+$(val15[$val17]))]
+tmp0=!append item $val18 to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!item 2 to -1 of $val16
+
+val16=$(tmp0)
+tmp0=!item 2 to -1 of $val14
+
+val14=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val19=$(tmp0)
+val20=$val19 $(val10[1])<br>$(val10[2]):	<table class="wimscenter wimsborder">	<tr><th>Graduation (en mL)</th><td>$(val14[1])</td><td>$(val14[2])</td><td>$(val14[3])</td><td>$(val14[4])</td><td>$(val14[5])</td></tr>	<tr><th>Temps (en s)</th><td>$(val16[1])</td><td>$(val16[2])</td><td>$(val16[3])</td><td>$(val16[4])</td><td>$(val16[5])</td></tr>	</table>
+val21=$val12
+val22=$(val9[$val13])
+choicename1=
+choicegood1=$val22
+choicebad1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val20	<p>	$val21 ?	</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,21
+embedcnt=0

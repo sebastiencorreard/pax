@@ -1,0 +1,87 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Calcul du projeté de (xA,yA) sur le droite (xB,yB),(xC,yC)
+slib_parms=7\
+,xA,yA,xB,yB,xC,yC,offset pour marquer l'angle droit (si 0 pas de marque)
+slib_author=Régine MANGEARD
+slib_out=coordonnées du projeté xH,yH, coordonnées des 3 points pour marquer l'angle
+slib_example= 1,1,2,3,3,5
+!exit
+
+:proc
+slib_mat=!declosing $wims_read_parm
+!if $slib_mat=$empty
+ slib_out=
+!else
+  slib_xA=$(slib_mat[1])
+  slib_yA=$(slib_mat[2])
+  slib_xB=$(slib_mat[3])
+  slib_yB=$(slib_mat[4])
+  slib_xC=$(slib_mat[5])
+  slib_yC=$(slib_mat[6])
+  slib_offset=$(slib_mat[7])
+  !if $slib_xB=$slib_xC
+     slib_xH=$slib_xB
+     slib_yH=$slib_yA
+     slib_xE=$slib_xB
+     slib_yE=!eval $slib_yH+$slib_offset
+     !if $slib_xA<$slib_xB
+       slib_xF=!eval $slib_xH-$slib_offset
+       slib_xG=!eval $slib_xH-$slib_offset
+     !else
+       slib_xF=!eval $slib_xH+$slib_offset
+       slib_xG=!eval $slib_xH+$slib_offset
+     !endif
+
+     slib_yF=!eval $slib_yH+$slib_offset
+     slib_yG=$slib_yH
+!!debug $slib_xH,$slib_yH,$slib_xE,$slib_yE,$slib_xF,$slib_yF,$slib_xG,$slib_yG    
+
+  !else
+    !if $slib_yB=$slib_yC
+      slib_xH=$slib_xA
+      slib_yH=$slib_yB
+      slib_xE=!eval $slib_xH+$slib_offset
+      slib_yE=$slib_yH
+      slib_xF=!eval $slib_xH+$slib_offset
+      !if $slib_yA<$slib_yB
+       slib_yF=!eval $slib_yH-$slib_offset
+       slib_yG=!eval $slib_yH-$slib_offset
+      !else
+       slib_yF=!eval $slib_yH+$slib_offset
+       slib_yG=!eval $slib_yH+$slib_offset
+      !endif
+      slib_xG=$slib_xH
+    !else
+     slib_coefdirBC=!eval ($slib_yC-$slib_yB)/($slib_xC-$slib_xB)
+     slib_ordoriBC=!eval $slib_yB-$slib_coefdirBC*$slib_xB
+     slib_coefdirAH=!eval -1/$slib_coefdirBC
+     slib_ordoriAH=!eval $slib_yA-$slib_coefdirAH*$slib_xA
+     slib_xH=!eval ($slib_ordoriBC-$slib_ordoriAH)/($slib_coefdirAH-$slib_coefdirBC)
+     slib_yH=!eval $slib_coefdirBC*$slib_xH+$slib_ordoriBC
+!! on détermine le demi-plan dans lequel on marque l'angle
+     slib_angleBC=!eval arctan($slib_coefdirBC)
+     slib_offset=!eval $slib_offset*cos(abs($slib_angleBC))
+     slib_offset2=!eval $slib_offset*$slib_coefdirBC
+     slib_dp=!eval $slib_coefdirBC*$slib_xA+$slib_ordoriBC
+     slib_xE=!eval $slib_xH-$slib_offset
+     slib_yE=!eval $slib_coefdirBC*$slib_xE+$slib_ordoriBC
+     !!if ($slib_yA<$slib_dp and $slib_coefdirAH>0) or ($slib_yA>$slib_dp and $slib_coefdirAH<0)
+     !if $slib_yA>$slib_dp 
+       slib_xG=!eval $slib_xH-$slib_offset2
+     !else
+       slib_xG=!eval $slib_xH+$slib_offset2
+     !endif
+     slib_yG=!eval $slib_coefdirAH*$slib_xG+$slib_ordoriAH
+     slib_xF=!eval $slib_xG-$slib_offset
+     slib_yF=!eval $slib_yG+$slib_yE-$slib_yH
+   !endif
+  !endif 
+
+  !if $slib_offset=0
+    slib_out=$slib_xH,$slib_yH
+  !else
+    slib_out=$slib_xH,$slib_yH,$slib_xE,$slib_yE,$slib_xF,$slib_yF,$slib_xG,$slib_yG
+  !endif
+!endif

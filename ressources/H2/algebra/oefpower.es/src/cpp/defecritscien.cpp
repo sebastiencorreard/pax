@@ -1,0 +1,28 @@
+target=defecritscien
+
+#include "lang_titles.inc"
+#include "author.inc"
+#include "lang.inc"
+\integer{ n1 = random(3..6)}
+\integer{ p = random(randint(5..7),randint(1..3))}
+\real{ a = randint(10^(\n1)..10^(\n1 + 1)-1)}
+\real{ b = \a/10^(\p)}
+\real{ result =\a/10^(\n1)}
+\real{ expos=\n1-\p}
+
+\statement{
+\name_statement \( A = \b\):
+<div class="wimscenter">
+ \(A = \) \embed{ reply1 ,8} \(\times 10\)<sup>\embed{reply2,3}</sup>
+ </div>
+}
+\answer{}{\result}
+\answer{}{\expos}
+\latex{
+\begin{statement}
+  \name_statement \( A = \b\):
+\begin{center}
+ \(A = \cdots \times 10^{\cdots}\)
+\end{center}
+\end{statement}
+}

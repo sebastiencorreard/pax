@@ -1,0 +1,504 @@
+!set title=6 terms
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=en
+title_it=6 termini
+title_fr=6 termes
+title_nl=6 termen
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=133
+prevarcnt=117
+postvarcnt=15
+replycnt=16
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Fill-in the following equation to make it an identity
+val8=Drag the terms or operators below into	  blanks in the equation.
+val9=The equation is verified
+val10=Bad reply, makes no sense
+val11=Wrong computation,instead of
+!if $val6=it 
+val7=Completa l'espressione seguente in modo da rendere valida l'eguaglianza
+val8=Trascina i termini sotto negli spazio vuoti	  dell'espressione.
+val9=L'eguaglianza è verificata
+val10=Risposta errata,non ha senso
+val11=Errore di conto,invece di
+!endif
+!if $val6=fr 
+val7=Remplissez l'équation suivante pour la rendre correcte.
+val8=Tirez les termes ou opérateurs ci-dessous	  dans les cases vides de l'équation.
+val9=L'équation est correcte
+val10=Mauvaise réponse, n'a pas de sens.
+val11=Mauvais calcul,au lieu de
+!endif
+!if $val6=nl 
+val7=Maak de onderstaande vergelijking af.
+val8=Sleep de items met je muis naar de    open plekken van de vergelijking.
+val9=De vergelijking is gecontroleerd
+val10=Niet goed geantwoord,is onzinnig.
+val11=Verkeerde berekening,in plaats van
+!endif
+val12=$[rint(11)]
+tmp=!nonempty items $val4
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp0=!word 1 of $val13
+
+val14=$(tmp0)
+tmp0=!word 2 of $val13
+
+val15=$(tmp0)
+
+!ifval $val14 issametext 
+val14=50
+!endif
+
+!ifval $val15 issametext 
+val15=0
+!endif
+tmp0=!record $val12 of src/styles
+
+tmp1=!line 2 to -1 of $(tmp0)
+
+val16=$(tmp1)
+tmp=!nonempty items $val16
+
+tmp0=!randitem $tmp
+tmp1=!nospace $(tmp0)
+
+val17=$(tmp1)
+tmp0=!text select @ in $val17
+
+val18=$(tmp0)
+tmp0=!charcnt $val18
+
+val19=$[rint($(tmp0))]
+tmp0=!shuffle $val19
+
+tmp1=!item 1 to $val14 of $(tmp0)
+
+val20=$(tmp1)
+tmp0=!shuffle $val19-1
+
+tmp1=!item 1 to $val15 of $(tmp0)
+
+val21=$(tmp1)
+val22=$[rint($val5)]
+tmp0=!shuffle a,b,c,d,r,s,t,x,y,z
+
+val23=$(tmp0)
+tmp0=!randitem 2,3,5
+
+val24=sqrt($(tmp0))
+tmp0=!record $val2 of src/data
+
+val25=$(tmp0)
+tmp0=!record $val2 of src/data.$val6
+
+val26=$(tmp0)
+tmp=!translate internal $	$ to ; in $val25
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val27=$(tmp0)
+val28=$(val27[1])
+val29=$(val27[2])
+val30=$(val27[3])
+
+!ifval $val29 =
+val29= 60
+!endif
+
+!ifval $val30=
+val30= 35
+!endif
+
+!ifval $val14=0
+val31=30 30
+!else
+val31=$val29 $val30
+!endif
+tmp=!translate internal $	$ to ; in $val25
+
+tmp=!row 2 to -1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!rows2lines $(tmp0)
+
+val25=$(tmp1)
+tmp0=!itemcnt $val25
+
+val32=$[rint($(tmp0))]
+!if $val32<=3 
+val33=$(val25[1])
+val34=$(val25[2])
+val35=$(val25[3])
+val36=computed
+!if $val35<0 
+tmp0=!values $val35*x,-($val35)*x for x=$val33 to $val34
+
+val37=$(tmp0)
+!else
+tmp0=!values $val35*x for x=$val33 to $val34
+
+val37=$(tmp0)
+!endif
+tmp0=!shuffle $val37
+
+tmp1=!shuffle $val37
+
+tmp2=!item 1 to $val19+$val22 of $(tmp0),$(tmp1)
+
+val38=$(tmp2)
+!else
+val36=listed
+tmp0=!shuffle $val25
+
+tmp1=!shuffle $val25
+
+tmp2=!item 1 to $val19+$val22 of $(tmp0),$(tmp1)
+
+val38=$(tmp2)
+!endif
+tmp0=!mathsubst f=$(val23[1]) in $val38
+
+val38=$(tmp0)
+tmp0=!mathsubst g=$(val23[2]) in $val38
+
+val38=$(tmp0)
+tmp0=!mathsubst rt=$val24 in $val38
+
+val38=$(tmp0)
+val39=
+!for val40  in $val38 
+val41=$val40
+!if / isin $val40 
+tmp0=!replace internal / by /( in $val40)
+
+val41=$(tmp0)
+val41=($val41)
+!endif
+!if + isin $val40 or - isin $val40 
+val41=($val40)
+!endif
+tmp0=!append item $val41 to $val39
+
+val39=$(tmp0)
+!next
+val38=$val39
+val42=
+tmp0=!makelist \(x) for x in $val38
+
+val43=$(tmp0)
+tmp0=!item $val3 of (-,+),(-,*,+),(-,*,/,+)
+
+tmp1=!declosing $(tmp0)
+
+val44=$(tmp1)
+tmp0=!replace internal * by &times; in $val44
+
+val45=$(tmp0)
+tmp0=!replace internal / by &divide; in $val45
+
+val45=$(tmp0)
+tmp0=!replace internal - by &minus; in $val45
+
+val45=$(tmp0)
+tmp0=!makelist $val44 for i=1 to 10
+
+val44=$(tmp0)
+tmp0=!item 1 to max($val3+1,$val19) of $val44
+
+tmp1=!shuffle $(tmp0)
+
+val44=$(tmp1)
+tmp0=!replace internal * by &times; in $val44
+
+val46=$(tmp0)
+tmp0=!replace internal / by &divide; in $val46
+
+val46=$(tmp0)
+tmp0=!replace internal - by &minus; in $val46
+
+val46=$(tmp0)
+tmp0=!charcnt $val17
+
+val47=$[rint($(tmp0))]
+val48=
+val49=
+val50=
+val51=$[rint(1)]
+val32=$[rint(1)]
+val52=
+!for val53 =1 to $val47 
+tmp0=!char $val53 of $val17
+
+val35=$(tmp0)
+!if $val35 issametext @ 
+val48=$val48 ($(val38[$val51])) 
+!if $val51 isitemof $val20 
+val49=$val49,
+val50=$val50,
+tmp0=!append item $(val43[$val51]) to $val52
+
+val52=$(tmp0)
+!else
+val49=$val49 $(val43[$val51]) 
+val50=$val50 $(val38[$val51]) 
+!endif
+val51=$[rint($val51+1)]
+!else
+!if $val35 issametext # 
+val48=$val48 $(val44[$val32]) 
+!if $val32 isitemof $val21 
+val49=$val49,
+val50=$val50,
+tmp0=!append item $(val46[$val32]) to $val52
+
+val52=$(tmp0)
+!else
+val49=$val49 $(val46[$val32]) 
+val50=$val50 $(val44[$val32]) 
+!endif
+val32=$[rint($val32+1)]
+!else
+val48=$val48$val35
+val49=$val49$val35
+val50=$val50$val35
+!endif
+!endif
+!next
+tmp0=!replace internal < by &#40; in $val49
+
+val49=$(tmp0)
+tmp0=!replace internal > by &#41; in $val49
+
+val49=$(tmp0)
+
+!ifval $val14>0 and $val22>0
+val52=$val52,$(val43[$val19+1..$val19+$val22])
+!endif
+!if $val15>0 
+tmp0=!itemcnt $val52
+
+val54=$[rint($(tmp0))]
+!for val55  in $val45 
+
+!ifval $val55 notin $val52
+val52=$val52,$val55
+!endif
+!next
+tmp0=!itemcnt $val52
+
+val56=$[rint($(tmp0))]
+
+!ifval $val56=$val54
+tmp=!nonempty items $val45
+
+tmp0=!randitem $tmp
+val52=$val52,$(tmp0)
+!endif
+!endif
+tmp0=!itemcnt $val49
+
+val57=$[rint($(tmp0)-1)]
+tmp0=!translate internal <> to () in $val48
+
+val48=$(tmp0)
+tmp=!translate ";': to $     $ in $val48
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val58=$(tmp0)
+!if / isin $val58 
+tmp0=!replace internal / by /( in $val58)
+
+val58=$(tmp0)
+!endif
+tmp0=!item 1 to $val57 of r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16
+
+val59=$(tmp0)
+oefsteps=$val59 
+nextstep=!nosubst $val59 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=t1
+replygood1=?analyze 60;$val52
+replytype2=dragfill
+replyname2=t2
+replygood2=?analyze 61
+replytype3=dragfill
+replyname3=t3
+replygood3=?analyze 62
+replytype4=dragfill
+replyname4=t4
+replygood4=?analyze 63
+replytype5=dragfill
+replyname5=t5
+replygood5=?analyze 64
+replytype6=dragfill
+replyname6=t6
+replygood6=?analyze 65
+replytype7=dragfill
+replyname7=t7
+replygood7=?analyze 66
+replytype8=dragfill
+replyname8=t8
+replygood8=?analyze 67
+replytype9=dragfill
+replyname9=t9
+replygood9=?analyze 68
+replytype10=dragfill
+replyname10=t10
+replygood10=?analyze 69
+replytype11=dragfill
+replyname11=t11
+replygood11=?analyze 70
+replytype12=dragfill
+replyname12=t12
+replygood12=?analyze 71
+replytype13=dragfill
+replyname13=t13
+replygood13=?analyze 72
+replytype14=dragfill
+replyname14=t14
+replygood14=?analyze 73
+replytype15=dragfill
+replyname15=t15
+replygood15=?analyze 74
+replytype16=dragfill
+replyname16=t16
+replygood16=?analyze 75
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7	<div class="wimscenter">	 
+!for m_t=1 to $val57 
+$()	  $(val49[$m_t])  
+!read oef/embed.phtml r\t,$val31 1 
+$()	 
+!next
+$()	$(val49[$val57+1]) = 
+!insmath $val58
+$()	</div>	<div class="wims_instruction">	  $val8	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val76=$val60,$val61,$val62,$val63,$val64,$val65,$val66,$val67,$val68,$val69,$val70,$val71,$val72,$val73,$val74,$val75
+tmp0=!replace internal \ by in $val76
+
+val77=$(tmp0)
+tmp0=!replace internal &minus; by - in $val77
+
+val77=$(tmp0)
+tmp0=!replace internal &times; by * in $val77
+
+val77=$(tmp0)
+tmp0=!replace internal &divide; by / in $val77
+
+val77=$(tmp0)
+val78=
+val79=
+!for val53 =1 to $val57 
+val78=$val78 $(val50[$val53]) $(val77[$val53])
+val79=$val79 $(val49[$val53]) $(val76[$val53])
+!next
+val78=$val78 $(val50[$val57+1])
+val79=$val79 $(val49[$val57+1])
+tmp0=!translate internal <> to () in $val78
+
+val78=$(tmp0)
+tmp=!translate ";': to $     $ in $val78 - ($val58)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val80=$(tmp0)
+tmp=!translate ";': to $     $ in $val78
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val81=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val80 issametext $val42
+ <div class='oef_feedbacks'>	 $(val10[1]): $val79 $(val10[2]).	
+$()</div>
+!endif
+!ifval $val80 notsametext $val42 and $val80 notsametext 0 and	 $val81 notsametext $val58
+ <div class='oef_feedbacks'>	  $(val11[1]): $val79 = 
+!insmath $val81
+$() $(val11[2]) 
+!insmath $val58
+$().	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val80 issametext 0 or	 $val81 issametext $val58
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val9
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,31,42,49,50,53,57,58,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75
+embedcnt=1

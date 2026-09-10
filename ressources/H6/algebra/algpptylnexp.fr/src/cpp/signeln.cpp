@@ -1,0 +1,156 @@
+target=signeln1 signeln2
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\integer{sa=random(1,-1)}
+\integer{a=random(1..5)*\sa}
+\integer{sb=random(1,-1)}
+\integer{b0=random(1..5)}
+\integer{b=\b0*\sb}
+\integer{sc=random(1,-1)}
+\integer{c=random(1..5)*\sc}
+\integer{k=random(1..4)}
+\integer{d=random(0,\k*\c)}
+\text{x=randitem(x,t)}
+\function{u=(\b=0)?\a\x:\a\x+\b}
+\text{utex=texmath(\u)}
+\rational{rep0=-\b/\a}
+\text{inf = (\sa = 1)?\rep0 : -\infty }
+\text{sup = (\sa = 1)? +\infty : \rep0 }
+\text{intervalle = \rbrack \inf ; \sup \lbrack }
+!!!! signe de cln(ax+b) + d
+
+\text{symb0=\a>0? > : < }
+!!! chgment sens inégalité
+\text{symb1=(\c>0)? > : <}
+\rational{rep1=-\d/\c}
+\function{rep1bis = (\d = 0)?1:exp(\rep1)}
+\integer{chge=\a*\c}
+\text{symb2=(\chge>0)? > : <}
+\text{rep2=(\d = 0)?simplify((1-\b)/\a):(exp(\rep1)-\b)/(\a)}
+
+\text{oppb=(\b<0)?+\b0:-\b}
+\text{texrep2=texmath(\rep2)}
+\text{f=(\d = 0)?\c*ln(\u) : \c*ln(\u) + \d }
+\text{ftex=texmath(\f)}
+!!! signes ;
+\text{signegauche = (\chge>0)? - : +}
+\text{signedroite = (\chge>0)? + : -}
+
+\statement{
+<p>L'expression \(\f) est définie si \(\u > 0\), c'est-à-dire si
+\(\x\) appartient à l'intervalle \(\intervalle\).
+</p><p>
+On veut étudier dans \(\intervalle\) le signe de l'expression : \(\f\) .
+</p>
+#if defined TARGET_signeln1
+<p>On doit donc résoudre l'inéquation \(\f > 0\).</p>
+<p>Compléter les étapes suivantes.</p>
+<div class="wims_instruction">
+Pour écrire \(e^{a}) vous devez entrer <span class="tt"> exp(a)</span> ou
+<span class="tt">e^(a)</span>.</div>
+<ul><li>
+Pour \(\x\) appartenant à \(\intervalle\), on peut écrire les équivalences suivantes :
+<div class="wimscenter">
+  \(\ftex > 0 \Longleftrightarrow ln(\utex)\) \embed{choice1} \embed{reply1,5}
+</div>
+<div class="wimscenter">
+ \(\Longleftrightarrow \utex \) \embed{choice2} \embed{reply2,20}
+</div>
+<div class="wimscenter">
+ \(\Longleftrightarrow \x \) \embed{choice3} \embed{reply3,20}
+</div>
+</li><li>
+On en déduit le tableau de signes suivant :
+<table style="width:70%" class="wimsborder wimscenter">
+<tr>
+<td style="width:20%;">\(\x\)</td>
+<td style="width:25%;text-align:left">\(\inf)</td>
+<td style="width:15%;">\embed{reply4,20}</td>
+<td style="width:25%;text-align:right">\(\sup\)</td>
+</tr><tr>
+<td>\(\f\)</td>
+<td>\embed{choice4} </td>
+<td>0</td>
+<td>\embed{choice5}</td>
+</tr>
+</table>
+</li></ul>
+#endif
+#if defined TARGET_signeln2
+<p>Résoudre sur papier libre l'inéquation \(\f > 0\) puis compléter le tableau de signes.
+</p>
+<div class="wims_instruction">Pour écrire \(e^{a}) vous devez entrer
+  <span class="tt">exp(a)</span> ou <span class="tt">e^(a)</span>.
+</div>
+<table style="width:70%" class="wimsborder wimscenter">
+<tr>
+<td style="width:20%;">\(\x\)</td>
+<td style="width:25%;text-align:left">\(\inf)</td>
+<td style="width:15%;">\embed{reply1,20}</td>
+<td style="width:25%;text-align:right">\(\sup)</td>
+</tr><tr>
+<td>\(\f\)</td>
+<td>\embed{choice1} </td>
+<td>0</td>
+<td>\embed{choice2}</td>
+</tr>
+</table>
+#endif
+}
+#if defined TARGET_signeln1
+\choice{step1}{\symb1}{<,>}{option = noidontknow}
+\answer{step1}{\rep1}{type=numexp}
+\choice{step1}{\symb1}{<,>}{option = noidontknow}
+\answer{step1}{\rep1bis}{type=function}
+\choice{step2}{\symb2}{<,>}{option = noidontknow}
+\answer{step2}{\rep2}{type=function}
+#endif
+\answer{}{\rep2}{type=function}
+\choice{}{\signegauche}{+,-}{option = noidontknow}
+\choice{}{\signedroite}{+,-}{option = noidontknow}
+
+\feedback{0=0}{
+<b>Voici l'étude du signe de \(\f) :</b>
+<div>
+Le logarithme existe si et seulement si \(\u > 0) c'est-à-dire pour
+\(\x \symb0 \rep0\).
+<div> Sous cette condition, on a les équivalences suivantes :
+<div class="wimscenter">
+ \(\ftex > 0 \Longleftrightarrow ln(\utex) \symb1 \rep1\)
+</div>
+On applique la règle \(\ln(u) \symb1 v \Longleftrightarrow u \symb1 e^{v}) :
+<div class="wimscenter">
+(I) \(\Longleftrightarrow \utex \symb1 \rep1bis\)
+<br>
+(I) \(\Longleftrightarrow \a\x \symb1 \rep1bis \oppb \).
+</div>
+On divise par \(\a\) \if{\a<0}{
+(en inversant le sens de l'inégalité
+car on divise par un nombre négatif)} :
+<div class="wimscenter">
+(I) \(\Longleftrightarrow \x \symb2 \texrep2 \)
+</div>
+</div>
+<p>Posons \(\alpha = \texrep2 \).
+Le tableau de signe de \(\f\) sur \(\intervalle\) est :
+<table style="width:70%" class="wimsborder wimscenter">
+<tr>
+<td style="width:20%;"> \(\x\)</td>
+<td style="width:25%;text-align:left">\(\inf\)</td>
+<td style="width:15%;">\alpha</td>
+<td style="width:25%;text-align:right">\(\sup\)</td>
+</tr><tr>
+<td>\(\f\)</td>
+<td>\signegauche</td>
+<td>0</td>
+<td>\signedroite</td>
+</tr>
+</table>
+}

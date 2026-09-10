@@ -1,0 +1,160 @@
+!set title=Comité de classe
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000000
+title_en=Commitee of class
+title_nl=Klasse commissie
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Nombre de façons
+val8=Dans une classe de XXXX garçons et de YYYY filles,	  combien de possibilités y a-t-il pour composer un comité de classe de	  CCCC élèves, sachant qu'il doit y avoir au moins BBBB et	  GGGG dans le comité&nbsp;
+val7=Nombre de possibilités
+val9=garcon,fille
+val10=garcons,filles
+!if $val6=en 
+val7=Number of ways
+val8=We have a class of XXXX boys and YYYY girls.	  How many possibilities are there to compose a committee of class with	  CCCC pupils, knowing that there must be at least BBBB and	  GGGG in the committee
+val7=Nombre de possibilités
+val9=boy,girl
+val10=boys,girls
+!endif
+!if $val6=nl 
+val7=Aantal manieren
+val8=In een klas zitten YYYY meisjes en XXXX jongens.	  Op hoeveel verschillende manieren kunnen we een klasse commissie	  samenstellen met CCCC deelnemers uit deze groep leerlingen,	  onder voorwaarde dat er tenminste BBBB en GGGG zitting nemen in deze commissie
+val7=Aantal mogelijkheden
+val9=jongen,meisje
+val10=jongens,meisjes
+!endif
+tmp0=!randint 5, 9
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 5, 9
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val11+$val12)]
+tmp0=!randint 1, 2
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val15=$[rint($(tmp0))]
+
+!ifval $val14=1
+val16=$(val9[1])
+!else
+val16=$(val10[1])
+!endif
+
+!ifval $val15=1
+val17=$(val9[2])
+!else
+val17=$(val10[2])
+!endif
+tmp0=!randint 1, 2
+
+val18=$[rint($(tmp0))]
+val19=$[rint($val14+$val15+$val18)]
+val20=$[rint(factorial($val11)/(factorial($val14)*factorial($val11-$val14)))]
+val21=$[rint(factorial($val12)/(factorial($val15)*factorial($val12-$val15)))]
+val22=$[rint(factorial($val11)/(factorial($val14+1)*factorial($val11-$val14-1)))]
+val23=$[rint(factorial($val12)/(factorial($val15+1)*factorial($val12-$val15-1)))]
+val24=$[rint(factorial($val11)/(factorial($val14+2)*factorial($val11-$val14-2)))]
+val25=$[rint(factorial($val12)/(factorial($val15+2)*factorial($val12-$val15-2)))]
+
+!ifval $val18=1
+val26=$[rint($val20*$val23+$val22*$val21)]
+!else
+val26=$[rint(	 $val20*$val25+$val22*$val23+$val24*$val21)]
+!endif
+tmp0=!replace internal XXXX by $val11 in $val8
+
+val27=$(tmp0)
+tmp0=!replace internal YYYY by $val12 in $val27
+
+val27=$(tmp0)
+tmp0=!replace internal CCCC by $val19 in $val27
+
+val27=$(tmp0)
+tmp0=!replace internal BBBB by $val14 $val16 in $val27
+
+val27=$(tmp0)
+tmp0=!replace internal GGGG by $val15 $val17 in $val27
+
+val27=$(tmp0)
+replyname1=$val7
+replygood1=$val26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val27?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=27
+embedcnt=0

@@ -1,0 +1,151 @@
+!set title=Schéma de Bernoulli 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+computeanswer=yes
+precision=100000
+
+ansorder=r,r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 6, 12
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 9
+
+tmp1=!randint 11, 15
+
+tmp=!nonempty items 0.05*$(tmp0);0.05*$(tmp1)
+
+tmp2=!randitem $tmp
+t_=!rawmath $(tmp2)
+val7=!exec pari print($t_)
+t_=!rawmath 1-$val7
+val8=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+val10=pile,face
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+val13=$val6 $(val10[$val11])s,au moins une fois $(val10[$val12])
+
+!ifval ($val11=$val9)
+val14= ($val7)^($val6)
+!else
+val14=($val8)^($val6)
+!endif
+
+!ifval ($val12=$val9)
+val15= 1-($val8)^($val6)
+!else
+val15=1-($val7)^($val6)
+!endif
+replytype1=formal
+replyname1=
+replygood1=$val14
+replytype2=formal
+replyname2=
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On dispose d'une pièce truquée qui, à chaque fois qu'on la lance, donne "$(val10[$val9])" avec une probabilité égale à 
+!insmath $val7
+$(). On lance cette pièce $val6 fois de suite.	<ol><li>Calculer la probabilité d'avoir $(val13[1]) :  
+!read oef/embed.phtml reply1,6 
+$()</li>	<li>Calculer la probabilité d'avoir $(val13[2])  :  
+!read oef/embed.phtml reply2,6 
+$()</li></ol>	<div class="wims_instruction">On donnera le calcul (par exemple 4*0.8^6) ou la valeur exacte des probabilités. <u>Pas de valeur approchée</u>. </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>1&#41;La probabilité d'avoir $(val13[1]) est 
+!if $val11=$val9 
+$()
+!insmath $val7^{$val6}
+$() 
+!else
+$() 
+!insmath (1-$val7)^{$val6}=$val8^{$val6}
+$() 
+!endif
+$().</p>	<p>2&#41;L'événement "avoir $(val13[2])" est l'événement contraire de l'événement 
+!if $val12=$val9 
+$()"n'avoir que des $(val10[3-$val9])s" 
+!else
+$() "n'avoir que des $(val10[$val9])s" 
+!endif
+$()	donc sa probabilité est 
+!if $val12=$val9 
+$()
+!insmath 1-$val8^{$val6}
+$() 
+!else
+$() 
+!insmath 1-$val7^{$val6}
+$() 
+!endif
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13
+embedcnt=2

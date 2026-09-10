@@ -1,0 +1,221 @@
+!set title=Faire un tableau 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=43
+prevarcnt=41
+postvarcnt=1
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Les élèves d'un collège ont donné leurs préférences de couleur.	  Les résultats sont en pourcentages et nous avons fait un diagramme circulaire
+val7=Compléter le tableau&nbsp;
+val8=rouge,bleu,jaune,vert,Total, Pourcentages
+val9=4
+val10=100
+!for val11 =1 to $val9-1 
+tmp0=!randint 8, 20
+
+val12=$(tmp0)
+!if $val11=1 
+val13=$val12
+!else
+val13=$val13,$val12
+!endif
+val10=$[$val10-$val12]
+!next
+val13=$val13,$val10
+tmp0=!shuffle 4
+
+val14=$(tmp0)
+val15=red,skyblue,yellow,lightgreen
+val16=$(val8[1]),$(val8[2]),$(val8[3]), $(val8[4])
+val17=A,B,C,D
+tmp0=!randint 1, $val9
+
+val18=$(tmp0)
+tmp0=!item $val18 of $val14
+
+tmp1=!item $(tmp0) of  $val16
+
+val19=$(tmp1)
+tmp0=!item $val18 of $val14
+
+tmp1=!item $(tmp0) of  $val17
+
+val20=$(tmp1)
+tmp0=!randint 10, 30
+
+val21=$[rint($(tmp0)*100)]
+tmp0=!item $val18 of $val13
+
+val22=$[round($(tmp0)/100*$val21)]
+val23=ellipse 0,0,2,2,black	segment 0,0,1,0,black
+val24=0
+tmp0=!randint 1, $val9
+
+val18=$(tmp0)
+!if $val18=1 
+val25=$(val13[2]),$(val13[3]),$(val13[4])
+!endif
+!if $val18=2 
+val25=$(val13[1]),$(val13[3]),$(val13[4])
+!endif
+!if $val18=3 
+val25=$(val13[1]),$(val13[2]),$(val13[4])
+!endif
+!if $val18=4 
+val25=$(val13[1]),$(val13[2]),$(val13[3])
+!endif
+!for val11 =1 to $val9 
+tmp0=!item $val11 of $val13
+
+val26=$[$(tmp0)*2*pi/100]
+val27=$[$val24+$val26/2]
+tmp0=!item $val11 of $val14
+
+tmp1=!item $(tmp0) of $val15
+
+val19=$(tmp1)
+tmp0=!item $val11 of $val14
+
+tmp1=!item $(tmp0) of  $val17
+
+val20=$(tmp1)
+val24=$[$val24+$val26]
+val23=$val23	segment 0,0,cos($val24),sin($val24),black	fill cos($val27)/2,sin($val27)/2, $val19	text black, 1.2*cos($val27),1.2*sin($val27),medium, $val20
+!if $val11 = $val18 
+!else
+tmp0=!item $val11 of $val13
+
+val23=$val23	text black, 2*cos($val27)/3,2*sin($val27)/3, medium, $(tmp0)%	
+!endif
+!next
+tmp0=!item $val18 of $val14
+
+tmp1=!item $(tmp0) of  $val16
+
+val19=$(tmp1)
+tmp0=!item $val18 of $val14
+
+tmp1=!item $(tmp0) of  $val17
+
+val20=$(tmp1)
+tmp0=!positionof item 1 in $val14
+
+tmp1=!item $(tmp0) of $val13
+
+val28=$[$(tmp1)]
+tmp0=!positionof item 2 in $val14
+
+tmp1=!item $(tmp0) of $val13
+
+val29=$[$(tmp1)]
+tmp0=!positionof item 3 in $val14
+
+tmp1=!item $(tmp0) of $val13
+
+val30=$[$(tmp1)]
+tmp0=!positionof item 4 in $val14
+
+tmp1=!item $(tmp0) of $val13
+
+val31=$[$(tmp1)]
+replytype1=numeric
+replyname1=$(val8[1])
+replygood1=$[$val28]
+replytype2=numeric
+replyname2=$(val8[2])
+replygood2=$[$val29]
+replytype3=numeric
+replyname3=$(val8[3])
+replygood3=$[$val30]
+replytype4=numeric
+replyname4=$(val8[4])
+replygood4=$[$val31]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() $val6:	<div class="wimscenter">	  
+!read oef/draw.phtml 200,200 \
+xrange -1.5,1.5	yrange -1.5,1.5	$val23 
+$()	</div>	$val7:	<table class="wimscenter wimsborder table-scroll"><tr><th></th>	<th><label for="reply1">$(val8[1]) (A)</label></th>	<th><label for="reply2">$(val8[2]) (B)</label></th>	<th><label for="reply3">$(val8[3]) (C)</label></th>	<th><label for="reply4">$(val8[4]) (D)</label>	</th><th>$(val8[5])</th></tr>	<tr><th>$(val8[6])</th>	<td> 
+!read oef/embed.phtml reply 1, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply 2, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply 3, 5 
+$()</td>	<td> 
+!read oef/embed.phtml reply 4, 5 
+$()</td>	<td>100</td>	</tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$m_sol&nbsp;:
+!insmath 100-($(val25[1])+$(val25[2])+$(val25[3]))=$(val13[$val18])
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val32=Pourcentage de $(val16[$(val14[$val18])])
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,13,14,16,18,23,25
+embedcnt=4

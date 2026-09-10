@@ -1,0 +1,22 @@
+target=montreav
+
+#include "header.inc"
+
+\title{Montre en avance}
+
+\integer{dir=random(1,2)}
+\text{avret=item(\dir,d'avance,de retard)}
+\integer{g=random(1,2)}
+\text{rr=item(\g,24,12)}
+\integer{div=item(\g,1,2)}
+\integer{p=random(2,3,4,5,6,8,9,10,12,15,16,18,20)}
+\real{j=3600/(\p*\div)}
+
+\statement{
+  Ma montre qui indique les \rr heures prend \p secondes \avret par heure.
+  Je viens de la mettre à
+  l'heure. Dans combien de jours indiquera-t-elle à nouveau l'heure exacte ?
+}
+
+\reply{Nombre de jours}{\j}{type=number}
+

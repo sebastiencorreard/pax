@@ -1,0 +1,203 @@
+!set title=乘积的导数
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=V閞onique Royer
+email=royer.veronique@wanadoo.fr
+language=cn
+
+ansorder=r,r,r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 2,3
+
+tmp=!nonempty items 	 $val6*x+$val7,	 $val6*x^$(tmp0)	
+
+tmp1=!randitem $tmp
+val12=!rawmath $(tmp1)
+tmp0=!randitem $val11,$val11*x
+
+tmp=!nonempty items $val8*x^2+$val9*x+$val10,	$val10*x^2+$(tmp0),	$val10*x+$val11
+
+tmp1=!randitem $tmp
+val13=!rawmath $(tmp1)
+val14=!rawmath ($val12)($val13)
+tmp=!translate ;";': to $     $ in $val12,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val15=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val13,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val16=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val14,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val17=!rawmath $(tmp0)
+t_=!replace internal \( by ( in factor($val17)
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val17)
+tmp0=!exec maxima $t_
+
+val19=!rawmath $(tmp0)
+val20=\(f'=u'v+uv')
+val21=\(f'=u'v') , \(f'=u'v+uv'), \(f'=u'v-uv')
+tmp0=!shuffle $val21
+
+val22=$(tmp0)
+tmp0=!positionof item $val20 in $val22
+
+val23=$[rint($(tmp0))]
+tmp0=!texmath $val19
+
+val24=$(tmp0)
+tmp0=!texmath $val18
+
+val25=$(tmp0)
+tmp0=!exec pari printtex($val12)
+
+val26=$(tmp0)
+tmp0=!exec pari printtex($val13)
+
+val27=$(tmp0)
+replytype1=formal
+replyname1=\(u'(x)) 的导数
+replygood1=$val12
+replytype2=formal
+replyname2=\(v'(x)) 的导数
+replygood2=$val13
+replytype3=checkbox
+replyname3=微分法则
+replygood3=$val23;$val22
+replytype4=algexp
+replyname4=导函数 \(f'(x))
+replygood4=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<table width="80%" align="center" >	<tr bgcolor=#FFCC66><td>	<p>确定 $m_RR 上函数	 
+!insmath f(x) = u(x) \cdot v(x)
+$() 的导数, 其中 :	<center>	
+!insmath \begin{array}{l} u(x) \, = \, $val26 \\ v(x) \, = \, $val27 \end{array}
+$() 	</p>	</td></tr></table>	函数 
+!insmath u
+$() 和 
+!insmath v
+$() 在 
+!insmath RR
+$() 内可微且 :	<center>
+!insmath u'(x)
+$() =  
+!read oef/embed.phtml reply1,20 
+$() </center>	<center>
+!insmath v'(x)
+$() =  
+!read oef/embed.phtml reply2,20 
+$() </center>	<p>	为了计算 
+!insmath f
+$() 的导数, 我们应用以下的微分法则 :	<center> 
+!read oef/embed.phtml reply3 
+$()</center></p>	<p>	
+!insmath f
+$() 的导函数是 : 	<center>
+!insmath f'(x)
+$() =  
+!read oef/embed.phtml reply4, 30 
+$()</center></p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <p><b>解.</b> <br/>	
+!insmath f'(x) 的正规形式\,=\, $val24
+$(). <br/>	
+!insmath f'(x) 的因式分解形式\,=\, $val25
+$().
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24,25,26,27
+embedcnt=4

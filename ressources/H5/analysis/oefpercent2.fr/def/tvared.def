@@ -1,0 +1,127 @@
+!set title=Réduction et TVA
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rémi,Belloeil
+email=remi.belloeil@orange.fr
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 80, 300
+
+val6=$[rint(100*$(tmp0))]
+tmp0=!randint 5, 15
+
+val7=$[rint($(tmp0))]
+val8=$[1-$val7/100]
+val9=$[rint($val6*$val8)]
+tmp0=!randitem 20,25,30,33
+
+val10=$[rint($(tmp0))]
+val11=$[1+$val10/100]
+val12=$[$val8*$val11]
+val13=$[rint((1-$val12)*100)]
+val14=$[rint(100*$val6*$val12)]
+val14=$[0.01*$val14]
+val14=$[rint(100*$val6*$val12)]
+val14=$[0.01*$val14]
+val15=$[rint($val6*$val11)]
+val16=\(CM1= 1-\frac{$val7}{100}=$val8) (baisse)
+val17=\(CM2= 1+\frac{$val10}{100}=$val11) (hausse)
+val18=\(CM= CM1 \times CM2 = $val12 > 1) donc hausse
+val19=\(CM= CM2 \times CM1 = $val12 ) donc le résultat sera le même.
+val20=<ul><li>Dans le cas d'évolutions successives, il faut calculer les différents coefficients multiplicateurs, puis calculer le coefficient multiplicateur global.<br>	  Ici, $val16 et $val17.</li><li>	  Donc le coefficient global est $val18.</li><li>	  Si on change l'ordre des opérations, le coefficient multiplicateur global est	  $val19</li></ul> 
+val20=$val20 Le nouveau prix est donc \(TTC = HT \times CM =$val6 \times $val12 = $val14)
+val21=Remise, TVA
+replytype1=numeric
+replyname1=Prix HT réduit
+replygood1=$[$val9]
+replytype2=numeric
+replyname2=Prix final TTC
+replygood2=$[$val14]
+replytype3=numeric
+replyname3=Prix final réduit
+replygood3=$[$val14]
+replytype4=menu
+replyname4=
+replygood4=1;oui,non
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  Conseil : Faire un schéma pour les questions 1 et 2, puis un autre en dessous pour la question 3. 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p>	  Le prix de vente (hors taxe) d'une voiture est $val6 &euro;.<br>	  Le vendeur fait une réduction de $val7 % sur ce prix.	  </p>	  <ol>	  <li><label for="reply1">Quel est le nouveau prix (hors taxe) de cette voiture ?</label>	    <i> arrondir à un euro </i>  
+!read oef/embed.phtml reply1 
+$() &euro;</li>	  <li><label for="reply2">Finalement, le client doit ajouter des taxes qui augmentent le prix de $val10 %.	      Combien doit-il payer ?</label> <i> arrondir à un centime d'euro </i>  
+!read oef/embed.phtml reply2 
+$() &euro;</li>	  <li><label for="reply3">Combien le client payerait-il si on calcule d'abord le prix avec la taxe de  $val10 %	    puis la réduction de $val7 % ?</label>  
+!read oef/embed.phtml reply3 
+$()</li>	  <li>Obtient-on toujours le même prix final que l'on commence par la réduction	    ou par le calcul du prix avec la taxe ?  
+!read oef/embed.phtml reply4 
+$()</li>	  </ol>	
+$()
+!exit
+
+:hint
+$() Conseil : Faire un schéma pour les questions 1 et 2, puis un autre en dessous pour la question 3. 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val20	<h3>Schématiquement</h3>		<div class="wimscenter">	
+!insmath \large{$val6 &euro; \overset{\phantom{xx}$(val21[1])\phantom{xx}}{\overset{- $val7 \%}{\underset{\times $val8}{\mapsto}}} $val9 &euro;	\overset{\phantom{xxxx}$(val21[2])\phantom{xxxx}}{\overset{+ $val10 \%}{\underset{\times $val11}{\mapsto}}} $val14 &euro;}	
+$()	<br />		
+!insmath \large{$val6 &euro; \overset{\phantom{xxxx}$(val21[2])\phantom{xxxx}}{\overset{+ $val10 \%}{\underset{\times $val11}{\mapsto}}} $val15 &euro;	\overset{\phantom{xx}$(val21[1])\phantom{xx}}{\overset{- $val7 \%}{\underset{\times $val8}{\mapsto}}} $val14 &euro;}	
+$()	</div>		On voit ainsi qu'effectuer la réduction avant ou après le calcul de la TVA	  ne change pas le prix final et il en sera de même pour tout autre prix initial.	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,14,15,20,21
+embedcnt=4

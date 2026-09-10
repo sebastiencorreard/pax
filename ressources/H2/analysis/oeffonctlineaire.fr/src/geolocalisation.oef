@@ -1,0 +1,628 @@
+\title{2. Geolocalisation}
+\language{fr}
+\range{-5..5}
+\author{Julien Lyotard}
+\email{Julien.Lyotard@ac-dijon.fr}
+
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{flash=slib(media/video [ogg="https://tube-sciences-technologies.apps.education.fr/download/videos/d1c0d23f-ca86-4316-9402-c4c3691601cc-240.ogv"])} 
+\text{listetableau= wims(makelist r x for x = 4 to 9)}
+
+\matrix{STEP= reply1, reply2
+reply3
+\listetableau
+reply10
+reply11, reply12
+reply13, reply14, reply15
+reply16, reply17
+reply18, reply19
+reply20
+reply21, reply22, reply23, reply24
+}
+\steps{\STEP}
+\integer{nn=randint(1..6)}
+\integer{T=5*\nn}
+\real{vs=331.5+0.6*\T}
+\text{tppj=1,2,3}
+
+
+\text{dppj=} 
+\text{listcoordonne=}
+\text{listcoor=}
+\for{u=1 to 3}{ 
+  \real{s=\vs*\u}
+  \integer{dd=(\u+1)*60+4}
+  \integer{aa=(6-1)*60-(\u)*60-3}
+  \text{dppj=wims(append item \s to \dppj)}
+  \text{listcoordonne=wims(append item \dd,\aa to \listcoordonne)}
+\text{listcoor=wims(append item \u,\s to \listcoor)}
+}
+
+\text{alphabet = Pierre,Paul,Jacques,Pinocchio}
+\text{axe=Temps,Distance,1 cm pour 1 s,1 cm pour \vs m}
+
+\text{ppj=<img src="\imagedir/pierre.gif" alt="Pierre" />,<img src="\imagedir/paul.gif" alt="Paul" />,<img src="\imagedir/jacques.gif" alt="Jacques" />}
+
+\matrix{eleve=Pierre,rue Monge,51,706,Paul,rue du vieux collège,750,600,Jacques,à l'intersection de la rue Devosge et de la rue Courtepée,364,53
+Pierre,place Saint Michel,678,574,Paul,rue de Berbisey,116,797,Jacques,rue Alfred de Musset,900,1083
+}
+\integer{jj=randint(1..2)}
+\real{xpi=\eleve[\jj;3]/50}
+\real{xpa=\eleve[\jj;7]/50}
+\real{xj=\eleve[\jj;11]/50}
+\real{ypi=(1098-\eleve[\jj;4]-30)/50}
+\real{ypa=(1098-\eleve[\jj;8]-30)/50}
+\real{yj=(1098-\eleve[\jj;12]-30)/50}
+\if{\jj=1}{\real{signe=1}}{\real{signe=-1}}
+
+\real{p=((\xpi+0.3)^2-(\xpa+0.3)^2+(\ypi+0.3)^2-(\ypa+0.3)^2+3*(\vs*9.5/607)^2)/2/(\ypi-\ypa)}
+\real{pp=((\xpi+0.3)^2-(\xj+0.3)^2+(\ypi+0.3)^2-(\yj+0.3)^2+8*(\vs*9.5/607)^2)/2/(\ypi-\yj)}
+\real{m=-(\xpi-\xpa)/(\ypi-\ypa)}
+\real{mm=-(\xpi-\xj)/(\ypi-\yj)}
+\real{xff=(\pp-\p)/(\m-\mm)}
+\real{yff=(\m*\pp-\p*\mm)/(-\mm+\m)}
+
+\real{xpin=(2)}
+
+\integer{tt=randint(1..2)}
+
+\if{\tt=1}{\real{ypin=\signe*sqrt((9.5*2.5*\vs/607)^2-(\xpin+0.3-\xff)^2)-0.3+\yff}}
+{\real{ypin=\signe*sqrt((9.5*2.5*\vs/607)^2-(\xpin+0.3-\xff)^2)-0.3+\yff-2}}
+\real{AB=607/9.5*sqrt((\xpin+0.3-\xff)^2+(\ypin+0.3-\yff)^2)}
+\integer{AZ=\AB*10}
+\real{ABB=\AZ/10}
+\real{tmpin=2.5}
+\integer{xxxx=(\tmpin+1)*60+4}
+\real{yyy=\AB/\vs}
+\integer{yyyy=(6-1)*60-(\yyy)*60+21}
+
+\text{po=slib(millimetre 7,6,,,1,\vs,[255,255,255],[190,190,190],,style:grad=xy)}
+\text{porep=slib(millimetre 7,6,,,1,\vs,[255,255,255],[190,190,190],,style:grad=xy,style:dot=+,\listcoor)}
+\text{droi=slib(graphpaper/func_milli 7,6,,,1,\vs,[255,255,255],[190,190,190],,\vs*x,[],\listcoor)}
+\text{droifinal=slib(graphpaper/func_milli 7,6,,,1,\vs,[255,255,255],[190,190,190],,\vs*x,[],\listcoor,\tmpin,\AB)}
+
+\text{axe=linewidth 1
+text red,25,59,giant,Distance
+text red,20,56,giant,  1 cm pour \vs m
+text red,50,6,giant,  Temps 
+text red,45,3,giant,  1 cm pour 1 s}
+
+\text{point=\po
+\axe}
+\text{pointrep=\porep
+\axe}
+\text{droite=\droi
+\axe}
+\text{droitefinal=\droifinal
+\axe}
+
+\text{urlpoint = draw(420,360
+\point)}
+
+\text{urlpointrep = draw(420,360
+\pointrep)}
+\text{urldroite = draw(420,360
+\droite)}
+\text{urldroitefinal = draw(420,360
+\droitefinal)}
+draw(1145,1098)
+
+\text{pro=Où se trouve l'orage? "besoin d'un chasseur d'orage"}
+\text{enonce=On va déterminer simplement le lieu où se trouve la foudre.}
+\text{tableau=}
+
+\text{A=slib(geo2D/jsxgraph jsxbox,1300 x 1300,
+var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 50, originY: 1249, unitX: 50, unitY: 50, axis:true,shownavigation:false, grid:true});
+var urlImg = "\imagedir/map.jpg";
+var im = board.create('image',[urlImg, [0,0], [22.9,21.96]],{fixed:true});
+
+var urlpierre = "\imagedir/pierre.gif";
+var impi = board.create('image',[urlpierre, [\xpi,\ypi], [0.6,0.6] ]);
+var pi = board.createElement('point',[\xpi+0.3,\ypi+0.3], {name:'Pierre',style:12,fixed:true});
+
+var urlpaul = "\imagedir/paul.gif";
+var impa = board.create('image',[urlpaul, [\xpa,\ypa], [0.6,0.6] ]);
+var pa = board.createElement('point',[\xpa+0.3,\ypa+0.3], {name:'Paul',style:12,fixed:true});
+
+var urljacques = "\imagedir/jacques.gif";
+var imj = board.create('image',[urljacques, [\xj,\yj], [0.6,0.6] ]);
+var j = board.createElement('point',[\xj+0.3,\yj+0.3], {name:'Jacques',style:12,fixed:true});
+
+var plpa = board.createElement('point',[\xpa+2.3,\ypa+2.3], {name:'A',style:5,strokeColor:'#2900fb'});
+var plj = board.createElement('point',[\xj+2.3,\yj+2.3], {name:'B', style:5,strokeColor:'#2900fb'});
+
+var f = board.createElement('point',[12,22.5], {name:'Foudre', style:6, strokeColor:'#2900fb'});
+
+var cpi = board.createElement('circle',["Pierre",\dppj[1]*9.5/607], {strokeColor:'#990000',strokeWidth:6});
+var cpa = board.createElement('circle',["Paul","A"], {strokeColor:'#990000',strokeWidth:6});
+var cj = board.createElement('circle',["Jacques","B"], {strokeColor:'#990000',strokeWidth:6});
+
+var dfp = board.createElement('text',[14,24.5,function(){
+    return 'Distance entre Paul et la Foudre = ' + (pa.Dist(plpa)*607/9.5).toFixed(1) +' m';
+  }],{fontSize:'20px'});
+
+var dfp = board.createElement('text',[14,23.5,function(){
+    return 'Distance entre Jacques et la Foudre = ' + (j.Dist(plj)*607/9.5).toFixed(1) +' m';
+  }],{fontSize:'20px'});
+
+var dfp = board.createElement('text',[14,22.5,function(){
+    return 'La Foudre a pour coordonnées : ' +'('+ f.X() +';'+f.Y()+')';}],{fontSize:'20px'});
+)}
+\text{B=slib(geo2D/jsxgraph jsxbox,1300 x 1300,
+var board = JXG.JSXGraph.initBoard('jsxbox', {originX: 50, originY: 1249, unitX: 50, unitY: 50, axis:true,shownavigation:false, grid:true});
+var urlImg = "\imagedir/map.jpg";
+var im = board.create('image',[urlImg, [0,0], [22.9,21.96]],{fixed:true});
+
+var urlpierre = "\imagedir/pierre.gif";
+var impi = board.create('image',[urlpierre, [\xpi,\ypi], [0.6,0.6] ]);
+var pi = board.createElement('point',[\xpi+0.3,\ypi+0.3], {name:'Pierre',style:12,fixed:true});
+
+var urlpaul = "\imagedir/paul.gif";
+var impa = board.create('image',[urlpaul, [\xpa,\ypa], [0.6,0.6] ]);
+var pa = board.createElement('point',[\xpa+0.3,\ypa+0.3], {name:'Paul',style:12,fixed:true});
+
+var urljacques = "\imagedir/jacques.gif";
+var imj = board.create('image',[urljacques, [\xj,\yj], [0.6,0.6] ]);
+var j = board.createElement('point',[\xj+0.3,\yj+0.3], {name:'Jacques',style:12,fixed:true});
+
+var urlPinocchio = "\imagedir/Pinocchio.png";
+var imPin = board.create('image',[urlPinocchio, [\xpin,\ypin], [0.6,0.6] ]);
+var j = board.createElement('point',[\xpin+0.3,\ypin+0.3], {name:'Pinocchio',style:12,fixed:true});
+
+
+var plpa = board.createElement('point',[12,23.5], {name:'A',style:5,strokeColor:'#2900fb'});
+var plj = board.createElement('point',[13,23.5], {name:'B', style:5,strokeColor:'#2900fb'});
+var li = board.createElement('line',[plpa,plj],{straightFirst:false, straightLast:false, strokeWidth:3, dash:0});
+
+var f = board.createElement('point',[\xff,\yff], {name:'Foudre', style:6,fixed:true});
+
+var cpi = board.createElement('circle',["Pierre",\dppj[1]*9.5/607], {strokeColor:'#990000',strokeWidth:6});
+var cpa = board.createElement('circle',["Paul",\dppj[2]*9.5/607], {strokeColor:'#990000',strokeWidth:6});
+var cj = board.createElement('circle',["Jacques",\dppj[3]*9.5/607], {strokeColor:'#990000',strokeWidth:6});
+
+var dfp = board.createElement('text',[14,24.5,function(){
+    return 'La Foudre a pour coordonnées : ' +'('+ f.X().toFixed(1) +';'+f.Y().toFixed(1)+')';
+  }],{fontSize:'20px'});
+var dfp = board.createElement('text',[14,23.5,function(){
+    return 'La Distance entre les points A et B est de ' + (plpa.Dist(plj)*607/9.5).toFixed(1) +' m';
+  }],{fontSize:'20px'});
+)}
+yyyy=\ytest ; AB= \AB ; v = \vs
+
+\statement{
+<br />
+<div class="consigne">
+
+<div id="boiteg">
+<img src="\imagedir/orage.jpeg" alt="Orage" />
+</div>
+<p class="problematique"> \pro</p>
+<p class="special_letter">\enonce<br /><br /><br /><br /><br /></p>
+
+\if{\step==1}{
+<br />
+<div class="consigne">
+<div class="wimscenter">\flash</div>
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+Après avoir regardé la vidéo, Déterminez s'il existe un décalage
+ temporel entre le son et la lumière de la foudre.
+<ul>
+\for{h = 1 to 2}{<li>\embed{reply1,\h}</li>}
+</ul>
+ 
+Quelle est l'information qui est transmise la plus rapidement?
+<ul>
+\for{h = 1 to 2}{<li>\embed{reply2,\h}</li>}
+</ul>
+</div>}
+
+\if{\step==2}{
+<br />
+<div class="consigne">
+<p class="special_letter">
+En effet la lumière se déplace à la vitesse de 300 000 km/s donc elle
+ met moins de 30 &#956;s pour faire 10 km. Par conséquent on peut
+ considérer que le phénomène est quasi-instantané.
+Par contre le son se déplace à une vitesse d'environ 340 m/s.
+ En utilisant le décalage temporel entre la lumière et le son,
+on détermine la distance entre l'éclair et une personne.</p>
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+<table class="wimscenter wimsborder">
+<tr>
+<td>La vitesse du son dans l'air est donnée
+ par la formule suivante :
+ <b> V<sub>son dans l'air</sub> = 331,5 + 0,6 &#952;</b></td>
+<td>&nbsp;&nbsp;</td>
+<td>
+avec <b>&#952;</b> : la température de l'air en degrés Celcius °C
+<br />
+et <b>V<sub>son dans l'air</sub></b> : vitesse du son dans l'air en m/s
+<br />
+</td>
+</tr>
+</table>
+<br /> 
+Lorsque l'orage a éclaté la température de l'air était de \T °C. 
+La vitesse du son dans l'air est donc de \embed{reply3,4} m/s.
+</div>
+}
+
+\if{\step==3}{
+\if{\reply3!=\vs}{<div class="solution">Votre réponse précédente
+ était erronée. Vous auriez dû réaliser le calcul suivant :
+<br />
+ <b> V<sub>son dans l'air</sub> = 331,5 + 0,6 \(times) \T = \vs m/s</b></td>
+<br />
+<img src="\imagedir/attention.png" alt="Attention" /> La multiplication est l'opération
+ prioritaire.
+</div>}
+<br />
+<div class="consigne">
+<p class="special_letter">
+La vitesse du son est donc de \vs m/s à la température de \T °C.</p>
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+Au même instant 3 élèves voient le même éclair mais ils entendent le
+ tonnerre au bout d'un temps différent.
+<br />
+<ul>
+<li>\ppj[1] Pierre entend le tonnerre au bout de \tppj[1] secondes.</li> 
+<li>\ppj[2] Paul entend le tonnerre au bout de \tppj[2] secondes.</li>
+<li>\ppj[3] Jacques entend le tonnerre au bout de \tppj[3] secondes.</li>
+</ul>
+Complétez le tableau suivant:
+<br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 3}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en secondes (s)</b></td>
+\for{j=4 to 6}{<td>\embed{reply\j, 50x40}</td>}
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres (m)</b></td>
+\for{k=7 to 9}{<td>\embed{reply\k, 4}</td>}
+</tr>
+</table>
+</div>}
+
+\if{\step==4}{
+\if{\reply7!=\dppj[1] or \reply8!=\dppj[2] or \reply9!=\dppj[3]}{
+<div class="solution">Votre réponse précédente était erronée.
+ Vous auriez dû réaliser les calcul suivants :
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 3}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en
+ secondes (s) <br /> Axes des abscisses x</b></td>
+\for{j=1 to 3}{<td>\tppj[\j]</td>}
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres
+ (m) <br />Axes des ordonnées y</b></td>
+\for{j=1 to 3}{
+<td> \j \(times) \vs = \dppj[\j]</td>}
+</tr>
+</table>
+</div>}
+
+<br />
+<div class="consigne">
+<p class="special_letter">
+La vitesse du son est donc de \vs m/s à la température de \T °C.</p>
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 3}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en
+ secondes (s) <br /> Axes des abscisses x</b></td>
+\for{j=1 to 3}{<td> \tppj[\j] </td>}
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres
+ (m) <br />Axes des ordonnées y</b></td>
+\for{j=1 to 3}{
+<td> \dppj[\j] </td>}
+</tr>
+</table>
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+<div class="wimscenter"> Placez les points Pierre, Paul, Jacques en cliquant sur le graphique.</div>
+<br />
+\embed{reply10, 420 x 360}
+</div>}
+
+\if{\step==5}{
+\if{1,2,3 notin \reply10}{<div class="solution">Votre réponse
+ précédente était erronée. Travaillez le placement de points.</div>}
+<br />
+<div class="consigne">
+<div class="wimscenter">
+<img src="\urlpointrep" alt="Graphique"/>
+</div>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+<span class="bold" style="font-style:italic">
+Conclusion :</span><span class="bold">L'ensemble des points de cette fonction linéaire</span>
+ <span class="bold" style="color:#fbf80a">\( D(t)= \vs times t)</span><span class="bold"> est
+ une \embed{reply11, 100x30} qui passe par l' \embed{reply12, 100x30} du repère.</span>
+</div>}
+
+\if{\step==6}{
+\if{\reply11 notwordof droite or \reply12  notwordof origine}{
+<div class="solution">Votre réponse précédente était erronée.
+<br />
+<span class="bold" style="font-style:italic">
+Conclusion :</span><span class="bold">L'ensemble des points de cette fonction linéaire</span>
+<span class="bold" style="color:#fbf80a">\( D(t)= \vs times t) </span><span class="bold"> est </span>
+<span class="bold" style="font-style:italic">une droite</span><span class="bold">  qui passe par </span>
+<span class="bold" style="font-style:italic">l'origine</span><span class="bold">  du repère.</span> 
+</div>}
+<div class="consigne">
+En route vers la géolocalisation de la foudre.
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+<ul>
+<li>\ppj[1] Pierre habite \eleve[\jj;2].</li> 
+<li>\ppj[2] Paul réside \eleve[\jj;6].</li>
+<li>\ppj[3] Jacques se trouve \eleve[\jj;10].</li>
+</ul>
+Positionnez chacun des élèves sur le plan fourni ci-dessous. On
+ pourra cliquer simultanément sur les touches Ctrl et - (touche6)
+ pour zoomer.
+<br /><br />
+<div class="wimscenter">
+\special{imagefill \imagedir/map.jpg,1145x1098,30x30
+reply13, \eleve[\jj;3]x\eleve[\jj;4]
+reply14, \eleve[\jj;7]x\eleve[\jj;8]
+reply15, \eleve[\jj;11]x\eleve[\jj;12]}
+</div>
+<br />
+</div>}
+
+\if{\step==7}{
+<div class="consigne">
+<p class="special_letter">
+La vitesse du son est donc de \vs m/s à la température de \T °C.</p>
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 3}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en
+ secondes (s) <br /> Axes des abscisses x</b></td>
+\for{j=1 to 3}{<td>\tppj[\j]</td>}
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres
+ (m) <br />Axes des ordonnées y</b></td>
+\for{j=1 to 3}{
+<td> \dppj[\j]</td>}
+</tr>
+</table>
+<br />
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+A l'aide du tableau de valeurs qui donne les distances entre l'éclair
+et l'élève, réalisez des cercles centrés sur l'élève qui ont pour
+ rayon la distance éclair-élève.
+<br />
+Dans la construction ci-dessous le cercle pour Pierre a déjà été réalisé.
+<br />
+Tracez les cercles de Paul et Jacques en déplaçant les points A et B.
+Vous pouvez lire la distance élève-éclair sur le haut du graphique. 
+</div>
+<br />
+<br />
+\A
+<br /><br />
+<div class="question">
+En déplaçant le point F pour Foudre situé en haut du graphique,
+ déterminez les coordonnées de la foudre.
+<br />
+<div class="wimscenter">F(\embed{reply16, 4}; \embed{reply17, 4})</div>
+</div>}
+
+
+\if{\step==8}{
+\if{\reply16<=\xff-0.3 or \reply16>=\xff+0.3 or \reply17<=\yff-0.3 or \reply17>=\yff+0.3}
+{<div class="solution">Soyez plus précis dans vos constructions.</div>}
+<div class="consigne">
+<p class="special_letter">
+La vitesse du son est donc de \vs m/s à la température de \T °C.</p>
+<br />
+<img src="\imagedir/Pinocchio.png" alt="Pinocchio" />Pinocchio entend le tonnerre au bout de \tmpin s. 
+<br />
+</div>
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+En déplaçant les points A et B qui se trouvent sur le graphique,
+ déterminez la distance entre Pinocchio est l'éclair.
+</div>
+<br />
+<br />
+\B
+<br /><br />
+<div class="question">
+Complétez le tableau suivant :
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 4}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en
+ secondes (s) <br /> Axes des abscisses x</b></td>
+\for{j=1 to 3}{<td>\tppj[\j]</td>}
+ <td>\embed{reply18, 4}</td>
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres
+ (m) <br />Axes des ordonnées y</b></td>
+\for{j=1 to 3}{
+<td> \dppj[\j]</td>}
+ <td>\embed{reply19, 4}</td>
+</tr>
+</table>
+</div>}
+
+\if{\step==9}{
+\if{\reply19<=\AB-20 or \reply19>=\AB+20}
+{<div class="solution">Soyez plus précis dans vos constructions.</div>} 
+<div class="consigne">
+<p class="special_letter">
+La vitesse du son est donc de \vs m/s à la température de \T °C.</p>
+<br />
+<img src="\imagedir/Pinocchio.png" alt="Pinocchio" />Pinocchio entend le tonnerre au bout de \tmpin s à une ditance de \ABB m. 
+<br />
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 4}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en
+ secondes (s) <br /> Axes des abscisses x</b></td>
+\for{j=1 to 3}{<td>\tppj[\j]</td>}
+ <td>\tmpin</td>
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres
+ (m) <br />Axes des ordonnées y</b></td>
+\for{j=1 to 3}{
+<td> \dppj[\j]</td>}
+ <td>\ABB</td>
+</tr>
+</table>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+<div class="wimscenter"> Placez le point \alphabet[4] en cliquant sur le graphique.</div>
+<br />
+\embed{reply20, 420 x 420}
+</div>
+<br />
+}
+
+\if{\step==10}{
+\if{0,1,1 isin \reply20}{<div class="solution">Votre réponse
+ précédente était erronée. Retournez travail sur la feuille
+ travail sur le placement de points.</div>}
+<div class="consigne">
+<p class="special_letter">
+La vitesse du son est donc de \vs m/s à la température de \T °C.</p>
+<br />
+<img src="\imagedir/Pinocchio.png" alt="Pinocchio" />Pinocchio entend le tonnerre au bout de \tmpin s à une ditance de \ABB m. 
+<br />
+Ce tableau est <b>un tableau de valeurs</b> de la fonction <b>D</b>.
+<br /><br />
+<table class="wimscenter wimsborder">
+<tr>
+<td></td>
+\for{l=1 to 4}{<td>&nbsp;&nbsp;<b>\alphabet[\l]</b>&nbsp;&nbsp;</td>}
+</tr>
+<tr>
+<td><b>Décalage entre l'éclair et le tonnerre en
+ secondes (s) <br /> Axes des abscisses x</b></td>
+\for{j=1 to 3}{<td>\tppj[\j]</td>}
+ <td>\tmpin</td>
+</tr>
+<tr>
+<td><b>Distance entre l'éclair et la foudre en mètres
+ (m) <br />Axes des ordonnées y</b></td>
+\for{j=1 to 3}{
+<td> \dppj[\j]</td>}
+ <td>\ABB</td>
+</tr>
+</table>
+<br />
+<div class="wimscenter">
+<img src="\urldroitefinal" alt="Droite" />
+</div>
+</div>
+
+<div class="question">
+<div class="etape">ÉTAPE \step sur 10</div>
+Le point est-il sur la droite ?
+<ul>
+\for{h = 1 to 2}{<li>\embed{reply21,\h}</li>}
+</ul>
+Pinocchio certifie qu'il a vu le même éclair que Pierre, Paul,
+ Jacques. A-t-il menti?
+<ul>
+\for{h = 1 to 2}{<li>\embed{reply22,\h}</li>}
+</ul>
+Est-ce-que son nez, c'est allongé?
+<ul>
+\for{h = 1 to 2}{<li>\embed{reply23,\h}</li>}
+</ul>
+Si oui de combien de cm?
+<ul><li>\embed{reply24,4} cm</li></ul>
+</div>}
+</div>}
+
+
+
+\answer{Existe-il}{1;oui,non}{type=radio}{option=shuffle split}
+\answer{Le phénomène le plus rapide est }{1;la lumière,le son}{type=radio}{option=shuffle split}
+
+\answer{La vitesse du son est de }{\vs}{type=numeric}{option=nonstop}
+
+\answer{}{\tppj[1]}{type=clickfill}{option=shuffle}
+\answer{}{\tppj[2]}{type=clickfill}{option=shuffle}
+\answer{}{\tppj[3]}{type=clickfill}{option=shuffle}
+
+\answer{La distance Pi-F est de }{\dppj[1]}{type=numeric}{option=nonstop}
+\answer{La distance Pa-F est de }{\dppj[2]}{type=numeric}{option=nonstop}
+\answer{La distance J-F est de }{\dppj[3]}{type=numeric}{option=nonstop}
+
+\answer{}{\urlpoint;points,\listcoordonne}{type=jsxgraphcurve}{option=nonstop color1=blue color2=red}
+
+\answer{}{droite;droite,origine,point,axe,repère,ordonnée,abscisse}{type=clickfill}{option=shuffle nonstop}
+\answer{}{origine}{type=clickfill}{option=shuffle nonstop}
+
+\answer{}{\ppj[1];\ppj}{type=clickfill}{option=shuffle}
+\answer{}{\ppj[2]}{type=clickfill}{option=shuffle}
+\answer{}{\ppj[3]}{type=clickfill}{option=shuffle}
+
+\answer{abscisse de la foudre :}{\xff-0.3,\xff+0.3,\xff}{type=range}{option= nonstop}
+\answer{L'ordonnée de la foudre est de }{\yff-0.3,\yff+0.3,\yff}{type=range}{option= nonstop}
+
+\answer{Pinocchio entend le tonnerre au bout de }{\tmpin}{type=numeric}
+\answer{Distance entre Pinocchio et la foudre}{\AB-20,\AB+20,\AB}{type=range}{option= nonstop}
+
+\answer{}{\urldroite;points,\xxxx,\yyyy}{type=jsxgraphcurve}{option=nonstop color1=blue color2=red}
+
+\answer{Le point est-il sur la droite }{\tt;oui,non}{type=radio}{option=shuffle split}
+\answer{A-t-il menti}{\tt;non,oui}{type=radio}{option=shuffle split}
+\answer{Est-ce-que son nez c'est allongé}{\tt;non,oui}{type=radio}{option=shuffle split}
+\answer{De combien de cm}{\nnnnnnn}{type=numeric}

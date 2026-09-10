@@ -1,0 +1,236 @@
+!set title=Order 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=en
+title_fr=Ordre 4
+title_nl=Volgorde 4
+
+ansorder=r,r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 0 of table.\lang
+
+val6=$(tmp0)
+
+!ifval $val6=
+tmp0=!record 0 of table
+
+val6= $(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val7=$[rint($(tmp0))]
+
+!ifval $val2 notitemof 1,2,3,4
+val2=$[rint(0)]
+!endif
+
+!ifval $val3 notitemof 1,2,3,4
+val3=$[rint(0)]
+!endif
+val8=
+
+!ifval $val4 issametext $val8 or $val4<7 or	  $val4>$val7
+val4=$[rint(54)]
+!endif
+tmp0=!values x for x=1 to $val7
+
+val9=$(tmp0)
+tmp0=!listintersect $val5 and $val9
+
+val5=$(tmp0)
+
+!ifval $val2>0
+val10=$[rint($val2)]
+!else
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+!endif
+
+!ifval $val3=$val2
+val11=$[rint(0)]
+!else
+val11=$[rint($val3)]
+!endif
+tmp0=!listcomplement $val10 in 1,2,3,4
+
+val12=$(tmp0)
+
+!ifval \candouble issametext yes and $val10 != 1
+val12=$val10,$val12
+!endif
+
+!ifval $val11>0 and $val11 isitemof $val12
+val13=$[rint($val11)]
+!else
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=atomic numbers,symbols,names,atomic masses in \(u\)
+val16=Arrange the following atoms in the increasing order, by dragging them	  in to the empty boxes.
+val17=Element
+!if $val14=fr 
+val15=numéros atomiques,symboles,noms,masses atomiques en \(u\)
+val16=Rangez les atomes suivants dans l'ordre croissant des numéros atomiques, en les tirant	  dans les cases vides.
+val17=Élément
+!endif
+!if $val14=nl 
+val15=atoom nummers,symbolen,namen,massas
+val16=Rangschik de volgende atomen in oplopende volgorde,	  door de plaatjes met je muis te lepen naar de juiste open plekken.
+val17=Element
+!endif
+val18=$[rint(4)]
+tmp0=!record 0 of table.$val14
+
+val19=$(tmp0)
+
+!ifval $val19=$val8
+tmp0=!record 0 of table
+
+val19= $(tmp0)
+!endif
+val6=$val19
+val8=
+!if $val5 notsametext $val8 and \selective notsametext no 
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val22=$[rint(min($val4,$(tmp0)))]
+
+!ifval $val10 notitemof 2,3
+tmp=!nonempty items 2,3
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+!endif
+val23=60,60,120,100
+tmp0=!shuffle $val22
+
+tmp1=!item 1 to $val18 of $(tmp0)
+
+val24=$(tmp1)
+tmp0=!sort numeric items $val24
+
+val24=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val24 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+replytype1=dragfill
+replyname1=$val17 1
+replygood1=$(val6[1])
+replytype2=dragfill
+replyname2=$val17 2
+replygood2=$(val6[2])
+replytype3=dragfill
+replyname3=$val17 3
+replygood3=$(val6[3])
+replytype4=dragfill
+replyname4=$val17 4
+replygood4=$(val6[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val16	  <div class="wimscenter">	   
+!for m_i=1 to $val18 
+$()	     
+!read oef/embed.phtml r\i,$(val23[$val10])x30 
+$()	   
+!next
+$()	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,16,18,23
+embedcnt=1

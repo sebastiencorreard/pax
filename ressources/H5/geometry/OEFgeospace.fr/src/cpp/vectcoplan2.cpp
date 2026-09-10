@@ -1,0 +1,147 @@
+target=vectcoplan2
+#include "lang_titles.inc"
+#include "author.inc"
+#include "css.inc"
+#include "lang.inc"
+\precision{10000}
+
+** donnée de trois vecteurs indépendants
+\matrix{V=slib(matrix/invertible 3,3)}
+
+%% coordonnées de u
+\matrix{u=\V[1;]}
+
+%% coordonnées de v
+\matrix{v=\V[2;]}
+\matrix{t=\V[3;]}
+
+%% coordonnées de w
+
+\integer{x=random(1..5)*random(1,-1)}
+\integer{y=random(1..5)*random(1,-1)}
+
+%% On place une inconnue
+\integer{ip=random(1..3)}
+\integer{ip=3}
+\integer{ic=random(1..3)}
+%% debug integer{ic=3}
+\integer{tdet1=(\u[2])*(\v[3])-(\u[3])*(\v[2])}
+\integer{tdet2=(\u[1])*(\v[3])-(\u[3])*(\v[1])}
+\integer{tdet3=(\u[1])*(\v[2])-(\u[2])*(\v[1])}
+%% on ne veut pas 2 déterminants nuls
+\if{\tdet1=0 and \tdet2=0}
+{
+\integer{i=\v[3]+1}
+\matrix{v=\v[1],\v[2],\i}
+\integer{tdet1=(\u[2])*(\v[3])-(\u[3])*(\v[2])}
+\integer{tdet2=(\u[1])*(\v[3])-(\u[3])*(\v[1])}
+}
+\if{\tdet2=0 and \tdet3=0}
+{
+\integer{i=\v[1]+1}
+\matrix{v=\i,\v[2],\v[3]}
+\integer{tdet2=(\u[1])*(\v[3])-(\u[3])*(\v[1])}
+\integer{tdet3=(\u[1])*(\v[2])-(\u[2])*(\v[1])}
+}
+\if{\tdet1=0 and \tdet3=0}
+{
+\integer{i=\v[2]+1}
+\matrix{v=\v[1],\i,\v[3]}
+\integer{tdet1=(\u[2])*(\v[3])-(\u[3])*(\v[2])}
+\integer{tdet3=(\u[1])*(\v[2])-(\u[2])*(\v[1])}
+}
+%% choix de w
+\matrix{w=pari(print([\u]*(\x)+[\v]*(\y)))}
+
+%%# on ne veut pas placer ic avec un déterminant nul
+\if{\ic=1 and \tdet1=0}{\integer{ic=2}}
+\if{\ic=2 and \tdet2=0}{\integer{ic=3}}
+\if{\ic=3 and \tdet3=0}{\integer{ic=1}}
+\if{\ip=1}
+{
+\integer{val=\u[\ic]}
+\matrix{u= wims(replace internal item number \ic by t in \u)}
+}
+{
+ \if{\ip=2}
+ {
+  \integer{val=\v[\ic]}
+  \matrix{v= wims(replace internal item number \ic by t in \v)}
+ }
+ {
+  \integer{val=\w[\ic]}
+  \matrix{w= wims(replace internal item number \ic by t in \w)}
+ }
+}
+
+%%preparation de la solution rédigée
+\text{eq1=texmath(\u[1]*x+(\v[1])*y)}
+\text{eq2=texmath(\u[2]*x+(\v[2])*y)}
+\text{eq3=texmath(\u[3]*x+(\v[3])*y)}
+\if{\ic=1}{
+  \text{numeq=(2) et (3)}
+  \text{numeq3=(1)}
+  \integer{tdet=(\u[2])*(\v[3])-(\u[3])*(\v[2])}
+  \integer{tx=(\w[2])*(\v[3])-(\w[3])*(\v[2])}
+  \integer{ty=(\u[2])*(\w[3])-(\u[3])*(\w[2])}
+  \text{eq4=\((\u[1]) \times \frac{\tx}{\tdet} + (\v[1]) \times \frac{\ty}{\tdet})}
+}{
+  \if{\ic=2}{
+    \text{numeq= (1) et (3)}
+    \text{numeq3=(2)}
+    \integer{tdet=(\u[1])*(\v[3])-(\u[3])*(\v[1])}
+    \integer{tx=(\w[1])*(\v[3])-(\w[3])*(\v[1])}
+    \integer{ty=(\u[1])*(\w[3])-(\u[3])*(\w[1])}
+    \text{eq4=\((\u[2]) \times \frac{\tx}{\tdet} + (\v[2]) \times \frac{\ty}{\tdet})}
+  }{
+    \text{numeq= (1) et (2)}
+    \text{numeq3=(3)}
+    \integer{tdet=(\u[1])*(\v[2])-(\u[2])*(\v[1])}
+    \integer{tx=(\w[1])*(\v[2])-(\w[2])*(\v[1])}
+    \integer{ty=(\u[1])*(\w[2])-(\u[2])*(\w[1])}
+    \text{eq4=\((\u[3]) \times \frac{\tx}{\tdet} + (\v[3]) \times \frac{\ty}{\tdet})}
+  }
+}
+\statement{
+<div class="\style1">
+<p>
+\name_enonce
+</p>
+<div class="wimscenter">
+\(\overrightarrow{u}\left(\begin{array}{c}\u[1]\\ \u[2]\\ \u[3]\end{array}\right)\),
+\(\overrightarrow{v}\left(\begin{array}{c}\v[1]\\ \v[2]\\ \v[3]\end{array}\right)\),
+\(\overrightarrow{w}\left(\begin{array}{c}\w[1]\\ \w[2]\\ \w[3]\end{array}\right)\).
+</div>
+ \name_question
+</div>
+<div class="\style2">
+ Votre réponse : <label for="reply1">Valeur de \(t\)</label>: \embed{reply1,\size}.
+</div>
+}
+
+\answer{}{\val}{type=numeric}
+\hint{Trouver un couple \((x,y)\) tel que \(\overrightarrow{w} = x \overrightarrow{u} + y \overrightarrow{v}\).}
+\solution{On constate tout dabord que \(\overrightarrow{u}\) et \(\overrightarrow{v}\) ne sont pas colinéaires.<br>
+Cherchons (x,y) tel que
+\(\overrightarrow{w} = x \overrightarrow{u} + y \overrightarrow{u}\).<br>
+On doit résoudre le système:<br>
+\( \left \lbrace \begin{array}{rcll} \w[1]&=&\eq1 & (1)\\ \w[2]&=&\eq2 & (2)\\ \w[3]&=&\eq3 & (3)\end{array} \right .\)<br>
+On résoud le système formé des équations \numeq : le déterminant du système vaut \tdet donc il possède une unique solution.<br>
+On trouve \(x = \frac{\tx}{\tdet}\) et \(y=\frac{\ty}{\tdet}\).<br>
+Il suffit de remplacer \(x\) et \(y\) dans l'équation \numeq3 pour trouver la valeur de \(t\):<br>
+\( t\) = \eq4 donc \(t=\val\).}
+
+\latex{
+\begin{statement}
+\name_enonce
+<div>
+\(\overrightarrow{u} \left(\begin{array}{c}\u[1]\\ \u[2]\\ \u[3]\end{array}\right)\),
+\(\overrightarrow{v} \left(\begin{array}{c}\v[1]\\ \v[2]\\ \v[3]\end{array}\right)\),
+\(\overrightarrow{w} \left(\begin{array}{c}\w[1]\\ \w[2]\\ \w[3]\end{array}\right)\).
+</div>
+\name_question
+\end{statement}
+\begin{solution}
+\(t= \val\)
+\end{solution}
+}

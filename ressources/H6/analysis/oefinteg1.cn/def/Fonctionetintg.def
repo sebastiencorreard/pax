@@ -1,0 +1,151 @@
+!set title=函数与积分
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=cn
+leftrange=-5.000000
+rightrange=5.000000
+author=Michel Gosse
+email=michel.gosse@ac-poitiers.fr
+computeanswer=no
+precision=10000
+
+ansorder=c
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem $val6*sqrt($val7+$val8*x^2),$val6/($val7+$val8*x^2),	$val6*exp($val9*x^2),$val6*log(1+$val7+$val8*x^2)
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val10;
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+tmp0=!texmath $val10
+
+val11=\$(tmp0)
+tmp0=!randint -10, 10
+
+val12=$[rint($(tmp0))]
+evaltmp=$val10
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val13=$[$(tmp0)]
+
+!ifval ($val13>0)
+val14=递增
+!else
+val14=递减
+!endif
+
+!ifval ($val13>0)
+val15=>0
+!else
+val15=<0
+!endif
+
+!ifval ($val13>0)
+val16=,递减
+!else
+val16=递增
+!endif
+t_=!replace internal \( by ( in subst(x=t,$val10);
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+choicename1=方向 :
+choicegood1=$val14
+choicebad1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()考虑由下式定义的 
+!insmath \RR
+$() 上的函数 <i>F</i> :	<center>	
+!insmath F(x)=\int_{$val12}^{x}$val18 \, dt
+$()	</center>	在 
+!insmath \RR
+$() 上, 函数 <i>F</i> 是 :	
+$()
+!exit
+
+:hint
+$()根据定义, 函数 <i>F</i> 是函数	<center>	
+!insmath t \rightarrow $val18
+$() 	</center>	在 
+!insmath \RR
+$() 上的在 $val12 取零值的唯一原函数.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()对 
+!insmath \RR
+$() 的所有 <i>x</i>, 函数 <i>F</i> 的导数可表示成 :	<center>	
+!insmath F'(x)=$val11
+$()	</center>	由于 
+!insmath F'(x)$val15
+$(), 可以推断函数 <i>F</i> 在 
+!insmath \RR
+$() 上是$val14的.
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14,15,18
+embedcnt=0

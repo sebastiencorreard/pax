@@ -1,0 +1,187 @@
+!set title=Egalité de deux programmes de calcul (0).
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul@byache.fr
+precision=10000
+oefcss=<style> table.algo {border: 2px solid #999;} .fleche {font-size:2em;} .center {text-align:center;} </style>
+
+ansorder=r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2= 
+val2= 1,2,3,4,5
+!else
+val2=$val2
+!endif
+
+!ifval $val4= 
+val4= 1
+!else
+val4=$val4
+!endif
+
+!ifval $val5= 
+val5= 1
+!else
+val5=$val5
+!endif
+tmp0=!randint 1, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 3, 7
+
+val7=$[rint($(tmp0))]
+!if $val4=1 
+val7=$[rint(1)]
+!endif
+!if $val4=2 
+val7=$[rint(10)]
+!endif
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+!if $val4=2 
+tmp0=!randint 1, 300
+
+val8=$[$(tmp0)/10]
+!endif
+!if $val4=3 
+t_=!rawmath $val6/$val7
+val8=!exec pari print($t_)
+!endif
+tmp0=!randint 4, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val10=$[rint($val9- $(tmp0))]
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+t_=!rawmath $val8*($val9-$val10)
+val12=!exec pari print($t_)
+tmp=!trim eval(document.getElementById('caseXXX').value)*$val9
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=document.getElementById('caseYYY').value=Math.round($(val13[1;])*10000000000000000000)/10000000000000000000
+tmp0=!replace internal XXX by 1 in $val14
+
+val15=$(tmp0)
+tmp0=!replace internal YYY by 2 in $val15
+
+val15=$(tmp0)
+tmp=!trim eval(document.getElementById('caseXXX').value)*$val10	Math.log(Math.exp(document.getElementById('caseXXX').value)*Math.exp($val12))
+val16=!translate internal $	\
+$ to ;; in $tmp
+val17=document.getElementById('caseYYY').value=Math.round($(val16[1;])*10000000000000000000)/10000000000000000000
+val18=document.getElementById('caseYYY').value=Math.round($(val16[2;])*10000000000000000000)/10000000000000000000
+tmp0=!replace internal XXX by 1 in $val17
+
+val19=$(tmp0)
+tmp0=!replace internal YYY by 5 in $val19
+
+val19=$(tmp0)
+tmp0=!replace internal XXX by 5 in $val18
+
+val20=$(tmp0)
+tmp0=!replace internal YYY by 6 in $val20
+
+val20=$(tmp0)
+val21=$val15;$val19;$val20;
+
+!ifval $val4=3 
+val22= algexp 
+!else
+val22= numeric
+!endif
+val23=ajoute
+!if $val12<0 
+val23=soustrait
+t_=!rawmath -$val12
+val12=!exec pari print($t_)
+!endif
+val24=On multiplie<br>par $val9.
+val25=On multiplie<br>par $val10.,On $val23 $val12.
+val26=<iframe src=scripts/js/wincalc.html height="400" width="500" frameborder="0" align="right">	<iframe src=scripts/js/wincalc.html height=300 width=500 frameborder=0 align=right>	</iframe>	Il est plus pratique d'utiliser votre propre calculatrice mais voici une calculatrice.<br>Pour calculer \(sqrt(8)) par exemple, taper	<span class="tt">8</span> puis la touche <span class="tt">sqrt</span>.	<br>Notez les résultats sur une feuille de brouillon.<br>Quand vous avez fini vos calculs,	cliquez sur "retour au travail" ci-dessous.:
+replytype1=$val22
+
+replyname1=
+replygood1=$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val26
+
+
+!goto stat
+
+!exit
+
+:question
+$()Voici deux programmes de calcul qui utilisent la même valeur de départ.	<br>Quelle valeur de départ faut-il choisir pour que les deux programmes de calculs aboutissent au même résultat ?	<div class="unbreakable">	<table class="wimscenter algo">	<tr>	<td></td><td class="center" colspan="3">	<input type="text" style="color:blue;background:yellow;text-align:center;" id="case1" size="15" value="3" />	</td><td></td></tr>	<tr><td></td><td class="fleche">&darr;</td><td></td><td class="fleche">&darr;</td><td>	$(val25[1])	</td></tr><tr>	<td>$(val24[1])</td><td class="fleche">&darr;</td><td></td><td>	<input type="text" style="text-align:center;" id="case5" size="10" />	</td><td></td></tr>	<tr><td>	</td><td class="fleche">&darr;</td><td></td><td class="fleche">&darr;</td><td>	$(val25[2])	</td></tr><tr>	<td></td><td>	<input type="text" style="text-align:center;" id="case2" size="10" />	</td><td></td><td>	<input type="text"  style="text-align:center;" id="case6" size="10" />	</td><td></td></tr>	
+!if $val5=1 
+$()	<tr><td colspan="5">	<input type="button" value="Calcule" onclick="$val21" />	<input type="reset" value="Efface" /> 
+!endif
+$()	</td></tr></table>	</div>	Le nombre recherché est :  
+!read oef/embed.phtml r1	autocomplete="off" 
+$()	
+!if $val5=1 
+$()<div class="wims_instruction">	Pour t'aider, tu peux modifier le nombre de départ (case jaune) et cliquer sur	<span class="tt">Calcule</span>.	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()$val26
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=5,21,24,25,26
+embedcnt=1

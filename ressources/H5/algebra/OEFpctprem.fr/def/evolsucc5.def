@@ -1,0 +1,388 @@
+!set title=Évolutions successives 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Fabien, Sommier
+email=regine@mangeard.fr,fabien.sommier@gmail.com
+precision=100
+
+ansorder=r
+varcnt=118
+prevarcnt=117
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=augmente,baisse
+val7=augmenter,baisser
+val8=hausse,baisse
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1000, 3000
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val11=$[rint($(tmp0))]
+
+!ifval $val9=1
+val12=$[1+$val11/100]
+!else
+val12=$[1-$val11/100]
+!endif
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 10, 90
+
+val14=$[rint($(tmp0))]
+
+!ifval $val13=1
+val15=$[1+$val14/100]
+!else
+val15=$[1-$val14/100]
+!endif
+val16=$[$val12*$val15]
+!if $val16=1 
+val13=$[rint(3-$val13)]
+
+!ifval $val13=1
+t_=!rawmath 1+$val14/100
+val15=!exec pari print($t_)
+!else
+t_=!rawmath 1-$val14/100
+val15=!exec pari print($t_)
+!endif
+t_=!rawmath $val12*$val15
+val16=!exec pari print($t_)
+!endif
+
+!ifval $val16>1
+val17=$[rint(1)]
+!else
+val17=$[rint(2)]
+!endif
+val18=$[($val16-1)*100]
+
+!ifval $val17=1
+val19=$[($val16-1)*100]
+!else
+val19=$[(1-$val16)*100]
+!endif
+t_=!rawmath $val10*$val16
+val20=!exec pari print($t_)
+val21=$[rint($val20)]
+val22=$[round($val20*100)/100]
+!readproc slib/numeration/ecriturenombre $val19,comma tex 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val16,comma tex 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val12,comma tex 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val15,comma tex 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val22,comma tex 
+tmp0=$slib_out
+val27=$(tmp0)
+!if $val22!=$val20 
+val28=euros (valeur arrondie au centime).
+!else
+val28=euros.
+!endif
+tmp0=!randint 2, 20
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val14=$[rint($val11+$(tmp0))]
+val29=
+val30=
+val31=
+val8=baisse de $val11 % <br>puis baisse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1-$val11/100)*(1-$val14/100)]
+t_=!replace internal \( by ( in $val32*x
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1-\frac{$val11}{100}\right) \times \left(1-\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=hausse de $val11 % <br> puis baisse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1+$val11/100)*(1-$val14/100)]
+t_=!replace internal \( by ( in $val32*x
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1+\frac{$val11}{100}\right) \times \left(1-\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=hausse de $val11 % <br>puis hausse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1+$val11/100)*(1+$val14/100)]
+t_=!replace internal \( by ( in $val32*x
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1+\frac{$val11}{100}\right) \times \left(1+\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=hausse de $val11 €<br>puis baisse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1-$val14/100)]
+t_=!replace internal \( by ( in $val32*(x+$val11)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(\left(x + $val11 \right) \times \left(1-\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=hausse de $val11 €<br>puis hausse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1+$val14/100)]
+t_=!replace internal \( by ( in $val32*(x+$val11)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(\left(x + $val11 \right) \times \left(1+\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=baisse de $val11 €<br>puis hausse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1+$val14/100)]
+t_=!replace internal \( by ( in $val32*(x-$val11)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(\left(x - $val11 \right) \times \left(1+\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=baisse de $val11 €<br>puis baisse de $val14 %
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1-$val14/100)]
+t_=!replace internal \( by ( in $val32*(x-$val11)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(\left(x - $val11 \right) \times \left(1-\frac{$val14}{100}\right)\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=hausse de $val11 %<br>puis baisse de $val14 €
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1+$val11/100)]
+t_=!replace internal \( by ( in $val32*x-$val14
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1+\frac{$val11}{100}\right) -$val14\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=hausse de $val11 %<br>puis hausse de $val14 €
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1+$val11/100)]
+t_=!replace internal \( by ( in $val32*x+$val14
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1+\frac{$val11}{100}\right) +$val14\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=baisse de $val11 %<br>puis hausse de $val14 €
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1-$val11/100)]
+t_=!replace internal \( by ( in $val32*x+$val14
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1-\frac{$val11}{100}\right) +$val14\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+val8=baisse de $val11 %<br>puis baisse de $val14 €
+tmp0=!append item $val8 to $val30
+
+val30=$(tmp0)
+val32=$[(1-$val11/100)]
+t_=!replace internal \( by ( in $val32*x-$val14
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!append item \($val33\) to $val29
+
+val29=$(tmp0)
+val34=\(x \times \left(1-\frac{$val11}{100}\right) -$val14\)
+tmp0=!append item $val34 to $val31
+
+val31=$(tmp0)
+tmp0=!itemcnt $val29
+
+tmp1=!shuffle $(tmp0)
+
+val35=$(tmp1)
+val29=$(val29[$(val35[1])]),$(val29[$(val35[2])]),$(val29[$(val35[3])]),$(val29[$(val35[4])]),$(val29[$(val35[5])])
+val30=$(val30[$(val35[1])]),$(val30[$(val35[2])]),$(val30[$(val35[3])]),$(val30[$(val35[4])]),$(val30[$(val35[5])])
+val31=$(val31[$(val35[1])]),$(val31[$(val35[2])]),$(val31[$(val35[3])]),$(val31[$(val35[4])]),$(val31[$(val35[5])])
+val36=Description d'évolution,Expression en fonction de \(x\)
+!for val37 =1 to 5 
+val36=$val36;$(val30[$val37]),$(val31[$val37]) \(=\) $(val29[$val37])
+!next
+!readproc slib/text/matrixhtml [$val36],1 center wimsborder,TH=[1;] 
+tmp0=$slib_out
+val38=$(tmp0)
+replytype1=correspond
+replyname1=
+replygood1=$val30;$val29
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst <div class="table-scroll">$val38</div> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	  Un prix 
+!insmath x
+$() (en euros) subit deux évolutions successives.<br>	  Associer à chaque description d'évolutions l'expression en 
+!insmath x
+$() correspondante.	</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1,50x190x140 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<div class="table-scroll">$val38</div> 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=38
+embedcnt=1

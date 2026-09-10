@@ -1,0 +1,131 @@
+!set title=Factorisation d'un polynôme de degré 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=lva.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 20
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1,0
+
+tmp1=!randint 20, 40
+
+t_=!replace internal \( by ( in prime($(tmp1))
+tmp2=!exec pari $t_
+
+val9=$[rint($(tmp0)*$(tmp2))]
+val10=!rawmath (x-$val6)*(x-$val7)*((x-$val8)^2-($val9))
+t_=!replace internal \( by ( in expand($val10)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+!if $val9>0 
+val12=$[rint(4)]
+!endif
+!if $val9=0 
+val12=$[rint(3)]
+!endif
+!if $val9<0 
+val12=$[rint(2)]
+!endif
+!if $val6=$val7 
+val12=$[rint($val12-1)]
+!endif
+!if ($val9=0 and $val8=$val6) or ($val9=0 and $val8=$val7) 
+val12=$[rint($val12-1)]
+!endif
+val13=$val11 \	
+val14=showToolBar=true	showMenuBar=true	width=600	height=500	
+!readproc slib/geo2D/geogebra $val13 , $val14 
+tmp0=$slib_out
+val15=$(tmp0)
+replytype1=default
+replyname1=Nombre de racines
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère le polynôme	<div class="wimscenter">	
+!insmath p(x)=$val11
+$()	</div>	Déterminer le nombre de racines réelles distinctes de 
+!insmath p
+$().		On pourra à cette fin utiliser les outils de factorisation ou de visualisation.	<div class="wimscenter">	Ce polynôme possède  
+!read oef/embed.phtml reply 1,5 
+$() racines réelles distinctes.	</div>	<div class="spacer">	<b> Indication: </b> ce polynôme possède des racines évidentes	dans l'intervalle &#91; -20; 20 &#93;.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11
+embedcnt=1

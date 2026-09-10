@@ -1,0 +1,171 @@
+!set title=Triangle rectangle isocèle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal,Causse
+email=chantal.causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 9
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+
+!ifval $val8=$val6 and $val9=$val7
+val9=$[rint( $val9+1)]
+!endif
+val10=$[rint($val8-$val6)]
+val11=$[rint($val9-$val7)]
+val12=$[$val6-$val11]
+val13=$[$val6+$val11]
+val14=$[$val7+ $val10]
+val15=$[$val7-$val10]
+t_=!rawmath $val6 + ($val7)*i
+t_=!exec pari print($t_)
+val16=!mathsubst I=i in $t_
+t_=!rawmath $val8 + ($val9)*i
+t_=!exec pari print($t_)
+val17=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in $val13+($val15)*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+tmp=!translate ";': to $     $ in $val12+($val14)*i
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=$(tmp0)
+replytype1=numeric
+replyname1=\(Re(z))
+replygood1=?analyze 20
+replytype2=numeric
+replyname2=\(Im(z))
+replygood2=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Si 
+!insmath A
+$() et 
+!insmath B
+$() sont des points du plan d'affixes 
+!insmath $val16
+$()	et 
+!insmath $val17
+$(), trouver l'affixe d'un point 
+!insmath M
+$() tel que le triangle	
+!insmath A B M
+$() soit rectangle isocèle en 
+!insmath A
+$().
+$()
+!exit
+
+:hint
+$()
+!insmath M
+$() est l'image de 
+!insmath B
+$() par une rotation. Laquelle ?
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath M
+$() est l'image de 
+!insmath B
+$() par la rotation de centre 
+!insmath A
+$() et d'angle	+ $m_pi/2 ou par la rotation de centre 
+!insmath A
+$() et d'angle - $m_pi/2.	L'affixe de 
+!insmath M
+$() se calcule donc par la formule :	<p class="wimscenter"> 
+!insmath  z - ($val16)
+$() = 
+!insmath (\cos(\pi/2) + i\sin(\pi/2))
+$()	
+!insmath (($val17) - ($val16)) = i(($val17) - ($val16))
+$() </p>	ou bien	<p class="wimscenter">	
+!insmath  z - ($val16) = (\cos(-\pi/2) + i\sin(-\pi/2))(($val17) - ($val16)) = -i(($val17) - ($val16))
+$().	</p>	Ce qui donne 
+!insmath z = $val18
+$() ou 
+!insmath z = $val19
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val20=$val12 and $val21=$val14) or ($val21=$val15 and $val20=$val13)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(z = $val20+$val21 i)
+
+!exit
+
+:stat
+vsavelist=12,13,14,15,16,17,18,19,20,21
+embedcnt=0

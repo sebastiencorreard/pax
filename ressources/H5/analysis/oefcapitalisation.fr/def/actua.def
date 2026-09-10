@@ -1,0 +1,167 @@
+!set title=4. Actualisation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=julien.lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r,r
+varcnt=21
+prevarcnt=19
+postvarcnt=1
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist r x for x = 1 to 6
+
+val6=$(tmp0)
+tmp=!trim $val6
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 3, 8
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 0, 5
+
+val9=$[rint($(tmp0))]
+val10=$[3+$val9*1]
+val11=$[$val10/100]
+val12=$[1+$val11]
+tmp0=!randint 0, 5
+
+val13=$[rint($(tmp0))]
+val14=$[rint(100000+$val13*10000)]
+val15=$[rint(50000)]
+val16=$[rint(70000+($val13+1)*10000)]
+val17=$[rint($val16*(1+$val11)^(-$val8)*100)]
+val18=$[$val17/100]
+val19=$[$val18+$val15]
+val20=$[$val19-$val14]
+
+!ifval ($val20>=0)
+val21= oui,non
+!else
+val21=non,oui
+!endif
+val22=Est-ce-que le commerçant va céder son fond de commerce au jeune couple ???
+val23=Partant à la retraite, un commerçant souhaite vendre son fond de	 commerce. Un jeune couple est intéressé pour reprendre la pizzeria mais ne dispose	 pas de la somme nécessaire. Par conséquent ils proposent de réaliser 2 versements	 dont un à l'acquisition du bien puis l'autre après $val8 ans d'exploitation.	<ul>	<li>1<sup>er</sup> versement à l'achat: $val15 &#8364;</li>	<li>2<sup>ème</sup> versement au bout de $val8 ans: $val16 &#8364;</li>	</ul>
+val24=Valeur actuelle du gain de la 1<sup>ère</sup> année
+dynsteps=yes
+oefsteps=$val7 
+nextstep=!nosubst $val7 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=Valeur du 2<sup>ème</sup> versement
+replygood1=$[$val16]
+replytype2=numeric
+replyname2=Taux
+replygood2=$[$val11]
+replytype3=numeric
+replyname3=Durée du placement
+replygood3=$[-$val8]
+replytype4=numeric
+replyname4=$val24
+replygood4=$[$val18]
+replytype5=numeric
+replyname5=Valeur actuelle totale
+replygood5=$[$val19]
+replytype6=radio
+replyoption6=shuffle 
+replyname6=Méthode
+replygood6=1;$val21
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="consigne">	<div id="boited">	<img src="$val1/pizza.jpg" alt="Pizza">	</div>	<div id="boiteg">	<img src="$val1/pizzeria.jpg" alt="Pizzeria">	</div>	<p class="problematique"> $val22</p>	<p class="special_letter">$val23</p><div></div>	La valeur actuelle est donnée par la relation suivante :	<div class="wimscenter" style="display:inline">	<b>C<sub>0</sub> = C<sub>n</sub> (1+t)<sup>-n</sup></b>	</div>	<div class="wimscenter">	<b>C<sub>0</sub> : Capital actuel en &#8364;</b>	<br>	<b>C<sub>n</sub> : Capital acquis en &#8364;</b>	<br>	<b>t : Taux du placement annuel, semestriel, trimestriel, mensuel ou journalier</b>	<br>	<b>n : Période du placement en année, semestre, trimestre, mois ou jours</b>	<br>	</div>	
+!if $m_step=1 
+$()	<div></div>	<div class="consigne">	Actuellement, les taux d'intérêts sont de $val10 %.<div></div>	</div>	<div class="question">	 Calculez la valeur actuelle du 2<sup>ème</sup>versement : <div></div>	VA =   
+!read oef/embed.phtml reply1, 4 
+$() 
+!insmath times
+$()(1+  
+!read oef/embed.phtml reply2, 4 
+$())<sup> 
+!read oef/embed.phtml reply3, 4 
+$()</sup> =  
+!read oef/embed.phtml reply4, 6 
+$()	<div></div>	En déduire le montant actuel total pour le commerçant :  
+!read oef/embed.phtml reply5, 7 
+$()  &#8364;	<div></div>	Le commerçant souhaite vendre son affaire au prix de $val14 &#8364;.<div></div>	Va-t-il accepter la proposition du couple ?????	<ul>	 
+!for m_zz=1 to 2 
+$()<li>  
+!read oef/embed.phtml reply6,\zz 
+$()</li> 
+!next
+$()	</ul>	</div> 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="solution">	
+!if $m_step=1 
+$()La réponse précédente est fausse.<br>	<img src="$val1/attention.png" alt="Attention">L'erreur	 classique est de ne pas tenir compte du taux de $val10 %. 
+!endif
+$()	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val7=
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,10,14,22,23
+embedcnt=6

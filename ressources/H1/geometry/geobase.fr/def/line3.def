@@ -1,0 +1,149 @@
+!set title=Cliquer sur le point... 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul@byache.fr
+
+ansorder=r
+varcnt=30
+prevarcnt=28
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le point,appartient-il à
+val7=Réponse
+val8=Oui,Non
+val6=Cliquer le point
+val9=Attention il faut cliquer sur le point et pas sur son nom !
+tmp0=!shuffle A,B,C,P,Q,R
+
+val10=$(tmp0)
+tmp0=!shuffle 30
+
+val11=$(tmp0)
+tmp0=!itemcnt $val10
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 4, 6
+
+val13=$[rint($(tmp0))]
+val14=$[0.3]
+val12=$[rint(min($val12,$val13))]
+val15=$(val11[1..$val12])
+tmp0=!sort numeric item $val15
+
+val15=$(tmp0)
+val16=$[rint(-2)]
+val17=$[rint(32)]
+val18=xrange $val16,$val17	yrange -1,1	hline 0,0,black
+!for val19 =1 to $val12 
+val18=$val18	text black,$(val15[$val19]),$val14,large,$(val10[$val19])	segment $(val15[$val19]),-0.05,$(val15[$val19]),0.05,black
+!next
+tmp0=!makelist x for x= 1 to $val12
+
+val20=$(tmp0)
+tmp=!nonempty items $val20
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+tmp0=!listcomplement $val21 in $val20
+
+val22=$(tmp0)
+val22=$(val22[1,2])
+tmp0=!sort numeric item $val22
+
+val22=$(tmp0)
+val23=$(val10[$val22,$val21])
+val24=\lbrack,\rbrack,\lpar,\rpar
+tmp=!translate internal $	$ to ; in 1,2	1,2	1,2	1,2	1,4	1,4	3,4
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val25=$(tmp0)
+!readproc oef/draw.phtml 600,200 \
+$val18 
+tmp0=$ins_url
+val18=$(tmp0)
+!readproc slib/draw/convpixel $(val15[$val21]),0,600,200,-2,32,-1,1,0,pixels 
+tmp0=$slib_out
+val26=$(tmp0)
+replytype1=coord
+replyoption1=goodanswershown 
+replyname1=$val7
+replygood1=$val18;point,$val26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val6[1])	 $(val23[3]) .	 
+!read oef/embed.phtml r1 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!declosing $m_reply1
+
+val27=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $(val27[2])<93
+ <div class='oef_feedbacks'>$val9
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,23
+embedcnt=1

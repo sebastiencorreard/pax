@@ -1,0 +1,197 @@
+!set title=Tangente à une courbe polynomiale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+tmp1=!randitem -1,1
+
+tmp2=!item $val6 of 0,$(tmp0)*$(tmp1)
+
+val7=$[$(tmp2)]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+tmp2=!randint -5, 5
+
+tmp3=!item $val6 of $(tmp0)*$(tmp1),$(tmp2)
+
+val8=$[$(tmp3)]
+tmp0=!randint -5, 5
+
+val9=$[$(tmp0)]
+tmp0=!randint -3, 3
+
+val10=$[$(tmp0)]
+tmp0=!randint -3, 3
+
+val11=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val7*x^3+$val8*x^2+$val9*x+$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val12
+tmp0=!exec pari $t_
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val12
+
+val13=$(tmp0)
+tmp=!translate ;";': to $     $ in $val12,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val14=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val14
+tmp0=!exec pari $t_
+
+val14=!rawmath $(tmp0)
+tmp0=!texmath $val14
+
+val15=$(tmp0)
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val16=$[$(tmp0)]
+evaltmp=$val12
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val17=$[$(tmp0)]
+val18=!rawmath $val16*(x-$val11)+$val17
+t_=!replace internal \( by ( in $val18
+tmp0=!exec pari $t_
+
+val19=!rawmath $(tmp0)
+evaltmp=$val19
+
+evaltmp=!mathsubst x=(0) in $evaltmp
+tmp0=($evaltmp)
+val20=$[$(tmp0)]
+replytype1=formal
+replyname1=
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  Calculer <i>f</i> ($val11) et <i>f</i> '($val11)<p> <b> La tangente passe par le point de coordonnées ($val11 ; <i>f</i> ($val11)) et a comme coefficient directeur <i>f</i> '($val11)</b><p> 
+
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la fonction 
+!insmath f
+$() définie par 
+!insmath f(x) = $val13
+$() et 
+!insmath C
+$() sa courbe représentative.<br /> 	<p>	<label for="reply1">L'équation réduite de la tangente à la courbe 
+!insmath C
+$() au point d'abscisse 
+!insmath $val11
+$() est :</label><br /> y =   
+!read oef/embed.phtml reply1 
+$(). </p>	<b>(L'écrire sous la forme y = ax+b)</b>
+$()
+!exit
+
+:hint
+$()	Deux méthodes sont possibles, choisissez celle qui vous convient le mieux : 		<ul> <li> <strong>Méthode 1</strong> : La tangente a comme coefficient directeur 
+!insmath f'($val11)
+$()<p>	Donc  son équation réduite est de la forme : 
+!insmath y = f'($val11) x + b
+$(). </p>	Pour trouver 
+!insmath b
+$(), utiliser le fait qu'elle passe par le point de coordonnées 
+!insmath ($val11 ; f($val11))
+$() c'est à dire ici ($val11 ; $val17).	 </li>	 <li> <strong>Méthode 2</strong> : Appliquer la formule du cours 
+!insmath  y = f'($val11)(x-$val11)+f($val11) 
+$(), puis développer et réduire le membre de droite.	 </li>		</ul>	 	  
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Deux méthodes sont proposées ici. Vous pouvez choisir celle qui vous convient le mieux.<br class="spacer"/>	<strong>Méthode 1</strong> : <br />	
+!insmath f'($val11) = $val16
+$(), donc l'équation cherchée est de la forme 
+!insmath y=$val16 x +b
+$().<br />	La tangente passe par le point de coordonnées 
+!insmath  ($val11 ; $val17) 
+$(), donc 
+!insmath $val17 =($val16) \times ($val11) + b
+$() , ce qui permet de trouver  
+!insmath b = $val20
+$().<br class="spacer"/>		<strong>Méthode 2</strong> : <br />	La tangente a pour équation réduite 
+!insmath y=f'($val11)(x-$val11)+f($val11)
+$() avec : 
+!insmath f($val11) = $val17
+$()  et 
+!insmath f'($val11) = $val16
+$().<br />	On obtient donc 
+!insmath y= $val16 (x-$val11)+ ($val17)
+$(). Il ne reste qu'à développer et réduire cette expression.		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,16,17,20
+embedcnt=1

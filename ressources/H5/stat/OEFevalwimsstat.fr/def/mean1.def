@@ -1,0 +1,205 @@
+!set title=Calculer et interpréter une moyenne 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=1000
+
+ansorder=r
+varcnt=64
+prevarcnt=63
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 100
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0)*10)]
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+val8=$[rint(2)]
+tmp0=!randitem 3,4
+
+val9=$[rint(2*$(tmp0)+$val8)]
+val10=
+val11=$[rint($val7)]
+val12=$[rint(0)]
+val13=
+tmp0=!randitem 100,200,400,500
+
+val12=$[rint($(tmp0))]
+val14=
+val15=$[rint(0)]
+val16=$[rint($val12/100)]
+val17=$[rint(round($val12/($val9-$val16)))]
+!for val18 =1 to $val9-$val16 
+tmp0=!randint 5, $val17
+
+val19=$[rint($(tmp0))]
+val15=$[rint($val15+$val19)]
+tmp0=!append item $val19 to $val14
+
+val14=$(tmp0)
+!next
+!for val18 =1 to $val16-1 
+val19=$[rint(($val12-$val15)/$val16)]
+val15=$[rint($val15+$val19)]
+tmp0=!append item $val19 to $val14
+
+val14=$(tmp0)
+!next
+val19=$[rint($val12-$val15)]
+tmp0=!append item $val19 to $val14
+
+val14=$(tmp0)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+val20=
+val21=$[rint(0)]
+val22=$[rint(0)]
+tmp0=!append item $val11 to $val13
+
+val13=$(tmp0)
+!for val18 =1 to $val9 
+val19=$[rint($(val14[$val18]))]
+val21=$[rint($val21+$val19*$val11)]
+tmp0=!randitem 1,2,4
+
+val23=$[rint($(tmp0))]
+val11=$[rint($val11+$val23*10)]
+val22=$[rint($val22+$val19*$val11)]
+tmp0=!append item $val11 to $val13
+
+val13=$(tmp0)
+val24=$[$val19 / $val23]
+tmp0=!append item $val24 to $val20
+
+val20=$(tmp0)
+!next
+tmp0=!listuniq $val20
+
+val25=$(tmp0)
+tmp0=!sort numeric list $val25
+
+val25=$(tmp0)
+tmp0=!itemcnt $val25
+
+val26=$[rint($(tmp0))]
+val27=$[rint($(val25[$val26]))]
+val28=$[rint($val21/$val12)]
+val29=$[rint($val22/$val12)]
+val30=$[rint(($val28+$val29)/2)]
+val31=$[round($val21*10/$val12)/10]
+tmp0=!listuniq $val14
+
+val32=$(tmp0)
+tmp0=!sort numeric list $val32
+
+val32=$(tmp0)
+tmp0=!itemcnt $val32
+
+val33=$[rint($(tmp0))]
+val34=$[rint($(val32[$val33]))]
+val7=$[rint($(val13[1]))]
+val35=$[rint($(val13[$val9+1]))]
+val36=xrange $val7-15,$val35+5	 yrange -10,$val34+5	 arrow $val7-5,0,$val35+5,0,10,black	 arrow $val7-5,-5,$val7-5,$val34+5,10,black	 segment $(val13[1]),0,$(val13[1]),$(val14[1]),blue	dsegment $val7-5,$(val14[1]),$(val13[1]),$(val14[1]),orange	text black,$(val13[1]),-5,medium,$(val13[1])	
+val37=$[rint(12)]
+val38=$[rint(3)]
+!for val18 =2 to $val9 
+
+!ifval $val37=12
+val37=$[rint(7)]
+!else
+val37=$[rint(12)]
+!endif
+
+!ifval $val38=3
+val38=$[rint(5)]
+!else
+val38=$[rint(3)]
+!endif
+val36=$val36	 segment $(val13[$val18]),0,$(val13[$val18]),$(val14[$val18]),blue	 dsegment $val7-5,$(val14[$val18]),$(val13[$val18]),$(val14[$val18]),orange	 text black,$(val13[$val18]),-$val38,medium,$(val13[$val18])
+!next
+val37=$[12]
+!for val18 =1 to $val33 
+
+!ifval $val37=12
+val37=$[rint(7)]
+!else
+val37=$[rint(12)]
+!endif
+val36=$val36	 text black,$val7-$val37,$(val32[$val18]),medium,$(val32[$val18])
+!next
+replytype1=numeric
+replyname1=moyenne
+replygood1=$[$val31]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Voici une série représentée par son diagramme en bâtons.</p>	<div class="wimscenter"> 
+!read oef/draw.phtml 400,400 \
+$val36 
+$()</div>	Calculer la moyenne de cette série: <br><i> Arrondir à 0.1 près</i>	<div class="wimscenter"><label for="reply1">Moyenne =</label>  
+!read oef/embed.phtml reply1,4 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=36
+embedcnt=1

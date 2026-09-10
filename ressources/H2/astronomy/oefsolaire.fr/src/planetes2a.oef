@@ -1,0 +1,148 @@
+type=game
+textarea="data"
+:Frise chronologique
+Evénements à classer du type frise chronologique.
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Diamètre des planètes}
+:\author{Chantal, Causse}
+:\email{chantal.causse@noos.fr}
+:\credits{}
+:Consigne
+
+\text{instruction=Ranger les planètes le long de la flèche en les classant de la plus petite à la plus grande.<br>
+Le nom de chaque planète (au-dessus de la flèche) doit être associé à son diamètre.}
+
+:Nombre de mots maximum (maximum 10)
+
+\text{N=6}
+
+:Couleur de la flèche
+
+\text{couleur=blue}
+
+:Largeur des étiquettes
+
+\text{facteur=100}
+
+:Hauteur des étiquettes
+
+\integer{height=40}
+
+:Largeur de la flèche
+Mettre un entier entre 1 et 3
+\integer{wi=1}
+
+:Utilise les deux items des données principales (0), seulement la première colonne (1), seulement la deuxième colonne (2), affiche la première colonne et demande la première colonne (3).
+
+\text{choix=0}
+
+:Données principales.
+Mettre les données dans l'ordre où elles doivent apparaître.
+\text{data=4 900 km,Mercure
+6 800 km,Mars
+12 100 km,Vénus
+12 700 km,Terre
+49 200 km,Neptune
+50 700 km,Uranus
+116 000 km,Saturne
+140 000 km,Jupiter}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(2,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier ensuite %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+\real{M=\N-0.3}
+\text{xrange=-1,\N+1}
+\text{yrange=\choix iswordof 0 ? -5,5:-2,5}
+\text{yrange=\choix=1 ? -5,2}
+\text{yrange=\choix=3 ? -5,4}
+\text{cnt=rows(\data)}
+\text{shu=shuffle(\cnt)}
+\text{shu=\shu[1..\N]}
+\text{shu=wims(sort numeric item \shu)}
+\text{data=row([\shu],\data)}
+\text{data=\accolade=1 ? wims(embraced randitem \data)}
+\matrix{rep=\data}
+\integer{size=(1.5*\facteur)*(\M+1)}
+\integer{height2=4*\height}
+\text{size=\size,\height2}
+\text{fleche=xrange \xrange
+yrange \yrange
+polyline \couleur,\M,\wi/2,-1,\wi/2,-1,-\wi/2,\M,-\wi/2,\M,-\wi,\N+0.5,0,\M,\wi,\M,\wi/2
+fill 0,0,\couleur
+}
+
+\text{STEP=\choix=0 ? wims(values x for x=1 to 2*\N)}
+\text{STEP=\choix=1 ? wims(values 2*x-1 for x=1 to \N)}
+\text{STEP=\choix=2 or \choix=3? wims(values 2*x for x=1 to \N)}
+\text{STEP=wims(makelist r x for x in  \STEP)}
+\steps{\STEP}
+\text{positionbas=}
+\text{positionhaut=}
+\text{positionbas2=}
+\for{j=0 to \N-1}{
+  \text{fleche=\choix=0 or \choix=1 or \choix=3 ? \fleche
+  segment \j-0.1,-\wi/2,\j-0.1,-2*\wi,\couleur}
+  \text{fleche=\choix=0 or \choix=2 or \choix=3? \fleche
+  segment \j-0.1,\wi/2,\j-0.1,2*\wi,\couleur}
+  \text{ans=pari([2*\j+1,2*\j+2])}
+  \text{v=slib(draw/convpixel \j-0.5,-2,\size,\xrange,\yrange,0,pixels)}
+  \text{positionbas=\positionbas
+ r\ans[1],\v[1] x \v[2]}
+ \text{v=slib(draw/convpixel \j-0.5,-2,\size,\xrange,\yrange,0,pixels)}
+ \text{positionbas2=\positionbas2
+ r\ans[2],\v[1] x \v[2]}
+  \text{v=slib(draw/convpixel \j-0.5,4,\size,\xrange,\yrange,0,pixels)}
+  \text{positionhaut=\positionhaut
+r\ans[2],\v[1] x \v[2]}
+
+ \text{fleche=\choix=3? \fleche
+ text black, \j-0.2,3,medium,\data[\j+1;1]}
+ }
+  \text{position=\choix=1 or \choix=0? \positionbas}
+  \text{position=\choix=2 or \choix=0? \position
+ \positionhaut}
+ \text{position=\choix=3? \positionbas2}
+ \text{urlfleche=draw(\size
+\fleche)}
+\statement{
+\instruction
+<div class="wimscenter">
+\special{imagefill \urlfleche,\size[1]x\size[2],\facteur x \height
+\position}
+</div>
+}
+
+\answer{}{\rep[1;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[1;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[2;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[3;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[4;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[5;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[6;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[7;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[8;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[9;2]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;1]}{type=clickfill}{option=shuffle}
+\answer{}{\rep[10;2]}{type=clickfill}{option=shuffle}

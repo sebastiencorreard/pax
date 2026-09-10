@@ -1,0 +1,148 @@
+!set title=Utiliser le rapporteur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=jbfrondas@gmail.com
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 4
+
+val6=$[rint($(tmp0))]
+val7=600,420
+tmp0=!randint 1, 60
+
+tmp1=!randint 60, 120
+
+tmp2=!randint 120, 180
+
+tmp3=!shuffle $(tmp0),$(tmp1),$(tmp2)
+
+tmp=!trim $(tmp3)
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=$[rint($(val8[1]))]
+val10=$[rint($(val8[2]))]
+val11=$[rint($(val8[3]))]
+val12=$[(3.14159*$val9/180)]
+val13=$[280*cos($val12)+303]
+val14=$[280*sin($val12)+127]
+val15=$[293*cos($val12)+303]
+val16=$[293*sin($val12)+127]
+val17=$val13,$val14
+val18=$val15,$val16
+val19=$[(3.14159*$val10/180)]
+val20=$[280*cos($val19)+303]
+val21=$[280*sin($val19)+127]
+val22=$[293*cos($val19)+303]
+val23=$[293*sin($val19)+127]
+val24=$val20,$val21
+val25=$val22,$val23
+val26=$[(3.14159*$val11/180)]
+val27=$[280*cos($val26)+303]
+val28=$[280*sin($val26)+127]
+val29=$[293*cos($val26)+303]
+val30=$[293*sin($val26)+127]
+val31=$val27,$val28
+val32=$val29,$val30
+tmp0=!shuffle A,B,C,D,E,F,G,H,I,J,K,L,M,N,P,Q,S,T,U,V,W,Y,Z
+
+tmp=!trim $(tmp0)
+val33=!translate internal $	\
+$ to ;; in $tmp
+val34=X
+val35=R
+val36=0,$val34	180,$val35	$val9,$(val33[1])	$val10,$(val33[2])	$val11,$(val33[3])
+tmp=!translate internal $	$ to ; in $val36
+
+tmp0=!rowcnt $tmp
+val37=$[rint($(tmp0))]
+tmp=!trim $val36
+val36=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle $val37
+
+val38=$(tmp0)
+val39=$(val36[$(val38[1]);])
+val40=$(val36[$(val38[2]);])
+val41=$[rint(abs($(val39[1])-$(val40[1])))]
+val42=$(val39[2]) O $(val40[2])
+val43=xrange 0,600	yrange 0,420	copy 0,420,-1,-1,-1,-1,rapporteur600.png	linewidth 3	segment 303,128,$val17,red	segment 303,128,$val24,blue	segment 303,128,$val31,green	segment 303,128,10,128,gray	segment 590,128,10,128,gray		text red,$val18,medium,$(val33[1])	text blue,$val25,medium,$(val33[2])	text green,$val32,medium,$(val33[3])	text black,5,128,medium,R	text black ,590,128, medium, X	
+!readproc oef/draw.phtml $val7 \
+$val43 
+tmp0=$ins_url
+val44=$(tmp0) 
+replyname1=Commentaire
+replygood1=$val41 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p class="wimscenter"><img src="$val44" alt="figure" /></p>	Déterminer la mesure de l'angle 
+!insmath \widehat{$val42}
+$() :  
+!read oef/embed.phtml reply1,15 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=42,44
+embedcnt=1

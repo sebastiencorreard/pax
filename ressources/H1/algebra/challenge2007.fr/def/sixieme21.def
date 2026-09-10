@@ -1,0 +1,121 @@
+!set title=Sixième 21
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+
+ansorder=c
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!translate internal $	$ to ; in 6_21_1.gif,50	6_21_2.gif,80	6_21_3.gif,70	6_21_4.gif,90	6_21_5.gif,30	6_21_6.gif,60
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+val7=$[rint(floor($(val6[2])/10*10)/10)]
+val8=$val7 km
+val9=2.5 km,3 km,4 km,5 km,7 km
+tmp0=!listcomplement $val8 in $val9
+
+val9=$(tmp0)
+tmp0=!shuffle $val8,$val9
+
+val10=$(tmp0)
+val11=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val10
+
+val12=$[rint($(tmp0))]
+val13=
+val14=
+!for val15 =1 to $val12 
+tmp0=!item $val15 of $val10
+
+val16=$(tmp0)
+val17=Réponse $(val11[$val15])
+!if $val16 isitemof $val8 
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+!else
+tmp0=!append item $val17 to $val14
+
+val14=$(tmp0)
+!endif
+!next
+!readproc slib/lang/fname boy,fr 
+tmp0=$slib_out
+val18=$(tmp0)
+choicename1=Choisissez
+choicegood1=$val13
+choicebad1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right"><img src="$val1/$(val6[1])" alt=""></div>	$val18 roule en scooter. Il est très respectueux des limitations de vitesse mais	il veut rouler le plus vite possible sans être en infraction tout en parcourant	la distance la plus grande possible.	<p>	Il veut rouler pendant 6 minutes. Parmi les distances données quelle est celle	qu'il pourrait parcourir toute en respectant les contraintes fixées ?	</p>	<ul>	 
+!for m_l=1 to $val12 
+$()	 <li>$(val11[$m_l]) : $(val10[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,10,11,12,18
+embedcnt=1

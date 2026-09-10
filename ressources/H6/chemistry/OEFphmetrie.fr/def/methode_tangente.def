@@ -1,0 +1,152 @@
+!set title=Méthode des tangentes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, MARKEY
+email=benoit.markey@ac-lille.fr
+
+ansorder=r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=éthanoïque,CH_3COOH,CH_3COO^-,4.75;	benzoïque,C_6H_5COOH,C_6H_5COO^-,4.20;	méthanoïque,HCOOH,HCOO^-,3.75;	hypochloreux,HClO,HClO^-,7.30;	fluorhydrique,HF,F^-,3.2;	chlorhydrique,H_3O^+ (+Cl^-), H_2O,-6.3;	nitrique,H_3O^+ (+NO_3^-), H_2O,-1.8;	
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0))]
+val9=$[$val8/10]
+tmp0=!randitem 10,20,50
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 5, 17
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 0, 3
+
+val12=$[rint($(tmp0))]
+val13=$[$val12/10]
+tmp0=!randitem +1,-1
+
+val14=$[$(tmp0)]
+val15=$[$val11+$val14*$val13]
+val16=$[$val15-2]
+val17=$[$val15+2]
+val18=$[$val11-2]
+val19=$[$val11+2]
+!readproc slib/text/sigunits $val15 ,3 
+tmp0=$slib_out
+val20=$(tmp0)
+val21=$[$val9*$val15/$val10]
+!readproc slib/text/sigunits $val9 ,2 
+tmp0=$slib_out
+val22=$(tmp0)
+val23=$[2*$val21*$val10/$val9]
+val24=$val10*(10^(14*t-14)+$val21*(10^(14*t-$(val7[4]))/(10^(14*t-$(val7[4]))+1)-10^(-14*t))/(10^(-14*t)+$val9-10^(14*t-14)))
+val25=14*t
+!readproc slib/graphpaper/func_milli 10,,0,,$val23 max,2,,,,[$val24,$val25]  
+tmp0=$slib_out
+val26=$(tmp0)
+val27=$[0.01]
+val28=$[0]
+!while $val10*(10^(14*$val27-14)+$val21*(10^(14*$val27-$(val7[4]))/(10^(14*$val27-$(val7[4]))+1)-10^(-14*$val27))/(10^(-14*$val27)+$val9-10^(14*$val27-14)))<$val15 
+val28=$[14*$val27]
+val27=$[$val27+0.01]
+!endwhile
+!readproc oef/draw.phtml 300,300 \
+$val26	text green,5,78,medium,pH	text green,85,5,medium,V (mL) 
+tmp0=$ins_url
+val29=$(tmp0)	
+val30=<img src="$val29">
+replytype1=range
+replyname1=\(x_{E}\)
+replygood1=!rawmath $val15-0.2,$val15+0.2
+replytype2=range
+replyname2=\(pH_{E}\)
+replygood2=!rawmath $val28-0.2,$val28+0.2
+replytype3=range
+replyname3=Concentration d'acide
+replygood3=!rawmath $val21-0.2,$val21+0.2
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>On réalise le dosage pHmétrique de l'acide $(val7[1]) par de la soude.<br>	Pour cela, le volume d'acide $(val7[1]) versé dans le bécher est 
+!insmath $val10
+$() mL et la soude a une concentration	 initiale 
+!insmath c_b =$val22
+$() 
+!insmath mol \times \mathrm{L}^{-1}
+$().<br>	Avec la méthode des tangentes, vous déterminerez le point d'équivalence, noté E(Véq,pHéq).<br>	Vous pouvez "déplacer" les tangentes avec votre souris,	et modifier l'écartement ainsi que l'angle de rotation.</p>		<div style="top:180px; left:200px; z-index:1;padding:10px">	$val30</div>	<div style="position:absolute; top:180px; left:200px; z-index:3;">	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="580" height="480" id="$val1/tangentes">	<param name="allowScriptAccess" value="sameDomain">	<param name="movie" value="$val1/tangentes.swf">	<param name="quality" value="high">	<param name="wmode" value="transparent">	<embed src="$val1/tangentes.swf"  quality="high" wmode="transparent" width="580"	height="480" name="tangentes" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"target="wims_external">	</object>		</div>	<ol>	<li>Déterminez les coordonnées du point à l'équivalence E( 
+!read oef/embed.phtml reply 1,5 
+$(); 
+!read oef/embed.phtml reply 2,5 
+$())</li>	<li>En déduire la concentration de la solution d'acide $(val7[1]) étudiée 
+!insmath c_a =
+$() 
+!read oef/embed.phtml reply 3,5 
+$()
+!insmath mol \times \mathrm{L}^{-1}
+$()</li>	</ol>	<div class="wims_instruction">	<p>Le séparateur de décimales est un point.</p>	<p>Si vous ne voyez pas la courbe,	mais simplement une image à fond jaune,	il vous faut installer flash player 10	<a href=http://get.adobe.com/fr/flashplayer/target="wims_external">ici</a></p>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,10,22,30
+embedcnt=3

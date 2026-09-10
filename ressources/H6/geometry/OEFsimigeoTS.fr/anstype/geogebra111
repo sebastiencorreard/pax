@@ -1,0 +1,486 @@
+!if $wims_read_parm=nocompare
+	!if ? isin $(reply$i)
+		!exit
+	!endif
+!endif
+
+!!replygood doit comporter entre 1 et 3 lignes...
+extra=!rowcnt $(replygood$i)
+!if $extra > 3 or $extra < 1
+	Test=bad $i
+	!exit
+!endif
+!reset extra
+
+!! see if he pressed the "I have no clue" button...
+!if ? isin $(reply$i)
+    freegot=$[$freegot + 0.1]
+    diareply$i=bad
+	reply$i=Je ne sais pas.
+	replygood$i=here the good reply !
+    !exit
+!endif
+
+ignore=!getopt ignore in $(replyoption$i)
+ignore=!replace internal & by , in $ignore
+extra=!getopt extra in $(replyoption$i)
+nocoord=!getopt nocoord in $(replyoption$i)
+replyoption$i=!replace internal weights by weight in $(replyoption$i)
+weight=!getopt weight in $(replyoption$i)
+weight=!replace internal & by , in $weight
+!if $weight=$empty
+	weight=1,0.2,1,1
+!endif
+
+!!GENERIC
+
+!!  set "all" possible scores zero
+obj_score=0
+name_score=0
+num_cond_score=0
+formal_cond_score=0
+
+total_obj=0
+total_name=0
+total_num_cond=0
+total_formal_cond=0
+
+
+yourlist_name=!row 1 of $(reply$i)
+yourlist_name=!replace internal " by $ $ in $yourlist_name
+yourlist_name=!nospace $yourlist_name
+yourlist_name=!replace internal && by $ $ in $yourlist_name
+yourlist_name=!replace internal & by $ $ in $yourlist_name
+!!yourlist_name= A=point,2,3 a=line,2x+5y-(3) b=circle,(x-2)²+(y+3)²-(4) .....
+ycnt=!wordcnt $yourlist_name
+!reset list
+!for s=1 to $ycnt
+	klaar=!word $s of $yourlist_name
+      klaar=!replace internal == by = in $klaar
+	klaar=!replace internal = by , in $klaar
+	!if $(klaar[1]) notitemof $ignore
+		!if $(klaar[2]) iswordof line circle conic ellipse hyperbola parabola
+			!if $(klaar[3])!=$empty
+				you=!rawmath $(klaar[3])-$(klaar[4])
+                        you2=$you
+				you=!exec pari c=$you ; [polcoeff(c,2,x),polcoeff(c,2,y),polcoeff(polcoeff(c,1,x),1,y),polcoeff(polcoeff(c,1,x),0,y),polcoeff(polcoeff(c,0,x),1,y),polcoeff(polcoeff(c,0,x),0,y)]
+				!!coeffs : x²,y²,xy,x,y,cstte
+			!else
+				you=$empty
+			!endif
+			klaar=!nospace $(klaar[1])=$(klaar[2]),$you
+                     !!debug $you $you2:$yourlist_name:$klaar
+		!else
+			you=!item 2 to -1 of $klaar
+			klaar=!nospace $(klaar[1])=$you
+		!endif
+		list=$list $klaar
+	!endif
+!next s
+yourlist_name=$list
+!!yourlist_name= A=point,2,3 a=line,0,0,0,2,5,-3 b=circle,1,1,0,-4,6,9 .....
+
+!!!DISPLAY
+
+!!objects of the applet for the display of the student's answer
+objects=!row 1 of $(reply$i)
+objects=!char 1 to -2 of $objects
+objects=!replace internal = by $ : $ in $objects
+objects=!replace internal -(( by $ $= in $objects
+objects=!replace internal )) by $ $ in $objects
+yourobjects=$objects
+
+!read anstype/geogebra.fr
+
+!if $nocoord=yes
+	yourobjects=!words2lines $yourlist_name
+	yourobjects=!lines2rows $yourobjects
+	yourobjects=!replace internal , by , , in $yourobjects
+	yourobjects=!column 1,2 of $yourobjects
+	yourobjects=!replace internal ; by & in $yourobjects	
+	yourobjects=!replace internal point, by $w1 in $yourobjects
+	yourobjects=!replace internal vector, by $w2 in $yourobjects
+	yourobjects=!replace internal circle, by $w3 in $yourobjects
+	yourobjects=!replace internal line, by $w4 in $yourobjects
+	yourobjects=!replace internal polynomial, by $w5 in $yourobjects
+	yourobjects=!replace internal conic, by $w6 in $yourobjects
+	yourobjects=!replace internal parabola, by $w7 in $yourobjects
+	yourobjects=!replace internal ellipse, by $w8 in $yourobjects
+	yourobjects=!replace internal hyperbola, by $w9 in $yourobjects
+	yourobjects=!replace internal angle, by $w10 in $yourobjects
+	yourobjects=!replace internal text, by $w11 in $yourobjects
+	yourobjects=!replace internal numeric, by $w12 in $yourobjects
+	yourobjects=!replace internal segment, by $w13 in $yourobjects
+	yourobjects=!replace internal polygon, by $w14 in $yourobjects
+	yourobjects=!replace internal function, by $w15 in $yourobjects
+!endif
+	yourobjects=!replace internal point, by $w16 $ $ in $yourobjects
+	yourobjects=!replace internal vector, by $w17 $ $ in $yourobjects
+	yourobjects=!replace internal circle, by $w18 in $yourobjects
+	yourobjects=!replace internal line, by $w19 in $yourobjects
+	yourobjects=!replace internal polynomial, by $w20 in $yourobjects
+	yourobjects=!replace internal conic, by $w21 in $yourobjects
+	yourobjects=!replace internal parabola, by $w22 in $yourobjects
+	yourobjects=!replace internal ellipse, by $w23 in $yourobjects
+	yourobjects=!replace internal hyperbola, by $w24 in $yourobjects
+	yourobjects=!replace internal angle, by $w25 in $yourobjects
+	yourobjects=!replace internal text, by $w26 in $yourobjects
+	yourobjects=!replace internal numeric, by $w27 in $yourobjects
+	yourobjects=!replace internal segment, by $w28 in $yourobjects
+	yourobjects=!replace internal polygone, by $w29 in $yourobjects
+	yourobjects=!replace internal function, by $w30 in $yourobjects
+yourobjects=<ul type="square"><li> $yourobjects </ul>
+yourobjects=!replace internal && by <li> in $yourobjects
+yourobjects=!replace internal & by <li> in $yourobjects
+
+!!objects of the applet for using with 'conditions'
+objects=!replace internal : by , in $objects
+objects=!replace internal && by ; in $objects
+objects=!replace internal & by ; in $objects
+
+!if $wims_read_parm=nocompare
+	reply$i=$yourobjects
+	m_reply$i=!nospace $objects
+	!exit
+!endif
+
+!!!GENERIC (END)
+
+yourlist=!replace internal = by , in $yourlist_name
+yourlist=!words2lines $yourlist
+yourlist=!column 2 to -1 of $yourlist
+!! yourlist= point, 2, 3 ; line, 0, 0, 0, 2, 5, -3 ; circle, 1, 1, 0, -4, 6, 9 .....
+
+
+mylist=!row 1 of $(replygood$i)
+mylist=!replace internal && by ; in $mylist
+mylist=!replace internal & by ; in $mylist
+mylist=!replace internal = by , in $mylist
+mylist=!nospace $mylist
+mylist=!rows2lines $mylist
+!! mylist= A,point,2,3 ; a,line,2x+5y,3 ; b,circle,(x-2)²+(y+3)²,4  .....
+ycnt=!linecnt $mylist
+!reset list
+!for s=1 to $ycnt
+	klaar=!line $s of $mylist
+	!if $(klaar[2]) iswordof line circle conic ellipse hyperbola parabola
+		!if $(klaar[3])$(klaar[4]) notsametext
+		  you=!rawmath $(klaar[3])-($(klaar[4]))
+		  you=!exec pari c=$you ; [polcoeff(c,2,x),polcoeff(c,2,y),polcoeff(polcoeff(c,1,x),1,y),polcoeff(polcoeff(c,1,x),0,y),polcoeff(polcoeff(c,0,x),1,y),polcoeff(polcoeff(c,0,x),0,y)]
+		!else
+		 you=
+		!endif
+		!!coeffs : x²,y²,xy,x,y,cstte
+		klaar=!nospace $(klaar[1,2]),$you
+	!endif
+	list=$list;$klaar
+!next s
+mylist=$list
+mylist=!rows2lines $mylist
+!! mylist= A,point,2,3 ; a,line,0,0,0,2,5,-3 ; b,circle,1,1,0,-4,6,9  .....
+
+mylist2=!row 2 of $(replygood$i)
+mylist2=!replace internal && by ; in $mylist2
+mylist2=!replace internal & by ; in $mylist2
+mylist2=!rows2lines $mylist2
+!! mylist2= x_A > x_B ; (x_A)^2+(x_B)^2 < 3 .....
+
+yourlist3=!row 2 of $(reply$i)
+yourlist3=!replace internal [ by , in $yourlist3
+yourlist3=!replace internal ] by $ $ in $yourlist3
+yourlist3=!nospace $yourlist3
+yourlist3=!replace internal && by $ $ in $yourlist3
+yourlist3=!replace internal & by $ $ in $yourlist3
+!! yourlist3= A=point,b a=Segment,A,C .....
+
+mylist3=!row 3 of $(replygood$i)
+mylist3=!replace internal && by ; in $mylist3
+mylist3=!replace internal & by ; in $mylist3
+mylist3=!replace internal [ by , in $mylist3
+mylist3=!replace internal ] by $ $ in $mylist3
+mylist3=!nospace $mylist3
+mylist3=!rows2lines $mylist3
+!! mylist3= A=point,b ; .....
+
+mylist_cnt=!linecnt $mylist
+mylist2_cnt=!linecnt $mylist2
+mylist3_cnt=!linecnt $mylist3
+yourlist_cnt=!linecnt $yourlist
+yourlist3_cnt=!wordcnt $yourlist3
+
+
+!!MATCH+NAME
+Tname=0
+!for j=1 to $mylist_cnt
+	klaar=0
+	myobj=!line $j of $mylist
+	myobj=!replace internal ; by $ $ in $myobj
+	test=!item 2 to -1 of $myobj
+	test=!replace internal , by $ $ in $test
+	test=!nospace $test
+	!if $test != $empty
+		!increase total_obj
+	!endif
+	name=!item 1 of $myobj
+	testname=0
+	!if $name != $empty
+		!increase testname
+		!increase total_name
+		yourobj=!getopt $name in $yourlist_name
+		!if $(myobj[2])=$(yourobj[1])
+			!if $(myobj[2]) iswordof circle line conic parabola ellipse hyperbola
+				!!!pour les coniques on regarde si les deux équations sont proportionnelles
+				you=!item 2 to -1 of $yourobj
+				my=!item 3 to -1 of $myobj
+				!if $my !=$empty
+				  	mat=!nospace [$my;$you]
+				  	mat=!exec pari matrank($mat)
+				!else 
+					mat=
+				!endif
+				!if $mat=1 or $my=$empty
+					!increase obj_score
+					!increase name_score
+					klaar=1
+				!endif
+			!else
+				!!pour les points, vecteurs, on regarde si les coordonnées sont les mêmes
+				!!la precision est gérée directement dans le fichier input au moment de la récupération des coordonnées
+				!if ($(myobj[3])=$empty or $(myobj[3])=$(yourobj[2])) and ($(myobj[4])=$empty or $(myobj[4])=$(yourobj[3]))
+					!increase obj_score
+					!increase name_score
+					klaar=1
+				!endif
+			!endif
+		!endif
+	!endif
+	!if $klaar=0
+		!for s=1 to $yourlist_cnt
+			!if $klaar=0
+				yourobj= !line $s of $yourlist
+				!if $(myobj[2])=$(yourobj[1])
+					!if $(myobj[2]) iswordof circle line conic parabola ellipse hyperbola
+						!!!pour les coniques on regarde si les deux équations sont proportionnelles
+						you=!item 2 to -1 of $yourobj
+						my=!item 3 to -1 of $myobj
+						mat=!nospace [$my;$you]
+						!if $my!=$empty
+						  mat=!exec pari matrank($mat)
+						!else 
+						  mat=
+						!endif
+						!if $mat=1 or $my=$empty
+							!increase obj_score
+							klaar=1
+						!endif
+					!else
+						!!pour les points, vecteurs, on regarde si les coordonnées sont les mêmes
+						!!la precision est gérée directement dans le fichier input au moment de la récupération des coordonnées
+						!if ($(myobj[3])=$empty or $(myobj[3])=$(yourobj[2])) and ($(myobj[4])=$empty or $(myobj[4])=$(yourobj[3]))
+							!increase obj_score
+							klaar=1
+						!endif
+					!endif
+				!endif
+			!endif
+		!next s
+		!if $klaar=1
+			!increase testname
+		!endif
+	!endif
+	!if $testname=2
+	!increase Tname
+	!endif
+!next j
+
+!!NUMERICAL CONDITION
+badnumcondori=
+badnumcond=
+!for p=1 to $mylist2_cnt
+	!increase total_num_cond
+	cond=!line $p of $mylist2
+      condori=$cond
+	!for n = 1 to  $yourlist_cnt
+		obj = !word $n of $yourlist_name
+		name = !replace internal = by , in $obj
+		name=!item 1 of $name
+		coord=!getopt $name in $obj
+		type=!item 1 of $coord
+		coord=!item 2 to -1 of $coord
+
+		!!for a point coord=x,y
+		!!for a line coord=a1,a2,a3,a4,a5,a6
+		!!for a circle coord=a1,a2,a3,a4,a5,a6
+		!!il y aura peut-être d'autres objets à envisager ??
+
+		!if $type=point
+			cond=!replace internal x_$(name) by $(coord[1]) in $cond 
+			cond=!replace internal y_$(name) by $(coord[2]) in $cond
+		!endif
+		!if $type=line
+			cond=!replace internal m_$(name) by $[-$(coord[4])/$(coord[5])] in $cond
+			cond=!replace internal p_$(name) by $[-$(coord[6])/$(coord[5])] in $cond
+			cond=!replace internal a_$(name) by $(coord[4]) in $cond
+			cond=!replace internal b_$(name) by $(coord[5]) in $cond
+			cond=!replace internal c_$(name) by -$(coord[6]) in $cond
+		!endif
+		!if $type=circle
+			cond=!replace internal R_$(name) by $[($(coord[4])/(2*$(coord[1])))^2+($(coord[5])/(2*$(coord[2])))^2-$(coord[6])] in $cond
+			cond=!replace internal x_$(name) by $[-$(coord[4])/(2*$(coord[1]))] in $cond 
+			cond=!replace internal y_$(name) by $[-$(coord[5])/(2*$(coord[2]))] in $cond
+		!endif
+	!next n
+	check=!exec pari ($cond)
+	!if $check=$empty
+		check=0
+	!endif
+      !if $check<1
+         badnumcond=!append item $cond to $badnumcond
+         badnumcondori=!append item $condori to $badnumcondori
+         !!debug $check, $cond: les coord sont $coord, avec $yourobjects 
+      !endif
+	num_cond_score=$[$num_cond_score+$check]
+!next p
+			
+!!FORMAL CONDITION
+
+!for p=1 to $mylist3_cnt
+	klaar=0
+	!increase total_formal_cond
+	cond=!line $p of $mylist3
+	cond=!replace internal = by , in $cond
+	name=!item 1 of $cond
+	type=!item 2 of $cond
+	obj=!item 3 to -1 of $cond
+	obj=!nospace $obj
+	!if $type iswordof $w31 Segment Line
+		obj=$obj $(obj[2]),$(obj[1])
+	!endif
+	!if $type iswordof $w32
+		obj=$obj $(obj[3]),$(obj[2]),$(obj[1])
+	!endif
+	!if $type iswordof $w33 Polygon
+		Test=bad $i
+		!exit
+	!endif
+	testname=0
+	!if $name != $empty
+		!increase testname
+		!increase total_name
+		yobj=!getopt $name in $yourlist3
+		yobj=!item 2 to -1 of $yobj
+		yobj=!nospace $yobj
+		yobj=!replace internal , by %% in $yobj
+		obj=!replace internal , by %% in $obj
+		ycnt=!wordcnt $obj
+		!for r = 1 to $ycnt
+			!if $klaar=0
+				ob=!word $r of $obj
+				!if $ob isin $yobj
+					klaar=1
+					!increase formal_cond_score
+					!increase name_score
+				!endif
+			!endif
+		!next r	
+	!endif
+	!if $klaar=0
+		!for s = 1 to $yourlist3_cnt
+			!if $klaar=0
+				yobj=!word $s of $yourlist3
+				yobj=!item 2 to -1 of $yobj
+				yobj=!nospace $yobj
+				ycnt=!wordcnt $obj
+				!for r = 1 to $ycnt
+					!if $klaar=0
+						ob=!word $r of $obj
+						!if $ob isin $yobj
+							klaar=1
+							!increase formal_cond_score
+						!endif
+					!endif
+				!next r
+			!endif
+		!next s
+		!if $klaar=1
+			!increase testname
+		!endif
+	!endif
+	!if $testname=2
+		!increase Tname
+	!endif
+!next p		
+
+!!SCORE AND OUTPUT
+
+!if $total_obj=0
+	obj_score=0
+	weight=0,$(weight[2]),$(weight[3]),$(weight[4])
+!else
+	obj_score=$[$obj_score/$total_obj]
+!endif
+!if $total_name=0
+	name_score=0
+	weight=$(weight[1]),0,$(weight[3]),$(weight[4])
+!else
+	name_score=$[$name_score/$total_name]
+!endif
+!if $total_num_cond=0
+	num_cond_score=0
+	weight=$(weight[1]),$(weight[2]),0,$(weight[4])
+!else
+	num_cond_score=$[$num_cond_score/$total_num_cond]
+!endif
+!if $total_formal_cond=0
+	formal_cond_score=0
+	weight=$(weight[1]),$(weight[2]),$(weight[3]),0
+!else
+	formal_cond_score=$[$formal_cond_score/$total_formal_cond]
+!endif
+
+score=$[$(weight[1])*$(obj_score)+$(weight[2])*$(name_score)+$(weight[3])*$(num_cond_score)+$(weight[4])*$(formal_cond_score)]
+!!debug score=$(weight[1])*$(obj_score)+$(weight[2])*$(name_score)+$(weight[3])*$(num_cond_score)+$(weight[4])*$(formal_cond_score)
+
+score=$[$score/($(weight[1])+$(weight[2])+$(weight[3])+$(weight[4]))]
+scorenoname=$[$(weight[1])*$(obj_score)+$(weight[3])*$(num_cond_score)+$(weight[4])*$(formal_cond_score)]
+!!debug scorenoname=$(weight[1])*$(obj_score)+$(weight[3])*$(num_cond_score)+$(weight[4])*$(formal_cond_score)
+
+scorenoname=$[$scorenoname/($(weight[1])+$(weight[3])+$(weight[4]))]
+
+msg=<font color="red"><b>
+!if $extra!=yes
+	!if $total_obj < $yourlist_cnt
+		score=$[$score*$total_obj/$yourlist_cnt]
+		scorenoname=$[$scorenoname*$total_obj/$yourlist_cnt]
+		msg=$msg $w34<br>
+	!endif
+!endif
+!if $scorenoname=NaN
+	Test=bad $i
+	!exit
+!endif
+!if $scorenoname=0
+    diareply$i=bad
+!else
+    !if $scorenoname < 1
+	partialgood$i=yes
+	diareply$i=good
+    !else
+	diareply$i=good
+    !endif
+!endif
+    
+freegot=$[$freegot+$score]
+
+!!si les points sont mal nommés, la réponse est considérée comme bonne mais un message apparaît en rouge et le score est < à 10
+!if $Tname>0
+	msg=$msg $w35
+	!endif
+msg=$msg </b></font>
+
+reply$i= $yourobjects <br>$msg<br>$badnumcond pour $badnumcondori
+m_reply$i=!nospace $objects
+
+
+!!!only for tests :
+!!reply$i=$(reply$i)<br>**********<br>debug : $deb options : $(replyoption$i)<br><br>yourlist_name : $yourlist_name<br><br>yourlist : $yourlist<br><br>yourlist3 : $yourlist3<br><br>mylist : $mylist<br><br>mylist2 : $mylist2<br><br>mylist3 : $mylist3<br><br>obj_score : $(obj_score) tot : $total_obj name_score : $(name_score) tot : $total_name <br>num_con_score : $(num_cond_score) formal_cond_score : $(formal_cond_score) <br>scorenoname : $scorenoname score : $score

@@ -1,0 +1,122 @@
+!set title=Mots
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000000
+title_en=Words
+title_nl=Woorden
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Nombre de façons
+val8=Combien de mots distincts peut-on former avec les TTTT premières	  lettres de l'alphabet, sachant que chaque lettre est utilisée exactement une fois	  dans chaque mot et que les AAAA premiers lettres {BBBB} doivent être groupées dans	  chaque mot&nbsp;
+val9=Considérez d'abord les , premières lettres comme un seul élément.
+val7=Nombre de mots
+!if $val6=en 
+val7=Number of ways
+val8=How many distinct words can be formed from the TTTT first	  letters of the alphabet, knowing that each letter is used exactly once	in each word, and that the AAAA first letters {BBBB} must appear grouped	in each word
+val9=First consider the, first letters as one element.
+val7=Number of words
+!endif
+!if $val6=nl 
+val7=Aantal manieren
+val8=Hoeveel verschillende woorden kunnen worden gevormd uit de TTTT eerste letters	  van het alfabet, met als voorwaarde dat elke letter maar één keer mag voorkomen	  in elk woord, en dat de AAAA eerste letters {BBBB} ls groep moeten voorkomen	  in elk woord
+val9=Bekijk de, eerste letters eerst als één element.
+val7=Aantal woorden
+!endif
+tmp0=!randint 6, 10
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 2, 4
+
+val11=$[rint($(tmp0))]
+tmp0=!item $val11 of A,A B,A B C,A B C D
+
+val12=$(tmp0)
+val13=$[rint(factorial($val10-$val11+1)*factorial($val11))]
+tmp0=!replace internal TTTT by $val10 in $val8
+
+val14=$(tmp0)
+tmp0=!replace internal AAAA by $val11 in $val14
+
+val14=$(tmp0)
+tmp0=!replace internal BBBB by $val12 in $val14
+
+val14=$(tmp0)
+replyname1=$val7
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $(val9[1]) $val11 $(val9[2]) 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val14?
+$()
+!exit
+
+:hint
+$()$(val9[1]) $val11 $(val9[2]) 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11,14
+embedcnt=0

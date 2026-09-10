@@ -1,0 +1,169 @@
+\title{Lieux de points (conditions aléatoires)}
+\language{fr}
+\range{-5..5}
+\author{Hélène, Brion}
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+\text{monaide=wims(record 1 to 4 of formulaire)}
+\help{\monaide}
+
+/***affixes de A et B***/
+\integer{a=random(-3..3)}
+\integer{b=random(-3..3)}
+\integer{c=random(-3..-1,1..3)}
+\integer{d=random(-3..-1,1..3)}
+\complex{za=simplify(\a+\b*i)}
+\complex{zb=simplify(\a+\c+(\b+\d)*i)}
+
+/***Ecriture des conditions de 1 à 4/***
+\integer{version=random(1..3)}
+\text{\listeZ=\frac{z-z_A}{z-z_B},\frac{z-z_B}{z-z_A},\frac{z-z_A}{z_B-z_A}}
+\text{Z=\listeZ[\version]}
+\text{listeAngle=\(\frac{\pi}{2} + 2k\pi),\(\frac{\pi}{2} + k\pi),\(0 + k\pi),\(\pi + 2k\pi)}
+\integer{ChoixAngle=random(1..4)}
+
+/*** Ecriture de la condition 5***/
+
+\text{goodrep=shuffle(Exact,Bien,Juste,Bravo,Bonne réponse,Oui)}
+\text{erreur=shuffle(Erreur,Faux,Hélas,Inexact,Mauvaise réponse,Non)}
+
+\integer{ChoixCentre=random(1..3)}
+\integer{ChoixRayon=random(1..3)}
+\text{ppChoixRayon=\ChoixRayon>1?\ChoixRayon:}
+\integer{ChoixIntervalle=random(1..3)}
+\text{listeAffixe=\(z_A),\(z_B),\(z_C)}
+\text{listeIntervalle=\([0;2\pi]),\([0;\pi]),\([0;\pi/2])}
+\text{cond8= \listeAffixe[\ChoixCentre] + \ppChoixRayon \(e^{i\theta}) avec \(\theta) appartenant à \listeIntervalle[\ChoixIntervalle]}
+
+/*** Choix de la condition ***/
+\integer{i=random(1..5)}
+\text{condition= \(\Z) est réel,\(\Z) est imaginaire pur, \(\left|\Z \right| = 1), \( arg \left( \Z \right)) = \listeAngle[\ChoixAngle],z = \cond8}
+
+/*** Nature de (E)***/
+\text{\listeLieux=une droite,un cercle}
+\if{(\version<3 and \i=2) or (\version=3 and \i=3) or (\version<3 and \i=4 and \ChoixAngle < 3) or \i=5}{\integer{ChoixLieux=2}}{\integer{ChoixLieux=1}}
+
+/*** Traitement de la question 2, n est le numéro de la réponse et liste la liste des réponses***/
+\text{\listeCercle=un cercle, un cercle privé d'un point, un cercle privé de deux points, un demi-cercle,un quart de cercle}
+\text{\listeDroite = une droite, une droite privée d'un point, une droite privée de deux points, un segment, une demi-droite}
+\if{\ChoixLieux=1}{\text{liste=\listeDroite}
+			\if{(\version=3 and \i<3) or \i=3}{\integer{n=1}}
+			\if{(\version<3 and \i=1) or
+			(\i=4 and \version = 3 and (\ChoixAngle=2 or \ChoixAngle=3))}{\integer{n=2}}
+			\if{\version<3 and \i=4 and \ChoixAngle=3}{\integer{n=3}}
+			\if{\version<3 and \i=4 and \ChoixAngle=4}{\integer{n=4}}
+			\if{\version=3 and \i=4 and (\ChoixAngle=4 or \ChoixAngle=1)}{\integer{n=5}}					}
+			{\text{liste=\listeCercle}
+			\if{\i=3 or (\i=5 and \ChoixIntervalle=1)}{\integer{n=1}}
+			\if{\i=2}{\integer{n=2}}
+			\if{\i=4 and \ChoixAngle=2}{\integer{n=3}}
+			\if{(\i=4 and \ChoixAngle = 1) or (\i=5 and \ChoixIntervalle=2)}{\integer{n=4}}
+			\if{\i=5 and \ChoixIntervalle=3}{\integer{n=5}}
+			}
+
+
+/*** Traitement de la question 3 - construction de la liste des bons choix/***
+\text{listePoint=A,B,C,aucun}
+\integer{BonChoix=4}
+\if{\i=1 and \version=1}{\text{BonChoix=1,3}}
+\if{\i=1 and \version=2}{\text{BonChoix=2,3}}
+\if{\i=1 and \version=3}{\text{BonChoix=1,2,3}}
+\if{\i=2 and \version<>2}{\text{BonChoix=1}}
+\if{(\i=2 and \version=2) or (\i=3 and \version=3)}{\text{BonChoix=2}}
+\if{ \version<3 and (\i=3 or (\i=4 and \ChoixAngle>2))}{\text{BonChoix=3}}
+\if{ \version=3 and \i=4 and \ChoixAngle=3}{\text{BonChoix=2,3}}
+
+/*** Traitement de la question 4 ***/
+/*** Equation de la droite Centre et rayon du cercle***/
+\if{\ChoixLieux=1}{
+			\rational{m1=(\d)/(\c)}
+			\rational{m2=-1/(\m1)}
+			\rational{p1=(\b) - (\a)*(\m1)}
+			\rational{p2=(\b) - (\a)*(\m2)}
+			\rational{p3=(\b)+(\d)*(.5) - ((\a)+(\c)*.5)*(\m2)}
+			\function{d1=\m1*x+\p1}
+			\function{d2=\m2*x+\p2}
+			\function{d3=\m2*x+\p3}
+			\text{proposition= \( y = \d1),\(y = \d2),\(y = \d3)}
+			\if{\i=1 or (\i=4 and \ChoixAngle>2)}{\integer{nprop=1}}
+			\if{\i=2 or (\i=4 and \ChoixAngle<3)}{\integer{nprop=2}}
+			\if{\i=3}{\integer{nprop=3}}
+			}
+			{
+			\real{diam=sqrt((\c)^2+(\d)^2)}
+			\real{ray = (\diam)/2}
+			\if{\i=5}{\text{C1=\listePoint[\ChoixCentre]}}
+				{\if{\version<3}{\text{C1=C}}{\text{C1=A}}
+				}
+			\text{proposition= centre \C1 et rayon \ChoixRayon,
+			centre A et rayon \diam, centre C et rayon \ray }
+			\if{\i=5}
+				{\integer{nprop=1}}
+				{\if{\version<3}
+					{\integer{nprop=3}}
+					{\integer{nprop=2}}
+				}
+			}
+
+/*** Indication***/
+\text{indic=On rappelle que
+<ul>
+<li>Un argument de \(\frac{z_C-z_A}{z_B-z_A}) est une mesure de l'angle \( (\overrightarrow{AB};\overrightarrow{AC})).</li>
+<li>Le complexe z est réel si et seulement z est nul ou arg(z) = \(0+k\pi) où \(k) est un entier relatif.</li>
+<li>Le complexe z est imaginaire si et seulement z est nul ou arg(z) = \(\frac{\pi}{2}+k\pi) où \(k) est un entier relatif.</li>
+</ul>}
+
+
+\steps{reply 1
+reply 2
+reply 3
+reply 4
+}
+
+\statement{
+
+Soient A(\(z_A)) &nbsp;et&nbsp; B(\(z_B)) deux points distincts du plan complexe. On appelle C(\(z_C)) le milieu de [AB].<br>
+On pose : <div class="wimscenter"> \(z_A = \za) &nbsp;et&nbsp; \(z_B = \zb)</div>
+On appelle (E) l'ensemble des points M(z) tels que :
+<div class="wimscenter"> \condition[\i]</div>
+<ul>
+<li><b>ETAPE 1</b> : L'ensemble (E) est tout ou partie de :
+<div class="wimscenter">\embed{reply1}</div>
+<br>
+\if{\step>1}{\if{\reply1=\listeLieux[\ChoixLieux]}
+			{<span style="color:green"> \goodrep[1] ! </span>}
+                  {<span style="color:red"> \erreur[1]... L'ensemble (E) est tout ou partie d'\listeLieux[\ChoixLieux].</span>}
+		<br>
+		</li><li><b>ETAPE 2</b> : L'ensemble (E) est plus précisément :
+		<div class="wimscenter">\embed{reply2}</div>
+
+		}
+\if{\step>2}{<br>
+		\if{\reply2=\liste[\n]}
+			{<span style="color:green"> \goodrep[2] !</span> }
+			{<span style="color:red"> \erreur[2]...(E) est \liste[\n]</span>}
+		<br>
+		</li><li><b>ETAPE 3</b> : Cocher dans la liste suivante tous les points appartenant à (E) :
+		<div class="wimscenter">\embed{reply3}</div>
+		}
+\if{\step>3}{<br>
+		\if{\reply3=\listePoint[\BonChoix]}
+			{<span style="color:green"> \goodrep[3] !</span> }
+			{<span style="color:red"> \erreur[3]... Le(s) point(s) appartenant à (E) sont : \listePoint[\BonChoix]</span>}
+		<br>
+		</li><li><b>ETAPE 4</b>: On rappelle que les points A et B ont pour affixe :
+		<div class="wimscenter"> \(z_A = \za) &nbsp;et&nbsp; \(z_B = \zb)</div>
+		\if{\ChoixLieux=1}{La droite support de (E) a pour équation :}
+			 {Le cercle support de (E) a pour :}
+                   <div class="wimscenter"> \embed{reply 4}</div>
+		}
+</li></ul>
+}
+
+\answer{L'ensemble (E) est tout ou partie d'}{\ChoixLieux;\listeLieux}{type=checkbox}{option=nonstop}
+\answer{l'ensemble (E) est }{\n;\liste}{type=checkbox}{option=nonstop}
+\answer{Les points de (E) sont }{\BonChoix;\listePoint}{type=checkbox}{option=nonstop}
+\answer{}{\nprop;\proposition}{type=checkbox}{option=shuffle}
+\hint{\indic}

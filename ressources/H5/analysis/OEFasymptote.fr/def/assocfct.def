@@ -1,0 +1,236 @@
+!set title=Association de fonctions 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=no
+computeanswer=no
+language=fr
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+
+ansorder=r
+varcnt=59
+prevarcnt=58
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On fait apparaître l'expression de l'asymptote	  dans chacune des expressions algébriques&nbsp;
+val7=Associer à chacune des fonctions ci-dessous son graphe	  dans le plan muni d'un repère orthonormé \((O,i,j)\).
+val8=Correspondance graphe/fonction
+val9=\(-\infty)
+val10=\(+\infty)
+val11=\(\emptyset)
+val12=&#59;
+val13=$[rint(-10)]
+val14=$[rint(10)]
+val15=$[rint(-10)]
+val16=$[rint(10)]
+tmp0=!randitem 1,2,3,-1,-2,-3,1/2,1/3,-1/2,-1/3
+
+tmp1=!randitem 0,$(tmp0)
+
+t_=!rawmath $(tmp1)
+val17=!exec pari print($t_)
+val18=$val17
+tmp0=!replace internal / by , in $val18
+
+val18=$(tmp0)
+val17=$[rint($(val18[1]))]
+tmp0=!itemcnt $val18
+
+
+!ifval $(tmp0)=1
+val19=$[rint(1)]
+!else
+val19=$[rint($(val18[2]))]
+!endif
+
+!ifval $val19=1
+val20=$val17
+!else
+val20=\(\frac{$val17}{$val19})
+!endif
+
+!ifval $val20=1
+val20=
+!else
+val20=$val20
+!endif
+
+!ifval $val20=-1
+val20=-
+!else
+val20=$val20
+!endif
+tmp0=!randint 1, 5
+
+val21=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val22=$[rint($(tmp0)*10)]
+tmp0=!randint 1, 5
+
+val23=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val24=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val25=$[rint($(tmp0))]
+val26=+ $val22/(($val23*x+$val24)^2+$val25), - $val22/(($val23*x+$val24)^2+$val25),+$val22/($val23*x+$val24),+ $val22/(($val23*x+$val24)*(x-$val25))
+val27=($val23*x+$val24)^2+$val25, ($val23*x+$val24)^2+$val25,$val23*x+$val24,+ ($val23*x+$val24)*(x-$val25)
+val28=
+val29=
+val30=
+tmp0=!randint 1, 2
+
+val31=$[rint($(tmp0))]
+!for val32 =1 to 4 
+val33=!rawmath $val17/$val19*x+$val21 $(val26[$val32])
+tmp=!translate ";': to $     $ in $val33
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=!rawmath $(tmp0)
+t_=!replace internal \( by ( in numerator($val33)
+tmp0=!exec pari $t_
+
+val34=$(tmp0)
+t_=!replace internal \( by ( in denominator($val33)
+tmp0=!exec pari $t_
+
+val35=$(tmp0)
+val36=$(val27[$val32])
+tmp0=!texmath $val34
+
+tmp1=!texmath $val35
+
+val37=\(\frac{$(tmp0)}{$(tmp1)}\)
+tmp0=!texmath $val36
+
+val38=!rawmath \(\frac{$val22}{$(tmp0)})
+tmp0=!append item $val33 to $val28
+
+val28=$(tmp0)
+tmp0=!append item $val37 to $val29
+
+val29=$(tmp0)
+tmp0=!append item $val38 to $val30
+
+val30=$(tmp0)
+!next
+tmp0=!shuffle purple,blue,orange,green
+
+val39=$(tmp0)
+val40=200
+val41=300
+val42=dsegment -$val24/$val23,$val15,-$val24/$val23,$val16,red
+val43=dsegment -$val24/$val23,$val15,-$val24/$val23,$val16,red	   dsegment $val25,$val15,$val25,$val16,red
+val44=
+val45=,,$val42,$val43
+val46=xrange $val13, $val14	   yrange $val15,$val16	   parallel $val13,$val15,$val13,$val16,1,0,$val14 - $val13 +1,grey	   parallel $val13,$val15,$val14,$val15,0,1,$val16 -$val15 +1,grey	   hline 0,0,black	   arrow 0,0,1,0,6,black	   arrow 0,0,0,1,6,black	   vline 0,0,black	   linewidth 2	   dsegment $val13,$val17/$val19*$val13+$val21,$val14,$val17/$val19*$val14+$val21,red
+!for val47 =1 to 4 
+!if $val47=3 
+!readproc oef/draw.phtml $val40,$val40 \
+      $val46	     plot $(val39[$val47]), $(val28[$val47])	     $val42	       
+tmp0=$ins_url
+val48=<img src="$(tmp0)" width="$val40" height="$val40" alt="">
+!else
+!if $val47=4 
+!readproc oef/draw.phtml $val40,$val40 \
+    $val46	    plot $(val39[$val47]), $(val28[$val47])	   $val43	     
+tmp0=$ins_url
+val48=<img src="$(tmp0)" width="$val40" height="$val40" alt="">
+!else
+!readproc oef/draw.phtml $val40,$val40 \
+    $val46	   plot $(val39[$val47]), $(val28[$val47])	     
+tmp0=$ins_url
+val48=<img src="$(tmp0)" width="$val40" height="$val40" alt="">
+!endif
+!endif
+val48=<table border="1">	      <tr><td>$val48</td></tr></table>
+tmp0=!append item $val48 to $val44
+
+val44=$(tmp0)
+!next
+val49=$val40 x$val40 x$val41
+
+!ifval $val17=0
+val50=$val21
+!else
+val50=$val20 x + $val21
+!endif
+val51=$val6:<ul><li>	$(val29[1])=$val50 + $(val30[1])</li><li>	$(val29[2])=$val50 - $(val30[2])</li><li>	$(val29[3])=$val50 + $(val30[3])</li><li>	$(val29[4])=$val50 + $(val30[4])</li></ul>
+replytype1=correspond
+replyname1=$val8
+replygood1=$val44;$val29
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val49 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val51
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,49,51
+embedcnt=1

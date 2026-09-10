@@ -1,0 +1,174 @@
+!set title=Facture fournisseur 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Norbert,Rey
+email=norbert.rey@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem fraise,framboise,mûre
+
+val6=$(tmp0)
+tmp0=!randitem pamplemouse,pomme,raisin
+
+val7=$(tmp0)
+tmp0=!randitem cerise,litchi,kiwi
+
+val8=$(tmp0)
+tmp0=!randitem ananas,orange,abricot
+
+val9=$(tmp0)
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 3, 8
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 3, 8
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 500, 600
+
+val14=$[$(tmp0)/100]
+tmp0=!randint 450, 550
+
+val15=$[$(tmp0)/100]
+tmp0=!randint 550, 650
+
+val16=$[$(tmp0)/100]
+tmp0=!randint 450, 550
+
+val17=$[$(tmp0)/100]
+val18=$[$val10*$val14]
+val19=$[$val11*$val15]
+val20=$[$val12*$val16]
+val21=$[$val13*$val17]
+val22=$[$val18+$val19+$val20+$val21]
+val23=$[rint($val22*5.5)/100]
+val24=$[$val22+$val23]
+tmp0=!date +%Y
+
+val25=$(tmp0)
+
+!ifval $val25= 
+val25= 2021
+!endif
+tmp0=!date +%d
+
+tmp1=!date +%m
+
+tmp2=!date +%Y
+
+val26=$(tmp0)/$(tmp1)/$(tmp2) 
+tmp0=!randint 100, 999
+
+val27=$[rint($(tmp0))]
+tmp=!trim JUSFRAIS<br>Avenue du palais<br>13260 Cassis<br><i>tel : 04 05 06 07</i>,*,*,FACTURE EN EUROS<br>n° $val25-$val27 <br>Date : $val26,*	à<br><b>Bar zéro degré </b><br>12 rue des gens sobres <br> 69000 Lyon<br><i>tel : 04 00 70 07</i>,*,*,*,*	Désignation,Unité,Quantité,Prix unitaire,Montant	jus de $val6,carton de 6,$val10,$val14,reply1	jus de $val7,carton de 6,$val11,$val15,reply2	jus de $val8,carton de 6,$val12,$val16,reply3	jus d'$val9,carton de 6,$val13,$val17,reply4	Bureaux et entrepôts fermés le Samedi<br>Règlement : traite à 30 jours,*,*,<b>TOTAL </b> hors taxes,reply5	*,*,*,TVA à <b>5&#44;5%</b>,reply6	*,*,*,<b>NET A PAYER</b>,reply7	
+val28=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val28],wimscenter wimsborder,TH=[1,3,10;] COLSPAN=[1,1,3;1,4,2;2,1,5;8,1,3] ROWSPAN=[8,1,3] 
+tmp0=$slib_out
+val29=$(tmp0)
+replytype1=numeric
+replyoption1=comma 
+replyname1=1
+replygood1=$[$val18]
+replytype2=numeric
+replyoption2=comma 
+replyname2=2
+replygood2=$[$val19]
+replytype3=numeric
+replyoption3=comma 
+replyname3=3
+replygood3=$[$val20]
+replytype4=numeric
+replyoption4=comma 
+replyname4=4
+replygood4=$[$val21]
+replytype5=numeric
+replyoption5=comma 
+replyname5=5
+replygood5=$[$val22]
+replytype6=numeric
+replyoption6=comma 
+replyname6=6
+replygood6=$[$val23]
+replytype7=numeric
+replyoption7=comma 
+replyname7=7
+replygood7=$[$val24]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p> Compléter la facture ci-dessous </p>		 
+!read oef/special.phtml codeinput [$val29], 6,div	reply1	reply2	reply3	reply4	reply5	reply6	reply7	 
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=29
+embedcnt=1

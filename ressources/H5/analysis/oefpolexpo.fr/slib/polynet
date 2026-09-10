@@ -1,0 +1,55 @@
+##########################################################################
+slib polynet
+Pour un polynôme à coefficients décimaux,écriture des coefficients eniters
+sans le .0
+3 paramètres : polys séparés par des espaces,var, option
+Si var est vide en 2e paramètre alors détection auto de la variable
+Options : tex pour une sortie tex
+##########################################################################
+
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_require=pari
+slib_author=Gilles,Marbeuf
+slib_out=Polynôme nettoyé
+slib_comment=
+slib_example=poly,var,option
+
+!exit
+
+:proc
+
+slib_poly=$(wims_read_parm[1])
+slib_var=$(wims_read_parm[2])
+!if $slib_var=$empty
+  slib_var=!exec pari variable($slib_poly)
+!endif
+
+slib_option=$(wims_read_parm[3])
+
+slib_poly=!exec pari $slib_poly
+
+!if $slib_poly=0 or $slib_poly=0.0
+  slib_sortie=!exec pari truncate($slib_poly)
+  !goto sortie
+!endif
+
+slib_poldeg=!exec pari D=poldegree($slib_poly)
+slib_listcoef=!exec pari V=vector($slib_poldeg+1)
+slib_listcoef=!exec pari for(i=1,$slib_poldeg+1,V[i]=if(frac(polcoeff($slib_poly,i-1))==0,truncate(polcoeff($slib_poly,i-1)),polcoeff($slib_poly,i-1)));V
+!if $slib_poldeg=0
+  slib_sortie=$slib_listcoef
+!else
+  slib_listvar=!exec pari L=matrix($slib_poldeg+1,1,i,j,$slib_var^(i-1));L
+  slib_sortie=!exec pari S=[$slib_listcoef]*[$slib_listvar];S
+!endif
+
+!if tex iswordof $slib_option
+  slib_sortie=!texmath $slib_sortie
+!endif
+
+!goto sortie
+
+:sortie
+slib_out=$slib_sortie

@@ -1,0 +1,320 @@
+!set title=Tirages de boules
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chouhaïd, Souissi; Mounir,Mensi
+email=chsouissi@yahoo.fr
+language=fr
+computeanswer=yes
+precision=1000
+title_fr=Tirages de boules
+title_it=Estrazione di palline
+
+ansorder=r,r,r
+varcnt=109
+prevarcnt=108
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=The probability
+val8=even,odd
+val9=red,green,blue,yellow
+val10=$val9
+val11=A bag contains
+val12=The,The,the,the
+val13=ball,balls
+val14=has,have
+val15=an
+val16=number
+val17=and
+val18=We randomly draw,from the bag.
+val19=is
+val20=one
+val21=
+val22=The probability of getting only,balls
+val23=The probability of getting
+val24=are marked from 1 to
+val25=The probability that among the,drawn balls
+val26=Good answer!
+val27=Your reply
+val28=The probability of drawing only,balls
+val29=The probability of getting
+val30=As we have,which number is,the probability of drawing exactly
+val31=0
+!if $val6=fr 
+val7=La probabilité
+val8=pair,impair
+val9=rouge,verte, bleue,jaune
+val10=rouges,vertes, bleues,jaunes
+val11=Un sac contient
+val12=Les,Les,les,les
+val13=boule,boules
+val14=ait,aient
+val15=un
+val16=numéro
+val17=et
+val18=On tire au hasard et simultanément,du sac.
+val19=est
+val20=une
+val21=&nbsp;
+val22=La probabilité de ne tirer que des boules,
+val23=La probabilité d'obtenir
+val24=sont numérotées de 1 à
+val25=La probabilité que parmi les,boules tirées
+val26=Bonne réponse !
+val27=Votre réponse
+val28=La probabilité de ne tirer que des boules,
+val29=La probabilité d'obtenir
+val30=Comme il y a,dont le numéro est,la probabilité de tirer exactement
+val31=1
+!endif
+!if $val6=it 
+val7=Probabilità
+val8=pari,dispari
+val9=rossa,verde,blu,gialla
+val10=rosse,verdi,blu,gialle
+val11=Un sacchetto contiene
+val12=La,Le,la,le
+val13=pallina,palline
+val14=abbia,abbiano
+val15=un
+val16=numero
+val17=e
+val18=Si estraggono a caso,dal sacchetto.
+val19=è
+val20=una
+val21=
+val22=La probabilità di estrarre solo palline,
+val23=La probabilità di ottenere
+val24=sono numerate da 1 a
+val25=La probabilità che tra le,palline estratte
+val26=Risposta esatta!
+val27=La tua risposta
+val28=La probabilità di estrarre solo palline,
+val29=La probabilità di ottenere
+val30=Dal momento che si hanno,il cui numero è,la probabilità di estrarre esattamente
+val31=1
+!endif
+tmp0=!randitem 1,2
+
+val32=$[rint($(tmp0))]
+
+!ifval k=1
+val33= 1
+!else
+val33=2
+!endif
+
+!ifval k=2
+val34= 3
+!else
+val34=4
+!endif
+tmp0=!randint 4, 8
+
+val35=$[rint($(tmp0))]
+tmp0=!randint 4, 8
+
+val36=$[rint($(tmp0))]
+val37=$[rint($val35+$val36)]
+tmp0=!randint 2, 4
+
+val38=$[rint($(tmp0))]
+tmp0=!randint 1, ($val38-1)
+
+val39=$[rint($(tmp0))]
+val40=$[rint($val38-$val39)]
+tmp0=!randitem $val33,$val34
+
+val41=$(tmp0)
+
+!ifval $val41 issametext $val33
+val42=$[rint($val35)]
+!else
+val42=$[rint($val36)]
+!endif
+val43=$[binomial($val42,$val38)/binomial($val37,$val38)]
+val44=$[binomial($val35,$val39)*binomial($val36,$val40)/binomial($val37,$val38)]
+val45=$[rint(floor((1+$val35)/2))]
+val46=$[rint(floor((1+$val36)/2))]
+val47=$[rint($val45+$val46)]
+tmp=!nonempty items $val8
+
+tmp0=!randitem $tmp
+val48=$(tmp0)
+
+!ifval $val48 issametext $(val8[1])
+val47=$[rint($val37-$val47)]
+!else
+val47=$[rint($val47)]
+!endif
+val49=$[rint($val37-$val47)]
+val50=$[binomial($val47,$val39)*binomial($val49,$val40)/binomial($val37,$val38)]
+!if $val39>1 
+val51=$val39
+val52=$(val13[2])
+
+!ifval $val31=1
+val53=$(val13[2]) $(val10[$val33])
+!else
+val53=$(val10[$val33]) $(val13[2])
+!endif
+val54=$(val13[2]) $(val14[2])
+!else
+val51=$val20
+val52=$(val13[1])
+
+!ifval $val31=1
+val53=$(val13[1]) $(val9[$val33])
+!else
+val53=$(val9[$val33]) $(val13[1])
+!endif
+val54=$(val13[1]) $(val14[1])
+!endif
+!if $val40>1 
+val55=$val40
+
+!ifval $val31=1
+val56=$(val13[2]) $(val10[$val34])
+!else
+val56=$(val10[$val34]) $(val13[2])
+!endif
+!else
+val55=$val20
+
+!ifval $val31=1
+val56=$(val13[1]) $(val9[$val34])
+!else
+val56=$(val9[$val34]) $(val13[1])
+!endif
+!endif
+oefsteps=reply1	reply2	reply3 
+nextstep=!nosubst reply1	reply2	reply3 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=1. $val27
+replygood1=$[$val43]
+replytype2=numeric
+replyname2=2. $val27
+replygood2=$[$val44]
+replytype3=numeric
+replyname3=3. $val27
+replygood3=$[$val50]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val11 $val35	    
+!if $val31=1 
+$()$(val13[2]) $(val10[$val33]) 
+!else
+$() $(val10[$val33]) $(val13[2]) 
+!endif
+$()	    $val17 $val36	    
+!if $val31=1 
+$()$(val13[2]) $(val10[$val34]). 
+!else
+$() $(val10[$val34]) $(val13[2]). 
+!endif
+$()	    $(val18[1]) $val38 $(val13[2]) $(val18[2])	    <div class="wims_question">	<ol class="spacer"><li>	
+!if $m_step=1 
+$()<label for="reply1">$(val22[1]) $(val10[$val41]) $(val22[2]) $val19$val21: </label> 
+!read oef/embed.phtml reply1,12 
+$(). 
+!endif
+$()	
+!if $m_step>1 
+$()$(val22[1]) $(val10[$val41]) $(val22[2]) $val19$val21: <span class="oef_indgood">$val43</span>.	<span class="wims_emph">$val26</span>	</li><li>  
+!endif
+$()	
+!if $m_step=2 
+$()<label for="reply2">$val23 $val51 $val53 $val17 $val55	 $val56 $val19$val21: </label> 
+!read oef/embed.phtml reply2,12 
+$() 
+!endif
+$()	
+!if $m_step>=3 
+$()$val23 $val51 $val53 $val17 $val55	 $val56 $val19$val21: <span class="oef_indgood">$val44</span>.	<span class="wims_emph">$val26 </span>	</li><li><div>	$(val12[2]) $val53 $val24 $val35 $val17 $(val12[4])	$(val10[$val34]) $val24 $val36.	</div>	<label for="reply3">$(val25[1]) $val38 $(val25[2]) $val51 $val54	    
+!if $val31=1 
+$()$val15 $val16 $val48 
+!else
+$() $val15 $val48 $val16 
+!endif
+$()	    $val19$val21: </label>  
+!read oef/embed.phtml reply3,12 
+$() 
+!endif
+$()	</li></ol>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	1. $(val28[1]) $(val10[$val41]) $(val28[2]) $val19	
+!insmath \frac{C_{$val42}^{$val38}}{C_{$val37}^{$val38}}=$val43
+$().	
+!if $m_step>=2 
+$()	<p>	2. $val29 $val51 $val53 $val17 $val55 $val56	  $val19 
+!insmath \frac{C_{$val35}^{$val39}C_{$val36}^{$val40}}{C_{$val37}^{$val38}}=$val44
+$().	</p> 
+!endif
+$()	
+!if $m_step>=3 
+$()<p>	3. $(val30[1]) $val47 $(val13[2]) $(val30[2]) $val48, $(val30[3])	$val51 $val52 $(val30[2]) $val48 $val19	
+!insmath \frac{C_{$val47}^{$val39}C_{$val49}^{$val40}}{C_{$val37}^{$val38}}=$val50
+$().  
+!endif
+$()	</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,15,16,17,18,19,21,22,23,24,25,26,28,29,30,31,33,34,35,36,37,38,39,40,41,42,43,44,47,48,49,50,51,52,53,54,55,56
+embedcnt=3

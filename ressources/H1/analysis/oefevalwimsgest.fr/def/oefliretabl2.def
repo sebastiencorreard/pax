@@ -1,0 +1,227 @@
+!set title=Lire un tableau à double entrée 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+oefcss=<style> .PaleGreen{ background-color:PaleGreen; } .yellow{ background-color:yellow; } </style>
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+
+ansorder=r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=6ème,5ème,4ème,3ème,Total
+val7=externes, demi-pensionnaires, externes, demi-pensionnaires
+val8=filles,garçons
+val9=Nous avons fait une enquête dans le collège sur la qualité des élèves.
+val10=Total
+val11=Répondre aux questions suivantes&nbsp;
+val12=L'effectif des élèves en $(val6[$m_a[1]]) est
+val13=L'effectif des élèves en $(val6[$m_a[2]]) est
+tmp0=!randint 30, 70
+
+tmp1=!randint 30, 70
+
+tmp2=!randint 30, 70
+
+tmp3=!randint 30, 70
+
+tmp4=!randint 30, 70
+
+tmp5=!randint 30, 70
+
+tmp6=!randint 30, 70
+
+tmp7=!randint 30, 70
+
+tmp8=!randint 30, 70
+
+tmp9=!randint 30, 70
+
+tmp10=!randint 30, 70
+
+tmp11=!randint 30, 70
+
+tmp12=!randint 30, 70
+
+tmp13=!randint 30, 70
+
+tmp14=!randint 30, 70
+
+tmp15=!randint 30, 70
+
+tmp=!trim $(tmp0),$(tmp1),$(tmp2),$(tmp3)	$(tmp4),$(tmp5),$(tmp6),$(tmp7)	$(tmp8),$(tmp9),$(tmp10),$(tmp11)	$(tmp12),$(tmp13),$(tmp14),$(tmp15)
+val14=!translate internal $	\
+$ to ;; in $tmp
+val15=
+val16=
+!for val17 =1 to 4 
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row $val17 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+val16=$val16,$val18
+val19=$[rint($(val18[1])+$(val18[2])+$(val18[3])+$(val18[4]))]
+val15=$val15,$val19
+!next
+val20=
+!for val17 =1 to 4 
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!column $val17 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+val19=$[rint($(val21[1])+$(val21[2])+$(val21[3])+$(val21[4]))]
+val20=$val20,$val19
+!next
+val22=$[rint($(val20[5])+$(val20[2])+$(val20[3])+$(val20[4]))]
+tmp0=!shuffle 4
+
+val23=$(tmp0)
+val24=$[rint($(val20[$(val23[1])+1]))]
+val25=$[rint($(val20[$(val23[2])+1]))]
+val26=$[rint($(val23[1])+1)]
+val27=$[rint($(val23[2])+1)]
+val6=6ème,5ème,4ème,3ème,Total
+val7=externes, demi-pensionnaires, externes, demi-pensionnaires
+val8=filles,garçons
+val9=Nous avons fait une enquête dans le collège sur la qualité des élèves.
+val10=Total
+val11=Répondre aux questions suivantes&nbsp;
+val12=L'effectif des élèves en $(val6[$(val23[1])]) est
+val13=L'effectif des élèves en $(val6[$(val23[2])]) est
+val28=élèves en $(val6[$(val23[1])])
+val29=élèves en $(val6[$(val23[2])])
+val30=On lit directement la réponse dans le tableau&nbsp;: il y a <mark class="yellow">\($val24\)</mark> $val28.	<p>On lit directement la réponse dans le tableau&nbsp;: il y a <mark class="PaleGreen">\($val25\)</mark> $val29.</p>
+replytype1=numeric
+replyname1=
+replygood1=$[$val24]
+replytype2=numeric
+replyname2=
+replygood2=$[$val25]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val9	<table class="wimscenter wimsborder table-scroll">	<tr><th></th>	 
+!for m_m=0 to 5 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr>	 
+!for m_k=1 to 4 
+$()<tr>	   
+!if $m_k=1 or $m_k=3 
+$()<th colspan="1" rowspan="2">$(val8[$m_k/2+1])</th> 
+!endif
+$()	   <th>$(val7[$m_k])</th>	    
+!for m_j=1 to 4 
+$()	   <td>$(val16[$m_j+4*($m_k-1)+1])</td> 
+!next
+$()	   <td>$(val15[$m_k+1])</td></tr> 
+!next
+$()	<tr><th></th><th>$val10</th>	 
+!for m_l=2 to 5 
+$()<td>$(val20[$m_l])</td> 
+!next
+$()	<td>$val22</td></tr></table>	<div class="spacer">$val11:</div>	<ul>	<li><label for="reply1">$val12</label>  
+!read oef/embed.phtml r1,4 
+$()</li>	<li><label for="reply2">$val13</label>  
+!read oef/embed.phtml r2,4 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<table class="wimscenter wimsborder">	<tr><th></th>	 
+!for m_m=0 to 5 
+$()<th>$(val6[$m_m])</th> 
+!next
+$()	</tr>	 
+!for m_k=1 to 4 
+$()<tr>	   
+!if $m_k=1 or $m_k=3 
+$()<th colspan="1" rowspan="2">$(val8[$m_k/2+1])</th> 
+!endif
+$()	   <th>$(val7[$m_k])</th>	    
+!for m_j=1 to 4 
+$()<td >$(val16[$m_j+4*($m_k-1)+1])</td> 
+!next
+$()	   <td>$(val15[$m_k+1])</td></tr> 
+!next
+$()	<tr><th></th><th>Total</th>	 
+!for m_z=2 to 5 
+$()
+!if $m_z=$val26 
+$()<td class="yellow">$(val20[$m_z])</td> 
+!else
+$() 
+!if $m_z=$val27 
+$()<td class="PaleGreen">$(val20[$m_z])</td> 
+!else
+$() <td>$(val20[$m_z])</td> 
+!endif
+$() 
+!endif
+$() 
+!next
+$()	<td>$val22</td></tr></table>	$val30
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,15,16,20,22,26,27,30
+embedcnt=2

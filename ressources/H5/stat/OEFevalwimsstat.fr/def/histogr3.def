@@ -1,0 +1,194 @@
+!set title=Histogramme à pas variable 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r
+varcnt=36
+prevarcnt=34
+postvarcnt=1
+replycnt=5
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1,1,2,2,3,3,4,4
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!randitem 10,50,80,100
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 5,10,20
+
+val8=$[rint($(tmp0))]
+val9=$val7
+!for val10 =1 to 4 
+val11=$[rint($(val9[$val10])+$val8*$(val6[$val10]))]
+tmp0=!append item $val11 to $val9
+
+val9=$(tmp0)
+!next
+val12=
+val13=$[rint(0)]
+!for val10 =1 to 4 
+tmp0=!randint 1, 5
+
+val14=$[rint($(tmp0)*6)]
+val13=$[rint($val13+$val14)]
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+!next
+tmp0=!sort numeric list $val12
+
+val15=$(tmp0)
+val16=$[rint($(val15[4]))]
+val17=<table class="wimscenter wimsborder">	<tr><td>Classes</td>
+!for val10 =1 to 4 
+val17=$val17<td> &#91; $(val9[$val10]);$(val9[$val10+1]) &#91; </td>
+!next
+val17=$val17</tr><tr><td>Effectifs</td>
+!for val10 =1 to 4 
+val17=$val17<td> $(val12[$val10])</td>
+!next
+val17=$val17</tr></table>
+val18=
+!for val10 =1 to 4 
+t_=!rawmath $(val12[$val10])/$(val6[$val10])
+val19=!exec pari print($t_)
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+!next
+val20=
+!for val10 =1 to 4 
+val21=&#91; $(val9[$val10]) &#59; $(val9[$val10+1]) &#91;
+tmp0=!append item $val21 to $val20
+
+val20=$(tmp0)
+!next
+tmp0=!sort numeric list $val18
+
+val22=$(tmp0)
+tmp0=!positionof item $(val22[4]) in $val18
+
+val23=$(tmp0)
+val24=xrange $val7-5,$(val9[5])+5	 yrange -5,$val16+3	 rectangle $(val9[1]),0,$(val9[2]),$(val18[1]),orange	 rectangle $(val9[2]),0,$(val9[3]),$(val18[2]),orange	 rectangle $(val9[3]),0,$(val9[4]),$(val18[3]),orange	 rectangle $(val9[4]),0,$(val9[5]),$(val18[4]),orange	 text black,($(val9[1])+$(val9[2]))/2,$(val18[1])+1,small,$(val18[1])	 text black,($(val9[2])+$(val9[3]))/2,$(val18[2])+1,small,$(val18[2])	 text black,($(val9[3])+$(val9[4]))/2,$(val18[3])+1,small,$(val18[3])	 text black,($(val9[4])+$(val9[5]))/2,$(val18[4])+1,small,$(val18[4])	 arrow $val7-5,0,$(val9[5])+5,0,10,black	 arrow $val7,-1,$val7,$val16+3,10,black	 text black,$(val9[1]),-1,small,$(val9[1])	 text black,$(val9[2]),-1,small,$(val9[2])	 text black,$(val9[3]),-1,small,$(val9[3])	 text black,$(val9[4]),-1,small,$(val9[4])	 text black,$(val9[5]),-1,small,$(val9[5])	
+replytype1=numexp
+replyname1=effectif 2
+replygood1=$(val12[2])
+replytype2=numexp
+replyname2=effectif 3
+replygood2=$(val12[3])
+replytype3=numexp
+replyname3=effectif 4
+replygood3=$(val12[4])
+replytype4=numeric
+replyname4=effectif total
+replygood4=$[$val13]
+replytype5=checkbox
+replyname5=classemodale
+replygood5=?analyze 25;$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère une série statistique donnée par son histogramme:	</p>	<div class="wimscenter">  
+!read oef/draw.phtml 300,300 \
+$val24 
+$() </div>	<p>	Compléter le tableau des effectifs de cette série.</p>	<table class="wimscenter wimsborder">	<tr><td>Classes</td>	 
+!for m_j=0 to 3 
+$()	  <td>	  
+!if $m_j>0 
+$()<label for="reply$m_j"> 
+!endif
+$()	  &#91; $(val9[$m_j+1]);$(val9[$m_j+2]) &#91;	  
+!if $m_j>0 
+$()</label> 
+!endif
+$()</td>	 
+!next
+$()	</tr><tr><td>Effectifs</td><td> $(val12[1]) </td>	 
+!for m_k=1 to 3 
+$()	  <td> 
+!read oef/embed.phtml reply\k,4 
+$()</td>	 
+!next
+$()	</tr></table>	<p>	Quel est l'effectif total de cette série&nbsp;?  
+!read oef/embed.phtml reply4,4 
+$()	</p>	Cocher la (ou les) classe(s) modale(s) de cette série:	<div class="wimscenter"> 
+!read oef/embed.phtml reply5 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!positionof item $m_reply5 in $val20
+
+val26=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val26<>$val23
+ <div class='oef_feedbacks'>La classe modale est la classe ayant la plus grande densité d'effectif,	  elle correspond donc au rectangle le plus haut.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val26=$val23
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=9,12,20,23,24,25
+embedcnt=3

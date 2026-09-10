@@ -1,0 +1,168 @@
+target=chgtva1 chgtva2
+#include "lang_titles.inc"
+#include "author.inc"
+\computeanswer{no}
+\description{Travail sur l'indice de sommation}
+\integer{a=randint(1..3)*random(-1,1)}
+\integer{b=randint(7..12)}
+\integer{ecart=\b-\a+1}
+\integer{t=randint(1..4)*random(-1,1)}
+\integer{clet=randint(1..6)}
+\text{lettres=h,j,k,m,n,r,t}
+\text{n=\lettres[\clet]}
+\text{u=\lettres[\clet+1]}
+#if defined TARGET_chgtva1
+\function{fn=\n}
+\text{express1=f ( \n )}
+#else
+\integer{x=randint(2..3)}
+\integer{x0=\x-1}
+\integer{y=randint(2..4)*random(1,-1)}
+\text{fn1=randitem(\y*(\x)^\n,\x*\n+(\y),\y*\n^(\x0),(\y*\n)^\x,\y*exp(-\x*\n))}
+\text{fn=simplify(\fn1)}
+\text{fnlatex=texmath(\fn)}
+\real{A=0}
+\for{i=\a to \b}{\real{A=\A+evalue(\fn,\n=\i)}}
+\text{express1=\fnlatex}
+#endif
+\integer{R=random(1,2)}
+\integer{at=simplify(\a+\t)}
+\integer{bt=simplify(\b+\t)}
+\integer{rep1= \R=1? \at : \bt}
+\text{rep2=simplify(\n-\t)}
+#if defined TARGET_chgtva1
+\if{\R=1}{
+   \function{chgt=\n + \t}
+   \integer{at=\a+\t}\integer{bt=\b+\t}\function{param=\u-\t}
+ }
+ {
+   \function{chgt=\t - \n}
+   \integer{at=\t-\b}\integer{bt=\t-\a}\function{param=\t-\u}
+ }
+#endif
+#if defined TARGET_chgtva2
+\if{\R=1}{
+   \function{chgt=\n + \t}
+   \integer{at=\a+\t}\integer{bt=\b+\t}\function{param=simplify(evalue(\fn,\n=\u-\t))}
+ }
+ {
+   \function{chgt=\t - \n}
+   \integer{at=\t-\b}\integer{bt=\t-\a}\function{param=simplify(evalue(\fn,\n=\t-\u))}
+ }
+#endif
+ \text{paramlatex=texmath(\param)}
+\integer{ecartrep=1}
+\integer{diffnb=0}
+\function{diffexpress=0}
+\integer{testu=0}
+\integer{testn=0}
+\integer{echec=1}
+\text{essai=}
+\function{valrep1=0}
+\function{valrep3=0}
+\function{valrep2=0}
+\text{etapes=reply1,reply2,reply3}
+\nextstep{\etapes}
+\css{<style>
+.cadre {text-align:center; margin-left:auto; margin-right:auto; }
+.feedbad {background:#FFF1F0;padding:1em;margin:0% 2%;}
+</style>}
+\statement{
+#if defined TARGET_chgtva1
+On désigne par \(f\) une fonction définie sur les entiers et on pose :
+#else
+On pose :
+#endif
+<div class="wimscenter">\( \displaystyle{S = \sum_{\n = \a}^{\b} \express1 }\).</div>
+<div class="wims_question">Transformez l'expression de \(S\)  en faisant  le changement de variable
+\(\u = \chgt\) :
+\if{\step=1}{
+<div class="center">
+#if defined TARGET_chgtva1
+\special{mathmlinput [\displaystyle{S=\sum_{\u=reply1}^{reply3}f(reply2)}],8,noanswer
+reply1,3
+reply2,8
+reply3,3}
+#else
+\special{mathmlinput [\displaystyle{S=\sum_{\u=reply1}^{reply3}(reply2)}],8,noanswer
+reply1,3
+reply2,8
+reply3,3}
+#endif
+</div>
+}
+</div>
+\if{\step>=2}{
+\if{\echec=1}{<div class="feedbad">}
+{<div style="color:#008000;padding:10px;">}
+#if defined TARGET_chgtva1
+<div class="center">\(\displaystyle{S=\sum_{\u=\valrep1}^{\valrep3}f(\valrep2)}\)</div>
+#else
+<div class="center">\(\displaystyle{S=\sum_{\u=\valrep1}^{\valrep3}(\valrep2)}\)</div>
+#endif
+\if{\echec=0}{Bonne réponse}
+</div>
+}
+\if{\step>=2 and \echec=1}{
+<div class="feedbad">
+<span class="oef_indbad"> Expression incorrecte</span>
+<ul class="wims_nopuce">\if{\testu=1}{<li>les bornes de la somme ne peuvent pas dépendre de la valeur du paramètre \(\u\). </li>}
+\if{\testn=1}{<li>les bornes de la somme ne peuvent pas dépendre de la valeur du paramètre \(\n\).</li> }
+\if{\diffexpress!=0}{<li> le terme général de votre somme n'est pas correct.</li>}
+\if{\dt<0}{<li> la valeur écrite en-dessous du signe somme indique la plus petite valeur que va prendre la variable \u et la valeur écrite au-dessus du signe somme indique sa plus grande valeur. </li> }
+\if{\diffnb!=0 and \testn=0 and \testu=0}{<li> votre expression ne contient pas le bon nombre de termes.</li>}
+</ul>
+Dans la première expression de \(S\), les valeurs écrites  en-dessous et au-dessus
+de la somme indiquent que l'on somme les valeurs de \( \express1 \) en faisant prendre
+ à \(\n\) successivement chaque entier de \a à \b, il faut que votre expression ait la même propriété.</div>
+<div class="wims_question">Avec ces indications, corrigez votre première expression :
+<div class="center">
+#if defined TARGET_chgtva1
+\special{mathmlinput [\displaystyle{S=\sum_{\u=reply4}^{reply6}f(reply5)}],8,noanswer
+reply4,3
+reply5,8
+reply6,3}
+#else
+\special{mathmlinput [\displaystyle{S=\sum_{\u=reply4}^{reply6}reply5}],8,noanswer
+reply4,3
+reply5,8
+reply6,3}
+#endif
+</div>
+</div>
+}
+}
+
+\answer{en-dessous de la somme}{\at}{type=formal}{option=nonstop}{weight=3}
+\answer{pour le terme général}{\param}{type=formal}{option=nonstop}{weight=3}
+\answer{au-dessus de la somme}{\bt}{type=formal}{option=nonstop}{weight=3}
+\answer{2ème essai :}{\at}{type=formal}{weight=2}
+\answer{}{\param}{type=formal}{weight=2}
+\answer{}{\bt}{type=formal}{weight=2}
+\integer{testn=(\n isvarof \reply1) or (\n isvarof \reply3)?1:0}
+\integer{testu=(\u isvarof \reply1) or (\u isvarof \reply3)?1:0}
+\function{ecartrep=simplify(\reply3-\reply1+1)}
+\integer{diffnb=simplify(\ecartrep-\ecart)}
+\integer{echec=(\sc_reply1<1 or \sc_reply2<1 or \sc_reply3<1)?1:0}
+\text{diffexpress=simplify(\reply2-(\param))}
+\text{etapes=}
+\function{valrep1=wims(rawmath \reply1)}
+\function{valrep2=texmath(wims(rawmath \reply2))}
+\function{valrep3=wims(rawmath \reply3)}
+\if{\step<=2 and \echec=1 }{\text{etapes=reply4,reply5,reply6}}
+
+\solution{
+Lorsque \(\n\) varie de \a à \b alors \(\u\) varie de \at à \bt. <br>
+#if defined TARGET_chgtva1
+Comme \(\u = \chgt\), on a \(f( \n ) = f ( \paramlatex )\). L'expression de \(S\) obtenue par changement de variable est donc :
+ <div class="wimscenter">\(S = \displaystyle{ \sum_{\u = \at}^{\bt} f(\paramlatex)}.\)</div>
+#else
+Comme \(\u = \chgt\), on a \(\express1 =  \paramlatex\). L'expression de \(S\) obtenue par changement de variable est donc :
+<div class="wimscenter">\(S =  \displaystyle{\sum_{\u = \at}^{\bt} \paramlatex}.\)</div>
+Remarque : en faisant le calcul, on trouve que la valeur de \(S\) est \A.
+#endif
+}
+#if defined TARGET_chgtva2
+\hint{Voici deux exemples montrant comment écrire des expressions dans les champs de réponse :
+<ul><li> \(\a\n\) s'écrit \a*\n</li><li> \(\n^2\) s'écrit  \n^2</li></ul> }
+#endif

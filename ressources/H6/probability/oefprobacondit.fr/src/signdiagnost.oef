@@ -1,0 +1,145 @@
+\title{Signes diagnostiques}
+\computeanswer{yes}
+\precision{1000}
+\author{Sophie, Lemaire}
+\email{sophie.lemaire@universite-paris-saclay.fr}
+inspiré d'un exercice de A-J Valleron (Biostatistique p 19 edition Flammarion (2007))
+\keywords{conditional_probability,independent_events}
+\description{Exercice comportant deux étapes}
+
+\integer{c1=randint(1..3)}
+\rational{pourcentmal = randint(1..20)}
+non malade
+contraintes sur bp=P(B+) et apsbm=P(A+/B-) et apsbp=P(A+/B+)=apsbm+h pour avoir P(B+)<0.5 et P(A+)<0.5
+\integer{n=100}
+\rational{bp = randint(1..\n/4)/\n}
+\rational{apsbm = randint(\n*(0.5-\bp)/(1-\bp)..(\n/2-1))/\n}
+\if{\c1==3}{\rational{apsbp=\apsbm}}
+          {\rational{h=randint(1..\n*(0.5-\apsbm)/(\bp))/\n}
+           \rational{apsbp = min(\h+\apsbm,1-1/\n)}}
+\rational{bm = 1-\bp}
+\rational{amsbm = 1-\apsbm}
+\rational{amsbp = 1-\apsbp}
+\rational{apbp = \apsbp*\bp}\real{apbpr=\apbp}
+\rational{apbm = \apsbm*\bm}\real{apbmr=\apbm}
+\rational{ap = \apbp + \apbm}
+\rational{am = 1-\ap}
+\rational{ambp = \amsbp*\bp}\real{ambpr=\ambp}
+\rational{ambm = \amsbm*\bm}\real{ambmr=\ambm}
+\rational{bpsam = \ambp/(\am)}
+\rational{bmsam = 1-\bpsam}
+\rational{bpsap = \apbp/(\ap)}
+\rational{bmsap = 1-\bpsap}
+malade
+contraintes sur mbp=P(B+) et mapsbm=P(A+/B-) et mapsbp=P(A+/B+)=mapsbm+mh pour avoir P(B+)>0.5 et P(A+)>0.5
+\rational{mbp = randint(\n*(\bp+0.6)..(\n-1))/\n}
+\rational{mapsbm = randint(\n/4..(\n/2-1))/\n}
+\rational{mh = randint(\n*(0.5-\mapsbm)/(\mbp)..\n*(1-\mapsbm))/\n}
+\rational{mapsbp = min(\mapsbm + \mh,(1-1/\n))}
+
+\rational{mbm = 1-\mbp}
+\rational{mamsbm = 1-\mapsbm}
+\rational{mamsbp = 1 - \mapsbp}
+\rational{map = \mapsbp*\mbp + \mapsbm*\mbm}
+\rational{mam= 1-\map}
+\rational{mapbp = \mapsbp*\mbp}
+\rational{mapbm = \mapsbm*\mbm}
+\rational{mambp = \mamsbp*\mbp}
+\rational{mambm = \mamsbm*\mbm}
+\real{mapbpr = \mapbp}
+\real{mapbmr = \mapbm}
+\real{mambpr = \mambp}
+\real{mambmr = \mambm}
+
+\integer{c2=randint(1,2)}\integer{c3=3-\c2}
+\text{listdiag=le signe A, le signe B}
+\integer{cq1=randint(1,2)}\integer{cq2=randint(1,2)}
+\text{listquest=présenter, ne pas présenter; présentant, ne présentant pas; présente, ne présente pas}
+\text{listquest4=\(A^{+}\),\(B^{+}\),\(A^{+}B^{+}\),\(A^{-}B^{+}\),\(A^{+}B^{-}\)}
+\text{listrep3=oui,non}
+\if{\c2==1 and \cq1==1}
+   {\rational{rep1=\ap}
+    \rational{rep2=\cq2==1?\bpsap:\bmsap}
+    \rational{val=\cq2==1?\bp:\bm}
+   }
+\if{\c2==1 and \cq1==2}
+   {\rational{rep1=\am}
+    \rational{rep2=\cq2==1?\bpsam:\bmsam}
+    \rational{val=\cq2==1?\bp:\bm}
+   }
+\if{\c2==2 and \cq1==1}
+   {\rational{rep1=\bp}
+    \rational{rep2=\cq2==1?\apsbp:\amsbp}
+   \rational{val=\cq2==1?\ap:\am}
+   }
+\if{\c2==2 and \cq1==2}
+   {\rational{rep1=\bm}
+    \rational{rep2=\cq2==1?\apsbm:\amsbm}
+    \rational{val=\cq2==1?\ap:\am}
+   }
+\real{rep1val=\rep1}\real{rep2val=\rep2}
+\integer{rep3=\rep2==\val?1:2}
+\integer{cq4 = randint(1..5)}
+\function{f = x*\pourcentmal/(x*\pourcentmal + y*(100-\pourcentmal))}
+\text{valx = \map,\mbp,\mapbp,\mambp,\mapbm}
+\text{valy = \ap,\bp,\apbp,\ambp,\apbm}
+\text{quest4 = \listquest4[\cq4]}
+\real{rep4 = evalue(\f,x=\valx[\cq4],y=\valy[\cq4])}
+\real{rep4pourcent=100*\rep4}
+\steps{reply1,reply2,reply3
+reply4}
+\statement{<p>
+ Une maladie M atteint \pourcentmal % de la
+population. On s'intéresse à deux signes diagnostiques notés \(A\) et \(B\).
+La présence d'un signe diagnostique \(S\) est notée \(S^+\) et son absence est notée \(S^-\).
+Par exemple, les individus \(A^{+}B^{-}\) sont ceux qui présentent le signe \(A\) et qui ne présentent pas le signe \(B\).
+</p>
+<ol class="spacer"><li>
+Le tableau suivant donne les proportions des différents signes diagnostiques chez les individus qui 
+ne sont pas atteints par la maladie M :
+<table class="wimsborder wimscenter">
+<tr><th>\(A^{+}B^{+}\)</th><th>\(A^{+}B^{-}\)</th><th>\(A^{-}B^{+}\)</th><th>\(A^{-}B^{-}\)</th></tr>
+<tr><td>\(\apbpr\)</td><td>\(\apbmr\)</td><td>\(\ambpr\)</td><td>\(\ambmr\)</td></tr>
+</table>
+\if{\step=1}{<div class="wims_question">}
+Répondre aux questions suivantes, en se référant au tableau.
+<ul class="spacer"><li>
+Quelle probabilité un individu non malade a-t-il de \listquest[1;\cq1] \listdiag[\c2] ?
+\if{\step=1}{\embed{reply1}}{<span class="oef_indgood">\rep1val.</span>} 
+</li><li>
+  Quelle probabilité un individu non malade \listquest[2;\cq1] \listdiag[\c2] a-t-il 
+  de \listquest[1;\cq2] \listdiag[\c3] ? 
+\if{\step=1}{\embed{reply2}}{<span class="oef_indgood">\rep2val.</span>}
+</li><li>
+  Chez les individus sains, les signes diagnostiques \(A\) et \(B\) sont-ils indépendants ? 
+\if{\step=1}{\embed{reply3}}{<span class="oef_indgood">\listrep3[\rep3].</span>}</li>
+</ul>
+\if{\step=1}{</div>}
+\if{\step>1}{</li><li>Chez les individus atteints de la maladie M, les proportions des différents signes 
+diagnostiques sont :
+<table class="cadre">
+<tr><th>\(A^{+}B^{+}\)</th><th>\(A^{+}B^{-}\)</th><th>\(A^{-}B^{+}\)</th><th>\(A^{-}B^{-}\)</th></tr>
+<tr><td>\(\mapbpr\)</td><td>\(\mapbmr\)</td><td>\(\mambpr\)</td><td>\(\mambmr\)</td></tr>
+</table>
+<div class="wims_question">
+Quelle probabilité un individu \quest4 a-t-il d'être atteint par la maladie M ?\embed{reply4}
+</div>}
+<div class="wims_instruction">Ecrire les résultats numériques en gardant quatre chiffres significatifs</div>
+</li></ol>
+}
+\answer{1-a}{\rep1}{type=numeric}{option=noanalyzeprint}
+\answer{1-b}{\rep2}{type=numeric}{option=noanalyzeprint}
+\answer{1-c}{\rep3;\listrep3}{type=radio}{option=noanalyzeprint}
+\answer{2.}{\rep4}{type=numeric}{option=noanalyzeprint}
+\solution{Question 1. 
+<ul><li>
+  Un individu non malade a une probabilité égale à \rep1val de \listquest[1;\cq1] \listdiag[\c2].
+</li><li>Un individu non malade \listquest[2;\cq1] \listdiag[\c2], a une probabilité égale à \rep2val de \listquest[1;\cq2] \listdiag[\c3].
+</li><li> Les signes diagnostiques A et B \if{\rep3==1}{sont}{ ne sont pas} indépendants. 
+\if{\rep3==1}{Autrement dit, savoir que l'individu sain \listquest[3;\cq1] \listdiag[\c2] n'apporte 
+  aucune information sur la probabilité qu'il \listquest[3;\cq2] \listdiag[\c3].} 
+</li></ul>
+
+\if{\step>1}{Question 2. Savoir qu'un individu est \quest4 fait passer sa probabilité d'avoir
+ la maladie M de \pourcentmal % à \rep4pourcent %.}
+}

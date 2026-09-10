@@ -1,0 +1,192 @@
+!set title=Somme et produit à 3 I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang Xiao
+email=xiao@unice.fr
+language=fr
+title_en=Sum and product of 3 I
+
+varcnt=35
+prevarcnt=25
+postvarcnt=9
+replycnt=0
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Montrez que
+val8=et
+val9=Soient, trois , non négatifs tels que
+val10=nombres rationnels, nombres réels
+!if $val6=en 
+val7=Prove
+val8=and
+val9=Let, three , non negative,, tels que
+val10=rational numbers, real numbers
+!endif
+m_options=nofloat fixedgoal
+tmp=!nonempty items constineq,obvineq
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items trans,addineq
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+m_methods=ineq/rewrite, ineq/simpdeduc, ineq/mulexp, ineq/lincomb,	ineq/$val11, ineq/$val12, ineq/mulineq, ineq/sqrpos
+m_minsteps=8
+tmp=!trim x,y,z	a,b,c	r,s,t	l,m,n	u,v,w	
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$(tmp0)
+tmp0=!item 2 of $val13
+
+val15=$(tmp0)
+tmp0=!item 3 of $val13
+
+val16=$(tmp0)
+tmp0=!randint 8, 30
+
+val17=$[rint($(tmp0))]
+val18=$[rint($val17^3)]
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+tmp0=!randitem <,<=
+
+val20=$(tmp0)
+val21=$val14 + $val15 + $val16 $val20 $val17
+val22=0 <= $val14
+val23=0 <= $val15
+val24=0 <= $val16
+val25=$val14*$val15*$val16 $val20 $val18
+m_context=$val21	$val22	$val23	$val24	
+m_goal=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val9[1]) 
+!insmath $val14, $val15, $val16
+$() $(val9[2]) $val19 $(val9[3]) $(val9[4])	
+!insmath  $val21 
+$().	$val7	<div class="wimscenter">
+!insmath $val25
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_newobject != &#36;empty 
+tmp0=!exec mathexp cut inequality	$m_newobject
+
+val26=$(tmp0)
+tmp0=!item 1 of $val26
+
+val27=$(tmp0)
+tmp0=!item 2 of $val26
+
+val28=$(tmp0)
+tmp0=!item 3 of $val26
+
+val29=$(tmp0)
+!if $val28 issametext $val20 
+tmp=!translate ";': to $     $ in $val27-($val14*$val15*$val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+tmp=!translate ";': to $     $ in $val29-($val18)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+!else
+tmp=!translate ";': to $     $ in $val29-($val14*$val15*$val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+tmp=!translate ";': to $     $ in $val27-($val18)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+tmp0=!translate internal <> to >< in $val28
+
+val28=$(tmp0)
+!endif
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val30 = 0 and $val31 = 0 and $val28 issametext $val20
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=7,9,14,15,16,18,19,20,21,25
+embedcnt=0

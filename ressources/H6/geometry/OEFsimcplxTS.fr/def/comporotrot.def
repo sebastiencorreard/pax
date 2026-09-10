@@ -1,0 +1,480 @@
+!set title=Composée de rotations
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=regine@mangeard
+author=Régine, Mangeard
+author=Régine, Mangeard
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=75
+prevarcnt=74
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=0,1/6,1/4,1/3,1/2,2/3,3/4,5/6,1,-5/6,-3/4,-2/3,-1/2,-1/3,-1/4,-1/6
+val7=1,sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1,-sqrt(3)/2,-sqrt(2)/2,-1/2,0,1/2,sqrt(2)/2,sqrt(3)/2
+val8=0,1/2,sqrt(2)/2,sqrt(3)/2,0,sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1,-sqrt(3)/2,-sqrt(2)/2,-1/2
+val9=1,\frac{\sqrt{3}}{2},\frac{\sqrt{2}}{2},\frac{1}{2},,-\frac{1}{2},-\frac{\sqrt{2}}{2},-\frac{\sqrt{3}}{2},-1,-\frac{\sqrt{3}}{2},-\frac{\sqrt{2}}{2},-\frac{1}{2},,\frac{1}{2},\frac{\sqrt{2}}{2},\frac{\sqrt{3}}{2}
+val10=0,\frac{1}{2},\frac{\sqrt{2}}{2},\frac{\sqrt{3}}{2},1,\frac{\sqrt{3}}{2},\frac{\sqrt{2}}{2},\frac{1}{2},0,-\frac{1}{2},-\frac{\sqrt{2}}{2},-\frac{\sqrt{3}}{2},-1,-\frac{\sqrt{3}}{2},-\frac{\sqrt{2}}{2},-\frac{1}{2}
+val11=1,b/2,a/2,1/2,0,-1/2,-a/2,-b/2,-1,-b/2,-a/2,-1/2,0,1/2,a/2,b/2
+val12=0,1/2,a/2,b/2,1,b/2,a/2,1/2,0,-1/2,-a/2,-b/2,-1,-b/2,-a/2,-1/2
+val13=1,1	2,4, 16,1, 4,5, 14,16, 5,6, 13,14, 6,8, 12,13, 8,9, 10,12	3,5, 15,1, 5,7, 13,15, 7,9, 11,13	4,6, 14,1, 2,5, 16,2, 5,8, 13,16	5,9, 13,1, 3,7, 15,3, 4,8, 14,2	6,12, 12,1, 2,8, 16,5, 4,9, 14,4	7,13, 11,1, 3,9, 15,5, 5,14, 13,3	8,14, 10,1, 2,4, 16,6, 4,10, 14,5	
+tmp0=!itemcnt $val6
+
+tmp1=!randint 2, $(tmp0)
+
+val14=$[rint($(tmp1))]
+tmp0=!randint 2, 8
+
+val14=$[rint($(tmp0))]
+val15=$[rint(18-$val14)]
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp0=!itemcnt $val16
+
+tmp1=!randint 1, $(tmp0)/4
+
+val17=$[rint($(tmp1))]
+val18=$[rint($(val16[4*$val17-3]))]
+val19=$[rint($(val16[4*$val17-2]))]
+val20=$[rint($(val16[4*$val17-1]))]
+val21=$[rint($(val16[4*$val17]))]
+tmp0=!randint 1, 3
+
+val22=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val22*$(val11[$val15])
+tmp0=!exec maxima $t_
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in $val22*$(val12[$val15])
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+tmp0=!randint -3, 3
+
+val25=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val25*$(val11[$val18])
+tmp0=!exec maxima $t_
+
+val26=$(tmp0)
+t_=!replace internal \( by ( in $val25*$(val12[$val18])
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+t_=!rawmath $val23+i*$val24
+t_=!exec pari print($t_)
+val28=!mathsubst I=i in $t_
+t_=!rawmath $val26+i*$val27
+t_=!exec pari print($t_)
+val29=!mathsubst I=i in $t_
+t_=!rawmath $(val6[$val14])
+val30=!exec pari print($t_)
+t_=!rawmath $(val6[$val20])
+val30=!exec pari print($t_)
+t_=!replace internal \( by ( in $val30*x
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val31=$(tmp1)
+tmp0=!replace internal x by \pi in $val31
+
+val31=$(tmp0)
+t_=!rawmath $(val6[$val14])
+val32=!exec pari print($t_)
+t_=!replace internal \( by ( in $val32*x
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$(tmp1)
+tmp0=!replace internal x by \pi in $val33
+
+val33=$(tmp0)
+t_=!replace internal \( by ( in $val21*x
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val34=$(tmp1)
+tmp0=!replace internal x by \pi in $val34
+
+val34=$(tmp0)
+t_=!rawmath $val28
+t_=!exec pari print($t_)
+val35=!mathsubst I=i in $t_
+t_=!rawmath $val29
+t_=!exec pari print($t_)
+val36=!mathsubst I=i in $t_
+t_=!rawmath $(val11[$val20])+i*($(val12[$val20]))
+t_=!exec pari print($t_)
+val37=!mathsubst I=i in $t_
+t_=!rawmath $(val11[$val20])-i*($(val12[$val20]))
+t_=!exec pari print($t_)
+val38=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in ($val28)*(1-($val37))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val39=!mathsubst I=i in $t_
+t_=!rawmath $(val11[$val14])+i*($(val12[$val14]))
+t_=!exec pari print($t_)
+val40=!mathsubst I=i in $t_
+t_=!rawmath $(val11[$val14])-i*($(val12[$val14]))
+t_=!exec pari print($t_)
+val41=!mathsubst I=i in $t_
+tmp=!translate ";': to $     $ in ($val29)*(1-($val40))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val42=!mathsubst I=i in $t_
+t_=!rawmath $(val11[$val21])+i*($(val12[$val21]))
+t_=!exec pari print($t_)
+val43=!mathsubst I=i in $t_
+t_=!rawmath $(val11[$val21])-i*($(val12[$val21]))
+t_=!exec pari print($t_)
+val44=!mathsubst I=i in $t_
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val45=$[rint($(tmp0))]
+!if $val45 = 1 
+tmp=!translate ";': to $     $ in $val25*(1-($(val11[$val14]))-i*($(val12[$val14])))+$val22*($(val11[$val15])-($(val11[$val19]))+i*($(val12[$val15])+($(val12[$val19]))))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val46=!mathsubst I=i in $t_
+val47=r_1 \circ r_2
+!endif
+!if $val45 = 2 
+tmp=!translate ";': to $     $ in $val22*(1-($(val11[$val20]))-i*($(val12[$val20])))+$val25*($(val11[$val18])-($(val11[$val19]))+i*($(val12[$val18])-($(val12[$val19]))))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+t_=!exec pari print($t_)
+val46=!mathsubst I=i in $t_
+val47=r_2 \circ r_1
+!endif
+tmp0=!replace a by sqrt(2) in $val37
+
+val37=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val37
+
+val37=$(tmp0)
+tmp0=!replace a^2 by 2 in $val39
+
+val39=$(tmp0)
+tmp0=!replace b^2 by 3 in $val39
+
+val39=$(tmp0)
+t_=!replace internal \( by ( in $val39
+tmp0=!exec maxima $t_
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+t_=!exec pari print($t_)
+val39=!mathsubst I=i in $t_
+tmp0=!replace a by sqrt(2) in $val39
+
+val39=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val39
+
+val39=$(tmp0)
+tmp0=!replace a by sqrt(2) in $val40
+
+val40=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val40
+
+val40=$(tmp0)
+tmp0=!replace a by sqrt(2) in $val43
+
+val43=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val43
+
+val43=$(tmp0)
+tmp0=!replace a^2 by 2 in $val42
+
+val42=$(tmp0)
+tmp0=!replace b^2 by 3 in $val42
+
+val42=$(tmp0)
+t_=!replace internal \( by ( in $val42
+tmp0=!exec maxima $t_
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+t_=!exec pari print($t_)
+val42=!mathsubst I=i in $t_
+tmp0=!replace a by sqrt(2) in $val42
+
+val42=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val42
+
+val42=$(tmp0)
+tmp0=!replace a^2 by 2 in $val46
+
+val46=$(tmp0)
+tmp0=!replace b^2 by 3 in $val46
+
+val46=$(tmp0)
+t_=!replace internal \( by ( in $val46
+tmp0=!exec maxima $t_
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp1)
+t_=!exec pari print($t_)
+val46=!mathsubst I=i in $t_
+tmp0=!replace a by sqrt(2) in $val46
+
+val46=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val46
+
+val46=$(tmp0)
+tmp0=!replace a by sqrt(2) in $val28
+
+val28=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val28
+
+val28=$(tmp0)
+tmp0=!replace a by sqrt(2) in $val29
+
+val29=$(tmp0)
+tmp0=!replace b by sqrt(3) in $val29
+
+val29=$(tmp0)
+oefsteps=reply 1, reply2	reply 3, reply 4	reply 5, reply 6 
+nextstep=!nosubst reply 1, reply2	reply 3, reply 4	reply 5, reply 6 
+!readproc oef/steps.proc
+replytype1=complex
+
+replyoption1=nonstop 
+replyname1=coeffr1
+replygood1=$val37
+replytype2=complex
+
+replyoption2=nonstop 
+replyname2=constr1
+replygood2=$val39
+replytype3=complex
+
+replyoption3=nonstop 
+replyname3=coeffr2
+replygood3=$val40
+replytype4=complex
+
+replyoption4=nonstop 
+replyname4=constr2
+replygood4=$val42
+replytype5=complex
+
+replyoption5=nonstop 
+replyname5=coeff
+replygood5=$val43
+replytype6=complex
+
+replyoption6=nonstop 
+replyname6=constf
+replygood6=$val46
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	Cet exercice est en trois étapes. On considère successivement plusieurs transformations	du plan complexe, dont on va déterminer l'écriture complexe.	 </p>	<ul>	<li>Soit 
+!insmath r_1
+$() la rotation de centre	        
+!insmath W($val28)
+$() et d'angle 
+!insmath $val31
+$() : <br>	Donner l'écriture complexe de la rotation 
+!insmath r_1
+$() : <br>	        
+!insmath z' = 
+$()  
+!read oef/embed.phtml reply1, 20 
+$()
+!insmath z 
+$() +  
+!read oef/embed.phtml reply2, 20 
+$().	
+!if $m_step>1 
+$()<div class="wimscenter">	        
+!if $m_sc_reply1=1 and $m_sc_reply2=1 
+$()<span class="oef_indgood"> Bonne réponse ! 
+!else
+$()	          <span class="oef_indbad"> Mauvaise réponse... 
+!endif
+$()	        L'écriture complexe de 
+!insmath  r_1
+$() est 
+!insmath z' = ($val37)z + $val39
+$(). </span></div>	</li><li>	        Donner l'écriture complexe de la rotation 
+!insmath r_2
+$() de centre	        
+!insmath U($val29)
+$() et d'angle 
+!insmath $val33
+$() : <br>	        
+!insmath z' = 
+$()  
+!read oef/embed.phtml reply3, 20 
+$()
+!insmath z 
+$() +  
+!read oef/embed.phtml reply4, 20 
+$().	         
+!endif
+$()	
+!if $m_step>2 
+$()<div class="wimscenter">	        
+!if $m_sc_reply3=1 and $m_sc_reply4=1 
+$()<span class="oef_indgood"> Bonne réponse ! 
+!else
+$()	          <span class="oef_indbad"> Mauvaise réponse... 
+!endif
+$()	         L'écriture complexe de 
+!insmath  r_2
+$() est 
+!insmath z' = ($val40)z + $val42
+$(). </span></div>	</li><li>	        On considère maintenant la composée 
+!insmath f = $val47
+$().	        Donner l'écriture complexe de la transformation 
+!insmath f
+$() :<br>	        
+!insmath z' = 
+$()  
+!read oef/embed.phtml reply5, 20 
+$()
+!insmath z 
+$()+  
+!read oef/embed.phtml reply6, 20 
+$()	         
+!endif
+$()	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()	<p>Soit 
+!insmath f
+$() une transformation du plan complexe. Soit 
+!insmath M(z)
+$() un point	du plan complexe et 
+!insmath M'(z')
+$() son image par 
+!insmath f
+$() (
+!insmath f : M \mapsto M'
+$()). <br>	L'<i>écriture complexe</i> ou <i>expression complexe</i>	de 
+!insmath f
+$() est la relation qui permet d'exprimer 
+!insmath z'
+$() en fonction de 
+!insmath z
+$().	</p><p>	Pour déterminer cette relation (si l'on  n'a pas mémorisé les formules du cours !),	on part d'une condition géométrique définissant le point 
+!insmath M'
+$() en fonction du point 
+!insmath M
+$()	et on passe aux affixes complexes.	</p>	<table class="wimsborder">	<tr><th>Nature de 
+!insmath f
+$() </th><th>Condition géométrique </th><th>Traduction complexe </th></tr>	<tr><td>Translation de vecteur 
+!insmath \vec{u}
+$()( a ; b) </td>	    <td> 
+!insmath \vec{M M'} = \vec{u} 
+$()</td>	     <td> 
+!insmath  z' - z = a + i b 
+$()</td>	</tr>	<tr><td> Homothétie de centre 
+!insmath \Omega(\omega)
+$() et de rapport 
+!insmath k
+$() </td>	    <td> 
+!insmath \vec{\Omega M'} = k \vec{\Omega M} 
+$()</td>	   <td> 
+!insmath  z' - \omega = k(z - \omega)
+$()</td>	</tr>	<tr><td> Rotation de centre 
+!insmath \Omega(\omega)
+$() et d'angle 
+!insmath \theta
+$() </td>	    <td> 
+!insmath \Omega M' = \Omega M 
+$() et &nbsp;
+!insmath (\vec{\Omega M} , \vec{\Omega M'}) = \theta \quad [2\pi] 
+$()</td>	    <td> 
+!insmath  z' - \omega = e^{i\theta}(z - \omega)
+$()</td>	</tr>	</table>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=28,29,31,33,37,39,40,42,47
+embedcnt=6

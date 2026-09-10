@@ -1,0 +1,167 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Geogebra Applet
+slib_parms=2\
+,applet command for javascript, one by line or joined bu a semicolon\
+,option (for example : <tt>width=300 height=300</tt>)\
+slib_author=Paul BYACHE et Bernadette PERRIN-RIOU
+slib_out=
+
+slib_comment=The first parameter is the appletcommand&#46; <br>Be careful &#58; \
+at least a comma " &#44;" for not to have a confusion between applet commands and applet options.\
+<br>Allowed options are the followings:\
+<br><tt>height</tt> default 300\
+<br><tt>width</tt> default 300\
+<br><tt>file</tt> default none&#46; Be careful &#58; the &#46;ggb file must be in the "image" \
+directory if you use the slib in an OEF exercise, \
+<br>in the "files" directory if you use the slib in a document ;\
+<br>otherwise you have to use relative adress from module directory.\
+<br><tt>showToolBar</tt> default false\
+<br><tt>customToolBar</tt> default none. Be careful : no comma is allowed and if you want \
+<br>to separate two integers by a space-character, type a "@" instead of this space-character !\
+<br><tt>showMenuBar</tt> default false\
+<br><tt>showAlgebraInput</tt> default false\
+<br><tt>language</tt> default fr\
+<br><tt>debug</tt> default false\
+<br><tt>js</tt> for extra javascript commands for geogebra in brackets
+<br><tt>number</tt> number of the applet in the html page (default 1)
+<br><tt>EXAMPLE\
+<br><tt>&#92;integer{x=random(3)}\
+<br><tt>&#92;text{appletcommand= Z=(&#92;x,3.78)&#92;\
+<br><tt>W=(6.2,2.8)&#92;\
+<br><tt>Ellipse[Z,W,5]&#92;\
+<br><tt>u=Line[W,Z]}\
+<br><tt>#the language can be setted in the options\
+<br><tt>&#92;text{option= showToolBar=true\
+<br><tt>language=en\
+<br><tt>customToolBar="0|5@40 10||1|2"\
+<br><tt>width=600\
+<br><tt>height=500\
+<br><tt>js=[setVisible('W',false)}\
+<br><tt>number=1</tt>
+<br><tt>#to hide the axes or the algebra window (on the left), use a ".ggb" file in the options\
+<br><tt>&#92;text{applet=slib(geo2D/geogebra  &#92;appletcommand , &#92;option)}\
+<br><tt>&#92;statement{&#92;applet}
+
+slib_example=Z=(-3,6.78);W=(0.2,5.8);a=Circle[Z,W];Ellipse[Z,W,5];u=Line[W,Z],showMenuBar=true;showToolBar=true;language=en;customToolBar="0|40@10||1|2";width=600;height=300\
+A=(0,6);B=(0,8);a=Cercle[A,B];d:y=2x+1,number=2;width=600;language=fr;showToolBar=true;customToolBar="0|40"\
+A=(0,6);B=(0,8);C=(2,6);Angle[C,A,B];a=Droite[A,B];D=Point[a];b=6;f(x)=b+sin(x),number=3;width=600;language=fr
+!exit
+
+:proc
+
+
+!!!!!pour ne pas afficher l'applet lors de l'analyse de la réponse
+!if $(reply$1) != $empty
+!exit
+!endif
+
+!!!!!pour l'instant, la syntaxe pour slib_data est la syntaxe "GeoGebra".
+!!! Par la suite, il faudrait que la syntaxe "wims" (celle du anstype) soit aussi reconnue.
+
+!default slib_cnt=0
+slib_cnt= $[$slib_cnt +1]
+slib_data= !item 1 of $wims_read_parm
+slib_data=!translate $	$ to $\
+$ in $slib_data
+slib_z2= $slib_data
+
+slib_option= !item 2 to -1 of $wims_read_parm
+slib_option= !replace internal , by @ in $slib_option
+slib_option= !replace internal ; by $\
+$ in $slib_option
+slib_extra= !getopt js in $slib_option
+
+slib_extra=!declosing $slib_extra
+slib_extra= !replace internal @ by , in $slib_extra
+slib_extra=!words2lines $slib_extra
+
+
+!for slib_a in file,width,height,showToolBar,showMenuBar,showAlgebraInput,customToolBar,language,debug,number
+  slib_$slib_a=!getopt $slib_a in $slib_option
+!next slib_a
+
+slib_customToolBar= !nospace $slib_customToolBar
+slib_customToolBar= !replace internal @ by , in $slib_customToolBar
+slib_customToolBar= !replace internal || by % in $slib_customToolBar
+slib_customToolBar= !replace internal | by ,|, in $slib_customToolBar
+slib_customToolBar= !replace internal % by ,||, in $slib_customToolBar
+slib_customToolBar= !items2words  $slib_customToolBar
+
+!default slib_width=300
+!default slib_height=300
+!default slib_showToolBar=false
+!default slib_showMenuBar=false
+!default slib_showAlgebraInput=false
+!default slib_language=fr
+!default slib_debug=false
+!default slib_customToolBar=none
+!default slib_number=1
+slib_number=$[$slib_number -1]
+slib_data = !replace internal ; by $\
+$ in $slib_data
+slib_data=!replace internal $\$ by $\
+$ in $slib_data
+slib_data=!nonempty lines $slib_data
+
+slib_extra = !rows2lines $slib_extra
+slib_extra=!replace internal $\$ by $\
+$ in $slib_extra
+$slib_extra
+
+slib_cnt=!linecnt $slib_data
+slib_appletcommand=
+!for slib_u=1 to $slib_cnt
+  slib_line=!line $slib_u of $slib_data
+  slib_line=!nospace $slib_line
+  slib_appletcommand=!append line document.applets[$slib_number].evalCommand("$slib_line") to $slib_appletcommand
+!next
+slib_cnt_extra=!linecnt $slib_extra
+
+!for slib_v=1 to $slib_cnt_extra
+  slib_line=!line $slib_v of $slib_extra
+  slib_appletcommand=!append line document.applets[$slib_number].$slib_line to $slib_appletcommand
+!next
+slib_out=<object type="application/x-java-applet;jpi-version=1.4" name="applet$slib_number" id="applet$slib_number"\
+  classid="java:geogebra.GeoGebraApplet" width="$slib_width" height="$slib_height" MAYSCRIPT>\
+ <param name="java_codebase" value="java/geogebra3">\
+ <param name="java_code" value="geogebra.GeoGebraApplet">\
+ <param name="java_archive" value="geogebra.jar">\
+ <param name=language value=$slib_language>\
+<param name="showToolBar" value="$slib_showToolBar">\
+<param name="framePossible" value="false">\
+<param name="showMenuBar" value="$slib_showMenuBar">\
+<param name="showAlgebraInput" value="$slib_showAlgebraInput">
+
+!if $slib_file!=$empty
+  slib_mod = $module_category
+  slib_mod = !items2words $slib_mod
+  !if document iswordof $slib_mod
+    slib_image_dir=$Docdir/$doc/files
+  !endif
+  !if oef iswordof $slib_mod
+    slib_image_dir=$imagedir
+  !endif
+  !default slib_image_dir=$module_dir
+
+ slib_out=$slib_out \
+ <param name="filename" value="$slib_image_dir/$slib_file">
+!endif
+!if $slib_customToolBar!=$empty
+  slib_out=$slib_out \
+  <param name="customToolBar" value="$slib_customToolBar">
+!endif
+
+slib_out=$slib_out \
+</object>\
+<script ltype="text/javascript">\
+/*<![CDATA[*/\
+   $slib_appletcommand\
+/*]]>*/\
+</script>
+slib_z1=$wims_read_parm
+!if $slib_debug=true
+  slib_out=$slib_out \
+<br><br>Parameters read by the applet : $slib_z1<br><br>The slib_data : $slib_z2 --> $slib_data
+!endif

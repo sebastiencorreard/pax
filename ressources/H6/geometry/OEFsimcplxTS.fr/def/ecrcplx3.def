@@ -1,0 +1,125 @@
+!set title=Ecriture complexe 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+computeanswer=yes
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=0,1/6,1/4,1/3,1/2,2/3,3/4,5/6,1,-5/6,-3/4,-2/3,-1/2,-1/3,-1/4,-1/6
+val7=1,sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1,-sqrt(3)/2,-sqrt(2)/2,-1/2,0,1/2,sqrt(2)/2,sqrt(3)/2
+val8=0,1/2,sqrt(2)/2,sqrt(3)/2,1,sqrt(3)/2,sqrt(2)/2,1/2,0,-1/2,-sqrt(2)/2,-sqrt(3)/2,-1,-sqrt(3)/2,-sqrt(2)/2,-1/2
+val9=1,\frac{\sqrt{3}}{2},\frac{\sqrt{2}}{2},\frac{1}{2},,-\frac{1}{2},-\frac{\sqrt{2}}{2},-\frac{\sqrt{3}}{2},-1,-\frac{\sqrt{3}}{2},-\frac{\sqrt{2}}{2},-\frac{1}{2},,\frac{1}{2},\frac{\sqrt{2}}{2},\frac{\sqrt{3}}{2}
+val10=0,\frac{1}{2},\frac{\sqrt{2}}{2},\frac{\sqrt{3}}{2},1,\frac{\sqrt{3}}{2},\frac{\sqrt{2}}{2},\frac{1}{2},0,-\frac{1}{2},-\frac{\sqrt{2}}{2},-\frac{\sqrt{3}}{2},-1,-\frac{\sqrt{3}}{2},-\frac{\sqrt{2}}{2},-\frac{1}{2}
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11=0
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+!else
+tmp2=!randint -5, 5
+
+val12=$[rint($(tmp2))]
+!endif
+tmp0=!randint -5, 5
+
+val13=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in ($val11+i*$val12)*z+$val13+i*$val14
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val16=$[sqrt(($val11)^2+($val12)^2)]
+t_=!rawmath ($val13+$val14*i)/(1-$val11-i*$val12)
+t_=!exec pari print($t_)
+val17=!mathsubst I=i in $t_
+replytype1=complex
+
+replyname1=centre
+replygood1=$val17
+replytype2=numeric
+replyname2=rapport
+replygood2=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On considère la similitude directe d'écriture complexe 
+!insmath z'=$val15
+$().	</p><p>	 Il s'agit d'une similitude de centre 
+!insmath \Omega
+$().	 </p>	   Déterminer l'affixe du centre :  
+!read oef/embed.phtml reply1 
+$()<br>	   Déterminer le rapport de similitude:  
+!read oef/embed.phtml reply2 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15
+embedcnt=2

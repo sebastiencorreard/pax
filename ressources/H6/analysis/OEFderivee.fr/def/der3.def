@@ -1,0 +1,158 @@
+!set title=Dérivée d'exponentielle
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -4, 4
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -4, 4
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=!rawmath $val9*x+$val10
+t_=!replace internal \( by ( in $val11*x+$val6
+tmp0=!exec pari $t_
+
+val14=!rawmath $(tmp0)
+val15=!rawmath ($val11*x+$val12)/$val10
+val16=!rawmath $val9*x^2+$val10*x+$val11
+t_=!replace internal \( by ( in $val9*x^2+$val6*x+$val7
+tmp0=!exec pari $t_
+
+val17=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val9*x^3+$val6*x^2+$val7*x+$val8
+tmp0=!exec pari $t_
+
+val18=!rawmath $(tmp0)
+tmp0=!randitem 1,x
+
+tmp=!nonempty items 	 e^($val13),	 e^($val9*x^2 + $val10*x),	$val12*$(tmp0)+$val11*e^($val9*x^2 + $val10*x),	 $val11* e^($val13),	 $val12+$val11* e^($val13),	 $val11*x+$val12 + e^($val13),	 $val10*e^($val9+x),	 $val10*e^($val9*x),	 ($val9*x^2+$val10*x+$val11)+ $val12*e^($val13)	
+
+tmp1=!randitem $tmp
+val19=!rawmath $(tmp1)
+tmp=!translate ;";': to $     $ in $val19,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val20=!rawmath $(tmp0)
+tmp0=!texmath $val19
+
+val21=$(tmp0)
+tmp0=!texmath $val20
+
+val22=$(tmp0)
+val23=<div class="wims_instruction">	Pour écrire \(e^{3x}) par exemple, vous avez le choix entre : e^(3x) et exp(3x).	 </div>
+val24=La dérivée de \(e^{u}) est \(u' e^{u}).<br />
+replytype1=formal
+replyname1=\(f'(x))
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer la <label for="reply1"> dérivée de la fonction 
+!insmath f
+$() définie par 
+!insmath f(x) = $val21
+$()</label>.<br />	$val23	
+$()
+!exit
+
+:hint
+$()Si 
+!insmath f(x)=x^{n}
+$(), alors 
+!insmath f'(x)=n x^{n - 1}
+$().<br />	La dérivée de 
+!insmath u + v
+$() est 
+!insmath u' + v'
+$().<br />	La dérivée de 
+!insmath k u
+$() est 
+!insmath k u'
+$(), si 
+!insmath k
+$() est une constante.<br />$val24
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,23,24
+embedcnt=0

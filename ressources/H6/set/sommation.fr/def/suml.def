@@ -1,0 +1,258 @@
+!set title=Somme classique 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sophie,Lemaire
+email=sophie.lemaire@universite-paris-saclay.fr
+language=fr
+precision=1000
+oefdescription=Exercice comportant trois questions
+oefobservation=somme dont le terme général est une fonction affine
+
+ansorder=r,r,r,r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp1=!randitem -2,0,1
+
+t_=!rawmath $(tmp0)/10+$(tmp1)
+val6=!exec pari print($t_)
+tmp0=!randint 1, 9
+
+tmp1=!randitem -2,0,1
+
+t_=!rawmath $(tmp0)/10+$(tmp1)
+val7=!exec pari print($t_)
+val8=!rawmath $val6 * i + $val7
+tmp0=!texmath $val8
+
+val9=$(tmp0)
+tmp0=!randint 2, 4
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val10+$val11)]
+val13=$[rint($val10-1)]
+val14=\sum_{i=$val10}^{n}\left($val9\right)
+t_=!rawmath ($val6)*($val13)+($val7)
+val15=!exec pari print($t_)
+!if $val15=0 
+val16=!rawmath $val6*k
+tmp0=!texmath $val16
+
+val17=$(tmp0)
+!else
+val16=!rawmath $val6*k+$val15
+tmp0=!texmath $val16
+
+val17=\left($(tmp0)\right)
+!endif
+val18=\sum_{k=1}^{n-$val13}$val17
+val19=$[rint(1)]
+tmp=!translate ";': to $     $ in n-$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=!rawmath $(tmp0)
+val21=!rawmath $val16
+t_=!rawmath ($val6)/2
+val22=!exec pari print($t_)
+t_=!rawmath ($val6)/2+($val7)
+val23=!exec pari print($t_)
+t_=!rawmath (($val6)/2*$val10+($val7))*(1-$val10)
+val24=!exec pari print($t_)
+t_=!rawmath $val22*($val12)^2+$val23*($val12)+$val24
+val25=!exec pari print($t_)
+val26=On considère la suite \((S_n)_n\) définie par 
+val27=pour tout entier
+val28=Calculer
+tmp=!trim Donner une autre écriture de	en fonction de
+val29=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Cette somme s'écrit sous la forme	Donner les valeurs des coefficients 
+val30=!translate internal $	\
+$ to ;; in $tmp
+val31=et
+val32=Réponse incorrecte
+val33=Bonne réponse
+val34=Donner les valeurs exactes des coefficients en utilisant des fractions si nécessaire.
+val35=Indication &#58; la transformation faite à la question 2 permet d'utiliser la formule classique suivante&#32;
+val36=nombre réel
+val37=Plus grande valeur de l'indice de sommation
+val38=Terme générale de la somme
+val39=\(a\)
+val40=a n^2 + b n + c
+val39=$val39, \(b\) $val31 \(c\)&#32;
+oefsteps=reply1	reply2,reply3	reply4,reply5,reply6 
+nextstep=!nosubst reply1	reply2,reply3	reply4,reply5,reply6 
+!readproc oef/steps.proc
+replytype1=numeric
+replyweight1=4 
+replyoption1=nonstop 
+replyname1=1. \(S_{$val12}\)
+replygood1=$[$val25]
+replytype2=formal
+replyoption2=nonstop 
+replyweight2=3 
+replyname2=2. $val37
+replygood2=$val20
+replytype3=formal
+replyoption3=nonstop 
+replyweight3=3 
+replyname3=2. $val38
+replygood3=$val21
+replytype4=numexp
+replyweight4=5 
+replyname4=a
+replygood4=$val22
+replytype5=numexp
+replyweight5=5 
+replyname5=b
+replygood5=$val23
+replytype6=numexp
+replyweight6=5 
+replyname6=c
+replygood6=$val24
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val26 
+!insmath \displaystyle{S_n=$val14}
+$() $val27 
+!insmath n\geq $val10
+$().	<ol><li> $val28 
+!insmath S_{$val12}
+$().	
+!if $m_step=1 
+$()	<div class="wimscenter">	<label for="reply1">
+!insmath S_{$val12}
+$()</label> =  
+!read oef/embed.phtml r1,5 
+$()	</div>	 
+!endif
+$()	
+!if $m_step>1 
+$()<div>
+!if $m_sc_reply1<1 
+$()<span class="oef_indbad">$val32,</span>  
+!else
+$()	   <span class="oef_indgood">$val33,</span> 
+!endif
+$() 
+!insmath S_{$val12}=$val25
+$().</div> 
+!endif
+$()	</li>	
+!if $m_step>1 
+$()	<li> $(val29[1;]) 
+!insmath S_n
+$() $(val29[2;]) 
+!insmath n
+$().	
+!if $m_step=2 
+$()	<div class="center">	 
+!read oef/special.phtml mathmlinput [\displaystyle{S_n=\sum_{k=$val19}^{reply2}reply3}],8,noanswer	reply2,3	reply3,8 
+$()	</div>	 
+!endif
+$()	
+!if $m_step>2 
+$()<div>
+!if $m_sc_reply2<1 or $m_sc_reply3<1 
+$()<span class="oef_indbad">$val32,</span>  
+!else
+$()	 <span class="oef_indgood">$val33,</span> 
+!endif
+$()
+!insmath \displaystyle{S_n=$val18}
+$().</div> 
+!endif
+$()	</li>	
+!if $m_step=3 
+$()	<li> $(val30[1;]) 
+!insmath S_n = $val40
+$() $val27 
+!insmath n\geq $val10
+$(). $(val30[2;]) $val39:	<div class="wimscenter">		<label for="reply4">
+!insmath a = 
+$()</label> 
+!read oef/embed.phtml reply4,5 
+$(),	<label for="reply5">
+!insmath b = 
+$()</label> 
+!read oef/embed.phtml reply5,5 
+$() $val31	<label for="reply6">
+!insmath c = 
+$()</label> 
+!read oef/embed.phtml reply6,5 
+$().	</div>		</li> 
+!endif
+$()	 
+!endif
+$()	</ol>		<div class="wims_instruction">$val34 </div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val35:	<div class="wimscenter">$val27 
+!insmath n\geq 1
+$(), 
+!insmath \displaystyle{\sum_{\ell=1}^{n}\ell = \frac{n(n+1)}{2}}
+$().</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12,14,18,19,25,26,27,28,29,30,31,32,33,34,35,39,40
+embedcnt=5

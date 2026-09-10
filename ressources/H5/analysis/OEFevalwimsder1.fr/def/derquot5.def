@@ -1,0 +1,194 @@
+!set title=Dérivée d'un quotient 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Maguy, Bruno ; Régine, Mangeard
+email=regine@mangeard.Fr
+precision=100
+computeanswer=yes
+
+ansorder=r,r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -6, 6
+
+val6=$[rint($(tmp0))]
+val7=\a
+tmp0=!makelist x,-x for x=1 to 5
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=1
+val10=$[rint(2)]
+!else
+val10=$[rint(1)]
+!endif
+val11=$[rint($(val8[1]))]
+val12=$[rint($(val8[2]))]
+val13=$[rint($(val8[3]))]
+val14=$[rint($(val8[4]))]
+val10=$[rint($(val8[5]))]
+val15=$[rint($val11*$val14)]
+val16=$[rint($val11*$val10+$val12*$val14)]
+val17=$[rint($val12*$val10+$val13)]
+val18=!rawmath ($val15*x^2+$val16*x+$val17)/($val14*x+$val10)
+t_=!replace internal \( by ( in $val15*x^2+$val16*x+$val17
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+t_=!replace internal \( by ( in $val14*x+$val10
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2)
+
+val19=\frac{$(tmp1)}{$(tmp3)}
+val20=!rawmath (2*$val15*x+$val16)*($val14*x+$val10)-$val14*($val15*x^2+$val16*x+$val17)
+tmp=!translate ";': to $     $ in -$val10/$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val21=!exec pari print($t_)
+tmp0=!texmath $val21
+
+val22=$(tmp0)
+tmp=!translate ;";': to $     $ in $val18,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val23=!rawmath $(tmp0)
+tmp0=!texmath $val14*x+$val10
+
+val24=$(tmp0)
+tmp0=!texmath ($val14*x+$val10)^2
+
+val25=$(tmp0)
+val26=$[rint(-$val14*$val13)]
+replytype1=formal
+replyname1=\(f'(x))
+replygood1=$val20
+replytype2=numeric
+replyname2=a
+replygood2=$[$val11]
+replytype3=numeric
+replyname3=b
+replygood3=$[$val12]
+replytype4=numeric
+replyname4=c
+replygood4=$[$val13]
+replytype5=numeric
+replyname5=partie entière
+replygood5=$[$val11]
+replytype6=numeric
+replyname6=partie fractionnaire
+replygood6=$[$val26]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   Soit la fonction 
+!insmath f
+$() définie sur 
+!insmath \RR \setminus \{ $val22 \} 
+$() par	<div class="wimscenter"> 
+!insmath f(x)=$val19
+$()</div>	<ol>	<li> Calculer 
+!insmath f'(x)
+$()&nbsp;:	<table class="wimscenter">	<tr>	  <td rowspan="3"> 
+!insmath f'(x) =
+$()</td>	  <td> 
+!read oef/embed.phtml reply1 
+$()</td>	</tr>	<tr><td><hr></td></tr>	<tr>	  <td> 
+!insmath $val25
+$()</td>	</tr></table>	</li><li>	  Vérifier que pour tout 
+!insmath x \not = $val22
+$(), 
+!insmath f(x)=a x+b+\frac{c}{$val24}
+$().	  Déterminer les réels 
+!insmath a,b
+$() et 
+!insmath c
+$()&nbsp;:	<ul><li><label for="reply2">
+!insmath a=
+$()</label>  
+!read oef/embed.phtml reply2,3 
+$() </li>	<li><label for="reply3">
+!insmath b=
+$()</label>  
+!read oef/embed.phtml reply3,3 
+$() </li>	<li><label for="reply4">
+!insmath c=
+$()</label>  
+!read oef/embed.phtml reply4,3 
+$() </li>	</ul>	</li><li>	   Calculer 
+!insmath f'(x)
+$() à partir de cette nouvelle écriture de 
+!insmath f(x)
+$()&nbsp;:	 
+!read oef/special.phtml mathmlinput [f'(x) = reply5  + \frac{ reply6}{$val25}], 7	reply 5	reply 6	 
+$()	</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,22,24,25
+embedcnt=5

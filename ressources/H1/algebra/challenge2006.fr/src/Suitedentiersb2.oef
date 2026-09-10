@@ -1,0 +1,38 @@
+\title{Suite d'entiers bien rangée}
+\auteur{Jean-Pierre,Boudine;Fabrice,Guerimand}
+\email{fwguerima@free.fr}
+\format{html}
+
+
+\integer{nb=randitem(3,4,5,6,7)}
+\statement{
+Une suite d'entiers est "bien rangée" si la moyenne arithmétique de deux quelconques d'entre eux n'est jamais située entre eux dans la suite.
+<br>
+Par exemple, la suite "1,3,4,2" est "bien rangée". Par contre la suite "1,2,4,3" ne l'est pas parce que la moyenne de 1 et 3 est 2 et est située entre eux.
+<br>
+Trouver une suite de \nb entiers "bien rangée" ne commençant pas par 1,3,4,2.<br>
+<div class="wims_instruction">Vous devez séparer les valeurs par des virgules.</div>
+}
+
+\answer{Réponse}{\liste}{type=auto}
+
+\text{sliste=wims(text select 0123456789, in \liste)}
+\text{test=\sliste issametext \liste?1:0}
+\integer{tnb=items(\liste)}
+\if{\tnb=\nb and \test=1}{
+ \for{k=1 to \nb-1}{
+  \for{l=\k+2 to \nb}{
+   \real{m=(\liste[\k]+\liste[\l])/2}
+   \text{entre=item(\k+1 to \l-1,\liste)}
+   \text{test=\m isitemof \entre?0}
+  }
+ }
+}
+
+\integer{p=min(\nb,4)}
+\text{l=item(1 to \p,\liste)}
+\text{l2=1,3,4,2}
+\text{l2=item(1 to \p,\l2)}
+
+\condition{Suite bien rangée}{\tnb=\nb and \test=1 and \l notsametext \l2}
+\feedback{\l issametext \l2}{Votre suite ne devez pas commencer par \l2.}

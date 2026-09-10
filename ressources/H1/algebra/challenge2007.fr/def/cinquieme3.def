@@ -1,0 +1,110 @@
+!set title=Cinquième 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+
+ansorder=c
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=NBGB
+val7=BBBB,NGBG,NNGG,GBNB
+tmp0=!shuffle $val6,$val7
+
+val8=$(tmp0)
+val9=A,B,C,D,E,F,G,H,I
+tmp0=!itemcnt $val8
+
+val10=$[rint($(tmp0))]
+val11=
+val12=
+!for val13 =1 to $val10 
+tmp0=!item $val13 of $val8
+
+val14=$(tmp0)
+val15=Réponse $(val9[$val13])
+!if $val14 isitemof $val6 
+tmp0=!append item $val15 to $val11
+
+val11=$(tmp0)
+!else
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+!endif
+!next
+!readproc slib/lang/fname boy,fr 
+tmp0=$slib_out
+val16=$(tmp0)
+choicename1=Choisissez
+choicegood1=$val11
+choicebad1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="float_right"><img src="$val1/5_3.gif" alt=""></div>	$val16 est en train de poser des carreaux de trois couleurs (Blanc noté B, Gris noté G et Noir noté N)	dans un couloir. Il en a déjà posé 7 rangées. Il souhaite continuer sa pose jusqu'à la rangée 25.	<p>	Quelles seront les couleurs des carreaux de cette rangée ? (Ils sont repérés du haut vers le bas )	</p>	<ul>	 
+!for m_l=1 to $val10 
+$()	 <li>$(val9[$m_l]) : $(val8[$m_l])</li>	 
+!next
+$()	</ul><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,9,10,16
+embedcnt=1

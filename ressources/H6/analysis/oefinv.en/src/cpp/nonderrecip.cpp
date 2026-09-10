@@ -1,0 +1,33 @@
+target=nonderrecip
+#include "lang_titles.inc"
+#include "lang.inc"
+
+#include "xiao.inc"
+\computeanswer{yes}
+\precision{10000}
+\range{-0.9..0.9}
+\text{x0=x_0}
+\real{a=randint(5..20)*random(-1,1)/10}
+\real{c3=randint(1..10)*random(-1,1)}
+\real{c2=-3*(\c3)*(\a)}
+\real{c1=3*(\c3)*(\a)^2}
+\real{c0=randint(5..100)*random(-1,1)/10}
+\function{f=\c3*x^3+\c2*x^2+\c1*x+\c0}
+\real{v0=evalue(\f,x=\a)}
+
+\statement{\name_instruction[1;1] \(f: \RR \to \RR\) \name_instruction[1;2]
+  <div class="wimscenter">\(f(x) = \f\)</div>
+  \name_instruction[2;] \(\x0 \in \RR\) \name_instruction[3;]
+   \(f^{-1}) \name_instruction[4;] \(\x0\).
+  \name_instruction[5;] \(\x0\).
+}
+
+\answer{\(\x0\)}{\v0}
+\latex{\begin{statement}
+  \name_instruction[1;1] \(f: \RR \to \RR\) \name_instruction[1;2]
+  \begin{center}\(f(x) = \f\)\end{center}
+  \name_instruction[2;] \(\x0 \in \RR\) \name_instruction[3;]
+   \(f^{-1}\) \name_instruction[4;] \(\x0\).
+  \name_instruction[5;] \(\x0\).
+\end{statement}
+}

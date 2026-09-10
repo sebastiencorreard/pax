@@ -1,0 +1,168 @@
+\title{Barycentre partiels graphiques}
+\language{fr}
+\range{-5..5}
+\author{Frédéric, Pitoun}
+\email{lva.pitoun@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{al=random(1..4)}
+
+\text{A=item(\al,A,B,C,A)}
+\text{B=item(\al,B,C,A,C)}
+\text{C=item(\al,C,A,B,B)}
+
+\text{G=G}
+
+\integer{xa=random(-5..5)}
+\integer{ya=5}
+
+\integer{xb=-5}
+\integer{yb=-5}
+
+\integer{xc=5}
+\integer{yc=-5}
+
+\text{mp=2,3,5,7,11}
+\integer{nm=items(\mp)}
+\integer{am=randint(1..\nm-1)}
+\integer{mu1=item(\am,\mp)}
+\integer{at=\am<\nm?\am+1:1}
+\integer{mu2=item(\at,\mp)}
+
+\integer{k0=randint(1..\mu2-1)}
+
+\integer{k3=\mu1*\k0}
+\integer{k2=(\mu1*\mu2-\k3)}
+\integer{k1=\mu2*randint(1..5)}
+\integer{n1=(\k2+\k3)}
+
+\integer{k2s=\k2/pari(gcd(\k2,\k3))}
+\integer{k3s=\k3/pari(gcd(\k2,\k3))}
+\integer{k23s=\k2s+\k3s}
+\integer{k1s=\k1/pari(gcd(\k1,\n1))}
+\integer{n1s=\n1/pari(gcd(\k1,\n1))}
+
+\integer{s=\k1+\k2+\k3}
+
+\integer{ka=item(\al,\k1,\k3,\k2,\k1)}
+\integer{kb=item(\al,\k2,\k1,\k3,\k3)}
+\integer{kc=item(\al,\k3,\k2,\k1,\k2)}
+
+\real{xg=(\k1*\xa+\k2*\xb+\k3*\xc)/\s}
+\real{yg=(\k1*\ya+\k2*\yb+\k3*\yc)/\s}
+
+\real{p1=pari(gcd(\k2,\k3))*10/\n1}
+
+\real{xi=(\k2*\xb+\k3*\xc)/(\k2+\k3)}
+\real{yi=(\k2*\yb+\k3*\yc)/(\k2+\k3)}
+
+\real{px=pari(gcd(\k1,\n1))*(\xi-\xa)/\s}
+\real{py=pari(gcd(\k1,\n1))*(\yi-\ya)/\s}
+
+\text{gradAG=linewidth 4\
+}
+\integer{sf=\s/pari(gcd(\k1,\n1))}
+\for{i=1 to \sf}{
+	\real{xt=\xa+\i*\px}
+	\real{yt=\ya+\i*\py}
+	\if{\i=\n1s}{
+		\text{gradAG=\gradAG\
+point \xt,\yt,red}}
+	{\text{gradAG=\gradAG\
+point \xt,\yt,green}
+	}
+}
+
+\text{gradAG=\gradAG\
+linewidth 1}
+
+\text{dessin=draw(300,200
+xrange -6,6
+yrange -6,6
+linewidth 1
+poly red,\xa,\ya,\xb,\yb,\xc,\yc
+points green,\xg,\yg
+text red,\xa,\ya+0.5,medium,\A
+text red,\xb,\yb,medium,\B
+text red,\xc,\yc,medium,\C
+text red,\xg,\yg,medium,G
+parallel -5,-5.2,-5,-4.8,\p1,0,\k23s,red
+line \xa,\ya,\xi,\yi,blue
+\gradAG
+)}
+\integer{sp=\k2+\k3}
+
+\text{prop1=(\B,\k2),(\C,\k3)}
+\text{prop2=(\A,\k1),(\C,\k3)}
+\text{prop3=(\A,\k1),(\B,\k2)}
+
+\matrix{m0=}
+\matrix{m1=}
+\integer{r0=}
+\integer{r1=}
+
+\integer{k2s=\k2/pari(gcd(\k2,\k3))}
+\integer{k3s=\k3/pari(gcd(\k2,\k3))}
+\integer{k23s=\k2s+\k3s}
+\integer{x=pari(gcd(\k2,\k3))}
+\integer{y=pari(gcd(\k1,\n1))}
+\integer{k1s=\k1/pari(gcd(\k1,\n1))}
+\integer{n1s=\n1/pari(gcd(\k1,\n1))}
+
+\statement{<div class="float_right">
+<img src="\dessin" alt="">
+</div>
+Dans la figure ci-contre, on a représenté un triangle \(ABC) et \(G)
+un point situé à l'intérieur de ce triangle.
+<div class="spacer">
+En se basant sur le graphique, déterminer \(a), \(b) et \(c) tels que \(G)
+soit le barycentre des points pondérés \((A,a)), \((B,b)) et \((C,c)).
+</div>
+On a :
+<div class="wimscenter">
+\(G) = Bary &#91; (A,\embed{reply 1,4});(B,\embed{reply 2,4});(C,\embed{reply 3,4}) &#93;
+</div>
+}
+
+\answer{}{\rep1}{type=default}
+\answer{}{\rep2}{type=default}
+\answer{}{\rep3}{type=default}
+
+\matrix{m0=\rep1,\rep2,\rep3;\rep1,\rep2,\rep3}
+\matrix{m1=\ka,\kb,\kc;\rep1,\rep2,\rep3}
+
+\integer{r0=pari(matrank([\m0]))}
+\integer{r1=pari(matrank([\m1]))}
+
+\condition{Vérification:}{\r0=1 and \r1=1}
+
+\solution{Notons \(I), le poins d'intersection des droites \(\A\G) et \(\B\C), en se basant sur la figure, on voit que:
+<ul>
+<li>Le point \(I) est le barycentre des points \((\B,\k2s)) et \((\C,\k3s)). </li>
+<li>Le point \(G) est le barycentre des points \((\A,\k1s)) et \((I,\n1s)). </li>
+</ul>
+Pour pouvoir utiliser la propriété d'associativité des barycentres, il faudrait que les nombres \k2s+\k3s et \n1s soient égaux, ce qui n'est pas le cas. Or on sait que pour tous réels \(x) et \(y) non nuls :
+<ul>
+<li>Bary&#91;(\B,\k2s);(\C,\k3s)&#93;=Bary&#91;(\B,\k2s x);(\C,\k3s x)&#93; </li>
+<li>Bary &#91(\A,\k1s);(I,\n1s)&#93;=Bary&#91; (\A,\k1s y);(I,\n1s y
+)&#93; </li>
+</ul>
+Il suffit donc pour pouvoir appliquer la règle des barycentres partiels de choisir \(x) et \(y) de sorte que \(\k23s x = \n1s y)
+(cela revient à chercher un multiple commun à  \k23s et \n1s),
+on peut par exemple choisir \(x=\x) et \(y=\y), on a alors:
+
+<ul>
+<li>I=Bary &#91;(\B,\k2);(\C,\k3)&#93; </li>
+<li>G=Bary &#91;(\A,\k1);(I,\n1)&#93;</li>
+</ul>
+On obtient donc en utilisant la propriété du barycentre partiel:
+<div class="wimscenter">
+G = Bary &#91 (A,\ka) (I,\n1) &#93;
+  = Bary&#91; (A,\ka) (B,\kb) (C,\kc) &#93;
+</div>
+
+<b>Remarque:</b> La solution ci-dessus, n'est pas forcément la plus simple.
+
+}

@@ -1,0 +1,325 @@
+!set title=4. Douche VS Bain
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=jlyotardwims@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=40
+prevarcnt=35
+postvarcnt=4
+replycnt=15
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim reply1, reply2, reply3, reply4
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 0, 5
+
+val7=$[rint($(tmp0))]
+val8=$[rint(150+20*$val7)]
+val9=$[rint(15+$val7)]
+val10=$[$val8/$val9]
+val11=$[$val10/2]
+val12=$[rint(5*$val9)]
+val13=$[rint(10*$val9)]
+val14=$[rint(15*$val9)]
+val15=$[rint(20*$val9)]
+val16=$val12,$val13,$val14,$val15
+val17=5,10,15,20,x
+val18=Le coloris,La matière,La largeur,La longueur,La hauteur,Le débit,La capacité,La pression
+val19=
+val20=
+!for val21 =1 to 4 
+val22=$[rint($val9*$(val17[$val21]))]
+val23=$[rint(($val21+1)*60+3)]
+val24=$[rint(600-(60+$val9*$(val17[$val21])*60/50))]
+tmp0=!append item $val23,$val24 to $val19
+
+val19=$(tmp0)
+tmp0=!append item $(val17[$val21]),$val22 to $val20
+
+val20=$(tmp0)
+!next
+!readproc slib/millimetre 6,10,,,5,50,[255,255,255],[190,190,190],,style:grad=xy 
+tmp0=$slib_out
+val25=$(tmp0)
+!readproc slib/millimetre 6,10,,,5,50,[255,255,255],[190,190,190],,style:grad=xy,style:dot=+,$val20 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/graphpaper/func_milli 6,10,,,5,50,[255,255,255],[190,190,190],,$val9*x,[],$val20 
+tmp0=$slib_out
+val27=$(tmp0)
+val28=linewidth 1	text red,17,98,giant,  Quantite d'eau 	text red,17,95,giant,    consommee en  L	text red,40,6,giant,  t en minutes
+val29=$val25	$val28
+val30=$val26	$val28
+val31=$val27	$val28
+!readproc oef/draw.phtml 360,600 \
+$val29 
+tmp0=$ins_url
+val32=$(tmp0)
+!readproc oef/draw.phtml 360,600 \
+$val30 
+tmp0=$ins_url
+val33=$(tmp0)
+!readproc oef/draw.phtml 360,600 \
+$val31 
+tmp0=$ins_url
+val34=$(tmp0)
+val35=A,B,C,D,E
+val36=Quel est le moyen le plus écologique pour se laver? <br /><br />"DOUCHE VERSUS BAIN"
+val37=On va déterminer simplement la manière la plus écologique de se laver.
+val38=
+dynsteps=yes
+oefsteps=$val6 
+nextstep=!nosubst $val6 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyoption1=shuffle noanalyzeprint nonstop 
+replyname1=
+replygood1=$(val18[6]);$val18
+replytype2=radio
+replyoption2=shuffle split nonstop 
+replyname2=Dépend-il du temps?
+replygood2=1;oui,non
+replytype3=clickfill
+replyoption3=noanalyzeprint nonstop 
+replyname3=
+replygood3=$(val18[7])
+replytype4=radio
+replyoption4=shuffle split nonstop 
+replyname4=Dépend-il du temps
+replygood4=2;oui,non
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=L'eau consommée au bout de 5 minutes :
+replygood5=$[$val12]
+replytype6=numeric
+replyoption6=nonstop 
+replyname6=L'eau consommée au bout de 10 minutes :
+replygood6=$[$val13]
+replytype7=numeric
+replyoption7=nonstop 
+replyname7=L'eau consommée au bout de 15 minutes :
+replygood7=$[$val14]
+replytype8=numeric
+replyoption8=nonstop 
+replyname8=L'eau consommée au bout de 20 minutes :
+replygood8=$[$val15]
+replytype9=algexp
+replyoption9=nonstop 
+replyname9=L'eau consommée au bout de x minutes :
+replygood9=$val9 x
+replytype10=algexp
+replyoption10=nonstop 
+replyname10=L'expression algébrique est
+replygood10=$val9 x
+replytype11=algexp
+replyoption11=nonstop 
+replyname11=La fonction linéaire est
+replygood11=$val9 x
+replytype12=jsxgraphcurve
+
+replyoption12=nonstop color1=blue color2=red 
+replyname12=
+replygood12=$val32;points,$val19
+replytype13=jsxgraphcurve
+
+replyoption13=nonstopcolor1=blue color2=red precision=30 
+replyname13=
+replygood13=$val33;line,60,540,$(val19[7]),$(val19[8])
+replytype14=range
+replyoption14=nonstop 
+replyname14=Temps où la douche est économique
+replygood14=!rawmath $val10-0.5,$val10+0.5,$val10
+replytype15=range
+replyoption15=nonstop 
+replyname15=Douche 2 fois moins chère
+replygood15=!rawmath $val11-0.5,$val11+0.5,$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<br />	<div class="consigne">		<div id="boiteg">	<img src="$val1/douche2.jpg" alt="Douche" />	</div>	<div id="boited">	<img src="$val1/bainthala.2jpg" alt="Baignoire thalasso" />	</div>	<p class="problematique"> $val36</p>	<p class="special_letter">$val37<br /><br /></p>		
+!if $m_step=1 
+$()	<br />	<table class="wimscenter wimsborder">	<tr>	<td align="left" valign="top">	La fiche technique d'une douche contient les caractéristiques	 suivantes :	<ul><li>Dimensions : Haut. 162 cm, Larg. 20 cm.</li>	<li>Matière de la coque : aluminium</li>	<li>Coloris : noir</li>	<li>Type de mitigeur : thermostatique</li>	<li>Type de commandes : 1 sélecteur de fonction 3 voies.</li>	<li>Nombre de buses de massage : 48 buses</li>	<li>Pomme haute : 1 jet large</li>	<li>Pommeau à main : 1 jet</li>	<li>Picots anti-calcaire : à base siliconée</li>	<li>Type de flexible : flexible métal double agrafage 1.50 m</li>	<li>Flexibles d'alimentation à l'arrière : fournis avec la colonne</li>	<li>Installation : façade uniquement</li>	<li>Conditions d'installation : hauteur sous plafond mini : 2.20 m.</li>	<li>Pression de service mini : 2 bars.</li>	<li>Pression de service maxi : 5 bars.</li>	<li>Débit mini : $val9 litres/min.</li>	<li> Ecart de pression maxi de 1 bar entre eau chaude et eau froide.</li>	<li> Température mini d'eau chaude : 50°C.</li>	<li>Garantie : 2 ans</li>	</ul>	</td>	<td>	La fiche technique d'une baignoire contient les caractéristiques	 suivantes :	<ul><li>Matière : Acrylique</li>	<li>Capacite (litres) : $val8</li>	<li>Coloris : Blanc</li>	<li>Largeur (en cm) : 70.0</li>	<li>Longueur (en cm) : 170.0</li>	<li>Hauteur maximum (cm) : 54.0</li>	<li>Hauteur minimum (cm) : 52.4</li>	<li>Profondeur (cm) : 38.0</li>	<li>Diamètre de la bonde (mm) : 52.0</li>	<li>Emplacement du vidage : Extrémité</li>	<li>Forme : Rectangulaire</li>	<li>Garantie : 10 ans</li>	</ul>	</td>	</tr>	</table>	<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Parmis les informations suivantes, précisez celles qui sont	 indispensables pour comparer les consommations d'eau d'une douche et	 d'un bain.	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td align="left" valign="top">	Pour la douche, il est nécessaire de connaître :  
+!read oef/embed.phtml reply1,100x40x1 
+$()	<br />	Ce paramètre dépend-il du temps?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply2,\h 
+$()</li> 
+!next
+$()	</ul>	</td>	<td align="left" valign="top">	Pour la baignoire, il est nécessaire de connaître :  
+!read oef/embed.phtml reply3,70x30x1 
+$()	<br />	Ce paramètre dépend-il du temps?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply4,\h 
+$()</li> 
+!next
+$()	</ul>	</td>	</tr>	</table>	</div>	 
+!endif
+$()			
+!if $m_step=2 
+$()		Les données importantes sont donc récapitulées dans le tableau	 suivant :	<br />	<br />	<table class="wimscenter wimsborder">	<tr>	<td><b>&nbsp;&nbsp;Douche&nbsp;&nbsp;</b></td>	<td><b>&nbsp;&nbsp;Baignoire&nbsp;&nbsp;</b></td>	</tr>	<tr>	<td>Débit</td>	<td>Capacité</td>	</tr>	<tr>	<td><b>$val9 L/min</b></td>	<td><b>$val8 L </b></td>	</tr>	</table>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Calculez la quantité d'eau consommée par la douche au bout des temps	 suivants :	<ul>	 
+!for m_l=1 to 5 
+$()<li>$(val17[$m_l]) minutes.</li> 
+!next
+$()	</ul>	Complétez le tableau suivant:	<br /><br />	<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 5 
+$()<td>&nbsp;&nbsp;<b>$(val35[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Temps écoulé en minutes (min)</b></td>	 
+!for m_l=1 to 5 
+$()<td>$(val17[$m_l])</td> 
+!next
+$()	</tr>	<tr>	<td><b>Quantité d'eau consommée en litres (L)</b></td>	 
+!for m_k=5 to 9 
+$()<td> 
+!read oef/embed.phtml reply\k, 4 
+$()</td> 
+!next
+$()	</tr>	</table>	<br />	<span class="bold" style="text-decoration: underline">Conclusion :</span> A tout temps <span class="bold" style="color:#cf3333">x</span>	 , on fait correspondre une quantité d'eau :  
+!read oef/embed.phtml reply10, 4 
+$()	<br />	La quantité d'eau consommée est appelée <span class="bold" style="color:#fbf80a">q(x)</span>	 et le temps en minutes <span class="bold" style="color:#cf3333">x</span>.	<br />	 Vous définissez ainsi une fonction linéaire et vous écrivez :	 <span class="bold" style="color:#fbf80a">q(x)</span>= 
+!read oef/embed.phtml reply11, 4 
+$()	</div> 
+!endif
+$()		
+!if $m_step=3 
+$()	<table class="wimscenter wimsborder">	<tr>	<td><b>&nbsp;&nbsp;Douche&nbsp;&nbsp;</b></td>	<td><b>&nbsp;&nbsp;Baignoire&nbsp;&nbsp;</b></td>	</tr>	<tr>	<td>Débit</td>	<td>Capacité</td>	</tr>	<tr>	<td><b>$val9 L/min</b></td>	<td><b>$val8 L </b></td>	</tr>	</table>	<br />		<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;<b>$(val35[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Temps écoulé en minutes (min)</b></td>	 
+!for m_l=1 to 4 
+$()<td>$(val17[$m_l])</td> 
+!next
+$()	</tr>	<tr>	<td><b>Quantité d'eau consommée en litres (L)</b></td>	 
+!for m_k=1 to 4 
+$()<td>$(val16[$m_k])</td> 
+!next
+$()	</tr>	</table>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Placez les points A, B, C, D pour connaître la caractéristique	de la fonction linéaire  :	<br />	 
+!read oef/embed.phtml reply12,360 x 600 
+$()	</div>	 
+!endif
+$()		
+!if $m_step=4 
+$()	<table class="wimscenter wimsborder">	<tr>	<td><b>&nbsp;&nbsp;Douche&nbsp;&nbsp;</b></td>	<td><b>&nbsp;&nbsp;Baignoire&nbsp;&nbsp;</b></td>	</tr>	<tr>	<td>Débit</td>	<td>Capacité</td>	</tr>	<tr>	<td><b>$val9 L/min</b></td>	<td><b>$val8 L </b></td>	</tr>	</table>	<br />		<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;<b>$(val35[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Temps écoulé en minutes (min)</b></td>	 
+!for m_l=1 to 4 
+$()<td>$(val17[$m_l])</td> 
+!next
+$()	</tr>	<tr>	<td><b>Quantité d'eau consommée en litres (L)</b></td>	 
+!for m_k=1 to 4 
+$()<td>$(val16[$m_k])</td> 
+!next
+$()	</tr>	</table>		<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	Tracez la droite passant par l'ensemble de ses points en cliquant	 2 fois sur le graphique :	<br />	 
+!read oef/embed.phtml reply13,360 x 600 
+$()	</div> 
+!endif
+$()		
+!if $m_step=5 
+$()	<table class="wimscenter wimsborder">	<tr>	<td><b>&nbsp;&nbsp;Douche&nbsp;&nbsp;</b></td>	<td><b>&nbsp;&nbsp;Baignoire&nbsp;&nbsp;</b></td>	</tr>	<tr>	<td>Débit</td>	<td>Capacité</td>	</tr>	<tr>	<td><b>$val9 L/min</b></td>	<td><b>$val8 L </b></td>	</tr>	</table>	<br />		<table class="wimscenter wimsborder">	<tr>	<td></td>	 
+!for m_l=1 to 4 
+$()<td>&nbsp;&nbsp;<b>$(val35[$m_l])</b>&nbsp;&nbsp;</td> 
+!next
+$()	</tr>	<tr>	<td><b>Temps écoulé en minutes (min)</b></td>	 
+!for m_l=1 to 4 
+$()<td>$(val17[$m_l])</td> 
+!next
+$()	</tr>	<tr>	<td><b>Quantité d'eau consommée en litres (L)</b></td>	 
+!for m_k=1 to 4 
+$()<td>$(val16[$m_k])</td> 
+!next
+$()	</tr>	</table>	<br />	La représentation graphique de la quantité d'eau consommée est donc :	<br /><br />	<div class="wimscenter">	<img src="$val34" alt="Graphique" />	</div>	<br />	<div class="question">	<div class="etape">ÉTAPE $m_step sur 5</div>	A l&#8217;aide du graphique, répondez aux questions suivantes :	<br /><br />	Au bout de combien de temps la douche consomme-t-elle moins d'eau qu'un	 bain ?  
+!read oef/embed.phtml reply14, 4 
+$() minutes.	<br />	En prenant une douche, on souhaite consommer deux fois moins	 d'eau que pour un bain. Par conséquent la douche doit durer :  
+!read oef/embed.phtml reply15, 4 
+$() minutes.	</div> 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step=2)
+val6= reply5, reply6, reply7, reply8,reply9,reply10,reply11
+!endif
+
+!ifval ($m_step=3)
+val6= reply12
+!endif
+
+!ifval ($m_step=4)
+val6= reply13
+!endif
+
+!ifval ($m_step=5)
+val6= reply14,reply15
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,9,16,17,34,35,36,37
+embedcnt=11

@@ -1,0 +1,79 @@
+target=oefutiequi5
+#define NUM 5
+#include "lang_titles.inc"
+#include "author.inc"
+\keywords{symmetry,perpendicular_bisector}
+\text{dessinmod=segment -150,15,150,15,black
+text black,10,150,medium,(d1)
+text black,145,20,medium,(d2)
+segment -100,-50,-100,80,black
+segment -105,80,-95,80,black
+segment -100,25,-90,25,red
+segment -90,25,-90,15,red
+text black,-105,95,medium,C
+circle -100,-20,10,red
+circle -100,50,10,red
+circle 0,15,240,black
+text black,15,35,medium,K}
+\text{med1=draw(300,300
+xrange -150,150
+yrange -150,150
+rotate 40
+segment 0,-150,0,150,black
+segment -100,-50,100,-50,black
+segment -48,-44,-52,-56,red
+segment -52,-44,-56,-56,red
+segment 48,-56,52,-44,red
+segment 52,-56,56,-44,red
+segment 100,-55,100,-45,black
+segment 0,-40,10,-40,red
+segment 10,-40,10,-50,red
+text black,-110,-55,medium,A
+text black,105,-55,medium,B
+\dessinmod
+)}
+
+\text{fig=\med1}
+\text{t1=Le point K appartient,à la médiatrice,du segment [AB].}
+\text{t2=Donc le point K, est à égale distance,des deux extrémités du segment.}
+\text{t3=J'en déduis que}
+\text{t4=De plus&#44; le point K appartient,aussi à la médiatrice du segment [AC].}
+\text{t5=AK = BK.}
+\text{t6=AK = CK.}
+\text{t7=Donc BK = CK,= AK}
+\text{t8=Conclusion : Les points A&#44; B et C,appartiennent à un cercle,de centre K,et de rayon AK.}
+
+\statement{
+<div class="wims_columns">
+  <div class="medium_size">
+    <img src="\fig" alt="">
+  </div>
+  <div class="medium_size">
+<ul>
+<li>La droite (d1) est la médiatrice du segment [AB].</li>
+<li>La droite (d2) est la médiatrice du segment [AC].</li>
+<li>Le point K est l'intersection des droites (d1) et (d2).</li>
+</ul>
+Expliquer pourquoi le point K est le centre du cercle qui passe par les points A, B et C.
+</div></div>
+Placer les étiquettes dans le bon ordre :
+<ul>
+<li>\embed{r1,240x40}</li>
+<li>\embed{r2,240x40}</li>
+<li>\embed{r3,240x40}</li>
+<li>\embed{r4,240x40}</li>
+<li>\embed{r5,240x40}</li>
+<li>\embed{r6,240x40}</li>
+<li>\embed{r7,240x40}</li>
+<li>\embed{r8,240x40}</li>
+</ul>
+}
+
+\answer{}{\t1}{type=dragfill}
+\answer{}{\t2}{type=dragfill}
+\answer{}{\t3,\t5}{type=dragfill}
+\answer{}{\t4}{type=dragfill}
+\answer{}{\t2}{type=dragfill}
+\answer{}{\t3,\t6}{type=dragfill}
+\answer{}{\t7}{type=dragfill}
+\answer{}{\t8}{type=dragfill}

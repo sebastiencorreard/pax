@@ -1,0 +1,79 @@
+\title{QCM 3: choix à 1 opération}
+\author{Jean-Philippe, Colpin}
+\email{jp.colpin@laposte.net}
+
+\integer{tot=8}
+\precision{100}
+
+\real{prix_orange_kg=randint(201..285)/100}
+\integer{nbr_g=randint(5..9)*100}
+\real{nbr_kg=\nbr_g*0.001}
+
+\text{explain=
+Au marché, un kilogramme d'oranges coûte \prix_orange_kg &euro;.
+Paméla achète \nbr_g grammes d'oranges. Combien a-t-elle dépensé &#63;
+<div class="wims_instruction">
+Cocher l'opération qui conduit à la bonne réponse:</div> }
+
+\integer{givetrue=1}
+\integer{minfalse=2}
+\matrix{datatrue=\nbr_kg &times; \prix_orange_kg }
+\matrix{datafalse=
+\nbr_g &times; \prix_orange_kg
+\nbr_g &minus; \prix_orange_kg
+\prix_orange_kg &minus; \nbr_g
+\nbr_g + \prix_orange_kg
+\nbr_g &divide; \prix_orange_kg
+\prix_orange_kg &divide; \nbr_g
+\prix_orange_kg &minus; \nbr_kg
+\nbr_kg &divide; \prix_orange_kg
+\nbr_kg + \prix_orange_kg
+ }
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\text{datatrue=wims(nonempty rows \datatrue)}
+\text{datafalse=wims(nonempty rows \datafalse)}
+\integer{truecnt=rows(\datatrue)}
+\integer{falsecnt=rows(\datafalse)}
+\integer{givetrue=\givetrue<1?1}
+\integer{givetrue=\givetrue>\truecnt?\truecnt}
+\integer{tot=\tot > \falsecnt+\givetrue?\falsecnt+\givetrue}
+\integer{givetrue=\givetrue>\tot-1?\tot-1}
+\integer{minfalse=\minfalse>\tot-\givetrue?\tot-\givetrue}
+\text{tsh=shuffle(\truecnt)}
+\text{true=row(\tsh,\datatrue)}
+\if{\minfalse>0}{
+ \text{false1=row(1..\minfalse,\datafalse);}
+ \text{false2=row(\minfalse+1..\falsecnt,\datafalse)}
+}{
+ \integer{minfalse=0}
+ \text{false1=}
+ \text{false2=\datafalse}
+}
+\text{fsh=shuffle(\falsecnt)}
+\text{false2=row(\fsh,\false2)}
+\text{pick=row(1..\givetrue,\true);\false1 row(1..\tot-\givetrue-\minfalse,\false2)}
+\text{ind=wims(makelist 1 for x=1 to \givetrue),wims(makelist 0 for x=1 to \tot-\givetrue)}
+
+\text{sh=shuffle(\tot)}
+\text{ind=item(\sh,\ind)}
+\text{pick=row(\sh,\pick)}
+\text{pick=wims(embraced randitem \pick)}
+\text{explain=wims(embraced randitem \explain)}
+\text{ans=positionof(1,\ind)}
+\text{list=item(1..\tot,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z)}
+\text{anstype=checkbox iswordof \option?checkbox:radio}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement{
+\explain
+\for{i=1 to \tot}{
+ <div class="oefreply">\embed{reply 1,\i}: \pick[\i;]</div>
+}}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{La réponse}{\ans;\list}{type=\anstype}{option=\option}

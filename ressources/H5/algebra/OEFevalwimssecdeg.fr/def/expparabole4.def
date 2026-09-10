@@ -1,0 +1,117 @@
+!set title=Exploiter une parabole 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Maguy, Bruno
+email=regine@mangeard.fr
+keywords=parabola
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange -15,15	 yrange -15,15	 parallel -15,-15,-15,15,1,0,30,gray	 parallel -15,-15,15,-15,0,1,30,gray	 linewidth 2	 arrow 0,-15,0,15,10,blue	 arrow -15,0,15,0,10,blue	 segment -0.2,1,0.2,1,black	 segment 1,-0.2,1,0.2,black	 text black,-0.7,1.5,small,1	 text black,0.7,-0.5,small,1	
+tmp0=!randint 1, 4
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -3,-2,-1,0,0,0,1,2,3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+t_=!rawmath $(tmp0)/$val7
+val9=!exec pari print($t_)
+val10=$val9*(x-$val7)^2+$val8
+val11=$[rint($val9*($val7)^2+$val8)]
+val12=des coordonnées du sommet et du point d'intersection avec l'axe des oordonnées
+val13=<div class="wims_instruction">Donner de préférence une forme canonique.</div>
+val14=Le sommet a pour coordonnées ($val7;$val8) donc la parabole a une équation de la forme:<br>	\(y=a(x-$val7)^2+$val8)<p>	  Le point d'intersection avec l'axe des ordonnées donne \($val11=a($val7)^2+$val8)<br>	  Donc \(y=$val9(x-$val7)^2+$val8)	</p>
+tmp0=!texmath a*x^2+b*x+c
+
+val15=$(tmp0)
+tmp0=!text expand $val15 using 01
+
+val15=$(tmp0)
+val6=$val6	 plot red,$val10	
+replytype1=function
+replyname1=équation de P
+replygood1=!rawmath $val10
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val14
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 300,300 \
+$val6 
+$()</div>	 <div class="medium_size text_col">	  On a représenté ci-dessous une parabole 
+!insmath \mathcal{P}
+$() d'équation:	<div class="wimscenter"> 
+!insmath \mathcal{P}: y=$val15
+$()</div>	<div>	  Par lecture graphique $val12, déterminer une équation de 
+!insmath \mathcal{P}
+$():	<br>$val13</div>	<div class="wimscenter"> <label for="reply1">
+!insmath \mathcal{P}
+$()</label>:y=  
+!read oef/embed.phtml reply1 
+$()</div>	</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val14
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,14,15
+embedcnt=1

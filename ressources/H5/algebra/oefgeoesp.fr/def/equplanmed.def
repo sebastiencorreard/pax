@@ -1,0 +1,275 @@
+!set title=Équation du plan médiateur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud;Hubert, Prohal
+email=communaute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr
+keywords=plane_equation,equation
+oefobservation=Au moins une des coordonnées de A et B sont égales, avec une probabilité égale à 0.5.
+
+ansorder=r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2,3,4,4,4
+
+val6=$(tmp0)
+
+!ifval $val6=1 
+val7=$[rint(0)]
+!else
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+!endif
+
+!ifval $val6=2 
+val8=$[rint(0)]
+!else
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+!endif
+
+!ifval $val6=3 
+val9=$[rint(0)]
+!else
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+!endif
+val10=$[rint($val7^2+$val8^2+$val9^2)]
+!if $val7^2+$val8^2+$val9^2=0 
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+!endif
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val13=$[rint($(tmp0)*$(tmp1))]
+val14=$[rint($val11+$val7)]
+val15=$[rint($val12+$val8)]
+val16=$[rint($val13+$val9)]
+val17=$[($val11+$val14)/2]
+val18=$[($val12+$val15)/2]
+val19=$[($val13+$val16)/2]
+val7=$[rint($val14-$val11)]
+val8=$[rint($val15-$val12)]
+val9=$[rint($val16-$val13)]
+val20=$[rint(gcd($val7,$val8))]
+val21=$[rint(gcd($val8,$val9))]
+val22=$[rint(gcd($val20,$val21))]
+val7=$[rint($val7/$val22)]
+val8=$[rint($val8/$val22)]
+val9=$[rint($val9/$val22)]
+val23=$[-1*$val7*$val17-$val8*$val18-$val9*$val19]
+tmp=!trim $val7	$val8	$val9
+val24=!translate internal $	\
+$ to ;; in $tmp
+val25=$val7*x+$val8*y+$val9*z+$val23=0
+tmp=!translate ";': to $     $ in $val7*x+$val8*y+$val9*z
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+
+!ifval $val8<0
+val27= ($val8)
+!else
+val27=$val8
+!endif
+
+!ifval $val9<0
+val28= ($val9)
+!else
+val28=$val9
+!endif
+
+!ifval $val17<0
+val29= ($val17)
+!else
+val29=$val17
+!endif
+
+!ifval $val19<0
+val30= ($val19)
+!else
+val30=$val19
+!endif
+
+!ifval $val18<0
+val31= ($val18)
+!else
+val31=$val18
+!endif
+
+!ifval $val23<0
+val32=$val26 $val23=0
+!else
+val32=$val26 + $val23=0
+!endif
+
+!ifval $val23=0
+val32=$val26=0
+!else
+val32=$val32
+!endif
+tmp0=!replace x by x_M in $val26
+
+val33=$(tmp0)
+tmp0=!replace y by y_M in $val33
+
+val33=$(tmp0)
+tmp0=!replace z by z_M in $val33
+
+val33=$(tmp0)
+tmp=!trim x_B-x_A	y_B-y_A	z_B-z_A	
+val34=!translate internal $	\
+$ to ;; in $tmp
+replytype1=equation
+replyname1=
+replygood1=!rawmath $val25
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On se place dans un repère othonormé de l'espace.</p>	<p>Déterminez une équation cartésienne du plan médiateur à 
+!insmath A($val11;$val12;$val13)
+$() et 
+!insmath B($val14;$val15;$val16)
+$().</p>	<div class="wims_question"><label for="reply1">L'équation </label>est :  
+!read oef/embed.phtml r1,30 
+$().</div>	
+$()
+!exit
+
+:hint
+$()Le plan médiateur est le plan qui passe par le milieu du segment 
+!insmath [AB]
+$() et qui est orthogonal à la droite 
+!insmath (AB)
+$().
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p>Notations : on notera 
+!insmath (x_A;y_A;z_A)
+$() les coordonnées d'un point 
+!insmath A
+$().</p>	<p class="wims_emph">Étape 1 coordonnées d'un vecteur normal au plan.</p>	<p><u>On sait que :</u> Le vecteur 
+!insmath \widevec{AB}
+$() est un vecteur normal au plan médiateur.	 Ses coordonnées sont : 
+!insmath [$val34]
+$() 
+!insmath =
+$()
+!insmath [$val24]
+$().</p>	 <p class="wims_emph">Étape 2 Coordonnées du milieu de 
+!insmath [AB]
+$()</p>	 <p> <u>On sait que :</u> ce milieu 
+!insmath M
+$() a pour coordonnées 
+!insmath \left(\frac{x_A+x_B}{2};\frac{y_A+y_B}{2};\frac{z_A+z_B}{2}\right)
+$()</p>	 <p> Ainsi 
+!insmath M
+$() a pour coordonnées 
+!insmath ($val17;$val18;$val19)
+$().</p>		<p class="wims_emph">Étape 3 Equation du plan plan.</p>		<p><u>On sait que :</u> le plan d'équation 
+!insmath $val26+k=0
+$() <i> (
+!insmath k
+$() réel)</i> a pour vecteur	normal le vecteur de coordonnées 
+!insmath [$val7;$val8;$val9]
+$(). </p>	<p>Ainsi, il reste à déterminer la valeur de 
+!insmath k
+$() pour que les coordonnées de 
+!insmath M($val17;$val18;$val19)
+$()	vérifient l'équation : 
+!insmath $val26+k=0
+$()</p>	<ul class="wims_nopuce"><li> Soit : 
+!insmath $val33 +k=0
+$() que l'on résout.</li>	<li> On trouve 
+!insmath  k=$val23
+$().</li></ul>	<p> <u>Conclusion :</u>
+!insmath $val32
+$() est une équation de ce plan.</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,13,14,15,16,17,18,19,23,24,26,32,33,34
+embedcnt=1

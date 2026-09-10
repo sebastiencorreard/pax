@@ -1,0 +1,145 @@
+!set title=Equations linéaires
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+keywords=equation_systems
+
+ansorder=r,r,r
+varcnt=10
+prevarcnt=5
+postvarcnt=4
+replycnt=3
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/random 2,3,5 
+tmp0=$slib_out
+val6=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];C=matker(A);print(C)
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+val8=
+val9=
+val10=
+replytype1=default
+replyname1=Reponse x
+replygood1=?analyze 11
+replytype2=default
+replyname2=Reponse y
+replygood2=?analyze 12
+replytype3=default
+replyname3=Reponse z
+replygood3=?analyze 13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la matrice 
+!insmath A=[$val6]
+$(). Déterminer un vecteur non nul	
+!insmath B=[x;y;z]
+$() tel que 
+!insmath A B=0
+$().	<p>On a</p>	<div class="wimscenter">	
+!insmath x=
+$()  
+!read oef/embed.phtml reply 1,5 
+$()<br>	
+!insmath y=
+$()  
+!read oef/embed.phtml reply 2,5 
+$()<br>	
+!insmath z=
+$()  
+!read oef/embed.phtml reply 3,5 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!trim $val11;$val12;$val13
+val14=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in B=[$val14];n=mattranspose(B)*B;print(n)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+t_=!replace internal \( by ( in A=[$val6];B=[$val14];C=A*B;c=mattranspose(C)*C;print(c)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+t_=!replace internal \( by ( in A=[$val14];print(A)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val10=!translate internal $	\
+$ to ;; in $tmp
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val8<>0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Le vecteur est non nul
+
+!ifval $val9=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=AB=0
+
+!exit
+
+:stat
+vsavelist=6,8,9,11,12,13
+embedcnt=3

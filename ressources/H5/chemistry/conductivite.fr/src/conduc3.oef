@@ -1,0 +1,115 @@
+\title {conductivité d'une solution (3)}
+
+\precision{1000}
+
+\text{ligne=wims (randrecord cations.dat)}
+\text{ligne=wims(words2items \ligne)}
+\text{cation=item(1,\ligne)}
+\text{catnom=item(2,\ligne)}
+\text{catsig=item(3,\ligne)}
+\text{catcharge=item(4,\ligne)}
+\text{catnomde=item(5,\ligne)}
+\text{space=wims(char 2 of x x)}
+\text{catnomde=wims(replace internal _ by \space in \catnomde)}
+\text{catsig= slib(text/sigunits \catsig,2)}                              //arrondi de sigma à deux chiffres significatifs
+\text{sigcatsig=slib(text/sigunits \catsig S.m^2.mol^-1,2,,S.m^2.mol^-1)} // expression avec l'unité
+
+\text{ligne=wims (randrecord anions.dat)}
+\text{ligne=wims(words2items \ligne)}
+\text{aniion=item(1,\ligne)}
+\text{aninom=item(2,\ligne)}
+\text{anisig=item(3,\ligne)}
+\text{anicharge=item(4,\ligne)}
+\text{anisig= slib(text/sigunits \anisig,2)}                              //arrondi de sigma à deux chiffres significatifs
+\text{siganisig=slib(text/sigunits \anisig S.m^2.mol^-1,2,,S.m^2.mol^-1)} // expression avec l'unité
+
+\real{cani=randitem(10,20,25,50,70)/10}                     // concentration en mol.m^-3
+\real{canimL=\cani/1000}                                       // concentration en mol/L
+\text{canimL=slib(text/sigunits \canimL,2)}                    // ... et 2 chiffres significatifs
+\text{sigcani=slib(text/sigunits \cani mol.m^-3,2,,mol.m^-3)}  // c en mol.m^-3, 2 chiffres significatifs et l'unité
+\real{sani=\cani*\anisig}
+\text{sanisig=slib(text/sigunits \sani S/m,2,,S/m)}
+\real{sanicm=10*\s}
+\real{sanicm2=slib(text/sigunits \sanicm,2)}            // valeur convertie en mS/cm sans l'unité
+\text{sigsanicm=slib(text/sigunits \sani S/m,2,,mS/cm)} // expression avec l'unité mS/cm
+
+\integer{ncat=-\anicharge/\catcharge}
+\real{ccat=\cani*\ncat}                                                     // concentration en mol.m^-3
+\real{ccatmL=\ccat/1000}                                                // concentration en mol/L
+\text{ccatmL=slib(text/sigunits \ccatmL,2)}                // ... et 2 chiffres significatifs
+\text{sigccat=slib(text/sigunits \ccat mol.m^-3,2,,mol.m^-3)}  // c en mol.m^-3, 2 chiffres significatifs et l'unité
+\real{scat=\ccat*\catsig}
+\text{scatsig=slib(text/sigunits \scat S/m,2,,S/m)}
+\real{scatcm=10*\s}
+\real{scatcm2=slib(text/sigunits \scatcm,2)}            // valeur convertie en mS/cm sans l'unité
+\text{sigscatcm=slib(text/sigunits \scat S/m,2,,mS/cm)} // expression avec l'unité mS/cm
+\if{\ncat=1}{
+\text{ncat=}   // en chimie on ne marque pas les 1
+}
+
+\text{sani=slib(text/sigunits \sani,2)}   // on fait les arrondis avant d'additionner, comme les élèves.
+\text{scat=slib(text/sigunits \scat,2)}  // on fait les arrondis avant d'additionner, comme les élèves.
+\real{s=\sani+\scat}
+\text{ssig=slib(text/sigunits \s S/m,2,,S/m)}
+\real{scm=10*\s}
+\real{scm2=slib(text/sigunits \scm,2)}            // valeur convertie en mS/cm sans l'unité
+
+
+\integer{debug=0}
+\statement{
+\if{\debug=1}{<div style="font-size:70%; background:lightyellow;">
+<h3>debug</h3>
+</div>
+}
+Soit une solution de \aninom  \catnomde \((\aniion,\ncat  \cation)),
+de concentration \canimL mol/L. Les conductivités molaires
+de chaque ion sont&nbsp;
+<table>
+<tr> <td>\(\lambda_{\aniion}=)\siganisig</td></tr>
+<tr> <td>\(\lambda_{\cation}=)\sigcatsig</td></tr>
+</table>
+
+Calculez les conductivités dues à chaque ion séparément&nbsp;
+<ol>
+<li> Conductivitée due à \(\aniion) : \embed{r1}
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs)</span>
+<li> Conductivitée due à \(\cation) : \embed{r2}
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs)</span>
+
+<li>Conductivité totale de la solution&nbsp;: \embed{r3}
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs)</span>
+<li>Conversion de la précédente, en mS/cm&nbsp;:\embed{r4}
+<span style="color:grey;font-size:78%">(attention au nombre de 
+chiffres significatifs, ne répétez pas l'unité)</span>
+
+</ol>
+}
+
+\reply{}{\sanisig}{type=sigunits}
+\reply{}{\scatsig}{type=sigunits}
+\reply{}{\ssig}{type=sigunits}
+\reply{}{\scm2}{type=sigunits}
+
+\solution{
+<p>
+On commence par convertir les concentrations : 
+<ul>
+<li>\({}[\aniion]) = \canimL mol/L = \({}\sigcani)
+<li>\({}[\cation]) = \ccatmL mol/L = \({}\sigccat)
+</ul>
+<ol>
+<li>
+ \(\sigma = c_{\aniion} \times \lambda_{\aniion}= \cani \times \anisig = \sanisig)
+<span style="color:grey;font-size:78%">(deux 
+chiffres significatifs)</span>
+<li>
+ \(\sigma = c_{\cation} \times \lambda_{\cation}= \ccat \times \catsig = \scatsig)
+<span style="color:grey;font-size:78%">(deux 
+chiffres significatifs)</span>
+<li>\({}\sani + \scat = \ssig)
+<li>\({}\ssig = \scm2 mS/cm) 
+</ol>
+}

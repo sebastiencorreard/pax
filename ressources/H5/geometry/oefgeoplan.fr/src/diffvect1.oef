@@ -1,0 +1,142 @@
+\title{Différence de deux vecteurs (graphique) }
+\language{fr}
+\range{-5..5}
+\author{Cyrille Douriez}
+\email{cyrille.douriez@ac-amiens.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\text{donnees=slib(draw/repere 400,400,20,-6,6,-6,6,1,1,black,grey)}
+
+\text{tmp=row(1,\donnees)}
+#coordonnéées de l'origine du repère
+\integer{Ox=item(1,\tmp)}
+\integer{Oy=item(2,\tmp)}
+
+\text{tmp=row(2,\donnees)}
+#échelle des axes
+\integer{ex=item(1,\tmp)}
+\integer{ey=item(2,\tmp)}
+
+text{grille=wims(line 3 to -1 of \donnees)}
+\text{grille=wims(line 3 to 6 of \donnees)}
+#on a retiré les axes
+#pour placer l'origine, il faut écrire du texte
+\integer{X=random(-1,1)*random(1..5)}
+\integer{Y=random(-1,1)*random(1..5)}
+#on ne veut pas X=0
+
+#ensuite on place deux vecteurs (X,Y)
+\integer{ax=\Ox+random(-2..3)*\ex}
+\integer{bx=\ax+random(-2..2)*\ex}
+\integer{cx=\Ox+random(-2..3)*\ex}
+\integer{dx=\cx+random(-2..2)*\ex}
+\integer{ay=\Oy+random(-2..3)*\ey}
+\integer{by=\ay+random(-2..2)*\ey}
+\integer{cy=\Oy+random(-2..3)*\ey}
+\integer{dy=\cy+random(-2..2)*\ey}
+
+
+controle des vecteurs
+\integer{ay=(\by-\ay=0) and \ay=\Oy?\ay+2*\ey:\ay}
+\integer{ax=(\bx-\ax=0) and \ax=\Ox?\ax+2*\ex:\ax}
+\integer{ax=(\ax=\bx) and (\ay=\by)?\ax+\ex:\ax}
+\integer{cy=(\dy-\cy=0) and \cy=\Oy?\cy+2*\ey:\cy}
+\integer{cx=(\dx-\cx=0) and \cx=\Ox?\cx+2*\ex:\cx}
+\integer{cx=(\cx=\dx) and (\cy=\dy)?\cx+\ex:\cx}
+
+
+
+\text{vecAB=arrow \ax,\ay,\bx,\by,10,orange}
+\text{vecCD=arrow \cx,\cy,\dx,\dy,10,blue}
+
+calcul des pentes des vecteurs pour affichage des lettres
+\integer{offax=\bx-\ax>=0?-10:10}
+\integer{offay=\by-\ay>=0?-5:5}
+\integer{offbx=\bx-\ax>=0?10:-10 }
+\integer{offby=\by-\ay>=0?5:-5}
+\integer{offcx=\dx-\cx>=0?-10:10}
+\integer{offcy=\dy-\cy>=0?-5:5}
+\integer{offdx=\dx-\cx>=0?10:-10 }
+\integer{offdy=\dy-\cy>=0?5:-5}
+
+calcul des coordonnées de M
+\integer{fx=\Ox+(\bx-\ax)-(\dx-\cx)}
+\integer{fy=\Oy+(\by-\ay)-(\dy-\cy)}
+\integer{offmx=\fx-\Ox>=0?10:-10 }
+\integer{offmy=\fy-\Oy>=0?10:-10}
+
+
+\function{trx=(x-(\Ox))/\ex}
+\function{try=(y-(\Oy))/\ey}
+\text{fxx=simplify(evalue(\trx,x=\fx))}
+\text{fyy=simplify(evalue(\try,y=\fy))}
+
+\text{data=crosshair \Ox,\Oy,black
+text black,\Ox-10,\Oy+5,medium,O
+linewidth 2
+\vecAB
+text orange,\ax+\offax,\ay+\offay,medium,A
+text orange,\bx+\offbx,\by+\offby,medium,B
+\vecCD
+text blue,\cx+\offcx,\cy+\offcy,medium,C
+text blue,\dx+\offdx,\dy+\offdy,medium,D}
+
+affichage du dessin
+\text{image=draw(400,400
+\grille
+\data
+)}
+
+réaffichage du dessin
+\text{vecABtr=dasharrow \Ox,\Oy,\Ox+(\bx-\ax),\Oy+(\by-\ay),10,orange}
+\text{vecCDtr=dasharrow \Ox+(\bx-\ax),\Oy+(\by-\ay),\fx,\fy,10,blue}
+
+\text{repimage=\grille
+\data
+\vecABtr
+\vecCDtr
+arrow \Ox,\Oy,\fx,\fy,10,green
+text green,\fx+\offmx,\fy+\offmy,medium,M
+}
+
+## récupération réponse pour feedback
+\text{rep=}
+\integer{xrep=}
+\integer{yrep=}
+
+\statement{
+Le plan est rapporté à une grille sur laquelle sont représentés un point \(O\) et deux vecteurs  \(\overrightarrow{A B}\) et <span class="nowrap">\(\overrightarrow{C D}\).</span>
+<br>Le but de l'exercice est de construire le représentant d'origine \(O\) du vecteur <span class="nowrap">\(\overrightarrow{A B}-\overrightarrow{C D}).</span>
+
+<div>Cliquer à l'emplacement de l'extrémité \(M\) du vecteur
+<span class="nowrap">\(\overrightarrow{O M} = \overrightarrow{A B}-\overrightarrow{C D}).</span>
+</div>
+<div class="wimscenter unbreakable">
+\embed{r1}
+</div>
+}
+\answer{f(\X)}{\image;circle,\fx,\fy,\ex/3}{type=coord}
+
+\text{rep=wims(replace internal char number 1 by in \reply1)}
+\text{rep=wims(replace char number -1 by in \rep)}
+\integer{xrep=\rep[1]}
+\integer{yrep=\rep[2]}
+
+\feedback{\xrep-(\fx)=2*(\dx-\cx) and \yrep-(\fy)=2*(\dy-\cy) }
+{Attention, vous avez construit le repésentant d'origine O du vecteur <span class="nowrap">\(\overrightarrow{A B} \color{red}+ \color{black}\overrightarrow{C D}\).</span>
+}
+
+\solution{
+On peut commencer par construire :
+<ul>
+<li>le représentant du vecteur \(\overrightarrow{A B}) d'origine \(O\) (en pointillé orange)&nbsp;;</li>
+<li>puis le représentant du vecteur \(-\overrightarrow{C D}\) d'origine l'extrémité du vecteur construit précédemment (en pointillé bleu).</li>
+</ul>
+On en déduit le vecteur \(\overrightarrow{O M}) (en vert).
+
+<div class="wimscenter">
+\draw{400,400}{\repimage}
+</div>
+}

@@ -1,0 +1,269 @@
+!set title=Somme de vecteurs
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud;Hubert, Prohal
+email=communaute.mutuwims@laposte.net;hubert.proal@ac-aix-marseille.fr
+keywords=vectors
+title_en=Somme de vecteurs
+
+ansorder=r
+varcnt=75
+prevarcnt=74
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=La figure ci-dessus est une vue en perspective de six cubes de même dimension.
+tmp=!trim On a,relation de Chasles	  La bonne réponse est donc le point	  est un parallélogramme	  le quadrilatère	  Donc, les vecteurs	  sont égaux	  Donc
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=et
+val10=Par les propriétés des cubes
+val11=Complétez l'égalité suivante par un point de la figure	  pour que l'égalité suivante soit vraie.
+val12=Point demandé
+val13=(en pointillés bleus),(en pointillés verts)
+!if $val6=en 
+val7=La figure ci-dessus est une vue en perspective de six cubes de même dimension.
+tmp=!trim On a,relation de Chasles	  La bonne réponse est donc le point	  est un parallélogramme	  le quadrilatère	  Donc, les vecteurs	  sont égaux	  Donc
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=et
+val10=Par les propriétés des cubes
+val11=Complétez l'égalité suivante par un point de la figure	  pour que l'égalité suivante soit vraie.
+val12=Point demandé
+val13=(en pointillés bleus),(en pointillés verts)
+!endif
+val14=medium
+val15=blue,red,green,black
+val16=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X
+tmp0=!shuffle 24
+
+val17=$(tmp0)
+val18=$(val16[$(val17[1])])
+val19=$(val16[$(val17[2])])
+val20=$(val16[$(val17[3])])
+val21=0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3
+val22=0,0,0,0,1,1,1,1,2,2,2,2,0,0,0,0,1,1,1,1,2,2,2,2
+val23=0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1
+tmp=!trim $val21	$val23	$val22
+val24=!translate internal $	\
+$ to ;; in $tmp
+val25=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X
+val26=
+!for val27 =1 to 24 
+t_=!replace internal \( by ( in [$(val21[$val27])*5+($(val23[$val27]))*3,$(val22[$val27])*5+($(val23[$val27]))*2]
+tmp0=!exec pari $t_
+
+val26=$val26	  $(tmp0),$(val25[$val27])
+!next
+tmp0=!nonempty lines $val26
+
+tmp=!trim $(tmp0)
+val26=!translate internal $	\
+$ to ;; in $tmp
+val28=$[rint($(val21[$(val17[2])])-$(val21[$(val17[1])]))]
+val29=$[rint($(val23[$(val17[2])])-$(val23[$(val17[1])]))]
+val30=$[rint($(val22[$(val17[2])])-$(val22[$(val17[1])]))]
+val31=$[rint($(val21[$(val17[3])])-$(val21[$(val17[2])]))]
+val32=$[rint($(val23[$(val17[3])])-$(val23[$(val17[2])]))]
+val33=$[rint($(val22[$(val17[3])])-$(val22[$(val17[2])]))]
+!for val34 =1 to 24 
+!for val35 =1 to 24 
+val36=$[rint($(val21[$val35])-$(val21[$val34]))]
+val37=$[rint($(val23[$val35])-$(val23[$val34]))]
+val38=$[rint($(val22[$val35])-$(val22[$val34]))]
+!if $val36=$val28 and $val37=$val29 and $val38=$val30 
+val39=$[rint($val34)]
+val40=$[rint($val35)]
+!endif
+!next
+!next
+val41=$(val16[$val39])
+val42=$(val16[$val40])
+val43=\overrightarrow{$val41 $val42}
+!for val34 =1 to 24 
+!for val35 =1 to 24 
+val44=$[rint($(val21[$val35])-$(val21[$val34]))]
+val45=$[rint($(val23[$val35])-$(val23[$val34]))]
+val46=$[rint($(val22[$val35])-$(val22[$val34]))]
+!if $val44=$val31 and $val45=$val32 and $val46=$val33 
+val47=$[rint($val34)]
+val48=$[rint($val35)]
+!endif
+!next
+!next
+val49=$(val16[$val47])
+val50=$(val16[$val48])
+val51=\overrightarrow{$val49 $val50}
+val52=arrow $(val26[$val39;1]),$(val26[$val39;2]),$(val26[$val40;1]),$(val26[$val40;2]),10,$(val15[1])
+val53=darrow $(val26[$(val17[1]);1]),$(val26[$(val17[1]);2]),$(val26[$(val17[2]);1]),$(val26[$(val17[2]);2]),10,$(val15[1])
+val54=arrow $(val26[$val47;1]),$(val26[$val47;2]),$(val26[$val48;1]),$(val26[$val48;2]),10,$(val15[3])
+val55=darrow $(val26[$(val17[2]);1]),$(val26[$(val17[2]);2]),$(val26[$(val17[3]);1]),$(val26[$(val17[3]);2]),10,$(val15[3])
+val56=darrow $(val26[$val39;1]),$(val26[$val39;2]),$(val26[$val48;1]),$(val26[$val48;2]),10,$(val15[1])
+val57=darrow $(val26[$val47;1]),$(val26[$val47;2]),$(val26[$val39;1]),$(val26[$val39;2]),10,$(val15[1])
+!if $val40=$val47 
+val58=$val56
+!else
+!if $val39=$val48 
+val58=$val57
+!else
+val58=$val53	  $val55
+!endif
+!endif
+val59=\overrightarrow{$val18 $val19}
+val60=\overrightarrow{$val19 $val20}
+val61=$(val16[$(val17[3])])
+val62=darrow $(val26[$(val17[1]);1]),$(val26[$(val17[1]);2]),$(val26[$(val17[3]);1]),$(val26[$(val17[3]);2]),10,$(val15[2])
+val63=$[rint($val28+$val31)]
+val64=$[rint($val29+$val32)]
+val65=$[rint($val30+$val33)]
+tmp=!trim xrange -2,20	  yrange -2,15	  poly black,0,0,0,10,15,10,15,0	  segment 0,5,15,5,black	  polyline black,0,10,3,12,18,12,18,2,15,0	  parallel 15,10,18,12,0,-5,2,black	  polyline gray,0,0,3,2,18,2	  polyline gray,0,5,3,7,18,7	  parallel 3,2,3,12,5,0,3,gray	  parallel 5,0,8,2,0,5,2,gray	  parallel 10,0,13,2,0,5,2,gray	  polyline black,5,0,5,10,8,12	  polyline black,10,0,10,10,13,12	  centered	  fontfamily 20px	  text $(val15[4]),-0.2,-0.3,$val14,A	  text $(val15[4]),4.8,-0.3,$val14,B	  text $(val15[4]),9.8,-0.3,$val14,C	  text $(val15[4]),14.8,-0.3,$val14,D	  text $(val15[4]),-0.3,4.8,$val14,E	  text $(val15[4]),4.7,4.8,$val14,F	  text $(val15[4]),9.7,4.8,$val14,G	  text $(val15[4]),14.7,4.8,$val14,H	  text $(val15[4]),-0.3,9.8,$val14,I	  text $(val15[4]),4.7,9.8,$val14,J	  text $(val15[4]),9.7,9.8,$val14,K	  text $(val15[4]),14.7,9.8,$val14,L	  text $(val15[4]),2.8,1.8,$val14,M	  text $(val15[4]),7.8,1.8,$val14,N	  text $(val15[4]),12.8,1.8,$val14,O	  text $(val15[4]),17.8,1.8,$val14,P	  text $(val15[4]),2.7,6.8,$val14,Q	  text $(val15[4]),7.7,6.8,$val14,R	  text $(val15[4]),12.7,6.8,$val14,S	  text $(val15[4]),17.7,6.8,$val14,T	  text $(val15[4]),2.7,12.7,$val14,U	  text $(val15[4]),7.7,12.7,$val14,V	  text $(val15[4]),12.7,12.7,$val14,W	  text $(val15[4]),17.7,12.7,$val14,X	  \snaptopoints	  linewidth 3	  $val52	  $val54	
+val66=!translate internal $	\
+$ to ;; in $tmp
+replytype1=case
+replyname1=$val12:
+replygood1=$val61
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p class="wimscenter">	   
+!read oef/draw.phtml 500,300 \
+$val66 
+$()</p>	  <p>$val7</p>	  <div class="wims_question">	  $val11	    <div class="wimscenter">	     
+!read oef/special.phtml mathmlinput [$val43+$val51=\overrightarrow{$val18 reply1\phantom{\,}}],2,noanswer	    reply1 
+$().	    </div>	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <div class="wimscenter">	   
+!read oef/draw.phtml 500,300 \
+$val66	$val58	$val62	   
+$()	  </div>	  
+!if $val40=$(val17[2]) and $val39=$(val17[1]) and $val47=$(val17[3]) 
+$()	     <p>	     $(val8[1;1]): 
+!insmath $val59+$val60=\widevec{$val18 $val20}
+$() ($(val8[1;2])).	     </p>	    
+!else
+$() 	    
+!if $val49==$val42 
+$()	       <p>$(val8[1;1]) ($(val8[1;2])):	       
+!insmath $val43+$val51=\widevec{$val41 $val50}
+$() <i>$(val13[1])</i>.</p>	       
+!if $val50!=$val20 
+$()	          <p>$val10, $(val8[4;]) 
+!insmath \,$val41 $val50 $val20 $val18
+$()	          $(val8[3;]).	          $(val8[5;])	          
+!insmath \widevec{$val41 $val50}
+$() $val9 
+!insmath \widevec{$val18 $val20}
+$()	          $(val8[6;]).</p>	         
+!endif
+$()	      
+!else
+$() 	      
+!if $val41==$val50 
+$()	         <p>	         $(val8[1;1]) ($(val8[1;2])):	         
+!insmath $val43+$val51=$val51 +$val43=\widevec{$val49 $val42}
+$().	         </p>	          
+!if $val42!=$val20 
+$()	            <p>	            $val10, $(val8[4;])	            
+!insmath \,$val49 $val42 $val20 $val18
+$() $(val8[3;]).	            $(val8[5;]) 
+!insmath \widevec{$val49 $val42}
+$()	            $val9 
+!insmath \widevec{$val18 $val20}
+$() $(val8[6;]).	            </p>	           
+!endif
+$()	          
+!else
+$() 	          
+!if $val59==$val43 
+$() 
+!else
+$() 	            <p>$val10,	             $(val8[4;]) 
+!insmath \,$val41 $val42 $val19 $val18 
+$() $(val8[3;]).	             $(val8[5;]) 
+!insmath $val43
+$() $val9 
+!insmath $val59
+$()	             <i>$(val13[1])</i> $(val8[6;]).	            </p>	            
+!endif
+$()	          
+!if $val60==$val51 
+$() 
+!else
+$() 	            <p>	            $val10,	            $(val8[4;]) 
+!insmath \,$val49 $val50 $val20 $val19 
+$() $(val8[3;]).	            $(val8[5;]) 
+!insmath $val51
+$() $val9 
+!insmath $val60
+$()	            <i>$(val13[2])</i> $(val8[6;]).	            </p>	            
+!endif
+$()	           <p>$(val8[7;]),
+!insmath $val43+$val51=$val59+$val60=\widevec{$val18 $val20}
+$()	           ($(val8[1;2])).</p>	          
+!endif
+$()	        
+!endif
+$()	      
+!endif
+$()	  <p>$(val8[2;]) 
+!insmath $val20
+$().</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,13,17,18,19,20,39,40,41,42,43,47,49,50,51,58,59,60,62,66
+embedcnt=1

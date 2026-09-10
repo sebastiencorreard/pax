@@ -1,0 +1,277 @@
+!set title=Preuve croissance réciproque
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang,XIAO
+email=xiao@unice.fr
+language=fr
+computeanswer=no
+
+ansorder=r,r,r,r
+varcnt=38
+prevarcnt=33
+postvarcnt=4
+replycnt=4
+choicecnt=0
+conditioncnt=1
+feedbackcnt=9
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=croissante,décroissante
+val8=croissance,décroissance
+tmp0=!randitem f,g,h
+
+val9=$(tmp0)
+tmp0=!shuffle I,J,K,L
+
+val10=$(tmp0)
+val11=$(val10[1])
+val12=$(val10[2])
+tmp0=!randitem 1,2
+
+val13=$(tmp0)
+tmp0=!item $val13 of $val7
+
+val14=$(tmp0)
+tmp0=!item $val13 of $val8
+
+val15=$(tmp0)
+tmp0=!shuffle x,y
+
+val16=$(tmp0)
+val17=$(val16[1])1
+val18=$(val16[1])2
+val19=$(val16[2])1
+val20=$(val16[2])2
+tmp0=!randitem 1,2
+
+val21=$(tmp0)
+tmp0=!item $val21 of >,<
+
+val22=$(tmp0)
+tmp0=!item $val21 of <,>
+
+val23=$(tmp0)
+tmp0=!item $val13 of $val22,$val23
+
+val24=$(tmp0)
+tmp0=!item $val13 of $val23,$val22
+
+val25=$(tmp0)
+val26={Je prends,Soient} \($val17,$val18) \(\in) \($val12) {tels que,avec} \($val17 $val22 $val18).
+val27={Je prends,Je définis,Soient} \($val19 = $val9^-1($val17))&#44; \($val20 = $val9^-1($val18)).
+val28={Donc,Cela veut dire,C'est-à-dire} \($val17 = $val9($val19)) \($val22) \($val18 = $val9($val20)).
+val29={Comme,Puisque,Parce que} \($val9) est $val14&#44;	{j'ai,je déduis} \($val19 $val24 $val20).
+val30={Je prends,Soient} \($val17,$val18) \(\in) \($val11) {tels que,avec} \($val17 $val22 $val18).
+val31={Je prends,Je définis,Soient} \($val19 = $val9($val17))&#44; \($val20 = $val9($val18)).
+val32={Comme,Puisque,Parce que} \($val9) est $val14&#44;	{j'ai,je déduis} \($val19 $val25 $val20).
+val33={Comme,Puisque,Parce que} \($val9^-1) est $val14&#44;	{j'ai,je déduis} \($val19 $val24 $val20).
+tmp0=!embraced randitem $val26,$val27,$val28,$val29
+
+tmp1=!singlespace $(tmp0)
+
+val34=$(tmp1)
+tmp0=!embraced randitem $val30,$val31,$val32,$val33
+
+tmp1=!singlespace $(tmp0)
+
+val35=$(tmp1)
+tmp0=!itemcnt $val34
+
+val36=$(tmp0)
+val37=$val34,$val35
+val38=400x35x1
+replytype1=dragfill
+replyname1=Phrase 1
+replygood1=?analyze 39;$val37
+replytype2=dragfill
+replyname2=Phrase 2
+replygood2=?analyze 40
+replytype3=dragfill
+replyname3=Phrase 3
+replygood3=?analyze 41
+replytype4=dragfill
+replyname4=Phrase 4
+replygood4=?analyze 42
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soient 
+!insmath $val11,$val12
+$() deux intervalles, 
+!insmath $val9 : $val11 \to $val12
+$() une fonction bijective,	et soit 
+!insmath $val9^-1 : $val12 \to $val11
+$() sa réciproque.	Montrez que si 
+!insmath $val9
+$() est strictement $val14, alors 
+!insmath $val9^-1
+$() l'est aussi, en choisissant	quatre des phrases données plus bas.	<ol>	<li> 
+!read oef/embed.phtml r1,$val38 
+$()</li>	<li> 
+!read oef/embed.phtml r2,$val38 
+$()</li>	<li> 
+!read oef/embed.phtml r3,$val38 
+$()</li>	<li> 
+!read oef/embed.phtml r4,$val38 
+$()</li>	
+!if $m_status notsametext end 
+$() 
+!endif
+$()	<li>Donc par définition, 
+!insmath $val9^-1
+$() est strictement $val14.	</li></ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!positionof item $val39 in $val37
+
+val43=$(tmp0)
+tmp0=!positionof item $val40 in $val37
+
+val44=$(tmp0)
+tmp0=!positionof item $val41 in $val37
+
+val45=$(tmp0)
+tmp0=!positionof item $val42 in $val37
+
+val46=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val43 notin 15
+ <div class='oef_feedbacks'>	  La phrase 1 est mauvaise : vous faites référence à des variables qui ne sont	  pas encore définies.	
+$()</div>
+!endif
+!ifval 8 isin $val44$val45$val46
+ <div class='oef_feedbacks'>	  Logique circulaire : vous utilisez la $val15 de 
+!insmath $val9^-1
+$() pour la	  démontrer ensuite&nbsp;?	
+$()</div>
+!endif
+!ifval $val43=5 and 2 isin $val44$val45$val46
+ <div class='oef_feedbacks'>	  Confusion d'intervalle dans la première phrase : pour que 
+!insmath $val9^-1($val17)
+$() ait un	  sens, il faut que 
+!insmath $val17
+$() appartienne à 
+!insmath $val12
+$() et non pas à 
+!insmath $val11
+$().	
+$()</div>
+!endif
+!ifval $val43=5 and 3 isin $val44$val45$val46
+ <div class='oef_feedbacks'>	  Confusion d'intervalle dans la première phrase : pour que 
+!insmath $val17
+$() soit une	  image de 
+!insmath $val9
+$(), il faut que 
+!insmath $val17
+$() appartienne à 
+!insmath $val12
+$() et non pas à 
+!insmath $val11
+$().	
+$()</div>
+!endif
+!ifval $val43$val44=56 and $val46 isin 47
+ <div class='oef_feedbacks'>	  La définition de la $val15 pour 
+!insmath $val9^-1
+$() ne s'applique pas après votre	  raisonnement&nbsp;: il fallait montrer la bonne inégalité pour deux	  arguments quelconques de 
+!insmath $val9^-1
+$(), alors que vous n'avez pris que deux	  arguments quelconques de 
+!insmath $val9
+$().	
+$()</div>
+!endif
+!ifval $val43 isin 15 and $val44 notin 26
+ <div class='oef_feedbacks'>	  La phrase 2 est mauvaise : vous faites référence à 
+!insmath $val19
+$() et 
+!insmath $val20
+$() qui ne sont	  pas encore définis.	
+$()</div>
+!endif
+!ifval $val43=1 and $val44=6
+ <div class='oef_feedbacks'>	  Confusion d'intervalle dans la première phrase : pour que 
+!insmath $val9($val17)
+$() ait un	  sens, il faut que 
+!insmath $val17
+$() appartienne à 
+!insmath $val11
+$() mais pas à 
+!insmath $val12
+$().	
+$()</div>
+!endif
+!ifval $val43$val44=12 and $val45!=3
+ <div class='oef_feedbacks'>	  Les phrases 3 et 4 ne suivent pas le bon ordre de logique.	
+$()</div>
+!endif
+!ifval $val43$val44=12 and $val46=7
+ <div class='oef_feedbacks'>	  Mauvaise application de la définition de la $val15 de 
+!insmath $val9
+$()&nbsp;:	  l'inégalité dans la phrase 4 est dans le mauvais sens.	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val43,$val44,$val45,$val46 issametext	1,2,3,4
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Le raisonnement est bien-construit
+
+!exit
+
+:stat
+vsavelist=9,11,12,14,15,17,19,20,37,38,39,40,41,42
+embedcnt=4

@@ -1,0 +1,145 @@
+\title{Aires et intégrales}
+\language{fr}
+\range{-5..5}
+\author{Frédéric, Pitoun}
+\email{frederic.pitoun@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{u=random(-5..-1)}
+\integer{a=\u+randint(1..3)}
+\integer{v=\a+randint(1..3)}
+\integer{b=\v+randint(1..3)}
+
+\integer{k=random(-1,1)*random(1..2)}
+\function{f0=maxima(expand(\k*(x-\u)*(x-\v)))}
+\text{tf0=texmath(\f0)}
+\if{\u=\v}{
+  \function{f1=maxima(a*(x-\u)^2)}
+  \text{phrase=\(\f) possède une racine double \u}
+  \rational{s=\u+1}
+}{
+  \function{f1=maxima(a*(x-\u)*(x-\v))}
+  \text{phrase=\(\f) possède deux racines simples \u et \v}
+  \rational{s=(\u+\v)/2}
+}
+
+\rational{I1=maxima(integrate(\f0,\x,\a,\v))}
+
+\rational{I2=maxima(integrate(\f0,\x,\v,\b))}
+
+\real{fa=maxima(subst(\a,x,\f0))}
+\real{fb=maxima(subst(\b,x,\f0))}
+\real{fvb=maxima(subst((\v+\b)/2,x,\f0)/2)}
+\real{fva=maxima(subst((\v+\a)/2,x,\f0)/2)}
+
+
+
+\integer{al=randint(1..3)}
+
+\text{dom1=texmath(f(x) \geq y \geq 0)}
+\text{dom2=texmath( f(x) \leq y \leq 0)}
+\text{dom3=texmath( |f(x)| \geq |y| \geq 0)}
+
+\if{\al=1}{
+  \text{dom1=texmath(f(x) \geq y \geq 0)}
+  \rational{I=\k>0?\I2:\I1}
+  \if{\k>0}{
+  \text{hachure=
+  line \v,0,\b,0,,green
+  line \b,0,\b,\fb,green
+  fill (\v+\b)/2,\fvb,green
+  }
+}{
+  \text{hachure=
+  line \a,\fa,\a,0,green
+  line \a,0,\v,0,green
+  fill (\v+\a)/2,\fva,green
+  }
+}
+}
+
+\if{\al=2}{
+  \text{dom2=texmath( f(x) \leq y \leq 0)}
+  \rational{I=\k>0?-1*\I1:-1*\I2}
+  \if{\k>0}{
+  \text{hachure=
+  line \a,\fa,\a,0,,green
+  line \a,0,\v,0,green
+  fill (\v+\a)/2,\fva,green
+}
+}{
+  \text{hachure=
+  line \v,0,\b,0,green
+  line \b,0,\b,\fb,green
+  fill (\v+\b)/2,\fvb,green
+  }
+}
+}
+
+\if{\al=3}{
+  \text{dom3=texmath( |f(x)| \geq |y| \geq 0)}
+  \rational{I=abs(\I1)+abs(\I2)}
+  \if{\k>0}{
+  \text{hachure=
+  line \a,\fa,\a,0,,green
+  line \a,0,\v,0,green
+  fill (\v+\a)/2,\fva,green
+  line \v,0,\b,0,,green
+  line \b,0,\b,\fb,green
+  fill (\v+\b)/2,\fvb,green
+  }
+}{
+  \text{hachure=
+  line \v,0,\b,0,green
+  line \b,0,\b,\fb,green
+  fill (\v+\b)/2,\fvb,green
+  line \a,\fa,\a,0,,green
+  line \a,0,\v,0,green
+  fill (\v+\a)/2,\fva,green
+  }
+}
+}
+
+\rational{p=evalue(\f0,x=\s)}
+\integer{ym=-15}
+\integer{yM=15}
+\integer{ny=\yM-\ym+1}
+\text{dessin=
+xrange=-6,10
+yrange \ym,\yM
+linewidth 2
+plot green,\f0
+\hachure
+linewidth 1
+parallel -6,\ym,-6,\yM,1,0,17,blue
+parallel -6,\ym,10,\ym,0,1,\ny,blue
+linewidth 2
+line -6,0,10,0,red
+line 0,\ym,0,\yM,red
+arrow 0,0,1,0,10,red
+arrow 0,0,0,1,10,red
+}
+
+\statement{<div class="wims_columns">
+ <div class="medium_size img_col">
+ \draw{300,300}{
+\dessin}</div>
+ <div class="medium_size text_col">
+
+  On considère une fonction polynôme de degré 2, \(f), définie sur \(\,\RR\) par \(f(x)=\tf0),
+  dont la représentation graphique \(C_f)
+ est donnée ci-contre.<br>
+ La partie du plan, notée \(D), coloriée en vert dans le graphique, est
+ définie par les équations \(\b \geq x \geq \a) et
+ <ul><li>\embed{reply 1,1}</li><li>\embed{reply 1,2}</li><li>\embed{reply 1,3}.</li>
+ </ul>
+<label for="reply2">L'aire de \(D), exprimée en unités d'aire, est égale&nbsp;:</label>
+\embed{reply 2,15}.
+</div>
+</div>
+}
+
+\answer{Equations}{\al;\(\dom1),\(\dom2),\(\dom3)}{type=checkbox}
+\answer{Aire}{\I}{type=rational}

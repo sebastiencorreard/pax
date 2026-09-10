@@ -1,0 +1,239 @@
+!set title=Programme de calcul
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=addition,subtraction,relative_number
+computeanswer=no
+precision=10000
+oefcss=<style> .macss{background-color: #FAFAD2;} .underline {text-decoration-line: underline;} </style>
+
+ansorder=r
+varcnt=45
+prevarcnt=34
+postvarcnt=10
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -30, -1
+
+tmp1=!randint 1, 30
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val6=$[rint($(tmp2))]
+tmp0=!randint -30, -1
+
+tmp1=!randint 1, 30
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val7=$[rint($(tmp2))]
+val8=$[rint(abs($val7))]
+!if $val7<0 
+val9=-
+val10=+
+!else
+val9=+
+val10=-
+!endif
+val11=$[rint()]
+tmp0=!randint 2
+
+val12=$[rint($(tmp0))]
+val13=$[rint(-$val7)]
+!if $val7<0 
+val14=$val7
+!else
+val14=\plus$val7
+!endif
+!if $val6<0 
+val15=$val6
+!else
+val15=\plus$val6
+!endif
+!if $val12=1 
+val16=$[rint($val6+$val7)]
+val17=<ul><li>On choisit un nombre.</li><li>On lui ajoute \($val14\)</li><li>On trouve <span class="nowrap">\($val16\).</span></li></ul>
+val18=+($val9$val8)
+val19=-($val9$val8)
+!readproc slib/graph/graphviz [0,$val18;0,0],[?,$val16],edge 
+tmp0=$slib_out
+val20=$(tmp0)
+!readproc slib/graph/graphviz [0,$val18;$val19,0],[?,$val16],edge 
+tmp0=$slib_out
+val21=$(tmp0)
+val22=-
+!if $val16<0 
+val23=$val16
+!else
+val23=\plus$val16
+!endif
+val24=\(?=($val23)\plus($val10$val8)\)<p>\(?=$val6\)</p>
+!else
+val16=$[rint($val6-$val7)]
+val17=<ul><li>On choisit un nombre.</li><li>On soustrait \($val14\)</li><li>On trouve <span class="nowrap">\($val16\).</span></li></ul>
+val18=-($val9$val8)
+val19=+($val9$val8)
+!readproc slib/graph/graphviz [0,$val18;0,0],[?,$val16],edge 
+tmp0=$slib_out
+val20=$(tmp0)
+!readproc slib/graph/graphviz [0,$val18;$val19,0],[?,$val16],edge 
+tmp0=$slib_out
+val21=$(tmp0)
+val22=+
+val24=\(?=$val6\)
+!endif
+!if $val16<0 
+val23=$val16
+!else
+val23=\plus$val16
+!endif
+replytype1=numexp
+replyname1=
+replygood1=$val6
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On considère le programme de calcul suivant&nbsp;:	$val17	<label for="reply1">Quel nombre a été choisi au départ ?</label>  
+!read oef/embed.phtml r1,5 
+$()
+$()
+!exit
+
+:hint
+$()Cela revient à trouver le nombre inconnu dans l'égalité	
+!if $val12=1 
+$()<span class="nowrap">
+!insmath (&#46;&#46;?&#46;&#46;)+($val14)=$val16
+$().</span> 
+!else
+$()	               <span class="nowrap">
+!insmath (&#46;&#46;?&#46;&#46;)-($val14)=$val16
+$().</span> 
+!endif
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Le nombre choisi au départ est 
+!insmath $val15
+$() car	<p>	
+!if $val12=1 
+$()<ul><li>On choisit un nombre&nbsp;:
+!insmath $val15
+$()</li>	                  <li>On ajoute 
+!insmath $val14
+$()&nbsp;:
+!insmath ($val15)+($val14)=$val16
+$()</li>	                  <li>On obtient bien <span class="nowrap">
+!insmath $val16
+$().</span></li></ul> 
+!endif
+$()	
+!if $val12=2 
+$()<ul><li>On choisit un nombre&nbsp;:
+!insmath $val15
+$()</li>	              
+!if $val7>0 
+$()<li>On soustrait 
+!insmath $val14
+$()&nbsp;:
+!insmath ($val15)-($val14)=($val15)+(\minus$val7)=$val16
+$()	                          <li>On obtient bien <span class="nowrap">
+!insmath $val16
+$().</span></li></ul> 
+!endif
+$()	              
+!if $val7<0 
+$()<li>On soustrait 
+!insmath $val14
+$()&nbsp;:
+!insmath ($val15)-($val14)=($val15)+(\plus$val13)=$val16
+$()	                          <li>On obtient bien <span class="nowrap">
+!insmath $val16
+$().</span></li></ul> 
+!endif
+$()	             
+!endif
+$()	Pour aller plus loin, on peut essayer de trouver le nombre manquant par un calcul en observant le schéma suivant&nbsp;:<br>	<div class="wimscenter">$val20</div>	et trouver le nombre de départ en inversant le chemin&nbsp;:	<div class="wimscenter">$val21</div>	donc en effectuant le calcul&nbsp;:
+!insmath ?=($val23)$val22($val9$val8)
+$()	<p>$val24</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val11=$[rint($m_reply1)]
+val25=$[rint($val11+$val7)]
+val26=$[rint($val11-$val7)]
+!if $val11>0 
+val27=\plus $val11
+!else
+val27=\minus $val11
+!endif
+!if $val12=1 
+val28=<ul><li>Vous avez choisi&nbsp;: \($val11\)</li>	                  <li>Vous avez ajouté \($val14\)&nbsp;: \(($val27)+($val14)=$val25\)</li>	                  <li><span style="color:red">Vous n'avez pas obtenu <span class="nowrap">\($val16\).</span></span></li></ul>
+!endif
+!if $val12=2 
+val29=<ul><li>Vous avez choisi&nbsp;: \($val11\)</li>
+!if $val7>0 
+val30=<li>Vous avez soustrait \($val14\)&nbsp;: \(($val27)-($val14)=($val27)+(\minus$val7)=$val26\)	                          <li><span style="color:red">Vous n'avez pas obtenu <span class="nowrap">\($val16\).</span></span></li></ul>
+!endif
+!if $val7<0 
+val30=<li>Vous avez soustrait \($val14\)&nbsp;: \(($val27)-($val14)=($val27)+(\plus$val13)=$val26\)	                          <li><span style="color:red">Vous n'avez pas obtenu <span class="nowrap">\($val16\).</span></span></li></ul>
+!endif
+val28=$val29	              $val30
+!endif
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1=0
+ <div class='oef_feedbacks'><div class="macss">$val28</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,13,14,15,16,17,20,21,22,23,24
+embedcnt=1

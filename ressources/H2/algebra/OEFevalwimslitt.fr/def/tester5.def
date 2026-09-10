@@ -1,0 +1,113 @@
+!set title=Tester une égalité 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+
+ansorder=c
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Oui,Non
+val7=L'égalité suivante est-elle vraie pour
+tmp0=!shuffle 2,3,4,5,6,7,8,9
+
+val8=$(tmp0)
+tmp=!nonempty items x,y,a,b
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp=!nonempty items A,B,C,D,E,F,G
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0))]
+val12=$[rint(($(val8[3])-1)*$(val8[1])-$(val8[2]))]
+
+!ifval $val11=2
+val12=$[rint($val12+$(val8[4]))]
+!endif
+tmp=!translate ";': to $     $ in $val9+($val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=$(tmp0)
+val13=$(val8[3])$val9-$(val8[2])=$val12
+val14=$[rint($(val8[1]))]
+val11=$(val6[$val11])
+choicename1=Réponse
+choicegood1=$val11
+choicebad1=$val6
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst \begin{statement} $val7 \($val9 = $val14\) ? \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7 
+!insmath $val9 = $val14
+$() ?	<div class="wimscenter">
+!insmath $val13 
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()$m_begin{statement} $val7 
+!insmath $val9 = $val14
+$() ? $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,13,14
+embedcnt=0

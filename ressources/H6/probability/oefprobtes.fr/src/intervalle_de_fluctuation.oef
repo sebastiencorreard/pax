@@ -1,0 +1,120 @@
+\title{Intervalle de fluctuation asymptotique : urne}
+\language{fr}
+\author{Khalid, EL HMOUZI}
+\email{khalidhmouzi@gmail.com}
+\format{html}
+\computeanswer{no}
+\precision{100000}
+
+
+\real{p=randint(1..100)/100}
+\integer{nb=randint(10..500)}
+\text{couleurs=bleues,rouges,vertes,blanches,noires}
+\text{couleur=bleue,rouge,verte,blanche,noire}
+
+\integer{i=randint(1..5)}
+\integer{j=randint(1..5)}
+\while{\i=\j}{\integer{j=randint(1..5)}}
+\text{couleur1=\couleurs[\i]}
+\text{couleur2=\couleurs[\j]}
+
+\integer{nburne=randitem(5,10,20,25,50,100)}
+\integer{nbcouleur1=randint(1..\nburne-1)}
+\integer{nbcouleur2=\nburne-\nbcouleur1}
+
+\text{pop=ensemble des boules de l'urne, ensemble des boules \couleurs[\i],
+ensemble des boules \couleurs[\j]}
+
+
+\text{enonce1=Une urne contient une proportion p=\p de boules \couleur1. On extrait \nb
+boules avec remise de cette urne. On note F la fréquence de boules \couleur1 dans
+l'échantillon.
+}
+
+\text{enonce2=Une urne contient \nbcouleur1 boules \couleur1
+et \nbcouleur2 boules \couleur2 . On extrait \nb
+boules avec remise de cette urne. On note F
+la fréquence de boules \couleur1 dans l'échantillon.
+}
+
+\text{hyp=\nb>=30 and \nb*\p>=5 and \nb*(1-\p)>=5?1:2}
+
+\text{enonce=\enonce1,\enonce2}
+\integer{k=randint(1..2)}
+\if{\k=2}{\real{p=\nbcouleur1/\nburne}}
+
+\real{b1=\p-1.96*sqrt(\p*(1-\p)/\nb)}
+\real{b2=\p+1.96*sqrt(\p*(1-\p)/\nb)}
+
+\real{borne1=floor(\b1*100)/100}\if{\b1<0}{\real{b1=0}}
+\real{difference=floor(\b2)-\b2}
+\if{\difference!=0}{\real{borne2=floor(\b2*100+1)/100}}{\real{borne2=floor(\b2*100)/100}}
+
+
+\text{etape=r1,r2,r3,r4,r5}
+\nextstep{\etape}
+
+\real{np=\nb*\p}
+\real{nq=\nb*(1-\p)}
+
+
+\statement{
+<div class="enonce">
+\enonce[\k]
+</div>
+
+\if{\step=1}{
+<div class="question">
+Compléter.
+
+<div class="reponse">
+
+<table class="resumestat">
+<tr><th>Population étudiée :</th><td> \embed{r1}</td></tr>
+<tr><th>Caractère étudié :
+</th><td> être de couleur \embed{r2}<br>
+Proportion du caractère dans la population totale : p=\embed{r3,5}</td></tr>
+<tr><th>Taille de l'échantillon :</th><td> n=\embed{r4,5}</td></tr>
+</table>
+
+Les conditions \(n \ge 30,\ np\ge 5) et \(n(1-p)\ge 5) sont-elles vérifiées ? \embed{r5}
+</div>
+</div>
+}
+
+\if{\step>=2 and \hyp=1}{
+<div class="question">
+\if{\sc_reply1!=1}{<p class="non">Population étudiée : \pop[1] </p>}
+\if{\sc_reply2!=1}{<p class="non">Caractère étudié : "être de couleur \couleur[\i]"
+\if{\sc_reply3!=1}{p=\p }</p>}
+\if{\sc_reply4!=1}{<p class="non">taille de l'échantillon : n=\nb </p>}
+\if{\sc_reply5!=1}{<p class="non">\if{\hyp=1}{Les conditions sont vérifiées}{Les conditions
+ne sont pas vérifiées.} </p>}
+
+
+Déterminer l'intervalle de fluctuation asymptotique au seuil 0,95 de F
+en arrondissant à \(10^{-2}).
+
+<div class="reponse">
+\(I_{\nb})=[\embed{r6,5},\embed{r7,5}]
+</div>
+</div>
+
+}
+
+}
+
+\answer{population étudiée}{1;\pop}{type=menu}{option=nonstop}
+\answer{couleur}{1;\couleur[\i],\couleur[\j]}{type=menu}{option=nonstop}
+\answer{proportion}{\p}{type=numeric}{option=nonstop}
+\answer{taille}{\nb}{type=numeric}{option=nonstop}
+\answer{condtions vérifiées ?}{\hyp;oui,non}{type=checkbox}{option=nonstop}
+\if{\step=2 and \hyp=1}{\text{etape=r6,r7}}
+\if{\step=2 and \hyp=2}{\text{etape=}}
+
+\answer{borne 1}{\borne1}{type=numeric}
+\answer{borne 2}{\borne2}{type=numeric}
+
+\feedback{\hyp=1 and \b1<\reply6}{Il faut arrondir la première borne par défaut.}
+
+\feedback{\hyp=1 and \b2>\reply7}{Il faut arrondir la deuxième borne par excès.}

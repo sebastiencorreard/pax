@@ -1,0 +1,106 @@
+target=damier
+\author{Lionel Verbecq}
+\email{Lionel.verbecq@ac-versailles.fr}
+\language{fr}
+\range{-5..5}
+\format{html}
+
+\title{Trouver un ratio à partir d'un damier}
+
+\css{<style>.damier {width:10px;height:10px;}
+.col1 {background-color:#FFFFFF}
+.col2 {background-color:#A020F0}
+.disp_columns{
+  display: flex;
+  flex-wrap: wrap;}
+.macss{background-color: #FAFAD2;}
+</style>}
+
+dimension du damier
+\integer{x=random(2..6)}
+\integer{y=random(2..6)}
+fraction
+\integer{denom=\x*\y}
+\integer{num=random(1..\denom-1)}
+liste des cases colorées
+\text{liste=1:1}
+\for {l=1 to \y}{
+   \for {c=1 to \x}{
+       \text{liste = \liste,\l:\c}
+   }
+}
+\text{liste = item(2..\x*\y+1,\liste)}
+\text{liste = shuffle(\liste) }
+\text{choix=item(1..\num,\liste)}
+construction du damier
+\text{tableau=<table class="wimsborder">}
+\for {i=1 to \y}{
+  \text{tableau=\tableau <tr>}
+  \for {j=1 to \x}{
+     \if {\i:\j isitemof \choix}{\text{tableau=\tableau <td class="damier col2"></td>}}
+     {\text{tableau=\tableau <td class="damier col1"></td>}}
+  }
+\text{tableau=\tableau </tr>}
+}
+\text{tableau=\tableau </table>}
+\text{name_condition=Est-ce la bonne réponse&nbsp;?}
+\text{name_solution=La réponse est}
+\integer{color=\num}
+\integer{nocolor=\denom-\num}
+simplifier la fraction \num et \denom pour
+\rational{frac=\num/(\denom-\num)}
+\rational{invfrac=(\denom-\num)/\num}
+\integer{pgcd=gcd(\color,\nocolor)}
+\integer{numsim=\color/\pgcd}
+\integer{denomsim=\nocolor/\pgcd}
+
+
+\statement{Compléter la phrase après avoir observé le damier.
+<div class="disp_columns">
+  <div class="medium_size">
+  </div>
+  <div class="medium_size">
+   <div class="wimscenter">\tableau</div>
+  </div>
+</div>
+
+\if{\color>1 and \nocolor>1}{<label for="reply1">Les cases colorées</label> et <label for="reply2">les cases non colorées sont dans le ratio </label>}
+\if{\color>1 and \nocolor=1}{<label for="reply1">Les cases colorées</label> et <label for="reply2">la case non colorée sont dans le ratio </label>}
+\if{\color=1 and \nocolor>1}{<label for="reply1">La case colorée</label> et <label for="reply2">les  cases non colorées sont dans le ratio </label>}
+<span class="nowrap">\embed{rep1,3}<strong>:</strong>\embed{rep2,3}.</span>
+<br class="spacer">
+<div class=" wims_instruction">On pensera à donner le ratio sous la forme la plus simple possible.</div>}
+
+analyse reponse eleve
+\answer{ }{\grep1 }{type= numexp}{}
+\answer{ }{\grep2 }{type= numexp}{}
+
+\integer{pgcd2=gcd(\grep1,\grep2)}
+\condition{Avez-vous le bon ratio&nbsp;?}{\grep1/\grep2=\frac}{weight=3}
+
+\condition{Avez-vous donné le bon ratio sous forme simplifiée (quand c'est possible)&nbsp;?}{\grep1/\grep2=\frac and \pgcd2=1}{weight=1}
+
+\feedback{\grep1/\grep2=\frac and \pgcd2<>1}{<div class="macss">Attention,votre réponse est partiellement correcte. Pensez à simplifier le ratio.</div>}
+
+\feedback{\grep1/\grep2=\invfrac and \pgcd2<>1 and \color<>\nocolor}{<div class="macss">Attention, vous avez inversé, dans l'écriture du ratio, l'ordre donné dans l'énoncé.
+Le premier nombre du ratio correspond au nombre de cases colorées et le second nombre du ratio correspond au nombre de cases non colorées.
+Pensez également à simplifier le ratio.</div>}
+
+\feedback{\grep1=\denomsim and \grep2=\numsim and \color<>\nocolor}{<div class="macss">Attention, vous avez inversé, dans l'écriture du ratio, l'ordre donné dans l'énoncé.
+Le premier nombre du ratio correspond au nombre de cases colorées et le deuxième nombre correspond au nombre de cases non colorées.</div>}
+
+\feedback{\grep1/\grep2<>\frac and \grep1/\grep2<>\invfrac}{ <div class="macss">Avez-vous correctement compté le nombre de cases colorées et le nombre de cases non colorées&nbsp;?</div>}
+
+\solution{Il y a \color \if{\color>1}{cases colorées}{case colorée} et \nocolor \if{\nocolor>1}{cases non colorées.}{case non colorée.}<p>
+\if{\color>1 and \nocolor>1}{Les cases colorées et les cases non colorées sont dans le ratio}
+\if{\color>1 and \nocolor=1}{Les cases colorées et la case non colorée sont dans le ratio}
+\if{\color=1 and \nocolor>1}{La case colorée et les cases non colorées sont dans le ratio}
+<span class="nowrap">\(\color : \nocolor\).</span></p>
+<p> On regarde ensuite si on peut simplifier ce ratio.</p>
+\if{\pgcd=1}{ On ne peut pas simplifier ce ratio.}{On peut simplifier ce ratio par \pgcd car \color et \nocolor sont divisibles par \pgcd.
+<p>\(\color \div \pgcd = \numsim\) et \(\nocolor \div \pgcd = \denomsim\)}</p>
+<p>On conclut :
+\if{\color>1 and \nocolor>1}{Les cases colorées et les cases non colorées}
+\if{\color>1 and \nocolor=1}{Les cases colorées et la case non colorée}
+\if{\color=1 and \nocolor>1}{La case colorée et les cases non colorées}
+sont dans le ratio <span class="nowrap">\(\numsim : \denomsim\).</span></p>}
