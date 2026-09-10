@@ -35,18 +35,35 @@ def _parse_index(index_path: str) -> dict:
 
 
 def _module_from_path(oef_path: str) -> str:
-    """Extract the module directory name from an oef_path.
+    """Identifiant d'un module : son chemin sous `ressources/`, au format des
+    identifiants d'exercice.
 
-    e.g. /ressources/H4/algebra/OEFevalwimsequ.fr/src/foo.oef
-         -> OEFevalwimsequ.fr
+        /ressources/H4/algebra/OEFevalwimsequ.fr/src/foo.oef
+        → H4~algebra~OEFevalwimsequ.fr
+
+    Le nom seul du dossier ne suffit pas : 21 modules en partagent un avec un
+    autre niveau ou un autre domaine (`OEFevalwimsstat.fr` en H3, H4 et H5,
+    `oeffctref.fr` dans deux domaines de H4). Le catalogue, qui les indexait
+    par ce nom, les fondait en un seul module, rangé au niveau du premier
+    rencontré — H3 perdait ainsi 149 exercices au profit de H1.
     """
-    parts = oef_path.replace("\\", "/").split("/")
-    # structure: .../level/domain/module/src/exercise.oef
-    return parts[-3] if len(parts) >= 4 else ""
+    dossier = _module_dir_from_path(oef_path).replace("\\", "/")
+    return dossier.split("/ressources/", 1)[-1].strip("/").replace("/", "~")
 
 
 def _module_dir_from_path(oef_path: str) -> str:
-    """Return the module directory path (two levels above the .oef file)."""
+    """Le dossier du module : les trois composants qui suivent `ressources/`.
+
+    Remonter de deux crans depuis le fichier ne vaut que pour un exercice rangé
+    dans `src/`. `oefpression/mathml` est posé à la racine de son module, et
+    deux crans menaient au **domaine** : son `INDEX` était cherché au mauvais
+    endroit, et son module s'appelait `physics`.
+    """
+    parts = oef_path.replace("\\", "/").split("/")
+    if "ressources" in parts:
+        i = parts.index("ressources")
+        if len(parts) > i + 4:
+            return "/".join(parts[: i + 4])
     return os.path.dirname(os.path.dirname(oef_path))
 
 

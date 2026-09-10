@@ -56,7 +56,11 @@ test.describe('exercise list', () => {
     expect(attendu).toBeLessThan(avant)
 
     // Et tout module affiché porte ce niveau.
-    const code = ((libelle || '').split('\u00b7')[0] ?? '').trim()
+    // Le code se lit en t\u00eate du libell\u00e9 : \u00ab H4 \u00b7 2nde (2103) \u00bb pour un niveau
+    // traduit, mais \u00ab H1 (1713) \u00bb pour un niveau qui ne l'est pas \u2014 couper au
+    // \u00ab \u00b7 \u00bb y laissait l'effectif dans le code.
+    const code = (libelle || '').match(/^\s*([A-Z]\d+)/)?.[1] ?? ''
+    expect(code).not.toBe('')
     const modules = page.getByRole('button').filter({ has: page.locator('.font-medium') })
     for (const bouton of await modules.all()) {
       expect(await bouton.textContent()).toContain(code)

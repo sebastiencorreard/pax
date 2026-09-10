@@ -265,6 +265,25 @@ class TestCatalogue:
         )
         assert r.status_code == 200
         assert len(r.json()) == mod["exercise_count"]
+        # Un module ne sert que ses propres exercices. Indexé par le seul nom
+        # de son dossier, le catalogue fondait les homonymes de niveaux ou de
+        # domaines différents (`OEFevalwimsstat.fr` en H3, H4 et H5).
+        assert all(e["id"].startswith(mod["module"] + "~") for e in r.json())
+
+    def test_les_modules_homonymes_restent_distincts(self, client, student_headers):
+        body = client.get(
+            "/api/exercises/modules?lang=fr", headers=student_headers
+        ).json()
+        par_nom: dict[str, set[str]] = {}
+        for m in body["modules"]:
+            par_nom.setdefault(m["module"].split("~")[-1], set()).add(m["level"])
+        homonymes = {nom: niv for nom, niv in par_nom.items() if len(niv) > 1}
+        if not homonymes:
+            pytest.skip("le corpus importé n'a pas deux modules homonymes")
+        # Chaque homonyme garde son niveau : aucun n'a été rangé sous l'autre.
+        for m in body["modules"]:
+            niveau_du_chemin = m["module"].split("~")[0]
+            assert m["level"] == niveau_du_chemin, m["module"]
 
     def test_un_module_inconnu_est_404(self, client, student_headers):
         r = client.get(
