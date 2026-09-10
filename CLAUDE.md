@@ -106,11 +106,11 @@ npm run test:e2e   # playwright
 sans linter (`npm run lint` était documenté mais n'existait pas), et l'arriéré
 est réel :
 
-| commande | état au 2026-09-02 |
+| commande | état au 2026-09-10 |
 |---|---|
-| `npm run lint` | 564 problèmes — 55 erreurs, 509 avertissements, dont **477 corrigeables par `lint:fix`** |
+| `npm run lint` | 559 problèmes — 55 erreurs, 504 avertissements, dont **472 corrigeables par `lint:fix`** |
 | `npm run typecheck` | 69 erreurs, concentrées sur `DrawAnswer.vue` (28) et `utils/figureColors.ts` (13) |
-| `npm run test:e2e` | **36 passent, 2 ignorés, 0 échec** (38 tests, ~1 min) |
+| `npm run test:e2e` | **37 passent, 2 ignorés, 0 échec** (39 tests, ~1 min) |
 
 Résorber l'arriéré est un chantier à part : `lint:fix` touche des centaines de
 fichiers pour un gain cosmétique, et mérite sa propre relecture. Ce qui compte

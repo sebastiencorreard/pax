@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -8,6 +8,7 @@ from db import get_db
 from models.exercise import Exercise
 from models.user import User
 from api.deps import get_current_user
+from api.reglages import resoudre_reglages
 from core.oef.engine import load_and_render, find_def_path
 from core.chrono import module_scoredelay, get_or_create_started_at
 
@@ -50,6 +51,11 @@ class RenderOut(BaseModel):
     type_meta: dict = {}
     css: str | None = None
     chrono: ChronoOut | None = None
+    # Le niveau de sévérité sous lequel l'exercice a été rendu.
+    qcmlevel: int | None = None
+    # `sheet_item` / `qcmlevel` tels que demandés : la correction doit les
+    # recevoir à l'identique pour rendre l'exercice sous les mêmes réglages.
+    reglages: dict[str, int] = {}
 
 
 @router.get("/{exercise_id}", response_model=RenderOut)
@@ -58,6 +64,8 @@ async def render_exercise(
     seed: int | None = None,
     m_step: int | None = None,
     replies: str | None = None,
+    sheet_item: int | None = None,
+    qcmlevel: int | None = Query(None, ge=1, le=9),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -65,6 +73,7 @@ async def render_exercise(
     exercise = result.scalar_one_or_none()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
+    reg = await resoudre_reglages(db, exercise_id, current_user, sheet_item, qcmlevel)
 
     # `replies` (JSON {input_name: value}) carries earlier course steps' answers
     # so a step statement can echo their verdict (`$m_sc_reply{n}`).
@@ -79,7 +88,10 @@ async def render_exercise(
             prev_replies = None
 
     try:
-        rendered = load_and_render(exercise.oef_path, seed=seed, m_step=m_step, prev_replies=prev_replies)
+        rendered = load_and_render(
+            exercise.oef_path, seed=seed, m_step=m_step, prev_replies=prev_replies,
+            reglages=reg.moteur or None,
+        )
     except FileNotFoundError:
         raise HTTPException(
             status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}"
@@ -125,7 +137,8 @@ async def render_exercise(
             for a in rendered.answers
         ],
         # `givehint = 1,1,1,1,1,0,0,0,0` : au delà du niveau 5, WIMS ne
-        # donne plus l'indication. Au niveau 1 — le défaut — elle reste.
+        # donne plus l'indication. Au niveau 3 — celui de PAX sans feuille —
+        # elle reste.
         hint_html=(
             rendered.hint_html
             if (rendered.severite or {}).get("givehint", 1) >= 1
@@ -140,6 +153,8 @@ async def render_exercise(
         type_meta=rendered.type_meta,
         css=rendered.css,
         chrono=chrono_out,
+        qcmlevel=int((rendered.severite or {}).get("qcmlevel", 0)) or None,
+        reglages=reg.demande,
     )
 
 

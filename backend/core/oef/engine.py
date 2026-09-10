@@ -75,6 +75,7 @@ def load_and_render(
     seed: int | None = None,
     m_step: int | None = None,
     prev_replies: dict[str, str] | None = None,
+    reglages: dict[str, str] | None = None,
 ) -> ExerciseRender:
     """
     Point d'entrée principal.
@@ -84,6 +85,10 @@ def load_and_render(
 
     ``prev_replies`` : réponses des étapes précédentes d'un exercice course,
     pour alimenter ``$m_reply{n}``/``$m_sc_reply{n}`` du verdict par étape.
+
+    ``reglages`` : ce qu'une feuille a choisi pour l'exercice — ``qcmlevel``,
+    ``confparm<n>`` (cf. ``api/reglages.py``). Ils entrent dans la clé du
+    cache : un même tirage ne se rend pas pareil sous deux niveaux.
     """
     if not os.path.exists(oef_path):
         raise FileNotFoundError(f"Fichier OEF introuvable : {oef_path}")
@@ -97,7 +102,7 @@ def load_and_render(
         seed = random.randint(0, 2**31)
 
     from . import render_cache
-    key = render_cache.cache_key(effective_path, seed, m_step, prev_replies)
+    key = render_cache.cache_key(effective_path, seed, m_step, prev_replies, reglages)
     cached = render_cache.get(key)
     if cached is not None:
         return cached
@@ -105,7 +110,9 @@ def load_and_render(
     if def_path:
         from .def_engine import load_and_render as _def_render
 
-        rendered = _def_render(def_path, seed=seed, m_step=m_step, prev_replies=prev_replies)
+        rendered = _def_render(
+            def_path, seed=seed, m_step=m_step, prev_replies=prev_replies, reglages=reglages
+        )
         render_cache.set(key, rendered)
         return rendered
 

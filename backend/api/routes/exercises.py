@@ -379,6 +379,23 @@ async def get_exercise(
     return payload
 
 
+@router.get("/{exercise_id}/confparm")
+async def get_exercise_confparm(
+    exercise_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Les paramètres que le module de l'exercice laisse régler sur une feuille
+    — libellé, valeur d'usine et choix proposés (cf. `confparm_du_module`)."""
+    from core.oef.def_engine import confparm_du_module
+
+    result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
+    exercise = result.scalar_one_or_none()
+    if not exercise:
+        raise HTTPException(status_code=404, detail="Exercice introuvable")
+    return confparm_du_module(find_def_path(exercise.oef_path))
+
+
 @router.get("/{exercise_id}/source")
 async def get_exercise_source(
     exercise_id: str,

@@ -359,7 +359,9 @@ async function submit() {
       body: { 
         seed: props.rendered.seed, 
         replies: replyList,
-        m_step: currentStep
+        m_step: currentStep,
+        // Corriger sous les réglages du rendu (niveau de sévérité, feuille).
+        ...(props.rendered.reglages ?? {}),
       },
     })
     

@@ -27,6 +27,14 @@
              ? $t('exercise.step_progress', { current: rendered.current_step, total: rendered.total_steps })
              : $t('exercise.step_only', { current: rendered.current_step }) }}
         </span>
+        <!-- Rendu sous les réglages d'une feuille : l'enseignant qui essaie
+             son exercice doit savoir sous quel niveau il le voit. -->
+        <span
+          v-if="rendered?.qcmlevel && Object.keys(rendered.reglages ?? {}).length"
+          class="text-sm px-2 py-1 rounded"
+          style="background:var(--color-bg);color:var(--color-text-muted)">
+          {{ $t('exercise.severity_level', { level: rendered.qcmlevel }) }}
+        </span>
       </div>
       <div class="flex items-center gap-2">
         <span v-if="debugOef" class="text-xs px-2 py-1 rounded"
@@ -118,6 +126,7 @@ const props = defineProps<{
 const emit = defineEmits<{ rendered: [{ seed: number; exerciseId: string; currentStep?: number | null }] }>()
 
 const { apiFetch } = useApi()
+const route = useRoute()
 const { renderMath } = useKatex()
 const { debugMode: debugOef } = useDebugMode()
 
@@ -153,6 +162,13 @@ async function load(seed?: number, m_step?: number, replies?: Record<string, str
     // Course steps carry the earlier steps' replies so the step statement can
     // echo their verdict ($m_sc_reply{n}).
     if (replies && Object.keys(replies).length) params.append('replies', JSON.stringify(replies))
+    // Réglages d'une feuille (`?sheet_item=`) ou niveau d'essai (`?qcmlevel=`,
+    // réservé aux enseignants) : le serveur les résout et les renvoie dans
+    // `reglages`, que la correction lui retourne tels quels.
+    for (const cle of ['sheet_item', 'qcmlevel']) {
+      const valeur = route.query[cle]
+      if (typeof valeur === 'string' && valeur) params.append(cle, valeur)
+    }
     const url = `/api/render/${props.exerciseId}${params.toString() ? '?' + params.toString() : ''}`
     
     rendered.value = await apiFetch<Rendered>(url)

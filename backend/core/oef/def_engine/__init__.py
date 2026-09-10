@@ -486,6 +486,106 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     return tuple(trouves.items())
 
 
+_FORMULAIRE_CONFPARM = re.compile(
+    r"^\s*!form(?:select|radio)\s+(confparm\d+)\s+list\s+(.*?)"
+    r"(?:\s+prompt\s+(.*?))?\s*$",
+    re.M,
+)
+_SAISIE_CONFPARM = re.compile(r'<input\b[^>]*\bname="(confparm\d+)"', re.I)
+_ENTETE_HTML = re.compile(r"<th\b[^>]*>(.*?)</th>", re.I | re.S)
+# `$wims_name_yes` / `$wims_name_no`, que plusieurs modules mettent dans leurs
+# invites (`oeftrigo2.fr`, `oefpenney.it`…) : les seules variables WIMS qu'on
+# sache résoudre hors d'une session.
+_OUI_NON = {
+    "fr": ("Oui", "Non"), "nl": ("Ja", "Nee"), "en": ("Yes", "No"),
+    "it": ("Sì", "No"), "ca": ("Sí", "No"), "es": ("Sí", "No"), "de": ("Ja", "Nein"),
+}
+
+
+def confparm_du_module(def_path: str | None) -> list[dict]:
+    """Les `confparm` qu'un module laisse régler, et ce qu'il propose.
+
+    `_module_confparm_defaults` ne lit que la valeur d'usine ; ceci lit aussi
+    le formulaire qui la suit dans l'`introhook.phtml`, pour qu'un écran de
+    réglage offre ce que WIMS offre :
+
+        <th>Affichage d'une figure</th><td>
+        !formselect confparm1 list 0,1 prompt Non,Oui
+
+    Un `confparm` réglé par un simple `<input type="text">` — `numeration.fr`
+    règle ainsi ses bases — sort avec `choix` vide : saisie libre. Un
+    `confparm` qui a une valeur mais aucun formulaire (`oefcosinus.fr`,
+    `confparm2`) n'est pas proposé : WIMS ne le laisse pas changer non plus.
+
+    Le libellé est le dernier `<th>` qui précède le formulaire depuis le
+    précédent ; libellés et invites sont ceux du module, dans sa langue. Faute
+    de `prompt`, ou si leur nombre ne correspond pas, la valeur tient lieu
+    d'invite.
+
+    Ce qu'une session WIMS seule saurait calculer ne se devine pas : un libellé
+    fait d'une variable (`$name_conf`) sort vide ; une invite qui en garde une,
+    ou qui n'est qu'une image, cède la place à sa valeur ; et une liste
+    elle-même calculée (`list $menu_list`, `oefpenney.it`) devient une saisie
+    libre plutôt qu'un menu à une option fausse.
+    """
+    if not def_path:
+        return []
+    module = os.path.dirname(os.path.dirname(def_path))
+    oui, non = _OUI_NON.get(module.rsplit(".", 1)[-1], _OUI_NON["en"])
+
+    def _texte(brut: str) -> str:
+        brut = brut.replace("$wims_name_yes", oui).replace("$wims_name_no", non)
+        return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", brut)).strip()
+
+    hook = os.path.join(module, "introhook.phtml")
+    try:
+        with open(hook, "rb") as f:
+            brut = f.read()
+    except OSError:
+        return []
+    try:
+        texte = brut.decode("utf-8")
+    except UnicodeDecodeError:
+        texte = brut.decode("latin-1")
+    defauts = dict(_module_confparm_defaults(def_path))
+
+    formulaires = sorted(
+        [(m.start(), m.group(1), m.group(2), m.group(3))
+         for m in _FORMULAIRE_CONFPARM.finditer(texte)]
+        + [(m.start(), m.group(1), None, None)
+           for m in _SAISIE_CONFPARM.finditer(texte)]
+    )
+    out: list[dict] = []
+    vus: set[str] = set()
+    debut = 0
+    for pos, nom, liste, invites in formulaires:
+        entetes = list(_ENTETE_HTML.finditer(texte, debut, pos))
+        debut = pos
+        if nom in vus:
+            continue
+        vus.add(nom)
+        libelle = _texte(entetes[-1].group(1)) if entetes else ""
+        if "$" in libelle:
+            libelle = ""
+        choix: list[dict] = []
+        if liste is not None and "$" not in liste:
+            valeurs = [v.strip() for v in liste.split(",")]
+            noms = [_texte(p) for p in invites.split(",")] if invites else []
+            if len(noms) != len(valeurs):
+                noms = valeurs
+            choix = [
+                {"valeur": v, "libelle": n if n and "$" not in n else v}
+                for v, n in zip(valeurs, noms)
+            ]
+        out.append({
+            "nom": nom,
+            "libelle": libelle,
+            "defaut": defauts.get(nom, ""),
+            "choix": choix,
+        })
+    return out
+
+
 def _position_du_mot(botte: str, mot: str) -> int:
     """`wordchr` : index de la première occurrence de `mot` **en tant que mot**.
 
@@ -666,18 +766,26 @@ def load_and_render(
     seed: int | None = None,
     m_step: int | None = None,
     prev_replies: dict[str, str] | None = None,
+    reglages: dict[str, str] | None = None,
 ) -> ExerciseRender:
     """Parse (cached) and evaluate a .def file, returning an ExerciseRender.
 
     ``prev_replies`` ({input_name: value}) are the answers submitted on earlier
     course steps; they populate `$m_reply{n}`/`$m_sc_reply{n}` for the step
     statement's per-reply verdict.
+
+    ``reglages`` — `qcmlevel`, `confparm<n>` choisis sur une feuille — sont
+    versés dans le ctx **après** les `confparm` du module, qu'ils écrasent :
+    chez WIMS aussi, le choix de l'enseignant l'emporte sur la valeur d'usine
+    de l'`introhook`.
     """
     if seed is None:
         seed = random.randint(0, 2**31)
 
     def_file = _parse_def_cached(def_path)
     engine = DefEngine(seed=seed, def_path=def_path)
+    if reglages:
+        engine.ctx.update(reglages)
     if m_step is not None:
         engine.ctx["m_step"] = str(m_step)
         engine.ctx["step"] = str(m_step)  # WIMS alias
@@ -4771,8 +4879,9 @@ class DefEngine(_SlibMixin):
         """Les dix réglages du niveau de sévérité, pour cet exercice.
 
         `qcmlevel` fait foi, et chaque réglage peut être écrasé isolément — c'est
-        exactement ce que fait `oef/exo.init` avec ses `!default`. Le niveau par
-        défaut est 1, celui de WIMS (`oef/default`).
+        exactement ce que fait `oef/exo.init` avec ses `!default`. Une feuille
+        pose `qcmlevel` par les `reglages` de `load_and_render` ; faute de
+        feuille, PAX prend le niveau 3 (`_NIVEAU_DEFAUT`).
         """
         def _nombre(nom: str) -> float | None:
             brut = self._subst(str(self.ctx.get(nom, ""))).strip()
@@ -4822,8 +4931,8 @@ class DefEngine(_SlibMixin):
         #
         # `qcmpresent` est le nombre de propositions montrées — moins il y en
         # a, plus l'exercice est facile. `qcmgood` dit si la bonne réponse est
-        # **garantie** parmi elles. PAX n'a pas encore ce curseur côté feuille :
-        # il prend le défaut de WIMS, le niveau 1, et le `.def` peut l'écraser.
+        # **garantie** parmi elles. Une feuille choisit ce niveau (`reglages`
+        # de `load_and_render`) ; faute de feuille, PAX prend le niveau 3.
         sev = self.severite()
         qcmpresent = int(sev["qcmpresent"])
         qcmgood_defaut = int(sev["qcmgood"])
@@ -6962,9 +7071,22 @@ _SEVERITE: dict[str, tuple[float, ...]] = {
 #     une juste, une approchée    7,2/10 = 0,85²
 #     une juste, une fausse       2,5/10 = 0,5²
 #
-# C'est donc le niveau 3 que PAX prend, jusqu'à ce que la feuille porte le
+# C'est donc le niveau 3 que PAX prend quand aucune feuille ne porte le
 # réglage — il vit là chez WIMS, et n'a rien à faire dans le moteur.
 _NIVEAU_DEFAUT = 3
+
+
+def table_severite() -> dict:
+    """Le tableau des neuf niveaux, tel que WIMS le montre à l'enseignant.
+
+    `oef/helpseverity` : neuf colonnes, dix lignes. Un curseur de 1 à 9 ne dit
+    rien de ce qu'il commande sans lui ; l'écran de réglage d'une feuille le
+    reprend d'ici, pour que la table n'existe qu'à un endroit.
+    """
+    return {
+        "defaut": _NIVEAU_DEFAUT,
+        "reglages": {cle: list(paliers) for cle, paliers in _SEVERITE.items()},
+    }
 
 # Largeur par défaut du champ de saisie de chaque type, en caractères, relevée
 # dans les `anstype/<type>.input` de WIMS (`!bound inputsize … default N`).

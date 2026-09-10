@@ -246,7 +246,7 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `!default`, `droiteplanrep.fr` par `!set` ; `!set` l'emporte s'ils
   coexistent, comme chez WIMS où il écrase une valeur déjà posée.
 
-- [ ] **Surcharger ces valeurs par défaut.** Ce que lit PAX n'est que la
+- [x] **Surcharger ces valeurs par défaut.** Ce que lit PAX n'est que la
   première moitié du dispositif WIMS : l'`introhook` pose une valeur, puis un
   `!formselect` / `!formradio` laisse l'enseignant en choisir une autre. Nous
   servons donc à tout le monde le réglage d'usine. Ce qui manque n'est pas la
@@ -266,6 +266,24 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     `pax:render:{path}:{seed}:{m_step}{replies}` (`render_cache.cache_key`) et
     ignore les `confparm`. Deux réglages d'un même exercice se serviraient
     mutuellement leur rendu. La clé devra les inclure le jour où ils varient.
+
+  **Fait le 2026-09-10, dans cette forme.** `sheet_exercises.confparm`
+  (JSONB) et `.qcmlevel` portent le choix, par exercice posé — un même
+  exercice peut donc l'être deux fois sous deux réglages. `api/reglages.py`
+  résout la priorité pour le rendu **et** la correction, qui doivent rendre
+  sous les mêmes réglages ; `RenderOut.reglages` revient tel quel au `/check`.
+  La clé du cache les inclut (`…:{m_step}|confparm1=3;qcmlevel=7{replies}`),
+  et une valeur de `confparm` ne peut contenir aucun de ses séparateurs.
+  L'écran de la feuille propose ce que l'`introhook` propose
+  (`confparm_du_module` : menus, invites, saisie libre) ; le bouton *Essayer*
+  ouvre l'exercice sous ses réglages (`?sheet_item=`). Seul `qcmlevel` a un
+  paramètre d'URL, réservé aux enseignants.
+  Mesuré au passage : **45 modules** exposent un `confparm` réglable (25 en
+  H3, 20 en H4), dont 7 paramètres en saisie libre ; 41 posent une valeur
+  d'usine. Ce que le lecteur ne peut pas résoudre hors session WIMS — un
+  libellé `$name_conf`, une liste `$menu_list` — sort vide ou en saisie libre.
+  Reste le **parcours élève** (cf. II.1) : le réglage ne sert encore qu'à
+  l'aperçu enseignant.
 
 ## 3. Conformité WIMS (réf. docOEF4, audit 2026-06-12)
 
@@ -555,6 +573,11 @@ ce que la source d'`anstype/` a appris :
   (`oef/helpseverity`) : neuf colonnes, dix lignes. Il vaut d'être repris, car
   un curseur de 1 à 9 sans ce tableau ne dit rien de ce qu'il commande.
 
+  **Curseur et tableau faits le 2026-09-10** (page de la feuille,
+  `SheetsSeverityTable`, table servie par `/api/sheets/severite` depuis
+  `_SEVERITE` pour qu'elle n'existe qu'à un endroit). Reste le mode expert,
+  ci-dessous.
+
 - [x] **`penalty` et `scorepower` ont un consommateur : `oef/var.proc`**, le
   script qui calcule la note, et non `answer.phtml`. Ligne 431 : chaque menu
   `\choice` faux (et différent de « je ne sais pas ») retire `cc/(n-cc)`
@@ -568,9 +591,26 @@ ce que la source d'`anstype/` a appris :
   grouper plusieurs questions. La leçon de
   `freepower` tenait : le consommateur n'était pas là où on le cherchait.
 
-- [ ] **Exposer `qcmlevel` sur la feuille d'exercice.** C'est là qu'il vit chez
-  WIMS, et c'est le pendant naturel de la surcharge des `confparm` (cf. I.2).
-  Aujourd'hui PAX prend le niveau 3 pour tout le monde (`_NIVEAU_DEFAUT`).
+- [x] **Exposer `qcmlevel` sur la feuille d'exercice** (2026-09-10). Colonne
+  `sheet_exercises.qcmlevel` (NULL = niveau 3, `_NIVEAU_DEFAUT`), réglée par
+  exercice posé depuis la page de la feuille. Rendu et correction la lisent
+  par `?sheet_item=` via `api/reglages.py`. `?qcmlevel=` permet l'essai
+  ponctuel, **réservé aux enseignants** : un élève (403) baisserait sinon la
+  sévérité d'une feuille notée en retouchant l'adresse. Même porteur que les
+  `confparm` (I.2).
+
+- [ ] **Le parcours élève des feuilles** (cf. II.1). Le réglage ne sert encore
+  qu'à l'aperçu enseignant : aucune classe ne voit de feuille, et seul le
+  bouton *Essayer* envoie un `sheet_item`. Deux points à tenir ce jour-là :
+  `attempts.sheet_id` et `grades.sheet_id` n'ont **pas de cascade**, si bien
+  qu'une feuille ayant des tentatives d'élèves ne pourra pas être supprimée ;
+  et la tentative d'un enseignant n'est volontairement pas rattachée à la
+  feuille (`check.py`). `scorepower` et les seuils `seedcnt` attendent aussi
+  ce parcours (`qnum`).
+
+- [ ] **Mode expert** (`intro_expert=yes`) : chaque réglage posé isolément.
+  Le moteur l'accepte déjà — `severite()` laisse chaque clé écraser le
+  niveau — ; il manque les colonnes et l'écran.
 
 - [ ] **Une limite assumée.** `choicegood` est une liste chez WIMS ; PAX garde
   la bonne réponse **entière**, parce que plusieurs exercices y écrivent une
@@ -581,6 +621,14 @@ ce que la source d'`anstype/` a appris :
 # II. Fonctionnalités PAX
 
 ## 1. Feuilles ?
+
+- [x] Côté enseignant : créer une feuille, y poser des exercices, les régler
+  (`qcmlevel`, `confparm`, cf. I.2 et I.6) et les essayer. Supprimer une
+  feuille non vide répondait **500** — l'ORM détachait ses exercices au lieu
+  de laisser la cascade SQL les emporter (`passive_deletes`, 2026-09-10).
+- [ ] Côté élève : rien. Relier feuilles et classes ; une vue élève de la
+  feuille (statut, ouverture et fermeture, prérequis) ; transmettre
+  `sheet_item` au rendu et à la correction pour noter.
 
 ## 2. Statistiques d'utilisation du site
 

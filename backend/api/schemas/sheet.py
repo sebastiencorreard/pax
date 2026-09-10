@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from pydantic import BaseModel, field_validator
 from .exercise import ExerciseResponse
@@ -65,6 +66,37 @@ class SheetDetailResponse(SheetResponse):
 
 # ── Exercice dans une feuille ─────────────────────────────────────────────────
 
+# `oef/exo.init` lit six paramètres : `!for cf=1 to 6`.
+_NOM_CONFPARM = re.compile(r"confparm[1-6]")
+# Une valeur entre dans la clé du cache de rendu (`render_cache.cache_key`),
+# où `|`, `;`, `=` et `:` sont des séparateurs.
+_VALEUR_CONFPARM = re.compile(r"[^|;=:\r\n]{0,200}")
+
+
+def _valider_prerequis(v: str | None) -> str | None:
+    """Valide le format "N:score" ou "N+M+...:score"."""
+    if v is not None and not re.fullmatch(r"[\d+]+:\d+", v):
+        raise ValueError('prerequisite doit être au format "N:score" ou "N+M:score"')
+    return v
+
+
+def _valider_qcmlevel(v: int | None) -> int | None:
+    if v is not None and not 1 <= v <= 9:
+        raise ValueError("qcmlevel va de 1 à 9")
+    return v
+
+
+def _valider_confparm(v: dict[str, str] | None) -> dict[str, str] | None:
+    if v is None:
+        return v
+    for nom, valeur in v.items():
+        if not _NOM_CONFPARM.fullmatch(nom):
+            raise ValueError(f"paramètre inconnu : {nom} (confparm1 à confparm6)")
+        if not _VALEUR_CONFPARM.fullmatch(valeur):
+            raise ValueError(f"valeur refusée pour {nom}")
+    return v or None
+
+
 class SheetExerciseAdd(BaseModel):
     exercise_id: str
     position: int = 0
@@ -73,17 +105,29 @@ class SheetExerciseAdd(BaseModel):
     multiplicity: float = 1.0
     prerequisite: str | None = None
     active: bool = True
+    qcmlevel: int | None = None
+    confparm: dict[str, str] | None = None
 
-    @field_validator("prerequisite")
-    @classmethod
-    def prerequisite_format(cls, v: str | None) -> str | None:
-        """Valide le format "N:score" ou "N+M+...:score"."""
-        if v is None:
-            return v
-        import re
-        if not re.fullmatch(r"[\d+]+:\d+", v):
-            raise ValueError('prerequisite doit être au format "N:score" ou "N+M:score"')
-        return v
+    _prerequis = field_validator("prerequisite")(_valider_prerequis)
+    _qcmlevel = field_validator("qcmlevel")(_valider_qcmlevel)
+    _confparm = field_validator("confparm")(_valider_confparm)
+
+
+class SheetExerciseUpdate(BaseModel):
+    """Modification d'un exercice déjà posé. Un champ absent reste tel quel ;
+    `qcmlevel` ou `confparm` à `null` rendent au réglage par défaut."""
+    position: int | None = None
+    points: int | None = None
+    weight: float | None = None
+    multiplicity: float | None = None
+    prerequisite: str | None = None
+    active: bool | None = None
+    qcmlevel: int | None = None
+    confparm: dict[str, str] | None = None
+
+    _prerequis = field_validator("prerequisite")(_valider_prerequis)
+    _qcmlevel = field_validator("qcmlevel")(_valider_qcmlevel)
+    _confparm = field_validator("confparm")(_valider_confparm)
 
 
 class SheetItemResponse(BaseModel):
@@ -94,6 +138,8 @@ class SheetItemResponse(BaseModel):
     multiplicity: float
     prerequisite: str | None
     active: bool
+    qcmlevel: int | None = None
+    confparm: dict[str, str] | None = None
     exercise: ExerciseResponse
 
     model_config = {"from_attributes": True}

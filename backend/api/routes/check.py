@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -9,6 +9,7 @@ from models.exercise import Exercise
 from models.attempt import Attempt
 from models.user import User
 from api.deps import get_current_user
+from api.reglages import resoudre_reglages
 from core.oef.engine import load_and_render, find_def_path
 from core.answer.schemas import AnswerResult
 from core.answer.strategies.standard import run_standard
@@ -73,6 +74,9 @@ class CheckRequest(BaseModel):
     replies: list[ReplyItem]
     sheet_id: int | None = None
     m_step: int | None = None
+    # Les réglages du rendu (`RenderOut.reglages`), renvoyés tels quels.
+    sheet_item: int | None = None
+    qcmlevel: int | None = Field(None, ge=1, le=9)
 
 
 class CheckResponse(BaseModel):
@@ -141,9 +145,15 @@ async def check_exercise(
     exercise = result.scalar_one_or_none()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
+    reg = await resoudre_reglages(
+        db, exercise_id, current_user, body.sheet_item, body.qcmlevel
+    )
 
     try:
-        rendered = load_and_render(exercise.oef_path, seed=body.seed, m_step=body.m_step)
+        rendered = load_and_render(
+            exercise.oef_path, seed=body.seed, m_step=body.m_step,
+            reglages=reg.moteur or None,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {e}")
 
@@ -355,14 +365,21 @@ async def check_exercise(
     # ── Enregistrement de la tentative ───────────────────────────────────────
     attempt_id = "00000000-0000-0000-0000-000000000000"
     if not has_invalid:
+        sheet_id = body.sheet_id if body.sheet_id is not None else reg.sheet_id
+        # Seul l'élève est noté : l'enseignant qui essaie l'exercice de sa
+        # feuille ne laisse pas de tentative rattachée à celle-ci — elle
+        # l'empêcherait en outre de supprimer sa feuille (`attempts.sheet_id`
+        # n'a pas de cascade).
+        if current_user.role != "student":
+            sheet_id = None
         attempt = Attempt(
             student_id=current_user.id,
             exercise_id=exercise_id,
-            sheet_id=body.sheet_id,
+            sheet_id=sheet_id,
             score=global_score,
             answers={r.input_name: r.value for r in body.replies},
             seed=body.seed,
-            is_graded=body.sheet_id is not None,
+            is_graded=sheet_id is not None,
         )
         db.add(attempt)
         await db.commit()
@@ -378,9 +395,9 @@ async def check_exercise(
     #     givefeed = 1,1,1,1,1,1,1,1,1   le commentaire de correction
     #     givegood = 1,1,1,1,1,1,0,0,0   la bonne réponse elle-même
     #
-    # Au niveau 1 — le défaut de WIMS, et donc de PAX — les trois sont
-    # ouvertes : rien ne change pour un exercice qui ne règle rien. Un `.def`
-    # ou, demain, une feuille qui monte le niveau les referme.
+    # Au niveau 3 — celui que PAX prend sans feuille — les trois sont
+    # ouvertes : rien ne change pour un exercice qui ne règle rien. Une
+    # feuille qui monte le niveau les referme (`api/reglages.py`).
     #
     # WIMS module en plus ces portes selon le nombre d'essais déjà faits sur la
     # même graine (`seedcnt`, `seedrepeat`) — PAX ne tient pas ce compte, et
@@ -397,7 +414,8 @@ async def check_exercise(
     # `cc/(n−cc)` à `qcmgot`, où `cc` est le nombre de bonnes propositions et
     # `n` leur total : sur un choix à quatre options dont une bonne, se tromper
     # coûte un tiers de point. Ne s'applique qu'aux `\choice` (`c<n>`), pas aux
-    # `\answer` de type `radio`. Vaut 0 jusqu'au niveau 5 — inerte aujourd'hui.
+    # `\answer` de type `radio`. Vaut 0 jusqu'au niveau 5 : seule une feuille
+    # réglée au niveau 6 ou plus la déclenche.
     if float(sev.get("penalty", 0) or 0) > 0 and active_ans_defs:
         total_w = sum(a.weight for a in active_ans_defs) or 1.0
         for a, res in zip(active_ans_defs, results):

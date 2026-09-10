@@ -7,10 +7,25 @@ from db import get_db
 from models.sheet import Sheet, SheetExercise
 from models.exercise import Exercise
 from models.user import User
-from api.schemas.sheet import SheetCreate, SheetUpdate, SheetExerciseAdd, SheetResponse, SheetDetailResponse, SheetItemResponse
+from api.schemas.sheet import (
+    SheetCreate, SheetUpdate, SheetExerciseAdd, SheetExerciseUpdate,
+    SheetResponse, SheetDetailResponse, SheetItemResponse,
+)
 from api.deps import get_current_user, require_role
+from core.oef.def_engine import table_severite
 
 router = APIRouter(prefix="/api/sheets", tags=["sheets"])
+
+
+async def _feuille_modifiable(db: AsyncSession, sheet_id: int, user: User) -> Sheet:
+    """La feuille, si elle existe et que cet utilisateur peut la modifier."""
+    result = await db.execute(select(Sheet).where(Sheet.id == sheet_id))
+    sheet = result.scalar_one_or_none()
+    if not sheet:
+        raise HTTPException(status_code=404, detail="Feuille introuvable")
+    if sheet.teacher_id != user.id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="Feuille appartenant à un autre enseignant")
+    return sheet
 
 
 @router.post("/", response_model=SheetResponse, status_code=201)
@@ -39,6 +54,13 @@ async def list_sheets(
     return result.scalars().all()
 
 
+# Déclarée avant `/{sheet_id}`, qui sinon la prendrait pour un identifiant.
+@router.get("/severite")
+async def get_severite(_: User = Depends(get_current_user)):
+    """Les neuf niveaux de sévérité et ce que chacun commande (`oef/helpseverity`)."""
+    return table_severite()
+
+
 @router.get("/{sheet_id}", response_model=SheetDetailResponse)
 async def get_sheet(
     sheet_id: int,
@@ -63,13 +85,7 @@ async def add_exercise_to_sheet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("teacher", "admin")),
 ):
-    # Vérifie que la feuille existe et appartient à ce prof
-    result = await db.execute(select(Sheet).where(Sheet.id == sheet_id))
-    sheet = result.scalar_one_or_none()
-    if not sheet:
-        raise HTTPException(status_code=404, detail="Feuille introuvable")
-    if sheet.teacher_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Feuille appartenant à un autre enseignant")
+    await _feuille_modifiable(db, sheet_id, current_user)
 
     # Vérifie que l'exercice existe
     result = await db.execute(select(Exercise).where(Exercise.id == data.exercise_id))
@@ -89,12 +105,7 @@ async def update_sheet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("teacher", "admin")),
 ):
-    result = await db.execute(select(Sheet).where(Sheet.id == sheet_id))
-    sheet = result.scalar_one_or_none()
-    if not sheet:
-        raise HTTPException(status_code=404, detail="Feuille introuvable")
-    if sheet.teacher_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Feuille appartenant à un autre enseignant")
+    sheet = await _feuille_modifiable(db, sheet_id, current_user)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(sheet, field, value)
     await db.commit()
@@ -108,14 +119,41 @@ async def delete_sheet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("teacher", "admin")),
 ):
-    result = await db.execute(select(Sheet).where(Sheet.id == sheet_id))
-    sheet = result.scalar_one_or_none()
-    if not sheet:
-        raise HTTPException(status_code=404, detail="Feuille introuvable")
-    if sheet.teacher_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Feuille appartenant à un autre enseignant")
+    sheet = await _feuille_modifiable(db, sheet_id, current_user)
     await db.delete(sheet)
     await db.commit()
+
+
+async def _exercice_de_feuille(
+    db: AsyncSession, sheet_id: int, item_id: int
+) -> SheetExercise:
+    result = await db.execute(
+        select(SheetExercise)
+        .where(SheetExercise.id == item_id, SheetExercise.sheet_id == sheet_id)
+        .options(selectinload(SheetExercise.exercise))
+    )
+    item = result.scalar_one_or_none()
+    if not item:
+        raise HTTPException(status_code=404, detail="Introuvable")
+    return item
+
+
+@router.patch("/{sheet_id}/exercises/{item_id}", response_model=SheetItemResponse)
+async def update_sheet_exercise(
+    sheet_id: int,
+    item_id: int,
+    data: SheetExerciseUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    """Règle un exercice posé : points, prérequis, et ce que WIMS règle au même
+    endroit — le niveau de sévérité et les `confparm` du module."""
+    await _feuille_modifiable(db, sheet_id, current_user)
+    item = await _exercice_de_feuille(db, sheet_id, item_id)
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(item, field, value)
+    await db.commit()
+    return await _exercice_de_feuille(db, sheet_id, item_id)
 
 
 @router.delete("/{sheet_id}/exercises/{item_id}", status_code=204)
@@ -125,14 +163,9 @@ async def remove_exercise_from_sheet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("teacher", "admin")),
 ):
-    result = await db.execute(
-        select(SheetExercise).where(
-            SheetExercise.id == item_id,
-            SheetExercise.sheet_id == sheet_id,
-        )
-    )
-    item = result.scalar_one_or_none()
-    if not item:
-        raise HTTPException(status_code=404, detail="Introuvable")
+    # Sans cette vérification, n'importe quel enseignant retirait un exercice
+    # de la feuille d'un collègue.
+    await _feuille_modifiable(db, sheet_id, current_user)
+    item = await _exercice_de_feuille(db, sheet_id, item_id)
     await db.delete(item)
     await db.commit()

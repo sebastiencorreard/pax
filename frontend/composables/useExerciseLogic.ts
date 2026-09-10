@@ -117,6 +117,10 @@ export interface Rendered {
   exercise_type?: string
   type_meta?: Record<string, any>
   chrono?: Chrono | null
+  // Niveau de sévérité du rendu, et les réglages demandés (`sheet_item`,
+  // `qcmlevel`) que la correction doit renvoyer tels quels.
+  qcmlevel?: number | null
+  reglages?: Record<string, number>
 }
 
 export interface CheckResult {

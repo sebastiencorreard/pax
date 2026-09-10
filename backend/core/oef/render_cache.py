@@ -46,14 +46,27 @@ def _redis_client():
 
 
 def cache_key(
-    path: str, seed: int, m_step: int | None, prev_replies: dict[str, str] | None = None
+    path: str,
+    seed: int,
+    m_step: int | None,
+    prev_replies: dict[str, str] | None = None,
+    reglages: dict[str, str] | None = None,
 ) -> str:
     # Course steps that echo previous replies (`$m_reply{n}`) render differently
     # per submitted answer, so the replies are part of the key.
     rep = ""
     if prev_replies:
         rep = ":" + ";".join(f"{k}={v}" for k, v in sorted(prev_replies.items()))
-    return f"pax:render:{path}:{seed}:{m_step or 0}{rep}"
+    # Les réglages d'une feuille changent le rendu — `qcmlevel` fixe le nombre
+    # de propositions d'un `\choice`, un `confparm` le nombre de questions :
+    # deux feuilles qui posent le même tirage ne doivent pas se servir
+    # mutuellement leur rendu. Placés **avant** les réponses, derrière un `|`
+    # qu'une valeur de réglage ne peut pas contenir (`api/schemas/sheet.py`),
+    # ils ne se confondent pas avec elles.
+    reg = ""
+    if reglages:
+        reg = "|" + ";".join(f"{k}={v}" for k, v in sorted(reglages.items()))
+    return f"pax:render:{path}:{seed}:{m_step or 0}{reg}{rep}"
 
 
 def get(key: str):

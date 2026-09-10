@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from sqlalchemy import String, DateTime, Integer, SmallInteger, Numeric, Boolean, ForeignKey, Text  # noqa: F401
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 
 from db import Base
 
@@ -32,8 +32,13 @@ class Sheet(Base):
     close_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # La base emporte les exercices d'une feuille supprimée (`ON DELETE
+    # CASCADE`). Sans `passive_deletes`, l'ORM tentait d'abord de les détacher
+    # (`sheet_id = NULL`), et supprimer une feuille non vide échouait sur la
+    # contrainte NOT NULL — un 500 pour tout enseignant.
     items: Mapped[list["SheetExercise"]] = relationship(
-        back_populates="sheet", order_by="SheetExercise.position"
+        back_populates="sheet", order_by="SheetExercise.position",
+        cascade="all, delete-orphan", passive_deletes=True,
     )
 
 
@@ -55,6 +60,12 @@ class SheetExercise(Base):
     # prerequisite : condition de déblocage, ex. "1:90" ou "1+2:70"
     prerequisite: Mapped[str | None] = mapped_column(String(100), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # qcmlevel : niveau de sévérité WIMS, 1 à 9 (`oef/exo.init`) ; NULL = celui
+    # que PAX prend faute de réglage, le niveau 3.
+    qcmlevel: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    # confparm : valeurs choisies pour les paramètres du module, ex.
+    # {"confparm1": "2"} ; NULL = les valeurs d'usine de son `introhook.phtml`.
+    confparm: Mapped[dict[str, str] | None] = mapped_column(JSONB, nullable=True)
 
     sheet: Mapped["Sheet"] = relationship(back_populates="items")
     exercise: Mapped["Exercise"] = relationship(back_populates="sheet_items")

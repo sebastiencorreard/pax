@@ -566,6 +566,34 @@ class TestCheck:
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture
+def nouvelle_feuille(client, teacher_headers):
+    """Crée des feuilles pour un test, et les supprime après lui.
+
+    Ces tests tournent contre la base de dev : sans ce ménage, chaque passage
+    y laissait cinq feuilles, et 1320 s'y étaient accumulées le 2026-09-10.
+    """
+    creees: list[int] = []
+
+    def creer(titre: str) -> dict:
+        r = client.post(
+            "/api/sheets/",
+            headers=teacher_headers,
+            json={"title": titre, "description": "Created by test_api.py"},
+        )
+        assert r.status_code == 201, r.text
+        creees.append(r.json()["id"])
+        return r.json()
+
+    yield creer
+    for sheet_id in creees:
+        r = client.delete(f"/api/sheets/{sheet_id}", headers=teacher_headers)
+        # 404 : le test l'a déjà supprimée. Tout autre code est un défaut — un
+        # ménage qui ne vérifiait rien a longtemps masqué le 500 des feuilles
+        # non vides.
+        assert r.status_code in (204, 404), r.text
+
+
 class TestSheets:
     def test_student_cannot_create_sheet(self, client, student_headers):
         r = client.post(
@@ -575,17 +603,8 @@ class TestSheets:
         )
         assert r.status_code == 403
 
-    def test_teacher_can_create_sheet(self, client, teacher_headers):
-        r = client.post(
-            "/api/sheets/",
-            headers=teacher_headers,
-            json={
-                "title": "Test sheet (api tests)",
-                "description": "Created by test_api.py",
-            },
-        )
-        assert r.status_code == 201
-        body = r.json()
+    def test_teacher_can_create_sheet(self, nouvelle_feuille):
+        body = nouvelle_feuille("Test sheet (api tests)")
         assert "id" in body
         assert body["title"] == "Test sheet (api tests)"
 
@@ -598,14 +617,8 @@ class TestSheets:
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_get_sheet_detail(self, client, teacher_headers):
-        # Create then fetch
-        r = client.post(
-            "/api/sheets/",
-            headers=teacher_headers,
-            json={"title": "Detail test sheet", "description": ""},
-        )
-        sheet_id = r.json()["id"]
+    def test_get_sheet_detail(self, client, teacher_headers, nouvelle_feuille):
+        sheet_id = nouvelle_feuille("Detail test sheet")["id"]
 
         r = client.get(f"/api/sheets/{sheet_id}", headers=teacher_headers)
         assert r.status_code == 200
@@ -617,12 +630,10 @@ class TestSheets:
         r = client.get("/api/sheets/999999", headers=student_headers)
         assert r.status_code == 404
 
-    def test_teacher_can_add_exercise_to_sheet(self, client, teacher_headers):
-        sheet_id = client.post(
-            "/api/sheets/",
-            headers=teacher_headers,
-            json={"title": "Add-exercise test", "description": ""},
-        ).json()["id"]
+    def test_teacher_can_add_exercise_to_sheet(
+        self, client, teacher_headers, nouvelle_feuille
+    ):
+        sheet_id = nouvelle_feuille("Add-exercise test")["id"]
 
         r = client.post(
             f"/api/sheets/{sheet_id}/exercises",
@@ -635,13 +646,9 @@ class TestSheets:
         assert any(item["exercise"]["id"] == EXERCISE_ID for item in detail["items"])
 
     def test_student_cannot_add_exercise_to_sheet(
-        self, client, teacher_headers, student_headers
+        self, client, student_headers, nouvelle_feuille
     ):
-        sheet_id = client.post(
-            "/api/sheets/",
-            headers=teacher_headers,
-            json={"title": "Student add test", "description": ""},
-        ).json()["id"]
+        sheet_id = nouvelle_feuille("Student add test")["id"]
 
         r = client.post(
             f"/api/sheets/{sheet_id}/exercises",
@@ -650,12 +657,10 @@ class TestSheets:
         )
         assert r.status_code == 403
 
-    def test_teacher_can_remove_exercise_from_sheet(self, client, teacher_headers):
-        sheet_id = client.post(
-            "/api/sheets/",
-            headers=teacher_headers,
-            json={"title": "Remove-exercise test", "description": ""},
-        ).json()["id"]
+    def test_teacher_can_remove_exercise_from_sheet(
+        self, client, teacher_headers, nouvelle_feuille
+    ):
+        sheet_id = nouvelle_feuille("Remove-exercise test")["id"]
 
         client.post(
             f"/api/sheets/{sheet_id}/exercises",
@@ -673,3 +678,139 @@ class TestSheets:
 
         detail = client.get(f"/api/sheets/{sheet_id}", headers=teacher_headers).json()
         assert detail["items"] == []
+
+    def test_teacher_can_delete_sheet_with_exercises(
+        self, client, teacher_headers, nouvelle_feuille
+    ):
+        # Répondait 500 : l'ORM détachait les exercices au lieu de laisser la
+        # cascade SQL les emporter.
+        sheet_id = nouvelle_feuille("Delete non-empty test")["id"]
+        client.post(
+            f"/api/sheets/{sheet_id}/exercises",
+            headers=teacher_headers,
+            json={"exercise_id": EXERCISE_ID},
+        )
+        r = client.delete(f"/api/sheets/{sheet_id}", headers=teacher_headers)
+        assert r.status_code == 204, r.text
+        r = client.get(f"/api/sheets/{sheet_id}", headers=teacher_headers)
+        assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Réglages d'un exercice sur une feuille (qcmlevel, confparm)
+# ---------------------------------------------------------------------------
+
+
+def _poser(client, teacher_headers, sheet_id, **champs) -> int:
+    """Pose EXERCISE_ID sur la feuille ; renvoie l'identifiant de l'item."""
+    r = client.post(
+        f"/api/sheets/{sheet_id}/exercises",
+        headers=teacher_headers,
+        json={"exercise_id": EXERCISE_ID, **champs},
+    )
+    assert r.status_code == 201, r.text
+    items = client.get(f"/api/sheets/{sheet_id}", headers=teacher_headers).json()["items"]
+    return items[-1]["id"]
+
+
+class TestReglagesFeuille:
+    def test_table_des_niveaux(self, client, teacher_headers):
+        r = client.get("/api/sheets/severite", headers=teacher_headers)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["defaut"] == 3
+        assert len(body["reglages"]) == 10
+        assert all(len(paliers) == 9 for paliers in body["reglages"].values())
+
+    def test_sans_feuille_le_niveau_est_celui_de_pax(self, client, student_headers):
+        body = client.get(
+            f"/api/render/{EXERCISE_ID}?seed={SEED}", headers=student_headers
+        ).json()
+        assert body["qcmlevel"] == 3
+        assert body["reglages"] == {}
+
+    def test_le_niveau_de_la_feuille_commande_le_rendu(
+        self, client, teacher_headers, student_headers, nouvelle_feuille
+    ):
+        sheet_id = nouvelle_feuille("Réglages : niveau")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        r = client.patch(
+            f"/api/sheets/{sheet_id}/exercises/{item_id}",
+            headers=teacher_headers,
+            json={"qcmlevel": 7},
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["qcmlevel"] == 7
+
+        r = client.get(
+            f"/api/render/{EXERCISE_ID}?seed={SEED}&sheet_item={item_id}",
+            headers=student_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["qcmlevel"] == 7
+        assert r.json()["reglages"] == {"sheet_item": item_id}
+
+    def test_la_correction_rejoue_les_reglages(
+        self, client, teacher_headers, nouvelle_feuille
+    ):
+        sheet_id = nouvelle_feuille("Réglages : correction")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id, qcmlevel=7)
+        r = client.post(
+            f"/api/check/{EXERCISE_ID}",
+            headers=teacher_headers,
+            json={
+                "seed": SEED,
+                "sheet_item": item_id,
+                "replies": [{"input_name": "r1", "value": CORRECT_REPLY}],
+            },
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["global_score"] == pytest.approx(1.0)
+
+    def test_un_eleve_ne_choisit_pas_son_niveau(
+        self, client, student_headers, teacher_headers
+    ):
+        url = f"/api/render/{EXERCISE_ID}?seed={SEED}&qcmlevel=7"
+        assert client.get(url, headers=student_headers).status_code == 403
+        r = client.get(url, headers=teacher_headers)
+        assert r.status_code == 200
+        assert r.json()["qcmlevel"] == 7
+
+    def test_niveau_et_confparm_sont_valides(
+        self, client, teacher_headers, nouvelle_feuille
+    ):
+        sheet_id = nouvelle_feuille("Réglages : validation")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        url = f"/api/sheets/{sheet_id}/exercises/{item_id}"
+        for corps in (
+            {"qcmlevel": 10},
+            {"confparm": {"confparm7": "1"}},
+            # `|` sépare les réglages dans la clé du cache de rendu.
+            {"confparm": {"confparm1": "a|b"}},
+        ):
+            r = client.patch(url, headers=teacher_headers, json=corps)
+            assert r.status_code == 422, corps
+        r = client.get(f"/api/render/{EXERCISE_ID}?qcmlevel=0", headers=teacher_headers)
+        assert r.status_code == 422
+
+    def test_un_item_ne_sert_que_son_exercice(
+        self, client, teacher_headers, nouvelle_feuille
+    ):
+        autres = [
+            e["id"]
+            for e in client.get("/api/exercises/?limit=2", headers=teacher_headers).json()
+            if e["id"] != EXERCISE_ID
+        ]
+        if not autres:
+            pytest.skip("le corpus importé ne fournit pas un second exercice")
+        sheet_id = nouvelle_feuille("Réglages : item")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        r = client.get(
+            f"/api/render/{autres[0]}?sheet_item={item_id}", headers=teacher_headers
+        )
+        assert r.status_code == 404
+
+    def test_confparm_du_module(self, client, teacher_headers):
+        r = client.get(f"/api/exercises/{EXERCISE_ID}/confparm", headers=teacher_headers)
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
