@@ -452,6 +452,63 @@ ce que la source d'`anstype/` a appris :
   exercices dont le corrigé énonce la réponse en toutes lettres, et les types
   non numériques.
 
+### h) Ce que l'import de H1, H2, H5 et H6 réclame (relevé du 2026-09-10)
+
+Mesuré **au rendu** sur les 9 698 exercices (graine 42, sans cache —
+`backend/scripts/sonde_manques.py`), puis comparé à H3/H4 : rien de ce qui
+suit ne touchait le corpus d'avant l'import. Le moteur ne lève rien dans aucun
+de ces cas, d'où la mesure plutôt que la lecture des sources.
+
+- [ ] **29 slibs WIMS absentes de `ressources/wims-scripts/`.** `_run_slib` ne
+  les trouve pas et rend la main sans rien produire. Les plus appelées :
+  `function/integrate` (78 rendus), `text/balloon` (70), `circuits/draw` (46),
+  `draw/drtgraduee` (26), `stat/multinomial` (26), `data/randline` (21),
+  `chemistry/chemeq_add|el|components|rev` (31 à elles quatre),
+  `polynomial/random` (13). Toutes existent dans `wims/public_html/scripts/slib/`,
+  mais les copier ne suffira pas toujours : trois lisent un fichier lui aussi
+  absent du sous-ensemble vendorisé (`slib/circuits/drawcomp`,
+  `slib/data/columnsort`, `oef/special/tooltip.phtml`), `graph/graphviz` appelle
+  `!exec graphviz`, et `text/balloon`, `utilities/tooltip`, `geo3D/threeD`
+  produisent du HTML/JS à éprouver dans le front. `utilities/env` (74 rendus,
+  `OEFevalwimsope.fr`) n'existe nulle part, pas même dans WIMS.
+- [ ] **`UNKNOWN_CMD:changeto` s'affiche dans l'énoncé de 81 exercices**
+  (H1 6, H2 2, H5 31, H6 42) — symptôme des slibs absentes. Une slib
+  introuvable laisse `slib_out` tel quel ; il porte alors ce que le `var.proc`
+  du module y a laissé, et la dernière ligne de ce fichier,
+  `!changeto oef/var.proc`, est une commande que l'exécuteur de scripts ne
+  connaît pas. Deux corrections, indépendantes du port des slibs : vider
+  `slib_out` quand la slib manque, et traiter `!changeto` comme la fin du
+  script courant.
+- [ ] **Programmes `!exec` non gérés**, qui rendent `""` : `float_calc`
+  (72 rendus, `oefnumeration.fr`), `lceb` (10, `oeflceb.fr`), `graphviz` (6, et
+  2 en H4), `moneyprint` (3).
+- [ ] **Synonymes de commandes WIMS** (`wims/src/calc.c`) : `items` (= `item`),
+  `itemcount` (= `itemcnt`), `position` (= `positionof`), `listunique`
+  (= `listuniq`) ; et `evalsubst`, fonction à part (`calc_evalsubst`), dont
+  `UNKNOWN_CMD:evalsubst` s'affiche dans 3 énoncés de `derivzoom.fr`.
+- [ ] **Procédures de module jamais exécutées** : `_cmd_readproc` ignore tout
+  fichier qu'il ne connaît pas. `!read my_var.proc` (depuis le `var.proc` de
+  `oefvocmarine`, `OEFCalcLimLnExp`, `OEFexpalgTS`… 151 rendus),
+  `methods.$lang` (`oefohm`, où `$lang` n'est même pas substitué alors que
+  `methods.fr` existe), `notation_lang.proc` (10).
+- [ ] **Types de réponse définis par les modules** (dossier `anstype/`) :
+  `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr`. Absents de
+  `_WIMS_KNOWN_TYPES` comme de `_MODULE_ANSTYPES`, ils sont ramenés à
+  `default` sans que le garde-fou de I.3 c les voie.
+- [ ] **16 exercices plantent sur `re.PatternError: bad escape`** :
+  `_eval_loop_expr` (sous `!makelist`) passe la valeur, qui contient du LaTeX
+  (`\infty`, `\sqrt`…), comme *chaîne de remplacement* à `re.sub`. Un
+  remplacement par fonction suffit. `oefgraphprob/matrice` et `stable` lèvent
+  à part `could not convert string to float: '\poids1'`.
+- [ ] **Rendus au-delà du budget de 8 s** (`backend/scripts/sonde_budget.py`,
+  poste au repos) : `OEFevalwimssecdeg/coefracine2` et `coefracine3` (28 s,
+  tronqués partout), `oefSpectroscopie/Infra-rouge5` (9 s). Passé le budget, le
+  moteur poursuit avec l'état partiel sans rien signaler : **le rendu dépend de
+  la vitesse de la machine**. `Infra-rouge5` rendait son widget en CI et pas
+  sur un poste, si bien que son snapshot a fait tomber la CI ; il a été retiré.
+  `Infra-rouge1` et `3` tiennent en 6,2 s, à la merci d'un runner plus lent.
+  Relever le budget est une décision de produit : un élève attendrait autant.
+
 ## 4. Notation des exercices à étapes — vérifier contre WIMS
 
 - [x] **Le crédit d'une étape est proportionnel** (2026-09-06). Une étape dont

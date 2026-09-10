@@ -693,9 +693,18 @@ class _SlibMixin:
     def _url_fichier_module(self, ref: str) -> str:
         """L'URL `/api/static` d'un fichier du module, désigné par son nom.
 
-        Même recherche que `flydraw.inline_pax_images` : à plat sous `images/`,
-        puis n'importe où en dessous. Les `.ggb` du corpus y sont tous
-        (`oefalgopython.fr/images/suite_escalier_methode_heron.ggb`).
+        `slib/geo2D/geogebra` lit `file=` sous `$imagedir`, et
+        `oef/imagedir.proc` fait de `$imagedir` le dossier **de l'exercice**,
+        `images/<exercice>/`, sauf si le module pose `common_images=yes`. D'où
+        l'ordre : ce dossier-là, puis `images/` à plat
+        (`oefalgopython.fr/images/suite_escalier_methode_heron.ggb`), puis
+        n'importe où en dessous.
+
+        Ce dernier parcours est **trié**. `oefangles.fr` range un
+        `rapport0.ggb` dans `images/mesure1/` et un autre dans
+        `images/mesure2/` : sans le dossier de l'exercice, les deux exercices
+        prenaient le premier que rendait `os.walk`, dont l'ordre dépend du
+        système de fichiers — le rendu différait entre un poste et la CI.
         """
         from ..flydraw import _RESSOURCES_ROOT  # noqa: PLC0415
 
@@ -706,12 +715,14 @@ class _SlibMixin:
             return ""
         module_dir = os.path.dirname(os.path.dirname(self.def_path))
         images = os.path.join(module_dir, "images")
-        trouve = None
-        plat = os.path.join(images, nom)
-        if os.path.isfile(plat):
-            trouve = plat
-        elif os.path.isdir(images):
-            for racine, _d, fichiers in os.walk(images):
+        exercice = os.path.splitext(os.path.basename(self.def_path))[0]
+        candidats = [os.path.join(images, nom)]
+        if str(self.ctx.get("common_images", "")).strip() != "yes":
+            candidats.insert(0, os.path.join(images, exercice, nom))
+        trouve = next((c for c in candidats if os.path.isfile(c)), None)
+        if not trouve and os.path.isdir(images):
+            for racine, dossiers, fichiers in os.walk(images):
+                dossiers.sort()
                 if nom in fichiers:
                     trouve = os.path.join(racine, nom)
                     break

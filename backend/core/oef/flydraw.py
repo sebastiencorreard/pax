@@ -2437,8 +2437,13 @@ def inline_pax_images(html: str, module_dir: str, exercise: str | None = None) -
         for p in candidates:
             if _os.path.isfile(p):
                 return p
-        # 3. recursive fallback (first match anywhere under images/).
-        for root, _dirs, files in _os.walk(images_dir):
+        # 3. recursive fallback (first match anywhere under images/). Le
+        # parcours est **trié** : `os.walk` rend les dossiers dans l'ordre du
+        # système de fichiers, et 14 modules du corpus rangent un même nom de
+        # fichier dans plusieurs sous-dossiers — le rendu différait sinon
+        # entre un poste et la CI.
+        for root, dirs, files in _os.walk(images_dir):
+            dirs.sort()
             if filename in files:
                 return _os.path.join(root, filename)
         return None
