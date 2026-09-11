@@ -155,6 +155,30 @@ def _candidats(ans):
         compose = js2wims1_display_answer(brut)
         if compose:
             yield compose
+    # `crossword` range dans son attendu `[grille],[mot,définition ⏎ …]` : la
+    # consigne, pas la réponse. L'élève saisit les **mots** ; on les extrait du
+    # second groupe (premier item de chaque ligne), comme le milieu d'un
+    # `range` ou le clic d'un `coord`.
+    if ans.answer_type == "crossword":
+        groupes = re.findall(r"\[(.*?)\]", brut, re.DOTALL)
+        bloc = groupes[1] if len(groupes) >= 2 else (groupes[0] if groupes else "")
+        mots = []
+        for ligne in bloc.split("\n"):
+            it = [x.strip() for x in ligne.split(",") if x.strip()]
+            if it:
+                mots.append(it[0])
+        if mots:
+            yield "\n".join(mots)
+    # `compose`/`textcomp` : l'attendu peut porter plusieurs rangs (`;`), dont
+    # `anstype/compose` ne retient que le premier (`!rows2lines` puis
+    # `!line 1`), la virgule valant espace. On soumet cette forme — sinon on
+    # donnait la consigne entière au lieu de la composition attendue.
+    if ans.answer_type in ("compose", "textcomp"):
+        from core.oef.def_engine.wims_lists import rows2lines  # noqa: PLC0415
+        ligne1 = rows2lines(brut)[0].split("\n", 1)[0]
+        forme = re.sub(r"\s+", " ", ligne1.replace(",", " ")).strip()
+        if forme:
+            yield forme
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()

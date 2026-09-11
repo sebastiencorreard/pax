@@ -295,7 +295,7 @@ _TYPES_SANS_EVAL = frozenset({
     "multipleclick", "dragfill", "flashcard", "keyboard", "puzzle", "reorder",
     "correspond", "coord", "draw", "multidraw", "chemeq", "chembrut",
     "chemclick", "chemdraw", "chemformula", "chemformula_analysis", "chset",
-    "compose", "matrix", "crossword", "chessgame", "clock", "time", "code",
+    "compose", "crossword", "chessgame", "clock", "time", "code",
     "geogebra", "geogebra_translation", "jmolclick", "jmolstr", "jsxgraph",
     "jsxgraphcurve", "jsxgraphobjet", "javacurve", "js2wims1", "imgcomp",
     "runcode", "reaction", "draft", "autoeval",
@@ -3770,6 +3770,266 @@ def check_default(
 # ------------------------------------------------------------------ #
 
 
+# ────────────────────────────────────────────────────────────────────────────
+# Sept types portés le 2026-09-11 (ils retombaient jusque-là sur `check_text`,
+# une simple égalité littérale). Chaque checker suit son `anstype/<type>` WIMS.
+# ────────────────────────────────────────────────────────────────────────────
+
+_CHSET_CHARS = frozenset("0123456789abcdefghijklmnopqrstuvwxyz")
+
+
+def check_chset(reply: str, expected: str, norepeat: bool = False) -> CheckResult:
+    """Type ``chset`` — un **ensemble de caractères**.
+
+    Port de ``anstype/chset`` : on met en minuscules, on retire les accents, on
+    ne garde que ``[0-9a-z]``, on trie les caractères, et — avec ``norepeat`` —
+    on dédoublonne. L'ordre et les séparateurs ne comptent donc pas : ``9 4`` et
+    ``49`` sont la même réponse.
+    """
+    def norm(s: str) -> str:
+        s = _deaccent(re.sub(r"\s+", " ", s or "").strip()).lower()
+        kept = [c for c in s if c in _CHSET_CHARS]
+        if norepeat:
+            kept = list(dict.fromkeys(kept))
+        return "".join(sorted(kept))
+
+    good = norm(expected)
+    if not good:  # attendu vide → erreur d'auteur (Test=bad)
+        return CheckResult(correct=False, score=0.0, method="chset")
+    ok = norm(reply) == good
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="chset")
+
+
+def check_reorder(reply: str, expected: str) -> CheckResult:
+    """Type ``reorder`` — remettre une liste **dans l'ordre**.
+
+    Port de ``anstype/reorder`` : l'attendu peut porter un connecteur après un
+    saut de ligne (``!distribute lines $good into good,conn``) ; on ne garde que
+    la première ligne. On compare les suites d'items (virgule), espaces
+    normalisés — l'ordre compte, contrairement à un ensemble.
+    """
+    def items(s: str) -> list[str]:
+        first = wl.rows2lines(s or "")[0].split("\n", 1)[0]
+        return [re.sub(r"\s+", " ", x).strip() for x in wl.cutitems(first) if x.strip()]
+
+    good = items(expected)
+    if not good:
+        return CheckResult(correct=False, score=0.0, method="reorder")
+    ok = items(reply) == good
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="reorder")
+
+
+def check_compose(reply: str, expected: str) -> CheckResult:
+    """Type ``compose`` (alias ``textcomp``) — composer une suite d'éléments.
+
+    Port de ``anstype/compose`` : la virgule vaut espace (``!items2words``),
+    espaces normalisés, et l'attendu liste plusieurs formulations acceptables,
+    séparées par ``|``. La réponse est juste si elle égale l'une d'elles.
+    """
+    def words(s: str) -> str:
+        return re.sub(r"\s+", " ", (s or "").replace(",", " ")).strip()
+
+    good_line = wl.rows2lines(expected or "")[0].split("\n", 1)[0]
+    alternatives = [words(a) for a in good_line.split("|")]
+    if not any(alternatives):
+        return CheckResult(correct=False, score=0.0, method="compose")
+    ok = words(reply) in alternatives
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="compose")
+
+
+def _complex_equal(r: complex, e: complex, prec: float) -> bool:
+    """Égalité complexe façon WIMS (``anstype/complex``) : l'écart relatif se
+    mesure sur la **somme des modules**, ``|r-e|·prec ≤ |r|+|e| + 1/prec``."""
+    scale = abs(r) + abs(e)
+    if 0 < prec < 1e10:
+        scale += 1.0 / prec
+    return scale >= abs(r - e) * prec
+
+
+def check_complex(
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+    absolute: bool = False,
+    use_j: bool = False,
+    precweight: float = 0.5,
+) -> CheckResult:
+    """Type ``complex`` — un **nombre complexe**.
+
+    Port de ``anstype/complex`` : l'attendu comme la réponse peuvent être des
+    **expressions** en ``i`` (``i^2-2*i+1`` = ``-2i``), évaluées avant
+    comparaison. Options : ``j`` (l'imaginaire s'écrit ``j``), ``comma`` (déjà
+    couvert par la locale) et ``absolute`` (écart absolu). Deux passages comme
+    ``check_numeric`` : juste à ``precision``, « presque juste » (crédit
+    partiel) à sa racine.
+    """
+    import sympy  # noqa: PLC0415
+    from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+        implicit_multiplication_application,
+        parse_expr,
+        standard_transformations,
+    )
+
+    transformations = standard_transformations + (implicit_multiplication_application,)
+
+    def to_complex(s: str) -> complex:
+        s = (s or "").strip()
+        if not s:
+            raise ValueError("vide")
+        if comma_is_decimal:
+            s = s.replace(",", ".")
+        if not entree_math_sure(s):  # garde-fou : pas d'attribut/dunder
+            raise ValueError("refusé")
+        # Option `j` : la réponse écrit `j`, l'attendu reste en `i` — WIMS
+        # normalise par `mathsubst j=i` avant d'évaluer. On ramène donc `j` à
+        # `i`, puis l'unité imaginaire `i` (isolée : `3i` → `3*I`, sans toucher
+        # au `i` de `sin`) devient le `I` de sympy.
+        if use_j:
+            s = re.sub(r"(?<![A-Za-z])j(?![A-Za-z])", "i", s)
+        s = re.sub(r"(?<![A-Za-z])i(?![A-Za-z])", "I", s)
+        expr = parse_expr(
+            s.replace("^", "**"), transformations=transformations,
+            local_dict={"I": sympy.I},
+        )
+        return complex(expr.evalf())
+
+    try:
+        r = to_complex(reply)
+    except Exception:
+        return CheckResult(correct=False, score=0.0, method="complex",
+                           status="invalid_format", detail=_REWRITE_MSG)
+    try:
+        e = to_complex(expected)
+    except Exception:  # attendu illisible → erreur d'auteur
+        return CheckResult(correct=False, score=0.0, method="complex")
+
+    if absolute:
+        diff = abs(r - e)
+        if precision * diff < 1:
+            return CheckResult(correct=True, score=1.0, method="complex")
+        if precision * diff < 10:
+            return CheckResult(correct=False, score=precweight, method="complex",
+                               detail=_POOR_PRECISION_MSG)
+        return CheckResult(correct=False, score=0.0, method="complex")
+    if _complex_equal(r, e, precision):
+        return CheckResult(correct=True, score=1.0, method="complex")
+    if _complex_equal(r, e, math.sqrt(precision)):
+        return CheckResult(correct=False, score=precweight, method="complex",
+                           detail=_POOR_PRECISION_MSG)
+    return CheckResult(correct=False, score=0.0, method="complex")
+
+
+def _matrix_rows(s: str) -> list[list[str]]:
+    """Découpe une matrice ``rawmatrix`` en lignes de coefficients.
+
+    Les délimiteurs englobants sont facultatifs (``!declosing``) ; les lignes se
+    séparent par un saut de ligne ou ``;``, les coefficients par la virgule.
+    """
+    s = _declosing((s or "").strip())
+    lignes = [ln for ln in re.split(r"[\n;]", s) if ln.strip()]
+    return [[c.strip() for c in wl.cutitems(ln) if c.strip() != ""] for ln in lignes]
+
+
+def check_matrix(
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+) -> CheckResult:
+    """Type ``matrix`` — une **matrice** de coefficients.
+
+    Port de ``anstype/matrix`` : dimensions d'abord (un écart de taille est une
+    réponse fausse), puis chaque coefficient comparé **numériquement**
+    (``!ifval $x_!=$y_``), avec la tolérance de ``\\precision``. Les
+    coefficients passent par ``_eval_scalar``, qui refuse tout accès par
+    attribut ou dunder.
+    """
+    good = _matrix_rows(expected)
+    if not good or not good[0]:
+        return CheckResult(correct=False, score=0.0, method="matrix")
+    rep = _matrix_rows(reply)
+    if len(rep) != len(good) or any(len(a) != len(b) for a, b in zip(rep, good)):
+        return CheckResult(correct=False, score=0.0, method="matrix",
+                           status="invalid_format", detail=_REWRITE_MSG)
+    for rrow, grow in zip(rep, good):
+        for rc, gc in zip(rrow, grow):
+            try:
+                rv = _eval_scalar(rc, comma_is_decimal)
+                gv = _eval_scalar(gc, comma_is_decimal)
+            except (ValueError, ZeroDivisionError):
+                return CheckResult(correct=False, score=0.0, method="matrix",
+                                   status="invalid_format", detail=_REWRITE_MSG)
+            if not _wims_num_equal(rv, gv, precision):
+                return CheckResult(correct=False, score=0.0, method="matrix")
+    return CheckResult(correct=True, score=1.0, method="matrix")
+
+
+def _clicktile_groups(s: str, reply_side: bool) -> dict[str, tuple[str, ...]]:
+    """Regroupe les tuiles cliquées par couleur.
+
+    Côté réponse, WIMS lit ``!items2lines`` puis ``@``→``,`` et ``;``→saut de
+    ligne ; côté attendu, tabulations et ``;`` deviennent des sauts de ligne.
+    Chaque ligne est ``couleur, tuile, tuile…`` ; on rend, par couleur,
+    l'ensemble trié des tuiles (l'ordre des clics ne compte pas)."""
+    s = (s or "")
+    if reply_side:
+        s = s.replace("@", ",").replace(";", "\n")
+    else:
+        s = s.replace("\t", "\n").replace(";", "\n")
+    groupes: dict[str, list[str]] = {}
+    for ligne in s.split("\n"):
+        items = [x.strip() for x in wl.cutitems(ligne) if x.strip() != ""]
+        if not items:
+            continue
+        couleur, tuiles = items[0], items[1:]
+        groupes.setdefault(couleur, []).extend(tuiles)
+    return {c: tuple(sorted(t)) for c, t in groupes.items()}
+
+
+def check_clicktile(reply: str, expected: str) -> CheckResult:
+    """Type ``clicktile`` — colorier des tuiles par clic.
+
+    Port de ``anstype/clicktile`` : la réponse est juste si, pour chaque
+    couleur, l'ensemble des tuiles cliquées est exactement celui attendu.
+    """
+    good = _clicktile_groups(expected, reply_side=False)
+    if not good:
+        return CheckResult(correct=False, score=0.0, method="clicktile")
+    ok = _clicktile_groups(reply, reply_side=True) == good
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="clicktile")
+
+
+def check_crossword(reply: str, expected: str) -> CheckResult:
+    """Type ``crossword`` — mots croisés.
+
+    Port pragmatique de ``anstype/crossword`` : l'attendu est
+    ``[grille],[mot,définition ⏎ mot,définition …]`` ; on en extrait les
+    **mots** (premier item de chaque ligne du second groupe). La réponse liste
+    les mots saisis. Juste si l'ensemble des mots coïncide, à la casse et aux
+    accents près. La grille et les définitions ne servent qu'à l'affichage.
+    """
+    def mots_attendus(s: str) -> list[str]:
+        groupes = re.findall(r"\[(.*?)\]", s or "", re.DOTALL)
+        bloc = groupes[1] if len(groupes) >= 2 else (groupes[0] if groupes else "")
+        out = []
+        for ligne in bloc.split("\n"):
+            items = [x.strip() for x in wl.cutitems(ligne) if x.strip() != ""]
+            if items:
+                out.append(items[0])
+        return out
+
+    def norm(mots: list[str]) -> tuple[str, ...]:
+        return tuple(sorted(_deaccent(m).lower() for m in mots if m))
+
+    good = norm(mots_attendus(expected))
+    if not good:
+        return CheckResult(correct=False, score=0.0, method="crossword")
+    rep = [x.strip() for x in re.split(r"[\n;,]", reply or "") if x.strip()]
+    ok = norm(rep) == good
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="crossword")
+
+
 def _split_top_level_alternatives(expected: str) -> list[str]:
     """Split `expected` at top-level commas only.
 
@@ -4033,6 +4293,23 @@ def check_answer(
             return check_runcode(reply, expected, precision)
         case "js2wims1":
             return check_js2wims1(reply, expected)
+        case "chset":
+            return check_chset(reply, expected, norepeat="norepeat" in opt_str)
+        case "reorder":
+            return check_reorder(reply, expected)
+        case "compose" | "textcomp":
+            return check_compose(reply, expected)
+        case "complex":
+            return check_complex(
+                reply, expected, precision, comma_is_decimal,
+                absolute=absolute, use_j="j" in opt_str.split(), precweight=precweight,
+            )
+        case "matrix":
+            return check_matrix(reply, expected, precision, comma_is_decimal)
+        case "clicktile":
+            return check_clicktile(reply, expected)
+        case "crossword":
+            return check_crossword(reply, expected)
         # `multipleclick` note par égalité d'ensembles de positions, comme
         # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
         # égaux dans `anstype/multipleclick`.

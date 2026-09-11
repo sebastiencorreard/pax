@@ -599,3 +599,22 @@ _IMPORT_2026_09_10_CONSTANT_SCORE: set[str] = {
     "H5~analysis~oefratexp.fr~src~frequence",
 }
 XFAIL_CONSTANT_SCORE |= _IMPORT_2026_09_10_CONSTANT_SCORE
+
+
+# Réveillés par le portage des 7 types de réponse (2026-09-11). Ils
+# « passaient » à vide : leur type retombait sur `check_text`, qui comparait
+# l'attendu à lui-même. Leur checker désormais réel démasque un défaut en
+# amont — de rendu ou de forme d'attendu, hors du périmètre du checker :
+#
+#   ordphase1/1P/2  reorder  l'attendu `$(val31[2..-1])` est **vide** à la
+#                            graine testée (tranche hors bornes) → liste `;`
+#   matsys          matrix   l'attendu est une **expression** matricielle
+#                            (`A=[…];B=[…];M=A^(-1)*B`), non une matrice de
+#                            coefficients — check_matrix ne l'évalue pas
+_PORTAGE_TYPES_2026_09_11: set[str] = {
+    "H1~physics~oefoptics.fr~src~ordphase1",
+    "H1~physics~oefoptics.fr~src~ordphase1P",
+    "H1~physics~oefoptics.fr~src~ordphase2",
+    "H5~analysis~foncpluvares.fr~src~matsys",
+}
+XFAIL_CORRECT_SCORE |= _PORTAGE_TYPES_2026_09_11

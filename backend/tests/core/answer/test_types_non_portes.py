@@ -39,13 +39,14 @@ from core.oef.engine import load_and_render
 #      if (C._logged_unhandled_types.clear() or
 #          C.check_answer(t,'1','1',{},'fr') or True) and C._logged_unhandled_types]
 #   print(d)"
+# `chset`, `clicktile`, `complex`, `compose`, `crossword`, `matrix` et
+# `reorder` (avec l'alias `textcomp`) ont été portés le 2026-09-11 : ils ont
+# leur propre checker et ne retombent plus sur `check_text`.
 _DETTE = frozenset({
     "autoeval", "chembrut", "chemclick", "chemdraw", "chemformula",
-    "chemformula_analysis", "chessgame", "chset", "clicktile", "clock", "code",
-    "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
-    "geogebra_translation", "imgcomp", "javacurve",
-    "keyboard", "matrix", "multidraw", "puzzle", "reaction",
-    "reorder", "symtext", "textcomp", "time",
+    "chemformula_analysis", "chessgame", "clock", "code", "draft", "dragfill",
+    "flashcard", "geogebra_translation", "imgcomp", "javacurve", "keyboard",
+    "multidraw", "puzzle", "reaction", "symtext", "time",
 })
 
 # Le sous-ensemble que le corpus emploie vraiment — le reste de `_DETTE` est
@@ -58,8 +59,7 @@ _DETTE = frozenset({
 # `_DETTE_ATTEINTE` qui ordonne le travail. Six y sont entrés avec l'import de
 # H1, H2, H5 et H6 (2026-09-10).
 _DETTE_EMPLOYEE = frozenset({
-    "chset", "clicktile", "complex", "compose", "crossword", "draft",
-    "dragfill", "matrix", "reaction", "reorder", "symtext",
+    "draft", "dragfill", "reaction", "symtext",
 })
 
 # Employés par le corpus, jamais parvenus à `check_answer` : le moteur les
@@ -92,18 +92,11 @@ _DETTE_INTERCEPTEE = frozenset({
 # texte refuse toute écriture autre que celle de la référence. Déclarations
 # relevées dans les `.def` des niveaux importés :
 #
-#   complex    63  H5, H6 — oefcomplexes, cplxcalc, cplxgeom, SecondDegreRetC
-#   chset      21  H2 — OEFangle.fr / .nl
-#   clicktile  15  H1, H2 — oefratio, oeffrieze
-#   compose     9  H1, H2, H6 — geobase, oefoptics, oefcalcul
-#   matrix      7  H5, H6 — oefsecdeg, foncpluvares, OEFphmetrie
-#   crossword   5  H1, H2 — oefvocmarine, oefsolaire
-#   reorder     3  H1 — oefoptics
-#
-# Recensés, non portés : un chantier par type (TODO I.3 c), `complex` d'abord.
-_DETTE_ATTEINTE: frozenset[str] = frozenset({
-    "chset", "clicktile", "complex", "compose", "crossword", "matrix", "reorder",
-})
+# Les sept types qui atteignaient vraiment le checker (complex 63, chset 21,
+# clicktile 15, compose 9, matrix 7 [H5/H6], crossword 5, reorder 3) ont été
+# portés le 2026-09-11 : plus aucun type employé par le corpus ne retombe sur
+# `check_text` au rendu.
+_DETTE_ATTEINTE: frozenset[str] = frozenset()
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")
 
