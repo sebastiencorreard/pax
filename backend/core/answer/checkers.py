@@ -14,6 +14,7 @@ import sys
 import unicodedata
 
 from core.oef.def_engine import wims_lists as wl
+from core.oef.safe_math import entree_math_sure
 
 _log = logging.getLogger("pax.answer")
 _logged_unhandled_types: set[str] = set()
@@ -278,6 +279,30 @@ _WIMS_KNOWN_TYPES = frozenset({
 _MODULE_ANSTYPES = frozenset({
     "runcode", "js2wims1", "draft", "autoeval", "vector", "reaction",
     "numexp2", "jsxgraphobjet",
+})
+
+
+# Types dont le checker ne confie **jamais** la valeur à un évaluateur
+# (`sympify`/`eval`) : réponses texte, à choix, graphiques ou de code. Leur
+# réponse porte légitimement des points (phrases, HTML) ou du code (`runcode`,
+# où le sandbox est ailleurs), et le garde-fou de sécurité de `check_answer`
+# les épargne. Tout ce qui n'est pas ici — les types algébriques et numériques,
+# `set`/`vector`/`equation`, et le repli `default`/`auto` comme les types
+# inconnus qui retombent sur `check_default` — est validé.
+_TYPES_SANS_EVAL = frozenset({
+    "atext", "wlist", "case", "nocase", "raw", "symtext", "textcomp",
+    "radio", "menu", "mark", "click", "clickfill", "clicktile", "checkbox",
+    "multipleclick", "dragfill", "flashcard", "keyboard", "puzzle", "reorder",
+    "correspond", "coord", "draw", "multidraw", "chemeq", "chembrut",
+    "chemclick", "chemdraw", "chemformula", "chemformula_analysis", "chset",
+    "compose", "matrix", "crossword", "chessgame", "clock", "time", "code",
+    "geogebra", "geogebra_translation", "jmolclick", "jmolstr", "jsxgraph",
+    "jsxgraphcurve", "jsxgraphobjet", "javacurve", "js2wims1", "imgcomp",
+    "runcode", "reaction", "draft", "autoeval",
+    # `units`/`sigunits` : l'unité porte un point de multiplication
+    # (`m.s^-1`) qui n'est pas un point décimal. Leur valeur numérique, elle,
+    # passe par `_eval_scalar`, gardé à part.
+    "units", "unit", "sigunits",
 })
 
 
@@ -1718,7 +1743,15 @@ def _eval_scalar(s: str, comma_is_decimal: bool = True) -> float:
     `_parse_number` couvre l'entier, le décimal, la fraction et l'arithmétique
     simple ; sympy prend la suite pour ce qui appelle une fonction (`sqrt(2)/2`
     en géométrie). Lève `ValueError` si rien n'y parvient.
+
+    Cette voie confie ``s`` à ``sympify`` : c'est la frontière d'évaluation de
+    la valeur numérique d'une réponse ``units``/``sigunits`` (dont le nom est
+    exclu du garde-fou global de ``check_answer``, car l'unité y porte un point
+    de multiplication — ``m.s^-1``). On refuse ici l'accès par attribut ou
+    dunder, comme un scalaire illisible (cf. ``core/oef/safe_math.py``).
     """
+    if not entree_math_sure(s):
+        raise ValueError(f"entrée refusée: {s!r}")
     try:
         return _parse_number(s, comma_is_decimal)
     except (ValueError, SyntaxError, ZeroDivisionError, NameError, TypeError):
@@ -3808,6 +3841,21 @@ def check_answer(
     # `\computeanswer{no}` (défaut OEF) : une réponse numérique doit être un
     # nombre, pas une expression à calculer. `yes` autorise le calcul.
     compute_ok = str(options.get("computeanswer", "")).strip().lower() == "yes"
+
+    # Garde-fou de sécurité. Les types ci-dessous confient la réponse à
+    # `sympify`/`parse_expr` de SymPy, qui exécute du code Python arbitraire
+    # (cf. `core/oef/safe_math.py`) : une réponse forgée peut lancer du code
+    # côté serveur. On refuse ici, avant tout travail SymPy (y compris les
+    # pré-vérifications `is_polexpand`/`_free_symbols` plus bas), toute réponse
+    # portant un accès par attribut ou un dunder. Les types texte/QCM
+    # (`atext`, `radio`, `case`…) n'atteignent aucun évaluateur et gardent
+    # leurs points et leur HTML — ils ne sont pas concernés. Le nom `default`
+    # (et tout type inconnu, qui retombe sur `check_default`) l'est.
+    if answer_type.lower() not in _TYPES_SANS_EVAL and not entree_math_sure(reply):
+        return CheckResult(
+            correct=False, score=0.0, method="refus_securite",
+            status="invalid_format", detail=_REWRITE_MSG,
+        )
 
     # WIMS `option=default=X` (step.proc) : une réponse vide est remplacée par X
     # puis vérifiée normalement. Couvre `default=vide` (fset « ∅ » : un champ

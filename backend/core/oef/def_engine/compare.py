@@ -14,6 +14,7 @@ from typing import Callable, Optional
 
 from . import wims_lists as wl
 from .cas import _MATH_NS
+from ..safe_math import entree_math_sure
 
 
 # Type for the optional variable-substitution callback. Mirrors WIMS' compare.c
@@ -131,6 +132,11 @@ def _wims_eval_num(expr: str) -> float | None:
     s = expr.strip()
     if not s:
         return 0.0
+    # Un `!if`/`!select` peut comparer une valeur issue de la réponse de
+    # l'élève ; `__builtins__` vide n'arrête pas les chaînes de dunders, qui ne
+    # figurent dans aucune comparaison légitime.
+    if not entree_math_sure(s):
+        return None
     try:
         result = eval(s.replace("^", "**"), {"__builtins__": {}}, _MATH_NS)
         return float(result)

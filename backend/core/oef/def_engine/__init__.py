@@ -70,6 +70,7 @@ from .presentation import (
 )
 from .slib import _SlibExit, _SlibMixin
 from ..numfmt import wims_float2str
+from ..safe_math import entree_math_sure
 from ..i18n import list_separator, uses_comma_decimal
 from . import wims_lists as wl
 from .wims_img import calc_imgrename
@@ -1724,6 +1725,17 @@ class DefEngine(_SlibMixin):
 
     def _calcul_arith(self, expr: str, strict: bool = False) -> str:
         """Le calcul de `_eval_arith`, sur une expression déjà substituée."""
+        # Garde-fou de sécurité. `analyze` substitue la réponse de l'élève dans
+        # les expressions de l'auteur avant de les évaluer ici par `eval` :
+        # une réponse forgée (`().__class__…`, `__import__(…)`) exécuterait du
+        # code côté serveur, l'espace de noms vide n'arrêtant pas les chaînes de
+        # dunders. Une expression arithmétique légitime n'a ni dunder ni accès
+        # par attribut (seul le point décimal, entre chiffres). En cas de refus,
+        # `NaN` en mode strict (la correction ne validera rien), sinon
+        # l'expression telle quelle — le même « je n'ai pas su » que les autres
+        # échecs de calcul.
+        if not entree_math_sure(expr):
+            return "NaN" if strict else expr
         # 1b. An empty function argument — e.g. `rint()` produced when an
         # undefined/empty variable was substituted into `rint($confparm1)` —
         # is a failed numeric calc. WIMS' `$[…]` yields NaN here; returning the
@@ -2034,6 +2046,8 @@ class DefEngine(_SlibMixin):
         if numerique and res != expr:
             essai = self._subst(re.sub(motif, lambda _m: f"({val})", expr).replace("\\", "$"))
             try:
+                if not entree_math_sure(essai):
+                    raise ValueError("entrée refusée")
                 ns = dict(_MATH_NS)
                 for k, v in self.ctx.items():
                     try: ns[k] = float(v)
@@ -2047,7 +2061,7 @@ class DefEngine(_SlibMixin):
                 pass
 
         # If it looks like arithmetic, try to eval it
-        if any(c in res for c in "+-*/^"):
+        if any(c in res for c in "+-*/^") and entree_math_sure(res):
             try:
                 # Use a dummy namespace with common math functions
                 ns = dict(_MATH_NS)
@@ -2055,7 +2069,7 @@ class DefEngine(_SlibMixin):
                 for k, v in self.ctx.items():
                     try: ns[k] = float(v)
                     except: ns[k] = v
-                
+
                 eval_res = eval(res.replace("^", "**"), ns)
                 if isinstance(eval_res, (int, float)) and not isinstance(eval_res, bool):
                     return wims_float2str(eval_res)
@@ -4203,6 +4217,9 @@ class DefEngine(_SlibMixin):
         else:
             expr_py = expr_raw.replace("^", "**")
 
+        # Même garde qu'ailleurs : ne pas compiler d'accès par attribut/dunder.
+        if not entree_math_sure(expr_py):
+            return ""
         try:
             code = compile(expr_py, "<solve>", "eval")
         except SyntaxError:
