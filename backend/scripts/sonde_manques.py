@@ -51,6 +51,11 @@ _run_slib = E.DefEngine._run_slib
 
 
 def run_slib(self, slib_path, params):
+    # Comme `_run_slib`, réachemine les chemins périmés vers la slib réelle
+    # avant de juger de sa présence — sinon la sonde signale un manque que
+    # l'alias a déjà résolu.
+    from core.oef.def_engine.slib import _ALIAS_SLIB  # noqa: PLC0415
+    slib_path = _ALIAS_SLIB.get(slib_path, slib_path)
     nom = slib_path.rsplit("/", 1)[-1]
     if nom not in ("editor", "jmolshow") and self.def_path:
         module_dir = os.path.dirname(os.path.dirname(self.def_path))

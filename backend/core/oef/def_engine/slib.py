@@ -864,6 +864,15 @@ class _SlibMixin:
         """Locate and execute a ``slib/<name>`` script."""
         from ..def_parser import _merge_continuations  # noqa: PLC0415
 
+        # Alias de chemin : deux idiomes anciens désignent la slib `oef/env`
+        # (l'accès à `$(oefenv_<arg>)`), mais sous des chemins qui n'existent
+        # nulle part, pas même dans WIMS — `utilities/env` (un module, très
+        # ancien) et `oefenv` (semé par les templates `oef.en`/`oef.es`,
+        # fautifs, d'où sa présence dans des modules récents). L'appel y échoue
+        # silencieusement chez WIMS comme ici ; on le réachemine vers la slib
+        # réelle. Signalé aux développeurs de WIMS le 2026-09-11.
+        slib_path = _ALIAS_SLIB.get(slib_path, slib_path)
+
         # The WYSIWYG code editor (slib `coding/editor`, often vendored locally
         # as `slib/editor`) builds a CodeMirror widget out of inline <script>s,
         # which can't run when injected via the front-end's v-html. Emit a
@@ -1275,6 +1284,13 @@ class _SlibMixin:
                     espace = _dollars_nus(m.group(2).strip("\r\n"))
                     self.ctx[name] = espace if espace is not None else self._eval_value(m.group(2))
             i += 1
+
+
+# Chemins de slib périmés → la slib réelle `oef/env`. Voir `_run_slib`.
+_ALIAS_SLIB = {
+    "slib/utilities/env": "slib/oef/env",
+    "slib/oefenv": "slib/oef/env",
+}
 
 
 def _dollars_nus(valeur: str) -> str | None:
