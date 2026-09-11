@@ -1204,7 +1204,43 @@ def _pari_core(n):
     return sign * result
 
 
+def _pari_bezout(a, b):
+    """`bezout(a,b)` de PARI : le vecteur ``[u, v, d]`` avec ``u·a + v·b = d =
+    pgcd(a,b)``. `OEFarithmTS/bezout4` en indexe ``[1]`` et ``[2]``.
+
+    Euclide étendu maison (pas de `igcdex` dans cette version de sympy). Le
+    représentant de ``u`` peut différer de celui de PARI par un multiple de
+    ``b``, mais l'exercice le passe ensuite par ``lift(Mod(u, b))`` : le
+    résultat est le même."""
+    import sympy  # noqa: PLC0415
+
+    old_r, r = int(a), int(b)
+    old_u, u = 1, 0
+    old_v, v = 0, 1
+    while r:
+        q = old_r // r
+        old_r, r = r, old_r - q * r
+        old_u, u = u, old_u - q * u
+        old_v, v = v, old_v - q * v
+    return sympy.Matrix([[old_u, old_v, old_r]])
+
+
+def _pari_mod(a, n):
+    """`Mod(a,n)` de PARI, ramené à son représentant dans ``[0, n)`` — c'est ce
+    que `lift` en tire. `lift(Mod(a,n))` vaut donc ``a mod n``."""
+    return int(a) % int(n)
+
+
+def _pari_lift(x):
+    """`lift` de PARI : ôte la structure `Mod`. `_pari_mod` rend déjà l'entier
+    représentant, donc `lift` est l'identité ici."""
+    return x
+
+
 _PARI_HELPERS: dict = {
+    "bezout": _pari_bezout,
+    "Mod": _pari_mod,
+    "lift": _pari_lift,
     "concat": _pari_concat,
     "expand": _pari_expand,
     "denominator": _pari_denominator,
