@@ -27,7 +27,13 @@ from core.oef import def_engine as E  # noqa: E402
 from core.oef.engine import find_def_path  # noqa: E402
 from tests import corpus  # noqa: E402
 
-_EXEC_GERES = {"maxima", "pari", "units-filter", "chemeq", "canvasdraw"}
+# Les programmes que `_cmd_exec` sait traiter — à tenir à jour avec son
+# expression régulière, sinon la sonde signale comme manquant ce qui est porté
+# (`moneyprint`, `float_calc` et `lceb` depuis le 2026-09-10).
+_EXEC_GERES = {
+    "maxima", "pari", "units-filter", "chemeq", "canvasdraw",
+    "moneyprint", "float_calc", "lceb",
+}
 _UNKNOWN = re.compile(r"UNKNOWN_CMD:(\w+)")
 
 courant: dict = {}

@@ -894,6 +894,13 @@ class _SlibMixin:
             candidates.append(os.path.join(wims_scripts_dir, slib_path))
         script_path = next((p for p in candidates if os.path.exists(p)), None)
         if not script_path:
+            # Une slib introuvable ne produit rien — mais `slib_out` gardait
+            # alors ce qu'y avait laissé le script précédent, et l'énoncé
+            # l'affichait. Seulement pour une slib : une lecture `gp/…` ou un
+            # fichier lu depuis une slib n'ont pas de `slib_out`, et le vider
+            # effacerait la sortie de la slib appelante.
+            if slib_path.startswith("slib/"):
+                self.ctx["slib_out"] = ""
             return
         try:
             with open(script_path, encoding="utf-8") as f:
@@ -1083,6 +1090,20 @@ class _SlibMixin:
                 i += 1
                 continue
             if stripped == "!exit":
+                raise _SlibExit()
+            if re.match(r"!changeto\b", stripped):
+                # `exec_changeto` (`src/exec.c`) : `linepointer=linecnt` puis
+                # `exec_read` — le fichier courant s'arrête là et la cible est
+                # lue à sa place, chemin substitué (`EXEC_SUBST`). Les `var.proc`
+                # de module finissent par `!changeto oef/var.proc` : faute de
+                # traitement, la commande sortait en `UNKNOWN_CMD:changeto` et
+                # finissait dans `slib_out`, donc dans l'énoncé. Les cibles de
+                # l'OEF (`oef/var.proc`, `oef/Main.phtml`) ne sont pas
+                # vendorisées : leur lecture ne fait rien, PAX gérant lui-même
+                # ce qu'elles installent.
+                cible = self._subst(stripped[len("!changeto"):].strip())
+                if cible:
+                    self._cmd_readproc(cible)
                 raise _SlibExit()
             if stripped.startswith("!while "):
                 # `!while COND … !endwhile`, sur le même pointeur que `!for` :
