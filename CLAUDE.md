@@ -201,10 +201,17 @@ Number display and answer parsing follow the **exercise language**, not the UI
 locale. `backend/core/oef/i18n.py` is the single source of truth: comma-decimal
 languages (`,` decimal / `;` list) vs dot-decimal (`.` decimal / `,` list).
 **To support a new comma-decimal language, add its ISO code to
-`COMMA_DECIMAL_LANGS` there — nothing else changes.** Decimals are formatted
-noise-free via `core/oef/numfmt.py:format_wims_float` (12 significant digits,
-like WIMS' `double` printing). The frontend (`composables/useKatex.ts`) wraps a
-decimal comma as `{,}` so KaTeX doesn't add punctuation spacing.
+`COMMA_DECIMAL_LANGS` there — nothing else changes.** Reals produced by `$[…]`,
+`!values`, `!makelist` and `!for` variables are written by
+`core/oef/numfmt.py:wims_float2str`, a port of WIMS' `float2str`: an integer
+strictly between -10⁶ and 10⁶ prints as an integer, anything else as `%.8g`
+(`print_precision=8`, set for every OEF exercise by `oef/var.proc`) —
+`$[1/3]` → `0.33333333`, `$[123456789]` → `1.2345679e+08`. What PAX displays
+on its own (checker feedback, SymPy results, scores) goes through
+`format_wims_float` instead: 12 significant digits, a PAX choice — this file
+long presented it as WIMS' printing, which `float2str` contradicts. The frontend
+(`composables/useKatex.ts`) wraps a decimal comma as `{,}` so KaTeX doesn't add
+punctuation spacing.
 
 The **corrected answer** shown after submitting goes through one pass of its
 own, `_localize_feedback` in `api/routes/check.py`: the engine emits dots, the

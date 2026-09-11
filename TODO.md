@@ -608,11 +608,21 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   s'évalue pas, et `_eval_scalar` connaît les constantes d'`evalue.c` (`e`, `E`,
   `pi`, `Pi`, `PI`). `2*exp(1)` vaut `2*e` sous `\computeanswer{yes}` ; sans,
   WIMS comme PAX refusent le calcul — `2*e` compris.
-- [ ] **Un grand flottant s'imprime en entier.** `format_wims_float` écrit
-  `6021511770820833634680832` (masse de la Terre, `kepler3a`) là où le
-  `float2str` de WIMS imprime en `%.<print_precision>g`. Juste en valeur, laid
-  dans le corrigé ; à confronter à WIMS avant d'y toucher, la règle servant
-  tout le corpus.
+- [x] **L'écriture des réels suit `float2str`** (2026-09-11). `$[…]`,
+  `!values`, `!makelist` et les variables de `!for` passaient par
+  `format_wims_float` — 12 chiffres, tout entier en entier —, présentée comme
+  l'impression de WIMS. `float2str` (`src/evalue.c`) écrit un entier en entier
+  seulement entre -10⁶ et 10⁶, tout le reste en `%.<print_precision>g`, et
+  `oef/var.proc` pose `print_precision=8` pour chaque OEF (aucun `.def` ne le
+  change). Portée par `numfmt.wims_float2str` ; `format_wims_float` reste pour
+  ce que PAX affiche lui-même. `kepler3a` affiche `6.0215118e+24`.
+  Mesure : 419 exercices sur 9 770 changent, classés — arrondi à 8 chiffres,
+  sa propagation (WIMS garde ses variables en chaînes : `clamed4` voit sa
+  fréquence cumulée finir à `0.99999999`), et un nombre à 9 chiffres qui perd
+  le dernier (`oefpower/decimal`, fidèle : `evalue` relit `3.6295063e+08` par
+  `strtod`). Une régression, corrigée : `_expected_as_fraction` comparait la
+  fraction au calcul à 10⁻⁹ près, et `quizz`, `oeflinsys`, `OEFpolynome`…
+  perdaient leur attendu fractionnaire ; la tolérance suit `print_precision`.
 - [ ] **Procédures de module jamais exécutées** : `_cmd_readproc` ignore tout
   fichier qu'il ne connaît pas. `!read my_var.proc` (depuis le `var.proc` de
   `oefvocmarine`, `OEFCalcLimLnExp`, `OEFexpalgTS`… 151 rendus),

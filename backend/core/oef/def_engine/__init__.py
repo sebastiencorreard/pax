@@ -69,7 +69,7 @@ from .presentation import (
     wims_matrices_to_latex,
 )
 from .slib import _SlibExit, _SlibMixin
-from ..numfmt import format_wims_float
+from ..numfmt import wims_float2str
 from ..i18n import list_separator, uses_comma_decimal
 from . import wims_lists as wl
 from .wims_img import calc_imgrename
@@ -1601,16 +1601,15 @@ class DefEngine(_SlibMixin):
 
         var = loop.var.lstrip("$")
         saved = self.ctx.get(var)
-        # Les bornes sont des `double` dans le C, et `float2str` écrit un entier
-        # sans décimale : `!for q=0 to 360 step 45` donne bien `45`, non `45.0`.
-        entier = all(float(x).is_integer() for x in (start, end, pas))
+        # Les bornes sont des `double` dans le C, que `float2str` écrit :
+        # `!for q=0 to 360 step 45` donne bien `45`, non `45.0`.
         valeur = start
         # Backstop contre une borne géante à corps vide (le budget temps du
         # rendu ne s'arme que si le corps s'exécute) : cap dur d'itérations.
         for _ in range(100001):
             if (pas > 0 and valeur > end) or (pas < 0 and valeur < end):
                 break
-            self.ctx[var] = str(int(valeur)) if entier else format_wims_float(valeur)
+            self.ctx[var] = wims_float2str(valeur)
             self._exec(loop.body, output_buf)
             valeur += pas
         if saved is not None:
@@ -1799,8 +1798,10 @@ class DefEngine(_SlibMixin):
                 ns[k] = s
         try:
             res = eval(expr, ns)  # noqa: S307
-            if isinstance(res, float):
-                return format_wims_float(res)
+            # `$[…]` rend un `double` chez WIMS, écrit par `float2str` : un
+            # entier Python y passe aussi (`$[123456789]` → `1.2345679e+08`).
+            if isinstance(res, (int, float)) and not isinstance(res, bool):
+                return wims_float2str(res)
             return str(res)
         except ZeroDivisionError:
             # `Lib/evalue.c` — `if(dd==0) {evalue_error=10; return NAN;}`. Même
@@ -2040,10 +2041,8 @@ class DefEngine(_SlibMixin):
                 nombre = eval(essai.replace("^", "**"), ns)
                 if isinstance(nombre, bool):
                     raise TypeError
-                if isinstance(nombre, float):
-                    return format_wims_float(nombre)
-                if isinstance(nombre, int):
-                    return str(nombre)
+                if isinstance(nombre, (int, float)):
+                    return wims_float2str(nombre)
             except Exception:
                 pass
 
@@ -2058,10 +2057,8 @@ class DefEngine(_SlibMixin):
                     except: ns[k] = v
                 
                 eval_res = eval(res.replace("^", "**"), ns)
-                if isinstance(eval_res, float):
-                    return format_wims_float(eval_res)
-                if isinstance(eval_res, int):
-                    return str(eval_res)
+                if isinstance(eval_res, (int, float)) and not isinstance(eval_res, bool):
+                    return wims_float2str(eval_res)
             except:
                 pass
         return res
@@ -2943,7 +2940,7 @@ class DefEngine(_SlibMixin):
             items = []
             v = start
             while len(items) < 2048 and v * step <= end * step:
-                items.append(format_wims_float(v))
+                items.append(wims_float2str(v))
                 v += step
         else:
             return ""
@@ -6512,12 +6509,21 @@ class DefEngine(_SlibMixin):
             and res.denominator % 10 != 0
         ):
             return None
-        # La reconstruction doit retomber sur ce que le moteur a calculé.
+        # La reconstruction doit retomber sur ce que le moteur a calculé — à la
+        # précision près où `float2str` l'a écrit : 8 chiffres significatifs
+        # (`print_precision`), soit un écart relatif jusqu'à 5·10⁻⁸, un peu
+        # plus après quelques calculs sur des valeurs déjà arrondies. Une
+        # tolérance de 10⁻⁹ rejetait `5/3` contre `1.6666667`. Une vraie
+        # divergence — le signe perdu de `course12_2step` — reste très
+        # au-dessus.
+        from ..numfmt import PRINT_PRECISION_OEF  # noqa: PLC0415
+
         try:
             calcule = float(str(valeur).strip().replace(",", "."))
         except (TypeError, ValueError):
             return None
-        if abs(float(res) - calcule) > 1e-9 * max(1.0, abs(calcule)):
+        tolerance = 10.0 ** (1 - PRINT_PRECISION_OEF)
+        if abs(float(res) - calcule) > tolerance * max(1.0, abs(calcule)):
             return None
         return f"{res.numerator}/{res.denominator}"
 

@@ -1732,7 +1732,8 @@ class TestCallMaxima:
         # free symbol/NameError.
         e = engine()
         assert e._eval_arith("rint(1.41421356237 + Pi)") == "5"
-        assert e._eval_arith("Pi") == "3.14159265359"
+        # `float2str` écrit le réel sur `print_precision` = 8 chiffres.
+        assert e._eval_arith("Pi") == "3.1415927"
         assert _call_maxima("Pi*2").startswith(("6.28318", "2*pi"))
 
     def test_expand_with_minus(self):

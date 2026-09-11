@@ -21,4 +21,5 @@ def test_les_zeros_de_tete_ne_mangent_plus_le_nombre():
     # Avant, la règle des zéros de tête lisait ` 000` comme un `0` isolé.
     e = DefEngine(seed=1)
     e.ctx["val13"] = "384 000"
-    assert e._eval_value("$[1000*$val13]") == "384000000"
+    # 384 000 000 dépasse 10⁶ : `float2str` l'écrit en `%.8g`.
+    assert e._eval_value("$[1000*$val13]") == "3.84e+08"
