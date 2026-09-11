@@ -517,6 +517,13 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     comme dans les commandes de `circuits/draw`. Une règle posée dans `_subst`
     a cassé 10 tests : PAX substitue à d'autres moments que WIMS, et parfois
     deux fois — la correction se fera là où l'idiome est lu, pas en bloc.
+    **Premier cas réglé (2026-09-11)** : l'affectation `nom=$ $` d'une slib
+    vaut une espace (`_dollars_nus`, `slib.py`), seule forme où la valeur
+    n'est faite que de `$` et de blancs. `ecriturenombre` écrit ainsi son
+    séparateur de milliers : les étiquettes d'`OEFevalwimsope/oefgrandeur*`
+    montraient `8$ $000`, et leur somme `$[8$ $000+9$ $000]` ne s'évaluait pas
+    (réponse 80 000 au lieu de 20 000). Restent `matrixtex`, `circuits/draw`
+    et `oef/embed.phtml`, où le `$` nu est au milieu d'un texte.
 - [ ] ~~**29 slibs WIMS absentes de `ressources/wims-scripts/`.**~~ Relevé
   d'origine, conservé pour mémoire : `_run_slib` ne les trouvait pas et
   rendait la main sans rien produire. Les plus appelées :
@@ -577,19 +584,35 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     qu'`anstype/numeric` fait `$[…]`. Il passe par `_eval_scalar`, et le détour
     `default` → `numeric` applique désormais le garde de
     `\computeanswer{no}`, comme le `!changeto` de WIMS.
-- [ ] **Des nombres à espace lus comme des produits.** `oefsolaire/kepler3a`
-  tire `384 000` d'un `!item`, puis évalue `$[(4*pi^2*(1000*384 000)^3)/…]` :
-  l'attendu sort non évalué, `384 0` y compris, et `check_numeric` — qui lit
-  désormais les expressions — le prend pour `384*0`. La bonne réponse « passe »
-  donc à vide ; `OEFevalwimsnumber/oefecrit103` (`1 0`) de même. Tous deux
-  restent en `xfail`. Voir comment `evalue.c` traite l'espace dans un nombre.
-- [ ] **`\(…\)` dans une liste de réponses** : `OEFgeospace/interobjplan` range
-  `droite \($val56)` dans les éléments d'un appariement, sans `!texmath` ; le
-  `sqrt(15)` y reste en clair. Masqué jusqu'ici par un `UNKNOWN_CMD` qui coupait
-  le rendu plus tôt ; en `xfail` de structure.
-- [ ] **`default` exige une forme sur un attendu numérique** : `2*e` y est
-  jugé développé, si bien que `2*exp(1)` est refusé (`polexpand`) avant
-  l'aiguillage vers `numeric`, que WIMS fait en premier.
+- [x] **Des nombres à espace lus comme des produits** (2026-09-11).
+  `oefsolaire/kepler3a` évalue `$[(4*pi^2*(1000*384 000)^3)/…]` ; PAX gardait
+  l'espace, l'évaluation échouait, et la règle des zéros de tête finissait
+  l'attendu en `384 0`. `strevalue` (`Lib/evalue.c`) fait
+  `substitute(buf); nospace(buf);` : `_eval_arith` retire désormais toutes les
+  espaces. `kepler3a` et `OEFevalwimsnumber/oefecrit103` (`1000`) se notent
+  pour de bon. Deux garde-fous se sont imposés à la mesure :
+  - un calcul qui **échoue** retombe sur l'expression avec ses espaces — PAX
+    l'affiche faute de mieux, et `oefsequence/calcul_terme_suite` montrait
+    `forn:1thru5` au lieu du programme `for n:1 thru 5` ;
+  - la taille d'un `\embed` suit le `!bound inputsize between integer 1 and
+    100 default N` des `anstype/*.input` : `h4droites/equationDe2pts`
+    (`reply 1,20 6`) passait de 10 — l'ancien repli — à 206, là où WIMS
+    retombe sur le défaut d'`equation`, 40.
+- [x] **~~`\(…\)` dans une liste de réponses~~** — faux diagnostic :
+  `OEFgeospace/interobjplan` n'avait plus d'anomalie une fois
+  `fullratsimp(… = 0)` simplifié ; le contrôle qui la disait persistante lisait
+  le cache Redis, non purgé. Retiré du `xfail`.
+- [x] **`default` exigeait une forme sur un attendu numérique** (2026-09-11) :
+  `anstype/default` aiguille vers `numeric` (`nn=$[…]`) avant toute question de
+  forme ; la forme devinée par PAX ne s'applique plus qu'à un attendu qui ne
+  s'évalue pas, et `_eval_scalar` connaît les constantes d'`evalue.c` (`e`, `E`,
+  `pi`, `Pi`, `PI`). `2*exp(1)` vaut `2*e` sous `\computeanswer{yes}` ; sans,
+  WIMS comme PAX refusent le calcul — `2*e` compris.
+- [ ] **Un grand flottant s'imprime en entier.** `format_wims_float` écrit
+  `6021511770820833634680832` (masse de la Terre, `kepler3a`) là où le
+  `float2str` de WIMS imprime en `%.<print_precision>g`. Juste en valeur, laid
+  dans le corrigé ; à confronter à WIMS avant d'y toucher, la règle servant
+  tout le corpus.
 - [ ] **Procédures de module jamais exécutées** : `_cmd_readproc` ignore tout
   fichier qu'il ne connaît pas. `!read my_var.proc` (depuis le `var.proc` de
   `oefvocmarine`, `OEFCalcLimLnExp`, `OEFexpalgTS`… 151 rendus),

@@ -427,15 +427,15 @@ XFAIL_CONSTANT_SCORE: set[str] = {
 # 61 en sont sortis le même soir, rejoués par `pytest --runxfail` et retenus
 # seulement quand leur attendu avait une **valeur** plausible : slibs portées,
 # synonymes de `calc.c`, intégrale définie, `e` et `inf` de Maxima,
-# `subst(x=a,F)`, `check_numeric` qui évalue comme `$[…]`. Deux « verts » y sont
-# restés, parce qu'ils passent à vide : `kepler3a` et `oefecrit103`, dont
-# l'attendu garde un nombre à espace (`384 0`) lu comme un produit nul.
+# `subst(x=a,F)`, `check_numeric` qui évalue comme `$[…]`. `kepler3a` et
+# `oefecrit103` ont suivi le lendemain : ils passaient à vide, leur attendu
+# gardant un nombre à espace (`384 000`) que `$[…]` n'évaluait pas — WIMS
+# retire toutes les espaces avant de calculer (`nospace`, `Lib/evalue.c`).
 #
-# `interobjplan` y est entré à l'inverse : le rendu va désormais assez loin
-# pour atteindre un `\(…\)` rangé dans une liste d'appariement sans `!texmath`,
-# dont le `sqrt(15)` reste en clair (TODO I.3 h).
+# `interobjplan` y a passé une nuit pour rien : son `sqrt(` brut venait d'un
+# `fullratsimp(… = 0)` que PAX ne simplifiait pas, et le contrôle qui l'a cru
+# persistant après la correction lisait le **cache Redis**.
 _IMPORT_2026_09_10_RENDER_STRUCTURE: set[str] = {
-    "H5~geometry~OEFgeospace.fr~src~interobjplan",
     "H1~geometry~OEFtriang5.fr~src~demo1",
     "H1~geometry~OEFtriang5.fr~src~demo2",
     "H5~algebra~oefgeoesp.fr~src~align",
@@ -462,7 +462,6 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H1~geometry~OEFevalwimsangle.fr~src~oefanglenat4",
     "H1~geometry~OEFevalwimsgeo1.fr~src~oefsegm2",
     "H1~geometry~oefevalwimssym.fr~src~oefmediat5",
-    "H1~number~OEFevalwimsnumber.fr~src~oefecrit103",
     "H1~number~oefadsubrel.fr~src~oppose",
     "H2~algebra~oefcalcul.es~src~calcul2",
     "H2~algebra~oefcalcul.fr~src~calcul2",
@@ -471,7 +470,6 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H2~algebra~oefrationnel.fr~src~n2s1e07",
     "H2~algebra~tableur.fr~src~plage2",
     "H2~analysis~OEFevalwimsprop.fr~src~calcechelle4",
-    "H2~astronomy~oefsolaire.fr~src~kepler3a",
     "H5~algebra~OEFpctprem.fr~src~proportion2",
     "H5~algebra~OEFpctprem.fr~src~taux3",
     "H5~algebra~oefcomplexes.fr~src~bidevel2",

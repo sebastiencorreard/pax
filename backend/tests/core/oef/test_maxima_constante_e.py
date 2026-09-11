@@ -79,6 +79,14 @@ class TestNumeriqueAvecFonctions:
         assert check_answer("auto", "-3*exp(6)+4*exp(8)", attendu, opts, "fr").correct
         assert not check_answer("auto", "-3*exp(6)+4*exp(7)", attendu, opts, "fr").correct
 
+    def test_default_aiguille_vers_numeric_avant_la_forme(self):
+        # `anstype/default` : `nn=$[…]` puis `numeric`, qui ne juge aucune
+        # forme. `2*e` n'impose pas d'écriture développée à `2*exp(1)`.
+        r = check_answer("auto", "2*exp(1)", "2*e", {"computeanswer": "yes"}, "fr")
+        assert r.correct
+        # Une expression littérale garde sa contrainte de forme.
+        assert not check_answer("auto", "(x+1)*2", "2*x+2", {}, "fr").correct
+
     def test_computeanswer_no_refuse_toujours_le_calcul(self):
         # `default` passe la main à `numeric`, garde compris : sans
         # `\computeanswer{yes}`, une expression n'est pas une valeur.

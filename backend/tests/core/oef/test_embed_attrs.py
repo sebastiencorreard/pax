@@ -45,6 +45,18 @@ class TestEmbedRendering:
         assert 'data-size="30"' in html
         assert "autofocus" in html
 
+    def test_taille_hors_borne_prend_le_defaut_du_type(self):
+        # `!bound inputsize between integer 1 and 100 default 40`
+        # (`anstype/equation.input`) : `20 6` vaut 206, hors borne.
+        e = engine()
+        e.ctx["replytype1"] = "equation"
+        assert 'data-size="40"' in e._render_embed("reply1,20 6")
+
+    def test_taille_dans_la_borne_gardee(self):
+        e = engine()
+        e.ctx["replytype1"] = "equation"
+        assert 'data-size="25"' in e._render_embed("reply1,25")
+
     def test_no_attributes_no_data_attrs(self):
         assert engine()._render_embed("reply1,30") == (
             '<span class="oef-input" name="reply1" data-size="30"></span>'

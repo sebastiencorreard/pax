@@ -1726,9 +1726,16 @@ def _eval_scalar(s: str, comma_is_decimal: bool = True) -> float:
     try:
         import sympy  # noqa: PLC0415
 
+        # Les constantes de `Lib/evalue.c` : `e`, `E`, `pi`, `Pi`, `PI`.
+        # `_safe_locals` fait de `E` un symbole, à raison pour une comparaison
+        # algébrique, mais `$[2*e]` est un nombre chez WIMS.
+        constantes = {
+            **_safe_locals(),
+            "e": sympy.E, "E": sympy.E, "Pi": sympy.pi, "PI": sympy.pi,
+        }
         val = complex(
             sympy.sympify(
-                _normalize_expr(s, comma_is_decimal), locals=_safe_locals()
+                _normalize_expr(s, comma_is_decimal), locals=constantes
             ).evalf()
         )
     except Exception as exc:  # noqa: BLE001
@@ -3844,11 +3851,23 @@ def check_answer(
     # forme (check_litexp) ; algexp accepte toute forme équivalente non
     # simplifiée (`(24+4)*x-53` pour `28*x-53`) — pas de contrainte
     # développé/factorisé auto-déduite. `default`/`auto` la gardent.
+    # `anstype/default` aiguille vers `numeric` **avant** toute question de
+    # forme — `nn=$[$(replygood$i)]` puis `!changeto anstype/numeric` —, et
+    # `numeric` n'en pose aucune. La forme devinée ci-dessous ne vaut donc que
+    # pour un attendu qui ne s'évalue pas en nombre : sans cette garde, `2*e`
+    # passait pour développé et `2*exp(1)` était refusé comme mal écrit.
+    attendu_numerique = False
+    if answer_type.lower() in ("default", "auto") and "=" not in expected:
+        try:
+            attendu_numerique = math.isfinite(_eval_scalar(expected, comma_is_decimal))
+        except ValueError:
+            pass
     if (
         not requires_expand
         and not requires_factor
         and answer_type.lower() in ("default", "auto")
         and any(c.isalpha() for c in expected)
+        and not attendu_numerique
     ):
         if is_polexpand(expected):
             requires_expand = True

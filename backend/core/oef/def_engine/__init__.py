@@ -1699,6 +1699,32 @@ class DefEngine(_SlibMixin):
         """
         # 1. Substitute all variable references
         expr = self._subst_for_arith(expr)
+        # 1a. `strevalue` (`Lib/evalue.c`) : `substitute(buf); nospace(buf);`
+        # — WIMS retire **toutes** les espaces avant d'évaluer. Un nombre écrit
+        # avec son séparateur de milliers y reste un nombre : `384 000` vaut
+        # 384000. PAX les gardait, l'évaluation échouait, et l'attendu de
+        # `oefsolaire/kepler3a` sortait en formule — que la règle des zéros de
+        # tête achevait en `384 0`, lu comme un produit nul.
+        #
+        # Sans espaces d'abord, donc ; mais un calcul qui échoue retombe sur
+        # l'expression **telle quelle**, que PAX affiche faute de mieux (voir la
+        # docstring). Y ôter les espaces soudait les mots d'un programme Maxima
+        # montré dans l'énoncé (`for n:1 thru 5` → `forn:1thru5`,
+        # `oefsequence/calcul_terme_suite`) : l'échec garde son ancienne forme.
+        sans_espaces = re.sub(r"\s+", "", expr)
+        if sans_espaces == expr:
+            return self._calcul_arith(expr, strict)
+        res = self._calcul_arith(sans_espaces, strict)
+        if res == "NaN":
+            return res
+        try:
+            float(res)
+            return res
+        except ValueError:
+            return self._calcul_arith(expr, strict)
+
+    def _calcul_arith(self, expr: str, strict: bool = False) -> str:
+        """Le calcul de `_eval_arith`, sur une expression déjà substituée."""
         # 1b. An empty function argument — e.g. `rint()` produced when an
         # undefined/empty variable was substituted into `rint($confparm1)` —
         # is a failed numeric calc. WIMS' `$[…]` yields NaN here; returning the
@@ -2392,13 +2418,16 @@ class DefEngine(_SlibMixin):
             return self._cmd_listintersect(args)
 
         if cmd in ("date",):
-            import datetime
+            # L'horloge du rendu, non l'heure du système : sans elle,
+            # `PAX_WIMS_NOW` ne gelait pas `!date`, et le snapshot
+            # d'`oefcalcLP/facture1` (`!date +%d`) changeait chaque jour.
             fmt = self._subst(args).strip() or "+%Y-%m-%d"
             fmt = fmt.lstrip("+")
+            maintenant = _horloge_session()
             try:
-                return datetime.datetime.now().strftime(fmt)
+                return maintenant.strftime(fmt)
             except Exception:
-                return datetime.datetime.now().strftime("%Y-%m-%d")
+                return maintenant.strftime("%Y-%m-%d")
 
         if cmd in ("htmlmath", "math2html"):
             # PAX uses KaTeX on the frontend; return the LaTeX expression wrapped
@@ -5631,6 +5660,17 @@ class DefEngine(_SlibMixin):
                 size = int(round(float(self._eval_arith(size_raw))))
             except (ValueError, TypeError):
                 size = 10
+            # `!bound inputsize between integer 1 and 100 default N` : hors de
+            # la borne — ou pas un nombre —, WIMS prend le défaut du type, il ne
+            # garde pas la valeur. `h4droites/equationDe2pts` écrit
+            # `reply 1,20 6` : `$[20 6]` vaut 206 (espaces ôtées), donc un champ
+            # `equation` de 40, non de 206 — ni de 10, l'ancien repli de PAX.
+            # `reorder` est borné à 40 ; les types à choix n'ont pas de défaut
+            # fixe et restent hors de cette règle.
+            if reply_type in _TAILLE_DEFAUT:
+                plafond = 40 if reply_type == "reorder" else 100
+                if not 1 <= size <= plafond or size_raw.strip() in ("", "NaN"):
+                    size = _TAILLE_DEFAUT[reply_type]
             if not index_donne:
                 # Sans second argument à l'`\embed`, la largeur vient du type :
                 # chaque `anstype/<type>.input` de WIMS borne `inputsize` et

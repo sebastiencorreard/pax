@@ -1221,7 +1221,8 @@ class _SlibMixin:
                 set_m = re.match(r"(.+?)\s*=\s*(.*)$", stripped[len("!set ") :], re.DOTALL)
                 if set_m:
                     name = self._subst(set_m.group(1).strip())
-                    self.ctx[name] = self._eval_value(set_m.group(2))
+                    espace = _dollars_nus(set_m.group(2))
+                    self.ctx[name] = espace if espace is not None else self._eval_value(set_m.group(2))
                 i += 1
                 continue
             if stripped.startswith("!"):
@@ -1250,8 +1251,29 @@ class _SlibMixin:
                 m = re.match(r"^\s*([\w$()\[\]]+?)\s*=\s*(.*)$", line, re.DOTALL)
                 if m:
                     name = self._subst(m.group(1).strip())
-                    self.ctx[name] = self._eval_value(m.group(2))
+                    espace = _dollars_nus(m.group(2).strip("\r\n"))
+                    self.ctx[name] = espace if espace is not None else self._eval_value(m.group(2))
             i += 1
+
+
+def _dollars_nus(valeur: str) -> str | None:
+    """`$ $` — l'idiome WIMS pour affecter **une espace** à une variable.
+
+    Une affectation perd ses blancs de bord ; les encadrer de `$` les protège.
+    `substit` (`src/evalue.c`) efface ensuite un `$` qui n'ouvre aucun nom —
+    suivi d'un blanc, `getvar("")` rend `""` — ou qui clôt la ligne. D'où
+    `slib_sep=$ $` → `" "` dans `slib/numeration/ecriturenombre`, et
+    `tiret=$ $` dans `ecriturelettre`.
+
+    PAX gardait le texte : `8$ $000` s'affichait dans les étiquettes
+    d'`OEFevalwimsope/oefgrandeur*`, et `$[8$ $000+9$ $000]` ne s'évaluait pas.
+    La règle n'est posée que sur une valeur faite **uniquement** de `$` et de
+    blancs : appliquée à toute substitution, elle avait cassé 10 tests (PAX
+    substitue à d'autres moments que WIMS). Rend `None` hors de ce cas.
+    """
+    if "$" not in valeur or not re.fullmatch(r"[ \t$]+", valeur):
+        return None
+    return re.sub(r"\$(?![A-Za-z0-9_(\[$])", "", valeur)
 
 
 # ── slib/numeration/ecriturelettre — French cardinal number → words ──────────
