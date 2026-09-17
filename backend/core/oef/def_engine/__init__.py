@@ -6439,6 +6439,167 @@ class DefEngine(_SlibMixin):
                 viables.append(branche)
         return viables or [cond]
 
+    @staticmethod
+    def _facteurs_niveau0(expr: str) -> list[str] | None:
+        """Les facteurs d'un produit pur, ou `None` si ce n'en est pas un.
+
+        Pur : ni `+`, ni `-`, ni `/` au niveau des parenthèses le plus haut.
+        On refuse plutôt que d'approximer — un attendu faux coûte plus cher
+        qu'un attendu absent.
+        """
+        expr = expr.strip()
+        if not expr:
+            return None
+        facteurs, courant, depth = [], "", 0
+        for ch in expr:
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            if depth == 0 and ch in "+-/":
+                return None
+            if depth == 0 and ch == "*":
+                facteurs.append(courant.strip())
+                courant = ""
+                continue
+            courant += ch
+        facteurs.append(courant.strip())
+        return facteurs if all(facteurs) else None
+
+    @staticmethod
+    def _membres_egalite(cond: str) -> tuple[str, str] | None:
+        """Les deux membres d'une égalité `=`/`==`, ou `None`.
+
+        Les comparateurs qui *contiennent* un `=` — `<=`, `>=`, `!=`, `<>` —
+        n'encadrent pas une valeur unique : on les écarte.
+        """
+        depth = 0
+        for i, ch in enumerate(cond):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            elif ch == "=" and depth == 0:
+                if i and cond[i - 1] in "<>!=":
+                    return None
+                j = i + 1
+                if j < len(cond) and cond[j] == "=":
+                    j += 1
+                if j < len(cond) and cond[j] in "<>":
+                    return None
+                return cond[:i].strip(), cond[j:].strip()
+        return None
+
+    def _attendu_par_appariement(self, cond: str, var_name: str) -> str:
+        """L'attendu d'une réponse prise dans un produit, par appariement.
+
+        `frac5/mult` fait saisir le numérateur (`val13`) et le dénominateur
+        (`val14`) d'un produit de fractions, et n'en teste que le produit
+        croisé :
+
+            $val6*$val8*$val14 = $val7*$val9*$val13
+
+        Une équation, deux inconnues : toutes les fractions équivalentes la
+        satisfont, et l'exercice les accepte toutes. Il faut pourtant en
+        *nommer* une pour le corrigé et pour l'auto-remplissage.
+
+        **Convention retenue** : dans `P·x = Q·y`, on rend `x = Q` et `y = P`
+        — chaque inconnue reçoit les facteurs connus du membre d'en face. Elle
+        vérifie l'équation (`P·Q = Q·P`), ne fabrique aucun facteur commun
+        superflu, et redonne ici la forme canonique : numérateur = produit des
+        numérateurs, dénominateur = produit des dénominateurs. Rien n'y oblige
+        mathématiquement ; une autre solution serait tout aussi juste, et cette
+        convention peut changer sans que la note d'un élève bouge — l'attendu
+        d'un champ `?analyze` ne sert qu'à l'affichage (cf. `run_analyze`, qui
+        note par `condtest`).
+
+        Sans inconnue en face, il n'y a plus de convention mais une division :
+        `P·x = Q` donne `x = Q/P`.
+
+        Rend `""` dès que la forme s'écarte de ce cadre — deux inconnues dans
+        un même membre, une somme, une division —, faute de quoi on écrirait
+        un attendu faux.
+        """
+        # Une conjonction pose plusieurs égalités, chacune à satisfaire : on
+        # les traite séparément. Sans ce découpage, `_membres_egalite` s'arrête
+        # au premier `=` et emporte le reste de la conjonction dans le membre
+        # droit — `OEFpdtscalTS/propbary2` en tirait l'attendu `*45`.
+        conjoints = [cond]
+        while True:
+            suite = []
+            for c in conjoints:
+                split = _wims_find_top_logic(c, "and") or _wims_find_top_logic(c, "&&")
+                suite.extend(split if split else (c,))
+            if suite == conjoints:
+                break
+            conjoints = suite
+        if len(conjoints) > 1:
+            for c in conjoints:
+                valeur = self._attendu_par_appariement(
+                    _wims_strip_all_parens(c.strip()), var_name
+                )
+                if valeur:
+                    return valeur
+            return ""
+
+        membres = self._membres_egalite(cond)
+        if membres is None:
+            return ""
+        # Un membre qui porte encore un connecteur n'a pas été borné par le
+        # découpage : mieux vaut ne rien deviner.
+        if any(
+            _wims_find_top_logic(m, op)
+            for m in membres
+            for op in ("and", "or", "&&", "||")
+        ):
+            return ""
+        motif_var = re.compile(rf"^\$\(?\s*{re.escape(var_name)}\s*\)?$")
+        vars_analyze = self._vars_analyze()
+
+        def est_reponse(facteur: str) -> bool:
+            return any(
+                re.fullmatch(rf"\$\(?\s*{re.escape(v)}\s*\)?", facteur)
+                for v in vars_analyze
+            )
+
+        for mien, autre in (membres, membres[::-1]):
+            facteurs = self._facteurs_niveau0(mien)
+            if facteurs is None or sum(bool(motif_var.match(f)) for f in facteurs) != 1:
+                continue
+            # Variable seule dans son membre : rien à démêler, et les motifs
+            # d'égalité rendent la valeur sous la forme où l'exercice l'écrit
+            # (`log(7)/log(10)`) plutôt que calculée. On leur laisse la main.
+            if len(facteurs) == 1:
+                continue
+            miens_connus = [f for f in facteurs if not motif_var.match(f)]
+            # Une autre réponse parmi mes propres facteurs : l'équation ne se
+            # résout pas en la seule variable cherchée.
+            if any(est_reponse(f) for f in miens_connus):
+                return ""
+            en_face = self._facteurs_niveau0(autre)
+            if en_face is None:
+                return ""
+            inconnues_en_face = [f for f in en_face if est_reponse(f)]
+            connus_en_face = [f for f in en_face if not est_reponse(f)]
+            if len(inconnues_en_face) > 1:
+                return ""
+            if inconnues_en_face:
+                # `P·x = Q·y` : on apparie, mes propres facteurs revenant à
+                # l'inconnue d'en face.
+                expr = "*".join(f"({f})" for f in connus_en_face) or "1"
+            else:
+                expr = "*".join(f"({f})" for f in en_face) or "1"
+                if miens_connus:
+                    expr = f"({expr})/({'*'.join(f'({f})' for f in miens_connus)})"
+            valeur = self._calcul_arith(self._subst(expr)).strip()
+            # `_calcul_arith` rend l'expression telle quelle quand il n'a pas
+            # su calculer : un attendu qui porte encore un `$` ou un opérateur
+            # n'en est pas un.
+            if not valeur or "$" in valeur or re.search(r"[*/()]", valeur):
+                return ""
+            return valeur
+        return ""
+
     def _resolve_analyze_expected(self, var_name: str, df: "DefFile") -> str:
         """Scan the :test section for an equality involving `$<var_name>`
         and return the evaluated RHS — used by debug/auto-fill for the
@@ -6498,6 +6659,12 @@ class DefEngine(_SlibMixin):
                     for branche in self._branches_viables(
                         cond, instr.kind, var_name
                     ):
+                        # La réponse prise dans un produit se résout avant tout
+                        # motif d'égalité : celui-ci rendrait le membre d'en
+                        # face entier, facteurs étrangers compris.
+                        apparie = self._attendu_par_appariement(branche, var_name)
+                        if apparie:
+                            return apparie
                         m = pat_rhs.search(branche) or pat_lhs.search(branche)
                         if m:
                             return self._subst(m.group(1)).strip()

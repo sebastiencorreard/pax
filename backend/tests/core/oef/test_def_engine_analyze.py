@@ -171,3 +171,60 @@ def test_branches_sans_premisse_decidable_restent_ouvertes():
     engine.ctx["val20"] = "5"
     cond2 = "($val20=9 and $val14=2) or ($val20=5 and $val14=4)"
     assert engine._branches_viables(cond2, "ifval", "val14") == ["$val20=5 and $val14=4"]
+
+
+def test_appariement_des_membres_dun_produit():
+    """Deux réponses, une seule équation : la convention d'appariement.
+
+    `frac5/mult` fait saisir le numérateur et le dénominateur d'un produit de
+    fractions, et ne teste que le produit croisé
+    `$val6*$val8*$val14 = $val7*$val9*$val13`. Toutes les fractions
+    équivalentes le satisfont ; on en nomme une, celle où chaque inconnue
+    reçoit les facteurs connus d'en face — ici le produit des numérateurs sur
+    le produit des dénominateurs.
+
+    Elle se vérifie sur l'exercice lui-même : `val10` et `val11`, que l'auteur
+    calcule pour son propre corrigé, valent exactement ce que l'appariement
+    rend.
+    """
+    import os
+    from core.oef.def_engine import load_and_render
+    from core.answer.strategies.analyze import run_analyze
+
+    ress = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+    )
+    r = load_and_render(os.path.join(ress, "H1/algebra/frac5.fr/def/mult.def"), seed=42)
+    ctx = r.check_sections["ctx"]
+    attendus = [a.expected for a in r.answers]
+    assert attendus == [ctx["val10"], ctx["val11"]] == ["0", "18"]
+
+    copie = {a.input_name: a.expected for a in r.answers}
+    score, _ = run_analyze(r, r.answers, copie, seed=42)
+    assert score == 1.0
+
+
+def test_appariement_refuse_ce_quil_ne_sait_pas_borner():
+    """La convention ne s'applique qu'à des produits purs, et conjoint à conjoint.
+
+    Une somme, une division ou deux inconnues dans le même membre sortent du
+    cadre : mieux vaut pas d'attendu qu'un attendu faux. Et une conjonction
+    pose plusieurs égalités, qu'il faut borner avant de les lire — sans quoi
+    le membre droit de la première avale la seconde.
+    """
+    from core.oef.def_engine import DefEngine
+
+    engine = DefEngine(seed=42)
+    engine.ctx.update({"replygood1": "?analyze 14", "replygood2": "?analyze 16",
+                       "val11": "3", "val12": "4", "val13": "5"})
+
+    # Conjonction : chaque égalité est bornée, et val16 s'apparie avec val13.
+    cond = "$val14*$val13=$val16*$val11 and $val14*$val12=$val15*$val11"
+    assert engine._attendu_par_appariement(cond, "val16") == "5"
+
+    # Somme dans un membre : hors cadre.
+    assert engine._attendu_par_appariement("$val14*$val13=$val16+$val11", "val16") == ""
+    # Deux inconnues du même côté : l'équation ne se résout pas en une seule.
+    assert engine._attendu_par_appariement("$val14*$val16=$val11*$val12", "val16") == ""
+    # Variable seule : laissée aux motifs d'égalité, qui gardent sa forme.
+    assert engine._attendu_par_appariement("$val16=$val11*$val12", "val16") == ""

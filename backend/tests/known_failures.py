@@ -592,3 +592,16 @@ _PORTAGE_TYPES_2026_09_11: set[str] = {
     "H5~analysis~foncpluvares.fr~src~matsys",
 }
 XFAIL_CORRECT_SCORE |= _PORTAGE_TYPES_2026_09_11
+
+# `frac5/multsimp` est devenu *testable* le 2026-09-17, avec la convention
+# d'appariement : il n'avait jusque-là aucun attendu, et la suite le sautait.
+# Sa note monte de 0 à 0,5 — une condition sur deux. La seconde, `$val19/$val20
+# issametext $val14`, exige la fraction sous sa forme **irréductible**, quand
+# l'appariement rend le produit direct (5/30 là où l'exercice attend 1/6). La
+# convention n'a pas à changer pour autant : elle est juste pour l'équation
+# qu'elle résout. C'est un motif de plus à lire — l'égalité portant sur un
+# *quotient* de deux réponses donne les deux valeurs d'un coup.
+_APPARIEMENT_2026_09_17: set[str] = {
+    "H1~algebra~frac5.fr~src~multsimp",
+}
+XFAIL_CORRECT_SCORE |= _APPARIEMENT_2026_09_17
