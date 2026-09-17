@@ -448,6 +448,14 @@ _IMPORT_2026_09_10_RENDER_STRUCTURE: set[str] = {
 }
 XFAIL_RENDER_STRUCTURE |= _IMPORT_2026_09_10_RENDER_STRUCTURE
 
+# Quatre sont partis le 2026-09-17, avec le choix de branche d'une
+# disjonction (`_branches_viables`) : leur `:test` énumérait les réponses
+# acceptables branche par branche — « aucune » si l'équation n'a pas de
+# solution, la solution sinon — et l'on retenait toujours la première.
+# `oefadsubrel/oppose` et les deux `oefexpalog10` notent désormais 1 une
+# copie juste ; `OEFevalwimsangle/oefanglenat4` n'a plus d'attendu du tout,
+# ce qui est la vérité — pour un angle aigu la bonne réponse est un
+# intervalle, pas la valeur `90` qu'on lui prêtait — et le test le saute.
 _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H1~algebra~challenge2004.fr~src~2villes",
     "H1~algebra~challenge2004.fr~src~age",
@@ -459,10 +467,8 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H1~algebra~frac5.fr~src~mult2",
     "H1~algebra~oefmathaara.fr~src~oefopeperdu",
     "H1~algebra~oefrelatif.nl~src~ordre",
-    "H1~geometry~OEFevalwimsangle.fr~src~oefanglenat4",
     "H1~geometry~OEFevalwimsgeo1.fr~src~oefsegm2",
     "H1~geometry~oefevalwimssym.fr~src~oefmediat5",
-    "H1~number~oefadsubrel.fr~src~oppose",
     "H2~algebra~oefcalcul.es~src~calcul2",
     "H2~algebra~oefcalcul.fr~src~calcul2",
     "H2~algebra~oefpourcentage.fr~src~concessionnaire",
@@ -505,8 +511,6 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H6~analysis~oefderiv.en~src~signenombre",
     "H6~analysis~oefderiv.fr~src~signenombre",
     "H6~analysis~oefexpalog10.fr~src~equpuis1",
-    "H6~analysis~oefexpalog10.fr~src~expaequ6",
-    "H6~analysis~oefexpalog10.fr~src~expaequ7",
     "H6~analysis~oefinteg1.cn~src~Integraletrigo",
     "H6~analysis~oefinteg1.fr~src~Intgraletrigo",
     "H6~analysis~oefintegrale.fr~src~prim2int",

@@ -93,7 +93,11 @@ from ..engine import AnswerDef, ExerciseRender, _segment_statement, _embedded_wi
 
 # Sous-modules extraits — re-exportés ici pour rétrocompatibilité des imports
 # externes : `from core.oef.def_engine import check_analyze` continue de fonctionner.
-from .compare import _wims_compare                                      # noqa: E402
+from .compare import (                                                  # noqa: E402
+    _wims_compare,
+    _wims_find_top_logic,
+    _wims_strip_all_parens,
+)
 from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numeric  # noqa: E402
 
 
@@ -6357,6 +6361,84 @@ class DefEngine(_SlibMixin):
         )
         return any(m.search(zone) for m in motifs)
 
+    def _vars_analyze(self) -> set[str]:
+        """Les `val<N>` que cet exercice alimente par une réponse `?analyze`.
+
+        Sert à distinguer, dans une condition, ce qui parle de l'**énoncé** —
+        évaluable dès le rendu — de ce qui parle d'une **autre réponse**, qui
+        n'existe pas encore à ce moment-là.
+        """
+        out: set[str] = set()
+        for cle, valeur in self.ctx.items():
+            if not re.fullmatch(r"replygood\d+", cle):
+                continue
+            m = re.match(r"\s*\?analyze\s+(\d+)", str(valeur), re.I)
+            if m:
+                out.add(f"val{m.group(1)}")
+        return out
+
+    def _branches_viables(self, cond: str, kind: str, var_name: str) -> list[str]:
+        """Les branches d'une disjonction que cette graine n'a pas déjà exclues.
+
+        Un `:test` écrit couramment toutes les formes acceptables d'un coup :
+
+            ($val13<=0 and $val14 issametext aucune) or ($val13>0 and $val14==$val9)
+
+        Les deux branches disent la bonne réponse, mais chacune **sous sa
+        prémisse** : `aucune` quand l'équation n'a pas de solution, `$val9`
+        sinon. Retenir la première venue donnait `aucune` à toutes les graines,
+        et les 5 `oefexpalog10` notaient 0 une copie juste.
+
+        On découpe donc sur les `or` de premier niveau, et dans chaque branche
+        on évalue les conjoints qui **ne portent sur aucune réponse** : ceux-là
+        sont des faits de l'énoncé, connus dès le rendu. Une branche dont une
+        prémisse est fausse ne peut pas décrire la réponse attendue.
+
+        Aucune branche viable — prémisses toutes indécidables, ou portant
+        elles-mêmes sur une autre réponse — et l'on rend la condition entière :
+        le comportement d'avant, plutôt qu'un attendu vide.
+        """
+        vars_analyze = self._vars_analyze() | {var_name}
+
+        def disjoindre(s: str) -> list[str]:
+            s = _wims_strip_all_parens(s.strip())
+            split = _wims_find_top_logic(s, "or") or _wims_find_top_logic(s, "||")
+            if split is None:
+                return [s]
+            return disjoindre(split[0]) + disjoindre(split[1])
+
+        def conjoindre(s: str) -> list[str]:
+            s = _wims_strip_all_parens(s.strip())
+            split = _wims_find_top_logic(s, "and") or _wims_find_top_logic(s, "&&")
+            if split is None:
+                return [s]
+            return conjoindre(split[0]) + conjoindre(split[1])
+
+        def parle_d_une_reponse(morceau: str) -> bool:
+            return any(
+                re.search(rf"\$\(?\s*{re.escape(v)}\b", morceau) for v in vars_analyze
+            )
+
+        branches = disjoindre(cond)
+        if len(branches) < 2:
+            return [cond]
+
+        viables = []
+        for branche in branches:
+            premisses = [c for c in conjoindre(branche) if not parle_d_une_reponse(c)]
+            try:
+                tient = all(
+                    _wims_compare(p, numeric=(kind == "ifval"), subst=self._subst)
+                    for p in premisses
+                )
+            # Une prémisse que le comparateur refuse ne prouve rien contre sa
+            # branche : on la garde, quitte à retomber sur le choix d'avant.
+            except Exception:
+                tient = True
+            if tient:
+                viables.append(branche)
+        return viables or [cond]
+
     def _resolve_analyze_expected(self, var_name: str, df: "DefFile") -> str:
         """Scan the :test section for an equality involving `$<var_name>`
         and return the evaluated RHS — used by debug/auto-fill for the
@@ -6410,12 +6492,18 @@ class DefEngine(_SlibMixin):
             for instr in body:
                 if isinstance(instr, IfBlock):
                     cond = instr.condition
-                    m = pat_rhs.search(cond) or pat_lhs.search(cond)
-                    if m:
-                        return self._subst(m.group(1)).strip()
-                    other = _other_set_side(cond)
-                    if other is not None:
-                        return other
+                    # Les branches qu'une disjonction propose ne valent pas
+                    # toutes à cette graine : ne lire l'égalité que dans celles
+                    # dont les prémisses tiennent encore.
+                    for branche in self._branches_viables(
+                        cond, instr.kind, var_name
+                    ):
+                        m = pat_rhs.search(branche) or pat_lhs.search(branche)
+                        if m:
+                            return self._subst(m.group(1)).strip()
+                        other = _other_set_side(branche)
+                        if other is not None:
+                            return other
                     sub = walk(instr.then_body) or walk(instr.else_body)
                     if sub:
                         return sub

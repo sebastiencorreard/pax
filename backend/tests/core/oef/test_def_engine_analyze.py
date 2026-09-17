@@ -112,3 +112,62 @@ def test_cant_irreducible_fraction_scoring():
 
     score_wrong, _ = run_analyze(r, [a], {a.input_name: "23/5"}, seed=684903783)
     assert score_wrong == 0.0
+
+
+def test_branche_disjointe_choisie_sur_sa_premisse():
+    """`?analyze` dont le `:test` énumère les réponses acceptables par branches.
+
+    `oefexpalog10/expaequ6` écrit, pour une seule réponse :
+
+        ($val13<=0 and $val14 issametext aucune) or ($val13>0 and $val14==$val9)
+
+    « aucune » quand l'équation n'a pas de solution, la solution sinon. Lire la
+    première égalité venue donnait « aucune » à toutes les graines, et la copie
+    juste notait 0. On n'ouvre que les branches dont la prémisse — ce qui ne
+    porte sur aucune réponse — tient à cette graine.
+    """
+    import os
+    from core.oef.def_engine import load_and_render
+    from core.answer.strategies.analyze import run_analyze
+
+    ress = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+    )
+    defp = os.path.join(ress, "H6/analysis/oefexpalog10.fr/def/expaequ6.def")
+    r = load_and_render(defp, seed=42)
+    a = r.answers[0]
+    # $val13 > 0 à cette graine : c'est la seconde branche qui décrit la
+    # réponse, et son attendu est $val9 — surtout pas le littéral « aucune ».
+    assert a.expected == "0.69897"
+
+    score, _ = run_analyze(r, [a], {a.input_name: a.expected}, seed=42)
+    assert score == 1.0
+    score_faux, _ = run_analyze(r, [a], {a.input_name: "aucune"}, seed=42)
+    assert score_faux == 0.0
+
+
+def test_branches_sans_premisse_decidable_restent_ouvertes():
+    """Une disjonction dont on ne peut rien exclure garde le choix d'avant.
+
+    Les prémisses qui portent elles-mêmes sur une réponse ne sont pas
+    évaluables au rendu — aucune réponse n'est encore soumise. Les écarter
+    toutes rendrait un attendu vide là où l'ancien code en trouvait un.
+    """
+    from core.oef.def_engine import DefEngine
+
+    engine = DefEngine(seed=42)
+    engine.ctx["replygood1"] = "?analyze 13"
+    engine.ctx["replygood2"] = "?analyze 14"
+    cond = "$val13=1 and $val14=2 or $val13=3 and $val14=4"
+    # val13 et val14 sont deux réponses : rien n'est décidable, les deux
+    # branches restent ouvertes et l'appelant les lit dans l'ordre — c'est-à-
+    # dire qu'il retombe sur l'égalité que l'ancien code retenait.
+    assert engine._branches_viables(cond, "ifval", "val14") == [
+        "$val13=1 and $val14=2",
+        "$val13=3 and $val14=4",
+    ]
+
+    # Une prémisse portant sur l'énoncé, elle, tranche.
+    engine.ctx["val20"] = "5"
+    cond2 = "($val20=9 and $val14=2) or ($val20=5 and $val14=4)"
+    assert engine._branches_viables(cond2, "ifval", "val14") == ["$val20=5 and $val14=4"]
