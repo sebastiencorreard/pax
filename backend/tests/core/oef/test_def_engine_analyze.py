@@ -228,3 +228,44 @@ def test_appariement_refuse_ce_quil_ne_sait_pas_borner():
     assert engine._attendu_par_appariement("$val14*$val16=$val11*$val12", "val16") == ""
     # Variable seule : laissée aux motifs d'égalité, qui gardent sa forme.
     assert engine._attendu_par_appariement("$val16=$val11*$val12", "val16") == ""
+
+
+def test_attendu_lu_sur_un_quotient_de_deux_reponses():
+    """Une condition sur le quotient fixe les deux réponses ensemble.
+
+    `frac5/multsimp` pose deux conditions : le produit croisé, que l'appariement
+    des facteurs satisfait par la forme directe `5/30`, puis
+    `$val19/$val20 issametext $val14`, qui veut la fraction irréductible et
+    refuse la première. C'est la seconde qui dit la réponse, d'où sa priorité.
+    """
+    import os
+    from core.oef.def_engine import load_and_render
+    from core.answer.strategies.analyze import run_analyze
+
+    ress = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+    )
+    r = load_and_render(
+        os.path.join(ress, "H1/algebra/frac5.fr/def/multsimp.def"), seed=42
+    )
+    assert [a.expected for a in r.answers] == ["1", "6"]
+    copie = {a.input_name: a.expected for a in r.answers}
+    score, _ = run_analyze(r, r.answers, copie, seed=42)
+    assert score == 1.0
+
+
+def test_quotient_ne_lit_que_deux_reponses_sur_une_fraction():
+    """La lecture est textuelle, et bornée à ce qu'elle sait apparier."""
+    from core.oef.def_engine import DefEngine
+
+    engine = DefEngine(seed=42)
+    engine.ctx.update({"replygood1": "?analyze 19", "replygood2": "?analyze 20",
+                       "val14": "-1/6", "val15": "0.25"})
+    cond = "$val19/$val20 issametext $val14"
+    assert engine._attendu_par_quotient(cond, "val19") == "-1"
+    assert engine._attendu_par_quotient(cond, "val20") == "6"
+
+    # L'autre membre n'est pas une fraction : rien à apparier.
+    assert engine._attendu_par_quotient("$val19/$val20=$val15", "val19") == ""
+    # Le quotient ne porte pas deux réponses.
+    assert engine._attendu_par_quotient("$val19/$val14 issametext $val14", "val19") == ""

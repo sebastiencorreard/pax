@@ -6467,6 +6467,64 @@ class DefEngine(_SlibMixin):
         return facteurs if all(facteurs) else None
 
     @staticmethod
+    def _conjoints_niveau0(cond: str) -> list[str]:
+        """Les termes d'une conjonction `and`/`&&`, chacun à satisfaire.
+
+        Une condition qui n'en est pas une se rend elle-même, en un seul terme.
+        """
+        conjoints = [cond]
+        while True:
+            suite: list[str] = []
+            for c in conjoints:
+                split = _wims_find_top_logic(c, "and") or _wims_find_top_logic(c, "&&")
+                suite.extend(split if split else (c,))
+            if suite == conjoints:
+                return conjoints
+            conjoints = suite
+
+    def _attendu_par_quotient(self, cond: str, var_name: str) -> str:
+        """Les deux réponses que livre une égalité portant sur leur quotient.
+
+        `frac5/multsimp` veut la fraction **irréductible** du produit, et le
+        dit d'un trait :
+
+            $val19/$val20 issametext $val14
+
+        où `val14` porte la fraction réduite (`1/6`). Numérateur et
+        dénominateur s'y lisent ensemble — ce que l'appariement des facteurs ne
+        sait pas voir, lui qui résout le produit croisé et rend la forme
+        directe `5/30`, juste pour son équation mais refusée par celle-ci.
+
+        La lecture est textuelle, comme `issametext` : on ne simplifie ni ne
+        calcule, on apparie les deux termes du quotient. Hors de cette forme —
+        l'autre membre n'est pas `a/b`, le quotient porte autre chose que deux
+        réponses — on ne rend rien.
+        """
+        vars_analyze = self._vars_analyze()
+        _v = r"\$\(?\s*(val\d+)\s*\)?"
+        _op = r"(?:==?|\bissametext\b|\bsametext\b)"
+        for c in self._conjoints_niveau0(cond):
+            c = _wims_strip_all_parens(c.strip())
+            m = re.fullmatch(rf"\s*{_v}\s*/\s*{_v}\s*{_op}\s*(.+?)\s*", c)
+            if not m:
+                m = re.fullmatch(rf"\s*(.+?)\s*{_op}\s*{_v}\s*/\s*{_v}\s*", c)
+                if not m:
+                    continue
+                autre, haut, bas = m.group(1), m.group(2), m.group(3)
+            else:
+                haut, bas, autre = m.group(1), m.group(2), m.group(3)
+            if var_name not in (haut, bas):
+                continue
+            if not {haut, bas} <= vars_analyze:
+                continue
+            valeur = self._subst(autre).strip()
+            frac = re.fullmatch(r"(-?\d+)\s*/\s*(\d+)", valeur)
+            if not frac:
+                continue
+            return frac.group(1) if var_name == haut else frac.group(2)
+        return ""
+
+    @staticmethod
     def _membres_egalite(cond: str) -> tuple[str, str] | None:
         """Les deux membres d'une égalité `=`/`==`, ou `None`.
 
@@ -6524,15 +6582,7 @@ class DefEngine(_SlibMixin):
         # les traite séparément. Sans ce découpage, `_membres_egalite` s'arrête
         # au premier `=` et emporte le reste de la conjonction dans le membre
         # droit — `OEFpdtscalTS/propbary2` en tirait l'attendu `*45`.
-        conjoints = [cond]
-        while True:
-            suite = []
-            for c in conjoints:
-                split = _wims_find_top_logic(c, "and") or _wims_find_top_logic(c, "&&")
-                suite.extend(split if split else (c,))
-            if suite == conjoints:
-                break
-            conjoints = suite
+        conjoints = self._conjoints_niveau0(cond)
         if len(conjoints) > 1:
             for c in conjoints:
                 valeur = self._attendu_par_appariement(
@@ -6685,8 +6735,27 @@ class DefEngine(_SlibMixin):
 
         # :test holds the comparison for most analyze exercises; ineqinterv1
         # puts it (and the difference assigns) in :postdef, so scan both.
+        def walk_quotient(body: list) -> str | None:
+            for instr in body:
+                if isinstance(instr, IfBlock):
+                    v = self._attendu_par_quotient(instr.condition, var_name)
+                    if v:
+                        return v
+                    sub = (walk_quotient(instr.then_body)
+                           or walk_quotient(instr.else_body))
+                    if sub:
+                        return sub
+            return None
+
+        # Le quotient passe avant tout : il fixe les deux réponses ensemble,
+        # là où une autre condition du même exercice n'en contraint que le
+        # produit. `frac5/multsimp` pose les deux — le produit croisé d'abord,
+        # que l'appariement satisfait par `5/30`, puis la forme irréductible,
+        # qui la refuse. C'est la seconde qui dit la réponse.
         result = (
-            walk(df.sections.get("test", []))
+            walk_quotient(df.sections.get("test", []))
+            or walk_quotient(df.sections.get("postdef", []))
+            or walk(df.sections.get("test", []))
             or walk(df.sections.get("postdef", []))
             or ""
         )
