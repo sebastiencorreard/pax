@@ -6951,8 +6951,23 @@ class DefEngine(_SlibMixin):
         if df.choice_meta:
             for cm in df.choice_meta:
                 n = cm["n"]
-                # Seul un exercice qui n'a que des choix les expose en `reply`.
-                nom_champ = f"reply{n}" if not df.reply_meta else f"c{n}"
+                # Le nom doit être celui que l'énoncé a **posé**. `\embed{c<n>}`
+                # inscrit `c<n>` dans `_touched_replies` (le rendu précède cet
+                # appel), et deux consommateurs le lisent : le filtre par étape,
+                # qui ne garde que les champs ainsi vus, et le front, qui
+                # cherche les options d'un menu dans `answers` par `input_name`.
+                # Les nommer `reply<n>` laissait donc, selon le type
+                # d'exercice, soit aucune réponse — `oefcoord/cylindric1`, un
+                # `course` dont le filtre écartait `reply1` quand l'embed avait
+                # posé `c1` —, soit un menu déroulant n'offrant que son propre
+                # libellé, `challenge2007/cinquieme1` et 131 autres.
+                # WIMS, lui, nomme toujours le champ `choice$i`
+                # (`oef/formc.phtml`, radios comme menu) : `reply<n>` ne
+                # subsiste que là où rien n'embarque le choix.
+                if f"c{n}" in self._touched_replies or df.reply_meta:
+                    nom_champ = f"c{n}"
+                else:
+                    nom_champ = f"reply{n}"
                 correct = self._subst(cm.get("good", ""))
                 # La palette vient de `_prepare_choices`, qui suit
                 # `oef/var.prep` : mauvaises réponses purgées de celles qui
@@ -6972,7 +6987,18 @@ class DefEngine(_SlibMixin):
                 # `OEFpythagore2/enchainement` pose deux choix **et** une
                 # réponse : ses phrases à choisir manquaient de la phrase,
                 # là où WIMS y glisse deux menus.
-                en_menu = len(df.choice_meta) > 1 or bool(df.reply_meta)
+                # Un choix **embarqué** dans l'énoncé est toujours un menu :
+                # `oef/embed.phtml` l'écrit `!formselect choice$i …`, sans
+                # consulter `choicecnt`. La règle de `formc.phtml` ci-dessus ne
+                # vaut que pour les choix rendus dans le formulaire du bas.
+                # Sans cette exception le champ sortait en `radio` là où
+                # l'énoncé affiche un menu, et le front — qui ne compose les
+                # options d'un menu que pour un type `menu` — le laissait vide.
+                en_menu = (
+                    f"c{n}" in self._touched_replies
+                    or len(df.choice_meta) > 1
+                    or bool(df.reply_meta)
+                )
                 # Les deux échappatoires de `formc.phtml`, toujours en
                 # queue de liste. « Aucune de ces réponses » n'apparaît que
                 # si la bonne peut manquer (`qcmgood<1`) : la proposer

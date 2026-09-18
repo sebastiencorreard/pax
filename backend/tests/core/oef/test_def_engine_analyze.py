@@ -269,3 +269,44 @@ def test_quotient_ne_lit_que_deux_reponses_sur_une_fraction():
     assert engine._attendu_par_quotient("$val19/$val20=$val15", "val19") == ""
     # Le quotient ne porte pas deux réponses.
     assert engine._attendu_par_quotient("$val19/$val14 issametext $val14", "val19") == ""
+
+
+def test_choix_embarque_porte_le_nom_que_l_enonce_a_pose():
+    """Un `\\choice` embarqué : même nom de champ des deux côtés, et un menu.
+
+    `\\embed{c<n>}` inscrit `c<n>` dans `_touched_replies`, et deux
+    consommateurs le lisent : le filtre par étape, qui ne garde que les champs
+    ainsi vus, et le front, qui cherche les options d'un menu dans `answers`
+    par `input_name`. Nommer la réponse `reply<n>` laissait donc, selon le type
+    d'exercice, soit aucune réponse (`cylindric1`, un `course`), soit un menu
+    n'offrant que son propre libellé (`cinquieme1`).
+
+    Le type suit `oef/embed.phtml`, qui écrit `!formselect choice$i …` : un
+    choix embarqué est un menu, sans consulter `choicecnt`.
+    """
+    import os
+    from core.oef.def_engine import load_and_render
+
+    ress = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+    )
+    r = load_and_render(
+        os.path.join(ress, "H6/geometry/oefcoord.fr/def/cylindric1.def"), seed=42
+    )
+    noms_poses = {
+        s["name"] for s in (r.statement_segments or [])
+        if s.get("type") == "menu" and s.get("name")
+    }
+    assert noms_poses == {"c1"}
+    (champ,) = r.answers
+    assert champ.input_name == "c1"
+    assert champ.answer_type == "menu"
+    # La palette est celle de `_prepare_choices`, non une liste vide.
+    assert "un cercle" in champ.options["choices"]
+
+    # Sans embed, rien ne change : le champ reste `reply<n>` en boutons radio.
+    q = load_and_render(
+        os.path.join(ress, "H1/algebra/challenge2005.fr/def/qcm19.def"), seed=42
+    )
+    (rad,) = q.answers
+    assert (rad.input_name, rad.answer_type) == ("reply1", "radio")
