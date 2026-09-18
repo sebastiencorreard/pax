@@ -77,12 +77,23 @@ cd backend && pytest -m slow                 # corpus sweep (9699 exercises)
 cd backend && PAX_TEST_CORPUS=H4/algebra pytest -m slow   # one subtree
 ```
 
-`test_exercises_check` and `test_exercises_render` walk the whole corpus, so
-they carry the `slow` marker and `pytest.ini` excludes them by default —
-otherwise every run would render 9699 exercises. They read the corpus **off
-disk** (`tests/corpus.py`), needing neither a database nor a prior import.
-Known-failing exercises live in `tests/known_failures.py`, keyed by **slug**;
-rebuild those lists from a real run after fixing a bug.
+`test_exercises_check`, `test_exercises_render` and `test_exercises_widgets`
+walk the whole corpus, so they carry the `slow` marker and `pytest.ini`
+excludes them by default — otherwise every run would render 9699 exercises.
+They read the corpus **off disk** (`tests/corpus.py`), needing neither a
+database nor a prior import. Known-failing exercises live in
+`tests/known_failures.py`, keyed by **slug**; rebuild those lists from a real
+run after fixing a bug.
+
+Les trois ne jugent pas la même chose, et le troisième est né d'un angle mort
+des deux autres. `check` note, `render` compare au snapshot — mais un snapshot
+fige le rendu *tel qu'il est*, menu vide compris. **`widgets` vérifie qu'un
+champ posé par l'énoncé porte le nom d'une réponse déclarée** : sans quoi le
+front, qui indexe les options par `input_name`, ne peut ni le remplir ni le
+faire noter. 196 exercices vivaient ainsi sans qu'aucun test ne s'en plaigne
+(2026-09-18). Un critère **structurel** — pas de longueur d'énoncé ni de
+contenu textuel, qui ne donnent que des faux positifs : un vrai-faux « 7⁰ = 1 »
+est court par nature.
 
 Database migrations:
 ```bash

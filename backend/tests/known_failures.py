@@ -593,3 +593,36 @@ _PORTAGE_TYPES_2026_09_11: set[str] = {
 }
 XFAIL_CORRECT_SCORE |= _PORTAGE_TYPES_2026_09_11
 
+
+# ── Widgets orphelins ───────────────────────────────────────────────────────
+#
+# Un segment d'énoncé (`menu`, `input`) dont le nom ne figure dans aucune
+# `answers` donne un widget inerte : le front cherche les options d'un menu
+# dans `answers` par `input_name`, et la correction ignore le champ. 196
+# exercices en portaient un le 2026-09-18 (commits bff542cc et 42b7f322) ;
+# ceux qui suivent restent, et ne sont pas de notre ressort.
+#
+# 1. Sept portent une référence commençant par `\` — `\embed{\reply1}`,
+#    `\embed{\choice 1}` — dans leur **source OEF**. `oef/embed.phtml` lit le
+#    premier caractère comme type et sort si ce n'est ni `r` ni `c` : WIMS
+#    n'affiche donc aucun champ non plus. Le `\` est une faute d'auteur,
+#    recopiée d'un fichier à l'autre — `demarrer1ereS/expression4`, voisin
+#    immédiat des quatre autres, écrit `\embed{reply 1,\taille}` sans `\`, et
+#    la cible existe bien (un `\answer{}`, un `\choice{}`). Leur rendre un
+#    champ serait s'éloigner de WIMS, non s'en rapprocher.
+# 2. `oefspeed.nl/trajet` : son `.def` écrit `$m_answer{…}{…}{type=units}`,
+#    macro que PAX ne traite pas — l'énoncé affiche les accolades **et les
+#    bonnes réponses**. Un seul `.def` du corpus l'emploie.
+# 3. `oefsequence/calcul_terme_suite` : laisse fuir du code Maxima
+#    (`algo=u:-1;for n:1 thru 3…`) et n'expose pas ses champs.
+WIDGETS_ORPHELINS: set[str] = {
+    "H3~algebra~oefspeed.nl~src~trajet",
+    "H5~analysis~demarrer1ereS.fr~src~expression1",
+    "H5~analysis~demarrer1ereS.fr~src~expression2",
+    "H5~analysis~demarrer1ereS.fr~src~expression3",
+    "H5~analysis~demarrer1ereS.fr~src~expression5",
+    "H5~analysis~oefsequence.fr~src~calcul_terme_suite",
+    "H5~analysis~oeftablvar.fr~src~TVF2",
+    "H5~analysis~oeftablvar.fr~src~TVF22",
+    "H6~physics~OEFradioactivite.fr~src~radioactivite2",
+}
