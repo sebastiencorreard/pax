@@ -5256,7 +5256,14 @@ class DefEngine(_SlibMixin):
         # déroulant dont les options ont été composées par `_prepare_choices`.
         # WIMS nomme le champ `choice$i` (`oef/formc.phtml`), et c'est ce nom
         # que la notation attend.
-        mc = re.fullmatch(r"c(\d+)", ref)
+        # `oef/embed.phtml` ne lit que la **première lettre** de sa référence
+        # (`!char 1 of $t_`, `a` traduit en `r`) et ne garde du reste que les
+        # chiffres (`!text select 0123456789…`) : `choice 1`, `choice1` et `c1`
+        # désignent le même choix. PAX n'acceptait que la forme courte, et les
+        # 76 `!read oef/embed.phtml choice 1` du corpus — les `oefcalcul` de
+        # cinq langues — retombaient sur le champ de saisie libre, où l'élève
+        # devait deviner la phrase au lieu de la choisir.
+        mc = re.fullmatch(r"c[a-z]*(\d+)", ref, re.I)
         if mc and f"choicelist{mc.group(1)}" in self.ctx:
             import html as _html  # noqa: PLC0415
 

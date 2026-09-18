@@ -310,3 +310,29 @@ def test_choix_embarque_porte_le_nom_que_l_enonce_a_pose():
     )
     (rad,) = q.answers
     assert (rad.input_name, rad.answer_type) == ("reply1", "radio")
+
+
+def test_embed_lit_la_reference_comme_wims():
+    """`choice 1`, `choice1` et `c1` désignent le même choix.
+
+    `oef/embed.phtml` ne lit que la première lettre de sa référence
+    (`!char 1 of $t_`, `a` traduit en `r`) et ne garde du reste que les
+    chiffres. PAX n'acceptait que `c<n>`, et les 76 `!read oef/embed.phtml
+    choice 1` du corpus — les `oefcalcul` de cinq langues — retombaient sur le
+    champ de saisie libre : l'élève devait deviner la phrase au lieu de la
+    choisir dans un menu.
+    """
+    import os
+    from core.oef.def_engine import load_and_render
+
+    ress = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+    )
+    r = load_and_render(
+        os.path.join(ress, "H2/algebra/oefcalcul.fr/def/calcprio.def"), seed=42
+    )
+    types = {s["type"] for s in (r.statement_segments or []) if s.get("name")}
+    assert types == {"menu"}, "le choix embarqué doit être un menu, pas un champ libre"
+    (champ,) = r.answers
+    assert (champ.input_name, champ.answer_type) == ("c1", "menu")
+    assert "l'addition" in champ.options["choices"]
