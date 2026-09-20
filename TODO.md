@@ -216,11 +216,18 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   raté) ; à la correction, elle vaut `NaN` et ne valide rien. `check_analyze`
   lève le drapeau `_strict_arith`.
 
-- [ ] **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
-  pari. Les 7 exercices d'`equilibrium` / `chemavance1` qui en dépendent
-  affichent une équation vide quoi qu'on fasse. Les porter suppose d'écrire un
-  équilibreur d'équations chimiques. (Déjà consigné dans
-  [`refactor-item-splitting.md`](docs/refactor-item-splitting.md) § 5.1.)
+- [x] **`!exec chemeq`** (2026-09-02, commit 3faae8d3 ; entrée rectifiée le
+  2026-09-20). Ce point a longtemps dit « non implémenté, `!exec` ne connaît que
+  maxima et pari » — c'était vrai jusqu'au 2026-09-02 et faux depuis.
+  `_cmd_exec` reconnaît aujourd'hui `maxima|pari|units-filter|chemeq|canvasdraw|
+  moneyprint|float_calc|lceb` (`def_engine/__init__.py:2854`), l'équilibreur vit
+  dans `def_engine/chemeq.py`, et `chemeq` lit son option dans `chemeq_option`
+  (c'est ainsi que `slib/chemistry/chemeq_mass` demande une masse molaire et
+  `chemeq_tex` un rendu LaTeX). Les 7 exercices d'`equilibrium` / `chemavance1`
+  se rendent avec leurs réponses ; seul `equilibrium.fr/methode` n'en expose
+  aucune, pour une cause distincte déjà consignée plus haut.
+  Reste ouvert : `chemeq_el` et `chemeq_rev` (redox, piles — 12 appels, voir
+  « Ce que le portage des slibs ne règle pas »).
 
 - [ ] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
   `!exec pari [$val25]/10.` et récupère la chaîne brute. Un seul exercice.
@@ -858,3 +865,78 @@ Options :
 
 ## 2. Supprimer les scripts de création d'utilisateurs + reset mdp ?
 
+
+# V. Décisions en attente
+
+Quatre questions posées puis laissées en suspens. Elles n'ont longtemps vécu
+que dans les `prompt-reprise-*.txt`, que git ne suit pas : chacune a été
+formulée nettement, aucune n'a été tranchée, et deux ont été redécouvertes
+d'un autre angle faute d'avoir un domicile. Elles sont ici pour qu'une session
+qui les croise sache qu'elles attendent **une décision**, pas un diagnostic.
+
+## 1. L'ampleur du port de l'intitulé et du libellé de champ
+
+*Posée le 2026-09-03 (commits 39f4da8b, 6382caa8). Code en place, jamais
+retranché.*
+
+PAX ne portait pas les `anstype/<type>.input`, qui décident de la présentation
+du champ. Trois manques comblés d'un coup : l'intitulé (`$name_enterreply`,
+« Entrez votre réponse : », posé par `oef/form.phtml` s'il reste une réponse non
+embarquée), le libellé (**tous** les `.input` l'écrivent ; PAX ne le montrait
+que s'il y avait plusieurs champs), et les accolades (`set`/`aset` les posent
+comme `fset`). Le `=` après le libellé dépend du type, **relevé** sur l'arbre
+WIMS et non deviné (`_EGAL_APRES_LABEL`, 17 types).
+
+Le point à trancher est l'**ampleur** : le repli sert beaucoup plus large qu'il
+n'y paraît, car beaucoup d'auteurs n'embarquent aucun champ. **401 exercices**
+gagnent l'intitulé, **421 champs** un libellé, **402 instantanés** ont été
+régénérés. Vérifié avant livraison : aucun libellé ne fait doublon avec un
+intitulé déjà présent dans l'énoncé, aucune réponse ne disparaît, aucun test de
+notation ne bouge.
+
+À décider : garder tel quel (position actuelle, et la plus fidèle à WIMS), ou
+restreindre — par exemple l'intitulé seulement à partir de deux champs. Le
+revert est immédiat tant qu'on ne l'a pas empilé.
+
+## 2. Le filtre sur l'`expected` vide dans `_check_all`
+
+*Posée le 2026-09-03, redécouverte par un autre angle le 2026-09-18. Toujours
+en place :* `tests/test_exercises_check.py:208`.
+
+`_check_all` ignore tout champ dont l'`expected` est vide. Un champ `analyze`
+non éprouvé n'est donc testé ni en bonne ni en mauvaise réponse : la suite lente
+était verte sur les cinq `OEFevalwimsgrph/eqalghyper*`, qui étaient
+**insolubles** (cf. I.3 d). Le filtre est la raison pour laquelle personne ne
+l'a vu.
+
+Le 2026-09-18 a buté sur la même limite depuis l'autre bout : **820 exercices
+`analyze` sans référence** qu'« aucun test ne peut éprouver, faute de savoir
+quoi soumettre ». C'est le même filtre, nommé deux fois à quinze jours
+d'intervalle sans que le lien soit fait.
+
+À décider : lever le filtre ou le garder. Le lever ferait entrer 100+ exercices
+dont on ne sait pas encore ce qu'ils valent — c'est le coût, et c'est
+précisément ce qu'on ignore aujourd'hui. Mesure préalable : rejouer la suite
+lente filtre levé, et classer les nouveaux échecs par famille avant de décider
+quoi que ce soit.
+
+## 3. Le lien « ← Retour aux exercices »
+
+*Ajouté de ma propre initiative le 2026-09-07 (`frontend/pages/exercise/[id].vue:10`).*
+
+La page d'un exercice ouverte en direct n'offrait aucun retour vers la liste :
+la barre du layout `default` ne mène qu'à l'accueil et au compte. La clé i18n
+`exercise.back` existait pourtant, orpheline, dans les trois locales — d'où
+l'ajout. Ce n'était pas demandé.
+
+À décider : valider ou retirer.
+
+## 4. Les deux layouts de la page d'exercice
+
+*Relevée le 2026-09-07, non touchée — c'est un choix produit.*
+
+`/exercise` utilise le layout `dashboard`, `/exercise/[id]` le layout `default`.
+L'utilisateur voit donc deux barres différentes selon qu'il prévisualise un
+exercice ou qu'il l'ouvre, et le compteur d'étoiles ne vit que sur la première.
+
+À décider : unifier, ou assumer les deux barres.

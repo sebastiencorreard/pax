@@ -610,6 +610,9 @@ XFAIL_CORRECT_SCORE |= _PORTAGE_TYPES_2026_09_11
 #    immédiat des quatre autres, écrit `\embed{reply 1,\taille}` sans `\`, et
 #    la cible existe bien (un `\answer{}`, un `\choice{}`). Leur rendre un
 #    champ serait s'éloigner de WIMS, non s'en rapprocher.
+#    Dossier complet — les sept fichiers avec leur ligne, le mécanisme
+#    d'`embed.phtml` et ce que PAX pose à la place — dans
+#    `docs/signalements-wims.md` § 1. Défaut amont : à signaler, pas à corriger.
 # 2. `oefspeed.nl/trajet` : son `.def` écrit `$m_answer{…}{…}{type=units}`,
 #    macro que PAX ne traite pas — l'énoncé affiche les accolades **et les
 #    bonnes réponses**. Un seul `.def` du corpus l'emploie.

@@ -249,3 +249,4 @@ In-depth references and dev guides:
 - [`static-assets.md`](docs/static-assets.md) — `/api/static` endpoint, image serving, `$imagedir` resolution
 - [`regenerer-un-oef.md`](docs/regenerer-un-oef.md) — quand un exercice vient d'un `src/cpp/*.cpp` : `.cpp` → `.oef` → `.def`, et les pièges d'encodage
 - [`wims-c-to-python-port.md`](docs/wims-c-to-python-port.md) — porting decisions vs the WIMS C source
+- [`signalements-wims.md`](docs/signalements-wims.md) — défauts qui vivent chez WIMS, non chez nous : PAX les reproduit, ne les corrige pas. À lire avant de « réparer » un exercice du corpus
