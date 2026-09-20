@@ -1422,14 +1422,39 @@ class DefEngine(_SlibMixin):
                     m_cb = re.fullmatch(r"reply(\d+)", a.input_name)
                     cases = self._palette_checkbox(m_cb.group(1)) if m_cb else []
                     if cases:
-                        champ = ", ".join(
+                        champ = self._joindre_cases([
                             self._case_a_cocher(a.input_name, i + 1, lbl)
                             for i, lbl in enumerate(cases)
-                        )
+                        ])
+                # Un `clickfill` sans `\embed` : WIMS lui pose quand même ses
+                # emplacements, `formr.phtml` lisant `anstype/<type>.input`
+                # que l'auteur ait embarqué ou non. PAX rendait une boîte de
+                # texte, où il fallait taper à la main les étiquettes qu'on
+                # devait glisser — 31 réponses du corpus, notées.
+                # Faute d'`\embed`, il n'y a pas de taille : `fill.inc` laisse
+                # alors `sizei` vide et retombe sur le nombre d'items de la
+                # première ligne, ce que `_emplacements_fill` fait déjà.
+                if a.answer_type.lower() in ("clickfill", "dragfill"):
+                    m_cf = re.fullmatch(r"reply(\d+)", a.input_name)
+                    if m_cf:
+                        nslots, largeur = self._emplacements_fill(m_cf.group(1), "")
+                        champ = self._slots_html(a.input_name, nslots, largeur)
                 if a.answer_type.lower() in ("set", "fset", "aset"):
                     champ = (
                         f'<span class="oef-set-brace">{{</span>{champ}'
                         f'<span class="oef-set-brace">}}</span>'
+                    )
+                # Même raison que dans la branche d'embed : `matrix.input` pose
+                # un `<textarea>` à ses défauts (5×25) entre deux parenthèses,
+                # jamais un champ d'une ligne. `foncpluvares/sommemat` n'a pas
+                # d'`\embed` et passait donc ici, avec 14 caractères pour
+                # écrire `-2/5,3/5;-7/5,-1`.
+                if a.answer_type.lower() == "matrix":
+                    champ = (
+                        '<span class="oef-matrix-par">(</span>'
+                        f'<span class="oef-input" name="{a.input_name}" '
+                        'data-size="5x25"></span>'
+                        '<span class="oef-matrix-par">)</span>'
                     )
                 html += f'<br>{label}{champ}'
             segments = _segment_statement(html)
@@ -5253,6 +5278,74 @@ class DefEngine(_SlibMixin):
             c.strip() for c in re.split(r",(?![^(]*\))", labels_part) if c.strip()
         ]
 
+    def _emplacements_fill(self, n: str | int, size_str: str) -> tuple[int, int]:
+        """Combien d'emplacements pose un `clickfill`, et de quelle largeur.
+
+        Port de `anstype/fill.inc` (l. 2-19). La taille se lit en quatre
+        nombres que `x`, virgule ou blanc séparent indifféremment
+        (`!translate x to ,` puis `!items2words` puis `!distribute words`), et
+        `sizei` — le troisième — donne le compte. Sans lui, il vaut le nombre
+        d'items de la première ligne de `replygood`, **la ligne `?analyze`
+        étant d'abord écartée** : cette ligne est la bonne réponse pour un
+        `clickfill` ordinaire, et le vivier pour un `?analyze`.
+
+        Rendue publique à la classe parce que deux chemins en ont besoin :
+        l'`\embed` qui place les emplacements dans l'énoncé, et le repli par
+        réponse qui les pose sous l'énoncé quand l'auteur n'a rien embarqué —
+        `oef/formr.phtml` ne décide pas autrement dans un cas que dans l'autre.
+        """
+        brut = self._subst(self.ctx.get(f"replygood{n}", "")).replace("|", ";")
+        rows = wl.cutrows(brut)
+        if rows and rows[0].strip().split()[:1] == ["?analyze"]:
+            rows = rows[1:]
+        premiere = [c for c in (rows[0].split(",") if rows else []) if c.strip()]
+        parts = [p for p in re.split(r"[xX,\s]+", self._subst(size_str).strip()) if p]
+        nslots = 0
+        if len(parts) >= 3:
+            try:
+                nslots = int(float(parts[2]))
+            except (ValueError, TypeError):
+                nslots = 0
+        if nslots <= 0:
+            nslots = len(premiere) or 1
+        try:
+            largeur = int(float(parts[0])) if parts else 0
+        except (ValueError, TypeError):
+            largeur = 0
+        return nslots, largeur
+
+    @staticmethod
+    def _slots_html(ref: str, nslots: int, largeur: int) -> str:
+        w = f' data-w="{largeur}"' if largeur > 0 else ""
+        return "".join(
+            f'<cf-slot name="{ref}" data-index="{i}"{w}></cf-slot>'
+            for i in range(nslots)
+        )
+
+    @staticmethod
+    def _joindre_cases(cases: list[str]) -> str:
+        """Assemble les cases d'une palette comme `_form_menus` les sort.
+
+        `wims/src/html.c` :
+
+            if(i<itemcnt-1 && itemcnt>2 && (hmode==NULL || *hmode==0))
+              _output_(",");
+            _output_("\n");
+
+        Trois conditions, dont deux comptent ici. La virgule ne paraît
+        **qu'au-delà de deux propositions** : avec deux, WIMS ne sépare que
+        par le saut de ligne, qui s'affiche comme une espace. PAX joignait
+        toujours par `", "`, d'où une virgule parasite sur 22 réponses du
+        corpus — les `OEFevalwimsnumber/oefordre*` en tête, qui affichaient
+        « Cocher le nombre supérieur : ☐ 478, ☐ 470 ».
+
+        La troisième condition — `wims_html_mode` vide — n'est pas portée
+        **parce qu'elle est morte** : la variable n'apparaît nulle part, ni
+        dans les 4 300 `.def` du corpus, ni dans les scripts WIMS rapatriés.
+        La porter serait écrire une branche qu'aucun exercice n'emprunte.
+        """
+        return (", " if len(cases) > 2 else " ").join(cases)
+
     def _case_a_cocher(self, ref: str, i: int, label: str) -> str:
         """Une case de la palette. `value` est le **rang** (1-based), non le
         texte : c'est ce que `replygood` énumère et ce que `check_set` compare.
@@ -5565,7 +5658,9 @@ class DefEngine(_SlibMixin):
                 if index_donne and idx is not None and labels and 1 <= idx <= len(labels):
                     return _box(idx, labels[idx - 1])
                 if labels:
-                    return ", ".join(_box(i + 1, lbl) for i, lbl in enumerate(labels))
+                    return self._joindre_cases(
+                        [_box(i + 1, lbl) for i, lbl in enumerate(labels)]
+                    )
                 # No proposition list available — fall back to a single box.
                 value = self._subst(size_str).strip()
                 return (
@@ -5599,82 +5694,12 @@ class DefEngine(_SlibMixin):
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
                 return f'<span class="oef-menu" name="{ref}" data-label="{label}"></span>'
             elif reply_type == "clickfill":
-                # Drag-compose answer: emit one target slot per cell. The embed
-                # size is "W x H x N" (cell width/height in px, N = slot count,
-                # e.g. repgraphint's 60x40x12). Fall back to the length of the
-                # correct sequence when N is absent. All slots share `ref`; the
-                # frontend composes their ordered, non-empty values into one
-                # reply. Entity-safe split (replygood holds &#91;/&#93;/&#59;
-                # whose ";" must not be read as the correct;pool separator).
-                good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
-                # WIMS treats "|" as a row separator too (anstype/fill.inc:15
-                # does `!translate internal | to <newline>`), so `correct|pool`
-                # is equivalent to `correct;pool`. Normalise before splitting.
-                good_raw = good_raw.replace("|", ";")
-                rows = wl.cutrows(good_raw)
-                # `fill.inc` (l. 10-19) écarte la ligne `?analyze` **avant** de
-                # compter, et compte ensuite les items de ce qui est devenu la
-                # première ligne :
-                #
-                #     !set input_1=!word 1 of $input_rg
-                #     !if $input_1=?analyze
-                #       !set input_rg=!line 2 to -1 of $input_rg
-                #     !endif
-                #     !set input_1=!line 1 of $input_rg
-                #     !set n=!itemcnt $input_1
-                #     !default sizei=$n
-                #
-                # Pour un `clickfill` ordinaire cette première ligne est la
-                # bonne réponse, d'où un emplacement par élément attendu. Pour
-                # un `?analyze` elle est **le vivier** : autant d'emplacements
-                # que de cartes, et l'élève laisse vides celles qu'il n'emploie
-                # pas — c'est un `:test` qui juge, souvent par égalité
-                # d'ensembles.
-                #
-                # Sans cette coupe, `rows[0]` valait `?analyze 23` : un seul
-                # item, donc **un seul emplacement**, quand
-                # `OEFevalwimspgcd/Applcritere1` demande d'y déposer les deux à
-                # quatre nombres divisibles du vivier. L'exercice était
-                # insoluble à tous les tirages (mesuré sur 40 : jamais un seul
-                # nombre à déposer).
-                if rows and rows[0].strip().split()[:1] == ["?analyze"]:
-                    rows = rows[1:]
-                premiere_ligne = [
-                    c for c in (rows[0].split(",") if rows else []) if c.strip()
-                ]
-                # `fill.inc` (l. 2-4) lit la taille en **quatre** nombres, et
-                # le `x` n'est qu'un séparateur parmi d'autres :
-                #
-                #     !set inputsize=!translate x to , in $inputsize
-                #     !set inputsize=!items2words $inputsize
-                #     !distribute words $inputsize into sizeh,sizev,sizei,sizej
-                #
-                # Un `x` devient une virgule, puis tout se lit en mots : `x`,
-                # virgule et blanc séparent donc indifféremment. PAX ne coupait
-                # que sur `x`, si bien que `challenge2006/exo7b` — dont
-                # l'`\embed` porte `110 60 10 2` — n'exposait ni sa largeur ni
-                # son nombre d'emplacements, et retombait sur la taille du
-                # vivier : 15 cases là où WIMS en pose 10.
-                size_parts = [
-                    p for p in re.split(r"[xX,\s]+", self._subst(size_str).strip()) if p
-                ]
-                nslots = 0
-                if len(size_parts) >= 3:
-                    try:
-                        nslots = int(float(size_parts[2]))
-                    except (ValueError, TypeError):
-                        nslots = 0
-                if nslots <= 0:
-                    nslots = len(premiere_ligne) or 1
-                try:
-                    slot_w = int(float(size_parts[0])) if size_parts else 0
-                except (ValueError, TypeError):
-                    slot_w = 0
-                w_attr = f' data-w="{slot_w}"' if slot_w > 0 else ""
-                return "".join(
-                    f'<cf-slot name="{ref}" data-index="{i}"{w_attr}></cf-slot>'
-                    for i in range(nslots)
-                )
+                # L'élève y dépose des étiquettes dans l'ordre ; tous les
+                # emplacements portent `ref`, et le front compose leurs valeurs
+                # non vides en une seule réponse. Le compte et la largeur se
+                # lisent comme `fill.inc` les lit — cf. `_emplacements_fill`.
+                nslots, largeur = self._emplacements_fill(n, size_str)
+                return self._slots_html(ref, nslots, largeur)
             elif reply_type == "correspond":
                 # `correspond`: bijection between two columns. replygood
                 # is "left1,left2,...;right1,right2,..." (rows separated
@@ -5820,6 +5845,17 @@ class DefEngine(_SlibMixin):
             if reply_type == "draw"
             else re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         )
+        # `matrix.input` n'offre jamais un champ d'une ligne : il pose un
+        # `<textarea rows×cols>` où l'élève écrit la matrice, une rangée par
+        # ligne, et borne ses dimensions à ses propres défauts —
+        # `!bound sizer between integer 1 and 15 default 5` et
+        # `!bound sizec between integer 1 and 100 default 25`. Trois des quatre
+        # exercices du corpus donnent bien une taille `RxC` ; `foncpluvares/
+        # sommemat`, lui, n'en donne pas, et retombait sur un champ de 14
+        # caractères pour y écrire `-2/5,3/5;-7/5,-1`.
+        if reply_type == "matrix" and not textarea_m:
+            textarea_m = re.match(r"^(\d+)x(\d+)$", "5x25")
+            size_raw = "5x25"
         if textarea_m:
             span = (
                 f'<span class="oef-input" name="{ref}" '
@@ -5860,6 +5896,19 @@ class DefEngine(_SlibMixin):
         # `noprompt` de l'embed n'en saute que le libellé, jamais les accolades.
         if reply_type in ("set", "fset", "aset"):
             return f'<span class="oef-set-brace">{{</span>{span}<span class="oef-set-brace">}}</span>'
+        # Pas de parenthèses ici, et c'est l'inverse des accolades de `set` :
+        # dans `matrix.input` (l. 14 et 29) `$m_leftpar4` / `$m_rightpar4`
+        # vivent **à l'intérieur** du garde `!if $wims_read_parm!=noprompt`,
+        # et `oef/embed.phtml` (l. 155) lit justement le `.input` avec
+        # `noprompt`. Un `matrix` embarqué n'a donc pas de parenthèses, quand
+        # un `set` en garde ses accolades — celles-ci sont posées sur la ligne
+        # du champ, hors du garde (`set.input:59`).
+        #
+        # La distinction n'est pas théorique : dix exercices du corpus
+        # embarquent un champ `matrix` comme **zone de brouillon** (un
+        # `replytype=matrix` que `?analyze` masque, cf. `eqalghyper*`). Leur
+        # poser de grandes parenthèses laisserait croire à une matrice à
+        # remplir. Elles ne paraissent qu'au repli, où WIMS les pose aussi.
         return span
 
     def _render_draw_embed(self, n: int, size_str: str) -> str:

@@ -379,23 +379,23 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
   manquent le `datalist` de `chset` et les parenthèses de `matrix`, tous deux
   cosmétiques.
 
-- [ ] **Le séparateur des palettes de cases : trois conditions, aucune tenue.**
-  `wims/src/html.c`, `_form_menus` (qui sert `!formcheckbox`, `!formradio` et
-  `!formselect`) :
+- [x] **Le séparateur des palettes** (2026-09-21). `wims/src/html.c`,
+  `_form_menus` : `if(i<itemcnt-1 && itemcnt>2 && (hmode==NULL || *hmode==0))`.
+  WIMS met une **virgule**, pas un `;`, mais seulement au-delà de deux
+  propositions — PAX joignait toujours par `", "`, d'où une virgule parasite
+  sur 15 exercices (`OEFevalwimsnumber/oefordre*` : « ☐ 478, ☐ 470 »).
+  Corrigé sur les deux chemins à la fois (`_joindre_cases`).
+  La troisième condition, `wims_html_mode` vide, **n'est pas portée parce
+  qu'elle est morte** : la variable n'apparaît ni dans les 4 300 `.def` du
+  corpus, ni dans les scripts WIMS rapatriés.
 
-  ```c
-  if(i<itemcnt-1 && itemcnt>2 && (hmode==NULL || *hmode==0)) _output_(",");
-  ```
-
-  WIMS met bien une **virgule** — pas un `;` —, mais seulement au-delà de
-  **deux** propositions, et seulement si `wims_html_mode` est vide (options
-  rendues en `<div>`/`<li>` → aucun séparateur). PAX joint toujours par `", "`,
-  sur les deux chemins. **22 réponses** du corpus n'ont que deux propositions et
-  portent donc une virgule que WIMS ne mettrait pas — `OEFevalwimsnumber/oefordre1`
-  à `oefordre3` en tête (« Cocher le nombre supérieur : ☐ 478, ☐ 470 »). Le cas
-  `hmode` n'est pas chiffré : PAX ne porte pas `wims_html_mode`. Purement
-  visuel ; à corriger **sur les deux chemins à la fois** (`_case_a_cocher` et la
-  branche d'embed), pas sur l'un seulement.
+- [ ] **Six `oeffonctionsverbe/gramfonclic*` au `replygood` vide.** Leurs 40
+  réponses `clickfill` n'ont **aucune** étiquette : `val68` et `val70` restent
+  vides et `replygood1` se réduit à `;`. Même famille que `evolmeth1/2` et
+  `geo6`, déjà consignés — une tranche indexée qui ne s'évalue pas. Le
+  rendu leur pose désormais leurs 40 emplacements (c'est ce que fait
+  `formr.phtml`), mais sans vivier ils restent insolubles : c'est en amont
+  qu'il faut corriger, pas à l'affichage.
 
 - [x] **`nocase`** : `check_nocase` — match exact après normalisation (ponctuation→espace, accents/casse/espaces ignorés) contre toute alternative `|`. Self-check corpus 40/0.
 - [x] **`atext`** : `check_atext` — normalisation nocase + **suppression des mots vides** (articles, via `atext.dic`) + **racinisation pluriel/genre** (via `suffix.<lang>`, algorithme WIMS : mot inversé, plus longue clé-préfixe remplacée) + alternatives `|`. « les triangles » = « un triangle » = « triangle » ; « carrés » = « carré ». Dictionnaires WIMS copiés dans `backend/core/answer/data/atext/` (fr/nl/en). Self-check 39/0.
