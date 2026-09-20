@@ -1,12 +1,30 @@
 <template>
+    <!-- `role`/`tabindex` **statiques**, et l'état soumis dit par
+         `aria-disabled`. Ce n'est pas un détail de style : liés à une
+         expression qui vaut `undefined`, Vue les *retire* au patch, et
+         retirer `tabindex` d'un élément focalisé le défocalise. Au clavier,
+         chaque dépôt renvoyait donc au début de la tabulation. Mesuré :
+         `document.activeElement` passait à `BODY`, et le seul passage en
+         statique l'a réglé — une veilleuse qui rendait le focus après coup
+         s'est révélée inutile, et a été retirée. -->
+  <!-- `.stop` autant que `.prevent` sur les touches : `BaseExerciseStatement`
+       pose un `@keydown.enter` qui **soumet l'exercice**, et n'excepte que les
+       `<textarea>`. Sans arrêter la remontée, appuyer sur Entrée pour poser une
+       carte envoyait la copie. Vu au navigateur, pas déduit. -->
   <span
     class="cz"
     :class="{ 'cz--over': isOver, 'cz--submitted': submitted }"
+    role="button"
+    tabindex="0"
+    :aria-disabled="submitted || undefined"
+    :aria-label="nomAccessible"
     @dragover.prevent="isOver = true"
     @dragenter.prevent="isOver = true"
     @dragleave="isOver = false"
     @drop.prevent="onDrop"
-    @click="onZoneClick">
+    @click="onZoneClick"
+    @keydown.enter.stop.prevent="onZoneClick"
+    @keydown.space.stop.prevent="onZoneClick">
     <template v-for="(frag, i) in placed" :key="i">
       <span v-if="i > 0 && linkword" class="cz-link">{{ linkword }}</span>
       <!-- Le `×` retire, le reste du fragment dépose comme le fond de la zone.
@@ -54,6 +72,24 @@ const isOver = ref(false)
 // comme le `replygood` de `oefencad/inequation` : on ne la décode donc pas
 // ici, sans quoi elle se confondrait avec le séparateur.
 const placed = computed(() => (props.value ? props.value.split(',') : []))
+
+// La zone se lit comme une phrase en cours : sa longueur et ce qu'elle porte.
+// Vide, elle n'aurait annoncé que son texte d'invite.
+const nomAccessible = computed(() =>
+  placed.value.length
+    ? t('exercise.composeZoneFilled', {
+        n: placed.value.length,
+        v: placed.value.map(texteBrut).join(', '),
+      })
+    : t('exercise.composeDrop'),
+)
+
+function texteBrut(frag: string): string {
+  const alts = [...frag.matchAll(/<img[^>]*\balt="([^"]*)"/gi)]
+    .map(m => m[1]).filter(Boolean)
+  if (alts.length) return alts.join(' ')
+  return frag.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || frag
+}
 
 const rendus = ref<Record<string, string>>({})
 function html(frag: string): string {
@@ -115,6 +151,9 @@ function fragClass(_i: number) {
   vertical-align: middle;
 }
 .cz--over { background: rgba(59, 130, 246, 0.12); border-style: solid; }
+/* Le parcours au clavier doit se voir : sans cet anneau, la zone prend le
+   focus sans rien montrer, ce qui revient à ne pas être atteignable. */
+.cz:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .cz--submitted { border-style: solid; }
 .cz-empty { color: #6b7280; font-style: italic; font-size: 0.9em; }
 .cz-frag {

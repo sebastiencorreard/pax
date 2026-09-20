@@ -49,20 +49,31 @@
       <div class="flex gap-2 flex-wrap">
         <!-- Clé par rang : un dragfill garde ses doublons (deux étiquettes
              identiques sont deux cartes distinctes). -->
-        <div v-for="(choice, ci) in clickfillChoicesHtml" :key="ci"
-             :draggable="!choiceUsed(ci)"
-             @dragstart="e => { if (choiceUsed(ci)) { e.preventDefault(); return } e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
-             @dragend="draggingChoice = null"
-             @click="() => { if (!choiceUsed(ci)) pendingChoice = (pendingChoice === choice.raw ? null : choice.raw) }"
-             class="px-4 py-2 rounded-lg border font-medium transition select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-             :class="choiceUsed(ci)
-               ? 'opacity-30 cursor-default'
-               : (choice.raw === pendingChoice
-                 ? 'cursor-grab ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
-                 : 'cursor-grab hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30')"
-             style="min-width:3rem;text-align:center"
-             v-html="choice.html">
-        </div>
+        <!-- Un vrai `<button>`, non une `<div>` cliquable : la carte est
+             ainsi atteignable au clavier, annoncée comme un bouton, et son
+             état « choisie » se dit par `aria-pressed` plutôt que par la seule
+             couleur. `disabled` remplace l'ancien `opacity-30` seul, qui
+             laissait une carte déjà posée focalisable et actionnable.
+             Le nom accessible vient de `choiceLabel` : le contenu est du HTML
+             (KaTeX, images), qu'un lecteur d'écran énoncerait en bruit. -->
+        <button v-for="(choice, ci) in clickfillChoicesHtml" :key="ci"
+                type="button"
+                :draggable="!choiceUsed(ci)"
+                :disabled="choiceUsed(ci)"
+                :aria-pressed="choice.raw === pendingChoice"
+                :aria-label="choiceLabel(choice.raw)"
+                @dragstart="e => { if (choiceUsed(ci)) { e.preventDefault(); return } e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
+                @dragend="draggingChoice = null"
+                @click="() => { if (!choiceUsed(ci)) pendingChoice = (pendingChoice === choice.raw ? null : choice.raw) }"
+                class="px-4 py-2 rounded-lg border font-medium transition select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                :class="choiceUsed(ci)
+                  ? 'opacity-30 cursor-default'
+                  : (choice.raw === pendingChoice
+                    ? 'cursor-grab ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
+                    : 'cursor-grab hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30')"
+                style="min-width:3rem;text-align:center"
+                v-html="choice.html">
+        </button>
       </div>
     </div>
 
@@ -257,6 +268,18 @@ const placedCounts = computed<Record<string, number>>(() => {
 // La carte de rang `idx` est-elle consommée ? Les exemplaires d'une même
 // étiquette se consomment dans l'ordre : la carte est grisée si son rang parmi
 // ses homonymes est inférieur au nombre d'exemplaires posés.
+// Le nom accessible d'une carte. Son contenu est du HTML — du KaTeX rendu, ou
+// une image (les billets de `challenge2006/exo7b`). Laisser un lecteur d'écran
+// le parcourir donnerait du bruit, ou rien du tout pour une image. On prend
+// donc l'`alt` quand il y en a — c'est là que l'auteur a mis le sens — et
+// sinon le texte débarrassé de ses balises.
+function choiceLabel(raw: string): string {
+  const alts = [...raw.matchAll(/<img[^>]*\balt="([^"]*)"/gi)]
+    .map(m => m[1]).filter(Boolean)
+  if (alts.length) return alts.join(' ')
+  return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || raw
+}
+
 function choiceUsed(idx: number): boolean {
   if (!props.singleUseFill) return false
   const raw = props.clickfillChoicesHtml[idx]?.raw

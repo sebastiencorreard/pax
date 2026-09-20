@@ -1,4 +1,9 @@
 <template>
+<!-- `.stop` sur les touches, pas seulement `.prevent` :
+     `BaseExerciseStatement` pose un `@keydown.enter` qui **soumet
+     l'exercice**, et n'excepte que les `<textarea>`. Sans arrêter la remontée,
+     appuyer sur Entrée pour apparier deux cases envoyait la copie — reproduit
+     au navigateur sur `contribution.fr/tavernier2` le 2026-09-20. -->
   <!--
     Widget for replytype="correspond". Bijective matching between two
     fixed-position columns: the left column stays in document order, the
@@ -23,7 +28,7 @@
            role="button"
            :aria-label="$t('exercise.correspond_left_aria', { pos: i })"
            @click="onTap('left', i - 1)"
-           @keydown.enter.prevent="onTap('left', i - 1)"
+           @keydown.enter.stop.prevent="onTap('left', i - 1)"
            @keydown.space.prevent="onTap('left', i - 1)"
            @dragstart="onDragStart('left', i - 1, $event)"
            @dragover.prevent="onDragOver('left', i - 1, $event)"
@@ -56,7 +61,7 @@
            role="button"
            :aria-label="$t('exercise.correspond_right_aria', { pos: i })"
            @click="onTap('right', i - 1)"
-           @keydown.enter.prevent="onTap('right', i - 1)"
+           @keydown.enter.stop.prevent="onTap('right', i - 1)"
            @keydown.space.prevent="onTap('right', i - 1)"
            @dragstart="onDragStart('right', i - 1, $event)"
            @dragover.prevent="onDragOver('right', i - 1, $event)"

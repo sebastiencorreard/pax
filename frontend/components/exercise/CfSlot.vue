@@ -1,4 +1,16 @@
 <template>
+    <!-- `role`/`tabindex` **statiques**, et l'état soumis dit par
+         `aria-disabled`. Ce n'est pas un détail de style : liés à une
+         expression qui vaut `undefined`, Vue les *retire* au patch, et
+         retirer `tabindex` d'un élément focalisé le défocalise. Au clavier,
+         chaque dépôt renvoyait donc au début de la tabulation. Mesuré :
+         `document.activeElement` passait à `BODY`, et le seul passage en
+         statique l'a réglé — une veilleuse qui rendait le focus après coup
+         s'est révélée inutile, et a été retirée. -->
+  <!-- `.stop` autant que `.prevent` sur les touches : `BaseExerciseStatement`
+       pose un `@keydown.enter` qui **soumet l'exercice**, et n'excepte que les
+       `<textarea>`. Sans arrêter la remontée, appuyer sur Entrée pour poser une
+       carte envoyait la copie. Vu au navigateur, pas déduit. -->
   <span
     class="cf-slot"
     :class="{
@@ -8,11 +20,17 @@
       'cf-slot--correct': state === 'correct',
       'cf-slot--incorrect': state === 'incorrect',
     }"
+    role="button"
+    tabindex="0"
+    :aria-disabled="submitted || undefined"
+    :aria-label="nomAccessible"
     @dragover.prevent="isOver = true"
     @dragenter.prevent="isOver = true"
     @dragleave="isOver = false"
     @drop.prevent="onDrop"
     @click="onClick"
+    @keydown.enter.stop.prevent="onClick"
+    @keydown.space.stop.prevent="onClick"
   >
     <span v-if="valueHtml" v-html="valueHtml" class="cf-slot-content"></span>
     <span v-else class="cf-slot-placeholder">···</span>
@@ -36,6 +54,7 @@ const emit = defineEmits<{
   clear: [name: string, index: number]
 }>()
 
+const { t } = useI18n()
 const { renderMath } = useKatex()
 const isOver = ref(false)
 
@@ -55,6 +74,21 @@ function onDrop(e: DragEvent) {
   if (raw) emit('place', props.name, raw, props.index ?? 0)
 }
 
+// Sans nom, un emplacement vide ne s'annonce que par ses trois points. On dit
+// donc son rang et son contenu — c'est la seule information dont dispose
+// quelqu'un qui ne voit pas la ligne.
+const nomAccessible = computed(() => {
+  const rang = (props.index ?? 0) + 1
+  if (!props.value) return t('exercise.slotEmpty', { n: rang })
+  return t('exercise.slotFilled', { n: rang, v: texteBrut(props.value) })
+})
+
+function texteBrut(v: string): string {
+  const alts = [...v.matchAll(/<img[^>]*\balt="([^"]*)"/gi)].map(m => m[1]).filter(Boolean)
+  if (alts.length) return alts.join(' ')
+  return v.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || v
+}
+
 function onClick() {
   if (props.submitted) return
   if (props.pending) {
@@ -68,6 +102,10 @@ function onClick() {
 </script>
 
 <style>
+.cf-slot:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
 .cf-slot {
   display: inline-flex;
   align-items: center;
