@@ -613,6 +613,16 @@ XFAIL_CORRECT_SCORE |= _PORTAGE_TYPES_2026_09_11
 #    Dossier complet — les sept fichiers avec leur ligne, le mécanisme
 #    d'`embed.phtml` et ce que PAX pose à la place — dans
 #    `docs/signalements-wims.md` § 1. Défaut amont : à signaler, pas à corriger.
+#    ATTENTION, le dégât n'est pas le même des deux côtés. Les trois `radio`
+#    (TVF2, TVF22, radioactivite2) gardent leur palette — elle vient de
+#    `choicelist<n>`, pas de l'embed — et restent répondables. Les quatre
+#    `checkbox` (expression1/2/3/5) sont **insolubles** : leur palette est
+#    composée par la branche de l'embed, qui ne s'ouvre jamais, donc
+#    `options` n'a pas de `choices` et l'élève doit taper les positions
+#    (`2,3,5,7,8`) d'une liste qu'on ne lui montre pas. Ils ne sont dans aucun
+#    ensemble de notation : `test_correct_answer_scores_1` soumet l'attendu
+#    dans le champ de secours et passe **à vide**. À consigner en
+#    `XFAIL_CORRECT_SCORE` — décision en attente, cf. `TODO.md` § V.2.
 # 2. `oefspeed.nl/trajet` : son `.def` écrit `$m_answer{…}{…}{type=units}`,
 #    macro que PAX ne traite pas — l'énoncé affiche les accolades **et les
 #    bonnes réponses**. Un seul `.def` du corpus l'emploie.
