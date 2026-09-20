@@ -177,6 +177,13 @@ _SEGMENT_PATTERN = re.compile(
     # aucun numéro de groupe, et exclu des groupes `<div>` par la
     # sentinelle ci-dessus.
     r'|<div class="pax-reaction"[^>]*data-reaction="([^"]*)"[^>]*></div>'
+    # groupes 27/28 : la zone libre d'un `compose`/`textcomp` — nom, et le mot
+    # de liaison qui sépare les fragments à l'affichage (`linkword`, une espace
+    # par défaut). Le vivier ne voyage pas ici : il est dans
+    # `options["choices"]` de la réponse, comme pour un `radio` ou un
+    # `clickfill`. Placé en queue de motif, pour la même raison que les trois
+    # groupes précédents — ne décaler aucun numéro existant.
+    r'|<span class="oef-compose" name="([^"]+)" data-linkword="([^"]*)"></span>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
 # <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
@@ -702,6 +709,23 @@ def _segment_statement(html: str) -> list[dict]:
             except (ValueError, TypeError):
                 config = {}
             segments.append({"type": "reaction", "config": config, "is_sup": is_sup})
+        elif m.group(27) is not None:
+            # Zone libre d'un `compose` : l'élève y dépose autant de fragments
+            # qu'il veut, dans l'ordre, et la réponse est leur suite jointe par
+            # une virgule — ce que `check_compose` attend (« la virgule vaut
+            # espace »). Pas de nombre d'emplacements : `anstype/compose` n'en
+            # fixe aucun, et en fixer un révélerait la longueur de la réponse.
+            name = m.group(27).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            import html as _html  # noqa: PLC0415
+            segments.append({
+                "type": "compose",
+                "name": name,
+                "linkword": _html.unescape(m.group(28) or ""),
+                "is_sup": is_sup,
+            })
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

@@ -25,6 +25,17 @@
         @clear="(name, idx) => { ctx.setCfSlot(name, idx, '') }"
       />
 
+      <ExerciseComposeZone v-else-if="node.seg.type === 'compose'"
+        :name="node.seg.name"
+        :value="ctx.replies.value[node.seg.name] ?? ''"
+        :linkword="node.seg.linkword ?? ' '"
+        :choices-html="ctx.clickfillChoicesHtml.value"
+        :pending="ctx.pendingChoice.value"
+        :submitted="ctx.submitted.value"
+        :state="ctx.composeState(node.seg.name)"
+        @update="(name, val) => { ctx.updateReply(name, val); ctx.pendingChoice.value = null }"
+      />
+
       <input v-else-if="node.seg.type === 'input'"
         type="text"
         :name="node.seg.name"

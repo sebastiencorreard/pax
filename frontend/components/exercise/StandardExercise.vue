@@ -176,7 +176,14 @@ const checkResult = ref<CheckResult | null>(null)
 const feedbackHtml = ref<Record<string, { reply: string, expected: string }>>({})
 
 const hasClickfill = computed(() =>
-  props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
+  // Le vivier de cartes sert aussi aux `compose`/`textcomp`, qui y puisent
+  // leurs fragments : sans eux dans ce test, les cartes ne s'afficheraient pas
+  // et la zone libre resterait vide de tout ce qu'on peut y déposer.
+  props.rendered?.answers.some(
+    a => a.answer_type === 'clickfill'
+      || a.answer_type === 'compose'
+      || a.answer_type === 'textcomp'
+  ) ?? false
 )
 // `dragfill` : étiquettes à usage unique. WIMS impose que tous les champs à
 // remplir d'un exercice soient du même type, d'où un drapeau global.

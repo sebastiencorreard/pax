@@ -21,6 +21,7 @@ export interface PaxStatementCtx {
   cfValue: (name: string, index: number) => string
   setCfSlot: (name: string, index: number, value: string) => void
   cfSlotState: (name: string, index: number) => '' | 'correct' | 'incorrect'
+  composeState: (name: string) => '' | 'correct' | 'incorrect'
   inputClass: (name: string) => string
   onSubmit: () => void
 }
@@ -62,8 +63,9 @@ export interface CodeEditorRun {
 export interface BackendSegment {
   type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
     | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline' | 'coord'
-    | 'draw' | 'jmol' | 'geogebra' | 'reaction'
+    | 'draw' | 'jmol' | 'geogebra' | 'reaction' | 'compose'
   content?: string
+  linkword?: string
   name?: string
   size?: number
   rows?: number
@@ -187,6 +189,9 @@ export type Segment =
   | { type: 'geogebra';    config: GeogebraConfig; is_sup?: boolean;
                            reply?: string; answer?: GeogebraLecture }
   | { type: 'reaction';    config: ReactionConfig; is_sup?: boolean }
+  // Zone libre d'un `compose` : pas de nombre d'emplacements, la suite des
+  // fragments vit dans `replies[name]`, jointe par des virgules.
+  | { type: 'compose';     name: string; linkword: string; is_sup?: boolean }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
@@ -333,6 +338,8 @@ export function useExerciseLogic() {
           xrange: s.xrange ?? '', yrange: s.yrange ?? '',
           width: s.width, height: s.height, is_sup: s.is_sup,
         })
+      } else if (s.type === 'compose' && s.name) {
+        out.push({ type: 'compose', name: s.name, linkword: s.linkword ?? ' ', is_sup: s.is_sup })
       } else if (s.type === 'reaction' && s.config) {
         out.push({ type: 'reaction', config: s.config as unknown as ReactionConfig, is_sup: s.is_sup })
       } else if (s.type === 'codeeditor' && s.config) {
@@ -448,6 +455,18 @@ export function useExerciseLogic() {
             if (seenClickfill.has(c)) continue
             seenClickfill.add(c)
           }
+          clickfillChoicesHtml.push({ raw: c, html: await disp(c) })
+        }
+      }
+      // `compose`/`textcomp` puisent dans le même vivier de cartes que le
+      // `clickfill` : le serveur le compose déjà dédoublonné et trié
+      // (`anstype/compose`), donc on le reprend tel quel, sans re-dédoublonner
+      // — deux fragments identiques n'y coexistent pas.
+      if (
+        (ans.answer_type === 'compose' || ans.answer_type === 'textcomp')
+        && ans.options.choices?.length
+      ) {
+        for (const c of ans.options.choices) {
           clickfillChoicesHtml.push({ raw: c, html: await disp(c) })
         }
       }

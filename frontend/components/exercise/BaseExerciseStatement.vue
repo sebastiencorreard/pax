@@ -192,6 +192,16 @@ function setCfSlot(name: string, index: number, value: string) {
   updateReply(name, arr.filter(Boolean).join(','))
 }
 
+// `check_compose` juge la suite **entière** (elle égale l'une des formulations
+// acceptables, ou non) : il n'y a pas de verdict par fragment à en tirer, et
+// en inventer un situerait l'erreur là où le correcteur ne la situe pas.
+function composeState(name: string): '' | 'correct' | 'incorrect' {
+  if (!props.submitted || !props.checkResult) return ''
+  const r = props.checkResult.results.find(x => x.input_name === name)
+  if (!r) return ''
+  return r.correct ? 'correct' : 'incorrect'
+}
+
 // Per-slot feedback: compare each filled slot (in sequence order) to the
 // expected item at the same position.
 function cfSlotState(name: string, index: number): '' | 'correct' | 'incorrect' {
@@ -546,6 +556,7 @@ provide(PAX_STATEMENT_CTX, {
   cfValue,
   setCfSlot,
   cfSlotState,
+  composeState,
   inputClass,
   onSubmit: () => emit('submit'),
 })

@@ -1337,7 +1337,13 @@ class DefEngine(_SlibMixin):
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
                     "jsxgraphobjet", "geogebra", "jmolclick", "runcode",
-                    "js2wims1", "click", "reaction")
+                    "js2wims1", "click", "reaction",
+                    # `compose`/`textcomp` posent leur propre zone libre : sans
+                    # cette exclusion, le repli ajoutait **en plus** une boîte
+                    # de texte sous « Entrez votre réponse », vue au navigateur
+                    # sur `geobase/phradroit`. Un port complet se reconnaît à
+                    # ce qu'il ne laisse pas de champ parasite derrière lui.
+                    "compose", "textcomp")
         ]
         # Un champ de secours par réponse **que l'énoncé n'a pas embarquée**.
         #
@@ -5566,6 +5572,28 @@ class DefEngine(_SlibMixin):
                     f'<input type="checkbox" class="oef-checkbox" '
                     f'name="{ref}" value="{value}" />'
                 )
+            elif reply_type in ("compose", "textcomp"):
+                # Zone libre : l'élève y dépose autant de fragments qu'il veut.
+                # `anstype/compose` ne fixe **aucun** nombre d'emplacements —
+                # il borne seulement la suite à `lenlimit=40` — et en fixer un
+                # révélerait la longueur de la réponse : `oefencad/inequation`
+                # en attend 11 pour un vivier de 28.
+                #
+                # Le vivier voyage dans `options["choices"]`, comme pour un
+                # `radio` ou un `clickfill` ; ne reste ici que le mot de
+                # liaison, qui sépare les fragments à l'affichage
+                # (`!getopt linkword`, une espace par défaut, `empty` = rien).
+                import html as _h  # noqa: PLC0415
+                opts = self._subst(self.ctx.get(f"replyoption{n}", ""))
+                lien = self._cmd_getopt(f"linkword in {opts}") if opts else ""
+                if not lien:
+                    lien = " "
+                if lien.strip().lower() == "empty":
+                    lien = ""
+                return (
+                    f'<span class="oef-compose" name="{ref}" '
+                    f'data-linkword="{_h.escape(lien, quote=True)}"></span>'
+                )
             elif reply_type == "menu":
                 # Menus need a placeholder in the HTML for inline positioning
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
@@ -7521,6 +7549,47 @@ class DefEngine(_SlibMixin):
                                         is_dragfill=False, slots=1)
                     expected = correct
                     options["choices"] = choices
+
+            elif ans_type in ("compose", "textcomp"):
+                # `anstype/compose` : l'élève assemble une suite de fragments
+                # puisés dans un vivier. Le vivier se compose de **tout** le
+                # `replygood` — les alternatives comprises, `|` valant `,` —,
+                # puis se déduplique et se trie :
+                #
+                #     imgs=!translate internal | to , in $imgs
+                #     imgs=!rows2lines $imgs        (1re rangée ôtée si ?analyze)
+                #     imgs=!lines2items $imgs
+                #     imgs=!singlespace $imgs
+                #     imgs=!nonempty items $imgs
+                #     imgs=!listuniq $imgs
+                #     !if shuffle notwordof … → !sort nocase items, sinon !shuffle
+                #
+                # Le tri par défaut n'est pas une commodité : sans lui l'ordre
+                # du vivier serait celui de la bonne réponse, qu'il donnerait.
+                brut = self._subst(self.ctx.get(f"replygood{n}", ""))
+                lignes = wl.cutrows(brut.replace("|", ","))
+                if lignes and "?analyze" in lignes[0]:
+                    lignes = lignes[1:]
+                fragments: list[str] = []
+                for ligne in lignes:
+                    fragments += [
+                        re.sub(r"\s+", " ", x).strip()
+                        for x in wl.cutitems(ligne)
+                    ]
+                vus: set[str] = set()
+                vivier = [
+                    f for f in fragments
+                    if f and not (f in vus or vus.add(f))  # type: ignore[func-returns-value]
+                ]
+                if "shuffle" in (self.ctx.get(f"replyoption{n}", "") or "").lower():
+                    rng.shuffle(vivier)
+                else:
+                    vivier.sort(key=str.casefold)
+                options["choices"] = [
+                    _close_inline_math(v, self.lang) for v in vivier
+                ]
+                # L'attendu reste la 1re rangée : c'est ce que `check_compose`
+                # relit, alternatives `|` comprises. On ne le réécrit pas.
 
             # Keep an exact non-integer rational answer as a fraction so the
             # auto-fill inserts e.g. `2/3` rather than the lossy decimal
