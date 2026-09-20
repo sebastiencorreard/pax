@@ -33,10 +33,18 @@ def _expected(entry: dict) -> list[str]:
 def check(state: dict) -> list[tuple[str, bool, object]]:
     out = []
 
+    # La moyenne vaut 151/38 = 3.973684210526… et se **rend** comme WIMS
+    # l'imprime : `wims_float2str`, soit `%.8g` sous `print_precision=8`, donc
+    # `3.9736842`. Cette sentinelle attendait `3.97368421` (neuf chiffres) et
+    # échouait en silence depuis le port de `float2str` (84910b0c, 2026-09-12) —
+    # personne ne l'a vue pendant huit jours. Corrigée le 2026-09-20 dans le
+    # sens de la fidélité : c'est l'attente qui était périmée, pas le moteur.
+    # Ne pas la « réparer » en rallongeant la précision : ce serait réintroduire
+    # une invention de PAX là où WIMS tronque.
     mean = _find(state, "oefstat.fr/def/mean.def")
     vals = _expected(mean)
-    out.append(("oefstat/mean = 3.973684211",
-                any("3.97368421" in (v or "") for v in vals), vals))
+    out.append(("oefstat/mean = 3.9736842 (float2str, 8 chiffres)",
+                any("3.9736842" in (v or "") for v in vals), vals))
 
     symax2 = _find(state, "transform.fr/def/symax2.def")
     palettes = [len(a["palette"]) for a in symax2["reponses"].values()] if symax2 else []

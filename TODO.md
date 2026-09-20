@@ -315,6 +315,65 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 ### c) Autres types de réponse
 
+- [~] **Le trou d'`oef/formr.phtml` : un widget que PAX ne sait poser qu'embarqué.**
+  WIMS ne décide pas autrement selon que l'auteur a embarqué son champ ou non —
+  `formr.phtml` tient en cinq lignes : `!if r$i isitemof $embedded → !exit`,
+  sinon `!read anstype/$(replytype$i).input`, qui monte le widget complet. PAX,
+  lui, construisait certains widgets **uniquement** dans la branche `\embed` de
+  `_render_embed` ; faute d'embed, le repli par réponse posait une boîte de
+  texte. Relevé du 2026-09-20 sur les types qui ont une branche d'embed mais ne
+  figurent pas dans la liste d'exclusion de `text_replies` :
+
+  | type | réponses touchées | ce que l'élève subit |
+  |---|---|---|
+  | `checkbox`/`multipleclick` | **17** | **corrigé le 2026-09-20** (6c98a43a) |
+  | `clickfill`/`dragfill` | 31 | dégradé, **soluble** |
+  | `coord` | 1 | insoluble |
+  | `draw` | 0 | rien à faire |
+
+  **`clickfill` n'est pas urgent et c'est mesuré** : les champs de secours
+  portent le bon nom, l'attendu est un chiffre, et la notation marche
+  (`oefaddition1` : juste 1.0, faux 0.0). L'élève tape le chiffre au lieu de le
+  glisser — c'est l'ergonomie qui est perdue, pas l'exercice. À porter pour la
+  qualité, pas pour le déblocage.
+
+  **`coord` est un vrai défaut, mais un seul exercice** —
+  `OEFpdtscalTS/cnstbary1` : son attendu est une *zone*
+  (`rectangle,540.2,0,549.8,64`) qu'aucun élève ne tapera, et le checker veut
+  un **point** cliqué dedans. Il cumule d'ailleurs un second défaut, distinct :
+  l'énoncé dit « on a représenté ci-dessous un segment [AB] » et **ne rend
+  aucune image** (0 `<img>`, 0 `<svg>`, 0 `<canvas>`). Rendre le champ cliquable
+  ne suffirait pas ; il n'y a rien à cliquer.
+
+- [ ] **Les types sans aucune branche d'embed** — un trou plus large, à ne pas
+  confondre avec le précédent : PAX ne les rend widget ni embarqués ni en
+  repli. `matrix` (`<table class="inline">` + `$m_leftpar4`, une grille de
+  champs entre crochets), `reorder` (glisser-déposer bâti sur `compose.css`),
+  `crossword`, `clicktile`, `compose`/`textcomp`. Vérifié contre leur `.input`,
+  qui fait foi — et **deux faux positifs à ne pas rouvrir** : `chset`
+  (21 champs) est un simple `<input list="emptylist" size=18>` et `complex`
+  (31) un champ numérique générique (`anstyle=numeric`, size 20). Pour ces
+  deux-là, le champ texte de PAX **est** le bon rendu ; seul le `datalist` de
+  `chset` manque, et c'est cosmétique.
+
+- [ ] **Le séparateur des palettes de cases : trois conditions, aucune tenue.**
+  `wims/src/html.c`, `_form_menus` (qui sert `!formcheckbox`, `!formradio` et
+  `!formselect`) :
+
+  ```c
+  if(i<itemcnt-1 && itemcnt>2 && (hmode==NULL || *hmode==0)) _output_(",");
+  ```
+
+  WIMS met bien une **virgule** — pas un `;` —, mais seulement au-delà de
+  **deux** propositions, et seulement si `wims_html_mode` est vide (options
+  rendues en `<div>`/`<li>` → aucun séparateur). PAX joint toujours par `", "`,
+  sur les deux chemins. **22 réponses** du corpus n'ont que deux propositions et
+  portent donc une virgule que WIMS ne mettrait pas — `OEFevalwimsnumber/oefordre1`
+  à `oefordre3` en tête (« Cocher le nombre supérieur : ☐ 478, ☐ 470 »). Le cas
+  `hmode` n'est pas chiffré : PAX ne porte pas `wims_html_mode`. Purement
+  visuel ; à corriger **sur les deux chemins à la fois** (`_case_a_cocher` et la
+  branche d'embed), pas sur l'un seulement.
+
 - [x] **`nocase`** : `check_nocase` — match exact après normalisation (ponctuation→espace, accents/casse/espaces ignorés) contre toute alternative `|`. Self-check corpus 40/0.
 - [x] **`atext`** : `check_atext` — normalisation nocase + **suppression des mots vides** (articles, via `atext.dic`) + **racinisation pluriel/genre** (via `suffix.<lang>`, algorithme WIMS : mot inversé, plus longue clé-préfixe remplacée) + alternatives `|`. « les triangles » = « un triangle » = « triangle » ; « carrés » = « carré ». Dictionnaires WIMS copiés dans `backend/core/answer/data/atext/` (fr/nl/en). Self-check 39/0.
 - [x] **`dragfill`** (132 exercices, pas ~25) : `help/anstype/clickfill.phtml` décrit `clickfill` et `dragfill` comme **un seul widget**, à une différence près — une étiquette resservable dans le premier, à usage unique dans le second. Faute de reconnaître le nom, PAX ne voyait qu'un type inconnu et lisait la taille `HxVxLxT` comme un `textarea` : les 132 exercices s'ouvraient sur **une zone de texte libre géante** (80 lignes) à la place du glisser-déposer, sans la moindre étiquette affichée — insolubles, pas seulement mal notés. `dragfill` est désormais replié sur `clickfill` (`_normalize_reply_type`, aux trois points de lecture du type), la contrainte voyageant à part en `options["single_use"]`. **La palette ne se compose pas comme celle d'un clickfill** (`anstype/fill.inc`) : ligne 1 (la réponse) **puis** le complément des lignes suivantes (`!listcomplement`), et **sans `!listuniq`** — un mot dont une lettre revient a besoin d'une carte par occurrence. D'où deux conséquences : un vivier absent est licite (la palette est alors la réponse mélangée — les anagrammes de `oefdeutsch`, où l'on rassemble « Hamburg » lettre à lettre, n'avaient aucune autre source d'étiquettes), et le front doit **garder ses doublons** (`prepareChoicesHtml` dédoublonnait) en grisant autant de cartes que d'exemplaires posés. Le mélange suit `dragfill.after` (tri alphabétique au-delà de 12 étiquettes). Option **`noorder`** (3 fichiers) branchée sur `check_clickfill` : comparaison des multiensembles, ce qui rend notables les exercices « classer par propriétés ». **124/132 rendent une case, une palette et une réponse atteignable** (vérifié étiquette par étiquette, en tenant compte des doublons). Les 8 restants relèvent d'autres bugs : `oeftrigo2/vocabulaire3` attend `imagefill` (ci-dessus) ; `evolmeth1/2` et `geo6` ont un `replygood` vide, leurs `$(val12[1;$val17])` (tranche de matrice indexée par une liste) ne s'évaluant pas — **bug distinct à traiter** ; `arithtable` a la même maladie sur son vivier. **Vérifié dans le navigateur** : `vocabulaire1` pose son étiquette et note 100 % ; `geo4` tire *Stuttgart*, dont la palette porte bien **quatre cartes `t`** — le dédoublonnage le rendait insoluble — et en grise exactement trois quand trois sont posées, la quatrième restant active. Console sans erreur.
