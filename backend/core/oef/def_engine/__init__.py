@@ -5612,8 +5612,52 @@ class DefEngine(_SlibMixin):
                 # is equivalent to `correct;pool`. Normalise before splitting.
                 good_raw = good_raw.replace("|", ";")
                 rows = wl.cutrows(good_raw)
-                correct_items = [c for c in (rows[0].split(",") if rows else []) if c.strip()]
-                size_parts = re.split(r"\s*[xX]\s*", self._subst(size_str).strip())
+                # `fill.inc` (l. 10-19) écarte la ligne `?analyze` **avant** de
+                # compter, et compte ensuite les items de ce qui est devenu la
+                # première ligne :
+                #
+                #     !set input_1=!word 1 of $input_rg
+                #     !if $input_1=?analyze
+                #       !set input_rg=!line 2 to -1 of $input_rg
+                #     !endif
+                #     !set input_1=!line 1 of $input_rg
+                #     !set n=!itemcnt $input_1
+                #     !default sizei=$n
+                #
+                # Pour un `clickfill` ordinaire cette première ligne est la
+                # bonne réponse, d'où un emplacement par élément attendu. Pour
+                # un `?analyze` elle est **le vivier** : autant d'emplacements
+                # que de cartes, et l'élève laisse vides celles qu'il n'emploie
+                # pas — c'est un `:test` qui juge, souvent par égalité
+                # d'ensembles.
+                #
+                # Sans cette coupe, `rows[0]` valait `?analyze 23` : un seul
+                # item, donc **un seul emplacement**, quand
+                # `OEFevalwimspgcd/Applcritere1` demande d'y déposer les deux à
+                # quatre nombres divisibles du vivier. L'exercice était
+                # insoluble à tous les tirages (mesuré sur 40 : jamais un seul
+                # nombre à déposer).
+                if rows and rows[0].strip().split()[:1] == ["?analyze"]:
+                    rows = rows[1:]
+                premiere_ligne = [
+                    c for c in (rows[0].split(",") if rows else []) if c.strip()
+                ]
+                # `fill.inc` (l. 2-4) lit la taille en **quatre** nombres, et
+                # le `x` n'est qu'un séparateur parmi d'autres :
+                #
+                #     !set inputsize=!translate x to , in $inputsize
+                #     !set inputsize=!items2words $inputsize
+                #     !distribute words $inputsize into sizeh,sizev,sizei,sizej
+                #
+                # Un `x` devient une virgule, puis tout se lit en mots : `x`,
+                # virgule et blanc séparent donc indifféremment. PAX ne coupait
+                # que sur `x`, si bien que `challenge2006/exo7b` — dont
+                # l'`\embed` porte `110 60 10 2` — n'exposait ni sa largeur ni
+                # son nombre d'emplacements, et retombait sur la taille du
+                # vivier : 15 cases là où WIMS en pose 10.
+                size_parts = [
+                    p for p in re.split(r"[xX,\s]+", self._subst(size_str).strip()) if p
+                ]
                 nslots = 0
                 if len(size_parts) >= 3:
                     try:
@@ -5621,7 +5665,7 @@ class DefEngine(_SlibMixin):
                     except (ValueError, TypeError):
                         nslots = 0
                 if nslots <= 0:
-                    nslots = len(correct_items) or 1
+                    nslots = len(premiere_ligne) or 1
                 try:
                     slot_w = int(float(size_parts[0])) if size_parts else 0
                 except (ValueError, TypeError):
