@@ -327,7 +327,7 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
   | type | réponses touchées | ce que l'élève subit |
   |---|---|---|
   | `checkbox`/`multipleclick` | **17** | **corrigé le 2026-09-20** (6c98a43a) |
-  | `clickfill`/`dragfill` | 31 | dégradé, **soluble** |
+  | `clickfill`/`dragfill` | 31 | dégradé, **soluble** (voir la nuance ci-dessous) |
   | `coord` | 1 | insoluble |
   | `draw` | 0 | rien à faire |
 
@@ -336,6 +336,16 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
   (`oefaddition1` : juste 1.0, faux 0.0). L'élève tape le chiffre au lieu de le
   glisser — c'est l'ergonomie qui est perdue, pas l'exercice. À porter pour la
   qualité, pas pour le déblocage.
+
+  **Nuance ajoutée le 2026-09-20** (866996c7) : le *nombre d'emplacements*
+  d'un `clickfill`, lui, était faux — et là c'était bloquant. `fill.inc`
+  écarte la ligne `?analyze` **avant** de compter, si bien que la première
+  ligne devient le vivier ; PAX comptait avant et lisait `?analyze 23` comme
+  un item unique. Et la taille se lit en quatre nombres que `x`, virgule ou
+  **blanc** séparent indifféremment, quand PAX ne coupait que sur `x`. Douze
+  exercices étaient insolubles, cent trente rendaient leurs cases sans
+  largeur. Ce qui reste ouvert sur `clickfill` est donc bien l'ergonomie
+  seule : taper au lieu de glisser.
 
   **`coord` est un vrai défaut, mais un seul exercice** —
   `OEFpdtscalTS/cnstbary1` : son attendu est une *zone*
@@ -347,14 +357,27 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 - [ ] **Les types sans aucune branche d'embed** — un trou plus large, à ne pas
   confondre avec le précédent : PAX ne les rend widget ni embarqués ni en
-  repli. `matrix` (`<table class="inline">` + `$m_leftpar4`, une grille de
-  champs entre crochets), `reorder` (glisser-déposer bâti sur `compose.css`),
-  `crossword`, `clicktile`, `compose`/`textcomp`. Vérifié contre leur `.input`,
-  qui fait foi — et **deux faux positifs à ne pas rouvrir** : `chset`
-  (21 champs) est un simple `<input list="emptylist" size=18>` et `complex`
-  (31) un champ numérique générique (`anstyle=numeric`, size 20). Pour ces
-  deux-là, le champ texte de PAX **est** le bon rendu ; seul le `datalist` de
-  `chset` manque, et c'est cosmétique.
+  repli. Restent `reorder` (glisser-déposer bâti sur `compose.css`, 3 champs),
+  `crossword` (5), `clicktile` (14). `compose`/`textcomp` en sont **sortis le
+  2026-09-20** (75fdaee3, zone libre).
+
+  Vérifié contre leur `.input`, qui fait foi — et **trois faux positifs à ne
+  pas rouvrir**, parce qu'un relevé plus ancien les comptait à tort :
+
+  - `chset` (21 champs) est un simple `<input list="emptylist" size=18>` ;
+  - `complex` (31) un champ numérique générique (`anstyle=numeric`, size 20) ;
+  - `matrix` (4) **n'est pas une grille de champs** — contrairement à ce que
+    cette entrée a d'abord dit. `matrix.input` tient en 31 lignes et pose un
+    seul `<textarea rows×cols>` entre deux grandes parenthèses
+    (`$m_leftpar4` / `$m_rightpar4`) : l'élève y tape la matrice, une rangée
+    par ligne. Trois des quatre se rendent **déjà** en `textarea` `RxC`
+    (`4x8`, `2x5`, `3 x 10`) ; seul `sommemat` retombe sur un champ d'une
+    ligne, sa taille n'étant pas de la forme `RxC` — là où WIMS prendrait ses
+    défauts (5 lignes × 25 colonnes). Un champ, pas un chantier.
+
+  Pour ces trois-là, le rendu de PAX est déjà juste ou presque ; seuls
+  manquent le `datalist` de `chset` et les parenthèses de `matrix`, tous deux
+  cosmétiques.
 
 - [ ] **Le séparateur des palettes de cases : trois conditions, aucune tenue.**
   `wims/src/html.c`, `_form_menus` (qui sert `!formcheckbox`, `!formradio` et
