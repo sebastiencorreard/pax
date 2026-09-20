@@ -1400,6 +1400,26 @@ class DefEngine(_SlibMixin):
                     f'<span class="oef-input" name="{a.input_name}" '
                     f'data-size="{size}"></span>'
                 )
+                # Une réponse à cocher n'a que faire d'une boîte de texte.
+                # `oef/formr.phtml` ne décide pas autrement selon que l'auteur
+                # a embarqué son champ ou non : il lit `anstype/<type>.input`
+                # dans les deux cas, et `checkbox.input` y monte la palette
+                # entière (`!formcheckbox reply$i list $input_rg2 …`).
+                #
+                # PAX ne savait la construire que dans la branche `\embed`.
+                # Faute d'embed, l'élève recevait un champ de 14 où il fallait
+                # taper les **rangs** des bonnes propositions (`2,3,5,7,8`)
+                # d'une liste qu'on ne lui montrait pas : 17 réponses du
+                # corpus étaient ainsi insolubles, dont 13 sans le moindre
+                # défaut de source (`oefoptics/qcm1` n'a pas un seul `\embed`).
+                if a.answer_type.lower() in ("checkbox", "multipleclick"):
+                    m_cb = re.fullmatch(r"reply(\d+)", a.input_name)
+                    cases = self._palette_checkbox(m_cb.group(1)) if m_cb else []
+                    if cases:
+                        champ = ", ".join(
+                            self._case_a_cocher(a.input_name, i + 1, lbl)
+                            for i, lbl in enumerate(cases)
+                        )
                 if a.answer_type.lower() in ("set", "fset", "aset"):
                     champ = (
                         f'<span class="oef-set-brace">{{</span>{champ}'
@@ -5207,6 +5227,47 @@ class DefEngine(_SlibMixin):
             self.ctx[f"choicelist{n}"] = ",".join(cli)
             self.ctx[f"choiceitems{n}"] = str(len(cli))
 
+    def _palette_checkbox(self, n: str | int) -> list[str]:
+        """Les propositions d'un `checkbox`/`multipleclick`, dans l'ordre.
+
+        `anstype/checkbox.input` les reconstruit depuis `replygood$i`, qui
+        s'écrit `<positions justes>;<proposition,proposition,…>` — la première
+        ligne porte les rangs attendus, le reste la palette. La virgule sépare
+        les propositions, sauf à l'intérieur d'un `\\(…\\)` : un `f(x,y)` n'est
+        pas deux choix.
+
+        Rendue publique à la classe parce que **deux** chemins en ont besoin :
+        l'`\\embed` qui place la palette dans l'énoncé, et le repli par réponse
+        qui la pose sous l'énoncé quand l'auteur n'a rien embarqué — c'est la
+        distinction qu'`oef/formr.phtml` fait en cinq lignes.
+        """
+        good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
+        labels_part = good_raw.partition(";")[2] if ";" in good_raw else ""
+        return [
+            c.strip() for c in re.split(r",(?![^(]*\))", labels_part) if c.strip()
+        ]
+
+    def _case_a_cocher(self, ref: str, i: int, label: str) -> str:
+        """Une case de la palette. `value` est le **rang** (1-based), non le
+        texte : c'est ce que `replygood` énumère et ce que `check_set` compare.
+        (WIMS y met le texte de l'option — divergence ancienne de PAX, hors du
+        périmètre de ce correctif ; les deux chemins doivent au moins dire la
+        même chose.)
+
+        L'étiquette passe par `_close_inline_math`, comme celle d'une palette
+        radio : `checkbox.input` garde le `\\(…)` de l'auteur pour le prompt
+        (il n'escape que la *valeur*, `input_rg2`), et WIMS sait lire cette
+        forme — pas KaTeX, qui veut un `\\)` explicite. Sans ce passage,
+        `demarrer1ereS/expression1` sortait dix `\\(` ouvrants pour zéro
+        fermant, et le test structurel le disait.
+        """
+        return (
+            f'<label class="oef-checkbox-label">'
+            f'<input type="checkbox" class="oef-checkbox" '
+            f'name="{ref}" value="{i}" /> '
+            f'{_close_inline_math(self._subst(label), self.lang)}</label>'
+        )
+
     def _render_embed(self, args: str) -> str:
         """Render an !read oef/embed.phtml marker as an input span."""
         args = self._subst(args).strip()
@@ -5251,6 +5312,30 @@ class DefEngine(_SlibMixin):
         # instead of `reply1,30`; collapse internal whitespace so the ref
         # matches the answer's input_name.
         ref = re.sub(r"\s+", "", ref)
+
+        # Le `!exit` d'`oef/embed.phtml`, à la ligne près :
+        #
+        #     l. 113  !set t_=!char 1 of $t_
+        #     l. 114  !set t_=!lower $t_
+        #     l. 115  !set t_=!translate a to r in $t_
+        #     l. 118  !if $t_ notitemof r,c or $n_=$empty
+        #     l. 120    !exit
+        #
+        # La référence se reconnaît à sa **première lettre**, et WIMS sort sans
+        # rien afficher quand ce n'est ni `r` ni `c`. PAX tombait alors dans le
+        # champ de saisie générique, qui écrit `ref` tel quel dans son `name` —
+        # d'où les champs nommés `\reply1` et `\choice1`, orphelins de toute
+        # `answers`, que sept exercices du corpus portent parce qu'un auteur a
+        # écrit `\embed{\reply1}` au lieu de `\embed{reply1}`
+        # (cf. `docs/signalements-wims.md` § 1).
+        #
+        # Sortir ici n'ôte rien à l'élève : la réponse n'étant pas enregistrée
+        # dans `_touched_replies`, le repli par réponse d'`oef/form.phtml` lui
+        # rend son champ en dessous — c'est exactement ce que fait WIMS, dont
+        # l'`!exit` tombe (l. 120) **avant** le `!set embedded=…` (l. 130).
+        premiere = ref[:1].lower().replace("a", "r")
+        if premiere not in ("r", "c"):
+            return ""
 
         # `\embed{c<n>}` désigne un `\choice`, non une réponse : un menu
         # déroulant dont les options ont été composées par `_prepare_choices`.
@@ -5459,22 +5544,10 @@ class DefEngine(_SlibMixin):
                 # The student's reply is the set of checked option *indices*
                 # (compared order-insensitively via check_set); the labels come
                 # from the proposition list in replygood = "correct;prop1,prop2,…".
-                good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
-                labels_part = good_raw.partition(";")[2] if ";" in good_raw else ""
-                # Smart comma split: don't break commas inside \(...\) math.
-                labels = [
-                    c.strip()
-                    for c in re.split(r",(?![^(]*\))", labels_part)
-                    if c.strip()
-                ]
+                labels = self._palette_checkbox(n)
 
                 def _box(i: int, label: str) -> str:
-                    lbl = self._subst(label)
-                    return (
-                        f'<label class="oef-checkbox-label">'
-                        f'<input type="checkbox" class="oef-checkbox" '
-                        f'name="{ref}" value="{i}" /> {lbl}</label>'
-                    )
+                    return self._case_a_cocher(ref, i, label)
 
                 # A leading integer in size_str that names a valid 1-based option
                 # → this embed is one box of a "split" group (author placed one

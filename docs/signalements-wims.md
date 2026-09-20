@@ -77,107 +77,76 @@ rien — il faudrait `choice 1` (ou `c1`, que `embed.phtml` accepte aussi, ne
 lisant que la première lettre et les chiffres du reste). Corriger le `\` seul ne
 suffirait pas pour celui-là.
 
-### Ce que PAX en fait aujourd'hui
+**Un huitième fichier, à part.** `H6/chemistry/piles.fr/src/piles2.oef` l. 83
+écrit `\embed{\(reply1 ,10x20)}` : l'auteur a enveloppé sa référence dans des
+délimiteurs mathématiques. Même mécanisme, malformation différente. Il ne
+figure pas dans le tableau ci-dessus parce qu'il n'y a rien à y réparer :
+l'exercice ne déclare **aucune** réponse (`replycnt=` vide, pas un seul
+`replytype`), et il fait partie des `piles`/redox qu'attend le portage de
+`chemeq_el`. À mentionner dans le signalement, pas à compter dans les sept.
 
-PAX **ne sort pas** comme WIMS : il pose un widget dont le nom porte le `\`.
+### Ce que PAX en faisait, et ce qu'il en fait depuis le 2026-09-20
+
+**Avant.** PAX ne sortait pas comme WIMS : il posait un widget dont le `name`
+portait le `\`, orphelin de toute `answers` — le front ne pouvait ni l'indexer
+ni le faire noter.
 
 ```
 expression1      énoncé: input '\reply1' (30) + input 'reply1' (14)   answers: reply1 (checkbox)
 TVF2             énoncé: input '\choice1' (30)                        answers: reply1 (radio)
-radioactivite2   énoncé: input '\reply1' (30)                         answers: reply1 (radio)
 ```
 
-Ce champ ne figure dans aucune `answers` : le front ne peut ni l'indexer ni le
-faire noter — c'est un **widget orphelin**. Les sept sont consignés à ce titre
-dans `backend/tests/known_failures.py` (`WIDGETS_ORPHELINS`) ;
-`tests/test_exercises_widgets.py` les laisse passer en xfail.
+`_render_embed` reconnaît la référence par trois filtres successifs, et le `\`
+les manquait tous les trois : le choix embarqué (`re.fullmatch(r"c[a-z]*(\d+)")`),
+le préfixe de réponse (`startswith(("reply","rep","r"))`) et le type
+(`^r(?:eply)?(\d+)$`). D'où `reply_type` vide, aucune branche par type ouverte,
+`_touched_replies` jamais renseigné, et une chute dans le champ générique qui
+écrit `ref` tel quel.
 
-#### Par où le `\` échappe au moteur
+Le dégât n'était pas le même des deux côtés. Les trois `radio` gardaient leur
+palette — elle vient de `choicelist<n>`, pas de l'embed — et restaient
+répondables. Les quatre `checkbox` étaient **insolubles** : leur palette est
+composée par la branche de l'embed, qui ne s'ouvrait jamais, si bien que
+l'élève devait taper les rangs (`2,3,5,7,8`) d'une liste qu'on ne lui montrait
+pas. Et la suite lente était verte dessus, le test soumettant l'attendu dans le
+champ de secours.
 
-`_render_embed` (`def_engine/__init__.py:5211`) reconnaît la référence par
-**trois filtres successifs**, et le `\` les manque tous les trois :
+**Depuis.** Deux gestes, mesurés sur tout le corpus :
 
-| Filtre | Ligne | Motif | `\reply1` | `\choice1` |
-|---|---|---|---|---|
-| choix embarqué | 5270 | `re.fullmatch(r"c[a-z]*(\d+)", ref)` | — | **rate** (commence par `\`) |
-| préfixe de réponse | 5289 | `ref.startswith(("reply","rep","r"))` | **rate** | rate |
-| type de réponse | 5341 | `re.match(r"^r(?:eply)?(\d+)$", ref)` | **rate** | rate |
+1. **Le `!exit` d'`embed.phtml` est porté** : une référence dont la première
+   lettre n'est ni `r` ni `c` (après `!lower` et `!translate a to r`) ne pose
+   aucun champ. Sur les 18 947 `!read oef/embed.phtml` du corpus, seules les
+   huit à `\` changent de comportement — les 314 références *calculées*
+   (`$(val22[$m_t])`) se résolvent avant ce test, ce qui était le vrai risque
+   et a été vérifié, non supposé.
+2. **La palette d'un `checkbox` sort de la branche d'embed**
+   (`_palette_checkbox`, `_case_a_cocher`) et le repli par réponse l'appelle —
+   c'est le port de la décision que `oef/formr.phtml` prend en cinq lignes :
+   embarqué ou non, il lit `anstype/<type>.input`, et `checkbox.input` y monte
+   la palette entière depuis `replygood$i`.
 
-Trois conséquences enchaînées, toutes silencieuses :
-
-1. `reply_type` reste la **chaîne vide** — donc aucune des branches par type
-   (radio, checkbox, mark, draw…) ne s'ouvre ;
-2. `self._touched_replies.add(...)` n'est jamais appelé : la réponse passe pour
-   non embarquée ;
-3. la fonction tombe dans le champ de saisie générique, qui écrit `ref` **tel
-   quel** dans l'attribut `name` — `\` compris — et lui donne
-   `_TAILLE_DEFAUT.get("", 30)`, d'où les 30 caractères observés.
-
-#### Le dégât n'est pas le même selon le type de la réponse
-
-C'est le point à retenir, et il sépare les sept en deux groupes.
-
-**Les trois `radio` — `TVF2`, `TVF22`, `radioactivite2` : gênant, pas bloquant.**
-Leur palette est composée ailleurs (`_prepare_choices`, à partir de
-`choicelist<n>`) et voyage dans `answers[0].options["choices"]` ; le front la
-rend sous l'énoncé. L'exercice reste **répondable et notable**. Le seul dégât
-est un champ de saisie vide de 30 caractères posé au milieu de la phrase.
+Le second répare **17 réponses `checkbox`** du corpus, dont seulement 4 tenaient
+à un `\` : les 13 autres n'ont aucun défaut de source, leur auteur n'avait
+simplement pas embarqué la réponse (`oefoptics/qcm1` n'a pas un seul `\embed`).
 
 ```
-TVF2            options: {'choices': ['non', 'oui', 'Je ne sais pas']}
-radioactivite2  options: {'choices': ['\(\text{beta}\)+', '\(\text{beta}\)-', '\(\text{alpha}\)', 'Je ne sais pas']}
+qcm1          avant: input 'reply1' (texte)        après: 5 cases à cocher, 0 champ texte
+expression1   avant: '\reply1' + 'reply1' (texte)  après: 10 cases à cocher, 0 orphelin
+TVF2          avant: input '\choice1'              après: rien (la palette radio vient d'`options`)
 ```
 
-**Les quatre `checkbox` — `expression1`, `2`, `3`, `5` : insolubles.**
-Pour `checkbox`, la palette est construite **par la branche de l'embed
-elle-même**, qui lit `replygood<n>` sous la forme `positions;choix…`. Cette
-branche ne s'ouvre jamais. Résultat : `options` ne porte **aucun `choices`**, et
-la liste à cocher n'existe nulle part.
+Piège payé en chemin : les étiquettes portent du `\(2)`, `\(x -4)` — la forme
+WIMS, où `\(` ouvre et une simple parenthèse ferme. `checkbox.input` n'échappe
+que la *valeur* (`input_rg2`), jamais le prompt. KaTeX veut un `\)` explicite,
+d'où le passage par `_close_inline_math`, comme le fait déjà la palette radio.
+Sans lui, `expression1` sortait dix `\(` ouvrants pour zéro fermant — c'est
+`test_render_structure` qui l'a dit, pas `corpus_state`, qui ne contrôle que
+l'appariement des groupes de mise en page.
 
-```
-expression1  type=checkbox  expected='2,3,5,7,8'  options={'option':'shuffle','precision':1000.0,'computeanswer':'yes'}
-                                                  → pas de clé 'choices'
-```
-
-Et comme `reply1` n'a pas été marquée embarquée (conséquence 2 ci-dessus), le
-repli par réponse d'`oef/form.phtml` s'ajoute par-dessus : un second champ, de
-14 caractères, sous « Entrez votre réponse : ». L'élève voit donc **deux boîtes
-de texte** et doit y taper `2,3,5,7,8` — les **positions** des bonnes
-propositions dans une liste qu'on ne lui montre pas.
-
-```
-expression1  énoncé: input '\reply1' (30)  +  input 'reply1' (14) sous « Entrez votre réponse : »
-```
-
-**Et la suite lente est verte dessus.** Les quatre ne figurent dans aucun
-ensemble d'échecs de notation — seulement dans `WIDGETS_ORPHELINS`, qui ne
-couvre que le rendu. `test_correct_answer_scores_1` écrit `2,3,5,7,8` dans le
-champ de secours, le checker l'accepte, le test passe :
-
-```
-PAX_TEST_CORPUS=H5/analysis pytest -m slow tests/test_exercises_check.py \
-  -k 'expression1 or expression2 or expression3 or expression5 or expression4'
-→ 15 passed
-```
-
-C'est le piège déjà nommé deux fois ailleurs (cf. `TODO.md` § V.2) : un test qui
-soumet l'attendu dans un champ que l'élève ne peut pas remplir utilement passe
-**à vide**. Il mesure le checker, pas l'exercice.
-
-#### Trois suites possibles, à ne pas engager sans décision
-
-- **S'en tenir là.** Défendable pour les trois `radio` — le champ mort est laid,
-  rien n'est faussé. Intenable tel quel pour les quatre `checkbox`, qu'un élève
-  ne peut pas résoudre.
-- **S'aligner vraiment sur `embed.phtml`** : n'émettre aucun widget quand le
-  premier caractère de la référence n'est ni `r` ni `c`. C'est la fidélité
-  stricte, et elle supprime le champ mort — mais elle laisse les quatre
-  `checkbox` sans palette, donc toujours insolubles (comme chez WIMS). Changement
-  de moteur, à mesurer sur tout le corpus : d'autres références mal formées que
-  le relevé du 18-09 n'a pas isolées pourraient basculer.
-- **Consigner les quatre `checkbox` en `XFAIL_CORRECT_SCORE`**, quelle que soit
-  la suite retenue. C'est indépendant du reste et ça ferme le faux vert : la
-  suite ne doit pas déclarer sain un exercice qu'on sait insoluble.
+**La faute de source, elle, reste entière** : l'auteur voulait son champ *en
+ligne*, à l'endroit précis de sa phrase, et il atterrit dans le formulaire du
+bas. C'est exactement ce que WIMS fait aussi — donc rien à corriger ici, tout à
+signaler là-bas.
 
 ### État du dossier
 

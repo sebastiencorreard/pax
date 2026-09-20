@@ -599,43 +599,28 @@ XFAIL_CORRECT_SCORE |= _PORTAGE_TYPES_2026_09_11
 # Un segment d'énoncé (`menu`, `input`) dont le nom ne figure dans aucune
 # `answers` donne un widget inerte : le front cherche les options d'un menu
 # dans `answers` par `input_name`, et la correction ignore le champ. 196
-# exercices en portaient un le 2026-09-18 (commits bff542cc et 42b7f322) ;
-# ceux qui suivent restent, et ne sont pas de notre ressort.
+# exercices en portaient un le 2026-09-18 (commits bff542cc et 42b7f322).
 #
-# 1. Sept portent une référence commençant par `\` — `\embed{\reply1}`,
-#    `\embed{\choice 1}` — dans leur **source OEF**. `oef/embed.phtml` lit le
-#    premier caractère comme type et sort si ce n'est ni `r` ni `c` : WIMS
-#    n'affiche donc aucun champ non plus. Le `\` est une faute d'auteur,
-#    recopiée d'un fichier à l'autre — `demarrer1ereS/expression4`, voisin
-#    immédiat des quatre autres, écrit `\embed{reply 1,\taille}` sans `\`, et
-#    la cible existe bien (un `\answer{}`, un `\choice{}`). Leur rendre un
-#    champ serait s'éloigner de WIMS, non s'en rapprocher.
-#    Dossier complet — les sept fichiers avec leur ligne, le mécanisme
-#    d'`embed.phtml` et ce que PAX pose à la place — dans
-#    `docs/signalements-wims.md` § 1. Défaut amont : à signaler, pas à corriger.
-#    ATTENTION, le dégât n'est pas le même des deux côtés. Les trois `radio`
-#    (TVF2, TVF22, radioactivite2) gardent leur palette — elle vient de
-#    `choicelist<n>`, pas de l'embed — et restent répondables. Les quatre
-#    `checkbox` (expression1/2/3/5) sont **insolubles** : leur palette est
-#    composée par la branche de l'embed, qui ne s'ouvre jamais, donc
-#    `options` n'a pas de `choices` et l'élève doit taper les positions
-#    (`2,3,5,7,8`) d'une liste qu'on ne lui montre pas. Ils ne sont dans aucun
-#    ensemble de notation : `test_correct_answer_scores_1` soumet l'attendu
-#    dans le champ de secours et passe **à vide**. À consigner en
-#    `XFAIL_CORRECT_SCORE` — décision en attente, cf. `TODO.md` § V.2.
-# 2. `oefspeed.nl/trajet` : son `.def` écrit `$m_answer{…}{…}{type=units}`,
+# Les sept à `\embed{\reply1}` / `\embed{\choice 1}` ont quitté cette liste le
+# 2026-09-20 : le moteur porte désormais le `!exit` d'`oef/embed.phtml` (une
+# référence dont la première lettre n'est ni `r` ni `c` ne pose aucun champ) et
+# le repli par réponse monte la palette d'un `checkbox`, comme `formr.phtml` le
+# fait en lisant `anstype/<type>.input`. La faute de source reste à signaler à
+# WIMS — `docs/signalements-wims.md` § 1 —, mais elle ne coûte plus rien ici.
+#
+# Les deux qui restent ne relèvent pas du même mécanisme :
+#
+# 1. `oefspeed.nl/trajet` : son `.def` écrit `$m_answer{…}{…}{type=units}`,
 #    macro que PAX ne traite pas — l'énoncé affiche les accolades **et les
 #    bonnes réponses**. Un seul `.def` du corpus l'emploie.
-# 3. `oefsequence/calcul_terme_suite` : laisse fuir du code Maxima
+# 2. `oefsequence/calcul_terme_suite` : laisse fuir du code Maxima
 #    (`algo=u:-1;for n:1 thru 3…`) et n'expose pas ses champs.
+#
+# `pytest.xfail()` est impératif dans `test_aucun_widget_orphelin` : un
+# exercice réparé ne se signale JAMAIS par un XPASS. Pour savoir si une entrée
+# tient encore, la retirer et relancer — c'est ainsi que les sept ci-dessus ont
+# été rendus à la suite.
 WIDGETS_ORPHELINS: set[str] = {
     "H3~algebra~oefspeed.nl~src~trajet",
-    "H5~analysis~demarrer1ereS.fr~src~expression1",
-    "H5~analysis~demarrer1ereS.fr~src~expression2",
-    "H5~analysis~demarrer1ereS.fr~src~expression3",
-    "H5~analysis~demarrer1ereS.fr~src~expression5",
     "H5~analysis~oefsequence.fr~src~calcul_terme_suite",
-    "H5~analysis~oeftablvar.fr~src~TVF2",
-    "H5~analysis~oeftablvar.fr~src~TVF22",
-    "H6~physics~OEFradioactivite.fr~src~radioactivite2",
 }
