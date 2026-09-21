@@ -389,34 +389,27 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
   qu'elle est morte** : la variable n'apparaît ni dans les 4 300 `.def` du
   corpus, ni dans les scripts WIMS rapatriés.
 
-- [ ] **Six `oeffonctionsverbe/gramfonclic*` au `replygood` vide.** Leurs 40
-  réponses `clickfill` n'ont **aucune** étiquette : `replygood1` se réduit à
-  `;`. Le rendu leur pose désormais leurs 40 emplacements (c'est ce que fait
-  `formr.phtml`), mais sans vivier ils restent insolubles.
+- [x] **`oeffonctionsverbe/gramfonclic*` au `replygood` vide — des données
+  jamais copiées, pas un bug moteur.** *Résolu le 2026-09-22.* Le `.def` lit ses
+  questions dans un **fichier de données du module** (`val6=gramfonclic1` →
+  `!recordcnt`, `!getdef instruction in …`), posé à la racine du module chez
+  WIMS en `root:600`. L'import du 2026-09-10 les avait pris pour des sources
+  illisibles et inutiles ; ils ne sont jamais arrivés dans `ressources/`. Les
+  deux pistes consignées ici (`confparm`, `randitem` fonction du calculateur)
+  étaient fausses toutes deux — ni l'une ni l'autre n'est en cause.
 
-  **Ce n'est PAS la tranche indexée**, contrairement à ce que cette entrée a
-  d'abord dit en les rattachant à `evolmeth1/2` et `geo6`. Vérifié le
-  2026-09-21 sur huit formes : `$(m[1;])` rend bien `a,b,c`, `$(m[;1])` rend
-  `a,d,g`, `$(m[1;$liste])` rend `a, c`. Le découpage fonctionne ; les
-  variables sont vides **avant** lui.
+  Copiés : les 18 fichiers des trois modules touchés — `oeffonctionsverbe` (6),
+  `oefvocdefauts` (6), `oefvocqualites` (6). **19 exercices** passent d'un
+  attendu vide à un attendu réel ; les 40 emplacements des `gramfonclic`
+  retombent à 1 (la source fixe `N=1`, `MAX=1` : une phrase par tirage — les 40
+  suivaient `replycnt`, c'étaient des fantômes). Vérifié au navigateur :
+  `gramfonclic6` pose sa phrase, son vivier de 7 étiquettes, et note 100 %.
 
-  Ce qui est établi, pour ne pas refaire le chemin :
-
-  - la chaîne de vides remonte à `val2=$confparm1` et `val3=$confparm2`
-    (l. 23-24 du `.def`) ;
-  - le module ne pose **aucun défaut** pour eux : son `introhook.phtml`
-    commente sa seule déclaration (`!! !formradio confparm1 from 1 to 3`), et
-    son `var.proc` n'en parle pas ;
-  - mais fournir `confparm1`/`confparm2` par `reglages` ne change rien — le
-    vivier reste vide aux valeurs 1, 2 et 3.
-
-  Donc la cause est **encore en amont**, et l'hypothèse `confparm` ne suffit
-  pas. Piste non explorée : la source OEF écrit `\text{file0=randitem(\file)}`
-  et `wims(embraced randitem …)`, or `randitem` est une **fonction du
-  calculateur** chez WIMS (`calc.c:2396`, table `calc_list`) au même titre
-  qu'`imgrename` — que PAX a dû porter en août pour la même raison
-  (`_eval_value` applique `calc_imgrename` à toute valeur calculée). Vérifier
-  si `randitem(…)` en position d'expression est évalué serait le prochain pas.
+  Leçon : **un vide peut venir d'un fichier absent** — avant de soupçonner le
+  moteur, vérifier que tout ce que le `.def` lit (`!record`, `!getdef`,
+  `!read`) existe dans le module. Seul autre cas de fichiers illisibles dans
+  `wims/` pour H1–H6 : `mathelexikon1` (déjà copiés en mai) et des `.code` de
+  documents, sans usage.
 
 - [x] **`nocase`** : `check_nocase` — match exact après normalisation (ponctuation→espace, accents/casse/espaces ignorés) contre toute alternative `|`. Self-check corpus 40/0.
 - [x] **`atext`** : `check_atext` — normalisation nocase + **suppression des mots vides** (articles, via `atext.dic`) + **racinisation pluriel/genre** (via `suffix.<lang>`, algorithme WIMS : mot inversé, plus longue clé-préfixe remplacée) + alternatives `|`. « les triangles » = « un triangle » = « triangle » ; « carrés » = « carré ». Dictionnaires WIMS copiés dans `backend/core/answer/data/atext/` (fr/nl/en). Self-check 39/0.
