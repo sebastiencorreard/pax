@@ -35,11 +35,15 @@ Voir `docs/refactor-item-splitting.md` pour l'analyse complète et le programme
 de migration des appelants.
 """
 
+import re
+from functools import lru_cache
+
 # `myisspace` (`libwims.h:230`) — volontairement plus étroit que `str.isspace`,
 # qui accepte aussi \v, \f et les espaces Unicode.
 _SPACE = " \t\n\r"
 
 _OPENERS = {"(": ")", "[": "]", "{": "}"}
+_BRACKETS = re.compile(r"[\[\](){}]")
 
 
 def _is_space(ch: str) -> bool:
@@ -73,10 +77,13 @@ def find_matching(s: str, start: int, close: str) -> int:
     reste positif, l'appariement échoue — `[a)b]` n'a pas de `]` appariant.
     """
     parenth = brak = brace = 0
-    i = start
     n = len(s)
-    while i < n:
-        ch = s[i]
+    i = n
+    # Seuls les crochets comptent : on saute de l'un à l'autre plutôt que
+    # d'examiner chaque caractère — la boucle Python était le coût dominant
+    # des listes indexées dans un `!for` (`Infra-rouge*`).
+    for m in _BRACKETS.finditer(s, start):
+        ch = m.group()
         if ch == "[":
             brak += 1
         elif ch == "]":
@@ -87,16 +94,13 @@ def find_matching(s: str, start: int, close: str) -> int:
             parenth -= 1
         elif ch == "{":
             brace += 1
-        elif ch == "}":
-            brace -= 1
         else:
-            i += 1
-            continue
+            brace -= 1
         if parenth < 0 or brak < 0 or brace < 0:
             if ch != close or parenth > 0 or brak > 0 or brace > 0:
                 return -1
+            i = m.start()
             break
-        i += 1
     if i >= n or s[i] != close:
         return -1
     return i
@@ -113,8 +117,17 @@ def strparstr(s: str, sep: str, start: int = 0) -> int:
     fait qu'une valeur aux crochets déséquilibrés se découpe quand même.
     """
     n = len(s)
+    if not sep:
+        return min(start, n)
+    stops = _stops(sep[0])
     i = start
     while i < n:
+        # Saut au prochain caractère qui peut compter : début de `sep`, ou
+        # ouvrant. Les autres ne font qu'avancer d'un cran dans le C.
+        m = stops.search(s, i)
+        if m is None:
+            return n
+        i = m.start()
         if s.startswith(sep, i):
             return i
         close = _OPENERS.get(s[i])
@@ -128,6 +141,11 @@ def strparstr(s: str, sep: str, start: int = 0) -> int:
     return n
 
 
+@lru_cache(maxsize=16)
+def _stops(first: str) -> re.Pattern:
+    return re.compile("[" + re.escape(first + "([{") + "]")
+
+
 # ── Items ────────────────────────────────────────────────────────────────────
 
 
@@ -139,10 +157,18 @@ def find_item_end(s: str, start: int = 0) -> int:
     return strparstr(s, ",", start)
 
 
-def _item_bounds(s: str) -> list[tuple[int, int]]:
-    """Bornes brutes (début, fin) de chaque item, séparateurs exclus."""
+@lru_cache(maxsize=256)
+def _item_bounds(s: str) -> tuple[tuple[int, int], ...]:
+    """Bornes brutes (début, fin) de chaque item, séparateurs exclus.
+
+    Mémorisée : `$(liste[$i])` dans un `!for` redécoupait la liste entière à
+    chaque tour — WIMS le fait aussi (`fnd_item` rebalaie depuis le début),
+    mais en C. `Infra-rouge1|3|5` indexaient ainsi 2 800 fois une liste de
+    260 items et butaient sur le budget de rendu. Fonction pure de la chaîne,
+    d'où un tuple : un appelant ne peut pas altérer ce qu'il partage.
+    """
     if not s:
-        return []
+        return ()
     bounds = []
     i = 0
     n = len(s)
@@ -150,7 +176,7 @@ def _item_bounds(s: str) -> list[tuple[int, int]]:
         end = find_item_end(s, i)
         bounds.append((i, end))
         if end >= n:
-            return bounds
+            return tuple(bounds)
         i = end + 1
 
 
@@ -192,6 +218,14 @@ def cutitems(s: str) -> list[str]:
     (`!distribute`, `!listuniq`, `!nonempty`) sont insensibles à la nuance :
     ils écartent les items vides ou complètent par des chaînes vides.
     """
+    return list(_cutitems(s))
+
+
+@lru_cache(maxsize=256)
+def _cutitems(s: str) -> tuple[str, ...]:
+    """Le découpage élagué, mémorisé comme `_item_bounds` et pour la même
+    raison. `cutitems` en rend une copie : ses appelants mélangent ou trient
+    parfois la liste reçue sur place."""
     out = []
     for a, b in _item_bounds(s):
         a2 = find_word_start(s, a)
@@ -199,7 +233,7 @@ def cutitems(s: str) -> list[str]:
         while b2 > a2 and _is_space(s[b2 - 1]):
             b2 -= 1
         out.append(s[a2:b2])
-    return out
+    return tuple(out)
 
 
 def itemchr(haystack: str, needle: str) -> bool:

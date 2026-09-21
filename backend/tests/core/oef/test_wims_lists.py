@@ -258,3 +258,13 @@ class TestFindItemEnd:
     ])
     def test_is_strparstr_on_comma(self, s, expected):
         assert find_item_end(s) == expected == strparstr(s, ",")
+
+
+def test_cutitems_memorise_mais_rend_une_copie():
+    """`_cutitems` est mémorisé ; un appelant qui mélange la liste reçue ne doit
+    pas altérer ce que verra le suivant."""
+    s = "a, b ,[c,d],e"
+    premier = cutitems(s)
+    premier.reverse()
+    premier.append("x")
+    assert cutitems(s) == ["a", "b", "[c,d]", "e"]

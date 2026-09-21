@@ -751,20 +751,32 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   (`\infty`, `\sqrt`…), comme *chaîne de remplacement* à `re.sub`. Un
   remplacement par fonction suffit. `oefgraphprob/matrice` et `stable` lèvent
   à part `could not convert string to float: '\poids1'`.
-- [ ] **Rendus au-delà du budget de 8 s** (`backend/scripts/sonde_budget.py`,
-  poste au repos) : `OEFevalwimssecdeg/coefracine2` et `coefracine3` (28 s,
-  tronqués partout), `oefSpectroscopie/Infra-rouge5` (9 s). Passé le budget, le
-  moteur poursuit avec l'état partiel sans rien signaler : **le rendu dépend de
-  la vitesse de la machine**. `Infra-rouge5` rendait son widget en CI et pas
-  sur un poste, si bien que son snapshot a fait tomber la CI ; il a été retiré.
-  `Infra-rouge1` et `3` tiennent en 6,2 s, à la merci d'un runner plus lent.
-  Relever le budget est une décision de produit : un élève attendrait autant.
-- [ ] **Comprendre pourquoi ces cinq exercices sont si lents — c'est anormal.**
-  Sur 9 698 exercices, 9 693 rendent en moins de 4 s ; `coefracine2|3`
-  (28 s), `Infra-rouge5` (9 s), `Infra-rouge1|3` (6,2 s) sont hors de toute
-  proportion. Chercher le motif qui coûte (boucle, lecture de données, appel
-  CAS répété) avant de toucher au budget : c'est plus probablement un défaut
-  du moteur qu'une exigence des exercices.
+- [x] **Rendus au-delà du budget de 8 s — plus aucun** (sonde du 2026-09-22,
+  graine 42, 9 698 rendus : `AU-DELA_DU_BUDGET 0`). Passé le budget, le moteur
+  poursuit toujours avec l'état partiel sans rien signaler, et le rendu dépend
+  alors de la machine ; le budget lui-même reste une décision de produit. Mais
+  aucun exercice n'y touche plus : deux seulement passent 3 s,
+  `oefstatistiques/histocap` (3,8 s) et `Infra-rouge5` (3,1 s), dont
+  l'instantané, retiré pour cette raison, est rétabli.
+- [x] **Pourquoi ces cinq exercices étaient si lents — c'était bien le moteur,
+  deux fois** (2026-09-22). Deux causes sans rapport :
+  - `Infra-rouge1|3|5` (6 à 9 s → 1,5 à 2 s) : `$(liste[$i])` dans un `!for`
+    **redécoupait la liste entière** à chaque accès — 2 800 accès à une liste
+    de 260 items, 723 000 appels à `find_item_end`. `_item_bounds` et
+    `_cutitems` sont désormais mémorisés (`cutitems` rend une copie), et
+    `strparstr`/`find_matching` sautent au prochain caractère significatif par
+    une regex au lieu d'examiner chaque caractère en Python — équivalence
+    vérifiée sur 200 000 chaînes aléatoires contre l'ancienne version. Reste un
+    coût quadratique là où la liste grandit dans la boucle (`val19` l. 93) :
+    WIMS l'a aussi, en C.
+  - `coefracine2|3` (28 s tronqués → 0,04 s) : la slib locale
+    `slib/pythagore` énumère les triplets jusqu'à 100 par une triple boucle,
+    333 300 tours — sous la limite de 500 000 `executed_gotos` de WIMS, mais
+    hors de portée de l'interpréteur. **L'instantané figeait un exercice
+    cassé** : hypoténuse et périmètre vides, réponses attendues `0`. Port
+    natif (`_slib_pythagore`), éprouvé contre le script interprété sur les
+    petites bornes — même triplet, même état du hasard ensuite. Il donne
+    désormais 56, 90, 106.
 
 ## 4. Notation des exercices à étapes — vérifier contre WIMS
 

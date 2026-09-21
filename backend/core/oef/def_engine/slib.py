@@ -186,6 +186,10 @@ class _SlibMixin:
             self.ctx["slib_out"] = self._slib_commutesom(proc_args)
             return
 
+        if path == "slib/pythagore":
+            self.ctx["slib_out"] = self._slib_pythagore(proc_args)
+            return
+
         if path == "slib/numeration/ecriturelettre":
             res = _ecriture_lettre(proc_args)
             if res is not None:
@@ -393,6 +397,37 @@ class _SlibMixin:
         if "alt" not in options:
             options = f'{options} alt=""'
         return f'<img src="{newf}" {options}>'
+
+    def _slib_pythagore(self, args: str) -> str:
+        """Port de ``slib/pythagore``, propre à ``OEFevalwimssecdeg.fr``.
+
+        La slib énumère les triplets pythagoriciens par une triple boucle, puis
+        en tire un par ``!randline``. Jusqu'à 100 (``coefracine2|3``), c'est
+        333 300 tours de la boucle intérieure : WIMS les fait en C, sous sa
+        limite de 500 000 ``executed_gotos`` ; interprétés ici, ils butaient
+        sur le budget de rendu, et le tirage se faisait dans une liste
+        **tronquée** dont la longueur dépendait de la machine.
+
+        Même énumération, même ordre, même unique tirage — le hasard est donc
+        consommé comme par la version interprétée. Deux points du script à
+        respecter : ``slib_b=!eval $slib_b+1`` ne dérègle pas la boucle
+        (``exec_next`` repart de son compteur, ``stk->varval``), si bien que
+        ``b`` va de 1 à ``max+1`` ; et une plage ``c`` vide n'est pas parcourue.
+        """
+        mat = self._cmd_declosing(args).strip()
+        if not mat:
+            return ""
+        try:
+            n = int(float(self._eval_arith(wl.fnd_item(mat, 1))))
+        except (ValueError, TypeError):
+            return ""
+        lignes = []
+        for a in range(1, n + 1):
+            for b in range(1, n + 2):
+                for c in range(max(a, b) + 1, a + b):
+                    if c * c == a * a + b * b:
+                        lignes.append(f"{a},{b},{c}")
+        return self.rng.choice(lignes) if lignes else ""
 
     def _slib_commutesom(self, args: str) -> str:
         """Built-in for ``slib/commutesom POLY,VAR``.
