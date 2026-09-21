@@ -76,12 +76,19 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     étiquettes pour des opérations. À instruire avant de porter quoi que ce
     soit — il se peut qu'il n'y ait rien à porter.
 
-- [ ] **Trois exercices n'exposent aucune réponse** : `oefspeed.nl/trajet`,
+- [x] **Trois exercices n'exposent aucune réponse** : `oefspeed.nl/trajet`,
   `equilibrium.fr/methode`, `anglesCercleTrigo.fr/definitions`. Ils sont écartés
   *avant collecte* par `_get_testable_exercises`, donc invisibles aux tests —
   ni échec, ni skip. Le commentaire de `tests/test_exercises_check.py` en
   annonçait 24, dont 11 avec des champs visibles ; c'était vrai avant les
   corrections d'août.
+
+  **Instruit le 2026-09-22 — aucun n'est un défaut de PAX.** `methode` et
+  `definitions` ne déclarent **aucune** réponse dans leur source : ce sont des
+  pages d'explication, sans rien à noter. `trajet` en déclare cinq, mais une
+  accolade manquante (l. 88) les fait avaler par le `\statement` : WIMS compile
+  `replycnt=0` et affiche les bonnes réponses en clair, PAX aussi. Consigné dans
+  [`docs/signalements-wims.md`](docs/signalements-wims.md) § 3.
 
 - [x] **377 exercices sont notés par leur section `:test`**, et `_check_all` n'y
   passait jamais : il appelait `check_answer` champ par champ. Corrigé le
@@ -640,7 +647,7 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `!exec graphviz`, et `text/balloon`, `utilities/tooltip`, `geo3D/threeD`
   produisent du HTML/JS à éprouver dans le front. `utilities/env` (74 rendus,
   `OEFevalwimsope.fr`) n'existe nulle part, pas même dans WIMS.
-- [ ] **`UNKNOWN_CMD:changeto` s'affiche dans l'énoncé de 81 exercices**
+- [x] **`UNKNOWN_CMD:changeto` s'affiche dans l'énoncé de 81 exercices**
   (H1 6, H2 2, H5 31, H6 42) — symptôme des slibs absentes. Une slib
   introuvable laisse `slib_out` tel quel ; il porte alors ce que le `var.proc`
   du module y a laissé, et la dernière ligne de ce fichier,
@@ -648,6 +655,9 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   connaît pas. Deux corrections, indépendantes du port des slibs : vider
   `slib_out` quand la slib manque, et traiter `!changeto` comme la fin du
   script courant.
+  **Fait le 2026-09-11 (27e63129), coché le 2026-09-22** : les deux corrections
+  sont en place (`_run_slib` vide `slib_out` d'une slib introuvable), et aucun
+  des 9 680 instantanés ne contient plus `UNKNOWN_CMD`.
 - [x] **Programmes `!exec` portés** (2026-09-10, `def_engine/programmes.py`) :
   `moneyprint` (`moneyprint.c`, arrondi d'une liste), `float_calc` (le sous-
   ensemble de `bc` des changements de base d'`oefnumeration.fr`), `lceb`

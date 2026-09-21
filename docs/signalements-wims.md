@@ -169,3 +169,27 @@ Côté PAX, réglé par un alias de chemin (`_ALIAS_SLIB`, commit b13bd76d,
 `backend/core/oef/def_engine/slib.py`) : l'appel est réacheminé vers `oef/env`
 plutôt que de rester muet. La correction reste à faire en amont, dans les
 templates.
+
+## 3. `oefspeed.nl/trajet` affiche ses réponses dans l'énoncé — *à signaler*
+
+*Relevé le 2026-09-22.*
+
+`H3/algebra/oefspeed.nl/src/trajet.oef`, ligne 88 :
+
+```
+\if{\choix=1}{Het einde … Hoe laat komt ze aan?{Ze komt om \heure6 uur aan. …}
+ \embed{reply 4, 8}}
+```
+
+Il manque une `}` avant `{Ze komt` : l'auteur voulait un `\if{…}{alors}{sinon}`,
+et a écrit un bloc « alors » qui ne se referme pas. L'accolade manquante
+reporte la fermeture du `\statement` au-delà des cinq `\answer` (l. 98-102),
+qui deviennent du **texte d'énoncé**. Le `.def` compilé le montre :
+`replycnt=0`, et la fin de `:question` porte
+`$m_answer{Duur van de pauze :}{$val30 u}{type=units}`… — `$m_answer` étant
+vide, l'élève lit `{Duur van de pauze :}{0.75 u}{type=units}`, soit **les cinq
+bonnes réponses en clair**, sans aucun champ où répondre (les `\embed` pointent
+vers des réponses qui n'existent pas).
+
+PAX rend la même chose, fidèlement. L'exercice est à écarter d'une feuille
+tant que la source n'est pas corrigée. Correction : `…aan?}{Ze komt …`.
