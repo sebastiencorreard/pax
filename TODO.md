@@ -208,24 +208,22 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   consignés dans `XFAIL_CONSTANT_SCORE`. Reste à les réparer : leur `:test` ne
   regarde pas le tracé de l'élève.
 
-  **Diagnostic du 2026-09-22 — ce n'est pas le `:test`, c'est un type de
-  module non porté.** Les trois sont des activités « mesurez votre temps de
-  réaction » à étapes dynamiques (`\nextstep{\nstep}`, `nstep=reply1`). L'étape
-  1 est `reply1`, de type **`reaction`**, défini par le module lui-même
-  (`oefstatistiques.fr/anstype/reaction` et `reaction.input`, 3,9 Ko de JS) :
-  l'élève clique pour mesurer ses temps, et ce sont **ses** temps qui
-  deviennent les données des questions de statistique des étapes suivantes
-  (`nbrinter`, `ecc`, `moyy`… calculés au `:postdef`). L'étape 1 vaut
-  `weight=0` et le `.proc` la déclare toujours bonne (`diareply$i=good`).
+  **Diagnostic du 2026-09-22 — c'est le test qui ne voit que l'étape 1.**
+  Les trois sont des activités « mesurez votre temps de réaction » à étapes
+  dynamiques (`\nextstep{\nstep}`, `nstep=reply1`). L'étape 1 est `reply1`, de
+  type `reaction` — **porté** le 2026-09-05 (`25ae63cc`, `ReactionTest.vue`) :
+  les temps mesurés deviennent les données des étapes suivantes. Le chaînage
+  marche depuis `ad095fdc` : par l'API, 40 mesures soumises à l'étape 1 donnent
+  `has_next_step: True`, et l'étape 2 pose sa question (`click`, attendu `4`).
 
-  PAX ne connaît pas `reaction` : il retombe sur `check_text`, et le rendu
-  n'expose que `reply1`. Le test, qui ne franchit pas d'étape, note donc une
-  étape 1 sans poids : 46 conditions sur 49 tiennent sur des valeurs vides,
-  d'où 0,9388 partout. `moustache` ajoute un `jsxgraph` de module.
-
-  Les réparer, c'est porter le widget `reaction` (JS, côté front) et son
-  `.proc` — un cas de l'entrée « Types de réponse définis par les modules »
-  plus bas, qu'il faut élargir à `reaction` et `jsxgraph`.
+  `test_score_depends_on_the_answer` ne franchit aucune étape : il note
+  l'étape 1 seule, sans poids, où 46 conditions sur 49 tiennent sur des
+  valeurs encore vides — d'où 0,9388 quelle que soit la copie. Ce qui reste à
+  instruire : la note **affichée après l'étape 1** (0,88 par l'API, `correct:
+  False` pour `reply1`) alors que le `.proc` du module déclare cette étape
+  toujours bonne (`diareply$i=good`) ; et une vérification de bout en bout,
+  étape par étape. (Une première version de ce diagnostic affirmait `reaction`
+  non porté : c'était faux, faute d'avoir cherché dans le front.)
 
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
@@ -761,9 +759,7 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `methods.$lang` (`oefohm`, où `$lang` n'est même pas substitué alors que
   `methods.fr` existe), `notation_lang.proc` (10).
 - [ ] **Types de réponse définis par les modules** (dossier `anstype/`) :
-  `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr` — et
-  `reaction`/`jsxgraph` d'`oefstatistiques.fr` (`histocap`, `histogramme`,
-  `moustache`, voir plus haut). Absents de
+  `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr`. Absents de
   `_WIMS_KNOWN_TYPES` comme de `_MODULE_ANSTYPES`, ils sont ramenés à
   `default` sans que le garde-fou de I.3 c les voie.
 - [x] **16 exercices plantaient sur `re.PatternError: bad escape`** — corrigé
