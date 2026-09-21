@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 import re
 import sys
 from dataclasses import dataclass, field
@@ -311,10 +312,34 @@ class _State:
     base_dir: str | None = None
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
     boxplotdata: list[float] = field(default_factory=list)
-    # Current rotation (degrees, WIMS-absolute) and whether a <g transform>
-    # group is currently open for it. See `set_rotation`.
-    rotation: float = 0.0
-    rot_group_open: bool = False
+    # La transformation que `scale()` (`flylines.c:151`) applique à **tout
+    # point** d'un objet avant de le projeter : `affine`, `linear`, `rotation`
+    # posent `matrix` (`objects.c:1482-1535`), `translation` le vecteur. Les
+    # tailles — rayons, côté d'un `square`, texte — n'y passent pas, et c'est
+    # pourquoi elle s'applique aux points parsés (`tr`) plutôt qu'à l'image.
+    matrix: tuple[float, float, float, float] = (1.0, 0.0, 0.0, 1.0)
+    transform: bool = False
+    transx: float = 0.0
+    transy: float = 0.0
+
+    def lin(self, x: float, y: float) -> tuple[float, float]:
+        """La partie linéaire seule — `scale2` pour un vecteur (`parallel`)."""
+        if not self.transform:
+            return x, y
+        a, b, c, d = self.matrix
+        return a * x + b * y, c * x + d * y
+
+    def tr(self, x: float, y: float) -> tuple[float, float]:
+        """Un point transformé, en coordonnées du repère (`scale_buf`)."""
+        x, y = self.lin(x, y)
+        return x + self.transx, y + self.transy
+
+    def tr_flat(self, coords: list[float]) -> list[float]:
+        """`x1,y1,x2,y2,…` transformés deux à deux ; un reste impair est gardé."""
+        out = list(coords)
+        for i in range(0, len(out) - 1, 2):
+            out[i], out[i + 1] = self.tr(out[i], out[i + 1])
+        return out
 
     def px(self, math_x: float) -> float:
         denom = self.xmax - self.xmin or 1.0
@@ -324,35 +349,6 @@ class _State:
         # SVG y grows downward; flip math y (up) to screen y (down).
         denom = self.ymax - self.ymin or 1.0
         return self.height - (math_y - self.ymin) * self.height / denom
-
-    def set_rotation(self, deg: float) -> None:
-        """WIMS `rotation d` — rotate subsequent primitives by `d` degrees
-        (CCW, math convention) around the math origin. WIMS rotation is
-        *absolute* (a new `rotation` replaces the previous, not cumulative).
-
-        Implemented by wrapping subsequent elements in an SVG
-        ``<g transform="rotate(...)">`` around the origin's pixel position.
-        SVG `rotate` is isotropic in pixel space, so this matches a true
-        coordinate-space rotation only when the x and y pixel scales are
-        equal — which is the normal setup for rotation (e.g. the 0724
-        protractor: 15 px/unit on both axes). The screen y-flip turns a math
-        CCW rotation into an SVG `rotate(-d)`.
-        """
-        if self.rot_group_open:
-            self.elements.append("</g>")
-            self.rot_group_open = False
-        self.rotation = deg
-        if deg:
-            ox, oy = self.px(0.0), self.py(0.0)
-            self.elements.append(
-                f'<g transform="rotate({-deg:.4f},{ox:.2f},{oy:.2f})">'
-            )
-            self.rot_group_open = True
-
-    def close_rotation(self) -> None:
-        if self.rot_group_open:
-            self.elements.append("</g>")
-            self.rot_group_open = False
 
 
 # ── Primitive handlers ────────────────────────────────────────────────────────
@@ -452,8 +448,9 @@ def _cmd_copy(state: _State, args: list[str]) -> None:
     # set, (dx,dy) is the image's top-left in user coords (1128: copy 0,160 with
     # yrange 0,160 → top of the canvas). In pixel mode px/py are the identity,
     # so the shared WIMS gifs (clock, …) keep pasting at raw pixel offsets.
-    x_px = state.px(dx)
-    y_px = state.py(dy)
+    tdx, tdy = state.tr(dx, dy)
+    x_px = state.px(tdx)
+    y_px = state.py(tdy)
     state.elements.append(
         f'<image x="{x_px:.2f}" y="{y_px:.2f}" width="{src_w}" height="{src_h}" '
         f'href="data:{mime};base64,{b64}" preserveAspectRatio="none"/>'
@@ -480,6 +477,8 @@ def _cmd_segment(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     state.segments.append(((x1, y1), (x2, y2)))
     state.elements.append(
@@ -526,6 +525,8 @@ def _cmd_arrow(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[5]) if len(args) > 5 else "#000000"
     head = _arrow_marker(state, head_len, color)
     _arrow_segment(state, x1, y1, x2, y2, color, marker_end=head)
@@ -536,6 +537,8 @@ def _cmd_arrow2(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[5]) if len(args) > 5 else "#000000"
     head = _arrow_marker(state, head_len, color)
     _arrow_segment(state, x1, y1, x2, y2, color,
@@ -549,7 +552,7 @@ def _cmd_arrows(state: _State, args: list[str]) -> None:
     color = _color(args[0])
     head_len = _num(args[1])
     head = _arrow_marker(state, head_len, color)
-    coords = [_num(a) for a in args[2:]]
+    coords = state.tr_flat([_num(a) for a in args[2:]])
     for i in range(0, len(coords) - 3, 4):
         x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
         _arrow_segment(state, x1, y1, x2, y2, color, marker_end=head)
@@ -562,7 +565,7 @@ def _cmd_arrows2(state: _State, args: list[str]) -> None:
     color = _color(args[0])
     head_len = _num(args[1])
     head = _arrow_marker(state, head_len, color)
-    coords = [_num(a) for a in args[2:]]
+    coords = state.tr_flat([_num(a) for a in args[2:]])
     for i in range(0, len(coords) - 3, 4):
         x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
         _arrow_segment(state, x1, y1, x2, y2, color,
@@ -574,6 +577,8 @@ def _cmd_darrow(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[5]) if len(args) > 5 else "#000000"
     head = _arrow_marker(state, head_len, color)
     _arrow_segment(state, x1, y1, x2, y2, color, marker_end=head, dashed=True)
@@ -584,6 +589,8 @@ def _cmd_darrow2(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[5]) if len(args) > 5 else "#000000"
     head = _arrow_marker(state, head_len, color)
     _arrow_segment(state, x1, y1, x2, y2, color,
@@ -596,6 +603,8 @@ def _cmd_halfline(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     # Find where the ray (x1,y1)→(x2,y2)→∞ leaves the canvas box.
     dx, dy = x2 - x1, y2 - y1
@@ -642,6 +651,7 @@ def _cmd_square(state: _State, args: list[str]) -> None:
     if len(args) < 3:
         return
     x, y, side = _num(args[0]), _num(args[1]), _num(args[2])
+    x, y = state.tr(x, y)
     color = _color(args[3]) if len(args) > 3 else "#000000"
     x_px = state.px(x)
     y_px = state.py(y)
@@ -657,6 +667,7 @@ def _cmd_fsquare(state: _State, args: list[str]) -> None:
     if len(args) < 3:
         return
     x, y, side = _num(args[0]), _num(args[1]), _num(args[2])
+    x, y = state.tr(x, y)
     color = _color(args[3]) if len(args) > 3 else "#000000"
     x_px = state.px(x)
     y_px = state.py(y)
@@ -672,7 +683,7 @@ def _cmd_fpolygon(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     if len(coords) < 4 or len(coords) % 2 != 0:
         return
     pts = " ".join(
@@ -689,7 +700,7 @@ def _cmd_dpolyline(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     if len(coords) < 4 or len(coords) % 2 != 0:
         return
     pts = " ".join(
@@ -708,6 +719,9 @@ def _cmd_parallel(state: _State, args: list[str]) -> None:
     if len(args) < 7:
         return
     x1, y1, x2, y2, dx, dy = (_num(a) for a in args[:6])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
+    dx, dy = state.lin(dx, dy)  # `scale2` : sans la translation
     n = int(_num(args[6]))
     if n <= 0:
         return
@@ -733,7 +747,7 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    x, y = _num(args[1]), _num(args[2])
+    x, y = state.tr(_num(args[1]), _num(args[2]))
     size = _font_size(args[3])
     weight = _font_weight(args[3])
     # Content may contain commas — re-join the tail
@@ -765,7 +779,7 @@ def _cmd_textup(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    x, y = _num(args[1]), _num(args[2])
+    x, y = state.tr(_num(args[1]), _num(args[2]))
     size = _font_size(args[3])
     weight = _font_weight(args[3])
     content = ",".join(args[4:]).strip()
@@ -788,6 +802,8 @@ def _cmd_line(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
 
     if x1 == x2:
@@ -828,6 +844,8 @@ def _cmd_dsegment(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     state.elements.append(
         f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
@@ -841,6 +859,9 @@ def _cmd_triangle(state: _State, args: list[str]) -> None:
     if len(args) < 6:
         return
     x1, y1, x2, y2, x3, y3 = (_num(a) for a in args[:6])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
+    x3, y3 = state.tr(x3, y3)
     color = _color(args[6]) if len(args) > 6 else "#000000"
     fill = _color(args[7]) if len(args) > 7 else "none"
     pts = (
@@ -863,7 +884,7 @@ def _cmd_polyline(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     if len(coords) < 4 or len(coords) % 2 != 0:
         return
     pts = " ".join(
@@ -881,7 +902,7 @@ def _cmd_polygon(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     if len(coords) < 4 or len(coords) % 2 != 0:
         return
     verts = [(coords[i], coords[i + 1]) for i in range(0, len(coords), 2)]
@@ -904,21 +925,17 @@ def _cmd_arc(state: _State, args: list[str]) -> None:
     cx, cy, w, h, start_deg, end_deg = (_num(a) for a in args[:6])
     color = _color(args[6]) if len(args) > 6 else "#000000"
     rx, ry = w / 2, h / 2
-    # An arc's angular *span* is given in absolute (figure) coordinates: under
-    # an active `rotation`, WIMS does not also rotate start/end (only its
-    # center moves with the figure — see 0724's protractor rim, authored at
-    # 10–190° to match a base tilted by `rotation 10`). The enclosing
-    # `<g rotate(-rotation)>` group adds `rotation` back to every sampled
-    # point, so pre-subtract it here to cancel out (exact for a circle,
-    # rx == ry, which is the rotation use-case).
-    rot = state.rotation
+    # Seul le centre passe par la transformation (`obj_arc` : `scale` sur un
+    # point, rayons en `xscale`/`yscale`) : les angles restent absolus — le
+    # rapporteur de 0724 est écrit à 10–190° pour une base tournée de 10°.
+    cx, cy = state.tr(cx, cy)
     # Sample the arc as a polyline so we don't have to figure out SVG's
     # convoluted A-command flags from math-coord angles.
     n = max(8, int(abs(end_deg - start_deg) / 5))
     pts = []
     for i in range(n + 1):
         t = start_deg + (end_deg - start_deg) * i / n
-        rad = math.radians(t - rot)
+        rad = math.radians(t)
         mx = cx + rx * math.cos(rad)
         my = cy + ry * math.sin(rad)
         pts.append(f"{state.px(mx):.2f},{state.py(my):.2f}")
@@ -934,6 +951,7 @@ def _cmd_fcircle(state: _State, args: list[str]) -> None:
     if len(args) < 3:
         return
     x, y, d = _num(args[0]), _num(args[1]), _num(args[2])
+    x, y = state.tr(x, y)
     color = _color(args[3]) if len(args) > 3 else "#000000"
     state.elements.append(
         f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
@@ -946,6 +964,7 @@ def _cmd_fellipse(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x, y, w, h = _num(args[0]), _num(args[1]), _num(args[2]), _num(args[3])
+    x, y = state.tr(x, y)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     state.elements.append(
         f'<ellipse cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
@@ -959,6 +978,7 @@ def _cmd_ellipse(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x, y, w, h = _num(args[0]), _num(args[1]), _num(args[2]), _num(args[3])
+    x, y = state.tr(x, y)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     # w and h are in x/y-range units, so convert each via the px/py deltas.
     rx_px = abs(state.px(x + w / 2) - state.px(x))
@@ -979,7 +999,7 @@ def _cmd_lines(state: _State, args: list[str]) -> None:
     if not args:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     if len(coords) < 4 or len(coords) % 4 != 0:
         # accept odd counts gracefully — drop trailing incomplete pair
         coords = coords[: (len(coords) // 4) * 4]
@@ -1002,7 +1022,7 @@ def _cmd_point(state: _State, args: list[str]) -> None:
     # point x,y,[color] — single pixel/dot.
     if len(args) < 2:
         return
-    x, y = _num(args[0]), _num(args[1])
+    x, y = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     state.elements.append(
         f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
@@ -1015,7 +1035,7 @@ def _cmd_points(state: _State, args: list[str]) -> None:
     if not args:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     for i in range(0, len(coords) - 1, 2):
         state.elements.append(
             f'<circle cx="{state.px(coords[i]):.2f}" '
@@ -1025,19 +1045,36 @@ def _cmd_points(state: _State, args: list[str]) -> None:
         )
 
 
-def _cmd_circles(state: _State, args: list[str]) -> None:
-    # circles [color],x1,y1,r1,x2,y2,r2,... — multiple outline circles.
+def _cmd_circles(state: _State, args: list[str], fill: bool = False) -> None:
+    """`circles color,x1,y1,r1,…` — `obj_circles`. Le rayon est en **unités du
+    repère** (`rint(2*r*xscale)` pixels de diamètre), non en pixels comme le
+    disque isolé de `circle`. `fcircles` : la même, pleine."""
     if not args:
         return
     color = _color(args[0])
     coords = [_num(a) for a in args[1:]]
+    xscale = state.width / ((state.xmax - state.xmin) or 1.0)
     for i in range(0, len(coords) - 2, 3):
-        x, y, r = coords[i], coords[i + 1], coords[i + 2]
+        x, y = state.tr(coords[i], coords[i + 1])
+        r = abs(coords[i + 2]) * xscale
+        remplissage = color if fill else "none"
         state.elements.append(
             f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
-            f'r="{r:.2f}" fill="none" stroke="{color}" '
+            f'r="{r:.2f}" fill="{remplissage}" stroke="{color}" '
             f'stroke-width="{state.linewidth}" />'
         )
+
+
+def _cmd_fcircles(state: _State, args: list[str]) -> None:
+    _cmd_circles(state, args, fill=True)
+
+
+def _cmd_ftriangle(state: _State, args: list[str]) -> None:
+    # ftriangle x1,y1,x2,y2,x3,y3,color — `obj_triangle` avec `fill_tag` 1.
+    if len(args) < 6:
+        return
+    color = args[6] if len(args) > 6 else "black"
+    _cmd_triangle(state, list(args[:6]) + [color, color])
 
 
 def _cmd_rect(state: _State, args: list[str]) -> None:
@@ -1045,6 +1082,8 @@ def _cmd_rect(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     # Record the rectangle so a later `fill` inside it works (the rhombus/
     # triangle path handles polygon/triangle; rectangles went unfilled).
@@ -1063,6 +1102,8 @@ def _cmd_frect(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     px1, px2 = state.px(min(x1, x2)), state.px(max(x1, x2))
     py1, py2 = state.py(max(y1, y2)), state.py(min(y1, y2))
@@ -1078,6 +1119,8 @@ def _cmd_dline(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    x1, y1 = state.tr(x1, y1)
+    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
     state.segments.append(((x1, y1), (x2, y2)))
     state.elements.append(
@@ -1093,7 +1136,7 @@ def _cmd_dlines(state: _State, args: list[str]) -> None:
     if not args:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     for i in range(0, len(coords) - 3, 4):
         x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
         state.segments.append(((x1, y1), (x2, y2)))
@@ -1109,7 +1152,7 @@ def _cmd_dhline(state: _State, args: list[str]) -> None:
     # dhline x,y,[color] — dashed full-width horizontal line.
     if len(args) < 2:
         return
-    y = _num(args[1])
+    _, y = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     state.elements.append(
         f'<line x1="{state.px(state.xmin):.2f}" y1="{state.py(y):.2f}" '
@@ -1123,7 +1166,7 @@ def _cmd_dvline(state: _State, args: list[str]) -> None:
     # dvline x,y,[color] — dashed full-height vertical line.
     if len(args) < 2:
         return
-    x = _num(args[0])
+    x, _ = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     state.elements.append(
         f'<line x1="{state.px(x):.2f}" y1="{state.py(state.ymin):.2f}" '
@@ -1393,7 +1436,7 @@ def _cmd_string(state: _State, args: list[str]) -> None:
     if len(args) < 4:
         return
     color = _color(args[0])
-    x, y = _num(args[1]), _num(args[2])
+    x, y = state.tr(_num(args[1]), _num(args[2]))
     content = ",".join(args[3:]).strip()
     state.elements.append(
         f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
@@ -1411,7 +1454,7 @@ def _cmd_stringup(state: _State, args: list[str]) -> None:
     if len(args) < 5:
         return
     color = _color(args[0])
-    x, y = _num(args[1]), _num(args[2])
+    x, y = state.tr(_num(args[1]), _num(args[2]))
     rot = _num(args[3])
     content = ",".join(args[4:]).strip()
     cx, cy = state.px(x), state.py(y)
@@ -1450,7 +1493,7 @@ def _cmd_crosshair(state: _State, args: list[str]) -> None:
     # crosshair x,y,[color] — single × at (x, y).
     if len(args) < 2:
         return
-    x, y = _num(args[0]), _num(args[1])
+    x, y = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     state.elements.append(_crosshair_svg(state, x, y, color))
 
@@ -1460,7 +1503,7 @@ def _cmd_crosshairs(state: _State, args: list[str]) -> None:
     if not args:
         return
     color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
+    coords = state.tr_flat([_num(a) for a in args[1:]])
     for i in range(0, len(coords) - 1, 2):
         state.elements.append(_crosshair_svg(state, coords[i], coords[i + 1], color))
 
@@ -1481,15 +1524,53 @@ def _cmd_transparent(state: _State, args: list[str]) -> None:
 
 
 def _cmd_rotation(state: _State, args: list[str]) -> None:
-    # rotation d — rotate subsequent drawing by d degrees (around the origin).
+    """`rotation d` / `rotate d` (`obj_rotation`) : la matrice de la rotation
+    de `d` degrés autour de l'origine. Absolue — elle remplace la précédente —
+    et elle garde la translation en cours."""
     if not args:
         return
-    state.set_rotation(_num(args[0]))
+    r = math.radians(_num(args[0]))
+    state.matrix = (math.cos(r), -math.sin(r), math.sin(r), math.cos(r))
+    state.transform = True
 
 
-def _cmd_killrotation(state: _State, args: list[str]) -> None:
-    # Reset the rotation set by `rotation` back to 0.
-    state.set_rotation(0.0)
+def _cmd_linear(state: _State, args: list[str]) -> None:
+    # linear a,b,c,d — `obj_linear` : la matrice seule, translation gardée.
+    if len(args) < 4:
+        return
+    state.matrix = tuple(_num(a) for a in args[:4])
+    state.transform = True
+
+
+def _cmd_affine(state: _State, args: list[str]) -> None:
+    # affine a,b,c,d,tx,ty — `obj_affine` : matrice et translation.
+    if len(args) < 6:
+        return
+    state.matrix = tuple(_num(a) for a in args[:4])
+    state.transx, state.transy = _num(args[4]), _num(args[5])
+    state.transform = True
+
+
+def _cmd_translation(state: _State, args: list[str]) -> None:
+    # translation tx,ty — `obj_translation` : le vecteur seul.
+    if len(args) < 2:
+        return
+    state.transx, state.transy = _num(args[0]), _num(args[1])
+
+
+def _cmd_killlinear(state: _State, args: list[str]) -> None:
+    # killlinear / killrotation / killrotate — la matrice, pas la translation.
+    state.matrix = (1.0, 0.0, 0.0, 1.0)
+    state.transform = False
+
+
+def _cmd_killtranslation(state: _State, args: list[str]) -> None:
+    state.transx = state.transy = 0.0
+
+
+def _cmd_killaffine(state: _State, args: list[str]) -> None:
+    _cmd_killlinear(state, args)
+    _cmd_killtranslation(state, args)
 
 
 def _cmd_trange(state: _State, args: list[str]) -> None:
@@ -1530,7 +1611,7 @@ def _cmd_hline(state: _State, args: list[str]) -> None:
     # hline x,y,[color] — full-width horizontal line at math y.
     if len(args) < 2:
         return
-    y = _num(args[1])
+    _, y = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     state.segments.append(((state.xmin, y), (state.xmax, y)))
     state.elements.append(
@@ -1544,7 +1625,7 @@ def _cmd_vline(state: _State, args: list[str]) -> None:
     # vline x,y,[color] — full-height vertical line at math x.
     if len(args) < 2:
         return
-    x = _num(args[0])
+    x, _ = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     state.segments.append(((x, state.ymin), (x, state.ymax)))
     state.elements.append(
@@ -1654,7 +1735,8 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
         if cur and prev_i is not None and i != prev_i + 1:
             branches.append(cur)
             cur = []
-        cur.append(f"{state.px(x):.2f},{state.py(y):.2f}")
+        tx, ty = state.tr(x, y)
+        cur.append(f"{state.px(tx):.2f},{state.py(ty):.2f}")
         prev_i = i
     if cur:
         branches.append(cur)
@@ -1706,7 +1788,8 @@ def _plot_parametrique(state: _State, color: str, sx: str, sy: str) -> None:
                 branches.append(cur)
                 cur = []
             continue
-        cur.append(f"{state.px(x):.2f},{state.py(y):.2f}")
+        tx, ty = state.tr(x, y)
+        cur.append(f"{state.px(tx):.2f},{state.py(ty):.2f}")
     if cur:
         branches.append(cur)
     for pts in branches:
@@ -1746,6 +1829,7 @@ def _cmd_circle(state: _State, args: list[str]) -> None:
     if len(args) < 3:
         return
     x, y, d = _num(args[0]), _num(args[1]), _num(args[2])
+    x, y = state.tr(x, y)
     r = abs(d) / 2
     color = _color(args[3]) if len(args) > 3 else "#000000"
     state.elements.append(
@@ -2012,7 +2096,7 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
     """fill/flood x,y,[color] — fill the connected region containing (x,y)."""
     if len(args) < 2:
         return
-    fx, fy = _num(args[0]), _num(args[1])
+    fx, fy = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     poly = _flood_region(state, fx, fy)
     if poly is None:
@@ -2037,7 +2121,7 @@ def _cmd_hatchfill(state: _State, args: list[str]) -> None:
     """
     if len(args) < 2:
         return
-    fx, fy = _num(args[0]), _num(args[1])
+    fx, fy = state.tr(_num(args[0]), _num(args[1]))
     dx = abs(_num(args[2])) if len(args) > 2 else 10.0
     dy = abs(_num(args[3])) if len(args) > 3 else 10.0
     color = _color(args[4]) if len(args) > 4 else "#000000"
@@ -2079,9 +2163,25 @@ _HANDLERS = {
     "size": _cmd_size,
     "linewidth": _cmd_linewidth,
     "transparent": _cmd_transparent,
+    # Transformations (`objects.c:1482-1535`) et leurs synonymes (`nametab.c`).
     "rotation": _cmd_rotation,
-    "killrotation": _cmd_killrotation,
+    "rotate": _cmd_rotation,
+    "linear": _cmd_linear,
+    "affine": _cmd_affine,
+    "translation": _cmd_translation,
+    "translate": _cmd_translation,
+    "killrotation": _cmd_killlinear,
+    "killrotate": _cmd_killlinear,
+    "killlinear": _cmd_killlinear,
+    "killtranslation": _cmd_killtranslation,
+    "killtranslate": _cmd_killtranslation,
+    "killaffine": _cmd_killaffine,
     "trange": _cmd_trange,
+    "ranget": _cmd_trange,
+    "tstep": _cmd_plotstep,
+    "tsteps": _cmd_plotstep,
+    "rangex": _cmd_xrange,
+    "rangey": _cmd_yrange,
     "plotstep": _cmd_plotstep,
     "plotsteps": _cmd_plotstep,
     "crosshair": _cmd_crosshair,
@@ -2141,6 +2241,25 @@ _HANDLERS = {
     "filledrectangle": _cmd_frect,
     "square": _cmd_square,
     "fsquare": _cmd_fsquare,
+    # Synonymes de `nametab.c`, chacun sur la variante — pleine ou non — que
+    # lui donne son `fill_tag`.
+    "seg": _cmd_segment,
+    "demiline": _cmd_halfline,
+    "dashedline": _cmd_dsegment,
+    "dashline": _cmd_dsegment,
+    "dashsegment": _cmd_dsegment,
+    "ftriangle": _cmd_ftriangle,
+    "filledtriangle": _cmd_ftriangle,
+    "filltriangle": _cmd_ftriangle,
+    "fillrect": _cmd_frect,
+    "fillrectangle": _cmd_frect,
+    "fillcircle": _cmd_fcircle,
+    "fcircles": _cmd_fcircles,
+    "fillellipse": _cmd_fellipse,
+    "filledellipse": _cmd_fellipse,
+    "filledsquare": _cmd_fsquare,
+    "fillsquare": _cmd_fsquare,
+    "floodfill": _cmd_flood,
     "arc": _cmd_arc,
     # Fill
     "fill": _cmd_flood,
@@ -2201,7 +2320,6 @@ def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None 
         else:
             _log_unhandled_cmd(cmd, arg_str)
 
-    state.close_rotation()  # close a still-open rotation group (no killrotation)
     body = "".join(state.elements)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" '

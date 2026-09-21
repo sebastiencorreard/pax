@@ -526,3 +526,78 @@ class TestBalisesEquilibrees:
         assert not _balises_equilibrees("<div>a")
         assert not _balises_equilibrees("a</div>")
         assert not _balises_equilibrees("</span><span>")
+
+
+def _lignes(svg: str) -> list[tuple[float, float, float, float]]:
+    return [
+        tuple(float(v) for v in m)
+        for m in re.findall(
+            r'<line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)"', svg
+        )
+    ]
+
+
+class TestTransformations:
+    """`affine`, `linear`, `rotation`, `translation` (`objects.c:1482-1535`).
+
+    Flydraw les applique à **tout point** dans `scale()` (`flylines.c:151`),
+    jamais aux tailles. Repère de 300 px sur [-5, 25] : 10 px par unité, et
+    l'origine tombe en (50, 250).
+    """
+
+    CADRE = "xrange -5,25\tyrange -5,25\t"
+
+    def trace(self, cmds: str) -> str:
+        return flydraw_to_svg(300, 300, self.CADRE + cmds)
+
+    def test_rotate_tourne_le_second_rayon(self):
+        # `oefreprodangle2` : un rayon, `rotate`, le même rayon — l'angle
+        # n'existait pas tant que `rotate` était ignoré.
+        svg = self.trace("seg 0,0,25,0,black\trotate 40\tseg 0,0,25,0,black")
+        (a, b) = _lignes(svg)
+        assert a == (50.0, 250.0, 300.0, 250.0)
+        assert b == pytest.approx((50.0, 250.0, 241.51, 89.30), abs=0.01)
+
+    def test_killrotate_ramene_l_identite(self):
+        svg = self.trace("rotate 90\tkillrotate\tsegment 0,0,10,0")
+        assert _lignes(svg) == [(50.0, 250.0, 150.0, 250.0)]
+
+    def test_translation_survit_a_killlinear(self):
+        # `obj_killlinear` ne touche pas au vecteur ; `killaffine` efface tout.
+        svg = self.trace("translate 2,3\tlinear 2,0,0,2\tkilllinear\tsegment 0,0,1,0")
+        assert _lignes(svg) == [(70.0, 220.0, 80.0, 220.0)]
+        svg = self.trace("affine 2,0,0,2,2,3\tkillaffine\tsegment 0,0,1,0")
+        assert _lignes(svg) == [(50.0, 250.0, 60.0, 250.0)]
+
+    def test_linear_puis_translation(self):
+        svg = self.trace("translate 2,3\tlinear 1,0.5,0,1\tsegment 0,0,0,10")
+        assert _lignes(svg) == [(70.0, 220.0, 120.0, 120.0)]
+
+    def test_les_tailles_ne_tournent_pas(self):
+        # Seul le centre passe par la matrice : un cercle reste un cercle.
+        svg = self.trace("linear 3,0,0,1\tcircle 1,1,8,black")
+        assert 'cx="80.00" cy="240.00"' in svg and 'r="4.00"' in svg
+
+    def test_fill_suit_la_figure_transformee(self):
+        # Le triangle et son point de remplissage passent tous deux par la
+        # matrice : `flood` doit retrouver le polygone là où il a été tracé.
+        svg = self.trace("translate 10,10\ttriangle 0,0,4,0,0,4,black\tfill 1,1,red")
+        assert "#ff0000" in svg
+
+
+class TestSynonymesNametab:
+    """Les noms que `nametab.c` donne à un même objet — avec sa variante."""
+
+    def test_seg_est_segment(self):
+        assert _lignes(flydraw_to_svg(100, 100, "seg 0,0,10,10")) == [
+            (0.0, 0.0, 10.0, 10.0)
+        ]
+
+    def test_ftriangle_est_plein(self):
+        svg = flydraw_to_svg(100, 100, "ftriangle 0,0,10,0,0,10,green")
+        assert 'fill="#008000"' in svg
+
+    def test_fcircles_rayon_en_unites_du_repere(self):
+        # `obj_circles` : diamètre `2*r*xscale` — 2 unités à 10 px/unité.
+        svg = flydraw_to_svg(300, 300, "xrange -5,25\tyrange -5,25\tfcircles red,1,1,2")
+        assert 'r="20.00"' in svg and 'fill="#ff0000"' in svg

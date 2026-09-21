@@ -55,26 +55,47 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
 
 ### Ce que ces mesures laissent ouvert
 
-- [ ] **23 exercices touchent une primitive de figure non traitée**
-  (`[FLYDRAW-UNHANDLED]`, journalisée sur stderr — jamais levée). Trois familles
-  bien distinctes, à ne pas traiter ensemble :
+- [~] **Primitives de figure non traitées** (`[FLYDRAW-UNHANDLED]`, journalisée
+  sur stderr — jamais levée, et **une seule fois par processus** : pour
+  attribuer, une sonde qui remplace `_log_unhandled_cmd` et rend les 2 169
+  exercices à figure). Le relevé d'origine annonçait 23 exercices ; c'était
+  avant l'import de H1/H2/H5/H6 — **311** le 2026-09-22.
 
-  - *Vraies primitives flydraw absentes* — `ftriangle`, `fillrect`, `fcircles`,
-    `dashed`, et les transformations `translate` / `affine` / `killaffine` /
-    `rotate` / `translation` / `killrotate` / `killtranslate` / `animate`.
-    Une dizaine d'exercices : `oefpytha/etagere1`, `oeftranslation/translation1`
-    et `translation4`, `oefmolecule/cramform1`, `oefaffine/droiteanim`,
-    `gensuitefig/slin`, `OEFevalwimsequat/resoudre2`.
-  - *Options JSXGraph, pas du flydraw* — `axis`, `axisnumbering`, `grid`,
-    `legend`, `linegraph`, `strokecolor`, `xlabel`, `ylabel`, `snaptogrid`,
-    `snaptopoints`, `opacity`, `latex`. Elles remontent sous la même étiquette
-    alors qu'elles relèvent d'un autre sous-système : `unitefonct/1`,
-    `oefvectgraph/comblin`, `evolmeth/evolmeth1`.
-  - *Bruit d'analyse* — `toto`, `new`, `centre`, `arete`, `polygone`,
-    `vecteurs`, `abcah` et des nombres nus (`0`, `1`, `2`, `20`, `400`). Ce ne
-    sont pas des commandes : le découpage prend des noms de variables ou des
-    étiquettes pour des opérations. À instruire avant de porter quoi que ce
-    soit — il se peut qu'il n'y ait rien à porter.
+  **Fait le 2026-09-22 : les transformations et les synonymes — 311 → 169.**
+  `affine`, `linear`, `rotation`/`rotate`, `translation`/`translate` et leurs
+  `kill*` sont portés comme dans le C : une matrice et un vecteur que
+  `scale()` (`flylines.c:151`) applique à **tout point**, jamais aux tailles
+  (`_State.tr`, appelé par chaque objet sur ses points parsés). L'ancienne
+  `rotation` par groupe SVG `rotate()` tournait aussi les glyphes et se
+  trompait dès que les échelles x/y différaient ; elle a disparu. S'y ajoutent
+  les synonymes de `nametab.c` qui manquaient (`seg`, `ftriangle`, `fillrect`,
+  `fcircles`, `rangex`…), chacun sur la variante — pleine ou non — de son
+  `fill_tag`, et le rayon de `circles` en unités du repère (`2*r*xscale`), non
+  en pixels. 153 instantanés changent, tous expliqués par une de ces
+  commandes. Vu au navigateur : `oefreprodangle2` montrait un arc **sans
+  aucun rayon** — l'angle à reproduire n'existait pas ; `oefohm/bridge`, un
+  circuit en morceaux, est un pont de Wheatstone complet ; `addfig/pyramid*`
+  tracent la figure entière, non sa moitié.
+
+  Reste, par nombre d'exercices :
+  - `animate` (41) et `new` (29) — vraies commandes, à instruire ;
+  - options canvasdraw sous la même étiquette — `grid` 17, `precision` 15,
+    `opacity` 13, `axis`, `snaptopoints`, `centered`, `latex`, `xlabel`… :
+    un autre sous-système (`unitefonct/1`, `oefvectgraph/comblin`) ;
+  - `dashed`/`filled` (préfixes d'objet, `obj_dashed`/`obj_filled`),
+    `filltoborder`, `rays`, `levelcurve`, `dplot`, `fillpoly`, `polylines`,
+    `hdline`/`vdline`/`hsegment`/`vsegment` — une poignée chacun ;
+  - bruit d'analyse — `toto`, `centre`, `arete`, `polygone`, `vecteurs`,
+    `abcah`, `segment1` et des nombres nus : noms de variables ou étiquettes
+    pris pour des commandes. À instruire avant de porter quoi que ce soit.
+
+  Trois défauts **antérieurs** vus en chemin, non traités :
+  - `lines` est dans le C `obj_fulllines` — des **droites** infinies —, PAX le
+    trace en segments indépendants ;
+  - `arc 0,0,40,40,357,3` (`oefreprodangle2`) trace le grand arc de 354°, non
+    le petit de 6° qui passe par 0° ;
+  - les étiquettes de `oefohm`/`oefresistance` s'affichent entre guillemets
+    (`"82"`, `" R2 = 55 ohm"`).
 
 - [x] **Trois exercices n'exposent aucune réponse** : `oefspeed.nl/trajet`,
   `equilibrium.fr/methode`, `anglesCercleTrigo.fr/definitions`. Ils sont écartés
