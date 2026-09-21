@@ -208,6 +208,25 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   consignés dans `XFAIL_CONSTANT_SCORE`. Reste à les réparer : leur `:test` ne
   regarde pas le tracé de l'élève.
 
+  **Diagnostic du 2026-09-22 — ce n'est pas le `:test`, c'est un type de
+  module non porté.** Les trois sont des activités « mesurez votre temps de
+  réaction » à étapes dynamiques (`\nextstep{\nstep}`, `nstep=reply1`). L'étape
+  1 est `reply1`, de type **`reaction`**, défini par le module lui-même
+  (`oefstatistiques.fr/anstype/reaction` et `reaction.input`, 3,9 Ko de JS) :
+  l'élève clique pour mesurer ses temps, et ce sont **ses** temps qui
+  deviennent les données des questions de statistique des étapes suivantes
+  (`nbrinter`, `ecc`, `moyy`… calculés au `:postdef`). L'étape 1 vaut
+  `weight=0` et le `.proc` la déclare toujours bonne (`diareply$i=good`).
+
+  PAX ne connaît pas `reaction` : il retombe sur `check_text`, et le rendu
+  n'expose que `reply1`. Le test, qui ne franchit pas d'étape, note donc une
+  étape 1 sans poids : 46 conditions sur 49 tiennent sur des valeurs vides,
+  d'où 0,9388 partout. `moustache` ajoute un `jsxgraph` de module.
+
+  Les réparer, c'est porter le widget `reaction` (JS, côté front) et son
+  `.proc` — un cas de l'entrée « Types de réponse définis par les modules »
+  plus bas, qu'il faut élargir à `reaction` et `jsxgraph`.
+
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
   `val19 = $[fullratsimp(…)]` porte la réponse de l'élève ; PAX rendait
@@ -742,7 +761,9 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `methods.$lang` (`oefohm`, où `$lang` n'est même pas substitué alors que
   `methods.fr` existe), `notation_lang.proc` (10).
 - [ ] **Types de réponse définis par les modules** (dossier `anstype/`) :
-  `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr`. Absents de
+  `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr` — et
+  `reaction`/`jsxgraph` d'`oefstatistiques.fr` (`histocap`, `histogramme`,
+  `moustache`, voir plus haut). Absents de
   `_WIMS_KNOWN_TYPES` comme de `_MODULE_ANSTYPES`, ils sont ramenés à
   `default` sans que le garde-fou de I.3 c les voie.
 - [x] **16 exercices plantaient sur `re.PatternError: bad escape`** — corrigé
