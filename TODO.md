@@ -390,12 +390,33 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
   corpus, ni dans les scripts WIMS rapatriés.
 
 - [ ] **Six `oeffonctionsverbe/gramfonclic*` au `replygood` vide.** Leurs 40
-  réponses `clickfill` n'ont **aucune** étiquette : `val68` et `val70` restent
-  vides et `replygood1` se réduit à `;`. Même famille que `evolmeth1/2` et
-  `geo6`, déjà consignés — une tranche indexée qui ne s'évalue pas. Le
-  rendu leur pose désormais leurs 40 emplacements (c'est ce que fait
-  `formr.phtml`), mais sans vivier ils restent insolubles : c'est en amont
-  qu'il faut corriger, pas à l'affichage.
+  réponses `clickfill` n'ont **aucune** étiquette : `replygood1` se réduit à
+  `;`. Le rendu leur pose désormais leurs 40 emplacements (c'est ce que fait
+  `formr.phtml`), mais sans vivier ils restent insolubles.
+
+  **Ce n'est PAS la tranche indexée**, contrairement à ce que cette entrée a
+  d'abord dit en les rattachant à `evolmeth1/2` et `geo6`. Vérifié le
+  2026-09-21 sur huit formes : `$(m[1;])` rend bien `a,b,c`, `$(m[;1])` rend
+  `a,d,g`, `$(m[1;$liste])` rend `a, c`. Le découpage fonctionne ; les
+  variables sont vides **avant** lui.
+
+  Ce qui est établi, pour ne pas refaire le chemin :
+
+  - la chaîne de vides remonte à `val2=$confparm1` et `val3=$confparm2`
+    (l. 23-24 du `.def`) ;
+  - le module ne pose **aucun défaut** pour eux : son `introhook.phtml`
+    commente sa seule déclaration (`!! !formradio confparm1 from 1 to 3`), et
+    son `var.proc` n'en parle pas ;
+  - mais fournir `confparm1`/`confparm2` par `reglages` ne change rien — le
+    vivier reste vide aux valeurs 1, 2 et 3.
+
+  Donc la cause est **encore en amont**, et l'hypothèse `confparm` ne suffit
+  pas. Piste non explorée : la source OEF écrit `\text{file0=randitem(\file)}`
+  et `wims(embraced randitem …)`, or `randitem` est une **fonction du
+  calculateur** chez WIMS (`calc.c:2396`, table `calc_list`) au même titre
+  qu'`imgrename` — que PAX a dû porter en août pour la même raison
+  (`_eval_value` applique `calc_imgrename` à toute valeur calculée). Vérifier
+  si `randitem(…)` en position d'expression est évalué serait le prochain pas.
 
 - [x] **`nocase`** : `check_nocase` — match exact après normalisation (ponctuation→espace, accents/casse/espaces ignorés) contre toute alternative `|`. Self-check corpus 40/0.
 - [x] **`atext`** : `check_atext` — normalisation nocase + **suppression des mots vides** (articles, via `atext.dic`) + **racinisation pluriel/genre** (via `suffix.<lang>`, algorithme WIMS : mot inversé, plus longue clé-préfixe remplacée) + alternatives `|`. « les triangles » = « un triangle » = « triangle » ; « carrés » = « carré ». Dictionnaires WIMS copiés dans `backend/core/answer/data/atext/` (fr/nl/en). Self-check 39/0.
