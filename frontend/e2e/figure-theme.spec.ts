@@ -104,4 +104,20 @@ test.describe('les figures suivent le thème', () => {
     const retour = await lire()
     expect(retour).toEqual(clair)
   })
+
+  test('une figure qui porte son fond n’est pas adaptée', async ({ page }) => {
+    // L'écran d'oscilloscope de `periodefrequence` est **noir**, sa grille
+    // grise et son axe blanc : renverser ses gris le rendrait gris clair, axe
+    // sombre. L'auteur y a réglé les contrastes ; le thème n'y touche pas.
+    await page.goto('/exercise/H4~physics~temps.fr~src~periodefrequence')
+    await expect(page.locator('.oef-statement svg').first()).toBeVisible({ timeout: 30000 })
+    await page.evaluate(() => document.documentElement.classList.add('dark'))
+    await page.waitForTimeout(300)
+    const fond = await page.evaluate(() => {
+      const r = document.querySelector('.oef-statement svg rect')
+      return { fill: r?.getAttribute('fill') ?? null, memo: r?.getAttribute('data-pax-fill') ?? null }
+    })
+    expect(fond.fill).toBe('#000000')
+    expect(fond.memo).toBeNull()
+  })
 })

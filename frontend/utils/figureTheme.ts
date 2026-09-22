@@ -37,6 +37,35 @@ function estOverlayPax(svg: Element): boolean {
 }
 
 /**
+ * La figure porte-t-elle son propre fond ?
+ *
+ * L'adaptation repose sur une hypothèse — « la figure a été dessinée pour du
+ * papier blanc » — que dément une figure qui peint elle-même son fond : celle
+ * d'`oscilloscope` (`temps.fr/periodefrequence`) est un écran **noir**, à
+ * grille grise, axe blanc et courbe verte. Renverser ses gris la rend fausse :
+ * l'écran devient gris clair et l'axe sombre. L'auteur y a réglé les
+ * contrastes lui-même ; on n'y touche pas.
+ *
+ * Le critère est structurel : un rectangle opaque posé en premier, aux
+ * dimensions du `viewBox`.
+ */
+function porteSonFond(svg: Element): boolean {
+  const premier = svg.firstElementChild
+  if (!premier || premier.tagName.toLowerCase() !== 'rect') return false
+  const remplissage = (premier.getAttribute('fill') || '').trim().toLowerCase()
+  if (!remplissage || remplissage === 'none' || remplissage === 'transparent') return false
+  const boite = (svg.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number)
+  if (boite.length !== 4) return false
+  const nombre = (nom: string) => Number(premier.getAttribute(nom))
+  return (
+    nombre('x') === boite[0] &&
+    nombre('y') === boite[1] &&
+    nombre('width') === boite[2] &&
+    nombre('height') === boite[3]
+  )
+}
+
+/**
  * Adapte (ou restaure) toutes les figures sous `racine`.
  *
  * Idempotent : rejouée à chaque bascule de thème, elle repart toujours de la
@@ -51,6 +80,9 @@ export function adapteFigures(racine: Element | null, sombre: boolean): void {
 
   for (const svg of svgs) {
     if (estOverlayPax(svg)) continue
+    // Une figure à fond propre se restaure plutôt qu'elle ne s'adapte : si un
+    // passage antérieur l'avait modifiée, il faut le défaire.
+    const sienFond = porteSonFond(svg)
     const elements: Element[] = [svg, ...Array.from(svg.querySelectorAll('*'))]
     for (const el of elements) {
       for (const propriete of PROPRIETES) {
@@ -59,7 +91,7 @@ export function adapteFigures(racine: Element | null, sombre: boolean): void {
         const origine = memorisee ?? el.getAttribute(propriete)
         if (origine === null) continue
 
-        if (!sombre || !fond) {
+        if (!sombre || !fond || sienFond) {
           if (memorisee !== null) {
             el.setAttribute(propriete, memorisee)
             el.removeAttribute(cle)
