@@ -89,9 +89,10 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     `abcah`, `segment1` et des nombres nus : noms de variables ou étiquettes
     pris pour des commandes. À instruire avant de porter quoi que ce soit.
 
-  Trois défauts **antérieurs** vus en chemin, non traités :
-  - `lines` est dans le C `obj_fulllines` — des **droites** infinies —, PAX le
-    trace en segments indépendants ;
+  `lines`/`dlines` corrigés le 2026-09-22 (des **droites**, `obj_fulllines`),
+  et les alias `brokenline`, `dashedlines`, `dashlines` ajoutés.
+
+  Deux défauts **antérieurs** vus en chemin, non traités :
   - `arc 0,0,40,40,357,3` (`oefreprodangle2`) trace le grand arc de 354°, non
     le petit de 6° qui passe par 0° ;
   - les étiquettes de `oefohm`/`oefresistance` s'affichent entre guillemets

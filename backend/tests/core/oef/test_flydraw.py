@@ -601,3 +601,41 @@ class TestSynonymesNametab:
         # `obj_circles` : diamètre `2*r*xscale` — 2 unités à 10 px/unité.
         svg = flydraw_to_svg(300, 300, "xrange -5,25\tyrange -5,25\tfcircles red,1,1,2")
         assert 'r="20.00"' in svg and 'fill="#ff0000"' in svg
+
+
+class TestDroitesEtSegments:
+    """`lines` trace des **droites**, `segments` des segments (`nametab.c`).
+
+    Vérifié contre le binaire `flydraw` de WIMS : sur
+    `lines black,-15,-9,-21,-10,-20.5,-11.5,-14.5,-10.3`, les deux rendus
+    donnent les deux mêmes droites.
+    """
+
+    CADRE = "xrange 0,10\tyrange 0,10\t"
+
+    def test_lines_prolonge_jusqu_au_cadre(self):
+        # Deux points, une droite — non un segment de (1,1) à (2,2).
+        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2")
+        assert _lignes(svg) == [(0.0, 100.0, 100.0, 0.0)]
+
+    def test_lines_prend_les_points_quatre_coordonnees_a_la_fois(self):
+        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2,0,5,10,5")
+        a, b = _lignes(svg)
+        assert a == (0.0, 100.0, 100.0, 0.0)
+        assert b == (0.0, 50.0, 100.0, 50.0)
+
+    def test_un_groupe_incomplet_est_ignore(self):
+        # `addfig/triangle` écrit six coordonnées. Le C fait une itération de
+        # plus en lisant deux coordonnées non initialisées — vérifié au
+        # binaire, qui trace une droite parasite de plus. Indéfini : PAX
+        # s'arrête au dernier groupe complet.
+        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2,5,5")
+        assert len(_lignes(svg)) == 1
+
+    def test_segments_reste_des_segments(self):
+        svg = flydraw_to_svg(100, 100, self.CADRE + "segments black,1,1,2,2")
+        assert _lignes(svg) == [(10.0, 90.0, 20.0, 80.0)]
+
+    def test_polyline_enchaine_les_points(self):
+        svg = flydraw_to_svg(100, 100, self.CADRE + "brokenline black,1,1,2,2,3,1")
+        assert 'points="10.00,90.00 20.00,80.00 30.00,90.00"' in svg

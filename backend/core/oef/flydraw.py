@@ -795,46 +795,80 @@ def _cmd_textup(state: _State, args: list[str]) -> None:
     )
 
 
-def _cmd_line(state: _State, args: list[str]) -> None:
-    # line x1,y1,x2,y2,[color] — INFINITE line through the two points,
-    # clipped to the current x/yrange. Used by csga to draw an axis that
-    # extends beyond the labelled markers.
-    if len(args) < 4:
-        return
-    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+def _ligne_infinie(state: _State, x1: float, y1: float, x2: float, y2: float,
+                   color: str, dashed: bool = False) -> None:
+    """La droite passant par deux points, prolongée jusqu'au cadre.
+
+    `line_extend` (`objects.c`) étend dans les deux sens jusqu'au bord de
+    l'image ; on le fait ici en coordonnées du repère, ce qui revient au même,
+    l'un étant l'image affine de l'autre.
+    """
     x1, y1 = state.tr(x1, y1)
     x2, y2 = state.tr(x2, y2)
-    color = _color(args[4]) if len(args) > 4 else "#000000"
-
+    # Deux points confondus : `line_extend` y calcule `t3 = INFINITY` puis un
+    # `NaN` converti en entier — indéfini, pas une règle. PAX garde ce qu'il
+    # traçait, une verticale plein cadre, plutôt que d'inventer une garde.
     if x1 == x2:
-        # Vertical line — span the full y-range.
-        ax, ay = x1, state.ymin
-        bx, by = x1, state.ymax
+        ax, ay, bx, by = x1, state.ymin, x1, state.ymax
     elif y1 == y2:
-        # Horizontal line — span the full x-range.
-        ax, ay = state.xmin, y1
-        bx, by = state.xmax, y1
+        ax, ay, bx, by = state.xmin, y1, state.xmax, y1
     else:
-        # General case: y = y1 + m(x - x1). Clip to x-range, then to y-range.
         m = (y2 - y1) / (x2 - x1)
-        # Try x = xmin and x = xmax first.
         ax, ay = state.xmin, y1 + m * (state.xmin - x1)
         bx, by = state.xmax, y1 + m * (state.xmax - x1)
-        # If those leave the y-range, clip via y boundaries.
         ymin, ymax = state.ymin, state.ymax
         if ay < ymin or ay > ymax:
-            target = ymin if ay < ymin else ymax
-            ax, ay = x1 + (target - y1) / m, target
+            cible = ymin if ay < ymin else ymax
+            ax, ay = x1 + (cible - y1) / m, cible
         if by < ymin or by > ymax:
-            target = ymin if by < ymin else ymax
-            bx, by = x1 + (target - y1) / m, target
-
+            cible = ymin if by < ymin else ymax
+            bx, by = x1 + (cible - y1) / m, cible
+    tirets = ' stroke-dasharray="4,3"' if dashed else ""
     state.segments.append(((ax, ay), (bx, by)))
     state.elements.append(
         f'<line x1="{state.px(ax):.2f}" y1="{state.py(ay):.2f}" '
         f'x2="{state.px(bx):.2f}" y2="{state.py(by):.2f}" '
-        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        f'stroke="{color}" stroke-width="{state.linewidth}"{tirets} />'
     )
+
+
+def _cmd_line(state: _State, args: list[str]) -> None:
+    # line x1,y1,x2,y2,[color] — la DROITE passant par les deux points
+    # (`obj_fullline`), prolongée jusqu'au cadre.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    _ligne_infinie(state, x1, y1, x2, y2, color)
+
+
+def _cmd_fulllines(state: _State, args: list[str], dashed: bool = False) -> None:
+    """`lines [color],x1,y1,x2,y2,x3,y3,x4,y4,…` — `obj_fulllines`.
+
+    **Des droites, pas des segments** : les points sont pris quatre
+    coordonnées à la fois (`for(i=0;i<pm->pcnt;i+=4)`), et chaque paire donne
+    une droite prolongée jusqu'au bord. PAX en faisait des segments
+    indépendants, et jetait un reste de moins de quatre coordonnées :
+    `addfig/triangle` écrit `lines rouge,x1,y1,x2,y2,x3,y3` pour chacun de ses
+    trois côtés — trois points alignés — et n'en voyait tracer que la moitié.
+
+    Le C, lui, fait une itération de plus sur ce reste, en lisant deux
+    coordonnées **non initialisées** (`struct objparm pm;` est une locale
+    d'`obj_main`) : comportement indéfini, que nous ne reproduisons pas. Un
+    groupe incomplet est ignoré.
+    """
+    if not args:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    for i in range(0, len(coords) - 3, 4):
+        _ligne_infinie(state, coords[i], coords[i + 1], coords[i + 2],
+                       coords[i + 3], color, dashed)
+
+
+def _cmd_fulldlines(state: _State, args: list[str]) -> None:
+    # dlines — `obj_fulllines` avec `fill_tag` -1 : les mêmes, en pointillés.
+    _cmd_fulllines(state, args, dashed=True)
 
 
 def _cmd_dsegment(state: _State, args: list[str]) -> None:
@@ -2192,9 +2226,13 @@ _HANDLERS = {
     "segments": _cmd_segments,
     "dsegment": _cmd_dsegment,
     "line": _cmd_line,
-    "lines": _cmd_lines,
+    "lines": _cmd_fulllines,
     "dline": _cmd_dline,
-    "dlines": _cmd_dlines,
+    "dlines": _cmd_fulldlines,
+    # `obj_dlines` : la ligne brisée en pointillés, que `dpolyline` rend déjà.
+    "dashedlines": _cmd_dpolyline,
+    "dashlines": _cmd_dpolyline,
+    "brokenline": _cmd_polyline,
     "hline": _cmd_hline,
     "dhline": _cmd_dhline,
     "vline": _cmd_vline,

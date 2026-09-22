@@ -451,6 +451,17 @@ pour les dynsteps).
 ## Références
 
 - Code C WIMS 4.28 : `~/pax/wims/src/`
+- **Le binaire `flydraw` est compilé dans l'arbre** (`wims/src/Flydraw/flydraw`)
+  et s'exécute tel quel : il lit ses commandes sur l'entrée standard et rend un
+  GIF. C'est l'arbitre pour toute question de dessin — comparer son image au
+  SVG de PAX tranche en une minute ce qu'une lecture du C laisse en doute.
+
+      printf 'size 100,100\nxrange 0,10\nyrange 0,10\nsegment 0,9,10,9,red\n' \
+        | ./wims/src/Flydraw/flydraw > /tmp/wims.gif
+
+  Employé le 2026-09-22 pour `lines` : la lecture du C disait « des droites,
+  plus une itération sur des coordonnées non initialisées », et le binaire l'a
+  montré — mêmes droites que PAX, plus une parasite.
 - Moteur Python actuel : `backend/core/oef/def_engine/`
 - Table des commandes C : `~/pax/wims/src/calc.c`, ligne 2247 (`calc_routine[]`)
 - Parseur de conditions C : `~/pax/wims/src/compare.c`
