@@ -414,3 +414,140 @@ def declosing(s: str) -> str:
                         break
             return s[1:-1].strip()
     return s
+
+
+# ── Remplacement d'objet (`_obj_replace`, `calc.c:883`) ──────────────────────
+#
+# `!replace <style> [number <n>] <quoi> by <par> in <texte>` : quatre styles —
+# `word`, `item`, `line`, `char` —, chacun avec ou sans `number`. Sans
+# `number`, ce sont les **occurrences** de l'objet `quoi` qui sont remplacées,
+# frontières comprises (`itemchr`, `wordchr`…) ; avec, c'est le n-ième objet,
+# compté de 1, ou depuis la fin s'il est négatif.
+
+_SEPARATEURS = {"word": " ", "item": ",", "line": "\n", "char": ""}
+
+
+def _debuts(s: str, style: str) -> list[int]:
+    """Début brut de chaque objet — ce que le C laisse dans `fnd_position`.
+
+    Pour un item, c'est la position **juste après la virgule précédente**,
+    blancs de tête compris : `fnd_item` pose `fnd_position` avant son
+    `find_word_start`. Pour un mot, au contraire, c'est le mot lui-même.
+    """
+    if style == "item":
+        return [a for a, _ in _item_bounds(s)]
+    if style == "line":
+        return [0] + [i + 1 for i, ch in enumerate(s) if ch == "\n" and i + 1 <= len(s)]
+    if style == "char":
+        return list(range(len(s)))
+    debuts = []
+    i = find_word_start(s)
+    while i < len(s):
+        debuts.append(i)
+        i = find_word_start(s, find_word_end(s, i))
+    return debuts
+
+
+def objnum(s: str, style: str) -> int:
+    if style == "item":
+        return itemnum(s)
+    if style == "line":
+        return linenum(s)
+    if style == "char":
+        return len(s)
+    return len(_debuts(s, "word"))
+
+
+def objchr(s: str, mot: str, depuis: int = 0) -> int:
+    """Position de la première occurrence **d'un item entier** (`itemchr`)."""
+    if not mot:
+        return -1
+    n = len(mot)
+    pos = s.find(mot, depuis)
+    while pos >= 0:
+        gauche = pos - 1
+        while gauche >= 0 and _is_space(s[gauche]):
+            gauche -= 1
+        droite = find_word_start(s, pos + n)
+        if (gauche < 0 or s[gauche] == ",") and (droite >= len(s) or s[droite] == ","):
+            return pos
+        pos = s.find(mot, pos + 1)
+    return -1
+
+
+def wordchr(s: str, mot: str, depuis: int = 0) -> int:
+    """`wordchr` : l'occurrence doit être bordée de blancs ou de bouts."""
+    if not mot:
+        return -1
+    n = len(mot)
+    pos = s.find(mot, depuis)
+    while pos >= 0:
+        avant_ok = pos == 0 or _is_space(s[pos - 1])
+        apres = pos + n
+        apres_ok = apres >= len(s) or _is_space(s[apres])
+        if avant_ok and apres_ok:
+            return pos
+        pos = s.find(mot, pos + 1)
+    return -1
+
+
+def linechr(s: str, mot: str, depuis: int = 0) -> int:
+    if not mot:
+        return -1
+    n = len(mot)
+    pos = s.find(mot, depuis)
+    while pos >= 0:
+        avant_ok = pos == 0 or s[pos - 1] == "\n"
+        apres = pos + n
+        apres_ok = apres >= len(s) or s[apres] == "\n"
+        if avant_ok and apres_ok:
+            return pos
+        pos = s.find(mot, pos + 1)
+    return -1
+
+
+def replace_objet(
+    quoi: str, par: str, texte: str, style: str, numero: int | None = None
+) -> str:
+    """Port de `_obj_replace` (`calc.c:883`).
+
+    `numero` None → remplacement par occurrences ; sinon le n-ième objet.
+    Un `numero` nul, ou hors bornes, laisse le texte intact — le C lève
+    `bad_index` pour le premier, que PAX ne peut pas signaler à l'élève.
+    """
+    if style not in _SEPARATEURS:
+        return texte
+    sep = _SEPARATEURS[style]
+    if numero is not None:
+        total = objnum(texte, style)
+        i = numero
+        if i == 0:
+            return texte
+        if i < 0:
+            i = total + i + 1
+        if i > total or i < 1:
+            return texte
+        if style == "char":
+            if not par:
+                return texte
+            return texte[: i - 1] + par[0] + texte[i:]
+        debuts = _debuts(texte, style)
+        p1 = debuts[i - 1]
+        p2 = debuts[i] if i < total else len(texte)
+        return texte[:p1] + par + (sep if i < total else "") + texte[p2:]
+
+    if style == "char":
+        if not quoi or not par:
+            return texte
+        return texte.replace(quoi[0], par[0])
+    if not quoi and not par:
+        return texte
+    chercheur = {"item": objchr, "word": wordchr, "line": linechr}[style]
+    out = texte
+    pos = chercheur(out, quoi)
+    while pos >= 0:
+        out = out[:pos] + par + out[pos + len(quoi) :]
+        # Le C repart de `p1+strlen(by)+1` : un remplacement ne peut pas être
+        # relu comme une occurrence, et la frontière qui suit est sautée.
+        pos = chercheur(out, quoi, pos + len(par) + 1)
+    return out

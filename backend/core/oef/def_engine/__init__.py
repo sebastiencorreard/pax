@@ -2717,35 +2717,42 @@ class DefEngine(_SlibMixin):
         d'atomes égal au symbole (`U,Uranium,…` au lieu de `1,Uranium,…`), et
         la masse molaire d'`UF4` sortait en `0+U*238.03+F4*`.
         """
-        # Standard: !replace internal x by y in text
-        # Shortcut: !replace x by y in text (defaults to internal)
+        # L'ordre d'analyse est celui du C (`calc_replace`) : `internal`
+        # d'abord, puis le **style** (`word`, `item`, `line`, `char`), puis
+        # `number`, et seulement ensuite `… by … in …`.
+        reste = args.lstrip()
+        interne = False
+        m = re.match(r"internal\s+(.*)", reste, re.I | re.DOTALL)
+        if m:
+            interne, reste = True, m.group(1).lstrip()
+        m = re.match(r"(word|item|line|char)\s+(.*)", reste, re.I | re.DOTALL)
+        style = ""
+        numerote = False
+        if m:
+            style, reste = m.group(1).lower(), m.group(2).lstrip()
+            m = re.match(r"number\s+(.*)", reste, re.I | re.DOTALL)
+            if m:
+                numerote, reste = True, m.group(1).lstrip()
+
         # `\s+in\s*` (pas `\s+in\s+`) : le texte cible peut être vide quand un
         # `$var` substitué est vide (`!replace internal , by + in $vide` →
         # texte ""). Sinon le regex échoue et la commande fuite en littéral
         # (`internal , by + in`) dans la valeur calculée (moyenneB2).
-        m = re.match(r"(internal|word)\s+(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
+        # `\s*\bby` et non `\s+by` : après un style, le motif peut être **vide**
+        # (`!replace line by X in $t`), et le C rend alors le texte intact.
+        m = re.match(r"(.*?)\s*\bby\s+(.*?)\s+in\s*(.*)", reste, re.I | re.DOTALL)
         if m:
-            mode, old, new, text = m.groups()
+            old, new, text = m.groups()
         else:
-            # Sans préfixe : ni `internal` ni `word`. La nuance compte, c'est
-            # `internal` qui coupe la voie regexp.
-            m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
+            # Remplacement vide : `!replace internal , by in $text` efface
+            # chaque virgule (interint3 retire les séparateurs de liste de
+            # l'intervalle affiché).
+            m = re.match(r"(.*?)\s*\bby\s+in\s+(.*)", reste, re.I | re.DOTALL)
             if m:
-                mode, old, new, text = "", m.group(1), m.group(2), m.group(3)
+                old, new, text = m.group(1), "", m.group(2)
             else:
-                # Empty replacement: `!replace internal , by in $text` deletes
-                # every comma (interint3 strips the clickfill list separators
-                # from the displayed interval). Optional `internal|word` prefix
-                # must be consumed so `old` is just `,`, not `internal ,`.
-                m = re.match(
-                    r"(?:(internal|word)\s+)?(.*?)\s+by\s+in\s+(.*)",
-                    args, re.I | re.DOTALL,
-                )
-                if m:
-                    mode, old, new, text = (m.group(1) or ""), m.group(2), "", m.group(3)
-                else:
-                    return self._subst(args)
-        
+                return self._subst(args)
+
         # Motif vide → aucune occurrence à remplacer. WIMS ne fait rien ; Python
         # insérerait le remplacement entre *chaque* caractère (`"ab".replace("",
         # "X")` vaut `"XaXbX"`). `slib/function/tabsignes` écrit
@@ -2783,12 +2790,21 @@ class DefEngine(_SlibMixin):
 
         old = _deballer(old)
         new = _deballer(new)
+        if style:
+            # `_obj_replace` (`calc.c:883`) : le n-ième objet, ou toutes les
+            # occurrences de l'objet `old`. 591 `!replace item number` du
+            # corpus ne faisaient rien — la forme tombait dans le remplacement
+            # textuel, qui cherchait `item number 1` dans le texte.
+            if numerote:
+                try:
+                    indice = int(round(float(self._eval_arith(old))))
+                except (ValueError, TypeError):
+                    return text
+                return wl.replace_objet(old, new, text, style, indice)
+            return wl.replace_objet(old, new, text, style)
         if not old:
             return text
-        if mode.lower() == "word":
-            # Escape old for regex if using word mode
-            return re.sub(rf"\b{re.escape(old)}\b", new, text)
-        if not mode and _PORTE_UN_METACARACTERE(old, new):
+        if not interne and _PORTE_UN_METACARACTERE(old, new):
             substitue = _sed_substitution(old, new)
             if substitue is not None:
                 return substitue(text)

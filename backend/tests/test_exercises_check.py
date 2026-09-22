@@ -64,6 +64,25 @@ def _candidats(ans):
             if ligne.strip():
                 yield ligne.strip()
                 break
+    # `wlist` range un **répertoire**, précédé d'un seuil quand son premier mot
+    # est un nombre (`anstype/wlist` : `n=!word 1 of $good`). `2 96 125`
+    # demande donc au moins deux mots pris dans {96, 125} — soumettre le tout
+    # cite `2`, qui n'est pas du répertoire. Le `;` y fait un saut de ligne :
+    # les lignes suivantes sont des `badwords`, pour le seul diagnostic.
+    if ans.answer_type == "wlist" and brut.strip():
+        from core.oef.def_engine.wims_lists import cutlines, rows2lines  # noqa: PLC0415
+        lignes, _ = rows2lines(brut)
+        premiere = next((x for x in cutlines(lignes) if x.strip()), "")
+        mots = premiere.split()
+        if mots:
+            try:
+                float(mots[0])
+                mots = mots[1:]
+            except ValueError:
+                pass
+            if mots:
+                yield " ".join(mots)
+
     # `range` stocke des **bornes**, pas une réponse : `0.6,0.4` est
     # l'intervalle [0.4 ; 0.6]. La valeur qu'un élève est censé saisir — et que
     # WIMS affiche en corrigé (`replyGood`) — est le milieu du premier

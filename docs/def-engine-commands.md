@@ -13,7 +13,7 @@ Analyse sur les 2270 fichiers `.def` du corpus PAX (`ressources/`).
 | `!read` | 107 | ❌ lit des fichiers du système WIMS (non disponibles) |
 | `!exec` | 85 | ✅ maxima et pari |
 | `!randitem` | 80 | ✅ |
-| `!replace` | 68 | ✅ |
+| `!replace` | 68 | ✅ styles `word`/`item`/`line`/`char`, avec ou sans `number` (voir plus bas) |
 | `!texmath` | 50 | ✅ (identité) |
 | `!set` | 50 | ✅ (ignoré — titre déjà extrait) |
 | `!translate` | 47 | ✅ |
@@ -86,3 +86,25 @@ Ce serait l'inclusion de fichier .def dans le contexte courant (même ctx, même
 4. Limites — les labels (!goto) ne traversent pas les frontières de fichiers ; les sections question:/hint:/solution: du fichier inclus sont ignorées (seuls les blocs d'initialisation sont utiles)
 
 Ça serait ~40 lignes dans __init__.py. Mais pour le corpus actuel, ça ne débloquerait qu'un seul exercice (espcube.fr), donc le rapport effort/impact est faible. Je recommande de ne l'implémenter que si tu constates que des exercices importants sont cassés à cause de ça.
+
+## `!replace` — quatre styles, et le piège du `number`
+
+`calc_replace` (`calc.c`) lit dans l'ordre : `internal`, puis un **style**
+(`word`, `item`, `line`, `char`), puis `number`, puis `… by … in …`.
+
+- sans style, c'est un remplacement de texte — et, sauf `internal`, un
+  remplacement **sed** dès que l'un des motifs porte `\[^.*$` ;
+- avec un style et sans `number`, ce sont les **occurrences** de l'objet
+  cherché, frontières comprises (`itemchr`, `wordchr`, `linechr`) ;
+- avec `number n`, c'est le n-ième objet, compté de 1, ou depuis la fin s'il
+  est négatif ; hors bornes, le texte est rendu intact.
+
+La zone remplacée d'un item va du caractère qui suit la virgule précédente
+jusqu'à celui qui suit la suivante : `!replace item number 2 by X in a, b ,c`
+rend `a,X,c`, blancs compris.
+
+Porté le 2026-09-22 (`wims_lists.replace_objet`). Avant cela, la forme tombait
+dans le remplacement de texte, qui cherchait littéralement `item number 1`
+dans la cible : **591 `!replace item number` du corpus ne faisaient rien**, en
+silence. `challenge2005b/triangle` proposait six étiquettes valant toutes `0`,
+et les arbres d'`oefprobatree` n'avaient aucune branche.
