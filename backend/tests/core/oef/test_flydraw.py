@@ -639,3 +639,50 @@ class TestDroitesEtSegments:
     def test_polyline_enchaine_les_points(self):
         svg = flydraw_to_svg(100, 100, self.CADRE + "brokenline black,1,1,2,2,3,1")
         assert 'points="10.00,90.00 20.00,80.00 30.00,90.00"' in svg
+
+
+class TestCouleurEnRGB:
+    """Une couleur occupe **trois items** (`parse_parms`, `calc_color`).
+
+    `substit` développe d'abord le nom (`red` → `255,0,0`) ; PAX lisait un
+    seul jeton, si bien que `51,51,51` valait `51`, donc noir.
+    """
+
+    def test_triplet_numerique(self):
+        svg = flydraw_to_svg(100, 100, "hline 0, 40 ,51,51,51")
+        assert 'stroke="#333333"' in svg
+
+    def test_triplet_apres_les_parametres(self):
+        svg = flydraw_to_svg(100, 100, "segment 0,0,10,10,255,0,0")
+        assert 'stroke="#ff0000"' in svg
+
+    def test_nom_de_couleur_inchange(self):
+        svg = flydraw_to_svg(100, 100, "segment 0,0,10,10,red")
+        assert 'stroke="#ff0000"' in svg
+
+    def test_un_argument_de_trop_decale_la_couleur(self):
+        # `oefreprodangle2` écrit `fill 3,-0.5,6,red` : WIMS lit (6,255,0),
+        # le `6` en trop devenant la composante rouge. Vérifié au binaire.
+        svg = flydraw_to_svg(
+            100, 100, "triangle 10,10,90,10,50,90,black\nfill 50,30,6,red"
+        )
+        assert 'fill="#06ff00"' in svg
+
+
+class TestFondEtCourbe:
+    def test_un_fill_en_premiere_commande_peint_le_fond(self):
+        # `temps.fr/periodefrequence` se donne ainsi son écran noir.
+        svg = flydraw_to_svg(200, 200, "fill 100,100,black\nsegment 0,0,10,10,white")
+        assert svg.index('<rect x="0" y="0" width="200" height="200" fill="#000000"') < svg.index("<line")
+
+    def test_un_fill_sans_region_ne_peint_pas_tout(self):
+        # Une figure déjà tracée dont notre recherche ne retrouve pas la
+        # région : ne rien peindre vaut mieux que noircir l'image entière.
+        svg = flydraw_to_svg(200, 200, "arc 0,0,40,40,0,90,black\nfill 5,5,red")
+        assert "<rect" not in svg
+
+    def test_plot_trace_en_mode_pixel(self):
+        # Sans xrange/yrange, l'axe y descend (`ymin` = hauteur) : la fenêtre
+        # doit être comparée sur des bornes ordonnées, sinon tout est écarté.
+        svg = flydraw_to_svg(200, 200, "plot green, 100+50*sin(x/20)")
+        assert "<polyline" in svg and 'stroke="#008000"' in svg

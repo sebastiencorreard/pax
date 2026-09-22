@@ -1764,7 +1764,11 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
             y = float(f(x))
         except Exception:
             continue
-        if y != y or y < state.ymin - 1 or y > state.ymax + 1:
+        # Bornes **ordonnées** : en mode pixel `ymin` vaut la hauteur et
+        # `ymax` zéro (l'axe y descend), si bien que la comparaison brute
+        # écartait tous les points — `periodefrequence` n'avait pas de courbe.
+        bas, haut = min(state.ymin, state.ymax), max(state.ymin, state.ymax)
+        if y != y or y < bas - 1 or y > haut + 1:
             continue
         if cur and prev_i is not None and i != prev_i + 1:
             branches.append(cur)
@@ -1815,8 +1819,10 @@ def _plot_parametrique(state: _State, color: str, sx: str, sy: str) -> None:
         # taille fixe, ce qui en sort n'existe pas. La tolérance d'une unité
         # que s'accorde le tracé explicite n'a pas cours ici — sur un `xrange`
         # de six unités elle laissait la courbe déborder de cinquante pixels.
+        gauche, droite = min(state.xmin, state.xmax), max(state.xmin, state.xmax)
+        bas, haut = min(state.ymin, state.ymax), max(state.ymin, state.ymax)
         if x != x or y != y or not (
-            state.xmin <= x <= state.xmax and state.ymin <= y <= state.ymax
+            gauche <= x <= droite and bas <= y <= haut
         ):
             if cur:
                 branches.append(cur)
@@ -2133,6 +2139,24 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
     fx, fy = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
     poly = _flood_region(state, fx, fy)
+    if poly is None and not state.elements:
+        # Aucune figure n'entoure le point : chez WIMS le remplissage s'étend
+        # alors à **toute** la zone de même couleur, c'est-à-dire au fond de
+        # l'image — c'est ainsi que `temps.fr/periodefrequence` se donne un
+        # écran d'oscilloscope noir, par un `fill` posé en première commande.
+        # Le rectangle est mis au fond de la pile : ce qui a déjà été tracé
+        # bornerait le remplissage chez WIMS, donc reste visible ici. D'où la
+        # condition : **rien de tracé**. Sinon le point est simplement dans
+        # une région que notre recherche géométrique n'a pas su reconstituer
+        # (les arcs n'y sont pas des frontières), et peindre toute l'image
+        # serait bien pire que de ne rien peindre — `oefreprodangle2`
+        # ressortait tout noir.
+        state.elements.insert(
+            0,
+            f'<rect x="0" y="0" width="{state.width}" height="{state.height}" '
+            f'fill="{color}" stroke="none" />',
+        )
+        return
     if poly is None:
         return
     pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
@@ -2187,6 +2211,146 @@ def _xml_escape(s: str) -> str:
         .replace(">", "&gt;")
         .replace('"', "&quot;")
     )
+
+
+
+# ── Couleurs écrites en r,g,b (`nametab.c`) ──────────────────────────────────
+#
+# Chez WIMS, une couleur occupe **trois items** : `substit` (`flydraw.c:87`)
+# remplace d'abord un nom (`red`) par sa définition (`255,0,0`), et
+# `parse_parms` en consomme toujours trois. PAX lit la couleur comme un seul
+# jeton — ce qui marche pour un nom, mais lisait `51,51,51` comme `51`, donc
+# noir. La table dit où chercher : `required_parms` et `color_pos`, ce dernier
+# valant -1 quand la couleur précède les paramètres et 1 quand elle les suit.
+_COULEUR_POS: dict[str, tuple[int, int]] = {
+    "arc": (6, 1),
+    "arrow": (5, 1),
+    "arrow2": (5, 1),
+    "arrows": (5, -1),
+    "arrows2": (5, -1),
+    "ball": (3, 1),
+    "brokenline": (4, -1),
+    "circle": (3, 1),
+    "circles": (3, -1),
+    "crosshair": (2, 1),
+    "crosshairs": (2, -1),
+    "darrow": (5, 1),
+    "darrow2": (5, 1),
+    "dasharrow": (5, 1),
+    "dasharrow2": (5, 1),
+    "dashedarrow2": (5, 1),
+    "dashedline": (4, 1),
+    "dashedlines": (4, -1),
+    "dashhalfline": (4, 1),
+    "dashline": (4, 1),
+    "dashlines": (4, -1),
+    "dashsegment": (4, 1),
+    "demiline": (4, 1),
+    "dhline": (2, 1),
+    "disk": (3, 1),
+    "dline": (4, 1),
+    "dlines": (4, -1),
+    "dpolyline": (4, -1),
+    "dsegment": (4, 1),
+    "dvline": (2, 1),
+    "ellipse": (4, 1),
+    "fcircle": (3, 1),
+    "fcircles": (3, -1),
+    "fellipse": (4, 1),
+    "fill": (2, 1),
+    "fillcircle": (3, 1),
+    "filledcircle": (3, 1),
+    "filledellipse": (4, 1),
+    "filledpoly": (4, -1),
+    "filledpolygon": (4, -1),
+    "filledrect": (4, 1),
+    "filledrectangle": (4, 1),
+    "filledsquare": (3, 1),
+    "filledtriangle": (6, 1),
+    "fillellipse": (4, 1),
+    "fillrect": (4, 1),
+    "fillrectangle": (4, 1),
+    "fillsquare": (3, 1),
+    "filltriangle": (6, 1),
+    "flood": (2, 1),
+    "floodfill": (2, 1),
+    "fpoly": (4, -1),
+    "fpolygon": (4, -1),
+    "frect": (4, 1),
+    "frectangle": (4, 1),
+    "fsquare": (3, 1),
+    "ftriangle": (6, 1),
+    "gridfill": (4, 1),
+    "halfline": (4, 1),
+    "hatchfill": (4, 1),
+    "hline": (2, 1),
+    "line": (4, 1),
+    "lines": (4, -1),
+    "parallel": (7, 1),
+    "plot": (0, -1),
+    "point": (2, 1),
+    "points": (2, -1),
+    "poly": (4, -1),
+    "polygon": (4, -1),
+    "polyline": (4, -1),
+    "rect": (4, 1),
+    "rectangle": (4, 1),
+    "seg": (4, 1),
+    "segment": (4, 1),
+    "segments": (4, -1),
+    "square": (3, 1),
+    "string": (2, -1),
+    "stringup": (2, -1),
+    "text": (2, -1),
+    "textup": (2, -1),
+    "transparent": (0, -1),
+    "triangle": (6, 1),
+    "vline": (2, 1),
+}
+
+
+def _est_octet(s: str) -> bool:
+    s = s.strip()
+    return s.isdigit() and 0 <= int(s) <= 255
+
+
+def _fusionner_couleur(cmd: str, args: list[str]) -> list[str]:
+    """La couleur, lue comme le fait `parse_parms` : **trois items**.
+
+    `substit` remplace d'abord chaque nom par sa définition (`red` →
+    `255,0,0`), puis `calc_color` prend les trois items suivants. D'où un
+    résultat déroutant quand l'auteur met un argument de trop :
+    `fill 3,-0.5,6,red` (`oefreprodangle2`) donne la couleur `(6, 255, 0)` —
+    un vert — parce que le `6` en trop devient sa composante rouge. PAX lisait
+    `6` seul, donc noir.
+
+    Le développement des noms est borné à la fenêtre de la couleur : WIMS,
+    lui, substitue toute la ligne, et abîme au passage un mot de couleur
+    écrit dans un texte non guillemeté.
+    """
+    meta = _COULEUR_POS.get(cmd)
+    if not meta:
+        return args
+    requis, pos = meta
+    i = 0 if pos < 0 else requis
+    if len(args) <= i:
+        return args
+    fenetre: list[str] = []
+    consommes = 0
+    for a in args[i:]:
+        if len(fenetre) >= 3:
+            break
+        consommes += 1
+        hexa = _COLORS.get(a.strip().lower())
+        if hexa and hexa.startswith("#") and len(hexa) == 7:
+            fenetre.extend(str(int(hexa[k : k + 2], 16)) for k in (1, 3, 5))
+        else:
+            fenetre.append(a.strip())
+    if len(fenetre) < 3 or not all(_est_octet(x) for x in fenetre[:3]):
+        return args
+    r, v, b = (int(x) for x in fenetre[:3])
+    reste = fenetre[3:] + args[i + consommes :]
+    return args[:i] + [f"#{r:02x}{v:02x}{b:02x}"] + reste
 
 
 _HANDLERS = {
@@ -2352,6 +2516,7 @@ def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None 
         cmd = m.group(1).lower()
         arg_str = m.group(2)
         args = _split_args(arg_str) if arg_str else []
+        args = _fusionner_couleur(cmd, args)
         handler = _HANDLERS.get(cmd)
         if handler:
             handler(state, args)
