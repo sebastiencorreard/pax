@@ -1744,18 +1744,27 @@ class TestChoiceAnswers:
         )
         assert [a.input_name for a in r.answers] == ["c1"]
 
-    def test_an_exercise_with_only_choices_keeps_reply_names(self):
-        """Sans aucune `reply`, les choix restent exposés en `replyN` — c'est
-        le seul cas où WIMS ne les distingue pas."""
-        from core.oef.def_engine import _parse_def_cached
-        from core.oef.engine import find_def_path, load_and_render
-        import glob
-        for oef in glob.glob("/ressources/H3/**/src/*.oef", recursive=True)[:400]:
-            d = find_def_path(oef)
-            if not d:
-                continue
-            df = _parse_def_cached(d)
-            if df.choice_meta and not df.reply_meta:
-                r = load_and_render(oef, seed=42)
-                assert all(a.input_name.startswith("reply") for a in r.answers), oef
-                return
+    def test_un_choix_non_embarque_garde_son_nom_de_reply(self):
+        """Sans `reply` ni `\\embed`, un choix reste exposé en `replyN`.
+
+        `oefpuis.fr/puisdiv2` est dans ce cas : son choix vient du formulaire
+        du bas (`oef/formc.phtml`), et PAX le nomme comme WIMS.
+        """
+        from core.oef.engine import load_and_render
+        r = load_and_render("/ressources/H3/algebra/oefpuis.fr/src/puisdiv2.oef", seed=42)
+        assert [a.input_name for a in r.answers] == ["reply1"]
+
+    def test_un_choix_embarque_porte_le_nom_que_pose_l_enonce(self):
+        """Embarqué, le même choix s'appelle `c<n>` — `oef/embed.phtml c1`.
+
+        Les deux règles coexistent (cf. bff542cc) : c'est l'énoncé qui décide.
+        Ce test en nommait autrefois **un seul**, tiré d'un `glob` non trié et
+        arrêté au premier trouvé : la CI, dont l'ordre de parcours diffère,
+        tombait sur `quizznbre` et échouait sur une règle que l'autre moitié
+        du corpus contredit.
+        """
+        from core.oef.engine import load_and_render
+        r = load_and_render(
+            "/ressources/H3/arithmetic/oefarith.fr/src/quizznbre.oef", seed=42
+        )
+        assert [a.input_name for a in r.answers] == ["c1"]
