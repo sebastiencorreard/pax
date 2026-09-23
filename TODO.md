@@ -77,8 +77,24 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   circuit en morceaux, est un pont de Wheatstone complet ; `addfig/pyramid*`
   tracent la figure entière, non sa moitié.
 
+  **Fait le 2026-09-24 : `new`, les variables et `animate`.**
+  - `new w,h` recrée l'image à la taille donnée (`obj_new`) : `graphpaper/*`,
+    `oefresistance`, `OEFondes` étaient dessinés dans le cadre de l'en-tête,
+    rapport d'aspect compris — déformés, et les clics d'un `coord` s'y
+    mesuraient sur la mauvaise échelle. 15 instantanés.
+  - Variables : un premier mot d'une lettre (ou lettre + chiffre) est une
+    affectation (`obj_main`), lue ensuite par les expressions.
+  - `animate f,d,b` n'est pas une commande flydraw : `oef/draw.phtml` le lit,
+    `insdraw..processor` rend f images avec `s=i/f`. Porté en un SVG animé
+    (SMIL discret, parties communes factorisées, dernière image visible sans
+    SMIL). 32 instantanés — la construction du triangle d'`OEFevalwimstrian`
+    s'anime au lieu de montrer un segment nul.
+  - Garde : `_num`, `plot` et les courbes paramétrées évaluent du Python ; un
+    corrigé peut y insérer la réponse d'un élève (`oefrelat`). Même garde que
+    les autres `eval` (`safe_math.entree_math_sure`) ; aucune figure du
+    corpus n'en est affectée.
+
   Reste, par nombre d'exercices :
-  - `animate` (41) et `new` (29) — vraies commandes, à instruire ;
   - options canvasdraw sous la même étiquette — `grid` 17, `precision` 15,
     `opacity` 13, `axis`, `snaptopoints`, `centered`, `latex`, `xlabel`… :
     un autre sous-système (`unitefonct/1`, `oefvectgraph/comblin`) ;

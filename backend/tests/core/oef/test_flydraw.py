@@ -733,3 +733,60 @@ class TestFondEtCourbe:
         # doit être comparée sur des bornes ordonnées, sinon tout est écarté.
         svg = flydraw_to_svg(200, 200, "plot green, 100+50*sin(x/20)")
         assert "<polyline" in svg and 'stroke="#008000"' in svg
+
+
+class TestVariables:
+    """`obj_main` : un premier mot d'une lettre, ou d'une lettre et d'un
+    chiffre, est une variable ; le `=` est facultatif."""
+
+    def test_affectation_puis_usage(self):
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\ns=0.5\nsegment 0,0,10*s,0,red")
+        assert 'x2="50.00"' in svg
+
+    def test_sans_signe_egal_et_nom_a_chiffre(self):
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\na1 2\nsegment 0,0,a1*3,0,red")
+        assert 'x2="60.00"' in svg
+
+    def test_les_variables_ne_fuient_pas_d_une_figure_a_l_autre(self):
+        flydraw_to_svg(100, 100, "range 0,10,0,10\ns=1")
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\nsegment 0,0,10*s+5,0,red")
+        assert 'x2="50.00"' not in svg
+
+
+class TestAnimate:
+    """`oef/draw.phtml` + `insdraw..processor` : un `animate f,d,b` en tête."""
+
+    from core.oef.flydraw import flydraw_anime_to_url as _url
+
+    def _svg(self, corps: str) -> str:
+        return get_cached_svg(TestAnimate._url(100, 100, corps).rsplit("/", 1)[1])
+
+    def test_une_image_par_valeur_de_s(self):
+        svg = self._svg("animate 4,0.5,0\nrange 0,10,0,10\nsegment 0,0,10*s,0,red\nsegment 0,5,10,5,blue")
+        assert svg.count("<animate ") == 4
+        # s = i/4 : 0, 2.5, 5, 7.5
+        for x in ("0.00", "25.00", "50.00", "75.00"):
+            assert f'x2="{x}" y2="100.00"' in svg
+        # Le trait commun à toutes les images n'est tracé qu'une fois.
+        assert svg.count('stroke="#0000ff"') == 1
+        # 0,5 s par image : quatre images, deux secondes, sans fin.
+        assert 'dur="2.00s" repeatCount="indefinite"' in svg
+
+    def test_la_derniere_image_est_visible_sans_smil(self):
+        svg = self._svg("animate 3,0.5,0\nrange 0,10,0,10\nsegment 0,0,10*s,0,red")
+        groupes = re.findall(r'<g visibility="(\w+)">', svg)
+        assert groupes == ["hidden", "hidden", "visible"]
+
+    def test_un_delai_d_un_centieme_vaut_un_dixieme(self):
+        # Les navigateurs portent à 10 cs un délai de GIF de 0 ou 1 cs.
+        svg = self._svg("animate 40,0.01,0\nrange 0,10,0,10\nsegment 0,0,10*s,0,red")
+        assert 'dur="4.00s"' in svg
+
+    def test_sans_s_rien_n_est_anime(self):
+        # `exec_insdraw` : ni `s`, ni `animstep`, ni `step` → une seule image.
+        svg = self._svg("animate 10,0.5,0\nrange 0,10,0,10\nsegment 0,0,5,0,red")
+        assert "<animate" not in svg and 'x2="50.00"' in svg
+
+    def test_sans_animate_rien_ne_change(self):
+        corps = "range 0,10,0,10\nsegment 0,0,5,0,red"
+        assert self._svg(corps) == flydraw_to_svg(100, 100, corps)

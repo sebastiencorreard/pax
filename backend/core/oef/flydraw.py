@@ -24,6 +24,18 @@ import re
 import sys
 from dataclasses import dataclass, field
 
+import contextvars
+
+from .safe_math import entree_math_sure
+
+# Les variables d'une figure (`s=0.5`, `a1=3`) : `obj_main` range dans `vartab`
+# toute ligne dont le premier mot fait une lettre, ou une lettre et un chiffre,
+# et l'évaluateur les lit ensuite. Propres au rendu en cours, d'où une
+# `ContextVar` que `_num` consulte.
+_VARIABLES: contextvars.ContextVar[dict[str, float] | None] = contextvars.ContextVar(
+    "flydraw_variables", default=None
+)
+
 _log = logging.getLogger("pax.flydraw")
 _logged_unhandled: set[str] = set()
 
@@ -218,9 +230,17 @@ def _num(s: str) -> float:
         return float(s)
     except ValueError:
         pass
+    # Un argument de figure peut contenir la réponse d'un élève : `oefrelat`
+    # trace `arc 3.6,($val9+\rep)/…` dans son corrigé. La garde des autres
+    # `eval` du moteur (`safe_math`) vaut ici aussi — aucun nombre ni aucune
+    # expression de figure n'a besoin d'un dunder ou d'un accès par attribut.
+    if not entree_math_sure(s):
+        return 0.0
     if _ARITH_RE.match(s):
+        variables = _VARIABLES.get()
+        espace = {**_NUM_NS, **variables} if variables else _NUM_NS
         try:
-            return float(eval(s, _NUM_NS))  # noqa: S307
+            return float(eval(s, espace))  # noqa: S307
         except Exception:
             # WIMS' flydraw parser tolerates a dangling trailing operator — some
             # generated coords look like "X +" (a tick's x2 in oefcalittaire1
@@ -229,7 +249,7 @@ def _num(s: str) -> float:
             stripped = s.rstrip(" \t+-*/")
             if stripped and stripped != s:
                 try:
-                    return float(eval(stripped, _NUM_NS))  # noqa: S307
+                    return float(eval(stripped, espace))  # noqa: S307
                 except Exception:
                     pass
             return 0.0
@@ -740,6 +760,39 @@ def _cmd_parallel(state: _State, args: list[str]) -> None:
             f'x2="{state.px(x2 + ox):.2f}" y2="{state.py(y2 + oy):.2f}" '
             f'stroke="{color}" stroke-width="{state.linewidth}" />'
         )
+
+
+# `MAX_SIZE` de `flydraw.h` : au-delà, `obj_size` refuse la taille.
+_TAILLE_MAX = 4096
+
+
+def _cmd_new(state: _State, args: list[str]) -> None:
+    """`new w,h` — `obj_new` détruit l'image et en crée une de w×h.
+
+    `insdraw..processor` écrit déjà `new <taille de l'en-tête>` avant le corps :
+    un `new` dans le corps **remplace** donc cette taille. `slib/graphpaper/*`
+    commence ainsi (`new $[60*xd],$[60*yd]`), `oefresistance` aussi (`new
+    300,220` sous un en-tête 200×200) : l'ignorer dessinait la figure dans le
+    cadre de l'en-tête, rapport d'aspect compris — déformée.
+
+    Seul le dessin disparaît. Repère, épaisseur, transformations sont des
+    globales du C, que `obj_new` ne touche pas ; le repère par défaut, en
+    pixels, suit la nouvelle taille. Le cadre que le C trace en `color_frame`
+    (254,254,254) est invisible, on ne le trace pas.
+    """
+    state.elements.clear()
+    state.segments.clear()
+    state.polygons.clear()
+    state.circles.clear()
+    if len(args) < 2:
+        return
+    w, h = round(_num(args[0])), round(_num(args[1]))
+    if not (0 < w <= _TAILLE_MAX and 0 < h <= _TAILLE_MAX):
+        return
+    en_pixels = (state.xmin, state.xmax, state.ymin, state.ymax) == (0, state.width, state.height, 0)
+    state.width, state.height = w, h
+    if en_pixels:
+        state.xmin, state.xmax, state.ymin, state.ymax = 0, w, h, 0
 
 
 def _contenu_texte(brut: str) -> str:
@@ -1744,7 +1797,9 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
         _plot_parametrique(state, color, args[1].strip(), ",".join(args[2:]).strip())
         return
     formula = ",".join(args[1:]).strip()
-    if not formula:
+    # `parse_expr` exécute du Python : même garde que `_num`, la formule
+    # pouvant être celle qu'un élève a saisie.
+    if not formula or not entree_math_sure(formula):
         return
     try:
         import sympy  # noqa: PLC0415
@@ -1863,6 +1918,8 @@ def _plot_parametrique(state: _State, color: str, sx: str, sy: str) -> None:
 
 def _fonction_de_t(formule: str):
     """Compile une expression du paramètre `t` en fonction Python, ou None."""
+    if not entree_math_sure(formule):
+        return None
     try:
         import sympy  # noqa: PLC0415
         from sympy.parsing.sympy_parser import (  # noqa: PLC0415
@@ -2492,6 +2549,7 @@ _HANDLERS = {
     "copy": _cmd_copy,
     "insert": _cmd_copy,  # alias per WIMS nametab
     # Text / plot
+    "new": _cmd_new,
     "text": _cmd_text,
     "textup": _cmd_textup,
     "string": _cmd_string,
@@ -2521,34 +2579,55 @@ def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None 
     (0, 0) at the top-left (HTML5 canvas convention). xrange/yrange commands
     override that default and switch to math coordinates.
     """
+    state = _rendre(width, height, commands, base_dir)
+    return _svg(state.width, state.height, "".join(state.elements))
+
+
+def _svg(width: int, height: int, corps: str) -> str:
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">{corps}</svg>'
+    )
+
+
+def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
+            variables: dict[str, float] | None = None) -> "_State":
+    """Exécute les commandes et rend l'état final (éléments SVG compris)."""
     w, h = int(width), int(height)
     # Pixel-mode defaults: ymin=h, ymax=0 inverts the y-flip in py() so that
     # raw pixel y values pass through unchanged.
     state = _State(width=w, height=h, xmin=0, xmax=w, ymin=h, ymax=0, base_dir=base_dir)
-    raw_lines = re.split(r"[\n\t;]", commands)
-    for raw in raw_lines:
-        line = raw.strip().rstrip("\\").strip()
-        if not line or line.startswith("#"):
-            continue
-        m = re.match(r"^(\w+)\s*(.*)$", line)
-        if not m:
-            continue
-        cmd = m.group(1).lower()
-        arg_str = m.group(2)
-        args = _split_args(arg_str) if arg_str else []
-        args = _fusionner_couleur(cmd, args)
-        handler = _HANDLERS.get(cmd)
-        if handler:
-            handler(state, args)
-        else:
-            _log_unhandled_cmd(cmd, arg_str)
-
-    body = "".join(state.elements)
-    return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" '
-        f'width="{state.width}" height="{state.height}" '
-        f'viewBox="0 0 {state.width} {state.height}">{body}</svg>'
-    )
+    variables = dict(variables or {})
+    jeton = _VARIABLES.set(variables)
+    try:
+        raw_lines = re.split(r"[\n\t;]", commands)
+        for raw in raw_lines:
+            line = raw.strip().rstrip("\\").strip()
+            if not line or line.startswith("#"):
+                continue
+            m = re.match(r"^(\w+)\s*(.*)$", line)
+            if not m:
+                continue
+            nom = m.group(1)
+            if len(nom) == 1 or (len(nom) == 2 and nom[1].isdigit()):
+                # `obj_main` : un nom d'une lettre (ou lettre + chiffre) est une
+                # variable, et le `=` (ou `:=`) qui suit est facultatif.
+                valeur = re.sub(r"^:?=", "", m.group(2).strip())
+                variables[nom] = _num(valeur)
+                continue
+            cmd = nom.lower()
+            arg_str = m.group(2)
+            args = _split_args(arg_str) if arg_str else []
+            args = _fusionner_couleur(cmd, args)
+            handler = _HANDLERS.get(cmd)
+            if handler:
+                handler(state, args)
+            else:
+                _log_unhandled_cmd(cmd, arg_str)
+    finally:
+        _VARIABLES.reset(jeton)
+    return state
 
 
 # Module-level cache: a hash → SVG string. The backend route
@@ -2567,6 +2646,85 @@ def flydraw_to_url(width: int, height: int, commands: str, base_dir: str | None 
     it, and emit ``/api/render/svg/<hash>``.
     """
     svg = flydraw_to_svg(width, height, commands, base_dir=base_dir)
+    key = hashlib.sha1(svg.encode("utf-8")).hexdigest()[:16]
+    _SVG_CACHE[key] = svg
+    return f"/api/render/svg/{key}"
+
+
+# `ins_anim_limit` (`config.c`) : `exec_insdraw` plafonne à `ANIM_LIMIT-1`.
+_ANIM_MAX = 399
+_ANIM_RE = re.compile(r"^\s*animate\s+([^\n\t]*)(?:[\n\t]|$)", re.I)
+# `varchr` : le corps n'anime rien s'il ne cite ni `s`, ni `animstep`, ni `step`.
+_ANIM_VARS_RE = re.compile(r"(?<![A-Za-z0-9_])(?:s|animstep|step)(?![A-Za-z0-9_])")
+
+
+def flydraw_anime_to_url(width: int, height: int, commands: str,
+                         base_dir: str | None = None) -> str:
+    """`oef/draw.phtml` : un `animate f,d,b` en tête du corps en fait un GIF animé.
+
+    `insdraw..processor` rend alors f images, la i-ième précédée de
+    `s=i/f` (et d'un `animstep=i` que `obj_main` rejette : le nom est trop long
+    pour une variable), puis `whirlgif` les assemble, `d` secondes par image,
+    `b` boucles (0 : sans fin). `OEFevalwimstrian` y montre la construction
+    d'un triangle au compas ; sans cela PAX figeait la première image — un
+    segment de longueur nulle.
+
+    Le GIF devient un SVG : ce qui est commun à toutes les images est tracé une
+    fois, le reste par image, chacune visible à son tour (SMIL, discret). La
+    dernière est visible par défaut, de sorte qu'un lecteur sans SMIL voit la
+    figure achevée.
+    """
+    m = _ANIM_RE.match(commands)
+    if not m:
+        return flydraw_to_url(width, height, commands, base_dir=base_dir)
+    corps = commands[m.end():]
+    parms = [p.strip() for p in m.group(1).split(",")]
+    try:
+        images = int(_num(parms[0])) if parms and parms[0] else 1
+    except (TypeError, ValueError):
+        images = 1
+    images = max(1, min(images, _ANIM_MAX))
+    if images > 1 and not _ANIM_VARS_RE.search(corps):
+        images = 1
+    if images == 1:
+        return flydraw_to_url(width, height, corps, base_dir=base_dir)
+    delai = min(max(_num(parms[1]) if len(parms) > 1 else 0.0, 0.0), 10.0)
+    boucles = int(_num(parms[2])) if len(parms) > 2 and parms[2] else 0
+    # `whirlgif -time` compte en centièmes (`int2str(d*100)`) ; les navigateurs
+    # portent à 10 cs un délai de 0 ou 1 cs — `animate 40,0.01,0` défile donc
+    # à 0,1 s par image chez l'élève de WIMS.
+    centiemes = int(delai * 100)
+    pas = 0.1 if centiemes <= 1 else centiemes / 100
+
+    etats = [_rendre(width, height, corps, base_dir, {"s": i / images})
+             for i in range(images)]
+    listes = [e.elements for e in etats]
+    debut = 0
+    while all(len(l) > debut for l in listes) and all(l[debut] == listes[0][debut] for l in listes):
+        debut += 1
+    fin = 0
+    while all(len(l) - debut > fin for l in listes) and all(
+            l[len(l) - 1 - fin] == listes[0][len(listes[0]) - 1 - fin] for l in listes):
+        fin += 1
+    duree = images * pas
+    repetition = "indefinite" if boucles <= 0 else str(boucles)
+    groupes = []
+    for i, l in enumerate(listes):
+        propre = "".join(l[debut:len(l) - fin])
+        derniere = i == images - 1
+        a, b = i / images, (i + 1) / images
+        if derniere:
+            valeurs, temps, garde = "hidden;visible", f"0;{a:.4f}", ' fill="freeze"'
+        else:
+            valeurs, temps, garde = "hidden;visible;hidden", f"0;{a:.4f};{b:.4f}", ""
+        groupes.append(
+            f'<g visibility="{"visible" if derniere else "hidden"}">'
+            f'<animate attributeName="visibility" calcMode="discrete" values="{valeurs}" '
+            f'keyTimes="{temps}" dur="{duree:.2f}s" repeatCount="{repetition}"{garde} />'
+            f"{propre}</g>"
+        )
+    corps_svg = "".join(listes[0][:debut]) + "".join(groupes) + "".join(listes[0][len(listes[0]) - fin:])
+    svg = _svg(etats[0].width, etats[0].height, corps_svg)
     key = hashlib.sha1(svg.encode("utf-8")).hexdigest()[:16]
     _SVG_CACHE[key] = svg
     return f"/api/render/svg/{key}"

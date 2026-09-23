@@ -81,3 +81,34 @@ class TestMoteur:
     def test_le_calcul_normal_marche(self):
         e = DefEngine(seed=1)
         assert e._eval_value("$[2+3*4]") == "14"
+
+
+class TestFigures:
+    """Les figures aussi évaluent : `_num` par `eval`, `plot` et les courbes
+    paramétrées par `parse_expr`. Un corrigé peut y insérer la réponse de
+    l'élève — `oefrelat` trace `arc 3.6,($val9+\\rep)/…`."""
+
+    def test_le_temoin_n_est_jamais_touche(self, monkeypatch):
+        from core.oef import flydraw
+
+        touche = []
+
+        class Temoin:
+            def __getattribute__(self, nom):
+                touche.append(nom)
+                return 0
+
+        monkeypatch.setitem(flydraw._NUM_NS, "x", Temoin())
+        assert flydraw._num("x.__class__") == 0.0
+        assert flydraw._num("x.real") == 0.0
+        assert touche == []
+
+    @pytest.mark.parametrize("s", ATTAQUES)
+    def test_plot_refuse(self, s):
+        from core.oef.flydraw import flydraw_to_svg
+        assert "<polyline" not in flydraw_to_svg(100, 100, f"range -1,1,-1,1\nplot red,{s}")
+
+    def test_figure_legitime_intacte(self):
+        from core.oef.flydraw import _num, flydraw_to_svg
+        assert _num("2*sin(pi/6)+0.5") == 1.5
+        assert "<polyline" in flydraw_to_svg(100, 100, "range -1,1,-1,1\nplot red,x^2-0.5")
