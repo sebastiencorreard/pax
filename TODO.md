@@ -1023,6 +1023,32 @@ Options :
 ## 2. Supprimer les scripts de création d'utilisateurs + reset mdp ?
 
 
+## 3. Le JavaScript d'auteur s'exécute sans isolation — à régler avant le dépôt d'exercices
+
+**Décision du 2026-09-23** : le dépôt d'exercices par des enseignants est
+envisagé. Or PAX exécute **déjà** du JS venu d'un `.def`, dans la page
+principale, par `new Function` : le code d'initialisation JSXGraph
+(`frontend/components/exercise/Jsxgraph.vue`) et les commandes GeoGebra
+(`frontend/composables/useGeogebra.ts`), soit ~110 exercices. Tant que le
+corpus est trié par nous, c'est acceptable ; un `.def` déposé par un tiers
+lirait le jeton de session et agirait au nom de l'élève. Avant d'ouvrir le
+dépôt : exécuter ce JS dans une iframe `sandbox` (sans `allow-same-origin`),
+parler au parent par `postMessage`, et ne rien exécuter d'autre.
+
+Le reste des `<script>` d'énoncé n'est **pas** exécuté (inerte après
+`v-html`). Relevé du 2026-09-23 sur les 138 `.def` qui en portent : ~88
+JSXGraph et ~21 GeoGebra (portés), 29 autres :
+
+| idiome | nb | bloque la réponse ? | sort |
+|---|---|---|---|
+| carte d'image + figures échangées (`temps`, `OEFondes`, `circuitRC`) | 7 | **oui** : la base de temps reste à 500 ms/c | porté sans exécuter le JS (`core/oef/imgswap.py`) |
+| boutons `appendToInput` (`redox` ×2, `piles`) | 3 | non : on tape l'équation | la slib `chemistry/chemeq_components` n'est **pas portée** et laisse `, shuffle` dans l'énoncé — défaut du moteur, pas du JS |
+| onglets `Affiche()` (`oefproba` ×2, `oefstatistiques`) | 3 | non : les contenus s'affichent tous, empilés | inerte |
+| curseurs RVB (`pixelart/couleur*`) | 2 | non : échauffement, la tâche est un algorithme | inerte |
+| affichage pas à pas (`oefaffectatpython`) | 5 | non | inerte |
+| infobulles `wz_tooltip`, logo, barre de progression | 6 | non | inerte |
+| documents `doc/` | 3 | hors exercices | — |
+
 # V. Décisions en attente
 
 Quatre questions posées puis laissées en suspens. Elles n'ont longtemps vécu
