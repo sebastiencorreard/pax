@@ -92,11 +92,14 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `lines`/`dlines` corrigés le 2026-09-22 (des **droites**, `obj_fulllines`),
   et les alias `brokenline`, `dashedlines`, `dashlines` ajoutés.
 
-  Deux défauts **antérieurs** vus en chemin, non traités :
-  - `arc 0,0,40,40,357,3` (`oefreprodangle2`) trace le grand arc de 354°, non
-    le petit de 6° qui passe par 0° ;
-  - les étiquettes de `oefohm`/`oefresistance` s'affichent entre guillemets
-    (`"82"`, `" R2 = 55 ohm"`).
+  Deux défauts **antérieurs** vus en chemin, corrigés le 2026-09-24 :
+  - `arc …,357,3` trace le petit arc de 6° : `myGdImageArc` prend l'écart
+    modulo 360 (un écart nul trace le cercle). 27 figures, dont les
+    accolades d'`oefrelat` (`arc …,270,90`) qui s'ouvraient du mauvais côté ;
+  - les guillemets englobant la chaîne d'un `text` tombent (`obj_string`),
+    l'espace de tête qu'ils protègent reste. 33 figures.
+  En chemin, `<img src=…>` **sans guillemets** n'était pas incorporé : douze
+  exercices (`oefrelat`, `solide6-5.nl`) montraient une image morte.
 
 - [x] **Trois exercices n'exposent aucune réponse** : `oefspeed.nl/trajet`,
   `equilibrium.fr/methode`, `anglesCercleTrigo.fr/definitions`. Ils sont écartés

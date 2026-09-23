@@ -742,6 +742,34 @@ def _cmd_parallel(state: _State, args: list[str]) -> None:
         )
 
 
+def _contenu_texte(brut: str) -> str:
+    r"""La chaîne d'un `text`/`textup`, comme `obj_string` (`objects.c`) la lit.
+
+    Élaguée d'abord (`find_word_start` + `strip_trailing_spaces`) : une espace
+    de tête n'est pas un décalage — c'est ce qui garde les nombres d'axe sous
+    leur graduation. Puis, si elle s'ouvre sur `"` et que le guillemet suivant
+    la **termine**, les deux tombent et l'intérieur est gardé tel quel : c'est
+    ainsi qu'un auteur obtient une espace de tête. `oefohm` et `oefresistance`
+    affichaient leurs guillemets (`" R2 = 55 ohm"`).
+
+    Les références `\nom` restées indéfinies sont retirées : WIMS les rend
+    vides (`\c \unit` → « 0.4 » quand `unit` n'est pas posée). Le texte de
+    flydraw n'est jamais du LaTeX, donc un `\mot` résiduel est une telle
+    référence, non une commande.
+    """
+    contenu = brut.strip()
+    cite = False
+    if contenu.startswith('"') and contenu.find('"', 1) == len(contenu) - 1:
+        contenu, cite = contenu[1:-1], True
+    contenu = re.sub(r"\\[A-Za-z]\w*", "", contenu)
+    if not cite:
+        return re.sub(r"\s{2,}", " ", contenu).strip()
+    # SVG replie les blancs de bord ; l'espace insécable les garde visibles.
+    tete = len(contenu) - len(contenu.lstrip(" "))
+    queue = len(contenu) - len(contenu.rstrip(" "))
+    return "\u00a0" * tete + contenu.strip(" ") + "\u00a0" * queue
+
+
 def _cmd_text(state: _State, args: list[str]) -> None:
     # text [color],x,y,size,content
     if len(args) < 5:
@@ -751,18 +779,7 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     size = _font_size(args[3])
     weight = _font_weight(args[3])
     # Content may contain commas — re-join the tail
-    raw_content = ",".join(args[4:])
-    # WIMS draws the string at the raw (x, y) as top-left, after stripping
-    # leading/trailing whitespace (obj_string: find_word_start + strip_trailing).
-    # So a leading space (e.g. ` \a2` in the repérage exercises, or ` (Cf)`) is
-    # NOT a rightward nudge — matching that keeps axis numbers under their tick.
-    content = raw_content.strip()
-    # Drop leftover WIMS variable refs (\name) that were undefined: WIMS renders
-    # them empty (e.g. `\c \unit` → "0.4" when `unit` is unset). flydraw text is
-    # plain (never LaTeX), so a residual backslash-word is such a ref, not a
-    # command.
-    content = re.sub(r"\\[A-Za-z]\w*", "", content)
-    content = re.sub(r"\s{2,}", " ", content).strip()
+    content = _contenu_texte(",".join(args[4:]))
     state.elements.append(
         f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
         f'font-size="{size}" font-family="sans-serif" font-weight="{weight}" '
@@ -782,9 +799,7 @@ def _cmd_textup(state: _State, args: list[str]) -> None:
     x, y = state.tr(_num(args[1]), _num(args[2]))
     size = _font_size(args[3])
     weight = _font_weight(args[3])
-    content = ",".join(args[4:]).strip()
-    content = re.sub(r"\\[A-Za-z]\w*", "", content)
-    content = re.sub(r"\s{2,}", " ", content).strip()
+    content = _contenu_texte(",".join(args[4:]))
     cx, cy = state.px(x), state.py(y)
     state.elements.append(
         f'<text x="{cx:.2f}" y="{cy:.2f}" fill="{color}" '
@@ -963,12 +978,17 @@ def _cmd_arc(state: _State, args: list[str]) -> None:
     # point, rayons en `xscale`/`yscale`) : les angles restent absolus — le
     # rapporteur de 0724 est écrit à 10–190° pour une base tournée de 10°.
     cx, cy = state.tr(cx, cy)
+    # `myGdImageArc` part de `start` dans le sens direct, sur un écart ramené
+    # dans [0, 360[ — et un écart nul trace le cercle entier. `arc …,357,3`
+    # (`oefreprodangle2`) est donc le petit arc de 6° qui passe par 0°, non le
+    # grand de 354° qu'une interpolation de 357 à 3 parcourait à reculons.
+    ecart = (end_deg - start_deg) % 360 or 360
     # Sample the arc as a polyline so we don't have to figure out SVG's
     # convoluted A-command flags from math-coord angles.
-    n = max(8, int(abs(end_deg - start_deg) / 5))
+    n = max(8, int(ecart / 5))
     pts = []
     for i in range(n + 1):
-        t = start_deg + (end_deg - start_deg) * i / n
+        t = start_deg + ecart * i / n
         rad = math.radians(t)
         mx = cx + rx * math.cos(rad)
         my = cy + ry * math.sin(rad)
@@ -2566,12 +2586,17 @@ def get_cached_svg(key: str) -> str | None:
 #   attribut avant `src`    51   <img name="0" src="…" alt="0">
 #   blanc dans la valeur    51   <img src="<TAB>…"<TAB>width="40">
 #   espace après `src=`     36   <img src= "…" width="160">
+#   sans guillemets         12   <img src=… style="float:right">
 #
 # Chacune laissait sortir le marqueur tel quel — et comme la route
 # `/api/render/svg/…` **n'existe pas** (le cache est en mémoire, lu ici même),
-# l'élève voyait une image morte à la place de la figure.
+# l'élève voyait une image morte à la place de la figure. La dernière forme,
+# valide en HTML, cassait `oefrelat` et `solide6-5.nl` (2026-09-24). Le
+# guillemet est donc facultatif, mais s'il s'ouvre il doit se fermer : un
+# `src="…` jamais refermé est une coquille d'auteur que WIMS sert cassée
+# aussi (`oefpscal/cercle`), et qu'on ne répare pas.
 _IMG_SVG_RE = re.compile(
-    r'<img\b[^>]*?\bsrc\s*=\s*(?P<q>["\'])\s*'
+    r'<img\b[^>]*?\bsrc\s*=\s*(?P<q>["\']?)\s*'
     r'/api/render/svg/(?P<key>[a-f0-9]+)\s*(?P=q)[^>]*>'
 )
 

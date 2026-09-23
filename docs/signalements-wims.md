@@ -193,3 +193,18 @@ vers des réponses qui n'existent pas).
 
 PAX rend la même chose, fidèlement. L'exercice est à écarter d'une feuille
 tant que la source n'est pas corrigée. Correction : `…aan?}{Ze komt …`.
+
+## 4. `oefpscal.fr/cercle` : un `src="` qui ne se referme pas — *à signaler*
+
+*Relevé le 2026-09-24.*
+
+`H5/algebra/oefpscal.fr/src/cercle.oef` écrit `<img src="\cerct>` : le
+guillemet ouvert n'est jamais fermé. Le navigateur prolonge alors la valeur de
+l'attribut jusqu'au prochain `"` de la page, et la figure ne s'affiche pas —
+chez WIMS comme chez PAX, qui ne la répare pas (`_IMG_SVG_RE`, dans
+`core/oef/flydraw.py`, exige qu'un guillemet ouvert se referme). Correction :
+`<img src="\cerct">`.
+
+À ne pas confondre avec `<img src=\figure>` **sans** guillemets
+(`oefrelat`, `solide6-5.nl`) : c'est du HTML valide, que PAX incorpore depuis
+le 2026-09-24.

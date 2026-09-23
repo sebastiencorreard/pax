@@ -324,6 +324,20 @@ class TestInlineSvgImgs:
         out = inline_svg_imgs(f'<img src="\t{url}"\twidth="40"\theight="40"\talt="">')
         assert "<svg" in out and "/api/render/svg/" not in out
 
+    def test_sans_guillemets(self):
+        """`oefrelat` écrit `<img src=\\figure style="float:right;…">` — du HTML
+        valide, que le motif ratait : douze exercices montraient une image morte."""
+        url = flydraw_to_url(140, 400, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        out = inline_svg_imgs(f'<img src={url} style="float:right;width:140px;">')
+        assert "<svg" in out and "/api/render/svg/" not in out
+
+    def test_guillemet_jamais_referme(self):
+        """`oefpscal/cercle` écrit `<img src="\\cerct>` : une coquille que WIMS
+        sert cassée aussi (`docs/signalements-wims.md` § 4). On ne la répare pas."""
+        url = flydraw_to_url(60, 60, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        html = f'<img src="{url}>'
+        assert inline_svg_imgs(html) == html
+
     def test_attribut_avant_src(self):
         """`<img name="0" src="…" alt="0">` — `src` n'est pas le premier."""
         url = flydraw_to_url(60, 60, "range 0,1,0,1\nsegment 0,0,1,1,red")
@@ -436,6 +450,39 @@ class TestFlydrawText:
         x1 = float(re.search(r'<text x="([\d.]+)"', spaced).group(1))
         assert x1 == x0
         assert ">(Cf)</text>" in spaced  # the leading space is stripped
+
+    def test_les_guillemets_englobants_tombent(self):
+        # `obj_string` : une chaîne ouverte par `"` et fermée par le guillemet
+        # suivant perd les deux — et garde son espace de tête, que l'auteur
+        # voulait (`oefresistance` : `" R2 = 55 ohms"`). Vérifié au binaire.
+        svg = flydraw_to_svg(200, 60, 'range 0,20,0,6\ntext black,1,5,large," R2 = 55 ohm"')
+        assert ">\u00a0R2 = 55 ohm</text>" in svg
+        assert '"' not in re.search(r"<text[^>]*>([^<]*)</text>", svg).group(1)
+
+    def test_un_guillemet_interieur_reste(self):
+        # Le guillemet suivant doit **terminer** la chaîne : sinon rien ne tombe.
+        svg = flydraw_to_svg(200, 60, 'range 0,20,0,6\ntext black,1,5,large,"a" et "b"')
+        assert ">&quot;a&quot; et &quot;b&quot;</text>" in svg
+
+
+class TestArc:
+    @staticmethod
+    def _angles(svg: str) -> list[float]:
+        import math
+        pts = re.search(r'<polyline points="([^"]+)"', svg).group(1).split()
+        # Repère 200×200 sur [-10,10]² : le centre est en (100,100).
+        return [math.degrees(math.atan2(100 - float(p.split(",")[1]), float(p.split(",")[0]) - 100)) % 360
+                for p in pts]
+
+    def test_l_ecart_se_prend_modulo_360(self):
+        # `myGdImageArc` : de 357° à 3°, le petit arc de 6° qui passe par 0°
+        # (`oefreprodangle2`), non le grand de 354° parcouru à reculons.
+        angles = self._angles(flydraw_to_svg(200, 200, "range -10,10,-10,10\narc 0,0,10,10,357,3,blue"))
+        assert all(a >= 356.9 or a <= 3.1 for a in angles)
+
+    def test_un_ecart_nul_trace_le_cercle(self):
+        angles = self._angles(flydraw_to_svg(200, 200, "range -10,10,-10,10\narc 0,0,10,10,45,45,blue"))
+        assert max(angles) - min(angles) > 350
 
 
 class TestFlydrawPlot:
