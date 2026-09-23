@@ -1,14 +1,17 @@
 """Émulation de `chemeq`, le calculateur de chimie de WIMS.
 
 `!exec chemeq` lit une formule ou une équation chimique et en tire, selon
-l'option portée par la variable `chemeq_option`, la masse molaire (`M`) ou son
-rendu LaTeX (`l` / `m`). Le binaire vit dans `wims/src/Misc/chemeq/` — du C++
+l'option portée par la variable `chemeq_option`, la masse molaire (`M`), son
+rendu LaTeX (`l`) ou son écriture normalisée (`m`). Le binaire vit dans `wims/src/Misc/chemeq/` — du C++
 avec lex/yacc — mais PAX n'appelle aucun processus externe : Maxima et PARI y
 sont déjà émulés, et l'image n'en contient ni l'un ni l'autre.
 
 Périmètre : ce que le corpus soumet réellement — les molécules et ions de
-`slib/chemistry/chemeq_mass`, les équations de `chemeq_tex`, et l'équilibrage
-que `chemeq_equilibrium` tire de `-e` et `-C`.
+`slib/chemistry/chemeq_mass`, les équations de `chemeq_tex`, l'équilibrage
+que `chemeq_equilibrium` tire de `-e` et `-C`, les composants que
+`chemeq_components` tire de `-C`, et l'**algèbre d'équations** de `chemeq_add`
+(`EQ # c * EQ ~ c * EQ`, sous `-m`), qui bâtit l'équation-bilan d'une
+réaction rédox. L'électron (`e^-`) y est un atome de masse nulle.
 
 `-n`, la **forme normalisée**, n'est pas portée — et n'a pas eu à l'être.
 `anstype/chemeq` s'en sert pour noter : `slib/chemistry/chemeq_compare`
@@ -41,12 +44,14 @@ relevées dans le corpus.
 
 Grammaire couverte, telle que les exemples du corpus l'exercent :
 
+    composition := facteurs (('#' | '~') facteurs)*
+    facteurs    := (coefficient '*')* équation
     équation    := membre (('->' | '<->') membre)?
     membre      := terme ('+' terme)*
     terme       := coefficient? espèce
     coefficient := entier | entier '/' entier      (`2`, `3/2`)
     espèce      := groupe+ charge? état?
-    groupe      := (symbole | '(' groupe+ ')') indice?
+    groupe      := (symbole | 'e' | '(' groupe+ ')') indice?
     charge      := '^' entier? ('+' | '-')         (`^+`, `^2-`)
     état        := '_' ('s' | 'l' | 'g' | 'aq')
 """
@@ -95,33 +100,138 @@ _FLECHES = ((r"<->", r"\leftrightharpoons"), (r"->", r"\longrightarrow"))
 
 # Un symbole d'élément : majuscule éventuellement suivie d'une minuscule.
 _SYMBOLE_RE = re.compile(r"[A-Z][a-z]?")
+ELECTRON = "e"
 _ETATS = ("aq", "s", "l", "g")
 
 
 class Terme:
     """Une espèce dans un membre d'équation, avec son coefficient.
 
-    `atomes` garde l'ordre d'écriture et ne regroupe pas les symboles répétés,
-    comme le fait `chemeq -C` ; `brut` est l'écriture normalisée que le binaire
-    réaffiche (`H_2O` ressort `H2O`) ; `charge` est signée.
+    Port de `Molec` (`chemeq.cc`). La formule est gardée **en structure** —
+    `noeuds`, une suite d'atomes `("a", symbole, n)` et de groupes
+    `("g", noeuds, n)` —, parce que `chemeq` la retrie (`AtomeListe::triage`)
+    après une composition d'équations : `OH^-` y ressort `HO^-`. Tout le reste
+    s'en déduit : `atomes` dans l'ordre d'écriture, sans regrouper les symboles
+    répétés, comme `chemeq -C` ; `brut`, l'écriture normalisée que le binaire
+    réaffiche (`H_2O` ressort `H2O`) ; `tex`, coefficient compris.
+    `charge` est signée ; `etat` vaut `""` ou l'un de `_ETATS`.
     """
 
-    __slots__ = ("coefficient", "atomes", "tex", "brut", "charge")
+    __slots__ = ("coefficient", "noeuds", "charge", "etat")
 
-    def __init__(self, coefficient, atomes, tex, brut, charge):
+    def __init__(self, coefficient, noeuds, charge, etat):
         self.coefficient = coefficient
-        self.atomes = atomes
-        self.tex = tex
-        self.brut = brut
+        self.noeuds = noeuds
         self.charge = charge
+        self.etat = etat
+
+    def copie(self) -> "Terme":
+        return Terme(self.coefficient, self.noeuds, self.charge, self.etat)
+
+    @property
+    def atomes(self) -> list[tuple[str, int]]:
+        return _aplatir(self.noeuds)
+
+    def _charge_brute(self) -> str:
+        if not self.charge:
+            return ""
+        n = abs(self.charge)
+        return f"^{n if n != 1 else ''}{'+' if self.charge > 0 else '-'}"
+
+    def _charge_tex(self) -> str:
+        if not self.charge:
+            return ""
+        n = abs(self.charge)
+        return f"^{{{n if n != 1 else ''}{'+' if self.charge > 0 else '-'}}}"
+
+    @property
+    def brut(self) -> str:
+        """`Molec::printnorm`, sans le coefficient."""
+        etat = f"_({self.etat})" if self.etat else ""
+        return _brut(self.noeuds) + self._charge_brute() + etat
+
+    @property
+    def tex(self) -> str:
+        """`operator << (Molec)` : l'état tu pour l'électron, le coefficient
+        écrit seulement s'il diffère de 1."""
+        c = self.coefficient
+        coef = ""
+        if c != 1:
+            coef = (f"{c.numerator}\\," if c.denominator == 1
+                    else rf"\frac{{{c.numerator}}}{{{c.denominator}}}\,")
+        etat = f"_{{({self.etat})}}" if self.etat and not self.est_electron() else ""
+        return coef + _tex(self.noeuds) + self._charge_tex() + etat
+
+    def signature(self) -> str:
+        """`Molec::signature` — la clé de tri des espèces : le LaTeX de la
+        formule, la charge, puis l'état **sans** tiret bas (`(aq)`, `(g)`)."""
+        etat = f"({self.etat})" if self.etat else ""
+        return _tex(self.noeuds) + self._charge_tex() + etat
+
+    def meme_espece(self, autre: "Terme") -> bool:
+        """`Molec::eqMol` : même formule écrite et même charge. L'état n'y
+        entre pas — `H^+` et `H^+_aq` se fondent en `2 H^+`."""
+        return _brut(self.noeuds) == _brut(autre.noeuds) and self.charge == autre.charge
+
+    def est_electron(self) -> bool:
+        return self.noeuds == [("a", ELECTRON, 1)] and self.charge == -1
 
     def affichage(self) -> str:
         """`2 H^+`, `1/2 O2`, `Fe` — coefficient puis formule, l'unité tue."""
         if self.coefficient == 1:
             return self.brut
-        c = self.coefficient
-        texte = f"{c.numerator}/{c.denominator}" if c.denominator != 1 else str(c.numerator)
-        return f"{texte} {self.brut}"
+        return f"{_coefficient_texte(self.coefficient)} {self.brut}"
+
+
+def _aplatir(noeuds: list, mult: int = 1) -> list[tuple[str, int]]:
+    """Les atomes comptés, dans l'ordre d'écriture ; seuls les indices de
+    groupe se propagent — `Fe2(SO4)3` donne `Fe:2, S:3, O:12`."""
+    atomes: list[tuple[str, int]] = []
+    for n in noeuds:
+        if n[0] == "a":
+            atomes.append((n[1], n[2] * mult))
+        else:
+            atomes += _aplatir(n[1], n[2] * mult)
+    return atomes
+
+
+def _tex(noeuds: list) -> str:
+    out = []
+    for n in noeuds:
+        if n[0] == "a":
+            out.append(rf"\mathrm{{{n[1]}}}" + (f"_{{{n[2]}}}" if n[2] != 1 else ""))
+        else:
+            out.append(f"({_tex(n[1])})" + (f"_{{{n[2]}}}" if n[2] != 1 else ""))
+    return "".join(out)
+
+
+def _brut(noeuds: list) -> str:
+    """`AtomeListe::printnorm` : indices collés au symbole."""
+    out = []
+    for n in noeuds:
+        if n[0] == "a":
+            out.append(n[1] + (str(n[2]) if n[2] != 1 else ""))
+        else:
+            # Le C écrit l'indice d'un groupe même quand il vaut 1.
+            out.append(f"({_brut(n[1])}){n[2]}")
+    return "".join(out)
+
+
+def _trier(noeuds: list) -> list:
+    """`AtomeListe::triage` : un tri par insertion sur `strcmp(symbole)` qui
+    ne franchit pas un groupe parenthésé. Il trie l'intérieur d'un groupe,
+    mais **pas** ce qui le suit — le C s'arrête là. `CH3COOH` devient
+    `CCH3HOO`, `Fe2(SO4)3` devient `Fe2(O4S)3`."""
+    if not noeuds:
+        return []
+    tete, reste = noeuds[0], noeuds[1:]
+    if tete[0] == "g":
+        return [("g", _trier(tete[1]), tete[2])] + reste
+    reste = _trier(reste)
+    i = 0
+    while i < len(reste) and reste[i][0] == "a" and tete[1] > reste[i][1]:
+        i += 1
+    return reste[:i] + [tete] + reste[i:]
 
 
 class _Lecteur:
@@ -162,63 +272,51 @@ class _Lecteur:
         return self.entier() or 1
 
 
-def _lire_groupes(lec: _Lecteur) -> tuple[list, str, str]:
-    """Suite de groupes — `H2O`, `(SO4)3` — jusqu'à la fin de l'espèce.
-
-    Rend (atomes comptés, LaTeX, écriture normalisée). Les trois se
-    construisent du même parcours : séparer les passes les ferait diverger.
-
-    Les atomes ne sont **pas** regroupés : `CH3COOH` compte six entrées, une
-    par symbole écrit, comme le fait `chemeq -C`. Seuls les indices de groupe
-    se propagent — `Fe2(SO4)3` donne `Fe:2, S:3, O:12`.
-
-    L'écriture normalisée est celle que `chemeq` réaffiche : indices collés au
-    symbole, `H_2O` ressortant `H2O`.
-    """
-    atomes: list[tuple[str, int]] = []
-    tex: list[str] = []
-    brut: list[str] = []
+def _lire_groupes(lec: _Lecteur) -> list:
+    """Suite de groupes — `H2O`, `(SO4)3` — jusqu'à la fin de l'espèce."""
+    noeuds: list = []
     while not lec.fini():
         c = lec.regarde()
         if c == "(":
             lec.i += 1
-            interne, tex_interne, brut_interne = _lire_groupes(lec)
+            interne = _lire_groupes(lec)
             if not lec.avale(")"):
                 raise ChemeqError("parenthèse non fermée")
-            n = lec.indice()
-            atomes += [(s, k * n) for s, k in interne]
-            tex.append(f"({tex_interne})" + (f"_{{{n}}}" if n != 1 else ""))
-            brut.append(f"({brut_interne})" + (str(n) if n != 1 else ""))
+            noeuds.append(("g", interne, lec.indice()))
             continue
         m = _SYMBOLE_RE.match(lec.src, lec.i)
-        if not m:
-            break
-        symbole = m.group(0)
-        # `Cl` avant `C` : le symbole à deux lettres l'emporte, mais seulement
-        # s'il existe. `CO` est carbone + oxygène, pas cobalt.
-        if symbole not in MASSES:
-            symbole = symbole[0]
+        if m:
+            symbole = m.group(0)
+            # `Cl` avant `C` : le symbole à deux lettres l'emporte, mais
+            # seulement s'il existe. `CO` est carbone + oxygène, pas cobalt.
             if symbole not in MASSES:
-                break
+                symbole = symbole[0]
+                if symbole not in MASSES:
+                    break
+        elif c == ELECTRON:
+            # L'électron est un atome pour `chemeq` (`chemeq.l:54`) : `2e^-`
+            # ressort `2 e^-|e:2*1` sous `-C`, `\mathrm{e}^{-}` sous `-l`.
+            # Sans lui, toute demi-équation rédox était illisible, et
+            # `slib/chemistry/chemeq_components` ne proposait aucun bouton.
+            symbole = ELECTRON
+        else:
+            break
         lec.i += len(symbole)
-        n = lec.indice()
-        atomes.append((symbole, n))
-        tex.append(rf"\mathrm{{{symbole}}}" + (f"_{{{n}}}" if n != 1 else ""))
-        brut.append(symbole + (str(n) if n != 1 else ""))
-    if not atomes:
+        noeuds.append(("a", symbole, lec.indice()))
+    if not noeuds:
         raise ChemeqError("espèce vide")
-    return atomes, "".join(tex), "".join(brut)
+    return noeuds
 
 
-def _lire_espece(lec: _Lecteur) -> tuple[list, str, str, int]:
+def _lire_espece(lec: _Lecteur) -> tuple[list, int, str]:
     """Une espèce : ses groupes, puis sa charge et son état, tous deux
     optionnels et sans effet sur la masse — un ion pèse ce que pèsent ses
-    atomes, l'électron mis à part, que `chemeq` néglige comme nous.
+    atomes, et l'électron ne pèse rien.
 
-    Rend (atomes, LaTeX, écriture normalisée, charge). La charge est signée :
-    `Cl^-` vaut -1 et `Ca^2+` vaut 2, ce dont `chemeq -e` rend compte.
+    Rend (noeuds, charge, état). La charge est signée : `Cl^-` vaut -1 et
+    `Ca^2+` vaut 2, ce dont `chemeq -e` rend compte.
     """
-    atomes, tex, brut = _lire_groupes(lec)
+    noeuds = _lire_groupes(lec)
     charge = 0
     if lec.avale("^"):
         n = lec.entier()
@@ -227,19 +325,24 @@ def _lire_espece(lec: _Lecteur) -> tuple[list, str, str, int]:
             raise ChemeqError("charge sans signe")
         lec.i += 1
         charge = (n if n else 1) * (1 if signe == "+" else -1)
-        tex += f"^{{{n if n else ''}{signe}}}"
-        brut += f"^{n if n else ''}{signe}"
+    etat = ""
     if lec.regarde() == "_":
-        for etat in _ETATS:
-            if lec.src.startswith("_" + etat, lec.i):
+        # `_(aq)` est la forme que `chemeq` **écrit** (`H^+_(aq)`) ; il doit la
+        # relire, et `chemeq_add` lui renvoie à chaque pas l'équation qu'il
+        # vient de produire (`chemeq.l:92-95`).
+        for e in _ETATS:
+            if lec.src.startswith(f"_({e})", lec.i):
+                lec.i += len(e) + 3
+                return noeuds, charge, e
+        for e in _ETATS:
+            if lec.src.startswith("_" + e, lec.i):
                 # Un `_` suivi d'autre chose n'est pas un état : on le laisse.
-                fin = lec.i + 1 + len(etat)
+                fin = lec.i + 1 + len(e)
                 if fin >= len(lec.src) or not lec.src[fin].isalnum():
                     lec.i = fin
-                    tex += f"_{{({etat})}}"
-                    brut += f"_({etat})"
+                    etat = e
                     break
-    return atomes, tex, brut, charge
+    return noeuds, charge, etat
 
 
 def _lire_terme(lec: _Lecteur) -> "Terme":
@@ -247,7 +350,6 @@ def _lire_terme(lec: _Lecteur) -> "Terme":
     while lec.regarde() == " ":
         lec.i += 1
     coefficient = Fraction(1)
-    tex_coef = ""
     depart = lec.i
     n = lec.entier()
     if n is not None:
@@ -256,20 +358,18 @@ def _lire_terme(lec: _Lecteur) -> "Terme":
             if d is None:
                 raise ChemeqError("fraction sans dénominateur")
             coefficient = Fraction(n, d)
-            tex_coef = rf"\frac{{{n}}}{{{d}}}\,"
         else:
             coefficient = Fraction(n)
-            tex_coef = f"{n}\\,"
         while lec.regarde() == " ":
             lec.i += 1
         # Un nombre seul n'est pas un terme : il annonce une espèce.
-        if lec.fini() or not (lec.regarde().isupper() or lec.regarde() == "("):
+        if lec.fini() or not (lec.regarde().isupper() or lec.regarde() in ("(", ELECTRON)):
             lec.i = depart
-            coefficient, tex_coef = Fraction(1), ""
-    atomes, tex, brut, charge = _lire_espece(lec)
+            coefficient = Fraction(1)
+    noeuds, charge, etat = _lire_espece(lec)
     while lec.regarde() == " ":
         lec.i += 1
-    return Terme(coefficient, atomes, tex_coef + tex, brut, charge)
+    return Terme(coefficient, noeuds, charge, etat)
 
 
 def _lire_membre(src: str) -> list["Terme"]:
@@ -278,14 +378,125 @@ def _lire_membre(src: str) -> list["Terme"]:
     Le `+` d'une charge (`Ca^2+`) n'en est pas un : il suit un `^` ou un
     chiffre qui le suit, jamais un blanc de séparation. On découpe donc sur le
     `+` qui ouvre un terme, repéré à la lecture plutôt qu'au découpage.
+
+    Une espèce écrite deux fois se fond en une, comme dans `chemeq.y`
+    (`Membre::addMol`) : `H^+ + H^+_aq` y est `2 H^+`.
     """
     lec = _Lecteur(src.strip())
     termes = [_lire_terme(lec)]
     while not lec.fini():
         if not lec.avale("+"):
             raise ChemeqError(f"caractère inattendu : {lec.src[lec.i:]!r}")
-        termes.append(_lire_terme(lec))
+        _ajoute(termes, _lire_terme(lec))
     return termes
+
+
+# ── Composition d'équations : `EQ # c * EQ ~ c * EQ` ─────────────────────────
+#
+# `slib/chemistry/chemeq_add` bâtit l'équation-bilan d'une réaction rédox en
+# ajoutant (`#`) ou retranchant (`~`) des demi-équations multipliées (`*`). Tout
+# ce qui suit transcrit `Membre` et `Chemeq` (`chemeq.cc`), qui manipulent des
+# listes et non des multiensembles : l'ordre des espèces en dépend.
+
+def _ajoute(membre: list, terme: "Terme") -> None:
+    """`Membre::addMol` — le **dernier** terme de même espèce reçoit le
+    coefficient (`findMol` garde le dernier indice trouvé)."""
+    for t in reversed(membre):
+        if t.meme_espece(terme):
+            t.coefficient += terme.coefficient
+            return
+    membre.append(terme.copie())
+
+
+def _communs(m1: list, m2: list) -> list:
+    """`operator &` : les espèces des deux membres, au plus petit coefficient."""
+    out = []
+    for a in m1:
+        for b in m2:
+            if a.meme_espece(b):
+                t = a.copie()
+                t.coefficient = min(a.coefficient, b.coefficient)
+                out.append(t)
+    return out
+
+
+def _retranche(m1: list, m2: list) -> list:
+    """`operator -` : les termes de `m1`, diminués de leurs homologues."""
+    out = []
+    for a in m1:
+        t = a.copie()
+        for b in m2:
+            if a.meme_espece(b):
+                t.coefficient = a.coefficient - b.coefficient
+        out.append(t)
+    return out
+
+
+def _simplifie(g: list, d: list, tri: bool) -> tuple[list, list]:
+    """`Chemeq::simplifie` : ce qui figure des deux côtés s'annule ; ce qui
+    tombe à zéro ou moins disparaît (`eraseNull`) ; puis, après une
+    composition seulement, atomes et espèces sont triés (`triage`)."""
+    communs = _communs(g, d)
+    if communs:
+        g, d = _retranche(g, communs), _retranche(d, communs)
+    g = [t for t in g if t.coefficient.numerator > 0]
+    d = [t for t in d if t.coefficient.numerator > 0]
+    if tri:
+        for t in g + d:
+            t.noeuds = _trier(t.noeuds)
+        g, d = _triage(g), _triage(d)
+    return g, d
+
+
+def _triage(membre: list) -> list:
+    """`Membre::triage` : un tri **par échange**, transcrit tel quel. Il n'est
+    pas stable, et deux espèces de même signature peuvent coexister — un
+    `PbSO4` ajouté à côté d'un `O4PbS` déjà trié, que `eqMol` ne fond pas
+    puisque leurs écritures diffèrent : un `sorted` les rendait dans l'autre
+    ordre."""
+    m = list(membre)
+    for i in range(len(m)):
+        for j in range(i + 1, len(m)):
+            if m[i].signature() > m[j].signature():
+                m[i], m[j] = m[j], m[i]
+    return m
+
+
+_FACTEUR_RE = re.compile(r"^\s*(\d+)(?:/(\d+))?\s*\*\s*")
+
+
+def _lire_facteurs(src: str) -> tuple[list, list]:
+    """Un `chc` de `chemeq.y` : `[c *]* équation`, chaque facteur appliquant
+    `Chemeq::multiply` — qui simplifie **sans** trier."""
+    facteurs = []
+    while (m := _FACTEUR_RE.match(src)):
+        facteurs.append(Fraction(int(m.group(1)), int(m.group(2) or 1)))
+        src = src[m.end():]
+    if "->" not in src or "<->" in src:
+        raise ChemeqError("composition sans équation")
+    gauche, _, droite = src.partition("->")
+    g, d = _lire_membre(gauche), _lire_membre(droite)
+    for f in reversed(facteurs):
+        for t in g + d:
+            t.coefficient *= f
+        g, d = _simplifie(g, d, tri=False)
+    return g, d
+
+
+def _composer(src: str) -> tuple[list, list]:
+    """`chcompose` : gauche à droite, `#` ajoute, `~` retranche."""
+    morceaux = re.split(r"([#~])", src)
+    g, d = _lire_facteurs(morceaux[0])
+    for op, morceau in zip(morceaux[1::2], morceaux[2::2]):
+        g2, d2 = _lire_facteurs(morceau)
+        if op == "~":
+            g2, d2 = d2, g2
+        for t in g2:
+            _ajoute(g, t)
+        for t in d2:
+            _ajoute(d, t)
+        g, d = _simplifie(g, d, tri=True)
+    return g, d
 
 
 def _format_c(x: float) -> str:
@@ -296,7 +507,9 @@ def _format_c(x: float) -> str:
 
 
 def masse_molaire(espece: list[tuple[str, int]]) -> float:
-    return sum(MASSES[s] * n for s, n in espece)
+    # L'électron pèse 0 : `chemeq -M` rend `65.38 0 65.38` pour
+    # `Zn^2+ + 2e^- -> Zn`.
+    return sum(MASSES[s] * n for s, n in espece if s != ELECTRON)
 
 
 # La version que l'émulation annonce à `chemeq -v`. Celle du binaire vendorisé
@@ -348,7 +561,11 @@ def chemeq(entree: str, option: str) -> str:
             break
 
     try:
-        analyses = [_lire_membre(m) for m in membres]
+        if re.search(r"[#~*]", src):
+            analyses = list(_composer(src))
+            fleche_tex = _FLECHES[1][1]
+        else:
+            analyses = [_lire_membre(m) for m in membres]
     except (ChemeqError, KeyError, IndexError):
         return ""
 
@@ -363,9 +580,19 @@ def chemeq(entree: str, option: str) -> str:
         ]
         return " ".join(sorties)
 
-    if option in ("l", "m"):
+    if option == "l" or (option == "m" and not fleche_tex):
+        if any(not membre for membre in analyses):
+            # `operator << (Membre)` lit `m[m.size()-1]` : sur un membre que
+            # la composition a vidé, le binaire n'écrit rien.
+            return ""
         rendus = ["\\,+\\,".join(t.tex for t in membre) for membre in analyses]
         return f"\\,{fleche_tex}\\,".join(rendus)
+
+    if option == "m":
+        # `Chemeq::printnorm` : l'écriture normalisée, que `chemeq_add` et
+        # `chemeq_rev` relisent aussitôt. La flèche y est toujours `->`, même
+        # pour `<->` ; un membre que la composition a vidé s'écrit vide.
+        return " -> ".join(" + ".join(t.affichage() for t in membre) for membre in analyses)
 
     if option in ("e", "C"):
         # Ces deux options décrivent l'équation membre par membre, pour

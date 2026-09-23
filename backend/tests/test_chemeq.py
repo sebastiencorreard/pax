@@ -107,6 +107,59 @@ def test_le_coefficient_compte_dans_la_masse():
     assert chemeq("2Al + 3Cu^2+ -> 2Al^3+ + 3Cu", "M") == "53.964 190.638 53.964 190.638"
 
 
+# Sorties du binaire du dépôt (`wims/src/Misc/chemeq/src/chemeq`) sur ce que
+# les exercices rédox lui soumettent : l'électron, et l'algèbre d'équations de
+# `slib/chemistry/chemeq_add` (`#` ajoute, `~` retranche, `c *` multiplie).
+# La composition a été confrontée au binaire sur 79 278 entrées — toutes les
+# paires de demi-équations de `redox.dat`, `redox_mini.dat` et
+# `couples_piles.dat` — sans un écart ; ces cas-ci en gardent les règles.
+_REDOX = [
+    # L'électron est un atome de masse nulle, dont l'état se tait.
+    ("C", "Zn^2+_aq + 2e^- -> Zn_s", "Zn^2+_(aq)|Zn:1*1, 2 e^-|e:2*1; Zn_(s)|Zn:1*1"),
+    ("e", "Zn^2+_aq + 2e^- -> Zn_s", "Zn^2+_(aq)|1*2, 2 e^-|2*-1; Zn_(s)|1*0"),
+    ("l", "Zn^2+_aq + 2e^- -> Zn_s",
+     "\\mathrm{Zn}^{2+}_{(aq)}\\,+\\,2\\,\\mathrm{e}^{-}\\,\\longrightarrow\\,\\mathrm{Zn}_{(s)}"),
+    ("M", "Zn^2+_aq + 2e^- -> Zn_s", "65.38 0 65.38"),
+    # `-m` : l'écriture normalisée, la flèche toujours `->` ; LaTeX sans flèche.
+    ("m", "Zn^2+_aq + 2e^- -> Zn_s", "Zn^2+_(aq) + 2 e^- -> Zn_(s)"),
+    ("m", "Fe^3+ + e^- <-> Fe^2+", "Fe^3+ + e^- -> Fe^2+"),
+    ("m", "H2O", "\\mathrm{H}_{2}\\mathrm{O}"),
+    # Une espèce écrite deux fois dans un membre se fond (`addMol`).
+    ("m", "2H^+ + 2H^+ -> H2", "4 H^+ -> H2"),
+    # Composition : les espèces communes s'annulent, puis tout est trié.
+    ("m", "H -> H # 2 * MnO4^-_aq + 8H^+_aq + 5e^- -> Mn^2+_aq + 4H2O_l ~ 5 * Zn^2+_aq + 2e^- -> Zn_s",
+     "16 H^+_(aq) + 2 MnO4^-_(aq) + 5 Zn_(s) -> 8 H2O_(l) + 2 Mn^2+_(aq) + 5 Zn^2+_(aq)"),
+    ("l", "H -> H # 1/2 * Cr2O7^2- + 14H^+ + 6e^- -> 2 Cr^3+ + 7H2O",
+     "\\frac{1}{2}\\,\\mathrm{Cr}_{2}\\mathrm{O}_{7}^{2-}\\,+\\,7\\,\\mathrm{H}^{+}\\,+\\,3\\,\\mathrm{e}^{-}"
+     "\\,\\longrightarrow\\,\\mathrm{Cr}^{3+}\\,+\\,\\frac{7}{2}\\,\\mathrm{H}_{2}\\mathrm{O}"),
+    ("C", "H -> H # 2 * Fe^3+ + e^- -> Fe^2+ ~ 3 * Zn^2+ + 2e^- -> Zn",
+     "2 Fe^3+|Fe:2*1, 3 Zn|Zn:3*1; 2 Fe^2+|Fe:2*1, 3 Zn^2+|Zn:3*1, 4 e^-|e:4*1"),
+    # Les atomes se trient par symbole, sans franchir un groupe (`AtomeListe::triage`).
+    ("m", "H -> H # 1 * CH3COOH + OH^- -> CH3COO^- + H2O", "CCH3HOO + HO^- -> CCH3OO^- + H2O"),
+    ("m", "H -> H # 1 * Fe2(SO4)3 -> 2Fe^3+ + 3SO4^2-", "Fe2(O4S)3 -> 2 Fe^3+ + 3 O4S^2-"),
+    # `chemeq_add` renvoie à chaque pas ce que `chemeq` vient d'écrire : `_(aq)`.
+    ("m", "8 H^+_(aq) + 2 O2Pb_(s) + 4 e^- -> 4 H2O_(l) + 2 Pb^2+_(aq) ~ 1 * Zn^2+_aq + 2e^- -> Zn_s",
+     "8 H^+_(aq) + 2 O2Pb_(s) + Zn_(s) + 2 e^- -> 4 H2O_(l) + 2 Pb^2+_(aq) + Zn^2+_(aq)"),
+    # Deux signatures égales (`O4PbS` trié, `PbSO4` ajouté) : le tri par
+    # échange du C n'est pas stable, et c'est son ordre qui sort.
+    ("m", "H -> H # 2 * PbSO4_s + 2e^- -> Pb_s +SO4^2-_aq ~ 1 * PbO2_s + 4H^+_aq + SO4^2-_aq + 2e^- -> PbSO4_s + 2H2O_l",
+     "2 H2O_(l) + O4PbS_(s) + 2 O4PbS_(s) + 2 e^- -> 4 H^+_(aq) + O2Pb_(s) + 2 O4S^2-_(aq) + O4S^2-_(aq) + 2 Pb_(s)"),
+]
+
+
+@pytest.mark.parametrize("option,entree,attendu", _REDOX, ids=lambda v: v if isinstance(v, str) else "")
+def test_redox_conforme_au_binaire(option, entree, attendu):
+    assert chemeq(entree, option) == attendu
+
+
+def test_une_demi_equation_redox_se_compare():
+    """Sans l'électron, aucune demi-équation ne se lisait : la réponse de
+    l'élève à la première étape de `redox1` était toujours fausse."""
+    from core.oef.def_engine.chemeq import equations_equivalentes
+    assert equations_equivalentes(" Ca_(s)   ->   Ca^2+_(aq)   +   2e^-  ",
+                                  "Ca_(s) -> Ca^2+_(aq) + 2 e^-")
+
+
 class TestEquationsEquivalentes:
     """La comparaison de deux équations, telle que `anstype/chemeq` en a besoin.
 

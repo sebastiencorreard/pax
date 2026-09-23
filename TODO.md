@@ -1042,7 +1042,7 @@ JSXGraph et ~21 GeoGebra (portés), 29 autres :
 | idiome | nb | bloque la réponse ? | sort |
 |---|---|---|---|
 | carte d'image + figures échangées (`temps`, `OEFondes`, `circuitRC`) | 7 | **oui** : la base de temps reste à 500 ms/c | porté sans exécuter le JS (`core/oef/imgswap.py`) |
-| boutons `appendToInput` (`redox` ×2, `piles`) | 3 | non : on tape l'équation | la slib `chemistry/chemeq_components` n'est **pas portée** et laisse `, shuffle` dans l'énoncé — défaut du moteur, pas du JS |
+| boutons `appendToInput` (`redox` ×2, `piles`) | 3 | non : on tape l'équation | porté sans exécuter le JS (`core/oef/appendinput.py`). Le `, shuffle` venait de cinq défauts du moteur en chaîne (électron et algèbre de `chemeq`, `!distribute`, `!for … step` en slib, `^` littéral en BRE, colonne d'un `!record`) : les attendus de `redox1/2` et `piles1-3` en étaient faux (2026-09-24) |
 | onglets `Affiche()` (`oefproba` ×2, `oefstatistiques`) | 3 | non : les contenus s'affichent tous, empilés | inerte |
 | curseurs RVB (`pixelart/couleur*`) | 2 | non : échauffement, la tâche est un algorithme | inerte |
 | affichage pas à pas (`oefaffectatpython`) | 5 | non | inerte |

@@ -68,7 +68,7 @@ from .presentation import (
     localize_decimals,
     wims_matrices_to_latex,
 )
-from .slib import _SlibExit, _SlibMixin
+from .slib import _SlibExit, _SlibMixin, separe_pas, valeurs_for
 from ..numfmt import wims_float2str
 from ..safe_math import entree_math_sure
 from ..i18n import list_separator, uses_comma_decimal
@@ -221,6 +221,14 @@ def _bre_vers_python(motif: str) -> str:
             continue
         if c in _BRE_ECHAPPES_ACTIFS:
             out.append("\\" + c)             # `(` est un littéral en BRE
+        elif c == "^" and not (i == 0 or motif[max(0, i - 2):i] in ("\\(", "\\|")):
+            # `^` n'ancre qu'en tête — ou, chez GNU, après `\(` et `\|`.
+            # Ailleurs il est littéral : `slib/chemistry/chemeq_el` extrait le
+            # nombre d'électrons par `.*e^-|\([^*]*\)\*.*`, que Python lisait
+            # comme une ancre au milieu, donc sans jamais correspondre.
+            out.append("\\^")
+        elif c == "$" and not (i == len(motif) - 1 or motif[i + 1:i + 3] in ("\\)", "\\|")):
+            out.append("\\$")                # de même, `$` n'ancre qu'en fin
         else:
             out.append(c)
         i += 1
@@ -1162,6 +1170,7 @@ class DefEngine(_SlibMixin):
 
         from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures  # noqa: PLC0415
         from ..imgswap import port_imgswap  # noqa: PLC0415
+        from ..appendinput import port_appendinput  # noqa: PLC0415
 
         html = _close_inline_math(html, self.lang)
         # A `<div class="wims_instruction">` (calculator notice, answer-format
@@ -1178,6 +1187,8 @@ class DefEngine(_SlibMixin):
         # `temps/periodefrequence`) : lues dans leur script, émises comme
         # marqueurs, donc à placer avant l'incorporation des SVG.
         html = port_imgswap(html)
+        # Les boutons de `chemeq_components`, qui complètent un champ de réponse.
+        html = port_appendinput(html)
         html = inline_svg_imgs(html)
         html = inline_wims_gifs(html)
         if self.def_path:
@@ -1639,40 +1650,23 @@ class DefEngine(_SlibMixin):
         m = re.match(r"(.*?)\s+to\s+(.*)", range_s, re.I)
         if not m:
             return
-        borne_haute = m.group(2).strip()
-        # `!for v = a to b step s` — `exec_for` cherche le mot `step` dans la
-        # borne haute, et prend 1 à défaut. Sans cette lecture, `end` valait
+        # `!for v = a to b step s` — sans la lecture du `step`, `end` valait
         # `$val16 step 2`, l'évaluation échouait et la boucle **ne tournait pas
         # du tout** : 92 fichiers du corpus emploient cette forme, dont
         # `equilibrium` qui y construit les lignes de son tableau.
-        pas_expr = "1"
-        m_step = re.match(r"(.*?)\s+step\s+(.*)", borne_haute, re.I)
-        if m_step:
-            borne_haute, pas_expr = m_step.group(1).strip(), m_step.group(2).strip()
+        borne_haute, pas_expr = separe_pas(m.group(2))
         try:
             start = float(self._eval_arith(m.group(1).strip()))
             end = float(self._eval_arith(borne_haute))
             pas = float(self._eval_arith(pas_expr))
         except (ValueError, TypeError):
             return
-        if pas == 0:
-            # `module_error("zero_step")` : WIMS interrompt l'exercice. Ne rien
-            # exécuter vaut mieux que boucler sans fin.
-            return
 
         var = loop.var.lstrip("$")
         saved = self.ctx.get(var)
-        # Les bornes sont des `double` dans le C, que `float2str` écrit :
-        # `!for q=0 to 360 step 45` donne bien `45`, non `45.0`.
-        valeur = start
-        # Backstop contre une borne géante à corps vide (le budget temps du
-        # rendu ne s'arme que si le corps s'exécute) : cap dur d'itérations.
-        for _ in range(100001):
-            if (pas > 0 and valeur > end) or (pas < 0 and valeur < end):
-                break
-            self.ctx[var] = wims_float2str(valeur)
+        for valeur in valeurs_for(start, end, pas):
+            self.ctx[var] = valeur
             self._exec(loop.body, output_buf)
-            valeur += pas
         if saved is not None:
             self.ctx[var] = saved
         else:
@@ -2049,7 +2043,17 @@ class DefEngine(_SlibMixin):
         col_s = self._subst_for_arith(col_expr).strip()
 
         tbuf = self._rowof(row_s, value) if row_s else value
-        return self._columnof(col_s, tbuf) if col_s else tbuf
+        if not col_s:
+            return tbuf
+        # `calc_columnof` passe sa matrice par `find_word_start` et
+        # `strip_trailing_spaces` **avant** de la substituer. Par `!column c of
+        # $v`, il n'y a encore que `$v` à élaguer ; ici, `substit` a déjà
+        # déroulé la valeur, et ses blancs de bord tombent. Un `!record` rend
+        # l'enregistrement précédé du `\n` qui clôt la ligne `:` : sans cet
+        # élagage, sa première ligne vide ouvrait chaque colonne d'une virgule
+        # (`redox1` : « Couple oxydant (,dioxyde de plomb / plomb II) »).
+        tbuf = tbuf[wl.find_word_start(tbuf):].rstrip(" \t\n\r")
+        return self._columnof(col_s, tbuf)
 
     def _columnof(self, idx_s: str, data: str) -> str:
         """`!column I of MATRICE` — port de `calc_columnof` (`calc.c`).
@@ -3453,7 +3457,11 @@ class DefEngine(_SlibMixin):
             return
         kind = m.group(1).lower()
         src = self._subst(m.group(2).strip())
-        targets = [t.strip() for t in self._subst(m.group(3)).split(",")]
+        # `items2words` puis `cutwords` (`exec.c:exec_distribute`) : virgule et
+        # blanc séparent les noms au même titre. `slib/chemistry/chemeq_components`
+        # écrit `into slib_html slib_n` ; coupés à la seule virgule, ces deux
+        # noms n'en faisaient qu'un, et la slib ne rendait jamais ses boutons.
+        targets = self._subst(m.group(3)).replace(",", " ").split()
         if kind.startswith("line"):
             items = src.split("\n")
         elif kind.startswith("word"):

@@ -4,7 +4,7 @@
     <div class="px-6 py-6">
       <div ref="statementEl"
            class="oef-statement"
-           @click="(e) => { handleMarkClick(e); handleCfSlotClick(e); handleSwapClick(e) }"
+           @click="(e) => { handleMarkClick(e); handleCfSlotClick(e); handleSwapClick(e); handleAppendClick(e) }"
            @input="handleInlineInput"
            @change="handleCheckboxChange"
            @dragover.prevent
@@ -320,6 +320,20 @@ function handleSwapClick(event: MouseEvent) {
     box.dataset.swapIndex = String(next)
     frames.forEach((f, i) => { f.hidden = i !== next })
   })
+}
+
+// ── Boutons qui complètent un champ (`core/oef/appendinput.py`) ─────────────
+
+// `slib/chemistry/chemeq_components` propose une espèce par bouton ; WIMS
+// l'ajoutait au champ par `appendToInput`. Le backend a lu ce script, le front
+// fait l'ajout — le texte porte déjà l'espace finale du script d'origine.
+function handleAppendClick(event: MouseEvent) {
+  const bouton = (event.target as Element)?.closest<HTMLElement>('.pax-append')
+  if (!bouton || props.submitted) return
+  const name = bouton.dataset.reply
+  if (!name) return
+  updateReply(name, (props.replies[name] ?? '') + (bouton.dataset.text ?? ''))
+  statementEl.value?.querySelector<HTMLElement>(`input[name="${name}"], textarea[name="${name}"]`)?.focus()
 }
 
 // ── Mark choice (replytype=mark) — event delegation + DOM state sync ─────────

@@ -35,7 +35,38 @@ import random
 import re
 
 from . import wims_lists as wl
+from ..numfmt import wims_float2str
 from .cas import _MATH_NS  # noqa: F401  # re-exported for callers if needed
+
+# Plafond d'itérations d'un `!for` numérique : une borne géante à corps vide
+# n'arme pas le budget temps du rendu, qui ne se déclenche qu'à l'exécution.
+_FOR_MAX = 100001
+
+
+def separe_pas(borne_haute: str) -> tuple[str, str]:
+    """`cutfor` (`evalue.c`) cherche le mot `step` dans la borne haute d'un
+    `!for v = a to b step s`, et prend 1 à défaut."""
+    m = re.match(r"(.*?)\s+step\s+(.*)", borne_haute, re.I | re.S)
+    if m:
+        return m.group(1).strip(), m.group(2).strip()
+    return borne_haute.strip(), "1"
+
+
+def valeurs_for(debut: float, fin: float, pas: float):
+    """Les valeurs d'un `!for` numérique, écrites comme WIMS les écrit.
+
+    Les bornes sont des `double` dans le C, que `float2str` écrit :
+    `!for q=0 to 360 step 45` donne `45`, non `45.0`. Un pas nul est une
+    `module_error("zero_step")` chez WIMS : rien n'est parcouru.
+    """
+    if pas == 0:
+        return
+    valeur = debut
+    for _ in range(_FOR_MAX):
+        if (pas > 0 and valeur > fin) or (pas < 0 and valeur < fin):
+            return
+        yield wims_float2str(valeur)
+        valeur += pas
 
 
 class _SlibExit(Exception):
@@ -1217,13 +1248,20 @@ class _SlibMixin:
                 )
                 in_m = re.match(r"\$?(\w+)\s+in\s+(.*)$", spec, re.I | re.S)
                 if num_m:
+                    # Le `step` manquait ici, alors que le `!for` d'un `.def`
+                    # le lisait : `$slib_n step 2` passait pour la borne,
+                    # l'évaluation échouait, et `slib/chemistry/chemeq_add` ne
+                    # composait **rien** — l'équation-bilan de `redox1` restait
+                    # `H -> H`, son amorce.
+                    borne, pas_expr = separe_pas(num_m.group(3))
                     try:
-                        start = int(round(float(self._eval_arith(self._subst(num_m.group(2))))))
-                        end = int(round(float(self._eval_arith(self._subst(num_m.group(3))))))
+                        start = float(self._eval_arith(self._subst(num_m.group(2))))
+                        end = float(self._eval_arith(self._subst(borne)))
+                        pas = float(self._eval_arith(self._subst(pas_expr)))
                     except (ValueError, TypeError):
                         i = j + 1
                         continue
-                    var, seq = num_m.group(1), [str(v) for v in range(start, end + 1)]
+                    var, seq = num_m.group(1), list(valeurs_for(start, end, pas))
                 elif in_m:
                     var = in_m.group(1)
                     items_raw = self._subst(in_m.group(2).strip())
