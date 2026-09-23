@@ -130,6 +130,47 @@ export function useKatex() {
     return expr.replace(/(\d)\s*,\s*(\d)/g, '$1{,}$2')
   }
 
+  // Double indice : `chemeq -l` (le calculateur de chimie de WIMS) écrit l'état
+  // après l'indice, `\mathrm{H}_{2}_{(g)}`, et même après une charge,
+  // `\mathrm{O}_{4}^{-}_{(aq)}`. TeX et KaTeX refusent un second `_` sur le
+  // même noyau (« Double subscript ») : la formule sortait en rouge, brute.
+  // On insère le groupe vide `{}` qu'un auteur LaTeX y mettrait — le second
+  // indice se pose alors à la suite du premier, `H₂₍g₎`.
+  function doubleScript(expr: string): string {
+    let out = ''
+    let poses = ''  // les scripts déjà posés sur le noyau courant
+    let i = 0
+    while (i < expr.length) {
+      const c = expr[i]!
+      if ((c === '_' || c === '^') && expr[i - 1] !== '\\') {
+        if (poses.includes(c)) {
+          out += '{}'
+          poses = ''
+        }
+        poses += c
+        let j = i + 1
+        if (expr[j] === '{') {
+          const fin = matchingBracket(expr, j + 1, '}')
+          j = fin < 0 ? expr.length : fin + 1
+        }
+        else if (expr[j] === '\\') {
+          j++
+          while (j < expr.length && /[a-zA-Z]/.test(expr[j]!)) j++
+        }
+        else {
+          j++
+        }
+        out += expr.slice(i, j)
+        i = j
+        continue
+      }
+      if (!/\s/.test(c)) poses = ''
+      out += c
+      i++
+    }
+    return out
+  }
+
   // Normalise une expression OEF/SymPy en LaTeX : ** → ^, * → \times (croix),
   // sauf devant une lettre ou une parenthèse ouvrante où la multiplication
   // est implicite : 5*v → 5v, )*( → )(, mais 2*3 → 2 \times 3.
@@ -196,6 +237,7 @@ export function useKatex() {
     // WIMS matrix brackets → pmatrix. Run early so column-separator commas are
     // consumed here, before decimalComma would touch a `\d,\d` pair.
     expr = wimsMatrix(expr)
+    expr = doubleScript(expr)
     // Drop a stray backslash before a lone lowercase variable, e.g. WIMS's
     // `\(\x^2\)` → `x^2`. The lookahead `(?![a-zA-Z])` spares real commands
     // (`\frac`, `\sqrt`, `\left`…), and limiting to lowercase spares the valid
