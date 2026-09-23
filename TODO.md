@@ -291,8 +291,8 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `chemeq_tex` un rendu LaTeX). Les 7 exercices d'`equilibrium` / `chemavance1`
   se rendent avec leurs réponses ; seul `equilibrium.fr/methode` n'en expose
   aucune, pour une cause distincte déjà consignée plus haut.
-  Reste ouvert : `chemeq_el` et `chemeq_rev` (redox, piles — 12 appels, voir
-  « Ce que le portage des slibs ne règle pas »).
+  `chemeq_el` et `chemeq_rev` (redox, piles — 12 appels) tournent depuis le
+  2026-09-24 : électron, algèbre `#`/`~`/`*`, `^` littéral en BRE.
 
 - [ ] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
   `!exec pari [$val25]/10.` et récupère la chaîne brute. Un seul exercice.
@@ -658,10 +658,10 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     réponse donne 1 » passait quand même, puisqu'il soumettait ce même texte.
   Sur les 203 exercices qui les appellent, plus aucun `UNKNOWN_CMD` visible.
 - [ ] **Ce que le portage des slibs ne règle pas.**
-  - `chemistry/chemeq_el` et `chemeq_rev` (12 appels, `redox.fr`, `piles.fr`) :
-    le port Python de `chemeq` rend `""` sur `,équation` et sur
-    `H -> H ~ équation` ; `chemeq_tex`, déjà vendorisée, aussi. À étendre
-    (`def_engine/chemeq.py`) d'après `wims/src/Misc/chemeq`.
+  - ~~`chemistry/chemeq_el` et `chemeq_rev`~~ — réglés le 2026-09-24 (commit
+    « fix(redox) ») : la virgule de tête venait d'un `$(v[;j])` mal élagué,
+    `H -> H ~ équation` de l'algèbre d'équations, portée et confrontée au
+    binaire sur 79 278 compositions.
   - `graph/graphviz` et `draw/graphvizpoints` (10 appels, `oeflceb`,
     `oefadsubrel`) : `!exec graphviz` suppose le binaire `dot`, absent de
     l'image. Ajouter `graphviz` au Dockerfile, ou dessiner le graphe dans le
