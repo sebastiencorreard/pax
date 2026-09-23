@@ -1161,6 +1161,7 @@ class DefEngine(_SlibMixin):
             html = self._subst(stmt)
 
         from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures  # noqa: PLC0415
+        from ..imgswap import port_imgswap  # noqa: PLC0415
 
         html = _close_inline_math(html, self.lang)
         # A `<div class="wims_instruction">` (calculator notice, answer-format
@@ -1173,6 +1174,10 @@ class DefEngine(_SlibMixin):
         # locate; once inlined, the body contains its own <image>/<polygon>
         # which the boundary regex would otherwise stumble on.
         html = group_inline_figures(html)
+        # Les figures qu'une carte d'image échange (l'oscilloscope de
+        # `temps/periodefrequence`) : lues dans leur script, émises comme
+        # marqueurs, donc à placer avant l'incorporation des SVG.
+        html = port_imgswap(html)
         html = inline_svg_imgs(html)
         html = inline_wims_gifs(html)
         if self.def_path:

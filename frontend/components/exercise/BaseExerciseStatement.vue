@@ -4,7 +4,7 @@
     <div class="px-6 py-6">
       <div ref="statementEl"
            class="oef-statement"
-           @click="(e) => { handleMarkClick(e); handleCfSlotClick(e) }"
+           @click="(e) => { handleMarkClick(e); handleCfSlotClick(e); handleSwapClick(e) }"
            @input="handleInlineInput"
            @change="handleCheckboxChange"
            @dragover.prevent
@@ -300,6 +300,26 @@ function inputClass(name: string) {
   const r = props.checkResult.results.find(r => r.input_name === name)
   if (!r) return ''
   return r.correct ? 'correct' : 'incorrect'
+}
+
+// ── Figures échangées par une carte d'image (`core/oef/imgswap.py`) ─────────
+
+// Le backend a lu le script WIMS (huit oscillogrammes, un bouton + / −) et
+// livré toutes les vues ; une zone déplace l'index de son groupe, borné comme
+// le faisaient `inc_choix`/`dec_choix`. Ce n'est pas une réponse : on explore
+// encore après l'envoi, pour relire la mesure au corrigé.
+function handleSwapClick(event: MouseEvent) {
+  const zone = (event.target as Element)?.closest<HTMLElement>('.pax-swap-zone')
+  if (!zone) return
+  const group = zone.dataset.swap
+  const step = Number(zone.dataset.swapStep) || 0
+  statementEl.value?.querySelectorAll<HTMLElement>('.pax-swap').forEach((box) => {
+    if (box.dataset.swap !== group) return
+    const frames = box.querySelectorAll<HTMLElement>(':scope > .pax-swap-frame')
+    const next = Math.min(frames.length - 1, Math.max(0, (Number(box.dataset.swapIndex) || 0) + step))
+    box.dataset.swapIndex = String(next)
+    frames.forEach((f, i) => { f.hidden = i !== next })
+  })
 }
 
 // ── Mark choice (replytype=mark) — event delegation + DOM state sync ─────────
