@@ -119,21 +119,29 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     ne s'affiche que grâce à la tolérance de PAX.
 
   Reste, par nombre d'exercices :
-  - **canvasdraw** — relevé du 2026-09-24 contre le vrai binaire (banc :
-    mémoire `project_canvasdraw_banc`), 45 figures de 35 exercices. PAX rend
-    ces scripts comme du flydraw ; canvasdraw est un **dialecte** :
-    texte posé sur sa ligne de base (`ctx.fillText`), Arial, `large` =
-    `fontsize`+6, non gras ; `grid` avec `axis`/`axisnumbering`/`xlabel`/
-    `ylabel`/`precision` (absents chez PAX : `oefvectgraph`, `unitefonct`,
-    `oefseqconj`, `evolmeth`) ; `point` = disque de rayon `linewidth` (les
-    nœuds des arbres d'`evolmeth`) ; opacité de remplissage 0,5 par défaut ;
-    `centered`, `linegraph`, `legend`, `strokecolor`. À instruire :
-    `oefderivee` (#28-30) où PAX trace une parabole absente chez WIMS, et
-    `oefvectgraph/somme*` où le canvas de WIMS reste vide. `oefpersp3D` ×6
-    dépend d'une expression PARI non émulée (`vecmax(abs([…]*[…]))`).
-  - options canvasdraw sous la même étiquette — `grid` 17, `precision` 15,
-    `opacity` 13, `axis`, `snaptopoints`, `centered`, `latex`, `xlabel`… :
-    un autre sous-système (`unitefonct/1`, `oefvectgraph/comblin`) ;
+  - [x] **canvasdraw** — porté le 2026-09-24 comme un **dialecte** de
+    flydraw (`dialecte="canvasdraw"`), relevé contre le vrai binaire (banc :
+    mémoire `project_canvasdraw_banc`), 45 figures de 35 exercices :
+    opacités 0,8 / 0,5 et objets pleins cernés ; table de couleurs HTML
+    (`grey` = #808080, `black` = #0a0a0a) ; texte sur sa ligne de base, Arial,
+    `large` = `fontsize`+6 — `fontfamily` ne change pas `fontsize` ;
+    `centered` ; `point` = disque ; repère « quadrant I » sans `xrange` ;
+    `grid` et son calque (`axis`, `axisnumbering`, `precision`, `xlabel`,
+    `ylabel`, `legend`, `linegraph`, `strokecolor`) sous le dessin ;
+    `curve` = `plot` ; `latex` en texte (`\vec` → flèche combinante) ;
+    pointes de flèche cernées. Les planches coïncident, sauf :
+    - `oefderivee/exploitgte*` : WIMS n'y trace pas la parabole parce que
+      l'émulation Maxima de PAX écrit `x**2`, que canvasdraw refuse — le vrai
+      Maxima écrit `x^2`. Défaut **en amont** (sortie de `_call_maxima`), qui
+      touche aussi tout autre consommateur de la sortie Maxima ;
+    - `oefvectgraph/*` : le canvas de WIMS est vide **au banc seulement** —
+      `latex` y appelle `wims_mathml`, absent hors serveur. Le script colle
+      `dashed`/`arrow …` au texte d'un `latex` (`$val27 $val28`) : WIMS aussi
+      les écrit comme du texte, et perd la flèche ;
+    - `oefpersp3D` ×6 dépend d'une expression PARI non émulée
+      (`vecmax(abs([…]*[…]))`) ;
+    - non portés, faute d'usage : `xaxis`/`yaxis` (graduations écrites),
+      `snaptopoints`, les `userinput`/`userdraw` interactifs.
   - bruit d'analyse — `toto`, `centre`, `arete`, `polygone`, `vecteurs`,
     `abcah`, `segment1` et des nombres nus : noms de variables ou étiquettes
     pris pour des commandes. À instruire avant de porter quoi que ce soit.

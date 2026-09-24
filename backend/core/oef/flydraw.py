@@ -35,6 +35,8 @@ from .safe_math import entree_math_sure
 _VARIABLES: contextvars.ContextVar[dict[str, float] | None] = contextvars.ContextVar(
     "flydraw_variables", default=None
 )
+# Le dialecte du rendu en cours, que `_color` consulte (voir `_COULEURS_CANVASDRAW`).
+_DIALECTE: contextvars.ContextVar[str] = contextvars.ContextVar("flydraw_dialecte", default="flydraw")
 
 _log = logging.getLogger("pax.flydraw")
 _logged_unhandled: set[str] = set()
@@ -145,12 +147,69 @@ _FONT_SIZES: dict[str, float] = {
 }
 
 
+# La table de canvasdraw (`canvasmacro.c`) : les couleurs nommées du HTML, et
+# non celles de X11 que prend flydraw — `grey` y vaut 128, non 190. Extraite
+# du C par script.
+_COULEURS_CANVASDRAW: dict[str, str] = {
+    "aliceblue": "#f0f8ff", "antiquewhite": "#faebd7", "aqua": "#00ffff",
+    "aquamarine": "#7fffd4", "azure": "#f0ffff", "beige": "#f5f5dc",
+    "bisque": "#ffe4c4", "black": "#0a0a0a", "blanchedalmond": "#ffebcd",
+    "blue": "#0000ff", "blueviolet": "#8a2be2", "brown": "#a52a2a",
+    "burlywood": "#deb887", "cadetblue": "#5f9ea0", "chartreuse": "#7fff00",
+    "chocolate": "#d2691e", "coral": "#ff7f50", "cornflowerblue": "#6495ed",
+    "cornsilk": "#fff8dc", "crimson": "#dc143c", "cyan": "#00ffff",
+    "darkblue": "#00008b", "darkcyan": "#008b8b", "darkgoldenrod": "#b8860b",
+    "darkgray": "#a9a9a9", "darkgreen": "#006400", "darkkhaki": "#bdb76b",
+    "darkmagenta": "#8b008b", "darkolivegreen": "#556b2f", "darkorange": "#ff8c00",
+    "darkorchid": "#9932cc", "darkred": "#8b0000", "darksalmon": "#e9967a",
+    "darkseagreen": "#8fbc8f", "darkslateblue": "#483d8b", "darkslategray": "#2f4f4f",
+    "darkturquoise": "#00ced1", "darkviolet": "#9400d3", "deeppink": "#ff1493",
+    "deepskyblue": "#00bfff", "dimgray": "#696969", "dodgerblue": "#1e90ff",
+    "firebrick": "#b22222", "floralwhite": "#fffaf0", "forestgreen": "#228b22",
+    "fuchsia": "#ff00ff", "gainsboro": "#dcdcdc", "ghostwhite": "#f8f8ff",
+    "gold": "#ffd700", "goldenrod": "#daa520", "gray": "#808080", "green": "#008000",
+    "greenyellow": "#adff2f", "grey": "#808080", "honeydew": "#f0fff0",
+    "hotpink": "#ff69b4", "indianred": "#cd5c5c", "indigo": "#4b0082",
+    "ivory": "#fffff0", "khaki": "#f0e68c", "lavender": "#e6e6fa",
+    "lavenderblush": "#fff0f5", "lawngreen": "#7cfc00", "lemonchiffon": "#fffacd",
+    "lightblue": "#add8e6", "lightcoral": "#f08080", "lightcyan": "#e0ffff",
+    "lightgoldenrodyellow": "#fafad2", "lightgreen": "#90ee90", "lightgrey": "#d3d3d3",
+    "lightpink": "#ffb6c1", "lightsalmon": "#ffa07a", "lightseagreen": "#20b2aa",
+    "lightskyblue": "#87cefa", "lightslategray": "#778899",
+    "lightsteelblue": "#b0c4de", "lightyellow": "#ffffe0", "lime": "#00ff00",
+    "limegreen": "#32cd32", "linen": "#faf0e6", "magenta": "#ff00ff",
+    "maroon": "#800000", "mediumaquamarine": "#66cdaa", "mediumblue": "#0000cd",
+    "mediumorchid": "#ba55d3", "mediumpurple": "#9370db", "mediumseagreen": "#3cb371",
+    "mediumslateblue": "#7b68ee", "mediumspringgreen": "#00fa9a",
+    "mediumturquoise": "#48d1cc", "mediumvioletred": "#c71585",
+    "midnightblue": "#191970", "mintcream": "#f5fffa", "mistyrose": "#ffe4e1",
+    "moccasin": "#ffe4b5", "navajowhite": "#ffdead", "navy": "#000080",
+    "oldlace": "#fdf5e6", "olive": "#808000", "olivedrab": "#6b8e23",
+    "orange": "#ffa500", "orangered": "#ff4500", "orchid": "#da70d6",
+    "palegoldenrod": "#eee8aa", "palegreen": "#98fb98", "paleturquoise": "#afeeee",
+    "palevioletred": "#db7093", "papayawhip": "#ffefd5", "peachpuff": "#ffdab9",
+    "peru": "#cd853f", "pink": "#ffc0cb", "plum": "#dda0dd", "powderblue": "#b0e0e6",
+    "purple": "#800080", "red": "#ff0000", "rosybrown": "#bc8f8f",
+    "royalblue": "#4169e1", "saddlebrown": "#8b4513", "salmon": "#fa8072",
+    "sandybrown": "#faa460", "seagreen": "#2e8b57", "seashell": "#fff5ee",
+    "sienna": "#a0522d", "silver": "#c0c0c0", "skyblue": "#87ceeb",
+    "slateblue": "#6a5acd", "slategray": "#708090", "snow": "#fffafa",
+    "springgreen": "#00ff7f", "steelblue": "#4682b4", "tan": "#d2b48c",
+    "teal": "#008080", "thistle": "#d8bfd8", "tomato": "#ff6347",
+    "turquoise": "#40e0d0", "violet": "#ee82ee", "wheat": "#f5deb3",
+    "white": "#ffffff", "whitesmoke": "#f5f5f5", "yellow": "#ffff00",
+    "yellowgreen": "#9acd32",
+}
+
+
 def _color(name: str) -> str:
     name = (name or "").strip().lower()
     if not name:
         return "#000000"
     if name.startswith("#"):
         return name
+    if _DIALECTE.get() == "canvasdraw" and name in _COULEURS_CANVASDRAW:
+        return _COULEURS_CANVASDRAW[name]
     return _COLORS.get(name, "#000000")
 
 
@@ -352,6 +411,38 @@ class _State:
     # `copy <file>` resolve a module-local image (images/<file>) in addition to
     # the shared WIMS gifs tree.
     base_dir: str | None = None
+    # `canvasdraw` ou `flydraw` : les deux programmes de WIMS lisent la même
+    # syntaxe, mais canvasdraw a ses propres conventions — opacités par
+    # défaut, texte posé sur sa ligne de base, `grid`… (`_rendre`).
+    dialecte: str = "flydraw"
+    # Opacités du trait et du remplissage : 0,8 et 0,5 par défaut chez
+    # canvasdraw (`stroke_opacity`, `fill_opacity`), pleines chez flydraw.
+    opacite_trait: float = 1.0
+    opacite_fond: float = 1.0
+    # `centered` : le prochain texte est centré sur son point (`use_offset=4`).
+    centrer_suivant: bool = False
+    # `fontfamily` telle qu'écrite (`italic 24px Arial`) : `string` la prend
+    # comme police CSS entière.
+    police_canvasdraw: str = ""
+    # `fly_font_size` : la taille du dernier `text` de canvasdraw.
+    taille_text_canvasdraw: float = 12.0
+    # La grille de canvasdraw et ses satellites (`draw_grid`, `canvasutils.c`) :
+    # posée par `grid`, dessinée à la fin, sous le reste — son calque est créé
+    # avant les autres. `precision` fixe les décimales de la numérotation
+    # (`toFixed(log10(precision))`), `strokecolor` la couleur d'un `linegraph`.
+    grille: dict | None = None
+    axes: bool = False
+    numerotation: bool = False
+    precision_canvasdraw: int = 100
+    etiquette_x: str | None = None
+    etiquette_y: str | None = None
+    legende: list[str] | None = None
+    couleurs_legende: list[str] | None = None
+    courbes_brisees: list[dict] = field(default_factory=list)
+    couleur_trait_canvasdraw: str = "#ff0000"
+    couleur_police_canvasdraw: str = "#000000"
+    # `font_size` de canvasdraw : `fontsize` seul la change, non `fontfamily`.
+    taille_police_canvasdraw: float = 12.0
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
     boxplotdata: list[float] = field(default_factory=list)
     # Préfixes `dashed` / `filled` en attente, et `noreset` qui les rend
@@ -541,6 +632,21 @@ def _arrow_marker(state: _State, head_len: float, color: str) -> str:
     # WIMS' 5th `arrow` arg is the arrowhead size in pixels — use it directly
     # (halving it made the heads visibly smaller than WIMS).
     head_size = max(head_len, 4)
+    if state.dialecte == "canvasdraw":
+        # canvasdraw remplit la pointe **et** la cerne au trait courant
+        # (`Shape` type 8 : `ctx.stroke(); ctx.fill()`) : à `linewidth 4`, elle
+        # déborde de deux pixels de chaque côté. Le trait s'exprime dans les
+        # unités du `viewBox` (10 pour `head_size` pixels).
+        trait = state.linewidth * 10 / head_size
+        state.elements.append(
+            f'<defs><marker id="{head_id}" viewBox="0 0 10 10" refX="10" refY="5" '
+            f'markerWidth="{head_size}" markerHeight="{head_size}" overflow="visible" '
+            f'orient="auto-start-reverse" markerUnits="userSpaceOnUse">'
+            f'<path d="M 0 0 L 10 5 L 0 10 z" fill="{color}" stroke="{color}" '
+            f'stroke-width="{trait:.3g}" fill-opacity="{state.opacite_fond:g}" '
+            f'stroke-opacity="{state.opacite_trait:g}"/></marker></defs>'
+        )
+        return head_id
     state.elements.append(
         f'<defs><marker id="{head_id}" viewBox="0 0 10 10" refX="10" refY="5" '
         f'markerWidth="{head_size}" markerHeight="{head_size}" '
@@ -816,10 +922,14 @@ def _cmd_new(state: _State, args: list[str]) -> None:
     w, h = round(_num(args[0])), round(_num(args[1]))
     if not (0 < w <= _TAILLE_MAX and 0 < h <= _TAILLE_MAX):
         return
-    en_pixels = (state.xmin, state.xmax, state.ymin, state.ymax) == (0, state.width, state.height, 0)
+    repere = (state.xmin, state.xmax, state.ymin, state.ymax)
+    en_pixels = repere == (0, state.width, state.height, 0)
+    quadrant_i = repere == (0, state.width, 0, state.height)  # canvasdraw
     state.width, state.height = w, h
     if en_pixels:
         state.xmin, state.xmax, state.ymin, state.ymax = 0, w, h, 0
+    elif quadrant_i:
+        state.xmin, state.xmax, state.ymin, state.ymax = 0, w, 0, h
 
 
 def _contenu_texte(brut: str) -> str:
@@ -850,12 +960,96 @@ def _contenu_texte(brut: str) -> str:
     return "\u00a0" * tete + contenu.strip(" ") + "\u00a0" * queue
 
 
+# canvasdraw : la taille d'un `text` est relative à `fontsize` (12 par
+# défaut) — `giant` +24, `huge` +14, `large` +6, `small` −4 (8 au plus bas),
+# tout autre mot la taille de base (`FLY_TEXT`, `canvasdraw.c`).
+_ECART_TAILLE_CANVASDRAW = {"giant": 24, "huge": 14, "large": 6, "small": -4}
+
+
+def _taille_base(state: _State) -> float:
+    # `fontsize` seul : `fontfamily bold 15px` ne touche pas `font_size`, et
+    # un `huge` qui la suit vaut 12 + 14 px chez WIMS.
+    return state.taille_police_canvasdraw
+
+
+def _texte_canvasdraw(state: _State, couleur: str, x: float, y: float,
+                      contenu: str, police: str, rotation: float | None = None) -> None:
+    """Un texte de canvasdraw : `ctx.fillText(texte, x, y)`.
+
+    Le point est la **ligne de base** (défaut du canvas), non le coin haut
+    gauche de flydraw : les étiquettes de `geobase` et d'`oefpytha` sont posées
+    au-dessus de leur point chez WIMS. `centered` (`use_offset=4`) centre en
+    largeur et descend d'un quart de la largeur d'un « W »
+    (`y + 0.25*measureText('W').width`), soit ~0,236 fois la taille en Arial.
+    """
+    cx, cy = state.px(x), state.py(y)
+    ancre = "start"
+    if state.centrer_suivant:
+        ancre = "middle"
+        m = re.search(r"([\d.]+)px", police)
+        cy += 0.236 * (float(m.group(1)) if m else 12.0)
+    tourne = f' transform="rotate({rotation:g}, {cx:.2f}, {cy:.2f})"' if rotation else ""
+    state.elements.append(
+        f'<text x="{cx:.2f}" y="{cy:.2f}" fill="{couleur}" '
+        f'{_attributs_police(police)} text-anchor="{ancre}"{tourne}>'
+        f"{_xml_escape(contenu)}</text>"
+    )
+
+
+def _attributs_police(police: str) -> str:
+    """Une description CSS (`italic Bold 24px Arial`) en attributs SVG.
+
+    Le raccourci `style="font:…"` n'est pas lu partout — `rsvg-convert` l'ignore.
+    """
+    mots = police.split()
+    taille, style, graisse, famille = "12px", "normal", "normal", []
+    for m in mots:
+        b = m.lower()
+        if re.fullmatch(r"[\d.]+(px|pt)", b):
+            taille = b
+        elif b in ("italic", "oblique"):
+            style = b
+        elif b in ("bold", "bolder", "lighter") or re.fullmatch(r"[1-9]00", b):
+            graisse = b
+        elif b != "normal":
+            famille.append(m)
+    return (f'font-size="{taille}" font-family="{_xml_escape(" ".join(famille) or "Arial")}" '
+            f'font-style="{style}" font-weight="{graisse}"')
+
+
+def _police_text_canvasdraw(state: _State, mot: str) -> str:
+    """La police d'un `text` de canvasdraw.
+
+    Les `if` imbriqués de `FLY_TEXT` ne traitent que `giant`, `huge`, `large`
+    et `small` : tout autre mot (`medium`, `normal`, `tiny`) **garde** la
+    taille du texte précédent (`fly_font_size`, 12 au départ). Les arbres
+    d'`oefprobatree` écrivent leurs probabilités en `medium` après des
+    `large` : 18 px chez WIMS, non 12.
+    """
+    ecart = _ECART_TAILLE_CANVASDRAW.get(mot.strip().lower())
+    if ecart is not None:
+        taille = _taille_base(state) + ecart
+        if ecart < 0 and taille < 0:
+            taille = 8
+        state.taille_text_canvasdraw = taille
+    return f"{state.taille_text_canvasdraw:g}px Arial"
+
+
+def _police_string_canvasdraw(state: _State) -> str:
+    """`string` prend `fontfamily` telle quelle (`12px Arial` par défaut)."""
+    return state.police_canvasdraw or f"{_taille_base(state):g}px Arial"
+
+
 def _cmd_text(state: _State, args: list[str]) -> None:
     # text [color],x,y,size,content
     if len(args) < 5:
         return
     color = _color(args[0])
     x, y = state.tr(_num(args[1]), _num(args[2]))
+    if state.dialecte == "canvasdraw":
+        _texte_canvasdraw(state, color, x, y, ",".join(args[4:]).strip(),
+                          _police_text_canvasdraw(state, args[3]))
+        return
     size = _font_size(args[3])
     weight = _font_weight(args[3])
     # Content may contain commas — re-join the tail
@@ -877,6 +1071,10 @@ def _cmd_textup(state: _State, args: list[str]) -> None:
         return
     color = _color(args[0])
     x, y = state.tr(_num(args[1]), _num(args[2]))
+    if state.dialecte == "canvasdraw":
+        _texte_canvasdraw(state, color, x, y, ",".join(args[4:]).strip(),
+                          _police_text_canvasdraw(state, args[3]), rotation=-90)
+        return
     size = _font_size(args[3])
     weight = _font_weight(args[3])
     content = _contenu_texte(",".join(args[4:]))
@@ -1156,16 +1354,24 @@ def _cmd_segments(state: _State, args: list[str]) -> None:
     _cmd_lines(state, args)
 
 
+def _disque_point(state: _State, cx: float, cy: float, color: str) -> str:
+    """Un point. canvasdraw en fait un disque de rayon `linewidth` cerné d'un
+    trait de 1,5 × `linewidth` (`POINT` : `Shape(…,2,…,[lw],[lw],1.5*lw…)`) —
+    les nœuds des arbres d'`evolmeth`. flydraw, un pixel épaissi."""
+    if state.dialecte == "canvasdraw":
+        return (f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{state.linewidth:.2f}" '
+                f'fill="{color}" stroke="{color}" stroke-width="{1.5 * state.linewidth:g}" />')
+    return (f'<circle cx="{cx:.2f}" cy="{cy:.2f}" '
+            f'r="{max(state.linewidth / 2, 1):.2f}" fill="{color}" stroke="none" />')
+
+
 def _cmd_point(state: _State, args: list[str]) -> None:
     # point x,y,[color] — single pixel/dot.
     if len(args) < 2:
         return
     x, y = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
-    state.elements.append(
-        f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
-        f'r="{max(state.linewidth / 2, 1):.2f}" fill="{color}" stroke="none" />'
-    )
+    state.elements.append(_disque_point(state, state.px(x), state.py(y), color))
 
 
 def _cmd_points(state: _State, args: list[str]) -> None:
@@ -1176,11 +1382,7 @@ def _cmd_points(state: _State, args: list[str]) -> None:
     coords = state.tr_flat([_num(a) for a in args[1:]])
     for i in range(0, len(coords) - 1, 2):
         state.elements.append(
-            f'<circle cx="{state.px(coords[i]):.2f}" '
-            f'cy="{state.py(coords[i + 1]):.2f}" '
-            f'r="{max(state.linewidth / 2, 1):.2f}" '
-            f'fill="{color}" stroke="none" />'
-        )
+            _disque_point(state, state.px(coords[i]), state.py(coords[i + 1]), color))
 
 
 def _cmd_circles(state: _State, args: list[str], fill: bool = False) -> None:
@@ -1530,6 +1732,7 @@ def _cmd_fontfamily(state: _State, args: list[str]) -> None:
     desc = ",".join(args).strip()
     if not desc:
         return
+    state.police_canvasdraw = desc
     rest = desc
     m = _FONT_SIZE_RE.search(rest)
     if m:
@@ -1554,6 +1757,7 @@ def _cmd_fontsize(state: _State, args: list[str]) -> None:
         try:
             n = float(args[0])
             state.font_size = f"{n:g}px"
+            state.taille_police_canvasdraw = n
         except (TypeError, ValueError):
             pass
 
@@ -1575,6 +1779,9 @@ def _cmd_string(state: _State, args: list[str]) -> None:
     color = _color(args[0])
     x, y = state.tr(_num(args[1]), _num(args[2]))
     content = ",".join(args[3:]).strip()
+    if state.dialecte == "canvasdraw":
+        _texte_canvasdraw(state, color, x, y, content, _police_string_canvasdraw(state))
+        return
     state.elements.append(
         f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
         f'{_string_attrs(state)} dominant-baseline="middle">'
@@ -1594,6 +1801,10 @@ def _cmd_stringup(state: _State, args: list[str]) -> None:
     x, y = state.tr(_num(args[1]), _num(args[2]))
     rot = _num(args[3])
     content = ",".join(args[4:]).strip()
+    if state.dialecte == "canvasdraw":
+        _texte_canvasdraw(state, color, x, y, content, _police_string_canvasdraw(state),
+                          rotation=rot)
+        return
     cx, cy = state.px(x), state.py(y)
     state.elements.append(
         f'<text x="{cx:.2f}" y="{cy:.2f}" fill="{color}" '
@@ -2569,7 +2780,9 @@ def _fusionner_a(args: list[str], i: int) -> list[str]:
         if len(fenetre) >= 3:
             break
         consommes += 1
-        hexa = _COLORS.get(a.strip().lower())
+        nom = a.strip().lower()
+        hexa = (_COULEURS_CANVASDRAW.get(nom) if _DIALECTE.get() == "canvasdraw" else None) \
+            or _COLORS.get(nom)
         if hexa and hexa.startswith("#") and len(hexa) == 7:
             fenetre.extend(str(int(hexa[k : k + 2], 16)) for k in (1, 3, 5))
         else:
@@ -2725,7 +2938,8 @@ _HANDLERS = {
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
-def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None = None) -> str:
+def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None = None,
+                   dialecte: str = "flydraw") -> str:
     """Render a flydraw command list to an SVG string.
 
     Commands may be separated by newline, tab, or semicolon — matching
@@ -2736,7 +2950,7 @@ def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None 
     (0, 0) at the top-left (HTML5 canvas convention). xrange/yrange commands
     override that default and switch to math coordinates.
     """
-    state = _rendre(width, height, commands, base_dir)
+    state = _rendre(width, height, commands, base_dir, dialecte=dialecte)
     return _svg(state.width, state.height, "".join(state.elements))
 
 
@@ -2794,6 +3008,341 @@ def _tireter(element: str) -> str:
     return re.sub(r"(<\w+\b)", r'\1 stroke-dasharray="4,3"', element, count=1)
 
 
+def _opacifier(state: "_State", element: str) -> str:
+    """Les opacités de canvasdraw, posées sur un élément déjà tracé.
+
+    Le trait et le texte prennent `stroke_opacity`, le remplissage
+    `fill_opacity`. Une couleur explicitement absente (`none`) ne reçoit rien.
+    """
+    if "opacity=" in element:
+        return element
+    # Un objet rempli est aussi cerné : `ctx.fill()` puis `ctx.stroke()`, de
+    # la couleur du trait (`Shape.prototype.draw`). Les disques d'un graphique
+    # (`fcircle … grey`) s'y détachent par leur bord, non par leur fond à 50 %.
+    if not element.startswith("<text"):
+        plein = re.search(r'\bfill="(#[0-9a-fA-F]{6})"', element)
+        if plein and re.search(r'\bstroke="none"', element):
+            element = element.replace('stroke="none"', f'stroke="{plein.group(1)}" '
+                                      f'stroke-width="{state.linewidth}"', 1)
+    attrs = []
+    trait = re.search(r'\bstroke="([^"]*)"', element)
+    if trait and trait.group(1) != "none" and state.opacite_trait < 1:
+        attrs.append(f'stroke-opacity="{state.opacite_trait:g}"')
+    fond = re.search(r'\bfill="([^"]*)"', element)
+    if fond and fond.group(1) != "none":
+        # Le texte est rempli de la couleur du trait, à son opacité.
+        o = state.opacite_trait if element.startswith("<text") else state.opacite_fond
+        if o < 1:
+            attrs.append(f'fill-opacity="{o:g}"')
+    if not attrs:
+        return element
+    return re.sub(r"(<\w+\b)", lambda m: m.group(1) + " " + " ".join(attrs), element, count=1)
+
+
+def _cmd_opacity(state: _State, args: list[str]) -> None:
+    """`opacity trait,fond` — sur 0-255, ou sur 0-1 (canvasdraw)."""
+    valeurs = [_num(a) for a in args[:2] if a.strip()]
+    if not valeurs:
+        return
+
+    def ramener(v: float) -> float:
+        v = v / 255 if v > 1 else v
+        return min(max(v, 0.0), 1.0)
+
+    state.opacite_trait = ramener(valeurs[0])
+    if len(valeurs) > 1:
+        state.opacite_fond = ramener(valeurs[1])
+
+
+def _cmd_centered(state: _State, args: list[str]) -> None:
+    state.centrer_suivant = True
+
+
+_HANDLERS["opacity"] = _cmd_opacity
+_HANDLERS["centered"] = _cmd_centered
+
+# ── La grille de canvasdraw (`GRID`, et `draw_grid` de `canvasutils.c`) ────
+#
+# flydraw n'a pas de grille : canvasdraw en dessine une sur son propre calque,
+# créé avant les objets, avec ses axes, sa numérotation, les noms des axes,
+# une légende et les `linegraph` — tous tracés **par `draw_grid`**, et donc
+# absents sans `grid`. Le JS est reproduit à la lettre, bizarreries comprises :
+# le zéro n'est jamais numéroté (`skip = 1` au départ), un nombre trop large
+# fait sauter les suivants, la légende prend la couleur de la grille.
+
+# Chasses approchées d'Arial, en fraction de la taille : `measureText` sert à
+# centrer et à aligner à droite, et une erreur de quelques pour cent reste
+# invisible sur une étiquette de trois caractères.
+_CHASSE_ARIAL = {
+    **dict.fromkeys("0123456789$", 0.556), **dict.fromkeys(".,:;!|' ", 0.278),
+    **dict.fromkeys("-()[]", 0.333), **dict.fromkeys("ijlft", 0.26),
+    "r": 0.333, **dict.fromkeys("mwMW", 0.86), **dict.fromkeys("ABCDEHKNRSUVXY", 0.68),
+    **dict.fromkeys("GOQ", 0.78), **dict.fromkeys("FTZLP", 0.61), "I": 0.278, "J": 0.5,
+}
+
+
+def _largeur_texte(texte: str, taille: float) -> float:
+    return sum(_CHASSE_ARIAL.get(c, 0.53) for c in texte) * taille
+
+
+def _pas_grille(zero: float, bord: float, pas: float) -> list[float]:
+    """Les positions de `for(p = zero; p < bord; p += pas)` puis vers 0."""
+    if not (pas > 0 and math.isfinite(pas) and math.isfinite(zero)) or bord / pas > 5000:
+        return []
+    avant, p = [], zero
+    while p < bord:
+        avant.append(p)
+        p += pas
+    arriere, p = [], zero
+    while p > 0:
+        arriere.append(p)
+        p -= pas
+    return avant + arriere
+
+
+def _cmd_grid(state: _State, args: list[str]) -> None:
+    """`grid pas_x,pas_y,couleur[,mineur_x,mineur_y,graduation,couleur_axes]`.
+
+    La forme longue n'est lue que si `axis` précède : sans lui, les arguments
+    en trop sont ignorés et les graduations valent 0.
+    """
+    if len(args) < 3:
+        return
+    xmaj, ymaj = _num(args[0]), _num(args[1])
+    couleur = _color(args[2])
+    xmin_, ymin_, tics, couleur_axes = 1, 1, 0.0, couleur
+    if state.axes and len(args) >= 7:
+        xmin_, ymin_ = int(_num(args[3])), int(_num(args[4]))
+        tics, couleur_axes = float(int(_num(args[5]))), _color(args[6])
+    if xmaj <= 0 or ymaj <= 0 or xmin_ <= 0 or ymin_ <= 0:
+        return  # `canvas_error("major or minor ticks must be positive !")`
+    state.grille = {
+        "xmaj": xmaj, "ymaj": ymaj, "xmin": xmin_, "ymin": ymin_, "tics": tics,
+        "couleur": couleur, "couleur_axes": couleur_axes, "lw": state.linewidth,
+        "opacite": state.opacite_trait, "precision": state.precision_canvasdraw,
+        "police": state.police_canvasdraw or "12px Arial",
+        "taille": state.taille_police_canvasdraw, "tirete": state.prefixe_tirete,
+    }
+
+
+def _cmd_axis(state: _State, args: list[str]) -> None:
+    state.axes = True
+
+
+def _cmd_axisnumbering(state: _State, args: list[str]) -> None:
+    state.numerotation = True
+
+
+def _cmd_precision(state: _State, args: list[str]) -> None:
+    if args:
+        state.precision_canvasdraw = max(int(_num(args[0])), 1)
+
+
+def _cmd_xlabel(state: _State, args: list[str]) -> None:
+    state.etiquette_x = ",".join(args).strip()
+
+
+def _cmd_ylabel(state: _State, args: list[str]) -> None:
+    state.etiquette_y = ",".join(args).strip()
+
+
+def _cmd_legend(state: _State, args: list[str]) -> None:
+    # Seule `legend0` est lue par `draw_grid` : la première légende l'emporte.
+    if state.legende is None:
+        state.legende = ",".join(args).split(":")
+
+
+def _cmd_legendcolors(state: _State, args: list[str]) -> None:
+    if state.couleurs_legende is None:
+        state.couleurs_legende = [_color(c) for c in ",".join(args).split(":")]
+
+
+def _cmd_strokecolor(state: _State, args: list[str]) -> None:
+    if args:
+        state.couleur_trait_canvasdraw = _color(args[0])
+
+
+def _cmd_fontcolor(state: _State, args: list[str]) -> None:
+    if args:
+        state.couleur_police_canvasdraw = _color(args[0])
+
+
+def _cmd_linegraph(state: _State, args: list[str]) -> None:
+    """`linegraph x1:y1:x2:y2…` — une ligne brisée, tracée par `draw_grid`."""
+    valeurs = [_num(v) for v in ",".join(args).split(":") if v.strip()]
+    state.courbes_brisees.append({
+        "points": list(zip(valeurs[0::2], valeurs[1::2])),
+        "couleur": state.couleur_trait_canvasdraw, "lw": int(state.linewidth),
+        "tirete": state.prefixe_tirete,
+    })
+
+
+# `\vec{u}` et consorts : canvasdraw passe le TeX à KaTeX (ou à `wims_mathml`)
+# dans un `div` posé par son coin haut gauche. PAX en écrit le texte, les
+# vecteurs surmontés d'une flèche combinante — le corpus n'y met rien d'autre.
+_TEX_VEC_RE = re.compile(r"\\(?:vec|overrightarrow)\s*\{([^{}]*)\}")
+
+
+def _tex_en_texte(tex: str) -> str:
+    texte = _TEX_VEC_RE.sub(lambda m: "".join(c + "\u20d7" for c in m.group(1)), tex)
+    texte = re.sub(r"\\(?:mathcal|mathrm|mathbf|text|mathit)\s*\{([^{}]*)\}", r"\1", texte)
+    texte = re.sub(r"\\[a-zA-Z]+\s*", "", texte)
+    texte = re.sub(r"\s+", "", texte.replace("{", "").replace("}", ""))
+    # En mode maths, KaTeX ignore les blancs et espace les opérateurs binaires :
+    # `-2\vec{u} dashed` s'y lit « −2u⃗dashed ».
+    return re.sub(r"(?<=[^\s(+=-])([+=-])", r" \1 ", texte)
+
+
+def _cmd_latex(state: _State, args: list[str]) -> None:
+    if len(args) < 3:
+        return
+    x, y = state.tr(_num(args[0]), _num(args[1]))
+    police = state.police_canvasdraw or "12px Arial"
+    m = re.search(r"([\d.]+)px", police)
+    taille = float(m.group(1)) if m else 12.0
+    # KaTeX grossit de 21 % ; sa ligne de base tombe vers 1,2 fois la taille
+    # sous le haut du `div`.
+    state.elements.append(
+        f'<text x="{state.px(x):.2f}" y="{state.py(y) + 1.2 * taille:.2f}" '
+        f'fill="{state.couleur_trait_canvasdraw}" '
+        f'{_attributs_police(f"italic {1.21 * taille:.4g}px Times")}>'
+        f"{_xml_escape(_tex_en_texte(','.join(args[2:])))}</text>"
+    )
+
+
+def _dessiner_grille(state: _State) -> list[str]:
+    """Le calque de `draw_grid`, en éléments SVG (pixels du canvas)."""
+    g = state.grille
+    if g is None:
+        return []
+    w, h = state.width, state.height
+    out: list[str] = []
+    xstep = w * g["xmaj"] / ((state.xmax - state.xmin) or 1)
+    ystep = h * g["ymaj"] / ((state.ymax - state.ymin) or 1)
+    x2step, y2step = xstep / g["xmin"], ystep / g["ymin"]
+    zx, zy = state.px(0), state.py(0)
+    tics, lw, op = g["tics"], g["lw"], g["opacite"]
+    trait = f'stroke="{g["couleur"]}" stroke-opacity="{op:g}"'
+    tirete = ' stroke-dasharray="2,2"' if g["tirete"] else ""
+
+    def chemin(segments: list[tuple[float, float, float, float]], attrs: str, largeur: float) -> None:
+        if segments:
+            d = "".join(f"M{a:.2f} {b:.2f}L{c:.2f} {e:.2f}" for a, b, c, e in segments)
+            out.append(f'<path d="{d}" fill="none" {attrs} stroke-width="{largeur:g}"/>')
+
+    def reseau(px_: float, py_: float) -> list[tuple[float, float, float, float]]:
+        return ([(p, 0, p, h) for p in _pas_grille(zx, w, px_)]
+                + [(0, p, w, p) for p in _pas_grille(zy, h, py_)])
+
+    chemin(reseau(xstep, ystep), trait + tirete, lw)
+    noir = state.couleur_police_canvasdraw
+    taille = g["taille"]
+    if state.etiquette_x is not None:
+        police = f"italic {taille:g}px Arial"
+        corr = int(1.1 * _largeur_texte(state.etiquette_x, taille))
+        out.append(f'<text x="{w - corr:.2f}" y="{zy - tics - 0.4 * taille:.2f}" fill="{noir}" '
+                   f'{_attributs_police(police)}>{_xml_escape(state.etiquette_x)}</text>')
+    if state.etiquette_y is not None:
+        police = f"italic {taille:g}px Arial"
+        corr = int(_largeur_texte(state.etiquette_y, taille) + taille)
+        x0 = zx + tics + taille
+        out.append(f'<text x="{x0:.2f}" y="{corr:.2f}" fill="{noir}" {_attributs_police(police)} '
+                   f'transform="rotate(-90, {x0:.2f}, {corr:.2f})">'
+                   f"{_xml_escape(state.etiquette_y)}</text>")
+    if state.axes:
+        chemin(reseau(x2step, y2step), trait, 0.6 * lw)
+        axes = f'stroke="{g["couleur_axes"]}" stroke-opacity="{op:g}"'
+        chemin([(0, zy, w, zy), (zx, 0, zx, h)], axes, 2 * lw)
+        graduations = (
+            [(p, zy - tics, p, zy + tics) for p in _pas_grille(zx, w, xstep)]
+            + [(zx - tics, p, zx + tics, p) for p in _pas_grille(zy, h, ystep)]
+            + [(p, zy - tics / 2, p, zy + tics / 2) for p in _pas_grille(zx, w, x2step)]
+            + [(zx - tics / 2, p, zx + tics / 2, p) for p in _pas_grille(zy, h, y2step)]
+        )
+        chemin(graduations, axes, lw + 0.5)
+    if state.numerotation:
+        out.extend(_numeroter(state, g, xstep, ystep, zx, zy))
+    for c in state.courbes_brisees:
+        pts = [(state.px(x), state.py(y)) for x, y in c["points"]]
+        if len(pts) >= 2:
+            d = "M" + "L".join(f"{a:.2f} {b:.2f}" for a, b in pts)
+            pointilles = ' stroke-dasharray="2,2"' if c["tirete"] else ""
+            out.append(f'<path d="{d}" fill="none" stroke="{c["couleur"]}" stroke-opacity="{op:g}" '
+                       f'stroke-width="{c["lw"]}"{pointilles}/>')
+    if state.legende:
+        taille_l = taille
+        police = f"bold {taille_l:g}px Arial"
+        y = 2 * taille_l
+        for i, txt in enumerate(state.legende):
+            couleurs = state.couleurs_legende
+            couleur = couleurs[i] if couleurs and i < len(couleurs) else g["couleur"]
+            opacite = "" if couleurs else f' fill-opacity="{op:g}"'
+            out.append(f'<text x="{w - 2 * taille_l:.2f}" y="{y:.2f}" fill="{couleur}"{opacite} '
+                       f'{_attributs_police(police)} text-anchor="end">{_xml_escape(txt)}</text>')
+            y = int(y + 1.5 * taille_l)
+    return out
+
+
+def _numeroter(state: _State, g: dict, xstep: float, ystep: float,
+               zx: float, zy: float) -> list[str]:
+    """La numérotation par défaut des axes (`use_axis_numbering`)."""
+    out: list[str] = []
+    police = g["police"]
+    m = re.search(r"([\d.]+)px", police)
+    taille_police = float(m.group(1)) if m else 12.0
+    taille, tics = g["taille"], g["tics"]
+    attrs = f'fill="{state.couleur_police_canvasdraw}" {_attributs_police(police)}'
+    # `toFixed(Math.log(precision)/Math.log(10))` : la partie entière.
+    prec = int(math.log10(g["precision"]) + 1e-9)
+
+    def ecrire(texte: str, x: float, y: float) -> None:
+        out.append(f'<text x="{x:.2f}" y="{y:.2f}" {attrs}>{_xml_escape(texte)}</text>')
+
+    y_base = state.height if state.ymin >= 0 else zy + 1.4 * taille
+    for sens in (1, -1):
+        cnt, saut, p = 0.0, 1, zx
+        while (p < state.width if sens > 0 else p > 0) and xstep > 0:
+            if saut == 0:
+                txt = f"{cnt:.{prec}f}"
+                corr = _largeur_texte(txt, taille_police)
+                saut = int(1.2 * corr / xstep)
+                ecrire(txt, p - 0.5 * corr, y_base)
+            else:
+                saut -= 1
+            cnt += sens * g["xmaj"]
+            p += sens * xstep
+    for sens in (1, -1):  # `p` croît vers le bas : les y décroissent
+        cnt, saut, p = 0.0, 1, zy
+        while (p < state.height if sens > 0 else p > 0) and ystep > 0:
+            if saut == 0:
+                saut = int(1.4 * taille / ystep)
+                txt = f"{cnt:.{prec}f}"
+                if state.xmin < 0:
+                    corr = int(zx - (2 + tics + _largeur_texte(txt, taille_police)))
+                else:
+                    corr = 1.5 * tics
+                ecrire(txt, int(corr), int(p + 0.4 * taille))
+            else:
+                saut -= 1
+            cnt -= sens * g["ymaj"]
+            p += sens * ystep
+    return out
+
+
+# Les commandes que seul canvasdraw connaît : flydraw les ignore.
+_HANDLERS_CANVASDRAW: dict = {"curve": _cmd_plot, "dcurve": _cmd_dplot}
+
+for _nom, _fn in {
+    "grid": _cmd_grid, "axis": _cmd_axis, "axisnumbering": _cmd_axisnumbering,
+    "precision": _cmd_precision, "xlabel": _cmd_xlabel, "ylabel": _cmd_ylabel,
+    "legend": _cmd_legend, "legendcolors": _cmd_legendcolors,
+    "strokecolor": _cmd_strokecolor, "fontcolor": _cmd_fontcolor,
+    "linegraph": _cmd_linegraph, "latex": _cmd_latex,
+}.items():
+    _HANDLERS_CANVASDRAW[_nom] = _fn
+
+
+
 def _svg(width: int, height: int, corps: str) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" '
@@ -2803,14 +3352,23 @@ def _svg(width: int, height: int, corps: str) -> str:
 
 
 def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
-            variables: dict[str, float] | None = None) -> "_State":
+            variables: dict[str, float] | None = None, dialecte: str = "flydraw") -> "_State":
     """Exécute les commandes et rend l'état final (éléments SVG compris)."""
     w, h = int(width), int(height)
     # Pixel-mode defaults: ymin=h, ymax=0 inverts the y-flip in py() so that
     # raw pixel y values pass through unchanged.
-    state = _State(width=w, height=h, xmin=0, xmax=w, ymin=h, ymax=0, base_dir=base_dir)
+    state = _State(width=w, height=h, xmin=0, xmax=w, ymin=h, ymax=0, base_dir=base_dir,
+                   dialecte=dialecte)
+    if dialecte == "canvasdraw":
+        state.opacite_trait, state.opacite_fond = 0.8, 0.5
+        # Sans `xrange`/`yrange`, canvasdraw se place dans le « quadrant I »
+        # (`xmin=0;xmax=xsize;ymin=0;ymax=ysize`) : y vers le **haut**,
+        # contrairement aux pixels de flydraw. `oefqcm3` écrit ses graduations
+        # à y = 10 : sous l'axe chez WIMS, au-dessus chez PAX.
+        state.ymin, state.ymax = 0, h
     variables = dict(variables or {})
     jeton = _VARIABLES.set(variables)
+    jeton_dialecte = _DIALECTE.set(dialecte)
     try:
         raw_lines = re.split(r"[\n\t;]", commands)
         for raw in raw_lines:
@@ -2835,6 +3393,8 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
             args = _split_args(arg_str) if arg_str else []
             args = _fusionner_couleur(cmd, args)
             handler = _HANDLERS.get(cmd)
+            if dialecte == "canvasdraw":
+                handler = _HANDLERS_CANVASDRAW.get(cmd, handler)
             if not handler:
                 _log_unhandled_cmd(cmd, arg_str)
                 continue
@@ -2854,8 +3414,21 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
             handler(state, args)
             if tirete:
                 state.elements[avant:] = [_tireter(e) for e in state.elements[avant:]]
+            if state.dialecte == "canvasdraw":
+                state.elements[avant:] = [_opacifier(state, e) for e in state.elements[avant:]]
+                if cmd not in _SANS_PARAMETRE and cmd != "centered":
+                    state.centrer_suivant = False  # `reset()` après chaque objet
+                # Chaque objet laisse sa couleur dans `stroke_color`, que
+                # `latex` et `linegraph` reprennent.
+                if meta and len(args) > (0 if meta[1] < 0 else meta[0]):
+                    couleur = _color(args[0 if meta[1] < 0 else meta[0]])
+                    if re.fullmatch(r"#[0-9a-fA-F]{6}", couleur):
+                        state.couleur_trait_canvasdraw = couleur
+        if state.dialecte == "canvasdraw":
+            state.elements[:0] = _dessiner_grille(state)
     finally:
         _VARIABLES.reset(jeton)
+        _DIALECTE.reset(jeton_dialecte)
     return state
 
 
@@ -2866,7 +3439,8 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
 _SVG_CACHE: dict[str, str] = {}
 
 
-def flydraw_to_url(width: int, height: int, commands: str, base_dir: str | None = None) -> str:
+def flydraw_to_url(width: int, height: int, commands: str, base_dir: str | None = None,
+                   dialecte: str = "flydraw") -> str:
     """Render commands, cache the SVG, and return a comma-free URL.
 
     A data URI would contain ``,`` (between ``;base64`` and the data), which
@@ -2874,7 +3448,7 @@ def flydraw_to_url(width: int, height: int, commands: str, base_dir: str | None 
     (``!shuffle``, ``!positionof``). Instead, we hash the rendered SVG, cache
     it, and emit ``/api/render/svg/<hash>``.
     """
-    svg = flydraw_to_svg(width, height, commands, base_dir=base_dir)
+    svg = flydraw_to_svg(width, height, commands, base_dir=base_dir, dialecte=dialecte)
     key = hashlib.sha1(svg.encode("utf-8")).hexdigest()[:16]
     _SVG_CACHE[key] = svg
     return f"/api/render/svg/{key}"

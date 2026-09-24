@@ -200,7 +200,8 @@ class _SlibMixin:
             if path == "oef/draw.phtml":
                 url = flydraw_anime_to_url(xsize, ysize, body, base_dir=mod_dir)
             else:
-                url = flydraw_to_url(xsize, ysize, body, base_dir=mod_dir)
+                url = flydraw_to_url(xsize, ysize, body, base_dir=mod_dir,
+                                     dialecte="canvasdraw")
             # $ins_url stays a bare URL — WIMS callers wrap it explicitly in <img>.
             # $canvasdraw_out is used inline in question text without an explicit
             # <img>, so we store it as a ready-to-render <img> tag.

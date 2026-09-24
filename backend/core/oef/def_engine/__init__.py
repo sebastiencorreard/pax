@@ -3048,7 +3048,8 @@ class DefEngine(_SlibMixin):
         mod_dir = (
             os.path.dirname(os.path.dirname(self.def_path)) if self.def_path else None
         )
-        url = flydraw_to_url(largeur, hauteur, script, base_dir=mod_dir)
+        url = flydraw_to_url(largeur, hauteur, script, base_dir=mod_dir,
+                             dialecte="canvasdraw")
         return f'<img src="{url}" alt="">'
 
     def _cmd_makelist(self, args: str, numerique: bool = False) -> str:
