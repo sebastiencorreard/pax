@@ -1,6 +1,6 @@
 # Échantillon — exercices notés par `:test` qui donnent 0 à tout
 
-*Tiré le 2026-09-24 (graine `20260924`, une famille de module au plus).*
+*Tiré le 2026-09-24 (graine `20260924`, une famille de module au plus). Le n° 4, slovène (`parteq.si`), a été remplacé par le tirage suivant en français.*
 
 ## Pourquoi cette liste
 
@@ -31,7 +31,7 @@ défauts trouvés disent où creuser, et la famille entière est à revoir.
 | 1 | 5: Bow tie — `H1/algebra/addfig.en` | 5 | [ouvrir](http://localhost:3000/exercise/H1~algebra~addfig.en~src~tie) | |
 | 2 | Syracuse 4 — `H1/algebra/challenge2004.fr` | 1 | [ouvrir](http://localhost:3000/exercise/H1~algebra~challenge2004.fr~src~syracuse4) | |
 | 3 | 6: Tabouret — `H1/algebra/challenge2005b.fr` | 6 | [ouvrir](http://localhost:3000/exercise/H1~algebra~challenge2005b.fr~src~stool) | |
-| 4 | 3 èleni z oklepaji — `H2/algebra/parteq.si` | 3 | [ouvrir](http://localhost:3000/exercise/H2~algebra~parteq.si~src~3term1) | |
+| 4 | Nombres premiers entre eux 5 — `H4/arithmetic/OEFevalwimspgcd.fr` | 1 | [ouvrir](http://localhost:3000/exercise/H4~arithmetic~OEFevalwimspgcd.fr~src~cplpremier5) | |
 | 5 | Arithmetic table 2x3 — `H3/algebra/arithtable.nl` | 6 | [ouvrir](http://localhost:3000/exercise/H3~algebra~arithtable.nl~src~table2x3) | |
 | 6 | Quotient* — `H3/algebra/oefpuis.fr` | 2 | [ouvrir](http://localhost:3000/exercise/H3~algebra~oefpuis.fr~src~2quotient) | |
 | 7 | Classer des fonctions B (6 fonctions) — `H3/analysis/oefaffif.fr` | 3 | [ouvrir](http://localhost:3000/exercise/H3~analysis~oefaffif.fr~src~classer3) | |
