@@ -662,10 +662,12 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     « fix(redox) ») : la virgule de tête venait d'un `$(v[;j])` mal élagué,
     `H -> H ~ équation` de l'algèbre d'équations, portée et confrontée au
     binaire sur 79 278 compositions.
-  - `graph/graphviz` et `draw/graphvizpoints` (10 appels, `oeflceb`,
-    `oefadsubrel`) : `!exec graphviz` suppose le binaire `dot`, absent de
-    l'image. Ajouter `graphviz` au Dockerfile, ou dessiner le graphe dans le
-    navigateur.
+  - ~~`graph/graphviz` et `draw/graphvizpoints`~~ — portés le 2026-09-24 :
+    Graphviz est installé dans l'image (décision de l'utilisateur : fidélité
+    plutôt qu'un rendu dans le navigateur), `!exec graphviz` porte
+    `bin/graphviz` (`def_engine/graphviz.py`). Huit énoncés affichaient une
+    image vide ; `!words` manquait aussi, qui étiquetait les points
+    cliquables d'`oeflceb` `UNKNOWN_CMD:words`.
   - `text/crossword` (5 appels, `oefvocmarine`, `oefsolaire`) : `!exec
     crossword` est un binaire WIMS (`wims/src/Misc/crossword/crossword.c`,
     1 128 lignes) ; la grille sort vide.

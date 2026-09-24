@@ -812,6 +812,11 @@ _SYNONYMES_CALC = {
     "items": "item",
     "itemcount": "itemcnt",
     "position": "positionof",
+    "positions": "positionof",
+    # `slib/draw/graphvizpoints` lit l'étiquette d'un nœud par `!words 7 to -5
+    # of …` : non reconnu, chaque point cliquable d'`oeflceb` s'étiquetait
+    # `UNKNOWN_CMD:words`.
+    "words": "word",
     "listunique": "listuniq",
 }
 
@@ -2901,8 +2906,8 @@ class DefEngine(_SlibMixin):
     def _cmd_exec(self, args: str) -> str:
         """`!exec <programme> <entrée>` — les binaires que WIMS appelle.
 
-        Aucun n'existe ici : `maxima` et `pari` sont émulés de longue date, et
-        l'image ne contient ni l'un ni l'autre. `units-filter` (arrondi aux
+        Aucun n'existe ici, sauf Graphviz : `maxima` et `pari` sont émulés de
+        longue date, et l'image ne contient ni l'un ni l'autre. `units-filter` (arrondi aux
         chiffres significatifs) et `chemeq` (chimie) suivent la même voie.
 
         `chemeq` lit son option dans la variable `chemeq_option`, que le script
@@ -2927,7 +2932,7 @@ class DefEngine(_SlibMixin):
             return "-1"
 
         m = re.match(
-            r"(maxima|pari|units-filter|chemeq|canvasdraw|moneyprint|float_calc|lceb)\b\s*(.*)",
+            r"(maxima|pari|units-filter|chemeq|canvasdraw|moneyprint|float_calc|lceb|graphviz)\b\s*(.*)",
             args, re.DOTALL | re.I,
         )
         if not m:
@@ -2955,6 +2960,14 @@ class DefEngine(_SlibMixin):
             return chemeq(expr, str(self.ctx.get("chemeq_option", "")))
         if engine == "canvasdraw":
             return self._exec_canvasdraw(expr)
+        if engine == "graphviz":
+            # Le seul vrai binaire : Graphviz, installé dans l'image. Moteur et
+            # format de sortie se lisent, comme chez WIMS, dans les variables
+            # que les slibs posent avant l'appel (`w_graphviz_*` du script).
+            from .graphviz import graphviz  # noqa: PLC0415
+
+            return graphviz(expr, str(self.ctx.get("graphviz_format", "")),
+                            str(self.ctx.get("graphviz_output", "")))
         return ""
 
     def _exec_canvasdraw(self, script: str) -> str:
