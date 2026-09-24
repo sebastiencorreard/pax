@@ -237,6 +237,10 @@ export function useKatex() {
     // WIMS matrix brackets → pmatrix. Run early so column-separator commas are
     // consumed here, before decimalComma would touch a `\d,\d` pair.
     expr = wimsMatrix(expr)
+    // `f^'(0)` : MathJax (celui de WIMS) lit le `'` comme exposant, KaTeX le
+    // refuse (« Expected group after '^' ») et sort la formule en rouge
+    // (`oefderivee1S/eqtgte2`, 12 exercices du corpus). Le prime, en groupe.
+    expr = expr.replace(/\^\s*('+)/g, (_m, p: string) => `^{${'\\prime'.repeat(p.length)}}`)
     expr = doubleScript(expr)
     // Drop a stray backslash before a lone lowercase variable, e.g. WIMS's
     // `\(\x^2\)` → `x^2`. The lookahead `(?![a-zA-Z])` spares real commands
