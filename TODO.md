@@ -112,11 +112,24 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     tiretée, non un segment ; une droite en mode pixel (repère retourné)
     dégénérait en point — le cube d'`evalwimssections` perdait la moitié de
     ses droites. 147 instantanés, figures seules.
-  - Relevés, non traités : une commande dont un paramètre requis n'est pas un
-    nombre est **rejetée** par le C (`hline black,0,0` : couleur mal placée),
-    PAX la trace ; l'émulation Maxima/PARI écrit `**` là où Maxima écrit `^`,
-    que l'évaluateur de flydraw ne comprend pas — `levelcurve` d'`oefconic`
-    ne s'affiche que grâce à la tolérance de PAX.
+  - [x] **`bad_parms`** (2026-09-24) : PAX trace désormais ce que
+    `parse_parms` refuse — trop peu d'items (une couleur en compte trois,
+    après `substit` ; `circle 0,0,10` sans couleur) ou un paramètre requis qui
+    n'est pas un nombre fini (`line 0,1,1-1,1` d'`addfig`, `\rep` d'`oefrelat`).
+    Rejoué ligne à ligne contre le binaire sur 146 exercices : 373 refus sur
+    374 concordent. L'exception, `exoder/Lecturegraphiq4`, porte un
+    `print(-2\1)` — un résidu PARI non émulé en amont.
+    Le relevé a fait tomber cinq lectures fausses, qui rendaient 0 en silence :
+    le `=` après le nom (`xrange=-8,8`, `linewidth=2`, effacé par `obj_main`),
+    la notation scientifique (`6.1e-17`), `PI`, la variable `animstep`
+    (posée à chaque image par `insdraw..processor`), et 83 noms de couleur de
+    `colortab` inconnus de PAX, peints en noir. Restent **cinq valeurs** qui
+    divergent de WIMS (`green` #00a000, `maroon`, `navy`, `purple`, `silver`)
+    — gardées, faute de décision, parce qu'elles toucheraient d'innombrables
+    figures. `crimson`, `indigo`, `tan` ne sont pas des couleurs pour WIMS.
+  - Relevé, non traité : l'émulation Maxima/PARI écrit `**` là où Maxima
+    écrit `^`, que l'évaluateur de flydraw ne comprend pas — `levelcurve`
+    d'`oefconic` ne s'affiche que grâce à la tolérance de PAX.
 
   Reste, par nombre d'exercices :
   - [x] **canvasdraw** — porté le 2026-09-24 comme un **dialecte** de

@@ -135,6 +135,69 @@ _COLORS: dict[str, str] = {
     "yellowgreen": "#9acd32",
 }
 
+# `colortab` de flydraw (`nametab.c`) : les noms que `substit` développe en
+# `r,g,b`. Un nom absent n'est pas une couleur pour WIMS — `crimson`, `indigo`
+# et `tan` n'en sont pas —, et la ligne qui le porte manque d'items. Cinq
+# valeurs divergent de `_COLORS` (`green` #00a000, `maroon`, `navy`, `purple`,
+# `silver`) : PAX garde les siennes au rendu.
+_COULEURS_WIMS: dict[str, str] = {
+    "aliceblue": "#f0f8ff", "antiquewhite": "#faebd7", "aqua": "#00ffff",
+    "aquamarine": "#7fffd4", "azure": "#f0ffff", "beige": "#f5f5dc",
+    "bisque": "#ffe4c4", "black": "#000000", "blanchedalmond": "#ffebcd",
+    "blue": "#0000ff", "blueviolet": "#8a2be2", "brass": "#b5a642",
+    "bronze": "#8c7824", "brown": "#a52a2a", "burlywood": "#deb887",
+    "cadetblue": "#5f9ea0", "chartreuse": "#7fff00", "chocolate": "#d2691e",
+    "coral": "#ff7f50", "cornflowerblue": "#6495ed", "cornsilk": "#fff8dc",
+    "cyan": "#00ffff", "darkblue": "#00008b", "darkcyan": "#008b8b",
+    "darkgoldenrod": "#b8860b", "darkgray": "#a9a9a9", "darkgreen": "#006400",
+    "darkgrey": "#a9a9a9", "darkkhaki": "#bdb76b", "darkmagenta": "#8b008b",
+    "darkolivegreen": "#556b2f", "darkorange": "#ff8c00", "darkorchid": "#9932cc",
+    "darkred": "#8b0000", "darksalmon": "#e9967a", "darkseagreen": "#8fbc8f",
+    "darkslateblue": "#483d8b", "darkslategray": "#2f4f4f", "darkslategrey": "#2f4f4f",
+    "darkturquoise": "#00ced1", "darkviolet": "#9400d3", "deeppink": "#ff1493",
+    "deepskyblue": "#00bfff", "dimgray": "#696969", "dimgrey": "#696969",
+    "dodgerblue": "#1e90ff", "firebrick": "#b22222", "flesh": "#f5ccb0",
+    "floralwhite": "#fffaf0", "forestgreen": "#228b22", "fuchsia": "#ff00ff",
+    "gainsboro": "#dcdcdc", "ghostwhite": "#f8f8ff", "gold": "#ffd700",
+    "goldenrod": "#daa520", "gray": "#bebebe", "green": "#00a000",
+    "greenyellow": "#adff2f", "grey": "#bebebe", "honeydew": "#f0fff0",
+    "hotpink": "#ff69b4", "indianred": "#cd5c5c", "ivory": "#fffff0",
+    "khaki": "#f0e68c", "lavender": "#e6e6fa", "lavenderblush": "#fff0f5",
+    "lawngreen": "#7cfc00", "lemonchiffon": "#fffacd", "lightblue": "#add8e6",
+    "lightcoral": "#f08080", "lightcyan": "#e0ffff", "lightgoldenrod": "#eedd82",
+    "lightgoldenrodyellow": "#fafad2", "lightgray": "#d3d3d3", "lightgreen": "#90ee90",
+    "lightgrey": "#d3d3d3", "lightpink": "#ffb6c1", "lightsalmon": "#ffa07a",
+    "lightseagreen": "#20b2aa", "lightskyblue": "#87cefa", "lightslateblue": "#8470ff",
+    "lightslategray": "#778899", "lightslategrey": "#778899",
+    "lightsteelblue": "#b0c4de", "lightyellow": "#ffffe0", "lime": "#00ff00",
+    "limegreen": "#32cd32", "linen": "#faf0e6", "magenta": "#ff00ff",
+    "maroon": "#b03060", "mediumaquamarine": "#66cdaa", "mediumblue": "#0000cd",
+    "mediumorchid": "#ba55d3", "mediumpurple": "#9370db", "mediumseagreen": "#3cb371",
+    "mediumslateblue": "#7b68ee", "mediumspringgreen": "#00fa9a",
+    "mediumturquoise": "#48d1cc", "mediumvioletred": "#c71585",
+    "midnightblue": "#191970", "mintcream": "#f5fffa", "mistyrose": "#ffe4e1",
+    "moccasin": "#ffe4b5", "navajowhite": "#ffdead", "navy": "#23238e",
+    "navyblue": "#000080", "oldlace": "#fdf5e6", "olive": "#808000",
+    "olivedrab": "#6b8e23", "orange": "#ffa500", "orangered": "#ff4500",
+    "orchid": "#da70d6", "palegoldenrod": "#eee8aa", "palegreen": "#98fb98",
+    "paleturquoise": "#afeeee", "palevioletred": "#db7093", "papayawhip": "#ffefd5",
+    "peachpuff": "#ffdab9", "peru": "#cd853f", "pink": "#ffc0cb", "plum": "#dda0dd",
+    "powderblue": "#b0e0e6", "purple": "#a020f0", "quartz": "#d9d9f2",
+    "red": "#ff0000", "rosybrown": "#bc8f8f", "royalblue": "#4169e1",
+    "saddlebrown": "#8b4513", "salmon": "#fa8072", "sandybrown": "#f4a460",
+    "seagreen": "#2e8b57", "seashell": "#fff5ee", "sienna": "#a0522d",
+    "silver": "#e6e8fa", "skyblue": "#87ceeb", "slateblue": "#6a5acd",
+    "slategray": "#708090", "slategrey": "#708090", "snow": "#fffafa",
+    "springgreen": "#00ff7f", "steelblue": "#4682b4", "teal": "#008080",
+    "thistle": "#d8bfd8", "tomato": "#ff6347", "turquoise": "#40e0d0",
+    "violet": "#ee82ee", "violetred": "#d02090", "wheat": "#f5deb3",
+    "white": "#ffffff", "whitesmoke": "#f5f5f5", "yellow": "#ffff00",
+    "yellowgreen": "#9acd32"
+}
+# Les noms que PAX ignorait, et qu'il peignait en noir.
+for _nom, _hexa in _COULEURS_WIMS.items():
+    _COLORS.setdefault(_nom, _hexa)
+
 # WIMS flydraw uses GD built-in bitmap fonts; these px values approximate each
 # font's glyph height: gdFontSmall ≈ 12, gdFontMediumBold ≈ 13, gdFontLarge ≈ 16,
 # gdFontGiant ≈ 15. PAX previously mapped `giant` to 22, making labels like the
@@ -252,6 +315,8 @@ _NUM_NS: dict = {
     "min": min,
     "max": max,
     "pi": _math.pi,
+    "PI": _math.pi,
+    "Pi": _math.pi,
     "e": _math.e,
 }
 
@@ -260,7 +325,10 @@ _NUM_NS: dict = {
 # restricted namespace, so identifier coverage is bounded by `_NUM_NS`.
 _ARITH_RE = re.compile(r"^[\w\s+\-*/.,()^]+$")
 # Un entier littéral, pour l'évaluer en flottant (voir `_num`).
-_ENTIER_RE = re.compile(r"(?<![\w.])(\d+)(?![\w.])")
+_ENTIER_RE = re.compile(r"(?<![\w.])(?<![eE][+-])(\d+)(?![\w.])")
+
+
+_NAN = float("nan")
 
 
 def _num(s: str) -> float:
@@ -283,6 +351,10 @@ def _num_brut(s: str) -> float:
     ``cos(60*pi/180)`` (after WIMS variable substitution); the C flydraw
     binary evaluates these via its expression parser. We do the same in a
     restricted ``eval`` namespace covering basic trig/exp + ``pi``.
+
+    Ce qui ne se lit pas comme un nombre vaut `NaN`, comme chez WIMS : c'est
+    ce qui fait rejeter une commande (`_parametres_refuses`). `_num` le ramène
+    à 0 pour tous les autres usages.
     """
     s = s.strip()
     if not s:
@@ -309,7 +381,7 @@ def _num_brut(s: str) -> float:
     # `eval` du moteur (`safe_math`) vaut ici aussi — aucun nombre ni aucune
     # expression de figure n'a besoin d'un dunder ou d'un accès par attribut.
     if not entree_math_sure(s):
-        return 0.0
+        return _NAN
     if _ARITH_RE.match(s):
         # `^` est la puissance pour l'évaluateur de WIMS, le « ou exclusif »
         # pour Python : `oefmouvement` place ses points en
@@ -333,8 +405,89 @@ def _num_brut(s: str) -> float:
                     return float(eval(stripped, espace))  # noqa: S307
                 except Exception:
                     pass
-            return 0.0
-    return 0.0
+            return _NAN
+    return _NAN
+
+
+# `objtab` (`nametab.c`) : pour chaque commande, le nombre de paramètres
+# **requis** et la position de la couleur (-1 : avant les paramètres, 1 ou 2 :
+# une ou deux couleurs après). Les commandes sans l'un ni l'autre n'y sont pas.
+_OBJTAB: dict[str, tuple[int, int]] = {
+    "affine": (6, 0), "angle": (5, 1), "animstep": (1, 0), "arc": (6, 1), "arrow": (5, 1),
+    "arrow2": (5, 1), "arrows": (5, -1), "arrows2": (5, -1), "ball": (3, 1), "brokenline":
+    (4, -1), "circle": (3, 1), "circles": (3, -1), "copy": (6, 0), "copyresized": (8, 0),
+    "crosshair": (2, 1), "crosshairs": (2, -1), "crosshairsize": (1, 0), "curve": (0, -1),
+    "darrow": (5, 1), "darrow2": (5, 1), "darrows": (5, -1), "darrows2": (5, -1),
+    "dasharrow": (5, 1), "dasharrow2": (5, 1), "dashedarrow": (5, 1), "dashedarrow2": (5,
+    1), "dashedline": (4, 1), "dashedlines": (4, -1), "dashhalfline": (4, 1), "dashline":
+    (4, 1), "dashlines": (4, -1), "dashsegment": (4, 1), "demiline": (4, 1), "dhline": (2,
+    1), "diafill": (4, 1), "diamondfill": (4, 1), "disk": (3, 1), "diskfill": (4, 1),
+    "dline": (4, 1), "dlines": (4, -1), "dotfill": (4, 1), "dplot": (0, -1), "dpolyline":
+    (4, -1), "dsegment": (4, 1), "dvline": (2, 1), "ellipse": (4, 1), "ellipses": (4, -1),
+    "fcircle": (3, 1), "fcircles": (3, -1), "fellipse": (4, 1), "fhyptriangle": (6, 1),
+    "fill": (2, 1), "fillcircle": (3, 1), "filledcircle": (3, 1), "filledellipse": (4, 1),
+    "filledpoly": (4, -1), "filledpolygon": (4, -1), "filledrect": (4, 1),
+    "filledrectangle": (4, 1), "filledsquare": (3, 1), "filledtriangle": (6, 1),
+    "fillellipse": (4, 1), "fillpoly": (4, -1), "fillpolygon": (4, -1), "fillrect": (4, 1),
+    "fillrectangle": (4, 1), "fillsquare": (3, 1), "filltoborder": (2, 2), "filltriangle":
+    (6, 1), "flood": (2, 1), "floodfill": (2, 1), "fpoly": (4, -1), "fpolygon": (4, -1),
+    "frect": (4, 1), "frectangle": (4, 1), "fsquare": (3, 1), "ftriangle": (6, 1),
+    "gridfill": (4, 1), "halfline": (4, 1), "hatchfill": (4, 1), "hdline": (2, 1), "hline":
+    (2, 1), "hyplines": (4, -1), "hypsegments": (4, -1), "hyptriangle": (6, 1), "insert":
+    (6, 0), "lattice": (8, 1), "levelcurve": (0, -1), "levelstep": (1, 0), "line": (4, 1),
+    "linear": (4, 0), "lines": (4, -1), "linewidth": (1, 0), "parallel": (7, 1), "pixels":
+    (2, -1), "plot": (0, -1), "plotjump": (1, 0), "plotstep": (1, 0), "plotsteps": (1, 0),
+    "point": (2, 1), "pointfill": (4, 1), "points": (2, -1), "poly": (4, -1), "polygon":
+    (4, -1), "polyline": (4, -1), "print": (2, -1), "range": (4, 0), "ranget": (2, 0),
+    "rangex": (2, 0), "rangey": (2, 0), "rays": (4, -1), "rect": (4, 1), "rectangle": (4,
+    1), "resetmatrix": (1, 0), "resettransform": (1, 0), "resetvector": (1, 0), "rotate":
+    (1, 0), "rotation": (1, 0), "seg": (4, 1), "segment": (4, 1), "segments": (4, -1),
+    "setmatrix": (5, 0), "setparallelogram": (6, 0), "setpixel": (2, 1), "settransform":
+    (7, 0), "setvector": (3, 0), "size": (2, 0), "square": (3, 1), "string": (2, -1),
+    "stringup": (2, -1), "text": (2, -1), "textup": (2, -1), "trange": (2, 0), "translate":
+    (2, 0), "translation": (2, 0), "transparent": (0, -1), "triangle": (6, 1), "tstep": (1,
+    0), "tsteps": (1, 0), "vdline": (2, 1), "vimg": (1, 0), "vline": (2, 1), "write": (2,
+    -1), "writeup": (2, -1), "xrange": (2, 0), "yrange": (2, 0)
+}
+
+
+def _rgb_wims(nom: str) -> str:
+    hexa = _COULEURS_WIMS.get(nom)
+    if hexa is None:
+        return nom
+    return ",".join(str(int(hexa[k:k + 2], 16)) for k in (1, 3, 5))
+
+
+def _parametres_refuses(cmd: str, args: list[str]) -> bool:
+    """`parse_parms` refuserait-il cette ligne (`bad_parms`) ?
+
+    Deux cas, vérifiés au binaire : trop peu d'items — une couleur en compte
+    trois, un nom étant d'abord développé par `substit` (`circle 0,0,10` sans
+    couleur est refusé) —, ou un paramètre **requis** qui n'est pas un nombre
+    fini (`segment 0,0,abc,1,black`). Un paramètre facultatif illisible vaut 0
+    et n'arrête rien. PAX traçait tout cela, en lisant 0 et en noircissant.
+    """
+    meta = _OBJTAB.get(cmd)
+    if meta is None:
+        return False
+    requis, pos = meta
+    items: list[str] = []
+    for a in args:
+        if pos and re.fullmatch(r"\s*#[0-9a-fA-F]{6}\s*", a):
+            items.extend(["0"] * 3)  # extension de PAX : une couleur hexadécimale
+        elif pos:
+            # `substit` remplace chaque **mot** qui nomme une couleur, bordé
+            # d'un blanc ou d'une virgule : `transparent green` devient
+            # `transparent 0,160,0` — trois items, dont le premier illisible.
+            mots = re.sub(r"(?<![^\s,])[A-Za-z]\w*(?![^\s,])",
+                          lambda m: _rgb_wims(m.group(0)), a)
+            items.extend(_split_args(mots) if mots != a else [a])
+        else:
+            items.append(a)
+    if len(items) < requis + 3 * abs(pos):
+        return True
+    parametres = items[3:] if pos < 0 else items
+    return any(not math.isfinite(_num_brut(p)) for p in parametres[:requis])
 
 
 def _split_args(arg_str: str) -> list[str]:
@@ -3367,6 +3520,7 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
         # à y = 10 : sous l'axe chez WIMS, au-dessus chez PAX.
         state.ymin, state.ymax = 0, h
     variables = dict(variables or {})
+    variables.setdefault("animstep", 0.0)  # `vartab[0]`, nul par défaut
     jeton = _VARIABLES.set(variables)
     jeton_dialecte = _DIALECTE.set(dialecte)
     try:
@@ -3390,7 +3544,18 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
                 _PREFIXES[cmd](state)
                 continue
             arg_str = m.group(2)
+            if dialecte == "flydraw":
+                # `obj_main` efface le `=` (ou `:=`) qui suit le nom :
+                # `xrange=-8,8` est un `xrange`. PAX lisait `=-8` pour 0.
+                arg_str = re.sub(r"^:?=", "", arg_str.strip())
             args = _split_args(arg_str) if arg_str else []
+            if dialecte == "flydraw" and cmd == "animstep":
+                # `obj_animstep` : la variable que `insdraw..processor` pose
+                # à chaque image (`animstep=$i`).
+                variables["animstep"] = _num(args[0]) if args else 0.0
+                continue
+            if dialecte == "flydraw" and _parametres_refuses(cmd, args):
+                continue
             args = _fusionner_couleur(cmd, args)
             handler = _HANDLERS.get(cmd)
             if dialecte == "canvasdraw":
@@ -3466,8 +3631,8 @@ def flydraw_anime_to_url(width: int, height: int, commands: str,
     """`oef/draw.phtml` : un `animate f,d,b` en tête du corps en fait un GIF animé.
 
     `insdraw..processor` rend alors f images, la i-ième précédée de
-    `s=i/f` (et d'un `animstep=i` que `obj_main` rejette : le nom est trop long
-    pour une variable), puis `whirlgif` les assemble, `d` secondes par image,
+    `animstep=i` (la commande `animstep`, `=` effacé) et `s=i/f`, puis
+    `whirlgif` les assemble, `d` secondes par image,
     `b` boucles (0 : sans fin). `OEFevalwimstrian` y montre la construction
     d'un triangle au compas ; sans cela PAX figeait la première image — un
     segment de longueur nulle.
@@ -3499,7 +3664,7 @@ def flydraw_anime_to_url(width: int, height: int, commands: str,
     centiemes = int(delai * 100)
     pas = 0.1 if centiemes <= 1 else centiemes / 100
 
-    etats = [_rendre(width, height, corps, base_dir, {"s": i / images})
+    etats = [_rendre(width, height, corps, base_dir, {"s": i / images, "animstep": i})
              for i in range(images)]
     listes = [e.elements for e in etats]
     debut = 0

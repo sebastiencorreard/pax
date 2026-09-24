@@ -107,9 +107,12 @@ class TestFlydrawPrimitives:
         svg = flydraw_to_svg(300, 80, "range -5,5,-1,1\nsegment 0,0,1,1,blue")
         assert 'stroke="#0000ff"' in svg
 
-    def test_unknown_color_falls_back_black(self):
+    def test_unknown_color_rejects_the_command(self):
+        # `substit` ne développe pas un nom inconnu : il ne reste que 5 items
+        # sur les 7 requis, et `parse_parms` refuse la ligne (vérifié au
+        # binaire). PAX la traçait en noir.
         svg = flydraw_to_svg(300, 80, "range -5,5,-1,1\nsegment 0,0,1,1,fuchsia2")
-        assert 'stroke="#000000"' in svg
+        assert "<line" not in svg
 
     def test_tab_separated_commands(self):
         # WIMS-script packs multi-command values with tabs (val10=cmd\tcmd\tcmd).
@@ -606,18 +609,18 @@ class TestTransformations:
         assert b == pytest.approx((50.0, 250.0, 241.51, 89.30), abs=0.01)
 
     def test_killrotate_ramene_l_identite(self):
-        svg = self.trace("rotate 90\tkillrotate\tsegment 0,0,10,0")
+        svg = self.trace("rotate 90\tkillrotate\tsegment 0,0,10,0,black")
         assert _lignes(svg) == [(50.0, 250.0, 150.0, 250.0)]
 
     def test_translation_survit_a_killlinear(self):
         # `obj_killlinear` ne touche pas au vecteur ; `killaffine` efface tout.
-        svg = self.trace("translate 2,3\tlinear 2,0,0,2\tkilllinear\tsegment 0,0,1,0")
+        svg = self.trace("translate 2,3\tlinear 2,0,0,2\tkilllinear\tsegment 0,0,1,0,black")
         assert _lignes(svg) == [(70.0, 220.0, 80.0, 220.0)]
-        svg = self.trace("affine 2,0,0,2,2,3\tkillaffine\tsegment 0,0,1,0")
+        svg = self.trace("affine 2,0,0,2,2,3\tkillaffine\tsegment 0,0,1,0,black")
         assert _lignes(svg) == [(50.0, 250.0, 60.0, 250.0)]
 
     def test_linear_puis_translation(self):
-        svg = self.trace("translate 2,3\tlinear 1,0.5,0,1\tsegment 0,0,0,10")
+        svg = self.trace("translate 2,3\tlinear 1,0.5,0,1\tsegment 0,0,0,10,black")
         assert _lignes(svg) == [(70.0, 220.0, 120.0, 120.0)]
 
     def test_les_tailles_ne_tournent_pas(self):
@@ -636,7 +639,7 @@ class TestSynonymesNametab:
     """Les noms que `nametab.c` donne à un même objet — avec sa variante."""
 
     def test_seg_est_segment(self):
-        assert _lignes(flydraw_to_svg(100, 100, "seg 0,0,10,10")) == [
+        assert _lignes(flydraw_to_svg(100, 100, "seg 0,0,10,10,black")) == [
             (0.0, 0.0, 10.0, 10.0)
         ]
 
@@ -875,3 +878,66 @@ def test_une_couleur_nan_fait_rejeter_la_commande():
     # Binaire : `segment 0,20,40,20,NaN` → `bad_parms`, rien n'est tracé.
     svg = flydraw_to_svg(40, 40, "segment 0,20,40,20,NaN\nsegment 0,30,40,30,red")
     assert svg.count("<line") == 1 and 'stroke="#ff0000"' in svg
+
+
+class TestParametresRefuses:
+    """`parse_parms` : une commande mal formée n'est pas tracée (`bad_parms`).
+
+    Chaque cas a été passé au binaire `wims/src/Flydraw/flydraw`.
+    """
+
+    @staticmethod
+    def objets(ligne: str) -> int:
+        svg = flydraw_to_svg(60, 60, "xrange -1,1\nyrange -1,1\n" + ligne)
+        return svg.count("<") - 2  # moins <svg> et </svg>
+
+    def test_parametre_requis_non_numerique(self):
+        assert self.objets("hline toto,0,black") == 0
+        assert self.objets("segment 0,0,abc,1,black") == 0
+
+    def test_couleur_manquante(self):
+        assert self.objets("circle 0,0,10") == 0
+
+    def test_nom_de_couleur_developpe_en_trois_items(self):
+        # `substit` : `black,0,0` → `0,0,0,0,0` ; les deux premiers zéros
+        # sont les paramètres, le reste la couleur. Tracé chez WIMS.
+        assert self.objets("hline black,0,0") == 1
+        assert self.objets("hline 0,0,black") == 1
+
+    def test_texte_libre_apres_les_requis(self):
+        svg = flydraw_to_svg(60, 60, "xrange -1,1\nyrange -1,1\ntext black,0,0,large,Bonjour rouge")
+        assert "<text" in svg
+
+    def test_canvasdraw_n_est_pas_concerne(self):
+        svg = flydraw_to_svg(60, 60, "xrange -1,1\nyrange -1,1\ncircle 0,0,10",
+                             dialecte="canvasdraw")
+        assert "<circle" in svg or "<ellipse" in svg
+
+    def test_couleurs_de_wims(self):
+        # `colortab` : `darkslategrey` est une couleur (PAX la peignait en
+        # noir), `crimson` n'en est pas une — la ligne manque d'items.
+        assert 'stroke="#2f4f4f"' in flydraw_to_svg(60, 60, "segment 0,0,50,50,darkslategrey")
+        assert "<line" not in flydraw_to_svg(60, 60, "segment 0,0,50,50,crimson")
+
+    def test_substit_remplace_mot_a_mot(self):
+        # `transparent green` → `transparent 0,160,0` : assez d'items.
+        assert self.objets("point -5,-8,transparent green") == 1
+
+    def test_parentheses_gardent_un_item(self):
+        assert self.objets("arrow min(0,1),0,1,0,8,black") >= 1
+
+    def test_egal_apres_le_nom(self):
+        # `obj_main` efface le `=` : `xrange=-8,8` est un `xrange`.
+        svg = flydraw_to_svg(60, 60, "xrange=-8,8\nyrange=-8,8\nsegment -8,0,0,0,black")
+        assert 'x1="0.00"' in svg and 'x2="30.00"' in svg
+
+    def test_notation_scientifique_et_pi(self):
+        assert _num("6.123234e-17+0.07") == pytest.approx(0.07)
+        assert _num("cos(PI)") == -1
+
+    def test_animstep(self):
+        # Variable nulle par défaut ; la commande `animstep` (ou `animstep=`)
+        # la fixe, comme `insdraw..processor` à chaque image.
+        svg = flydraw_to_svg(60, 60, "xrange 0,6\nyrange 0,6\nanimstep=3\n"
+                             "segment animstep,0,animstep,6,black")
+        assert 'x1="30.00"' in svg
