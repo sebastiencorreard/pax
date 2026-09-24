@@ -1118,11 +1118,25 @@ Le 2026-09-18 a buté sur la même limite depuis l'autre bout : **820 exercices
 quoi soumettre ». C'est le même filtre, nommé deux fois à quinze jours
 d'intervalle sans que le lien soit fait.
 
-À décider : lever le filtre ou le garder. Le lever ferait entrer 100+ exercices
-dont on ne sait pas encore ce qu'ils valent — c'est le coût, et c'est
-précisément ce qu'on ignore aujourd'hui. Mesure préalable : rejouer la suite
-lente filtre levé, et classer les nouveaux échecs par famille avant de décider
-quoi que ce soit.
+**Tranché le 2026-09-24 : on garde le filtre.** La mesure a montré que la
+question était mal posée. La suite couvre déjà ces exercices *par le bas*
+(`test_wrong_answer` soumet `__FAUX__`, `test_score_depends` compare quatre
+copies) ; ce qui manque est la preuve *par le haut*, impossible sans réponse de
+référence — lever le filtre ferait seulement exiger 1 d'une copie vide. Sur
+882 exercices (sonde : `__FAUX__`, vide, forme décimale, `1`) : 629 donnent 0 à
+tout, 135 notent de façon variable, 25 constante non nulle, 93 donnent 1 à une
+copie absurde (surtout `1`, souvent juste ; `__FAUX__` : 4, déjà en xfail).
+
+Deux suites, faites le même jour :
+- la sonde a trouvé un **déni de service** (`oefnumeration/mult` : une réponse
+  `1` épuisait la mémoire) et l'absence de budget de temps à la notation ;
+- WIMS refuse toute réponse vide sans `default=` (`step.proc`,
+  `error=empty_data`) : `/api/check` fait de même, et substitue le `default`.
+  Dix-sept exercices donnaient 10/10 à une copie vide envoyée par l'API.
+
+Reste l'angle mort des **629** : un exercice insoluble y ressemble à un sain.
+Seul un essai humain tranche — échantillon tiré au hasard, à essayer à la main
+(`docs/echantillon-analyze.md`).
 
 ## 3. Le lien « ← Retour aux exercices »
 

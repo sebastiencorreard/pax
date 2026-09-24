@@ -529,6 +529,24 @@ class TestCheck:
         attempt_id = r.json()["attempt_id"]
         uuid.UUID(attempt_id)  # raises if not valid UUID
 
+    def test_empty_reply_is_refused_not_graded(self, client, student_headers):
+        # `oef/step.proc` : un champ vide sans `default=` fait refuser l'envoi
+        # (`error=empty_data`). Rien n'est noté, aucune tentative n'est
+        # enregistrée — l'élève complète et renvoie.
+        r = client.post(
+            f"/api/check/{EXERCISE_ID}",
+            headers=student_headers,
+            json={"seed": SEED, "replies": [{"input_name": "reply1", "value": "   "}]},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["has_invalid_format"] is True
+        assert body["global_score"] == 0.0
+        assert body["attempt_id"] == "00000000-0000-0000-0000-000000000000"
+        [res] = body["results"]
+        assert res["input_name"] == "reply1" and res["status"] == "invalid_format"
+        assert res["detail"]
+
     def test_check_result_per_answer(self, client, student_headers):
         r = client.post(
             f"/api/check/{EXERCISE_ID}",

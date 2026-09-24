@@ -1551,7 +1551,20 @@ class DefEngine(_SlibMixin):
             type_meta=type_meta,
             css=css,
             severite=self.severite(),
+            defauts=self._defauts_reponses(df),
         )
+
+    def _defauts_reponses(self, df) -> dict[str, str]:
+        """`default_$i=!getopt default in $(replyoption$i)` (`oef/step.proc`)."""
+        defauts: dict[str, str] = {}
+        for rm in df.reply_meta or []:
+            option = self._subst(rm.get("option", ""))
+            if "default" not in option.lower():
+                continue
+            valeur = self._cmd_getopt(f"default in {option}")
+            if valeur:
+                defauts[f"reply{rm['n']}"] = valeur
+        return defauts
 
     # ── Instruction execution ─────────────────────────────────────────────────
 

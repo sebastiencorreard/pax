@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -134,6 +136,24 @@ def _pixels_to_repere(s: str | None, transform: str, comma_decimal: bool) -> str
 
 # ── Route ─────────────────────────────────────────────────────────────────────
 
+# Le message de l’`error=empty_data` que pose `oef/step.proc`.
+_MESSAGE_VIDE = {
+    "fr": ("Réponse manquante", "complétez ce champ avant de valider."),
+    "nl": ("Antwoord ontbreekt", "vul dit veld in voordat je controleert."),
+    "en": ("Missing answer", "fill in this field before checking."),
+}
+
+
+def _message_vide(lang: str, intitule: str | None) -> str:
+    """Le message, nommant le champ quand il a un intitulé lisible."""
+    manque, consigne = _MESSAGE_VIDE.get(lang, _MESSAGE_VIDE["fr"])
+    deux_points = " : " if lang not in ("nl", "en") else ": "
+    nom = re.sub(r"<[^>]+>", "", intitule or "").strip()
+    if nom and not nom.startswith("reply") and len(nom) <= 60:
+        manque = f"{manque} ({nom})"
+    return f"{manque}{deux_points}{consigne}"
+
+
 @router.post("/{exercise_id}", response_model=CheckResponse)
 async def check_exercise(
     exercise_id: str,
@@ -188,6 +208,39 @@ async def check_exercise(
         if not a.options.get("ungraded")
         and (visible_input_names is None or a.input_name in visible_input_names)
     ]
+
+    # ── Réponse vide : WIMS ne note pas, il demande de compléter ──────────────
+    # `oef/step.proc` : un champ laissé vide reçoit la valeur de son option
+    # `default=` s'il en a une ; sinon l'envoi est refusé (`error=empty_data`)
+    # et rien n'est noté. PAX notait la copie : dix-sept exercices, dont
+    # `rangdec*` et `tablemult`, donnaient 10/10 à une copie entièrement vide
+    # — l'interface l'empêchait, un appel direct à l'API non.
+    _defauts = getattr(rendered, "defauts", None) or {}
+    _vides: list = []
+    for a in active_ans_defs:
+        if (replies_by_name.get(a.input_name) or "").strip():
+            continue
+        if _defauts.get(a.input_name):
+            replies_by_name[a.input_name] = _defauts[a.input_name]
+            if m := _re.match(r"^reply(\d+)$", a.input_name):
+                replies_by_name[f"r{m.group(1)}"] = _defauts[a.input_name]
+            continue
+        _vides.append(a)
+    if _vides:
+        return CheckResponse(
+            exercise_id=exercise_id,
+            global_score=0.0,
+            results=[
+                AnswerResult(
+                    input_name=a.input_name, correct=False, score=0.0,
+                    method="empty_data", reply="", status="invalid_format",
+                    detail=_message_vide(rendered.lang, a.label),
+                )
+                for a in _vides
+            ],
+            attempt_id="00000000-0000-0000-0000-000000000000",
+            has_invalid_format=True,
+        )
 
     # Le crédit d'une réponse juste « à la précision près » dépend du niveau de
     # sévérité de l'exercice, non de la réponse : on le pose ici, à la

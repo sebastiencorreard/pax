@@ -46,6 +46,10 @@ class ExerciseRender:
     # propositions montrer, faut-il donner le corrigé, quel crédit pour une
     # réponse juste à la précision près… Voir `DefEngine.severite`.
     severite: dict = field(default_factory=dict)
+    # La valeur `default=` des `replyoption`, par champ : ce que WIMS substitue
+    # à une réponse laissée vide (`oef/step.proc`) avant de la noter. Interne à
+    # la notation — hors des `options` que l'API et les instantanés exposent.
+    defauts: dict = field(default_factory=dict)
 
 
 def find_def_path(oef_path: str) -> str | None:
