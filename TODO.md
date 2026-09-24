@@ -95,8 +95,11 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     corpus n'en est affectée.
 
   **Fait le 2026-09-24 (suite) : 75 → 61 exercices à primitive ignorée** (mesuré ;
-  les 61 restants : canvasdraw, bruit d’analyse, et 6 commandes que flydraw
-  ne connaît pas non plus).
+  les 61 restants : canvasdraw, bruit d’analyse, et 4 commandes — sur 6
+  exercices — que flydraw ne connaît pas non plus : `hsegment`/`vsegment`
+  (`oefintegrale/moyenne`, n'existent nulle part), `polylines`
+  (`oefnumeration/musique`, faute pour `polyline`), `kill rotate`
+  (`oefmolecule` ×4, syntaxe de canvasdraw dans un corps flydraw).
   - `dashed` / `filled` / `noreset` / `reset` : préfixes consommés par la
     commande suivante qui a un paramètre requis (`parse_parms`), `linewidth`
     compris ; `hdline`/`vdline` (synonymes), `rays`, `dplot`,
@@ -116,6 +119,18 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     ne s'affiche que grâce à la tolérance de PAX.
 
   Reste, par nombre d'exercices :
+  - **canvasdraw** — relevé du 2026-09-24 contre le vrai binaire (banc :
+    mémoire `project_canvasdraw_banc`), 45 figures de 35 exercices. PAX rend
+    ces scripts comme du flydraw ; canvasdraw est un **dialecte** :
+    texte posé sur sa ligne de base (`ctx.fillText`), Arial, `large` =
+    `fontsize`+6, non gras ; `grid` avec `axis`/`axisnumbering`/`xlabel`/
+    `ylabel`/`precision` (absents chez PAX : `oefvectgraph`, `unitefonct`,
+    `oefseqconj`, `evolmeth`) ; `point` = disque de rayon `linewidth` (les
+    nœuds des arbres d'`evolmeth`) ; opacité de remplissage 0,5 par défaut ;
+    `centered`, `linegraph`, `legend`, `strokecolor`. À instruire :
+    `oefderivee` (#28-30) où PAX trace une parabole absente chez WIMS, et
+    `oefvectgraph/somme*` où le canvas de WIMS reste vide. `oefpersp3D` ×6
+    dépend d'une expression PARI non émulée (`vecmax(abs([…]*[…]))`).
   - options canvasdraw sous la même étiquette — `grid` 17, `precision` 15,
     `opacity` 13, `axis`, `snaptopoints`, `centered`, `latex`, `xlabel`… :
     un autre sous-système (`unitefonct/1`, `oefvectgraph/comblin`) ;
