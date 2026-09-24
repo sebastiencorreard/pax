@@ -30,6 +30,7 @@ The mixin reaches into ``DefEngine`` for ``ctx`` (the var dict),
 
 from __future__ import annotations
 
+import math
 import os
 import random
 import re
@@ -59,7 +60,12 @@ def valeurs_for(debut: float, fin: float, pas: float):
     `!for q=0 to 360 step 45` donne `45`, non `45.0`. Un pas nul est une
     `module_error("zero_step")` chez WIMS : rien n'est parcouru.
     """
-    if pas == 0:
+    # `cutfor` (`evalue.c`) : `if(!isfinite(from+to+step)) return 1;` — une
+    # borne ou un pas qui n'est pas un nombre fini, et la boucle ne tourne
+    # pas. Toute comparaison à `NaN` étant fausse, la laisser tourner la
+    # menait au plafond : `varloi5` (`!for val19 =2 to \k+1`, `\k` indéfini)
+    # empilait cent mille `print(` dans son attendu.
+    if pas == 0 or not all(math.isfinite(v) for v in (debut, fin, pas)):
         return
     valeur = debut
     for _ in range(_FOR_MAX):

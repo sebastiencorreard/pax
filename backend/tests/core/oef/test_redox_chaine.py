@@ -113,3 +113,20 @@ def test_redox1_de_bout_en_bout():
     assert attendus["reply4"] == (
         "4 H^+_(aq) + O2Pb_(s) + Zn_(s) -> 2 H2O_(l) + Pb^2+_(aq) + Zn^2+_(aq)"
     )
+
+
+def test_indice_vide_rend_la_variable_entiere():
+    # `evalue.c` : un indice vide renvoie à `noarray`. `geobase/line1` place ses
+    # points en `$(val14[])` ; le littéral restait, que canvasdraw refusait.
+    e = engine()
+    e.ctx["v"] = "a,b,c"
+    assert e._subst("$(v[])") == e._subst("$(v[ ])") == "a,b,c"
+
+
+def test_une_boucle_aux_bornes_non_finies_ne_tourne_pas():
+    # `cutfor` : `!isfinite(from+to+step)` → la boucle est sautée. `varloi5`
+    # écrit `!for val19 =2 to \k+1`, `\k` indéfini : `NaN`, et PAX tournait
+    # jusqu'au plafond.
+    from core.oef.def_engine.slib import valeurs_for
+    assert list(valeurs_for(2, float("nan"), 1)) == []
+    assert list(valeurs_for(1, 3, 1)) == ["1", "2", "3"]

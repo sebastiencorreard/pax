@@ -118,7 +118,7 @@ _RANGE_SLICE_RE = re.compile(rf"\$\((\w+)\[({_SUB}+?)(?:\.\.|\s+to\s+)({_SUB}+?)
 _INDEXED2_RE = re.compile(rf"\$\((\w+)\[({_SUB}*?);({_SUB}*)\]\)")  # $(var[n;m])
 # INDEXED1's subscript also excludes ";" (built into _SUB) so it never
 # swallows a $(var[n;m]) matrix form, whose ";" must go to _INDEXED2_RE.
-_INDEXED1_RE = re.compile(rf"\$\((\w+)\[({_SUB}+)\]\)")  # $(var[n])
+_INDEXED1_RE = re.compile(rf"\$\((\w+)\[({_SUB}*)\]\)")  # $(var[n]), $(var[])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 # A bare $var sitting inside a $(...) — i.e. the name/subscript of an
@@ -805,6 +805,22 @@ def load_and_render(
     if prev_replies:
         engine.prev_replies = dict(prev_replies)
     return engine.render(def_file)
+
+
+# Les noms que connaît l'évaluateur de WIMS (`evalname[]`, `Lib/evalue.c`) :
+# fonctions, constantes et tirages. Tout autre nom le fait échouer (`NaN`).
+_NOMS_EVALUE = frozenset("""
+Argch Argsh Argth E EULER Euler Inf NaN PI Pi abs acos acosh arccos arcsin
+arctan arctg argch argsh argth asin asinh atan atanh binomial ceil ch cos cosh
+cot cotan cotanh coth csc ctg cth drand e erf erfc euler exp factorial floor gcd
+irand j0 j1 lcm lg lgamma ln log log10 log2 max min pi pow rand randdouble
+randfloat randint random randreal rint round sec sgn sh sign sin sinh sqrt tan
+tanh tg th y0 y1""".split())
+# Un nom : une lettre (accentuée comprise) qui ne prolonge pas un nombre —
+# `1e5` n'en contient pas.
+_NOM_RE = re.compile(r"(?<![\w.])[^\W\d_][\w]*")
+# Des mots et des blancs (apostrophes et traits d'union compris), rien d'autre.
+_TEXTE_SEUL_RE = re.compile(r"^[^\W\d_][^\W\d_\s'’-]*(?:[\s'’-]+[^\W\d_][^\W\d_\s'’-]*)*$")
 
 
 # Synonymes de `calc_list` (`calc.c`) : deux noms, une seule fonction C.
@@ -1771,6 +1787,22 @@ class DefEngine(_SlibMixin):
         """
         # 1. Substitute all variable references
         expr = self._subst_for_arith(expr)
+        # 1'. Du **texte** — des mots, sans opérateur ni parenthèse — qu'un nom
+        # inconnu de l'évaluateur de WIMS (`evalname[]`, `Lib/evalue.c`) fait
+        # échouer à coup sûr : `NaN`, au rendu comme à la correction. Des
+        # auteurs s'en servent pour décider : `unitechim/unchi8` choisit le
+        # type d'une réponse par `!if $[$val17] issametext NaN`, un mot
+        # (« rotéines ») y faisant un `atext`, un nombre un `number`.
+        #
+        # Le critère est volontairement étroit. Élargi à toute expression qui
+        # contient un nom inconnu, il changeait 74 rendus : là où l'émulation
+        # PARI/Maxima laisse passer du code (`rint(-1*24*prime)`), le `NaN`
+        # entrait dans un `expand` qui le lisait `N·a·N`. Le passe-plat garde
+        # ces cas-là, qui sont des échecs de PAX, non de WIMS.
+        if _TEXTE_SEUL_RE.match(expr.strip()) and any(
+            nom not in _NOMS_EVALUE for nom in _NOM_RE.findall(expr)
+        ):
+            return "NaN"
         # 1a. `strevalue` (`Lib/evalue.c`) : `substitute(buf); nospace(buf);`
         # — WIMS retire **toutes** les espaces avant d'évaluer. Un nombre écrit
         # avec son séparateur de milliers y reste un nombre : `384 000` vaut
@@ -2014,6 +2046,12 @@ class DefEngine(_SlibMixin):
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
+        # Indice vide : la variable entière (`evalue.c` : `if(*find_word_start(
+        # p2)==0) {*p2=0; goto noarray;}`). `geobase/line1` place ses points en
+        # `$(val14[])` ; PAX laissait la chaîne telle quelle, que canvasdraw
+        # refusait (« found a character not associated with a number »).
+        if not idx_expr.strip():
+            return value
         idx_s = self._subst_for_arith(idx_expr)
         items = wl.cutitems(value)
 

@@ -205,6 +205,19 @@ _ENTIER_RE = re.compile(r"(?<![\w.])(\d+)(?![\w.])")
 
 
 def _num(s: str) -> float:
+    """`_num_brut`, sans valeur non finie.
+
+    WIMS rejette une commande dont un paramètre n'est pas un nombre fini
+    (`parse_parms` : `if(!isfinite(pm->pd[j]))`) ; PAX, plus tolérant, le lit
+    comme un calcul raté, soit 0. Un `NaN` venu de l'énoncé — `exoder`
+    calcule ses bornes à partir d'une sortie PARI que l'émulation n'a pas su
+    produire — sortait sinon en `x1="nan"`, du SVG invalide.
+    """
+    v = _num_brut(s)
+    return v if math.isfinite(v) else 0.0
+
+
+def _num_brut(s: str) -> float:
     """Parse a flydraw numeric arg, evaluating simple arithmetic.
 
     WIMS slib scripts emit args like ``-15-2`` or ``10*sqrt(3)`` or
@@ -2825,6 +2838,15 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
             if not handler:
                 _log_unhandled_cmd(cmd, arg_str)
                 continue
+            # Une couleur qui n'est pas un nombre fini fait rejeter la commande
+            # (`parse_parms` → `bad_parms`, vérifié au binaire) : la trotteuse
+            # de `slib/draw/clock`, colorée par `$[$slib_cs]` soit `$[red]` —
+            # `NaN` pour l'évaluateur —, n'est pas tracée chez WIMS.
+            meta = _COULEUR_POS.get(cmd)
+            if meta:
+                i = 0 if meta[1] < 0 else meta[0]
+                if len(args) > i and args[i].strip().lower() in ("nan", "inf", "-inf"):
+                    continue
             tirete, plein = _consommer_prefixes(state, cmd)
             if plein and f"f{cmd}" in _HANDLERS:
                 handler = _HANDLERS[f"f{cmd}"]

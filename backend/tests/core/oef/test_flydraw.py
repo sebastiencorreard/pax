@@ -869,3 +869,9 @@ def test_droite_en_mode_pixel():
     # d'`evalwimssections` va de bord à bord, comme au binaire.
     svg = flydraw_to_svg(172, 168, "line 20,52.5,52.5,20,black")
     assert 'x1="0.00" y1="72.50" x2="72.50" y2="0.00"' in svg
+
+
+def test_une_couleur_nan_fait_rejeter_la_commande():
+    # Binaire : `segment 0,20,40,20,NaN` → `bad_parms`, rien n'est tracé.
+    svg = flydraw_to_svg(40, 40, "segment 0,20,40,20,NaN\nsegment 0,30,40,30,red")
+    assert svg.count("<line") == 1 and 'stroke="#ff0000"' in svg
