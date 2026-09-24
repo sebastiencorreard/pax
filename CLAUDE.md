@@ -197,10 +197,10 @@ Backend settings are Pydantic-based (`backend/config.py`), sourced from `.env`:
 - Keycloak: `http://localhost:8180`, realm `pax` (auth not yet wired in Phase 1)
 - Maxima binary: `/usr/bin/maxima`, 3 s timeout
 - Graphviz (`dot`, `neato`…) is the **only external program the backend image
-  installs** (Maxima and PARI are emulated in Python),
-  installed by `backend/Dockerfile` for `!exec graphviz`
-  (`core/oef/def_engine/graphviz.py`). WIMS does not ship it either: its
-  `bin/graphviz` calls the server's `dot`. Without it the call returns `""`.
+  installs** (`backend/Dockerfile`) — Maxima and PARI are emulated in Python.
+  It serves `!exec graphviz` (`core/oef/def_engine/graphviz.py`). WIMS does not
+  ship it either: its `bin/graphviz` calls the server's `dot`. Without it the
+  call returns `""`.
 
 ## Exercise Resource Format
 
