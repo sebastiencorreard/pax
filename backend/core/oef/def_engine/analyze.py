@@ -10,6 +10,28 @@ l'import circulaire : analyze.py ← __init__.py ← analyze.py.
 from __future__ import annotations
 
 import re
+import time
+
+# Budget de la **notation** : `:postdef` et `:test` s'y rejouent avec la réponse
+# de l'élève, que l'auteur peut faire entrer dans une boucle ou un calcul.
+# Le rendu avait le sien (`_RENDER_TIME_BUDGET`) ; la notation n'en avait
+# aucun, et une réponse bien choisie pouvait tenir la requête indéfiniment.
+_CHECK_TIME_BUDGET = 3.0
+
+
+def _executer_borne(engine, *sections) -> bool:
+    """Exécute les sections sous budget ; ``False`` s'il a été dépassé."""
+    from . import _RenderBudgetExceeded  # noqa: PLC0415
+
+    engine._deadline = time.monotonic() + _CHECK_TIME_BUDGET
+    try:
+        for instructions in sections:
+            engine._exec(instructions, output_buf=None)
+        return True
+    except _RenderBudgetExceeded:
+        return False
+    finally:
+        engine._deadline = None
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -255,8 +277,10 @@ def check_analyze(
     for n, value in (replies_by_number or {}).items():
         engine.ctx[f"m_reply{n}"] = value
         engine.ctx[f"reply{n}"] = value
-    engine._exec(postdef_instructions, output_buf=None)
-    engine._exec(test_instructions, output_buf=None)
+    if not _executer_borne(engine, postdef_instructions, test_instructions):
+        # Des conditions ont pu passer à 1 avant l'arrêt : ne rien en garder.
+        # Aucune condition, c'est une note nulle.
+        return {}, {}
     condtest = {
         k: int(v)
         for k, v in engine.ctx.items()
@@ -354,8 +378,7 @@ def render_feedback(
         for var_n, value in analyze_replies.items():
             engine.ctx[f"val{var_n}"] = _analyze_wrap(value)
 
-    engine._exec(postdef_instructions, output_buf=None)
-    engine._exec(test_instructions, output_buf=None)
+    _executer_borne(engine, postdef_instructions, test_instructions)
 
     html = engine._render_section(feedback_instructions)
     html = _close_inline_math(html, lang)

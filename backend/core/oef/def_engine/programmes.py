@@ -99,6 +99,18 @@ def moneyprint(parametre: str) -> str:
 
 _CHIFFRES = "0123456789ABCDEF"
 
+# Les bornes de GNU `bc` (1.07) : hors de ces bornes, il avertit sur la sortie
+# d'erreur — que WIMS ne lit pas — et **ramène** la base à la borne. Or
+# `oefnumeration/mult` écrit `obase=$val20; ibase=$val20`, `val20` étant la
+# réponse de l'élève : une réponse `1` faisait tourner `ecrire` sans fin
+# (`divmod(n, 1)` ne réduit jamais `n`) jusqu'à épuiser la mémoire du serveur.
+_IBASE_MIN, _IBASE_MAX = 2, 36
+_OBASE_MIN, _OBASE_MAX = 2, 2**31 - 1
+# Plafond propre à PAX sur la taille d'une puissance, en bits : `bc` calcule
+# `9^9^9` sans broncher, en y passant le temps qu'il faut, et WIMS l'arrête au
+# bout de son délai d'`!exec`. Ici, sans délai, c'est un refus.
+_BITS_MAX = 100_000
+
 
 class _Bc:
     """Le sous-ensemble de `bc` qu'emploient les exercices : `ibase`, `obase`
@@ -111,14 +123,23 @@ class _Bc:
         self.obase = 10
 
     def _nombre(self, texte: str) -> Fraction:
+        # Un chiffre seul vaut sa valeur quelle que soit la base ; dans un
+        # nombre à plusieurs chiffres, un chiffre ≥ `ibase` vaut `ibase - 1`
+        # (`bc` : `ibase=2; 12*13` rend `1001`, soit 3 × 3).
+        if len(texte) == 1:
+            return Fraction(_CHIFFRES.index(texte))
         entier, _, frac = texte.partition(".")
+
+        def chiffre(c: str) -> int:
+            return min(_CHIFFRES.index(c), self.ibase - 1)
+
         valeur = Fraction(0)
         for c in entier:
-            valeur = valeur * self.ibase + _CHIFFRES.index(c)
+            valeur = valeur * self.ibase + chiffre(c)
         echelle = Fraction(1)
         for c in frac:
             echelle /= self.ibase
-            valeur += _CHIFFRES.index(c) * echelle
+            valeur += chiffre(c) * echelle
         return valeur
 
     def evaluer(self, texte: str) -> Fraction:
@@ -156,7 +177,11 @@ class _Bc:
             v = unaire()
             if voir() == "^":
                 prendre()
-                v = v ** int(puissance())
+                exposant = int(puissance())
+                taille = max(v.numerator.bit_length(), v.denominator.bit_length(), 1)
+                if abs(exposant) * taille > _BITS_MAX:
+                    raise ValueError("puissance trop grande")
+                v = v ** exposant
             return v
 
         def unaire() -> Fraction:
@@ -214,9 +239,9 @@ def float_calc(parametre: str) -> str:
             if m:
                 valeur = int(bc.evaluer(m.group(2)))
                 if m.group(1) == "ibase":
-                    bc.ibase = valeur
+                    bc.ibase = min(max(valeur, _IBASE_MIN), _IBASE_MAX)
                 else:
-                    bc.obase = valeur
+                    bc.obase = min(max(valeur, _OBASE_MIN), _OBASE_MAX)
                 continue
             lignes.append(bc.ecrire(bc.evaluer(instruction)))
     except (ValueError, IndexError, ZeroDivisionError):
