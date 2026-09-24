@@ -790,3 +790,82 @@ class TestAnimate:
     def test_sans_animate_rien_ne_change(self):
         corps = "range 0,10,0,10\nsegment 0,0,5,0,red"
         assert self._svg(corps) == flydraw_to_svg(100, 100, corps)
+
+
+class TestPrefixes:
+    """`dashed` / `filled` modifient la commande suivante (`parse_parms`)."""
+
+    def test_dashed_ne_vaut_qu_une_fois(self):
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\ndashed\nsegment 0,0,5,5,red\nsegment 0,5,5,5,blue")
+        lignes = re.findall(r"<line[^>]*>", svg)
+        assert "stroke-dasharray" in lignes[0] and "stroke-dasharray" not in lignes[1]
+
+    def test_une_commande_de_reglage_consomme_le_prefixe(self):
+        # `linewidth` a un paramètre requis : c'est lui qui reçoit `dashed`.
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\ndashed\nlinewidth 2\nsegment 0,0,5,5,red")
+        assert "stroke-dasharray" not in svg
+
+    def test_noreset_fige_jusqu_a_reset(self):
+        corps = "range 0,10,0,10\nnoreset\ndashed\nsegment 0,0,5,5,red\nsegment 0,1,5,1,red\nreset\nsegment 0,2,5,2,red"
+        lignes = re.findall(r"<line[^>]*>", flydraw_to_svg(100, 100, corps))
+        assert ["stroke-dasharray" in l for l in lignes] == [True, True, False]
+
+    def test_filled_prend_la_variante_pleine(self):
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\nfilled\ncircles red,5,5,2")
+        assert 'fill="#ff0000"' in svg
+
+
+class TestCommandesPortees:
+    def test_rays(self):
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\nrays green,0,0,5,5,10,0")
+        assert svg.count("<line") == 2 and 'stroke="#008000"' in svg
+
+    def test_hdline_synonyme_de_dhline(self):
+        svg = flydraw_to_svg(100, 100, "range 0,10,0,10\nhdline 0,5,blue")
+        assert "stroke-dasharray" in svg and 'y1="50.00"' in svg
+
+    def test_dplot_en_tirets(self):
+        svg = flydraw_to_svg(100, 100, "range -1,1,-1,1\ndplot red,x^2-0.5")
+        assert "<polyline" in svg and "stroke-dasharray" in svg
+
+    def test_levelcurve_cercle(self):
+        # x²+y² = 4 : un cercle de rayon 2, soit 60 px sur un repère de 10.
+        svg = flydraw_to_svg(300, 300, "xrange -5,5\nyrange -5,5\nlevelcurve blue,x^2+y^2,4")
+        points = [tuple(map(float, p.split(","))) for p in re.findall(r"[ML]([\d.]+,[\d.]+)", svg)]
+        assert points
+        assert all(abs(((x - 150) ** 2 + (y - 150) ** 2) ** 0.5 - 60) < 1.5 for x, y in points)
+
+    def test_levelcurve_refuse_une_evasion(self):
+        svg = flydraw_to_svg(100, 100, "range -1,1,-1,1\nlevelcurve blue,().__class__")
+        assert "<path" not in svg
+
+
+class TestPuissance:
+    """`^` est la puissance de l'évaluateur de WIMS — associative à droite,
+    vérifié au binaire (`vline 2^3^2` tombe en x = 512)."""
+
+    def test_puissance(self):
+        assert _num("1*(-20+2+(3*(60/1000))^2*150)") == pytest.approx(-13.14)
+        assert _num("(-1)^(3)") == -1.0
+        assert _num("2^3^2") == 512.0
+
+    def test_puissance_demesuree_sans_bloquer(self):
+        import time
+        debut = time.monotonic()
+        assert _num("9^9^9") == 0.0
+        assert _num("9**9**9") == 0.0
+        assert time.monotonic() - debut < 0.5
+
+
+def test_dline_est_une_droite_tiretee():
+    # `nametab.c` : `dline` → `obj_fullline` en tirets ; le segment tireté est
+    # `dsegment`. Vérifié au binaire sur `oefmouvement/mouvements1`.
+    svg = flydraw_to_svg(100, 100, "range -10,10,-3,3\ndline -5,0,-5,-1.2,green")
+    assert 'y1="100.00"' in svg and 'y2="0.00"' in svg and "stroke-dasharray" in svg
+
+
+def test_droite_en_mode_pixel():
+    # Repère par défaut retourné (y vers le bas) : la droite C→L du cube
+    # d'`evalwimssections` va de bord à bord, comme au binaire.
+    svg = flydraw_to_svg(172, 168, "line 20,52.5,52.5,20,black")
+    assert 'x1="0.00" y1="72.50" x2="72.50" y2="0.00"' in svg

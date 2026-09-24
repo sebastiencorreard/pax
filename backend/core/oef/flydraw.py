@@ -199,7 +199,9 @@ _NUM_NS: dict = {
 # Allow digits, whitespace, basic arithmetic, and identifier chars (for
 # the function names / constants in `_NUM_NS`). The eval still runs in a
 # restricted namespace, so identifier coverage is bounded by `_NUM_NS`.
-_ARITH_RE = re.compile(r"^[\w\s+\-*/.,()]+$")
+_ARITH_RE = re.compile(r"^[\w\s+\-*/.,()^]+$")
+# Un entier littéral, pour l'évaluer en flottant (voir `_num`).
+_ENTIER_RE = re.compile(r"(?<![\w.])(\d+)(?![\w.])")
 
 
 def _num(s: str) -> float:
@@ -237,6 +239,13 @@ def _num(s: str) -> float:
     if not entree_math_sure(s):
         return 0.0
     if _ARITH_RE.match(s):
+        # `^` est la puissance pour l'évaluateur de WIMS, le « ou exclusif »
+        # pour Python : `oefmouvement` place ses points en
+        # `1*(-20+2+(3*(60/1000))^2*150)`, que PAX lisait 0 — les dix points
+        # du mouvement s'empilaient. Les entiers passent en flottants : une
+        # puissance démesurée (`9^9^9`, que la réponse d'un élève peut porter)
+        # déborde alors aussitôt au lieu de calculer un entier géant.
+        s = _ENTIER_RE.sub(r"\1.0", s.replace("^", "**"))
         variables = _VARIABLES.get()
         espace = {**_NUM_NS, **variables} if variables else _NUM_NS
         try:
@@ -332,6 +341,11 @@ class _State:
     base_dir: str | None = None
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
     boxplotdata: list[float] = field(default_factory=list)
+    # Préfixes `dashed` / `filled` en attente, et `noreset` qui les rend
+    # durables (`parse_parms`, `objects.c`).
+    prefixe_tirete: bool = False
+    prefixe_plein: bool = False
+    sans_remise: bool = False
     # La transformation que `scale()` (`flylines.c:151`) applique à **tout
     # point** d'un objet avant de le projeter : `affine`, `linear`, `rotation`
     # posent `matrix` (`objects.c:1482-1535`), `translation` le vecteur. Les
@@ -884,7 +898,11 @@ def _ligne_infinie(state: _State, x1: float, y1: float, x2: float, y2: float,
         m = (y2 - y1) / (x2 - x1)
         ax, ay = state.xmin, y1 + m * (state.xmin - x1)
         bx, by = state.xmax, y1 + m * (state.xmax - x1)
-        ymin, ymax = state.ymin, state.ymax
+        # En mode pixel, le repère par défaut est retourné (`ymin` = hauteur,
+        # `ymax` = 0) : borner par `min`/`max`, sans quoi le découpage
+        # envoyait les deux bouts hors cadre et la droite dégénérait en point
+        # — le cube d'`evalwimssections` perdait la moitié de ses droites.
+        ymin, ymax = min(state.ymin, state.ymax), max(state.ymin, state.ymax)
         if ay < ymin or ay > ymax:
             cible = ymin if ay < ymin else ymax
             ax, ay = x1 + (cible - y1) / m, cible
@@ -1222,20 +1240,19 @@ def _cmd_frect(state: _State, args: list[str]) -> None:
 
 
 def _cmd_dline(state: _State, args: list[str]) -> None:
-    # dline x1,y1,x2,y2,[color] — dashed segment.
+    """`dline x1,y1,x2,y2,couleur` — la **droite** tiretée par les deux points.
+
+    `nametab.c` : `{"dline", 4,1,-1,1, obj_fullline}`, la routine de `line` en
+    tirets. Le segment tireté est `dsegment` (dont la routine s'appelle, pour
+    ajouter à la confusion, `obj_dline`). PAX traçait un segment :
+    `oefmouvement` perdait ses deux repères verticaux, qui barrent toute la
+    hauteur de la figure chez WIMS.
+    """
     if len(args) < 4:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
-    x1, y1 = state.tr(x1, y1)
-    x2, y2 = state.tr(x2, y2)
     color = _color(args[4]) if len(args) > 4 else "#000000"
-    state.segments.append(((x1, y1), (x2, y2)))
-    state.elements.append(
-        f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
-        f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
-        f'stroke="{color}" stroke-width="{state.linewidth}" '
-        f'stroke-dasharray="4,3" />'
-    )
+    _ligne_infinie(state, x1, y1, x2, y2, color, dashed=True)
 
 
 def _cmd_dlines(state: _State, args: list[str]) -> None:
@@ -1916,6 +1933,115 @@ def _plot_parametrique(state: _State, color: str, sx: str, sy: str) -> None:
         )
 
 
+def _cmd_dplot(state: _State, args: list[str]) -> None:
+    """`dplot` — `plot` en tirets (`obj_dplot` : `_obj_plot(pm, 1)`)."""
+    avant = len(state.elements)
+    _cmd_plot(state, args)
+    state.elements[avant:] = [_tireter(e) for e in state.elements[avant:]]
+
+
+def _cmd_rays(state: _State, args: list[str]) -> None:
+    """`rays couleur,x0,y0,x1,y1,…` — un segment de (x0,y0) vers chaque point
+    suivant (`obj_rays`). `oefmouvement` y dessine ses faisceaux."""
+    if len(args) < 5:
+        return
+    couleur = _color(args[0])
+    nombres = [_num(a) for a in args[1:]]
+    x0, y0 = state.tr(nombres[0], nombres[1])
+    for i in range(2, len(nombres) - 1, 2):
+        x, y = state.tr(nombres[i], nombres[i + 1])
+        state.elements.append(
+            f'<line x1="{state.px(x0):.2f}" y1="{state.py(y0):.2f}" '
+            f'x2="{state.px(x):.2f}" y2="{state.py(y):.2f}" '
+            f'stroke="{couleur}" stroke-width="{state.linewidth}" />'
+        )
+
+
+def _cmd_filltoborder(state: _State, args: list[str]) -> None:
+    """`filltoborder x,y,bord,remplissage` (`obj_fillb`).
+
+    Le C remplit jusqu'aux pixels de la couleur du bord ; la recherche
+    géométrique de PAX s'arrête aux figures tracées, quelle que soit leur
+    couleur. Le résultat coïncide dès que le bord est la seule figure autour
+    du point — c'est le cas des phases de `oefoptics`.
+    """
+    if len(args) < 4:
+        return
+    _cmd_flood(state, [args[0], args[1], args[3]])
+
+
+def _fonction_xy(formule: str):
+    """Compile une expression de `x` et `y` en fonction Python, ou None."""
+    if not entree_math_sure(formule):
+        return None
+    try:
+        import sympy  # noqa: PLC0415
+        from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+        transformations = standard_transformations + (implicit_multiplication_application,)
+        expr = parse_expr(formule.replace("^", "**"), transformations=transformations)
+        return sympy.lambdify(sympy.symbols("x y"), expr, modules=["math"])
+    except Exception:  # noqa: BLE001 — hors périmètre : pas de courbe
+        return None
+
+
+def _cmd_levelcurve(state: _State, args: list[str]) -> None:
+    """`levelcurve couleur,f(x,y),niveau1,niveau2,…` — les courbes f = niveau.
+
+    `Lib/levelcurve.c` classe chaque pixel selon l'intervalle de niveaux où
+    tombe f, puis marque ceux où cet indice change ; sans niveau, il trace
+    f = 0. On obtient les mêmes lignes par carrés marchants sur une grille de
+    deux pixels, en traits continus plutôt qu'en points. Les coniques
+    d'`oefconic` et la quadrique d'`oefquad` n'avaient aucune courbe.
+    """
+    if len(args) < 2:
+        return
+    couleur = _color(args[0])
+    f = _fonction_xy(args[1])
+    if f is None:
+        return
+    niveaux = [_num(a) for a in args[2:] if a.strip()] or [0.0]
+    pas = 2
+    nx, ny = state.width // pas + 1, state.height // pas + 1
+    dx = (state.xmax - state.xmin) / (state.width or 1)
+    dy = (state.ymax - state.ymin) / (state.height or 1)
+
+    def valeur(i: int, j: int) -> float:
+        try:
+            v = float(f(state.xmin + i * pas * dx, state.ymax - j * pas * dy))
+        except Exception:  # noqa: BLE001 — pôle, domaine : pas de valeur
+            return math.nan
+        return v if math.isfinite(v) else math.nan
+
+    grille = [[valeur(i, j) for j in range(ny)] for i in range(nx)]
+    traits: list[str] = []
+    for niveau in niveaux:
+        for i in range(nx - 1):
+            for j in range(ny - 1):
+                coins = [(i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1)]
+                vals = [grille[a][b] - niveau for a, b in coins]
+                if any(math.isnan(v) for v in vals):
+                    continue
+                points = []
+                for k in range(4):
+                    (a1, b1), (a2, b2) = coins[k], coins[(k + 1) % 4]
+                    v1, v2 = vals[k], vals[(k + 1) % 4]
+                    if (v1 < 0) != (v2 < 0):
+                        t = v1 / (v1 - v2)
+                        points.append(((a1 + t * (a2 - a1)) * pas, (b1 + t * (b2 - b1)) * pas))
+                for k in range(0, len(points) - 1, 2):
+                    (x1, y1), (x2, y2) = points[k], points[k + 1]
+                    traits.append(f"M{x1:.1f},{y1:.1f}L{x2:.1f},{y2:.1f}")
+    if traits:
+        state.elements.append(
+            f'<path d="{"".join(traits)}" fill="none" stroke="{couleur}" '
+            f'stroke-width="{state.linewidth}" />'
+        )
+
+
 def _fonction_de_t(formule: str):
     """Compile une expression du paramètre `t` en fonction Python, ou None."""
     if not entree_math_sure(formule):
@@ -2309,6 +2435,8 @@ _COULEUR_POS: dict[str, tuple[int, int]] = {
     "brokenline": (4, -1),
     "circle": (3, 1),
     "circles": (3, -1),
+    "filltoborder": (2, 2),
+    "rays": (4, -1),
     "crosshair": (2, 1),
     "crosshairs": (2, -1),
     "darrow": (5, 1),
@@ -2410,6 +2538,16 @@ def _fusionner_couleur(cmd: str, args: list[str]) -> list[str]:
         return args
     requis, pos = meta
     i = 0 if pos < 0 else requis
+    args = _fusionner_a(args, i)
+    # `color_pos` = 2 : deux couleurs à la suite (`filltoborder` : le bord,
+    # puis le remplissage).
+    if pos == 2:
+        args = _fusionner_a(args, i + 1)
+    return args
+
+
+def _fusionner_a(args: list[str], i: int) -> list[str]:
+    """Fond en une couleur `#rrggbb` les trois items qui commencent en `i`."""
     if len(args) <= i:
         return args
     fenetre: list[str] = []
@@ -2476,8 +2614,14 @@ _HANDLERS = {
     "brokenline": _cmd_polyline,
     "hline": _cmd_hline,
     "dhline": _cmd_dhline,
+    "dplot": _cmd_dplot,
+    "rays": _cmd_rays,
+    "filltoborder": _cmd_filltoborder,
+    "levelcurve": _cmd_levelcurve,
+    "hdline": _cmd_dhline,  # synonyme (`nametab.c` : `obj_hline`, tireté)
     "vline": _cmd_vline,
     "dvline": _cmd_dvline,
+    "vdline": _cmd_dvline,
     "halfline": _cmd_halfline,
     "dashhalfline": _cmd_dashhalfline,
     # Arrows
@@ -2583,6 +2727,60 @@ def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None 
     return _svg(state.width, state.height, "".join(state.elements))
 
 
+# Les commandes du C qui ne prennent aucun paramètre (`required_parms` nul,
+# `nametab.c`) : elles ne consomment pas un préfixe `dashed`/`filled`, que
+# `parse_parms` n'applique qu'aux autres — y compris `linewidth`.
+_SANS_PARAMETRE = frozenset("""
+comment curve dashed dplot existing filled interlace killaffine killbrush
+killlinear killrotate killrotation killstyle killtile killtranslate
+killtranslation levelcurve multicopy new noreset output plot reset
+resetparallelogram setbrush setstyle settile tikzfile transparent vimgfile
+wims_end""".split())
+
+
+def _poser_tirete(state: "_State") -> None:
+    state.prefixe_tirete = True
+
+
+def _poser_plein(state: "_State") -> None:
+    state.prefixe_plein = True
+
+
+def _poser_sans_remise(state: "_State") -> None:
+    state.sans_remise = True
+
+
+def _remettre(state: "_State") -> None:
+    state.sans_remise = state.prefixe_tirete = state.prefixe_plein = False
+
+
+# `dashed`, `filled` ne tracent rien : ils modifient la commande suivante
+# (`obj_dashed`, `obj_filled`), jusqu'à `reset` si `noreset` les a figés.
+_PREFIXES = {
+    "dashed": _poser_tirete,
+    "filled": _poser_plein,
+    "noreset": _poser_sans_remise,
+    "reset": _remettre,
+}
+
+
+def _consommer_prefixes(state: "_State", cmd: str) -> tuple[bool, bool]:
+    """Les préfixes que `cmd` reçoit, retirés sauf `noreset` (`parse_parms`)."""
+    if cmd in _SANS_PARAMETRE or not (state.prefixe_tirete or state.prefixe_plein):
+        return False, False
+    tirete, plein = state.prefixe_tirete, state.prefixe_plein
+    if not state.sans_remise:
+        state.prefixe_tirete = state.prefixe_plein = False
+    return tirete, plein
+
+
+def _tireter(element: str) -> str:
+    """Le trait d'un élément déjà tracé, rendu tireté comme `myDashedLine`."""
+    if "stroke=" not in element or "stroke-dasharray" in element:
+        return element
+    return re.sub(r"(<\w+\b)", r'\1 stroke-dasharray="4,3"', element, count=1)
+
+
 def _svg(width: int, height: int, corps: str) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" '
@@ -2617,14 +2815,23 @@ def _rendre(width: int, height: int, commands: str, base_dir: str | None = None,
                 variables[nom] = _num(valeur)
                 continue
             cmd = nom.lower()
+            if cmd in _PREFIXES:
+                _PREFIXES[cmd](state)
+                continue
             arg_str = m.group(2)
             args = _split_args(arg_str) if arg_str else []
             args = _fusionner_couleur(cmd, args)
             handler = _HANDLERS.get(cmd)
-            if handler:
-                handler(state, args)
-            else:
+            if not handler:
                 _log_unhandled_cmd(cmd, arg_str)
+                continue
+            tirete, plein = _consommer_prefixes(state, cmd)
+            if plein and f"f{cmd}" in _HANDLERS:
+                handler = _HANDLERS[f"f{cmd}"]
+            avant = len(state.elements)
+            handler(state, args)
+            if tirete:
+                state.elements[avant:] = [_tireter(e) for e in state.elements[avant:]]
     finally:
         _VARIABLES.reset(jeton)
     return state

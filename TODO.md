@@ -94,13 +94,31 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     les autres `eval` (`safe_math.entree_math_sure`) ; aucune figure du
     corpus n'en est affectée.
 
+  **Fait le 2026-09-24 (suite) : 75 → 61 exercices à primitive ignorée** (mesuré ;
+  les 61 restants : canvasdraw, bruit d’analyse, et 6 commandes que flydraw
+  ne connaît pas non plus).
+  - `dashed` / `filled` / `noreset` / `reset` : préfixes consommés par la
+    commande suivante qui a un paramètre requis (`parse_parms`), `linewidth`
+    compris ; `hdline`/`vdline` (synonymes), `rays`, `dplot`,
+    `filltoborder`, `levelcurve` (carrés marchants — confrontés au binaire sur
+    `oefconic`). `polylines`, `hsegment`, `vsegment`, `kill` n'existent pas
+    dans flydraw : WIMS les rejette aussi.
+  - Trois défauts plus larges trouvés en confrontant au binaire : `^` n'était
+    pas la puissance dans les coordonnées (`oefmouvement` empilait ses
+    points ; évalué désormais en flottants) ; `dline` est une **droite**
+    tiretée, non un segment ; une droite en mode pixel (repère retourné)
+    dégénérait en point — le cube d'`evalwimssections` perdait la moitié de
+    ses droites. 147 instantanés, figures seules.
+  - Relevés, non traités : une commande dont un paramètre requis n'est pas un
+    nombre est **rejetée** par le C (`hline black,0,0` : couleur mal placée),
+    PAX la trace ; l'émulation Maxima/PARI écrit `**` là où Maxima écrit `^`,
+    que l'évaluateur de flydraw ne comprend pas — `levelcurve` d'`oefconic`
+    ne s'affiche que grâce à la tolérance de PAX.
+
   Reste, par nombre d'exercices :
   - options canvasdraw sous la même étiquette — `grid` 17, `precision` 15,
     `opacity` 13, `axis`, `snaptopoints`, `centered`, `latex`, `xlabel`… :
     un autre sous-système (`unitefonct/1`, `oefvectgraph/comblin`) ;
-  - `dashed`/`filled` (préfixes d'objet, `obj_dashed`/`obj_filled`),
-    `filltoborder`, `rays`, `levelcurve`, `dplot`, `fillpoly`, `polylines`,
-    `hdline`/`vdline`/`hsegment`/`vsegment` — une poignée chacun ;
   - bruit d'analyse — `toto`, `centre`, `arete`, `polygone`, `vecteurs`,
     `abcah`, `segment1` et des nombres nus : noms de variables ou étiquettes
     pris pour des commandes. À instruire avant de porter quoi que ce soit.
