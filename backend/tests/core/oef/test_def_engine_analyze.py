@@ -32,12 +32,12 @@ def test_def_engine_cmd_exec_subst():
     # The engine should substitute $t_ before sending to CAS
     res = engine._eval_value("!exec maxima $t_")
     # Result should be the expanded polynomial
-    assert res == "-40*x**2 + 104*x - 64"
+    assert res == "-40*x^2 + 104*x - 64"
 
 def test_check_analyze():
     # Mock context from factdir1.def
     ev_ctx = {
-        "val63": "-40*x**2 + 104*x - 64"
+        "val63": "-40*x^2 + 104*x - 64"
     }
     postdef = [
         Assign(name="t_", value="!exec maxima expand($val64 * $val65)"),

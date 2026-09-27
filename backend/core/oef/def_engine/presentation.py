@@ -182,6 +182,26 @@ def _remplacer_au_sommet(s: str) -> str:
     return "".join(out)
 
 
+_E_PUISSANCE_RE = re.compile(r"(?<![\w.])e\^\(")
+
+
+def _e_puissance_en_exp(s: str) -> str:
+    """`e^(u)` → `exp(u)`, parenthèses appariées."""
+    morceaux: list[str] = []
+    i = 0
+    while (m := _E_PUISSANCE_RE.search(s, i)) is not None:
+        profondeur, j = 1, m.end()
+        while j < len(s) and profondeur:
+            profondeur += {"(": 1, ")": -1}.get(s[j], 0)
+            j += 1
+        if profondeur:
+            break
+        morceaux.append(f"{s[i:m.start()]}exp({s[m.end():j - 1]})")
+        i = j
+    morceaux.append(s[i:])
+    return "".join(morceaux)
+
+
 def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 
@@ -225,6 +245,19 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     # renders as `10²7`. Brace multi-character exponents so KaTeX raises the
     # whole thing. Done *before* the backslash/brace bail so it also fixes
     # content like `85 \times 10^27` that skips the CAS path below.
+    # `e^(…)` — la forme que Maxima donne de l'exponentielle — se lit en
+    # `exp(…)` avant que l'exposant soit accolé : sans quoi `e^{-2*x}` passe
+    # pour du LaTeX d'auteur et sort brut, `*` compris (`oefintts/ipp`). Les
+    # autres exposants parenthésés gardent ce repli, qui les protège : le CAS
+    # donnerait `\frac{1}{-1}` pour `(-1)^(-1)`, la réponse attendue.
+    # Ce détour ne vaut que si la conversion aboutit ; sinon l'`exp(` réécrit
+    # sortirait en clair (`oefinteg1/Calculintgral3`, un `integrate(…)`).
+    if "\\" not in s and "{" not in s and "}" not in s:
+        converti = _e_puissance_en_exp(s)
+        if converti != s:
+            rendu = _normalize_math_content(converti, lang)
+            if "exp(" not in rendu:
+                return rendu
     s = _wrap_katex_exponents(s)
 
     # WIMS scientific notation often juxtaposes mantissa and power of ten with a

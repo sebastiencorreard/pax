@@ -12,7 +12,8 @@ from core.oef.def_engine.cas import _call_maxima, _reecrire_subst_equation
 
 
 def _vaut(sortie: str, attendu) -> bool:
-    return sympy.simplify(sympy.sympify(sortie) - attendu) == 0
+    # La sortie est écrite à la Maxima : `e` y est la constante d'Euler.
+    return sympy.simplify(sympy.sympify(sortie, locals={"e": sympy.E}) - attendu) == 0
 
 
 class TestConstanteE:

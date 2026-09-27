@@ -320,6 +320,18 @@ _NUM_NS: dict = {
     "e": _math.e,
 }
 
+def _constantes_formule() -> dict:
+    """Les constantes de `_NUM_NS`, pour les formules que lit sympy (`plot`…).
+
+    Laissé symbole, `e` faisait échouer chaque point et la courbe disparaissait
+    sans bruit : `oefintts/equaire` trace `e^(3*x + 1)`, que `evalue` de WIMS
+    calcule.
+    """
+    import sympy  # noqa: PLC0415
+
+    return {"e": sympy.E, "pi": sympy.pi, "PI": sympy.pi, "Pi": sympy.pi}
+
+
 # Allow digits, whitespace, basic arithmetic, and identifier chars (for
 # the function names / constants in `_NUM_NS`). The eval still runs in a
 # restricted namespace, so identifier coverage is bounded by `_NUM_NS`.
@@ -2211,7 +2223,8 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
             standard_transformations,
         )
         transformations = standard_transformations + (implicit_multiplication_application,)
-        expr = parse_expr(formula.replace("^", "**"), transformations=transformations)
+        expr = parse_expr(formula.replace("^", "**"), transformations=transformations,
+                          local_dict=_constantes_formule())
         f = sympy.lambdify(x_sym, expr, modules=["math"])
     except Exception:
         return
@@ -2359,7 +2372,8 @@ def _fonction_xy(formule: str):
             standard_transformations,
         )
         transformations = standard_transformations + (implicit_multiplication_application,)
-        expr = parse_expr(formule.replace("^", "**"), transformations=transformations)
+        expr = parse_expr(formule.replace("^", "**"), transformations=transformations,
+                          local_dict=_constantes_formule())
         return sympy.lambdify(sympy.symbols("x y"), expr, modules=["math"])
     except Exception:  # noqa: BLE001 — hors périmètre : pas de courbe
         return None
@@ -2436,7 +2450,8 @@ def _fonction_de_t(formule: str):
         transformations = standard_transformations + (
             implicit_multiplication_application,
         )
-        expr = parse_expr(formule.replace("^", "**"), transformations=transformations)
+        expr = parse_expr(formule.replace("^", "**"), transformations=transformations,
+                          local_dict=_constantes_formule())
         return sympy.lambdify(sympy.Symbol("t"), expr, modules=["math"])
     except Exception:  # noqa: BLE001 — hors périmètre : pas de courbe
         return None

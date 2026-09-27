@@ -2039,7 +2039,11 @@ def check_function(
         return CheckResult(correct=False, score=0.0, method="function")
     good_src, extra_vars = items[0], items[1:]
     try:
-        loc = _safe_locals()
+        # Les constantes que la vérification des variables écarte plus bas
+        # doivent aussi **valoir** quelque chose : laissé symbole, `e` faisait
+        # échouer l'évaluation aux points, et `e^(-2*x)` était refusé face à
+        # lui-même. `evalue` de WIMS connaît `e` et `pi`.
+        loc = {**_safe_locals(), "e": sympy.E, "E": sympy.E, "Pi": sympy.pi, "PI": sympy.pi}
         good = parse_expr(_normalize_expr(good_src, comma_is_decimal),
                           transformations=transformations, local_dict=loc)
         rep = parse_expr(_normalize_expr(reply, comma_is_decimal),

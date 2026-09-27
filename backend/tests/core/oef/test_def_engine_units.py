@@ -1773,7 +1773,7 @@ class TestCallMaxima:
 
     # ── Multi-arg Maxima functions ────────────────────────────────────────
     def test_diff_polynomial(self):
-        assert _call_maxima("diff(x^3, x)") == "3*x**2"
+        assert _call_maxima("diff(x^3, x)") == "3*x^2"
 
     def test_diff_trig(self):
         assert _call_maxima("diff(sin(x), x)") == "cos(x)"

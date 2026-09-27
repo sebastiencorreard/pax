@@ -34,6 +34,35 @@ infini calculé s'écrit `inf`/`minf` en sortie (`limpolfrac` teste
 libre** seul (`vide`) est rendu tel quel, comme Maxima l'évalue, et non découpé
 en `v*i*d*e` par la multiplication implicite.
 
+**L'interface `maxima.c`** (2026-09-27). `_call_maxima` n'est plus l'émulation
+elle-même (`_evaluer_maxima`), mais ce que WIMS met autour :
+
+- **en entrée**, `check_parm` passe la commande en minuscules
+  (`_entree_maxima`) : `limit(…,x,INF)` et `DENOM(…)` arrivent à Maxima en
+  `inf` et `denom`. Son `_`→`K` n'est pas repris ;
+- **l'en-tête** complet est posé (`_noms_maxima`) : `i` vaut `%i`, et
+  `ln`, `sh`/`ch`/`th`, `arctan`/`arcsin`/`arccos`, `tg`, `arctg`,
+  `argsh`/`argch`/`argth`, `cotan`/`ctg`, `log10`/`log2`/`lg`, `sgn` ;
+  s'y ajoutent `num`, `denom`, `realpart`, `imagpart`, `rectform`,
+  `logcontract`, `radcan`, `mod` et `subst` imbriqué ;
+- **un nom n'est jamais découpé** : `polroots` est un symbole, `foo(x)` une
+  fonction sous forme nominale. SymPy en faisait `p*o*l*r*o*o*t*s` et
+  `foo*x` — `imagpart((i+1)^3)` rendait `a**2*g*i*m*p*r*t*(i + 1)**3` ;
+- **en sortie**, `output()` écrit en minuscules, `%` changé en espace
+  (`_sortie_maxima`) : `x^2`, jamais `x**2` ; `e^(…)`, jamais `exp(…)` ;
+  `abs`, jamais `Abs`. `%i` s'ordonne comme un symbole (`-6*i - 2`, non
+  `-2 - 6*i`).
+
+Le `**` de SymPy ne se voyait que chez les consommateurs qui ne le lisent
+pas : `plot` de canvasdraw (`oefderivee/exploitgte*`), et un `!replace \^2 by
+*x` d'auteur qui ne trouvait rien (`oefalgopython`). Relevé sur les 40 715
+appels du corpus (graine 42) : 1 801 sorties changent de forme seule, 74
+exercices de valeur — tous vers la bonne, hors trois qu'un défaut en amont
+laisse faux (`tauxalcoolemie` : un `nan` ; `bicarre`, `tgte2par` : un
+`polroots` de PARI non émulé). **Non repris, faute d'arbitre** : les espaces
+(`2*x + 1` là où Maxima écrit `2*x+1`) et l'ordre des termes — sans vrai
+Maxima sous la main, les deviner coûterait plus qu'il ne rapporte.
+
 ## Fonctions PARI (`!exec pari`)
 
 | Fonction | Occurrences | Statut | Implémentation Python |

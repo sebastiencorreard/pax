@@ -204,11 +204,102 @@ def _borne(s: str):
     )
 
 
+_NOMS_MAXIMA: dict | None = None
+
+
+def _noms_maxima() -> dict:
+    """Les noms que Maxima connaît et SymPy non, sous leur forme minuscule.
+
+    D'abord l'en-tête que `src/Interfaces/maxima.c` envoie avant chaque calcul
+    (`i:%i`, `ln:log`, `ch:cosh`, `arctan:atan`…) : sans lui, `th(x)` se lisait
+    `t*h*(x)` et `arctan(x)` un produit de six lettres. Puis quelques fonctions
+    de Maxima qu'emploie le corpus — `num`, `denom`, `realpart`, `imagpart`,
+    `rectform`, `logcontract`, `radcan`, `mod`.
+    """
+    global _NOMS_MAXIMA
+    if _NOMS_MAXIMA is None:
+        import sympy  # noqa: PLC0415
+
+        cot = sympy.cot
+        _NOMS_MAXIMA = {
+            "i": sympy.I, "pi": sympy.pi,
+            "ln": sympy.log, "sh": sympy.sinh, "ch": sympy.cosh, "th": sympy.tanh,
+            "arctan": sympy.atan, "arcsin": sympy.asin, "arccos": sympy.acos,
+            "tg": sympy.tan, "arctg": sympy.atan,
+            "argsh": sympy.asinh, "argch": sympy.acosh, "argth": sympy.atanh,
+            "cotan": cot, "ctg": cot,
+            "log10": lambda x: sympy.log(x) / sympy.log(10),
+            "log2": lambda x: sympy.log(x) / sympy.log(2),
+            "lg": lambda x: sympy.log(x) / sympy.log(10),
+            "sgn": sympy.sign,
+            "num": sympy.numer, "denom": sympy.denom,
+            "realpart": sympy.re, "imagpart": sympy.im,
+            "rectform": sympy.expand_complex,
+            "logcontract": lambda e: sympy.logcombine(e, force=True),
+            "radcan": sympy.simplify,
+            "mod": sympy.Mod,
+            # `subst(nouveau, ancien, expr)` imbriqué ; au premier niveau,
+            # `_evaluer_maxima` le traite lui-même.
+            "subst": lambda nouveau, ancien, e: sympy.sympify(e).subs(ancien, nouveau),
+        }
+    return _NOMS_MAXIMA
+
+
+def _entree_maxima(expr: str) -> str:
+    """Ce que `check_parm` (`maxima.c`) fait de la commande : tout en minuscules.
+
+    `limit(…,x,INF)` et `DENOM(…)` n'arrivent à Maxima que sous la forme `inf`
+    et `denom` ; PAX lisait `I*N*F`. Le même `check_parm` change aussi `_` en
+    `K` : non repris, faute d'effet hors des sorties qui échouent déjà.
+    """
+    return expr.lower()
+
+
+def _exp_en_puissance(s: str) -> str:
+    """`exp(u)` → `e^u` ou `e^(u)` : Maxima écrit `%e^u`, jamais `exp`."""
+    morceaux: list[str] = []
+    i = 0
+    while (m := re.compile(r"\bexp\(").search(s, i)) is not None:
+        profondeur, j = 1, m.end()
+        while j < len(s) and profondeur:
+            profondeur += {"(": 1, ")": -1}.get(s[j], 0)
+            j += 1
+        if profondeur:
+            break
+        arg = s[m.end():j - 1]
+        puissance = "e^" + (arg if re.fullmatch(r"\w+", arg) else f"({arg})")
+        # `exp(x)**2` : `^` est associatif à droite, `e^x^2` vaudrait e^(x²).
+        if s.startswith("**", j) or s.startswith("^", j):
+            puissance = f"({puissance})"
+        morceaux.append(s[i:m.start()] + puissance)
+        i = j
+    morceaux.append(s[i:])
+    return "".join(morceaux)
+
+
+def _sortie_maxima(sortie: str) -> str:
+    """La sortie telle que `maxima.c` la rend au script : en `^`, en minuscules.
+
+    SymPy écrit `x**2`, `exp(x)`, `Abs(x)`, `E`, `I` ; Maxima écrit `x^2` et
+    `%e^x`, et `output()` passe toute la ligne en minuscules après avoir changé
+    chaque `%` en espace. Le `**` ne gênait que ceux qui ne le lisent pas —
+    `plot` de canvasdraw refusait la parabole d'`oefderivee/exploitgte*`.
+    """
+    return _exp_en_puissance(sortie).replace("**", "^").lower()
+
+
+def _call_maxima(expr: str) -> str:
+    """`!exec maxima` : l'interface `maxima.c` autour de l'émulation SymPy."""
+    return _sortie_maxima(_evaluer_maxima(_entree_maxima(expr)))
+
+
 def _sympify_arg(s: str):
     """sympify a Maxima/Pari arg, normalising `^` → `**` and supporting implicit mult."""
     import sympy  # noqa: PLC0415
     from sympy.parsing.sympy_parser import (
-        implicit_multiplication_application,
+        function_exponentiation,
+        implicit_application,
+        implicit_multiplication,
         parse_expr,
         standard_transformations,
     )
@@ -216,7 +307,12 @@ def _sympify_arg(s: str):
     # Normalise WIMS-style artifacts (+-, --, etc.)
     s = s.replace("+-", "-").replace("-+", "-").replace("--", "+").replace("++", "+")
     
-    transformations = standard_transformations + (implicit_multiplication_application,)
+    # Sans `split_symbols` : Maxima ne découpe jamais un nom, `polroots` y est
+    # un symbole. Le découpage faisait d'une fonction inconnue un produit de
+    # lettres — `imagpart((i+1)^3)` rendait `a**2*g*i*m*p*r*t*(i + 1)**3`.
+    transformations = standard_transformations + (
+        implicit_multiplication, implicit_application, function_exponentiation,
+    )
     # WIMS spells π as `Pi` (capital); map it to the constant so it isn't parsed
     # as a free symbol (sympy already knows lowercase `pi`/`E`). Idem pour les
     # fonctions WIMS écrites en majuscules (`GCD`/`LCM`/`Mod`) que sympy ne
@@ -240,9 +336,21 @@ def _sympify_arg(s: str):
     def _subst_eq(v, a, e):
         return e.subs(v, a)
 
+    # Un nom inconnu devant `(` est, pour Maxima, une fonction qu'il garde sous
+    # forme nominale (`foo(x)`) ; la multiplication implicite en faisait
+    # `foo*x`.
+    import builtins  # noqa: PLC0415
+
+    inconnues = {
+        nom: sympy.Function(nom)
+        for nom in re.findall(r"\b([A-Za-z_]\w*)\s*\(", s)
+        if nom not in _noms_maxima() and not hasattr(sympy, nom) and not hasattr(builtins, nom)
+        and nom not in ("_subst_eq", "coeff", "hipow", "GCD", "LCM", "Mod", "Pi")
+    }
     return parse_expr(
         _reecrire_subst_equation(s).replace("^", "**"), transformations=transformations,
         local_dict={
+            **inconnues,
             "_subst_eq": _subst_eq,
             "e": sympy.E,
             # `inf` et `minf` restent des **symboles** : le simplificateur de
@@ -255,6 +363,7 @@ def _sympify_arg(s: str):
             "Pi": sympy.pi,
             "GCD": sympy.gcd, "LCM": sympy.lcm, "Mod": sympy.Mod,
             "coeff": _coeff, "hipow": _hipow,
+            **_noms_maxima(),
         },
     )
 
@@ -266,6 +375,10 @@ def _maxima_num_str(result) -> str:
     expressions, sets) pass through unchanged."""
     import sympy  # noqa: PLC0415
 
+    # `%i` est un symbole pour l'ordre d'écriture de Maxima (`-6*%i-2`), là où
+    # SymPy range l'unité imaginaire après la partie réelle (`-2 - 6*I`).
+    if isinstance(result, sympy.Basic) and result.has(sympy.I):
+        result = result.subs(sympy.I, sympy.Symbol("i"))
     if isinstance(result, sympy.Float):
         from ..numfmt import format_wims_float  # noqa: PLC0415
 
@@ -344,7 +457,7 @@ def _numeric_root_in_interval(fexpr, var, a: float, b: float, n: int = 400):
     return None
 
 
-def _call_maxima(expr: str) -> str:
+def _evaluer_maxima(expr: str) -> str:
     """Evaluate a Maxima CAS expression using SymPy as a drop-in replacement."""
     import sympy  # noqa: PLC0415
 
@@ -388,12 +501,12 @@ def _call_maxima(expr: str) -> str:
                 res = sympy.integrate(e, bornes)
                 if res.has(sympy.Integral):
                     return clean
-                return str(res)
+                return _maxima_num_str(res)
             if func_name == "diff" and len(args) >= 2:
                 e = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
                 order = int(args[2]) if len(args) >= 3 else 1
-                return str(sympy.diff(e, var, order))
+                return _maxima_num_str(sympy.diff(e, var, order))
             if func_name == "ev" and args:
                 # `ev(expr, x=0)` — Maxima évalue `expr` en lui appliquant les
                 # équations qui suivent. L'ordre des arguments est l'inverse de
@@ -410,17 +523,17 @@ def _call_maxima(expr: str) -> str:
                     # à en faire de plus.
                     if sep and re.fullmatch(r"\s*[A-Za-z_]\w*\s*", var):
                         e = e.subs(_sympify_arg(var), _sympify_arg(val))
-                return str(e)
+                return _maxima_num_str(e)
             if func_name == "subst" and len(args) >= 3:
                 val = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
                 e = _sympify_arg(args[2])
-                return str(e.subs(var, val))
+                return _maxima_num_str(e.subs(var, val))
             if func_name == "coeff" and len(args) >= 2:
                 e = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
                 n = int(args[2]) if len(args) >= 3 else 1
-                return str(sympy.Poly(e, var).nth(n))  # pyright: ignore[reportCallIssue]
+                return _maxima_num_str(sympy.Poly(e, var).nth(n))  # pyright: ignore[reportCallIssue]
             if func_name == "hipow" and len(args) >= 2:
                 e = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
@@ -481,7 +594,7 @@ def _call_maxima(expr: str) -> str:
                 inner_s = args[0].strip()
                 # If the inner expression is not a plain set literal, evaluate it first.
                 if not (inner_s.startswith("{") and inner_s.endswith("}")):
-                    inner_s = _call_maxima(inner_s)
+                    inner_s = _evaluer_maxima(inner_s)
                 if inner_s.startswith("{") and inner_s.endswith("}"):
                     content = inner_s[1:-1].strip()
                     if not content:

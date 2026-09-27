@@ -127,9 +127,12 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     divergent de WIMS (`green` #00a000, `maroon`, `navy`, `purple`, `silver`)
     — gardées, faute de décision, parce qu'elles toucheraient d'innombrables
     figures. `crimson`, `indigo`, `tan` ne sont pas des couleurs pour WIMS.
-  - Relevé, non traité : l'émulation Maxima/PARI écrit `**` là où Maxima
-    écrit `^`, que l'évaluateur de flydraw ne comprend pas — `levelcurve`
-    d'`oefconic` ne s'affiche que grâce à la tolérance de PAX.
+  - [x] L'émulation Maxima écrivait `**` là où Maxima écrit `^` — `levelcurve`
+    d'`oefconic` ne s'affichait que grâce à la tolérance de PAX. Réglé le
+    2026-09-27 par l'interface `maxima.c` (cf.
+    [`def-engine-cas-functions.md`](docs/def-engine-cas-functions.md)). Le
+    `**` de l'émulation **PARI**, lui, était déjà converti
+    (`_format_pari_result`).
 
   Reste, par nombre d'exercices :
   - [x] **canvasdraw** — porté le 2026-09-24 comme un **dialecte** de
@@ -143,10 +146,9 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     `ylabel`, `legend`, `linegraph`, `strokecolor`) sous le dessin ;
     `curve` = `plot` ; `latex` en texte (`\vec` → flèche combinante) ;
     pointes de flèche cernées. Les planches coïncident, sauf :
-    - `oefderivee/exploitgte*` : WIMS n'y trace pas la parabole parce que
-      l'émulation Maxima de PAX écrit `x**2`, que canvasdraw refuse — le vrai
-      Maxima écrit `x^2`. Défaut **en amont** (sortie de `_call_maxima`), qui
-      touche aussi tout autre consommateur de la sortie Maxima ;
+    - ~~`oefderivee/exploitgte*` : WIMS n'y traçait pas la parabole parce que
+      l'émulation Maxima de PAX écrivait `x**2`, que canvasdraw refuse~~ —
+      réglé le 2026-09-27 : `plot` y reçoit `x^2 - x/2 + 2` ;
     - `oefvectgraph/*` : le canvas de WIMS est vide **au banc seulement** —
       `latex` y appelle `wims_mathml`, absent hors serveur. Le script colle
       `dashed`/`arrow …` au texte d'un `latex` (`$val27 $val28`) : WIMS aussi
@@ -536,7 +538,7 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 - [x] **`units`** : moteur `sympy.physics.units` (zéro dépendance) — `_unit_to_si` couvre préfixes, puissances, unités **dérivées** (N, J, Ω…) et **non-métriques** (h, min, °). Accepte `36 km/h`=`10 m/s`, `90 min`=`5400 s`, `1 kOhm`=`1000 Ohm`, `400 dm²`=`4 m²`. Comparaison valeur+dimension+précision WIMS conservée. **Bugs corrigés** : notation scientifique (`3.34e-26 kg` : split valeur/unité, `_parse_number`, et `_wims_has_compound_arith` qui prenait le `-` de l'exposant pour un calcul). 101 unités corpus parsées ; 30 refus = expected malformés préexistants (HTML/rint).
 - [x] `click` : **déjà fonctionnel** — mappé vers `clickfill` (matching par contenu du choix, pas par position `~k`). formule1-5 et compTrinomeSign* notent correctement (self-check OK). La note « non câblé » était obsolète.
 - [x] **`raw`** : `check_raw` — comparaison exacte de chaîne après filtres pilotés par option (`nospace`, `nocase`, `deaccent`, `nodigit`, `nopunct`, `noparenthesis`, `nomathop`, `noquote`). Routé depuis le dispatch. 585 tests core.
-- [ ] **Sept types réveillés par l'import de H1, H2, H5 et H6 (2026-09-10).** Ils atteignent `check_text` sur des champs **notés** : l'élève n'y est juste qu'en recopiant l'écriture exacte de la référence, et rien ne le signale — le test « la bonne réponse donne 1 » passe, puisqu'il soumet justement la référence. Déclarations dans les `.def` : `complex` 63 (H5/H6 : `oefcomplexes`, `cplxcalc`, `cplxgeom`…), `chset` 21 (`OEFangle`), `clicktile` 15 (`oefratio`, `oeffrieze`), `compose` 9, `matrix` 7 (intercepté en H3/H4 par `?analyze`, pas en H5/H6), `crossword` 5, `reorder` 3. Recensés dans `_DETTE_ATTEINTE` (`tests/core/answer/test_types_non_portes.py`), à porter un par un selon la méthode de la mémoire *dette des types de réponse* — `complex` d'abord. `vector`, `equation` et `flashcard` restent sans usage.
+- [x] **Sept types réveillés par l'import de H1, H2, H5 et H6 (2026-09-10).** *Soldé : `_DETTE_ATTEINTE` est vide (constaté le 2026-09-27), plus aucun type n'atteint `check_text` sur un champ noté.* Ils atteignent `check_text` sur des champs **notés** : l'élève n'y est juste qu'en recopiant l'écriture exacte de la référence, et rien ne le signale — le test « la bonne réponse donne 1 » passe, puisqu'il soumet justement la référence. Déclarations dans les `.def` : `complex` 63 (H5/H6 : `oefcomplexes`, `cplxcalc`, `cplxgeom`…), `chset` 21 (`OEFangle`), `clicktile` 15 (`oefratio`, `oeffrieze`), `compose` 9, `matrix` 7 (intercepté en H3/H4 par `?analyze`, pas en H5/H6), `crossword` 5, `reorder` 3. Recensés dans `_DETTE_ATTEINTE` (`tests/core/answer/test_types_non_portes.py`), à porter un par un selon la méthode de la mémoire *dette des types de réponse* — `complex` d'abord. `vector`, `equation` et `flashcard` restent sans usage.
 
 ### d) Étapes, rendu, moteur
 
@@ -567,7 +569,7 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 - [x] **PARI impératif** : mini-interpréteur `core/oef/def_engine/pari_prog.py` — séquence `;`, affectations (scalaires et indexées), `for`/`while` bornés, `if` paresseux (instruction *et* expression), `print`/`print1` accumulant la sortie, `sum`/`prod` à variable liée, vecteurs/matrices **1-indexés**, transposée `~`, `concat` vectoriel, constantes `true`/`false`. **Session partagée** entre les `!exec pari` d'un même exercice (`DefEngine.pari_session`) : WIMS pilote un unique `gp`, si bien qu'`oefforpython.fr` définit `l=vector(n);for(…)` dans un appel et l'affiche par `print(l)` dans le suivant. Sortie post-traitée comme `wims/src/Interfaces/pari.c` (une ligne par `print`, crochets englobants retirés). Hors périmètre (`f(x)=…`, `local()`, `List()`) → `PariProgramError` et repli sur l'évaluation d'expression, exécution atomique vis-à-vis de la session. Corrige `liste_portee1/2` (`'i'`/`'='`/`'1+1'` → valeurs), les 18 `oefforpython.fr` (`'l'` → la liste), `BoucleWhile` (30 réponses vides → les 7 étapes de la boucle), `permlist`, `quadrilatere` (coordonnées au lieu de la source). Les ~28 exos de biologie/géographie en `divrem(a,b)~` calculent enfin leur **pagination** (`val67 = q+1`) : ils exposent la page réelle au lieu de la totalité des `?analyze` — ils restent néanmoins non fonctionnels faute d'`imagefill` (0 champ rendu, cf. `\special` ci-dessus). Corpus : 4296 OK / 0 fail, inchangé. **Bug corrigé au passage** : `_pari_concat` concaténait *textuellement* (`concat(5,1)` → `"51"`) alors que les 36 fichiers du corpus l'utilisent pour accumuler des listes.
 - [x] **`!translate` — délimiteurs `$…$` sur la cible** : `_cmd_translate` ne déballait `$…$` que sur la source, si bien que `!translate internal ; to $\<LF>$` (dans `slib/stat/dataproc`) remplaçait `;` par un `$` littéral. Données et effectifs restaient collés (`1,4,6,7,8,12$2,3,3,7,6,2`), `slib_weight` vide → **toute statistique pondérée basculait silencieusement dans la branche non pondérée**, avec un effectif faux. WIMS applique `substit()` aux trois opérandes de la même façon (`calc.c:calc_translate`). Corrige `ecarttype2` (écart-type 2.21 → **2.59**, exact), `meanw` (4.96 → **291/35**, exact), `ConnexionInt2` (source `rint(rint(/*100)…)` non évaluée → `698-200,698+200,698`). C'est le seul appelant de la branche pondérée de `slib/stat/variance` — donc le seul cas du corpus qui exerce réellement le mini-interpréteur PARI ci-dessus. Corpus inchangé (4296 OK / 0 fail), 3 `expected` modifiés, tous vers la valeur juste.
 - NB : contrairement à ce qui était noté ici, `bergamo6` **n'a pas de bug** — il appelle `slib/stat/variance` avec un seul argument (branche non pondérée, sans PARI) et ses valeurs sont exactes (moyenne −1, variance 50/17 → 2.9). Les `!endif` annotés (`!endif weight`) sont gérés depuis longtemps, côté parser (`def_parser.py`, `startswith("!endif")`) comme côté slib (`slib.py`, `re.match(r"!endif\b")`).
-- [ ] Flydraw : manquent `levelcurve`, `affine`, `copyresized`, `plotjump`/`plotstep`, `filltoborder`, `diamondfill`/`dotfill`, `rays` — 0 usage corpus → différé
+- [~] Flydraw : `levelcurve`, `affine`, `filltoborder` et `rays` sont portés (2026-09-22 et 24, cf. I.1) ; `copyresized`, `plotjump`/`plotstep`, `diamondfill`/`dotfill` restent à vérifier
 - [x] Corriger `docs/types-exercices-reponses.md:82` : `symbols=` n'est pas « variables autorisées de formal » mais une option d'UI transverse (palette de boutons insérant au caret, cf. `wims/.../anstype/symbols.inc`) — 0 usage corpus, l'implémentation reste à faire côté front si le besoin apparaît
 
 - [ ] **Facteur 1 explicite dans les produits rendus en LaTeX** : PAX construit des `Mul(1, …, evaluate=False)`, que sympy imprimait `1 \cdot \frac{1}{x}` en 1.12 et imprime `1 \frac{1}{x}` depuis 1.14 — soit, pour un élève, un nombre mixte (« 1 et 1/x »). Le `\cdot` ne corrigeait rien, il rendait le défaut supportable : **ce facteur 1 n'a pas lieu d'être**, et c'est à la construction de l'expression qu'il faut le supprimer, pas à l'affichage. Repéré en mesurant la montée sympy 1.12 → 1.14 (PR #41) : 25 des 178 rendus modifiés sur 12 897 en viennent, dont `oefordrevabs.fr/deducencad2`, `OEFevalwimsfctref.fr/assocgr1` et `OEFevalwimsfnctg.fr/chforme5` (où il touche une palette de QCM). Le point de construction reste à localiser — vraisemblablement côté `cas.py`/`_sympify_arg`, là où un coefficient est appliqué à une expression déjà formée.
@@ -777,8 +779,8 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   ensemble de `bc` des changements de base d'`oefnumeration.fr`), `lceb`
   (`lceb_dynopt.c`, bizarreries du C comprises, plafonné pour tenir le budget
   de rendu — moins de 0,05 s sur `oeflceb.fr`).
-- [ ] **`graphviz`** reste non géré (6 rendus, et 2 en H4) : il suppose le
-  binaire `dot` (voir plus bas).
+- [x] **`graphviz`** — porté le 2026-09-24 : Graphviz est installé dans
+  l'image (voir plus bas).
 - [x] **Synonymes de commandes WIMS** (`wims/src/calc.c`), ramenés à leur
   commande à l'entrée de `_eval_cmd` : `items`, `itemcount`, `position`,
   `listunique` ; et `evalsubst` (`mathsubst` puis `evalue`). `derivzoom.fr`

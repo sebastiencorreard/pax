@@ -2286,6 +2286,13 @@ class DefEngine(_SlibMixin):
             # single sign. Without this, substituting a negative variable
             # into `$a - $b` produces `3 - -6` instead of `3 + 6`.
             expr = self._subst(args)
+            # Les caractères que `rawmath.c` remplace d'abord, sauf devant du
+            # TeX (`\` ou `{`), qu'il laisse intact. `oefCCF` écrit `x³` et
+            # passe le résultat à Maxima, qui ne lit que `x^3` ; la sortie de
+            # l'ancienne émulation en `**` n'était lisible que grâce à SymPy.
+            if "\\" not in expr and "{" not in expr:
+                expr = (expr.replace("**", "^").replace("\xa0", " ")
+                        .replace("\xb2", "^2 ").replace("\xb3", "^3 "))
             def _collapse(m: re.Match) -> str:
                 signs = re.findall(r"[+-]", m.group(0))
                 return "-" if signs.count("-") % 2 == 1 else "+"
