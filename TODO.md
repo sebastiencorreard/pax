@@ -323,6 +323,18 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   78 changent d'étape 2 — verdicts affichés, questions suivantes posées,
   tableau des temps de `histocap` rempli.
 
+  **Fin des exercices à `\nextstep` (2026-09-27)** : `histocap` proposait
+  une étape 7, 8, 9… Chez WIMS, une requête ne garde des `valN` que celles
+  de `vsavelist` (`:stat`) ; `nextstep` y désigne `val56`, hors de la liste,
+  que `:postdef` pose aux étapes 2 à 6 et pas à la 7ᵉ — vide, elle clôt
+  l'exercice. Le rejeu qui décide de l'étape suivante vide donc les `valN`
+  hors `vsavelist` (`nouvelle_requete`). Parcours complets rejoués : **27
+  exercices sur 41** ne s'arrêtaient jamais (`OEFpythagore2`, `guidadd`,
+  `oefsuite`, `donsang`…), ils finissent en 2 à 6 étapes ; aucune étape
+  perdue. Le **rendu**, lui, ne vide rien : PAX y recalcule les `replygood`
+  à partir des `valN`, là où WIMS les a figés au premier affichage — les
+  vider effaçait les attendus (`enchainement` : `109.6` → vide).
+
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
   `val19 = $[fullratsimp(…)]` porte la réponse de l'élève ; PAX rendait

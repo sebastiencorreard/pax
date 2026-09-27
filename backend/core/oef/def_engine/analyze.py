@@ -167,9 +167,14 @@ def etape_suivante_existe(
     if "nextstep" not in ctx or not sections.get("postdef"):
         return None
 
+    from . import nouvelle_requete, vsave_de  # noqa: PLC0415
+
     engine = DefEngine(seed=seed, def_path=sections.get("def_path"))
     engine._strict_arith = True
     engine.ctx.update(ctx)
+    # L'envoi est une nouvelle requête : seules les `valN` de `vsavelist`
+    # y survivent (cf. `nouvelle_requete`).
+    nouvelle_requete(engine.ctx, vsave_de(sections.get("vsavelist")))
     # Les réponses, sous les deux noms que `:postdef` peut lire.
     for nom, valeur in replies_by_name.items():
         m = re.match(r"^r(?:eply)?(\d+)$", nom.strip())

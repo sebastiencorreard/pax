@@ -47,3 +47,38 @@ def test_histocap_affiche_les_temps_a_l_etape_2():
                           prev_replies={"reply1": ",".join(temps)},
                           prev_scores={"reply1": 1.0})
     assert all(t in r.statement_html for t in temps[:5])
+
+
+def test_une_requete_ne_garde_que_vsavelist():
+    from core.oef.def_engine import nouvelle_requete, vsave_de
+
+    ctx = {"val7": "a", "val56": "reply6", "val107": "x", "m_step": "7"}
+    nouvelle_requete(ctx, vsave_de("1,6,7,8"))
+    assert ctx == {"val7": "a", "val56": "", "val107": "", "m_step": "7"}
+    # Sans `vsavelist`, rien n'est touché.
+    ctx = {"val56": "reply6"}
+    nouvelle_requete(ctx, None)
+    assert ctx == {"val56": "reply6"}
+
+
+def test_histocap_s_arrete_apres_six_etapes():
+    """`nextstep` désigne `val56`, hors `vsavelist` : `:postdef` la pose aux
+    étapes 2 à 6, pas à la 7ᵉ. Gardée d'une étape à l'autre, elle relançait
+    l'exercice sans fin (étape 7, 8, 9…) — comme 26 autres exercices."""
+    os.environ.setdefault("PAX_WIMS_NOW", "20260101.12:00:00")
+    import core.oef.def_engine as E
+    from core.oef.def_engine.analyze import etape_suivante_existe
+    from core.oef.engine import find_def_path
+
+    d = find_def_path(_histocap())
+    rep = {"reply1": ",".join(str(200 + 7 * i % 190) for i in range(40))}
+    etapes = 0
+    for k in range(1, 12):
+        r = E.load_and_render(d, seed=42, m_step=k, prev_replies=dict(rep),
+                              prev_scores={x: 1.0 for x in rep})
+        for a in r.answers:
+            rep.setdefault(a.input_name, a.expected or "1")
+        etapes = k
+        if etape_suivante_existe(r, dict(rep), 42, k, {x: 1.0 for x in rep}) is not True:
+            break
+    assert etapes == 6

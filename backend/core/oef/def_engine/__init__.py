@@ -727,6 +727,32 @@ def _horloge_session() -> datetime.datetime:
     return datetime.datetime.now()
 
 
+def vsave_de(vsavelist: str | None) -> frozenset[int] | None:
+    """Les `valN` que WIMS garde en session d'une requête à l'autre
+    (`vsavelist`, section `:stat` ; `nextstep.proc` les sauve après chaque
+    `:postdef`). `None` si le `.def` n'en déclare pas."""
+    if not vsavelist or not str(vsavelist).strip():
+        return None
+    return frozenset(int(x) for x in re.findall(r"\d+", str(vsavelist)))
+
+
+def nouvelle_requete(ctx: dict, vsave: frozenset[int] | None) -> None:
+    """Ce qu'une requête WIMS retrouve de la précédente : les `valN` de
+    `vsavelist`, et rien d'autre. Les autres repartent vides.
+
+    `histocap` en dépend pour s'arrêter : `nextstep` y désigne `val56`, hors de
+    la liste, que `:postdef` pose aux étapes 2 à 6 et **pas** à la 7ᵉ — vide,
+    elle clôt l'exercice. Gardée d'une étape à l'autre, elle le relançait
+    indéfiniment (étape 7, 8, 9…).
+    """
+    if vsave is None:
+        return
+    for cle in list(ctx):
+        m = re.fullmatch(r"val(\d+)", cle)
+        if m and int(m.group(1)) not in vsave:
+            ctx[cle] = ""
+
+
 def sc_reply_wims(note: float) -> str:
     """`m_sc_reply` selon `oef/screply.proc` : 1 si juste, 0,5 si juste à la
     précision près (ou en partie), 0 sinon."""
@@ -1018,6 +1044,12 @@ class DefEngine(_SlibMixin):
         self._deadline = time.monotonic() + _NEXTSTEP_TIME_BUDGET
         try:
             for k in range(2, courante + 1):
+                # `step.proc` repose les champs `?analyze` à chaque requête. Les
+                # `valN` hors `vsavelist` ne sont **pas** vidées ici : PAX
+                # recalcule les attendus (`replygood`) au rendu à partir d'elles,
+                # là où WIMS les a figés au premier. Le vidage ne sert qu'à
+                # décider de l'étape suivante (`etape_suivante_existe`).
+                self._poser_valeurs_analyze()
                 self.ctx["m_step"] = str(k)
                 self.ctx["step"] = str(k)
                 try:
@@ -1228,6 +1260,7 @@ class DefEngine(_SlibMixin):
         # Done after var_instructions so the expected (`$replygood{n}`, which
         # may reference val vars computed above) is resolvable.
         self._apply_prev_replies()
+        self._poser_valeurs_analyze()
         self._rejouer_postdef_jusqu_a_l_etape(df)
 
         # Les listes déroulantes des `\choice`, composées **avant** le rendu :
@@ -1597,6 +1630,8 @@ class DefEngine(_SlibMixin):
                 # répertoire, et sans lui il retourne sans rien faire — en
                 # silence, comme le reste du moteur.
                 "def_path": self.def_path,
+                # Les `valN` que WIMS garde d'une requête à l'autre.
+                "vsavelist": (df.stat or {}).get("vsavelist"),
             }
 
         import html as _html  # noqa: PLC0415
@@ -4592,11 +4627,6 @@ class DefEngine(_SlibMixin):
             n = m.group(1)
             self.ctx[f"reply{n}"] = value
             self.ctx[f"m_reply{n}"] = value
-            # `step.proc` range la réponse d'un champ `?analyze N` dans `valN`
-            # (`val$t_=$(reply$i)`) : c'est sous ce nom que `:postdef` la lit.
-            m_an = re.match(r"\s*\?analyze\s+(\d+)", self.ctx.get(f"replygood{n}", ""))
-            if m_an:
-                self.ctx[f"val{m_an.group(1)}"] = value
             note = next((self.prev_scores[k] for k in (name, f"reply{n}", f"r{n}")
                          if k in self.prev_scores), None)
             if note is not None:
@@ -4609,6 +4639,18 @@ class DefEngine(_SlibMixin):
                 sc = "1" if self._grade_prev_reply(value, expected, rtype) else "0"
             self.ctx[f"sc_reply{n}"] = sc
             self.ctx[f"m_sc_reply{n}"] = sc
+
+    def _poser_valeurs_analyze(self) -> None:
+        """`step.proc` range la réponse d'un champ `?analyze N` dans `valN`
+        (`val$t_=$(reply$i)`), à chaque requête : c'est sous ce nom que
+        `:postdef` la lit."""
+        for name, value in self.prev_replies.items():
+            m = re.match(r"r(?:eply)?(\d+)$", name)
+            if not m:
+                continue
+            m_an = re.match(r"\s*\?analyze\s+(\d+)", self.ctx.get(f"replygood{m.group(1)}", ""))
+            if m_an:
+                self.ctx[f"val{m_an.group(1)}"] = value
 
     def _grade_prev_reply(self, reply: str, expected: str, rtype: str) -> bool:
         """Best-effort grade of a previous-step reply (for the `$m_sc_reply`
