@@ -398,11 +398,13 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   - **défauts** : ~25 exercices où l'expression repart telle quelle —
     `numtoperm` (ordre propre à PARI), `matker` (normalisation), `valuation`,
     `nfroots`, `printtex`, programmes à fonctions (`PermutList`, `immat`) ;
-  - **forme** (valeur égale, 109 exercices) : PARI simplifie les fractions
-    rationnelles (`(-(x+1)(3x-1))/((x+1)(3x-1))` → `-1`, PAX :
-    `-x/(x + 1) - 1/(x + 1)`), ordonne les termes à sa façon
-    (`25*x^2-10*y*x+y^2`) et n'écrit pas d'espaces ;
-  - **précision** : 20 chiffres chez WIMS (`\p 20`), 10 chez PAX ;
+  - **forme** — tranché le 2026-09-28 avec l'utilisateur : les fractions
+    rationnelles sont **réduites** comme chez PARI (fait :
+    `oefsignes/reduire` attendait `68*x^2/(4*x + 2) + …` et attend
+    `17*x + 11`) ; l'**ordre des termes** (`25*x^2-10*y*x+y^2`) et les
+    espaces ne sont **pas** suivis, par choix ;
+  - **précision** : 20 chiffres chez WIMS (`\p 20`), 10 chez PAX — gardé par
+    choix, afficher `0.66666666666666666667` à un élève n'étant pas un gain ;
   - le hasard (`random`) ne se compare pas : tirages différents par nature.
 - [ ] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
   `!exec pari [$val25]/10.` et récupère la chaîne brute. Un seul exercice.

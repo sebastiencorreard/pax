@@ -1523,6 +1523,19 @@ def _format_pari_result(result) -> str:
     # les `pixel_art_flag*` affichaient à l'élève.
     if hasattr(result, "items") and hasattr(result, "col") and not isinstance(result, dict):
         return ",".join(_format_pari_result(x) for x in result.items)
+    # Une fraction rationnelle, PARI la **réduit** : `(-(x+1)*(3*x-1))/((x+1)*
+    # (3*x-1))` vaut `-1`, là où le développement de SymPy l'éclatait en
+    # `-x/(x + 1) - 1/(x + 1)` — égal, mais ce n'est pas ce que l'élève doit
+    # lire. Un polynôme (dénominateur constant) reste développé.
+    if isinstance(result, sympy.Expr) and result.free_symbols:
+        try:
+            reuni = sympy.together(result)
+            if sympy.fraction(reuni)[1].free_symbols:
+                result = sympy.cancel(reuni)
+                if not sympy.fraction(result)[1].free_symbols:
+                    result = sympy.expand(result)  # tout s'est simplifié : un polynôme
+        except Exception:  # noqa: BLE001 — expression hors du corps des fractions
+            pass
     # PARI uses `^` for exponentiation; SymPy's str() emits `**`. The downstream
     # WIMS pipeline (e.g. `!replace * by`) treats `*` literally, so leaving `**`
     # would corrupt powers like `x**2` into `x2`.

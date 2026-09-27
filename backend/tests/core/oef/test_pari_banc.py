@@ -109,3 +109,18 @@ def test_un_appel_inconnu_n_est_pas_un_produit():
     # `gp` refuse `valuation` sans son argument premier ; PAX ne le connaît
     # pas : l'appel reste lisible, et surtout ne devient pas `12*valuation`.
     assert "*" not in _call_pari("valuation(12,2)", session={})
+
+
+@pytest.mark.parametrize("expr,valeur", [
+    # PARI réduit une fraction rationnelle ; SymPy développée l'éclatait en
+    # somme (`-x/(x + 1) - 1/(x + 1)`). L'ordre des termes, lui, n'est pas
+    # suivi (`gp` : `-4*x+1`) : c'est une décision, non un oubli.
+    ("(-(x + 1)*(3*x - 1))/((x + 1)*(3*x - 1))", "-1"),
+    ("((-17*x - 11)/(2*(2*x + 1)))*(-4*x-2)", "17*x + 11"),
+    ("(-(x + 1)*(4*x - 1))/((x + 1))", "1 - 4*x"),
+    ("(x^2+1)/(x+1)", "(x^2 + 1)/(x + 1)"),
+    ("1/(x-2)+1/(x+2)", "2*x/(x^2 - 4)"),
+    ("(x+1)^2", "x^2 + 2*x + 1"),
+])
+def test_fraction_rationnelle_reduite(expr, valeur):
+    assert _call_pari(expr, session={}) == valeur
