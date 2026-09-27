@@ -48,6 +48,7 @@ _MAX_NEXTSTEPS = 32
 # 0,34 s. Deux secondes laissent donc six fois la marge du pire cas utile.
 _NEXTSTEP_TIME_BUDGET = 2.0
 
+from .rawmath import rawmath
 from .cas import (
     _MATH_NS,
     _PARI_HELPERS,
@@ -2278,26 +2279,13 @@ class DefEngine(_SlibMixin):
             return self._cmd_exec(args)
 
         if cmd == "rawmath":
-            # `!rawmath` normalises a math expression, keeping it in a form
-            # suitable for downstream evaluation (`pari print()`, plotting).
-            # NOT a LaTeX conversion — that's `!texmath`.
-            # Mirrors WIMS' __replace_plusminus (rawmath.c) which collapses
-            # any run of +/- (possibly separated by whitespace) into a
-            # single sign. Without this, substituting a negative variable
-            # into `$a - $b` produces `3 - -6` instead of `3 + 6`.
-            expr = self._subst(args)
-            # Les caractères que `rawmath.c` remplace d'abord, sauf devant du
-            # TeX (`\` ou `{`), qu'il laisse intact. `oefCCF` écrit `x³` et
-            # passe le résultat à Maxima, qui ne lit que `x^3` ; la sortie de
-            # l'ancienne émulation en `**` n'était lisible que grâce à SymPy.
-            if "\\" not in expr and "{" not in expr:
-                expr = (expr.replace("**", "^").replace("\xa0", " ")
-                        .replace("\xb2", "^2 ").replace("\xb3", "^3 "))
-            def _collapse(m: re.Match) -> str:
-                signs = re.findall(r"[+-]", m.group(0))
-                return "-" if signs.count("-") % 2 == 1 else "+"
-            expr = re.sub(r"[+-](\s*[+-])+", _collapse, expr)
-            return expr
+            # Port de `rawmath.c` (`def_engine/rawmath.py`), confronté au vrai
+            # `rawmath()` compilé depuis l'arbre : multiplication implicite,
+            # `|x|`, décimaux pendants, signes redondants — et rien devant du
+            # TeX. PAX n'en portait que les signes : `2(x-2)` restait tel quel,
+            # `(x+1)(x-1)` aussi. L'avertissement (`wims_warn_rawmath`) n'est
+            # pas posé : aucun script du corpus ne le lit.
+            return rawmath(self._subst(args))[0]
 
         if cmd == "texmath":
             s = self._subst(args)

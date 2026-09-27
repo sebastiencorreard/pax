@@ -852,17 +852,25 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `strtod`). Une régression, corrigée : `_expected_as_fraction` comparait la
   fraction au calcul à 10⁻⁹ près, et `quizz`, `oeflinsys`, `OEFpolynome`…
   perdaient leur attendu fractionnaire ; la tolérance suit `print_precision`.
-- [ ] **`!rawmath` n'est qu'un fragment de `rawmath.c`** (relevé le
-  2026-09-27, **à traiter — rappel demandé par l'utilisateur**). PAX n'en
-  porte que la fusion des signes (`__replace_plusminus`) et, depuis
-  e8e55ec8, les caractères remplacés d'abord (`**`, `²`, `³`, espace
-  insécable). Manquent : la garde TeX qui laisse tout intact devant `\` ou
-  `{` (la fusion des signes s'y applique encore), `__replace_abs` (`|x|` →
-  `abs(x)`), `__replace_space`, `__treat_decimal`, et surtout la
-  **multiplication implicite** (`2x` → `2*x`, `)(` → `)*(`) avec ses
-  avertissements. 11 370 appels dans 2 275 `.def` : un changement à mesurer
-  comme l'interface Maxima — sonde avant/après sur tous les appels, classée
-  forme/valeur.
+- [x] **`!rawmath` porté en entier** (2026-09-27, `def_engine/rawmath.py`).
+  PAX n'en avait que la fusion des signes : `2(x-2)` restait tel quel,
+  `(x+1)(x-1)` aussi, `.5` sans son zéro, et la fusion touchait même du TeX.
+  Le port suit `rawmath.c` pas à pas (tables `evalname`, `mathname`,
+  `hmname`, `mathname_split`, `find_mathvar_end`…). **Arbitre** : le vrai
+  `rawmath()`, compilé depuis l'arbre dans un harnais de vingt lignes
+  (`rawmath.c` + `Lib/libwims.a`, bouchons pour `getvar`/`force_setvar`).
+  Aucun écart sur les 4 669 entrées que le corpus lui soumet ni sur 300 000
+  chaînes aléatoires, avertissements compris. Effet : 0 échec de notation,
+  18 instantanés — des `*` explicites dans les attendus, et le tableau
+  d'`OEFevalwimsstat/mobile5`, qui affichait sa formule au lieu de ses
+  valeurs.
+- [ ] **Le `rawmath` du checker `litexp`** (`_rawmath_normalize`,
+  `checkers.py`) reste une approximation par regex. `anstype/litexp` passe
+  l'attendu **et la réponse de l'élève** par le vrai `!rawmath`, après avoir
+  posé `wims_rawmath_variables` sur les variables de l'attendu
+  (`!varlist nofn`). Porter cela touche à la **notation** : il faut d'abord
+  ajouter les variables déclarées au port (`getuservar`, non repris), puis le
+  confronter au harnais avec ces variables, avant de brancher le checker.
 - [x] **Procédures de module jamais exécutées** — réglé le 2026-09-27.
   `_cmd_readproc` lit désormais, au premier niveau (le `var.proc` du module),
   tout fichier **qui existe dans le module**. Mesuré au rendu, les « 151

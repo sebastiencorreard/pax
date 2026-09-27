@@ -57,7 +57,7 @@ class TestRawmath:
         # `oefCCF/outil` écrit `x³` puis dérive par Maxima.
         e = DefEngine(seed=1)
         e.ctx["v"] = "-0.017x\xb3+3.91x\xb2+x**4"
-        assert e._eval_cmd("rawmath", "$v") == "-0.017x^3 +3.91x^2 +x^4"
+        assert e._eval_cmd("rawmath", "$v") == "-0.017*x^3 +3.91*x^2 +x^4"
 
     def test_le_tex_n_est_pas_touche(self):
         e = DefEngine(seed=1)
