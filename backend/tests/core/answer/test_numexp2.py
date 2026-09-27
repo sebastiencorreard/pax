@@ -77,3 +77,26 @@ def test_reponse_vide():
     """Pas de verdict à rendre, mais pas de faute de forme à reprocher non plus."""
     r = _res("", "3/4")
     assert not r.correct and r.status == "ok"
+
+
+class TestRawmath:
+    """`reply$i=!rawmath $(reply$i)` — la réponse traduite par le vrai
+    `rawmath`, non par une regex. Tout le reste porte sur elle."""
+
+    def test_deux_nombres_juxtaposes_sont_un_produit(self):
+        # `rawmath` écrit `3*4` : une opération. La regex d'avant collait les
+        # deux nombres, et `3 4` valait 34.
+        assert _res("3 4", "34").status == "invalid_format"
+
+    def test_les_blancs_autour_de_la_barre_passent(self):
+        assert _res("1 / 2", "1/2").correct
+
+    def test_signes_redondants_reduits(self):
+        assert _res("+-5/116", "- 1/23.2").correct
+
+    def test_zero_apres_rawmath(self):
+        # Le `+` de tête tombe avant le test du zéro.
+        assert _res("+0", "0").correct
+
+    def test_decimal_pendant(self):
+        assert _res(".5", "1/2").correct

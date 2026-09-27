@@ -872,8 +872,13 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   examine. La forme se juge par `isitemof` sur les formes admises. Sur les
   188 champs `litexp` du corpus, aucune variante réaliste ne change de
   verdict ; une faille se ferme : recopier **toute** la liste des formes
-  admises passait pour juste. Reste sur la regex `_rawmath_normalize` :
-  `numexp2`, dont l'anstype n'a pas été confronté au banc.
+  admises passait pour juste.
+- [x] **`numexp2`** (2026-09-27) suit son anstype (`OEFevalwimsfrac`) à la
+  lettre : réponse passée par le port de `rawmath` puis `!trim`, barres
+  comptées en items, test du zéro sur la réponse traduite. La regex
+  `_rawmath_normalize` a disparu avec lui. Sur 1 501 essais (6 exercices ×
+  20 graines) : aucune bonne réponse perdue ; `+-5/116` devient juste
+  (signes réduits) ; `3 4` n'est plus lu `34` mais refusé comme opération.
 - [x] **Procédures de module jamais exécutées** — réglé le 2026-09-27.
   `_cmd_readproc` lit désormais, au premier niveau (le `var.proc` du module),
   tout fichier **qui existe dans le module**. Mesuré au rendu, les « 151

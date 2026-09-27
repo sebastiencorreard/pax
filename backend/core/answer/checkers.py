@@ -2254,28 +2254,6 @@ def _equation_ratio_constant(
     return abs(hi - lo) / scale < 1.0 / precision
 
 
-def _rawmath_normalize(s: str, comma_is_decimal: bool = True) -> str:
-    """Normalisation « rawmath » légère, pour `numexp2` seulement.
-
-    `litexp` juge désormais sa forme sur le port fidèle
-    (`def_engine/rawmath.py`, cf. `_reponse_litexp`). `numexp2` garde cette
-    approximation : son anstype n'a pas été confronté au banc.
-
-    WIMS compare les formes rawmath-normalisées (pas via CAS) : espaces retirés,
-    multiplication implicite explicitée, `**`→`^`. **Aucune simplification** :
-    `6/4` reste `6/4`, `x*x` reste `x*x`, l'ordre des termes est préservé (les
-    auteurs énumèrent les formes acceptées, ex. `5*sqrt(5),sqrt(5)*5`).
-
-    Le `*` implicite n'est PAS inséré avant `(` après une lettre, pour ne pas
-    casser les appels de fonction (`sqrt(5)` ne devient pas `sqrt*(5)`)."""
-    if comma_is_decimal:
-        s = s.replace(",", ".")
-    s = s.replace(" ", "").replace("**", "^")
-    s = re.sub(r"(\d)([A-Za-z(])", r"\1*\2", s)   # 2x → 2*x ; 2( → 2*(
-    s = re.sub(r"(\))([A-Za-z0-9(])", r"\1*\2", s)  # )x → )*x ; )( → )*(
-    return s
-
-
 _I_MAJUSCULE_RE = re.compile(r"(?<![A-Za-z0-9_])I(?![A-Za-z0-9_])")
 
 
@@ -2527,36 +2505,31 @@ def _check_numexp_float(
 # `numexp2` : la fraction demandée n'a pas à être irréductible.
 _NUMEXP2_ZERO_MSG = "Pour une valeur nulle, écrivez simplement 0."
 
-# `[+-]? nombre ( / nombre )?` — le signe ne peut porter que sur la tête, le
-# fichier rejetant tout `-` ou `+` après le premier caractère.
-_NUMEXP2_RE = re.compile(
-    r"(?P<signe>[+-]?)(?P<num>\d+(?:\.\d*)?|\.\d+)"
-    r"(?:/(?P<den>\d+(?:\.\d*)?|\.\d+))?"
-)
+_DECIMAL_RE = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)")
 
 
-def _numexp2_rationnel(s: str) -> Fraction | None:
-    """Valeur exacte d'une écriture `a`, `a/b` ou `-a/b`, décimales comprises.
+def _numexp2_valeur(s: str) -> Fraction | None:
+    """Valeur exacte de `a` ou `a/b` : les deux premiers items de
+    `!replace internal / by , in …`, le second valant 1 par défaut — le
+    produit en croix du fichier, décimales chassées, n'est rien d'autre que
+    l'égalité de deux fractions.
 
-    `None` si l'écriture sort de cette grammaire — le fichier du module parle
-    alors de `nocompute` : ce n'est pas une réponse fausse, c'est une réponse
-    hors format.
+    `None` si l'écriture ne se calcule pas (`!if NaN isin $test`) : un
+    dénominateur nul, un item qui n'est pas un nombre.
     """
-    m = _NUMEXP2_RE.fullmatch(s)
-    if m is None:
+    # Les blancs d'un item ne séparent rien pour `$[…]` : `- 1` vaut -1
+    # (`OEFevalwimsfrac/inverse5` écrit son attendu ainsi). Deux nombres
+    # juxtaposés n'arrivent pas jusqu'ici, `rawmath` en ayant fait un produit.
+    items = [re.sub(r"\s+", "", x) for x in wl.cutitems(s.replace("/", ","))]
+    if not items or not all(_DECIMAL_RE.fullmatch(x) for x in items[:2]):
         return None
     try:
-        val = Fraction(m.group("num"))
-        if m.group("den") is not None:
-            den = Fraction(m.group("den"))
-            if den == 0:
-                # Un dénominateur nul ne franchit pas `!if NaN isin $test` :
-                # le fichier sort sans verdict, ce qui vaut ici hors format.
-                return None
-            val /= den
+        val = Fraction(items[0])
+        if len(items) > 1:
+            val /= Fraction(items[1])
     except (ValueError, ZeroDivisionError):
         return None
-    return -val if m.group("signe") == "-" else val
+    return val
 
 
 def check_numexp2(
@@ -2582,32 +2555,39 @@ def check_numexp2(
     Il accepte en revanche ce que `numexp` nomme `badform`, le mélange de la
     barre et de la virgule : `1,5/2` passe par la mise à l'échelle du `!for`.
     """
-    r = _rawmath_normalize(reply, comma_is_decimal).strip()
+    from core.oef.def_engine.rawmath import rawmath  # noqa: PLC0415
+
+    # `reply$i=!rawmath $(reply$i)` puis `!trim` — la réponse traduite, sur
+    # laquelle porte tout le reste, y compris le test du zéro. La virgule
+    # décimale d'une langue qui l'emploie est lue en point d'abord.
+    if comma_is_decimal:
+        reply = re.sub(r"(?<=\d),(?=\d)", ".", reply)
+    r = rawmath(reply)[0].strip()
     if not r:
         return CheckResult(correct=False, score=0.0, method="numexp2")
 
-    # `!if ( + isin $dd or … )` — le signe de tête est ôté avant l'examen, si
-    # bien qu'un `1/-2` reste hors format.
+    # `!if ( + isin $dd or … or $c>2)` — le signe de tête ôté, puis toute
+    # opération, et plus d'une barre (`/` compté en items).
     dd = r[1:] if r[:1] in "+-" else r
-    if any(op in dd for op in ("+", "-", "*", "^", "(")) or dd.count("/") > 1:
+    if (any(op in dd for op in ("+", "-", "*", "^", "("))
+            or wl.itemnum(dd.replace("/", ",")) > 2):
         return CheckResult(correct=False, score=0.0, method="numexp2",
                            status="invalid_format", detail=_COMPUTE_MSG)
 
-    r_val = _numexp2_rationnel(r)
+    r_val = _numexp2_valeur(r)
     if r_val is None:
+        # `test=$[$(reply$i)]` puis `!if NaN isin $test → !exit`.
         return CheckResult(correct=False, score=0.0, method="numexp2",
                            status="invalid_format", detail=_REWRITE_MSG)
 
-    e_val = _numexp2_rationnel(
-        _rawmath_normalize(expected, comma_is_decimal).strip()
-    )
+    e_val = _numexp2_valeur(expected.strip())
     if e_val is None:
         # `!if NaN isin $good or Inf isin $good` → `Test=bad`, une erreur
         # d'auteur. Rien de mieux à faire que de refuser sans accuser l'élève
         # d'une faute de forme.
         return CheckResult(correct=False, score=0.0, method="numexp2")
 
-    if e_val == 0 and reply.strip() != "0":
+    if e_val == 0 and r != "0":
         return CheckResult(correct=False, score=0.0, method="numexp2",
                            status="invalid_format", detail=_NUMEXP2_ZERO_MSG)
 
