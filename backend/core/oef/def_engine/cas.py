@@ -1336,6 +1336,17 @@ def _pari_precprime(x):
     return 0 if n < 2 else sympy.prevprime(n + 1)
 
 
+def _pari_factor(n):
+    """`factor(n)` d'un entier : la matrice `[p, e]` de sa décomposition
+    (`2,2;5,1;7,1` pour 140). Hors entier, l'appel reste tel quel."""
+    import sympy  # noqa: PLC0415
+
+    v = sympy.sympify(n)
+    if not v.is_Integer:
+        return sympy.Function("factor")(v)
+    return sympy.Matrix([[p, e] for p, e in sorted(sympy.factorint(int(v)).items())])
+
+
 def _pari_eval(x):
     """`eval(x)` : une chaîne se lit comme une expression ; une valeur déjà
     calculée se rend telle quelle (`f=(2*x+6)*(x-2)` après `x=val`)."""
@@ -1434,6 +1445,21 @@ _PARI_HELPERS: dict = {
     "precprime": _pari_precprime,
     "prime": lambda n: __import__("sympy").prime(int(n)),
     "eval": _pari_eval,
+    # Arithmétique du collège (`oefdecomp`, `oefprimes`…) : chacune rendait
+    # un produit — `factor(140)` → `140*factor`.
+    "factor": _pari_factor,
+    "divisors": lambda n: __import__("sympy").divisors(int(n)),
+    "numdiv": lambda n: __import__("sympy").divisor_count(int(n)),
+    "primes": lambda n: [__import__("sympy").prime(k) for k in range(1, int(n) + 1)],
+    "sumdigits": lambda n: sum(int(c) for c in str(abs(int(n)))),
+    # `printtex(e)` : le LaTeX de l'expression. `gp` écrit `2\*x+5`, que
+    # MathJax affiche `2x+5` ; celui de SymPy s'affiche pareil sous KaTeX.
+    # Il rendait `2*printtex*x + 5*printtex` (`derivation1ere`, `h4tableSign`).
+    "printtex": lambda e: __import__("sympy").latex(__import__("sympy").sympify(e)),
+    # `truncate(0)` valait 0 par accident — `truncate*0` — tant que le nom
+    # était lié à un symbole. Partie entière vers zéro, et partie fractionnaire.
+    "truncate": lambda x: __import__("sympy").sign(x) * __import__("sympy").floor(abs(x)),
+    "frac": lambda x: x - __import__("sympy").floor(x),
     "binary": lambda n: [int(b) for b in bin(abs(int(n)))[2:]] if int(n) else [],
     # `I` est l'unité imaginaire de PARI ; la liaison automatique en faisait
     # un symbole libre, et `arg(0.3+I*(-0.3))` restait `arg(1 - I)`. (`i=I`
@@ -1595,10 +1621,13 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
     # `i=I` de l'en-tête de `pari.c`. Ici seulement : une boucle, qui ferait
     # de `i` sa variable, passe par le mini-interpréteur.
     ns["i"] = sympy.I
-    # Auto-bind symbols
+    # Auto-bind symbols. Un nom inconnu suivi de `(` est un **appel** : lié à
+    # un symbole, la multiplication implicite en faisait un produit
+    # (`factor(140)` → `140*factor`) ; en fonction non évaluée, il reste lisible.
+    appels = set(re.findall(r"([a-zA-Z_]\w*)\s*\(", clean))
     for ident in set(re.findall(r"[a-zA-Z_]\w*", clean)):
         if ident not in ns and ident not in _PYTHON_KEYWORDS:
-            ns[ident] = sympy.Symbol(ident)
+            ns[ident] = sympy.Function(ident) if ident in appels else sympy.Symbol(ident)
 
     transformations = standard_transformations + (
         implicit_multiplication_application,

@@ -389,8 +389,13 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   Householder d'`OEFbarypdtsc`, `OEFpdtscalTS`, `OEFgeospace` : plus aucun
   `print(slib_A)}` dans leurs énoncés). Sorties identiques à `gp` :
   4 138 → 4 244 ; écarts 335 → 224 ; échos 47 → 33 ; aucune régression.
+  **Quatrième lot** : un nom inconnu suivi de `(` reste un appel, jamais un
+  produit ; `factor`, `divisors`, `numdiv`, `primes`, `sumdigits`,
+  `truncate`, `frac`, `printtex`. `oefcombi/Ordinat1` attendait
+  `1680*truncate` — insoluble — et attend 1680 ; les QCM d'`oefdecomp`
+  proposent enfin leurs décompositions. Identiques à `gp` : 4 244 → 4 281.
   **Reste**, par nature :
-  - **défauts** : 25 exercices où l'expression repart telle quelle —
+  - **défauts** : ~25 exercices où l'expression repart telle quelle —
     `numtoperm` (ordre propre à PARI), `matker` (normalisation), `valuation`,
     `nfroots`, `printtex`, programmes à fonctions (`PermutList`, `immat`) ;
   - **forme** (valeur égale, 109 exercices) : PARI simplifie les fractions

@@ -87,3 +87,25 @@ def test_imaginaire_meme_valeur_que_gp(expr, wims):
     import sympy
 
     assert float(sympy.N(sympy.sympify(_call_pari(expr, session={})))) == pytest.approx(wims, rel=1e-8)
+
+
+@pytest.mark.parametrize("expr,wims", [
+    # Arithmétique du collège : chacune rendait un produit (`140*factor`).
+    ("factor(140)", "2,2;5,1;7,1"),
+    ("factor(32)", "2,5"),
+    ("divisors(28)", "1,2,4,7,14,28"),
+    ("numdiv(12)", "6"),
+    ("primes(4)", "2,3,5,7"),
+    ("sumdigits(13 467)", "21"),
+    # Valait 0 par accident (`truncate*0`) tant que le nom était un symbole.
+    ("truncate(0)", "0"),
+    ("truncate(-2.7)", "-2"),
+])
+def test_arithmetique_comme_gp(expr, wims):
+    assert _call_pari(expr, session={}) == wims
+
+
+def test_un_appel_inconnu_n_est_pas_un_produit():
+    # `gp` refuse `valuation` sans son argument premier ; PAX ne le connaît
+    # pas : l'appel reste lisible, et surtout ne devient pas `12*valuation`.
+    assert "*" not in _call_pari("valuation(12,2)", session={})
