@@ -47,6 +47,10 @@ _DETTE = frozenset({
     "chemformula_analysis", "chessgame", "clock", "code", "draft", "dragfill",
     "flashcard", "geogebra_translation", "imgcomp", "javacurve", "keyboard",
     "multidraw", "puzzle", "reaction", "symtext", "time",
+    # Types de module déclarés le 2026-09-27 (`!set anstype=yes`), sans
+    # checker : `equation2` (oeflceb) ne note rien — il dresse un tableau des
+    # équations —, `geogebra111`/`geogebra2` ne servent à aucun `.def`.
+    "equation2", "geogebra111", "geogebra2",
 })
 
 # Le sous-ensemble que le corpus emploie vraiment — le reste de `_DETTE` est
@@ -59,7 +63,7 @@ _DETTE = frozenset({
 # `_DETTE_ATTEINTE` qui ordonne le travail. Six y sont entrés avec l'import de
 # H1, H2, H5 et H6 (2026-09-10).
 _DETTE_EMPLOYEE = frozenset({
-    "draft", "dragfill", "reaction", "symtext",
+    "draft", "dragfill", "equation2", "reaction", "symtext",
 })
 
 # Employés par le corpus, jamais parvenus à `check_answer` : le moteur les
@@ -71,6 +75,7 @@ _DETTE_EMPLOYEE = frozenset({
 #   draft     →  capté en `options["draft"]`, champ brouillon non noté
 #   symtext   →  ses 2 champs portent `?analyze`, qui masque le type en
 #                `analyze` ; la notation passe par `:test`
+#   equation2 →  de même : ses 5 champs (`oeflceb`) portent `?analyze`
 #   reaction  →  `?analyze` *et* `replyweight=0` : le type de module
 #                d'oefstatistiques ne corrige rien, il dresse un tableau HTML
 #                des temps relevés et conclut `diareply=good` sans condition
@@ -79,7 +84,7 @@ _DETTE_EMPLOYEE = frozenset({
 # champs portent tous `?analyze`. Ceux de H5/H6 n'en portent pas : il est passé
 # en `_DETTE_ATTEINTE`.
 _DETTE_INTERCEPTEE = frozenset({
-    "draft", "dragfill", "reaction", "symtext",
+    "draft", "dragfill", "equation2", "reaction", "symtext",
 })
 
 # Ce qui reste vraiment à porter : les types qui atteignent `check_text` sur au

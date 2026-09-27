@@ -892,10 +892,15 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   intensité, résistance, tension de la source et tension en un point —
   405 rendus sur 15 graines, tous notés juste. `$lang` était bien substitué :
   seule la lecture manquait.
-- [ ] **Types de réponse définis par les modules** (dossier `anstype/`) :
-  `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr`. Absents de
-  `_WIMS_KNOWN_TYPES` comme de `_MODULE_ANSTYPES`, ils sont ramenés à
-  `default` sans que le garde-fou de I.3 c les voie.
+- [x] **Types de réponse définis par les modules** — instruit le 2026-09-27.
+  Mesuré : seuls deux servent. `mynumexp` (`frac5/add`, `soust`) était un
+  vrai défaut — retombé sur la comparaison par défaut, il acceptait
+  `1/3+1/30` pour `11/30`, l'énoncé même ; porté (`check_mynumexp`).
+  `equation2` (5 exercices d'`oeflceb`) ne note rien, ses champs portent
+  `?analyze`. `geogebra111`/`geogebra2` : aucun usage. Les trois sont
+  déclarés dans `_MODULE_ANSTYPES` et inscrits à la dette, pour que le
+  garde-fou les voie. `jmolstr` n'a pas de `.input` à `anstype=yes` : ce
+  n'est pas un type pour WIMS, qui le ramène à `default` comme PAX.
 - [x] **16 exercices plantaient sur `re.PatternError: bad escape`** — corrigé
   le 2026-09-10 par un remplacement par fonction :
   `_eval_loop_expr` (sous `!makelist`) passe la valeur, qui contient du LaTeX

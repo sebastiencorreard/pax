@@ -278,7 +278,10 @@ _WIMS_KNOWN_TYPES = frozenset({
 # checker du cœur s'applique à tous.
 _MODULE_ANSTYPES = frozenset({
     "runcode", "js2wims1", "draft", "autoeval", "vector", "reaction",
-    "numexp2", "jsxgraphobjet",
+    "numexp2", "jsxgraphobjet", "mynumexp",
+    # Sans `.input` à `anstype=yes`, `jmolstr` (nomenclature) n'est **pas** un
+    # type pour WIMS : il retombe sur `default`, ici comme là-bas.
+    "equation2", "geogebra111", "geogebra2",
 })
 
 
@@ -2596,6 +2599,64 @@ def check_numexp2(
                        method="numexp2")
 
 
+_NOREDUCED_MSG = "Réduisez la fraction."
+
+
+def check_mynumexp(
+    reply: str, expected: str, comma_is_decimal: bool = True,
+    noreduction: bool = False,
+) -> CheckResult:
+    """Type `mynumexp` — défini par `frac5` (`anstype/mynumexp`), employé par
+    `add` et `soust` : une somme de fractions, que l'élève doit **calculer**.
+
+    Le fichier, pas à pas :
+
+    - `!rawmath` puis `!trim` ; toute opération après le signe de tête
+      (`+ - * ^ (`) est `nocompute`. Retombé sur la comparaison par défaut, ce
+      type acceptait `1/3+1/30` pour `11/30` — l'énoncé même ;
+    - une écriture `a/b` est reconstruite après avoir chassé les décimales
+      (`1.1/3` → `11*1/(3*10)`), puis Maxima juge l'égalité exacte
+      (`is(equal(…))`) — ici, deux `Fraction` ;
+    - un attendu écrit `0` n'admet que le texte `0` ;
+    - sans `noreduction`, une réponse à barre doit égaler la forme que Maxima
+      en imprime. Comme c'est la forme **reconstruite** qui est comparée,
+      aucune fraction ne passe : défaut du fichier, reproduit, et sans effet
+      dans le corpus, dont les deux exercices posent `noreduction`.
+
+    `!distribute item … into num,den` ne garde que deux items : `1/2/3` s'y lit
+    `1/2`.
+    """
+    from core.oef.def_engine.rawmath import rawmath  # noqa: PLC0415
+
+    if comma_is_decimal:
+        reply = re.sub(r"(?<=\d),(?=\d)", ".", reply)
+    r = rawmath(reply)[0].strip()
+    if not r:
+        return CheckResult(correct=False, score=0.0, method="mynumexp")
+    dd = r[1:] if r[:1] in "+-" else r
+    if any(op in dd for op in ("+", "-", "*", "^", "(")):
+        return CheckResult(correct=False, score=0.0, method="mynumexp",
+                           status="invalid_format", detail=_COMPUTE_MSG)
+
+    r_val = _numexp2_valeur(r)
+    if r_val is None:
+        return CheckResult(correct=False, score=0.0, method="mynumexp",
+                           status="invalid_format", detail=_REWRITE_MSG)
+    e_val = _numexp2_valeur(expected.strip())
+    if e_val is None:
+        return CheckResult(correct=False, score=0.0, method="mynumexp")
+    if r_val != e_val:
+        return CheckResult(correct=False, score=0.0, method="mynumexp")
+
+    if expected.strip() == "0" and r != "0":
+        return CheckResult(correct=False, score=0.0, method="mynumexp",
+                           status="invalid_format", detail=_NUMEXP2_ZERO_MSG)
+    if "/" in r and not noreduction:
+        return CheckResult(correct=False, score=0.0, method="mynumexp",
+                           status="invalid_format", detail=_NOREDUCED_MSG)
+    return CheckResult(correct=True, score=1.0, method="mynumexp")
+
+
 def jsxgraphobjet_display_answer(expected: str) -> str:
     """Ce qu'il y a à montrer d'un attendu `jsxgraphobjet` : sa première ligne.
 
@@ -4279,6 +4340,9 @@ def check_answer(
             return check_numexp(reply, expected, precision, comma_is_decimal, noreduction)
         case "numexp2":
             return check_numexp2(reply, expected, comma_is_decimal)
+        case "mynumexp":
+            return check_mynumexp(reply, expected, comma_is_decimal,
+                                  "noreduction" in opt_str)
         case "jsxgraphobjet":
             return check_jsxgraphobjet(reply, expected, opt_str)
         case "units" | "unit":
