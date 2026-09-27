@@ -315,10 +315,19 @@ class _SlibMixin:
         # `slib/utilities/tooltip` son rendu par `!read oef/special/tooltip.phtml` :
         # WIMS résout ces chemins sous `scripts/`, comme les slibs elles-mêmes.
         # Les ignorer laissait `comp_motor` & co. indéfinis, et les schémas
-        # d'`oefelec` vides. Borné aux lectures faites par une slib : celles
-        # d'un `.def` (`my_var.proc`, `methods.$lang`…) sont à instruire à part
-        # (TODO I.3 h).
+        # d'`oefelec` vides.
+        #
+        # Au premier niveau — le `var.proc` du module —, un fichier **du
+        # module** se lit de même : `oefohm` y prend ses méthodes de calcul
+        # (`methods.$lang` → `confparm4`), `oefIntroLogique` ses connecteurs
+        # (`notation_lang.proc` → `n_and`, `n_or`, `n_neg`). Un fichier absent
+        # — les 135 `my_var.proc` que les gabarits OEF appellent sans les
+        # fournir — ne fait rien, chez WIMS non plus.
         if getattr(self, "_profondeur_slib", 0) > 0:
+            self._run_slib(path, proc_args)
+        elif self.def_path and os.path.isfile(
+            os.path.join(os.path.dirname(os.path.dirname(self.def_path)), path)
+        ):
             self._run_slib(path, proc_args)
         return
 

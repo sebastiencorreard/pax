@@ -163,3 +163,28 @@ class TestIntegraleDefinie:
         from core.oef.def_engine.cas import _call_maxima
 
         assert "integrate" not in _call_maxima("integrate(6*x^2,x)")
+
+
+class TestLectureDuModule:
+    """`!read` au premier niveau — le `var.proc` du module — d'un fichier du
+    module. `oefohm` y prend ses méthodes (`methods.$lang` → `confparm4`) ;
+    sans elles, ses 27 exercices posaient toujours la même question."""
+
+    def _engine(self, tmp_path):
+        (tmp_path / "def").mkdir()
+        (tmp_path / "methods.fr").write_text(
+            "!set methods=v1+r/a1,Calculer I\\\nv1+a1/r,Calculer R\n"
+            "!set methlist=!column 1 of $methods\n"
+        )
+        return DefEngine(seed=1, def_path=str(tmp_path / "def" / "x.def"))
+
+    def test_fichier_du_module_lu(self, tmp_path):
+        e = self._engine(tmp_path)
+        e._cmd_readproc("methods.fr")
+        assert e.ctx.get("methlist") == "v1+r/a1,v1+a1/r"
+
+    def test_fichier_absent_sans_effet(self, tmp_path):
+        # Les gabarits OEF appellent `my_var.proc` sans le fournir.
+        e = self._engine(tmp_path)
+        e._cmd_readproc("my_var.proc")
+        assert "slib_out" not in e.ctx or e.ctx["slib_out"] == ""

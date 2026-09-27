@@ -852,11 +852,30 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `strtod`). Une régression, corrigée : `_expected_as_fraction` comparait la
   fraction au calcul à 10⁻⁹ près, et `quizz`, `oeflinsys`, `OEFpolynome`…
   perdaient leur attendu fractionnaire ; la tolérance suit `print_precision`.
-- [ ] **Procédures de module jamais exécutées** : `_cmd_readproc` ignore tout
-  fichier qu'il ne connaît pas. `!read my_var.proc` (depuis le `var.proc` de
-  `oefvocmarine`, `OEFCalcLimLnExp`, `OEFexpalgTS`… 151 rendus),
-  `methods.$lang` (`oefohm`, où `$lang` n'est même pas substitué alors que
-  `methods.fr` existe), `notation_lang.proc` (10).
+- [ ] **`!rawmath` n'est qu'un fragment de `rawmath.c`** (relevé le
+  2026-09-27, **à traiter — rappel demandé par l'utilisateur**). PAX n'en
+  porte que la fusion des signes (`__replace_plusminus`) et, depuis
+  e8e55ec8, les caractères remplacés d'abord (`**`, `²`, `³`, espace
+  insécable). Manquent : la garde TeX qui laisse tout intact devant `\` ou
+  `{` (la fusion des signes s'y applique encore), `__replace_abs` (`|x|` →
+  `abs(x)`), `__replace_space`, `__treat_decimal`, et surtout la
+  **multiplication implicite** (`2x` → `2*x`, `)(` → `)*(`) avec ses
+  avertissements. 11 370 appels dans 2 275 `.def` : un changement à mesurer
+  comme l'interface Maxima — sonde avant/après sur tous les appels, classée
+  forme/valeur.
+- [x] **Procédures de module jamais exécutées** — réglé le 2026-09-27.
+  `_cmd_readproc` lit désormais, au premier niveau (le `var.proc` du module),
+  tout fichier **qui existe dans le module**. Mesuré au rendu, les « 151
+  rendus » se répartissaient ainsi : 135 `my_var.proc` **absents** (les
+  gabarits OEF l'appellent sans le fournir — WIMS ne fait rien non plus),
+  16 `my_var.proc` d'`oefvocmarine` (le prénom de l'élève, vide chez PAX),
+  10 `notation_lang.proc` d'`oefIntroLogique` (connecteurs `n_and`… qu'aucun
+  énoncé ne consomme), et le seul vrai gain : les 27 exercices d'`oefohm`,
+  dont `methods.$lang` pose `confparm4`. Faute de quoi ils posaient
+  **toujours** la même question (calculer I) ; ils varient maintenant entre
+  intensité, résistance, tension de la source et tension en un point —
+  405 rendus sur 15 graines, tous notés juste. `$lang` était bien substitué :
+  seule la lecture manquait.
 - [ ] **Types de réponse définis par les modules** (dossier `anstype/`) :
   `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr`. Absents de
   `_WIMS_KNOWN_TYPES` comme de `_MODULE_ANSTYPES`, ils sont ramenés à
