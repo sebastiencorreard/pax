@@ -11,9 +11,10 @@ dans les cas ambigus (`xy` → `x*y`, `abc` → inchangé). Il a été confront�
 vrai `rawmath()`, compilé depuis l'arbre, sur toutes les entrées que le corpus
 lui soumet.
 
-Non repris : les noms déclarés par `wims_rawmath_variables` /
-`wims_rawmath_functions` (aucun exercice OEF ne les pose), et `rawmath_easy`,
-qui ne sert qu'à `insmath`.
+Les noms déclarés par `wims_rawmath_variables` / `wims_rawmath_functions`
+(`getuservar`) se passent en paramètres : aucun `.def` ne les pose, mais
+`anstype/litexp` le fait avant de traduire la réponse de l'élève. Non repris :
+`rawmath_easy`, qui ne sert qu'à `insmath`.
 """
 
 from __future__ import annotations
@@ -187,7 +188,12 @@ class _Chaine:
             return pp
 
 
-def _mathname_split(mot: str) -> str | None:
+def _noms_declares(liste: str) -> list[str]:
+    """`getuservar` : les mots d'une liste, virgules comprises comme blancs."""
+    return liste.replace(",", " ").split()
+
+
+def _mathname_split(mot: str, variables: list[str] = (), fonctions: list[str] = ()) -> str | None:
     """`mathname_split` : découper un mot en noms reconnus, ou `None`.
 
     Seule la **première** coupure reçoit une espace ; la boucle principale
@@ -203,9 +209,17 @@ def _mathname_split(mot: str) -> str | None:
         else:
             n = next((n for n in reversed(_MATHNAME_ORDRE)
                       if reste.startswith(n) and _MATHNAME[n][0] != _PREFIX), None)
-            if n is None:
-                return None
-            style, j = _MATHNAME[n][0], len(n)
+            if n is not None:
+                style, j = _MATHNAME[n][0], len(n)
+            else:
+                v = next((v for v in variables if reste.startswith(v)), None)
+                f = next((f for f in fonctions if reste.startswith(f)), None) if v is None else None
+                if v is not None:
+                    style, j = _VAR, len(v)
+                elif f is not None:
+                    style, j = _FN, len(f)
+                else:
+                    return None
         if p + j >= len(b):
             return "".join(b)
         if _digit(b[p + j]) and style != _FN:
@@ -287,10 +301,14 @@ def _treat_decimal(s: _Chaine) -> None:
         p1 = "".join(s.s).find(".", suivant) if suivant <= len(s) else -1
 
 
-def rawmath(texte: str) -> tuple[str, str]:
+def rawmath(texte: str, variables: str = "", fonctions: str = "") -> tuple[str, str]:
     """`rawmath()` : l'expression traduite, et l'avertissement de WIMS
     (`wims_warn_rawmath` : `ambiguous`, `unknown`, `flatpower`, `badprec`,
-    `unmatched_parentheses`)."""
+    `unmatched_parentheses`).
+
+    `variables` et `fonctions` sont `wims_rawmath_variables` et
+    `wims_rawmath_functions` — des listes de noms, séparés par des virgules ou
+    des blancs."""
     if "\\" in texte or "{" in texte:
         return texte, ""
     flatpower = -1 if "^" not in texte else 0
@@ -320,6 +338,7 @@ def rawmath(texte: str) -> tuple[str, str]:
     ambiguous = unknown = badprec = 0
     if "^1/" in "".join(s.s):
         badprec = 1
+    uvars, ufns = _noms_declares(variables), _noms_declares(fonctions)
 
     def add_star(a: int, b: int) -> int:
         """L'étiquette `add_star` : un `*` entre deux termes juxtaposés."""
@@ -420,11 +439,14 @@ def rawmath(texte: str) -> tuple[str, str]:
                 ambiguous = 1
                 del s.s[p2:p3]
                 continue
-        if mot in _HMNAME:
+        if mot in _HMNAME or mot in uvars:
             p1 = add_star(p2, p3)
             continue
+        if mot in ufns:
+            p1 = fnname(p1, p2, p3)
+            continue
         if p2 - p1 <= 8:
-            coupe = _mathname_split(mot)
+            coupe = _mathname_split(mot, uvars, ufns)
             if coupe is not None:
                 ambiguous = 1
                 s.modifier(p1, p2, coupe)
@@ -457,3 +479,28 @@ def rawmath(texte: str) -> tuple[str, str]:
     if unmatch > 0:
         avert += " unmatched_parentheses"
     return "".join(s.s), avert
+
+
+def varlist(texte: str, nofn: bool = False) -> str:
+    """`!varlist [nofn]` (`mathvarlist`, `Lib/math.c`) : les noms de variable
+    d'une expression, dans l'ordre de première apparition, sans doublon ;
+    `nofn` écarte ceux que suit une parenthèse (des fonctions)."""
+    b = _Chaine(texte.lstrip(" \t\n\r"))
+    noms: list[str] = []
+    pb = 0
+    while pb < len(b):
+        if not _alpha(b.c(pb)):
+            pb += 1
+            continue
+        if pb > 0 and _alnum(b.c(pb - 1)):
+            pb = b.mathvar_end(pb) + 1
+            continue
+        pe = b.mathvar_end(pb)
+        if nofn and b.c(b.word_start(pe)) == "(":
+            pb = pe + 1
+            continue
+        nom = "".join(b.s[pb:pe])
+        if nom not in noms:
+            noms.append(nom)
+        pb = pe + 1
+    return ",".join(noms)

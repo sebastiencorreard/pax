@@ -9,7 +9,7 @@ harnais sur les 4 669 entrées que le corpus soumet à `!rawmath` et sur
 """
 import pytest
 
-from core.oef.def_engine.rawmath import rawmath
+from core.oef.def_engine.rawmath import rawmath, varlist
 
 # (entrée, sortie de WIMS, avertissement de WIMS)
 REFERENCE = [
@@ -50,3 +50,25 @@ def test_le_tex_n_est_pas_touche():
     # signes elle-même n'y passe pas.
     assert rawmath("\\frac{1}{2}+-x")[0] == "\\frac{1}{2}+-x"
     assert rawmath("{2x}")[0] == "{2x}"
+
+
+# Noms déclarés (`wims_rawmath_variables` / `_functions`) et `!varlist nofn`,
+# sortis du même harnais — c'est ainsi qu'`anstype/litexp` traduit la réponse.
+
+@pytest.mark.parametrize("entree,variables,fonctions,sortie,avertissement", [
+    ("2ab+xy", "ab", "", "2*ab+x*y", " ambiguous"),
+    ("3uv+uw", "uv", "", "3*uv+uw", " unknown"),
+    ("g x+1", "", "g", "g(x)+1", " ambiguous"),
+    ("2a b", "ab", "", "2*a*b", ""),
+])
+def test_noms_declares(entree, variables, fonctions, sortie, avertissement):
+    assert rawmath(entree, variables, fonctions) == (sortie, avertissement)
+
+
+@pytest.mark.parametrize("entree,sortie", [
+    ("2*ab+sqrt(x)+ab", "ab,x"),
+    ("x^2+3*x*y-sin(t)", "x,y,t"),
+    ("f (x)+abc2", "x,abc2"),
+])
+def test_varlist_nofn(entree, sortie):
+    assert varlist(entree, nofn=True) == sortie

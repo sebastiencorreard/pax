@@ -2255,7 +2255,11 @@ def _equation_ratio_constant(
 
 
 def _rawmath_normalize(s: str, comma_is_decimal: bool = True) -> str:
-    """Normalisation « rawmath » légère pour la comparaison littérale de `litexp`.
+    """Normalisation « rawmath » légère, pour `numexp2` seulement.
+
+    `litexp` juge désormais sa forme sur le port fidèle
+    (`def_engine/rawmath.py`, cf. `_reponse_litexp`). `numexp2` garde cette
+    approximation : son anstype n'a pas été confronté au banc.
 
     WIMS compare les formes rawmath-normalisées (pas via CAS) : espaces retirés,
     multiplication implicite explicitée, `**`→`^`. **Aucune simplification** :
@@ -2272,6 +2276,39 @@ def _rawmath_normalize(s: str, comma_is_decimal: bool = True) -> str:
     return s
 
 
+_I_MAJUSCULE_RE = re.compile(r"(?<![A-Za-z0-9_])I(?![A-Za-z0-9_])")
+
+
+def _reponse_litexp(reply: str, expected: str, comma_is_decimal: bool = True) -> tuple[str, str]:
+    """La réponse est-elle écrite **comme** l'une des formes de l'attendu ?
+
+    `anstype/litexp`, à la lettre, une fois l'égalité établie :
+
+        good=!rawmath $(replygood$i)      good=!row 1 of $good
+        good=!nospace $good               vars=!varlist nofn $good
+        wims_rawmath_variables=$vars      dd=!rawmath $(reply$i)
+        dd=!mathsubst I=i in $dd          dd=!nospace $dd
+        !if $dd isitemof $good → good, sinon badform
+
+    Les variables de l'attendu sont déclarées à `rawmath` avant qu'il traduise
+    la réponse : `2ab` y devient `2*ab`, non `2*a*b`, si l'attendu parle de
+    `ab`. La virgule décimale d'une langue qui l'emploie est lue en point
+    d'abord, comme partout ailleurs dans PAX — WIMS ne la connaît pas ici.
+
+    Rend `(dd, good)` : la réponse traduite — c'est elle que Maxima compare à
+    l'attendu (`print($dd)`), avant l'espace ôtée — et les formes admises.
+    """
+    from core.oef.def_engine.rawmath import rawmath, varlist  # noqa: PLC0415
+
+    good = rawmath(expected)[0]
+    lignes = wl.cutrows(good)
+    good = re.sub(r"\s+", "", lignes[0] if lignes else "")
+    if comma_is_decimal:
+        reply = re.sub(r"(?<=\d),(?=\d)", ".", reply)
+    dd = _I_MAJUSCULE_RE.sub("i", rawmath(reply, varlist(good, nofn=True))[0])
+    return dd, good
+
+
 def check_litexp(
     reply: str, expected: str, comma_is_decimal: bool = True
 ) -> CheckResult:
@@ -2282,10 +2319,11 @@ def check_litexp(
     Donc `6/4` est refusé (badform) pour `3/2`, `x*x+3` pour `x^2+3`, `1.5` pour
     `3/2` — équivalents mais forme non conforme. `2x+3` reste accepté pour
     `2*x+3` (même forme rawmath)."""
-    base = check_algexp(reply, expected, comma_is_decimal)
+    dd, good = _reponse_litexp(reply, expected, comma_is_decimal)
+    base = check_algexp(dd, expected, comma_is_decimal)
     if not base.correct:
         return base  # pas égal → mauvaise réponse
-    if _rawmath_normalize(reply, comma_is_decimal) == _rawmath_normalize(expected, comma_is_decimal):
+    if wl.itemchr(good, re.sub(r"\s+", "", dd)):
         return CheckResult(correct=True, score=1.0, method="litexp")
     # Égal mais forme non conforme → à réécrire.
     return CheckResult(correct=False, score=0.0, method="litexp_badform",
