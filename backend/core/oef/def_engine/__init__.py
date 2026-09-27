@@ -1805,6 +1805,15 @@ class DefEngine(_SlibMixin):
         comme celui niché dans un `!makelist`. `!nosubst`, qui coupe le
         calculateur, en est exclu.
         """
+        # `x=$ texte` : l'idiome WIMS pour garder un blanc de tête, que
+        # l'affectation rognerait. `substit` lit un nom vide après le `$`, qui
+        # disparaît, et le blanc reste. `slib/text/matrixhtml` pose ainsi
+        # `slib_tmp3=$ colspan="…"` ; pris à la lettre, il écrivait
+        # `<th$ colspan="3">` dans la facture d'`oefcalcLP/facture1`. Borné à la
+        # tête d'une valeur : ailleurs, `$…$` délimite les arguments de
+        # `!translate`, qui les déballe lui-même.
+        if len(value) > 1 and value[0] == "$" and value[1] in " \t":
+            return value[1] + self._eval_value(value[2:])
         # !cmd — WIMS command
         if value.startswith("!"):
             cmd_line = value[1:].strip()

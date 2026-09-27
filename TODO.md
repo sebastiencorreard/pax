@@ -363,6 +363,29 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `chemeq_el` et `chemeq_rev` (redox, piles — 12 appels) tournent depuis le
   2026-09-24 : électron, algèbre `#`/`~`/`*`, `^` littéral en BRE.
 
+- [~] **L'émulation PARI confrontée au vrai `gp`** (2026-09-27). Banc :
+  `backend/scripts/banc_pari` (conteneur `pari-gp` + l'interface de
+  `pari.c` : en-tête d'alias, `\p 20`, `Mat(…)`/crochets ôtés,
+  `strip_zeros`). Les 4 837 entrées distinctes que le corpus soumet à
+  `!exec pari` (graine 42) y sont passées. **Fait** : fonctions qui
+  retombaient en produit (`bigomega`, `omega`, `nextprime`, `precprime`,
+  `prime`, `digits`, `matrank`, `eval`), littéraux `[a,b;c,d]` et `==`/`!=`
+  confiés au mini-interpréteur (égalité de **valeurs** : `50==0.5*100` = 1),
+  blancs entre chiffres ignorés comme `gp` (`13 467`). 101 sorties de plus
+  identiques à WIMS, échos 179 → 76 ; aucune régression. Au passage :
+  l'idiome `x=$ texte` (blanc de tête) — `oefcalcLP/facture1` écrivait
+  `<th$ colspan="3">`.
+  **Reste**, par nature :
+  - **défauts** : 71 exercices où l'expression repart telle quelle —
+    `divrem(…)~[2]` (transposée puis indice), `floor(vecteur*1000)`,
+    inverse de matrice `M^-1` (`oeflinsys/solution`), programmes à
+    fonctions définies (`PermutList`, `immat`), `printtex` ;
+  - **forme** (valeur égale, 109 exercices) : PARI simplifie les fractions
+    rationnelles (`(-(x+1)(3x-1))/((x+1)(3x-1))` → `-1`, PAX :
+    `-x/(x + 1) - 1/(x + 1)`), ordonne les termes à sa façon
+    (`25*x^2-10*y*x+y^2`) et n'écrit pas d'espaces ;
+  - **précision** : 20 chiffres chez WIMS (`\p 20`), 10 chez PAX ;
+  - le hasard (`random`) ne se compare pas : tirages différents par nature.
 - [ ] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
   `!exec pari [$val25]/10.` et récupère la chaîne brute. Un seul exercice.
 

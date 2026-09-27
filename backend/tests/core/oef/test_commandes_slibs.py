@@ -188,3 +188,13 @@ class TestLectureDuModule:
         e = self._engine(tmp_path)
         e._cmd_readproc("my_var.proc")
         assert "slib_out" not in e.ctx or e.ctx["slib_out"] == ""
+
+
+def test_dollar_espace_garde_le_blanc_de_tete():
+    """`x=$ texte` : `substit` lit un nom vide après le `$`, qui disparaît, et
+    le blanc de tête survit à l'affectation. `slib/text/matrixhtml` en bâtit
+    ses attributs (`slib_tmp3=$ colspan="3"`) ; pris à la lettre, il écrivait
+    `<th$ colspan="3">`."""
+    e = DefEngine(seed=1)
+    e._run_script_lines(['slib_tmp3=$ colspan="3"'])
+    assert e.ctx["slib_tmp3"] == ' colspan="3"'

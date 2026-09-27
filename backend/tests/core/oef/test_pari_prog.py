@@ -27,6 +27,10 @@ class TestProgramDetection:
             "{ a=1; print(a) }",
             "print(sum(t=1,4,t^2))",
             "print([1,2]*[3,4]~)",
+            # Littéral matriciel et égalité : l'évaluation d'expression ne les
+            # lit pas (`gp` : `matdet([1,2;3,4])` = -2, `50==0.5*100` = 1).
+            "matdet([1,2;3,4])",
+            "50==0.5*100",
         ],
     )
     def test_programs(self, src):
@@ -34,7 +38,7 @@ class TestProgramDetection:
 
     @pytest.mark.parametrize(
         "src",
-        ["gcd(12,18)", "print(3/4)", "polcoeff(x^2+3*x+2,1)", "matdet([1,2;3,4])"],
+        ["gcd(12,18)", "print(3/4)", "polcoeff(x^2+3*x+2,1)"],
     )
     def test_plain_expressions_are_not_programs(self, src):
         assert not looks_like_program(src)

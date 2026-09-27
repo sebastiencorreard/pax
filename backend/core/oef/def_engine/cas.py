@@ -1301,6 +1301,49 @@ def _pari_round(x):
         return x
 
 
+def _pari_digits(n, b=10):
+    """`digits(n, b)` : les chiffres de |n| en base b, du plus fort au plus faible."""
+    n, b = abs(int(n)), int(b)
+    if n == 0:
+        return []
+    out = []
+    while n:
+        n, r = divmod(n, b)
+        out.append(r)
+    return out[::-1]
+
+
+def _pari_matrank(m):
+    """`matrank(M)` : le rang, d'une matrice PARI (`PMat`) comme d'une matrice
+    sympy ou d'une liste de lignes."""
+    import sympy  # noqa: PLC0415
+
+    return sympy.Matrix(getattr(m, "rows", m)).rank()
+
+
+def _pari_nextprime(x):
+    """`nextprime(x)` : le plus petit premier **≥** x (sympy : strictement >)."""
+    import sympy  # noqa: PLC0415
+
+    return sympy.nextprime(int(sympy.ceiling(x)) - 1)
+
+
+def _pari_precprime(x):
+    """`precprime(x)` : le plus grand premier ≤ x, 0 s'il n'y en a pas."""
+    import sympy  # noqa: PLC0415
+
+    n = int(sympy.floor(x))
+    return 0 if n < 2 else sympy.prevprime(n + 1)
+
+
+def _pari_eval(x):
+    """`eval(x)` : une chaîne se lit comme une expression ; une valeur déjà
+    calculée se rend telle quelle (`f=(2*x+6)*(x-2)` après `x=val`)."""
+    import sympy  # noqa: PLC0415
+
+    return sympy.sympify(str(x).replace("^", "**")) if isinstance(x, str) else x
+
+
 def _pari_core(n):
     """Squarefree part of an integer (sign-preserving)."""
     import sympy  # noqa: PLC0415
@@ -1377,6 +1420,16 @@ _PARI_HELPERS: dict = {
     "Vec": _pari_vec,
     "round": _pari_round,
     "core": _pari_core,
+    # Relevées contre `gp` (banc `pax-banc-pari`) : chacune retombait en
+    # produit par liaison automatique — `bigomega(12)` rendait `12*bigomega`.
+    "digits": _pari_digits,
+    "matrank": _pari_matrank,
+    "bigomega": lambda n: __import__("sympy").primeomega(int(n)),
+    "omega": lambda n: __import__("sympy").primenu(int(n)),
+    "nextprime": _pari_nextprime,
+    "precprime": _pari_precprime,
+    "prime": lambda n: __import__("sympy").prime(int(n)),
+    "eval": _pari_eval,
 }
 
 _PYTHON_KEYWORDS: set = {
@@ -1483,6 +1536,10 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
     # y a posé (`print(l)` après `l=vector(n);…`, `print(f(2))` après
     # `f(t)=…`). Hors périmètre → on retombe sur l'évaluation d'expression
     # ci-dessous.
+    # `gp` ignore les blancs de ce qu'on lui écrit : `13 467` y est 13467, là
+    # où la multiplication implicite lisait `13*467` (`digits(13 467,10)`,
+    # les grands nombres qu'un auteur écrit en tranches de trois chiffres).
+    expr = re.sub(r"(?<=\d)[ \t]+(?=\d)", "", expr)
     if looks_like_program(expr) or session_porte_un_etat(session):
         try:
             return run_pari_program(

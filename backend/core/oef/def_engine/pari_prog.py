@@ -71,6 +71,19 @@ class _LierVariables(ast.NodeTransformer):
     quelque 190 `matrix(` et `vector(` du corpus et des slib partagés.
     """
 
+    def visit_Compare(self, node: ast.Compare) -> ast.AST:
+        """`a==b` et `a!=b` comparent des **valeurs** chez PARI : `50==0.5*100`
+        vaut 1. Celles de Python (et de sympy) comparent des objets — un
+        entier n'égale pas le flottant de même valeur."""
+        self.generic_visit(node)
+        if len(node.ops) != 1 or not isinstance(node.ops[0], (ast.Eq, ast.NotEq)):
+            return node
+        appel = ast.Call(func=ast.Name(id="_egal", ctx=ast.Load()),
+                         args=[node.left, node.comparators[0]], keywords=[])
+        if isinstance(node.ops[0], ast.NotEq):
+            appel = ast.UnaryOp(op=ast.Not(), operand=appel)
+        return ast.fix_missing_locations(appel)
+
     def visit_Call(self, node: ast.Call) -> ast.Call:
         self.generic_visit(node)
         if not isinstance(node.func, ast.Name):
@@ -897,6 +910,19 @@ def _operand_end(src: str, start: int) -> int:
     return i
 
 
+def _egal(a: Any, b: Any) -> bool:
+    """Égalité de valeurs, à la PARI (`50==0.5*100` → 1)."""
+    if a == b:
+        return True
+    try:
+        import sympy  # noqa: PLC0415
+
+        d = sympy.sympify(a) - sympy.sympify(b)
+        return bool(d == 0 or (d.is_number and abs(complex(d)) == 0))
+    except Exception:  # noqa: BLE001 — objets PARI non numériques : identité seule
+        return False
+
+
 def _transposee(x: Any) -> Any:
     """Transposée PARI, quel que soit le porteur de la valeur.
 
@@ -983,6 +1009,7 @@ class PariInterpreter:
                 "_V": lambda *a: PVec(a),
                 "_M": PMat,
                 "_transposee": _transposee,
+                "_egal": _egal,
                 "_plage": _Plage,
                 "_if": lambda c, a, b=0: a if _truth(c) else b,
                 "length": _pari_length,
@@ -1831,6 +1858,7 @@ def _est_flottant_sympy(value: Any) -> bool:
 # transposée postfixe). Une expression seule (`gcd(4,6)`, `print(x)`) reste
 # traitée par `_call_pari`.
 _CONTROL_RE = re.compile(r"^\s*(for|while|forstep)\s*\(", re.I)
+_MATRICE_LITTERALE_RE = re.compile(r"\[[^\[\]]*;[^\[\]]*\]")
 _BOUND_VAR_RE = re.compile(r"\b(sum|prod)\s*\(\s*[A-Za-z_]\w*\s*=")
 # Constructions que l'évaluation d'expression ne sait pas rendre : types
 # mutables et fonctions définies à la volée.
@@ -1882,6 +1910,11 @@ def looks_like_program(src: str) -> bool:
     if _a_une_construction_liee(body):
         return True
     if _TILDE_RE.search(body):
+        return True
+    # Un littéral matriciel `[a,b;c,d]`, ou une égalité : l'évaluation
+    # d'expression ne les lit pas (`mattranspose([1,2;2,0])` repartait tel
+    # quel ; `50==0.5*100` y valait 0).
+    if _MATRICE_LITTERALE_RE.search(body) or re.search(r"[=!]=", body):
         return True
     statements = [s for s in _split_top_level(body, ";") if s.strip()]
     if len(statements) > 1:

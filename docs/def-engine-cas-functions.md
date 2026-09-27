@@ -65,6 +65,14 @@ Maxima sous la main, les deviner coûterait plus qu'il ne rapporte.
 
 ## Fonctions PARI (`!exec pari`)
 
+**Arbitre : le vrai `gp`** (`backend/scripts/banc_pari`, 2026-09-27), sous
+l'interface de WIMS (`src/Interfaces/pari.c`) : en-tête d'alias (`i=I`,
+`e=exp(1)`, `ln`, `rint=round`, `RANDOM=random`…), précision `\p 20`, sortie
+ramenée à une ligne, `Mat(…)` et crochets extérieurs ôtés, zéros de queue
+retirés (`strip_zeros`). Chaque expression y tourne dans son propre `gp` : ce
+qui lit l'état d'un `!exec pari` antérieur ne s'y compare pas. L'état des
+écarts et ce qui reste est tenu dans le TODO (I.1).
+
 | Fonction | Occurrences | Statut | Implémentation Python |
 |---|---|---|---|
 | `print` | 3022 | ✅ | unwrappé avant `eval()` |
