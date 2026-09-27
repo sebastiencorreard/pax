@@ -54,3 +54,36 @@ def test_comme_gp(expr, wims):
 def test_meme_valeur_que_gp(expr, wims):
     premiere = _call_pari(expr, session={}).split(",")[0]
     assert float(premiere) == pytest.approx(wims, rel=1e-8)
+
+
+HOUSEHOLDER = (
+    "{slib_A=matid(3);slib_n=2; \nslib_M= Mat([1,-2,0;0,1,0]);\\\n"
+    "for(slib_j=1 , slib_n,slib_vv=slib_M[slib_j,]; "
+    "slib_A=slib_A*(matid(3)-2/norml2(slib_vv)*slib_vv~*slib_vv));\nprint(slib_A)}"
+)
+
+
+@pytest.mark.parametrize("expr,wims", [
+    ("floor(3398 \\ 119)", "28"),          # quotient entier `\`
+    ("-7 \\ 2", "-4"),
+    ("if(0, log(0), 5)", "5"),             # `if` paresseux
+    ("binary(41)", "1,0,1,0,0,1"),
+    ("core(27,1)", "3,3"),
+    ("L=List([3,-1,2]); listsort(L) ;Vec(L)", "-1,2,3"),
+    # Réflexions de Householder : produit colonne × ligne (OEFbarypdtsc…).
+    (HOUSEHOLDER, "3/5,-4/5,0;4/5,3/5,0;0,0,1"),
+])
+def test_troisieme_lot_comme_gp(expr, wims):
+    assert _call_pari(expr, session={}) == wims
+
+
+@pytest.mark.parametrize("expr,wims", [
+    # `I`, et `i` dans l'évaluation d'expression (`i=I` de l'en-tête).
+    ("print(arg(0.3+I*(-0.3)))", -0.78539816339744830962),
+    ("abs(-(i - 2))", 2.2360679774997896964),
+])
+def test_imaginaire_meme_valeur_que_gp(expr, wims):
+    # La valeur, non l'écriture : PAX garde `sqrt(5)` où PARI écrit un flottant.
+    import sympy
+
+    assert float(sympy.N(sympy.sympify(_call_pari(expr, session={})))) == pytest.approx(wims, rel=1e-8)

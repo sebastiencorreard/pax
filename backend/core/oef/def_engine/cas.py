@@ -1344,11 +1344,15 @@ def _pari_eval(x):
     return sympy.sympify(str(x).replace("^", "**")) if isinstance(x, str) else x
 
 
-def _pari_core(n):
-    """Squarefree part of an integer (sign-preserving)."""
+def _pari_core(n, flag=0):
+    """Squarefree part of an integer (sign-preserving). `core(n,1)` rend
+    `[c, f]` avec n = c·f² (`oefgeo3D/psangle`)."""
     import sympy  # noqa: PLC0415
 
     n = int(n)
+    if flag:
+        c = _pari_core(n)
+        return [c, sympy.integer_nthroot(abs(n // c), 2)[0] if c else 0]
     if n == 0:
         return 0
     sign = 1 if n > 0 else -1
@@ -1430,6 +1434,13 @@ _PARI_HELPERS: dict = {
     "precprime": _pari_precprime,
     "prime": lambda n: __import__("sympy").prime(int(n)),
     "eval": _pari_eval,
+    "binary": lambda n: [int(b) for b in bin(abs(int(n)))[2:]] if int(n) else [],
+    # `I` est l'unité imaginaire de PARI ; la liaison automatique en faisait
+    # un symbole libre, et `arg(0.3+I*(-0.3))` restait `arg(1 - I)`. (`i=I`
+    # de l'en-tête n'est pas repris : `i` est la variable de boucle usuelle.)
+    "I": __import__("sympy").I,
+    # `arg` rend un nombre chez PARI ; `sympy.arg` garde `arg(1 - I)`.
+    "arg": lambda z: __import__("sympy").arg(__import__("sympy").sympify(z)).evalf(20),
 }
 
 _PYTHON_KEYWORDS: set = {
@@ -1581,6 +1592,9 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
     # Le tirage passe par le `rng` de l'exercice : une graine, un rendu.
     from .pari_prog import _pari_random  # noqa: PLC0415
     ns["random"] = lambda n=None: _pari_random(rng, n)
+    # `i=I` de l'en-tête de `pari.c`. Ici seulement : une boucle, qui ferait
+    # de `i` sa variable, passe par le mini-interpréteur.
+    ns["i"] = sympy.I
     # Auto-bind symbols
     for ident in set(re.findall(r"[a-zA-Z_]\w*", clean)):
         if ident not in ns and ident not in _PYTHON_KEYWORDS:

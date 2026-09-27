@@ -84,10 +84,20 @@ class _LierVariables(ast.NodeTransformer):
             appel = ast.UnaryOp(op=ast.Not(), operand=appel)
         return ast.fix_missing_locations(appel)
 
-    def visit_Call(self, node: ast.Call) -> ast.Call:
+    def visit_Call(self, node: ast.Call) -> ast.AST:
         self.generic_visit(node)
         if not isinstance(node.func, ast.Name):
             return node
+        # `if(c, a, b)` n'évalue que la branche retenue. En fonction Python,
+        # les deux l'étaient : `if(r != 0, floor(log(abs(r))/log(10)), 1)`
+        # plantait sur `log(0)` pour r = 0 (`oefstatistiques/histogramme`).
+        if node.func.id == "_if" and 2 <= len(node.args) <= 3 and not node.keywords:
+            sinon = node.args[2] if len(node.args) == 3 else ast.Constant(value=0)
+            return ast.fix_missing_locations(ast.IfExp(
+                test=ast.Call(func=ast.Name(id="_truth", ctx=ast.Load()),
+                              args=[node.args[0]], keywords=[]),
+                body=node.args[1], orelse=sinon,
+            ))
         spec = _PARI_LIEES.get(node.func.id)
         if spec is None:
             return node
@@ -258,6 +268,11 @@ class PVec:
                     term = a * b
                     total = term if total is None else total + term
                 return total if total is not None else 0
+            # `colonne * ligne` = produit extérieur, une matrice : la réflexion
+            # de Householder `matid(3)-2/norml2(v)*v~*v` de l'orthonormalisation
+            # que partagent `OEFbarypdtsc`, `OEFpdtscalTS` et `OEFgeospace`.
+            if self.col and not other.col:
+                return PMat([[a * b for b in other.items] for a in self.items])
             raise PariProgramError("produit de vecteurs non conforme")
         return PVec([a * other for a in self.items], self.col)
 
@@ -744,6 +759,10 @@ def _translate_expr(expr: str) -> str:
 
     src = src.replace("<>", "!=").replace("&&", " and ").replace("||", " or ")
     src = src.replace("^", "**")
+    # `a \ b` : le quotient entier de PARI (`floor(3398 \ 119)`,
+    # `oefoperpython`). Hors `\/` (quotient arrondi) et hors fin de ligne,
+    # où `\` continue la ligne.
+    src = re.sub(r"\\(?![/\\]|[ \t]*(?:\n|$))", "//", src)
 
     src = _translate_brackets(src)
     src = _translate_tilde(src)
@@ -964,6 +983,21 @@ def _pari_polroots(p):
     return PVec(sympy.Poly(expr, var).nroots(n=20), col=True)
 
 
+def _pari_listsort(lst, flag=0):
+    """`listsort(L)` : trie la liste **sur place** ; `flag` non nul ôte les
+    doublons."""
+    items = lst.items if isinstance(lst, PList) else lst
+    trie = sorted(items, key=_sort_key)
+    if flag:
+        uniques = []
+        for x in trie:
+            if not uniques or x != uniques[-1]:
+                uniques.append(x)
+        trie = uniques
+    items[:] = trie
+    return 0
+
+
 def _egal(a: Any, b: Any) -> bool:
     """Égalité de valeurs, à la PARI (`50==0.5*100` → 1)."""
     if a == b:
@@ -1082,6 +1116,7 @@ class PariInterpreter:
                 "imag": _composante(_partie(False)),
                 "_plage": _Plage,
                 "_if": lambda c, a, b=0: a if _truth(c) else b,
+                "_truth": _truth,
                 "length": _pari_length,
                 "Vec": _pari_vec,
                 "List": lambda x=(): PList(
@@ -1097,6 +1132,9 @@ class PariInterpreter:
                 # **rendu**, pour que le patron d'un polyèdre soit reproductible
                 # à graine égale, comme l'est tout le reste de l'exercice.
                 "random": lambda n=None: _pari_random(rng, n),
+                # Alias de l'en-tête de `pari.c` (`alias(RANDOM,random)`).
+                "RANDOM": lambda n=None: _pari_random(rng, n),
+                "listsort": _pari_listsort,
                 # `vector(...)` rend un `PVec`, quoi que contiennent ses
                 # composantes. Le helper de `cas` rendait une liste, que la
                 # conversion générique prenait pour une **matrice** dès que les

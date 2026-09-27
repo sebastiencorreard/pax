@@ -381,10 +381,18 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `floor`… sur vecteur ou matrice), `vecmax` d'une matrice, `Pol`, `matid`,
   `polroots`, `real`/`imag`, et le mini-interpréteur en dernier recours
   avant l'écho. Sorties identiques à `gp` : 4 091 → 4 141 ; échos 76 → 47.
+  **Troisième lot** : `if` paresseux (PARI n'évalue que la branche retenue —
+  `log(0)` plantait `histogramme`), quotient entier `\`, `RANDOM`,
+  `binary`, `listsort`, `core(n,1)`, `arg`, `I` unité imaginaire et `i=I`
+  dans l'évaluation d'expression (**90 écarts** d'exercices de complexes
+  résorbés d'un coup), produit colonne × ligne (l'orthonormalisation de
+  Householder d'`OEFbarypdtsc`, `OEFpdtscalTS`, `OEFgeospace` : plus aucun
+  `print(slib_A)}` dans leurs énoncés). Sorties identiques à `gp` :
+  4 138 → 4 244 ; écarts 335 → 224 ; échos 47 → 33 ; aucune régression.
   **Reste**, par nature :
-  - **défauts** : 35 exercices où l'expression repart telle quelle —
-    programmes à fonctions définies (`PermutList`, `immat`), `printtex`,
-    `numtoperm`, `matker`, `binary`, `listsort`, `valuation` ;
+  - **défauts** : 25 exercices où l'expression repart telle quelle —
+    `numtoperm` (ordre propre à PARI), `matker` (normalisation), `valuation`,
+    `nfroots`, `printtex`, programmes à fonctions (`PermutList`, `immat`) ;
   - **forme** (valeur égale, 109 exercices) : PARI simplifie les fractions
     rationnelles (`(-(x+1)(3x-1))/((x+1)(3x-1))` → `-1`, PAX :
     `-x/(x + 1) - 1/(x + 1)`), ordonne les termes à sa façon
