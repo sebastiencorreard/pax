@@ -296,32 +296,29 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   chacune. D'où la quatrième copie, et un seuil exprimé sur la note **telle que
   l'élève la voit** : sur dix, au dixième.
 
-- [ ] **`histocap`, `histogramme`, `moustache` : le score ignore la réponse.**
-  0,9388 pour la bonne réponse, pour `__FAUX__` et pour une réponse vide — 46
-  conditions sur 49. Ces trois-là ne sont **pas** réparés, et le plus gênant
-  est ailleurs :
+- [~] **`histocap`, `histogramme`, `moustache`** — en partie réglé le
+  2026-09-27, d'après `oef/step.proc` : tant qu'une étape suit, un champ
+  `?analyze` **n'est pas jugé** (sa valeur est rangée, `:test` ne se joue qu'à
+  la fin). PAX le notait sur des conditions portant surtout sur l'avenir :
+  0,94 et « faux » à l'étape 1, et le front, qui remplace une réponse fausse
+  par l'attendu pour avancer, **effaçait les quarante mesures** (attendu vide)
+  avant l'étape 2. Borné aux `\nextstep` (`has_next_step` vrai) : les `course`
+  gardent le modèle mesuré sur WIMS. Même source : `step.proc` range un champ
+  `?analyze N` dans `valN` — posé désormais au rejeu de l'étape suivante
+  (`histocap` : `val57` vide, histogramme vide, un `!while` au budget de
+  100 000 tours, **17 s par envoi → 0,4 s**) et au rendu (`comployer2`
+  progresse enfin à l'étape 2).
 
-  ils sont désormais **vus** par `test_score_depends_on_the_answer`, et
-  consignés dans `XFAIL_CONSTANT_SCORE`. Reste à les réparer : leur `:test` ne
-  regarde pas le tracé de l'élève.
-
-  **Diagnostic du 2026-09-22 — c'est le test qui ne voit que l'étape 1.**
-  Les trois sont des activités « mesurez votre temps de réaction » à étapes
-  dynamiques (`\nextstep{\nstep}`, `nstep=reply1`). L'étape 1 est `reply1`, de
-  type `reaction` — **porté** le 2026-09-05 (`25ae63cc`, `ReactionTest.vue`) :
-  les temps mesurés deviennent les données des étapes suivantes. Le chaînage
-  marche depuis `ad095fdc` : par l'API, 40 mesures soumises à l'étape 1 donnent
-  `has_next_step: True`, et l'étape 2 pose sa question (`click`, attendu `4`).
-
-  `test_score_depends_on_the_answer` ne franchit aucune étape : il note
-  l'étape 1 seule, sans poids, où 46 conditions sur 49 tiennent sur des
-  valeurs encore vides — d'où 0,9388 quelle que soit la copie. Ce qui reste à
-  instruire : la note **affichée après l'étape 1** (0,88 par l'API, `correct:
-  False` pour `reply1`) alors que le `.proc` du module déclare cette étape
-  toujours bonne (`diareply$i=good`) ; et une vérification de bout en bout,
-  étape par étape. (Une première version de ce diagnostic affirmait `reaction`
-  non porté : c'était faux, faute d'avoir cherché dans le front.)
-
+  **Reste, en attente de décision** : chez WIMS, l'énoncé de l'étape N
+  s'affiche dans l'état laissé par `:postdef` exécuté pour `m_step`=2…N. PAX
+  ne le rejoue que pour compter les étapes, puis restaure le contexte :
+  `histocap` affiche à l'étape 2 un tableau des temps **vide**. Le correctif
+  est écrit (rejouer et garder l'état), mais il change l'étape 2 de 132
+  exercices sur 683 : verdicts de l'étape 1 affichés (« Bonne réponse ! »),
+  questions suivantes enfin posées — et, pour les exercices à reprises
+  (`gramfonclic1` : 1 → 40 champs), une dépendance au verdict `m_sc_reply`
+  que PAX **estime** au rendu (`_grade_prev_reply`), et qui juge fausse une
+  bonne réponse `clickfill`. À trancher contre un WIMS de référence.
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
   `val19 = $[fullratsimp(…)]` porte la réponse de l'élève ; PAX rendait

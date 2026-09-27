@@ -465,6 +465,35 @@ class TestRender:
 # ---------------------------------------------------------------------------
 
 
+class TestEtapeIntermediaire:
+    """`oef/step.proc` : tant qu'une étape suit, un champ `?analyze` n'est pas
+    jugé — sa valeur est rangée, le `:test` ne se joue qu'à la fin.
+
+    `histocap` le montre : son étape 1 recueille quarante temps de réaction,
+    données des étapes suivantes. Noté « faux » sur des conditions qui portent
+    sur l'avenir, le champ était remplacé par son attendu (vide) côté front,
+    et les mesures de l'élève perdues avant l'étape 2."""
+
+    HISTOCAP = "H4~stat~oefstatistiques.fr~src~histocap"
+
+    def test_les_mesures_ne_sont_pas_jugees(self, client, student_headers):
+        if client.get(f"/api/exercises/{self.HISTOCAP}", headers=student_headers).status_code != 200:
+            pytest.skip("histocap absent de ce corpus (la CI n'importe qu'un sous-ensemble)")
+        mesures = ",".join(str(200 + 7 * i % 190) for i in range(40))
+        r = client.post(
+            f"/api/check/{self.HISTOCAP}",
+            headers=student_headers,
+            json={"seed": 42, "m_step": 1,
+                  "replies": [{"input_name": "reply1", "value": mesures}]},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["has_next_step"] is True
+        (res,) = [x for x in body["results"] if x["input_name"] == "reply1"]
+        assert res["correct"] is True
+        assert body["global_score"] == pytest.approx(1.0)
+
+
 class TestCheck:
     def test_check_requires_auth(self, client):
         r = client.post(

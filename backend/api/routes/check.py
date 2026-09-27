@@ -388,6 +388,29 @@ async def check_exercise(
         results, rendered.answers, rendered.lang, settings.pax_localize_feedback
     )
 
+    # ── Étape intermédiaire : un champ `?analyze` n'y est pas jugé ────────────
+    # `oef/step.proc` range sa valeur (`val$t_=$(reply$i)`) puis passe au champ
+    # suivant (`!goto cont`) : seules les autres réponses peuvent arrêter
+    # l'exercice, et le `:test` ne se joue qu'à la fin. PAX notait ces champs à
+    # chaque étape, sur des conditions dont la plupart portent sur des étapes
+    # à venir — `histocap` : 0,94 à l'étape 1, `reply1` « faux », et le front,
+    # qui remplace une réponse fausse par l'attendu pour avancer, effaçait les
+    # quarante mesures de l'élève (attendu vide) avant l'étape 2.
+    #
+    # Borné aux exercices à `\nextstep` (`has_next_step` vrai) : les `course`
+    # à étapes fixes gardent le modèle de note mesuré sur WIMS (`deve7`).
+    suite = etape_suivante_existe(rendered, replies_by_name, body.seed, body.m_step or 1)
+    if suite is True:
+        analyses = {
+            a.input_name for a in active_ans_defs
+            if a.answer_type == "analyze" or "analyze_var" in a.options
+        }
+        for res in results:
+            if res.input_name in analyses and res.status != "invalid_format":
+                res.correct, res.score = True, 1.0
+        if analyses and all(a.input_name in analyses for a in active_ans_defs):
+            global_score = 1.0
+
     # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)
 
@@ -516,9 +539,7 @@ async def check_exercise(
         results=results,
         attempt_id=attempt_id,
         has_invalid_format=has_invalid,
-        has_next_step=etape_suivante_existe(
-            rendered, replies_by_name, body.seed, body.m_step or 1
-        ),
+        has_next_step=suite,
         noanalyzeprint=noanalyzeprint,
         feedback_html=feedback_html,
         solution_html=solution_html,

@@ -4539,6 +4539,11 @@ class DefEngine(_SlibMixin):
             n = m.group(1)
             self.ctx[f"reply{n}"] = value
             self.ctx[f"m_reply{n}"] = value
+            # `step.proc` range la réponse d'un champ `?analyze N` dans `valN`
+            # (`val$t_=$(reply$i)`) : c'est sous ce nom que `:postdef` la lit.
+            m_an = re.match(r"\s*\?analyze\s+(\d+)", self.ctx.get(f"replygood{n}", ""))
+            if m_an:
+                self.ctx[f"val{m_an.group(1)}"] = value
             expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
             rtype = self._reply_type(n) or "numexp"
             correct = self._grade_prev_reply(value, expected, rtype)

@@ -175,6 +175,15 @@ def etape_suivante_existe(
         if m:
             engine.ctx[f"m_reply{m.group(1)}"] = valeur
             engine.ctx[f"reply{m.group(1)}"] = valeur
+    # Et sous le nom que `step.proc` donne à un champ `?analyze N` :
+    # `val$t_=$(reply$i)`. Sans lui, `histocap` construisait son histogramme
+    # sur `val57` vide — toutes les classes à zéro — et un `!while` qui cherche
+    # la dernière classe non vide descendait jusqu'au budget de 100 000 tours :
+    # dix-sept secondes par étape, et une étape suivante annoncée par accident.
+    for a in getattr(rendered, "answers", None) or []:
+        var = (a.options or {}).get("analyze_var")
+        if var and a.input_name in replies_by_name:
+            engine.ctx[var] = replies_by_name[a.input_name]
     # `step.proc` avance `m_step` **avant** de lire `nextstep.proc` : le
     # `:postdef` doit donc s'exécuter en pointant l'étape à venir.
     engine.ctx["m_step"] = str(etape + 1)
