@@ -1641,4 +1641,13 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
                 )
             except Exception:
                 pass
-        return expr
+        # Dernier recours avant l'écho : le mini-interpréteur connaît les
+        # vecteurs et matrices PARI que l'évaluation d'expression ignore
+        # (`floor([9,(1-…)/(…)]*1000)/1000.` d'`oefoptics`, `oefoperpython`).
+        # Ne touche que ce qui échouait déjà.
+        try:
+            return run_pari_program(
+                expr, {**_MATH_NS, **_PARI_HELPERS}, session=session, rng=rng
+            )
+        except PariProgramError:
+            return expr

@@ -388,6 +388,13 @@ class PMat:
     def __truediv__(self, other):
         return PMat([[x / other for x in ligne] for ligne in self.rows])
 
+    def __pow__(self, n):
+        """`M^n` : puissance entière, `M^-1` l'inverse (`oeflinsys`), `M^1`
+        la matrice elle-même (`B*(R^1)`, 33 exercices de rotations)."""
+        import sympy  # noqa: PLC0415
+
+        return PMat((sympy.Matrix(self.rows) ** int(n)).tolist())
+
     def __eq__(self, other):
         autre = _en_pmat(other)
         return autre is not None and self.rows == autre.rows
@@ -765,7 +772,9 @@ def _translate_brackets(src: str) -> str:
         # littéral vient d'être réécrit en `_V(…)`).
         emitted = "".join(out).rstrip()
         prev = emitted[-1] if emitted else ""
-        is_index = bool(prev) and (prev.isalnum() or prev in "_)]")
+        # Après une transposée aussi : `divrem(a,b)~[2]` est le reste
+        # (`oefrelatif`), non la juxtaposition d'un vecteur `[2]`.
+        is_index = bool(prev) and (prev.isalnum() or prev in "_)]~")
 
         depth = 1
         j = i + 1
@@ -910,6 +919,51 @@ def _operand_end(src: str, start: int) -> int:
     return i
 
 
+def _composante(f):
+    """PARI applique `abs`, `floor`, `real`… à chaque composante d'un vecteur
+    ou d'une matrice ; Python les refuse (`floor([9,2.5]*1000)`,
+    `vecmax(abs(M*N))` d'`oefpersp3D`)."""
+    def g(x, *args):
+        if isinstance(x, PVec):
+            return PVec([g(v, *args) for v in x.items], x.col)
+        if isinstance(x, PMat):
+            return PMat([[g(v, *args) for v in r] for r in x.rows])
+        if isinstance(x, (list, tuple)):
+            return [g(v, *args) for v in x]
+        return f(x, *args)
+    return g
+
+
+def _partie(reelle: bool):
+    """`real` / `imag` d'un nombre, complexe ou non."""
+    def f(z):
+        import sympy  # noqa: PLC0415
+
+        z = sympy.sympify(z)
+        return sympy.re(z) if reelle else sympy.im(z)
+    return f
+
+
+def _pari_pol(v, var=None):
+    """`Pol([a,b,c],x)` = a*x^2 + b*x + c ; un scalaire reste lui-même."""
+    import sympy  # noqa: PLC0415
+
+    x = var if var is not None else sympy.Symbol("x")
+    items = list(v.items if isinstance(v, PVec) else v) if hasattr(v, "__iter__") else [v]
+    n = len(items)
+    return sympy.expand(sum(c * x ** (n - 1 - k) for k, c in enumerate(items)))
+
+
+def _pari_polroots(p):
+    """`polroots(P)` : les racines complexes, en vecteur colonne — réelles
+    d'abord, croissantes, comme `gp` les rend."""
+    import sympy  # noqa: PLC0415
+
+    expr = sympy.sympify(p)
+    var = next(iter(expr.free_symbols), sympy.Symbol("x"))
+    return PVec(sympy.Poly(expr, var).nroots(n=20), col=True)
+
+
 def _egal(a: Any, b: Any) -> bool:
     """Égalité de valeurs, à la PARI (`50==0.5*100` → 1)."""
     if a == b:
@@ -1003,6 +1057,16 @@ class PariInterpreter:
         # Les helpers de `cas` renvoient des listes/matrices sympy ; on les
         # enveloppe pour que l'indexation reste 1-based côté programme.
         self.base_ns = {k: _wrap_helper(v) for k, v in base_ns.items()}
+        # Composante par composante, comme PARI (cf. `_composante`).
+        for nom in ("abs", "floor", "ceil", "round", "rint", "truncate", "frac"):
+            if nom in self.base_ns:
+                self.base_ns[nom] = _composante(self.base_ns[nom])
+        # `vecmax`/`vecmin` d'une matrice : sur toutes ses composantes.
+        for nom, choix in (("vecmax", max), ("vecmin", min)):
+            if nom in self.base_ns:
+                orig = self.base_ns[nom]
+                self.base_ns[nom] = (lambda o, c: lambda v: c(x for r in v.rows for x in r)
+                                     if isinstance(v, PMat) else o(v))(orig, choix)
         self.base_ns.update(
             {
                 "_I": sympy.Integer,
@@ -1010,6 +1074,12 @@ class PariInterpreter:
                 "_M": PMat,
                 "_transposee": _transposee,
                 "_egal": _egal,
+                "Pol": _pari_pol,
+                "matid": lambda n: PMat([[1 if i == j else 0 for j in range(int(n))]
+                                         for i in range(int(n))]),
+                "polroots": _pari_polroots,
+                "real": _composante(_partie(True)),
+                "imag": _composante(_partie(False)),
                 "_plage": _Plage,
                 "_if": lambda c, a, b=0: a if _truth(c) else b,
                 "length": _pari_length,
@@ -1050,7 +1120,7 @@ class PariInterpreter:
                 # l'état qu'il a modifié.
                 "local": lambda *a: sympy.Integer(0),
                 "concat": _pari_concat,
-                "abs": abs,
+                "abs": _composante(abs),
                 # Constantes GP — sans elles, `boo=true` liait un symbole libre
                 # et `concat(n, boo)` produisait une juxtaposition illisible
                 # (oefpythonfunction.fr/BoucleWhile).

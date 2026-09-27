@@ -375,11 +375,16 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   identiques à WIMS, échos 179 → 76 ; aucune régression. Au passage :
   l'idiome `x=$ texte` (blanc de tête) — `oefcalcLP/facture1` écrivait
   `<th$ colspan="3">`.
+  **Second lot, le même jour** : puissance et inverse de matrice (`R^1`,
+  `M^-1` — 33 exercices de rotations, `oeflinsys/solution` rejoint enfin
+  `gp`), `divrem(…)~[2]`, fonctions composante par composante (`abs`,
+  `floor`… sur vecteur ou matrice), `vecmax` d'une matrice, `Pol`, `matid`,
+  `polroots`, `real`/`imag`, et le mini-interpréteur en dernier recours
+  avant l'écho. Sorties identiques à `gp` : 4 091 → 4 141 ; échos 76 → 47.
   **Reste**, par nature :
-  - **défauts** : 71 exercices où l'expression repart telle quelle —
-    `divrem(…)~[2]` (transposée puis indice), `floor(vecteur*1000)`,
-    inverse de matrice `M^-1` (`oeflinsys/solution`), programmes à
-    fonctions définies (`PermutList`, `immat`), `printtex` ;
+  - **défauts** : 35 exercices où l'expression repart telle quelle —
+    programmes à fonctions définies (`PermutList`, `immat`), `printtex`,
+    `numtoperm`, `matker`, `binary`, `listsort`, `valuation` ;
   - **forme** (valeur égale, 109 exercices) : PARI simplifie les fractions
     rationnelles (`(-(x+1)(3x-1))/((x+1)(3x-1))` → `-1`, PAX :
     `-x/(x + 1) - 1/(x + 1)`), ordonne les termes à sa façon
