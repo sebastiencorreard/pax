@@ -51,6 +51,7 @@ def cache_key(
     m_step: int | None,
     prev_replies: dict[str, str] | None = None,
     reglages: dict[str, str] | None = None,
+    prev_scores: dict[str, float] | None = None,
 ) -> str:
     # Course steps that echo previous replies (`$m_reply{n}`) render differently
     # per submitted answer, so the replies are part of the key.
@@ -66,7 +67,13 @@ def cache_key(
     reg = ""
     if reglages:
         reg = "|" + ";".join(f"{k}={v}" for k, v in sorted(reglages.items()))
-    return f"pax:render:{path}:{seed}:{m_step or 0}{reg}{rep}"
+    # Les notes des étapes passées décident de `m_sc_reply`, donc de l'énoncé
+    # (verdict affiché) et des champs reposés : elles entrent dans la clé,
+    # avant les réponses, derrière un `!` — des noms de champ et des nombres.
+    sco = ""
+    if prev_scores:
+        sco = "!" + ";".join(f"{k}={v}" for k, v in sorted(prev_scores.items()))
+    return f"pax:render:{path}:{seed}:{m_step or 0}{reg}{sco}{rep}"
 
 
 def get(key: str):

@@ -155,7 +155,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   reload: []
-  'load-step': [m_step: number, replies: Record<string, string>]
+  'load-step': [m_step: number, replies: Record<string, string>, scores: Record<string, number>]
 }>()
 
 const { apiFetch } = useApi()
@@ -176,6 +176,9 @@ const checkResult = ref<CheckResult | null>(null)
 const feedbackHtml = ref<Record<string, { reply: string, expected: string }>>({})
 
 const currentMStep = ref<number>(1)
+// Les notes que `/api/check` a données aux champs des étapes passées : le rendu
+// de l'étape suivante en tire `m_sc_reply` (verdict affiché, champs reposés).
+const notesDesEtapes = ref<Record<string, number>>({})
 const stepsHistory = ref<Array<{ step: number; correct: boolean; expected: string, input_name?: string, expectedHtml?: string, replyHtml?: string, label?: string }>>([])
 const stepFailed = ref(false)
 const currentStepFailedInputName = ref('')
@@ -272,6 +275,7 @@ async function init() {
   if (props.rendered.current_step === 1 || !props.rendered.current_step) {
     currentMStep.value = 1
     stepsHistory.value = []
+    notesDesEtapes.value = {}
     replies.value = {}
     courseStopped.value = false
   }
@@ -336,7 +340,7 @@ async function nextStep() {
   for (const [k, v] of Object.entries(replies.value)) {
     if (typeof v === 'string' && v.trim() !== '') acc[k] = v
   }
-  emit('load-step', nextMStep, acc)
+  emit('load-step', nextMStep, acc, { ...notesDesEtapes.value })
 }
 
 async function submit() {
@@ -403,6 +407,7 @@ async function submit() {
     // `rendered.answers` is server-filtered to the current step's replies.
     const activeNames = new Set(props.rendered.answers.map(a => a.input_name))
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
+    for (const res of activeResults) notesDesEtapes.value[res.input_name] = res.score
     
     // Update history for each active input in this step
     let stepHasBlockingError = false  // wrong AND not `nonstop`

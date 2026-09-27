@@ -64,6 +64,7 @@ async def render_exercise(
     seed: int | None = None,
     m_step: int | None = None,
     replies: str | None = None,
+    scores: str | None = None,
     sheet_item: int | None = None,
     qcmlevel: int | None = Query(None, ge=1, le=9),
     db: AsyncSession = Depends(get_db),
@@ -86,11 +87,24 @@ async def render_exercise(
                 prev_replies = {str(k): str(v) for k, v in parsed.items()}
         except (ValueError, TypeError):
             prev_replies = None
+    # `scores` (JSON {input_name: note}) : les notes que `/api/check` a rendues
+    # pour ces réponses. WIMS garde le verdict en session (`m_sc_reply`,
+    # `oef/screply.proc`) ; le reconstituer au rendu par une seconde notation
+    # divergeait — un `clickfill` juste y était jugé faux.
+    prev_scores: dict[str, float] | None = None
+    if scores:
+        import json as _json  # noqa: PLC0415
+        try:
+            parsed = _json.loads(scores)
+            if isinstance(parsed, dict):
+                prev_scores = {str(k): float(v) for k, v in parsed.items()}
+        except (ValueError, TypeError):
+            prev_scores = None
 
     try:
         rendered = load_and_render(
             exercise.oef_path, seed=seed, m_step=m_step, prev_replies=prev_replies,
-            reglages=reg.moteur or None,
+            prev_scores=prev_scores, reglages=reg.moteur or None,
         )
     except FileNotFoundError:
         raise HTTPException(

@@ -296,7 +296,7 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   chacune. D'où la quatrième copie, et un seuil exprimé sur la note **telle que
   l'élève la voit** : sur dix, au dixième.
 
-- [~] **`histocap`, `histogramme`, `moustache`** — en partie réglé le
+- [x] **`histocap`, `histogramme`, `moustache`** — réglé le
   2026-09-27, d'après `oef/step.proc` : tant qu'une étape suit, un champ
   `?analyze` **n'est pas jugé** (sa valeur est rangée, `:test` ne se joue qu'à
   la fin). PAX le notait sur des conditions portant surtout sur l'avenir :
@@ -309,16 +309,20 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   100 000 tours, **17 s par envoi → 0,4 s**) et au rendu (`comployer2`
   progresse enfin à l'étape 2).
 
-  **Reste, en attente de décision** : chez WIMS, l'énoncé de l'étape N
-  s'affiche dans l'état laissé par `:postdef` exécuté pour `m_step`=2…N. PAX
-  ne le rejoue que pour compter les étapes, puis restaure le contexte :
-  `histocap` affiche à l'étape 2 un tableau des temps **vide**. Le correctif
-  est écrit (rejouer et garder l'état), mais il change l'étape 2 de 132
-  exercices sur 683 : verdicts de l'étape 1 affichés (« Bonne réponse ! »),
-  questions suivantes enfin posées — et, pour les exercices à reprises
-  (`gramfonclic1` : 1 → 40 champs), une dépendance au verdict `m_sc_reply`
-  que PAX **estime** au rendu (`_grade_prev_reply`), et qui juge fausse une
-  bonne réponse `clickfill`. À trancher contre un WIMS de référence.
+  **Rejeu de `:postdef` au rendu — fait le 2026-09-27**, après vérification
+  sur le WIMS de référence (`gramfonclic1` : une bonne réponse à l'étape 1
+  termine l'exercice, 10/10 ; `histocap` : les 40 clics se font tous dans
+  l'étape 1, comme dans `ReactionTest.vue`). L'étape N s'affiche dans l'état
+  laissé par `:postdef` exécuté pour `m_step`=2…N. Les verdicts qu'il lit
+  (`m_sc_reply`, `screply.proc` : 1 / 0,5 / 0) sont ceux que `/api/check` a
+  rendus : le front les transmet (`scores`) avec les réponses, et le rejeu
+  de l'étape suivante les reçoit aussi. La seconde notation au rendu
+  (`_grade_prev_reply`), qui comparait au `replygood` brut et jugeait faux un
+  `clickfill` juste, ne sert plus que de repli. Sur le parcours réel (683
+  exercices à `\nextstep`) : 99 s'arrêtent à l'étape 1 comme chez WIMS,
+  78 changent d'étape 2 — verdicts affichés, questions suivantes posées,
+  tableau des temps de `histocap` rempli.
+
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
   `val19 = $[fullratsimp(…)]` porte la réponse de l'élève ; PAX rendait

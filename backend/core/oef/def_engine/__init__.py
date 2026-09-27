@@ -727,6 +727,16 @@ def _horloge_session() -> datetime.datetime:
     return datetime.datetime.now()
 
 
+def sc_reply_wims(note: float) -> str:
+    """`m_sc_reply` selon `oef/screply.proc` : 1 si juste, 0,5 si juste à la
+    précision près (ou en partie), 0 sinon."""
+    if note >= 1:
+        return "1"
+    if note > 0:
+        return "0.5"
+    return "0"
+
+
 @lru_cache(maxsize=512)
 def _module_var_proc_lines(def_path: str | None) -> tuple[str, ...]:
     """Lignes du `var.proc` du module, exécutées avant chaque exercice.
@@ -781,6 +791,7 @@ def load_and_render(
     m_step: int | None = None,
     prev_replies: dict[str, str] | None = None,
     reglages: dict[str, str] | None = None,
+    prev_scores: dict[str, float] | None = None,
 ) -> ExerciseRender:
     """Parse (cached) and evaluate a .def file, returning an ExerciseRender.
 
@@ -805,6 +816,8 @@ def load_and_render(
         engine.ctx["step"] = str(m_step)  # WIMS alias
     if prev_replies:
         engine.prev_replies = dict(prev_replies)
+    if prev_scores:
+        engine.prev_scores = dict(prev_scores)
     return engine.render(def_file)
 
 
@@ -912,6 +925,7 @@ class DefEngine(_SlibMixin):
         # `$m_reply{n}` / `$m_sc_reply{n}` so a later step's statement can echo
         # "reply : BONNE/MAUVAISE REPONSE" (lebrun5). Set by load_and_render.
         self.prev_replies: dict[str, str] = {}
+        self.prev_scores: dict[str, float] = {}
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
@@ -976,6 +990,44 @@ class DefEngine(_SlibMixin):
             return False
 
         return walk(postdef, False)
+
+    def _rejouer_postdef_jusqu_a_l_etape(self, df: DefFile) -> None:
+        """L'état dans lequel WIMS affiche l'étape courante d'un `\\nextstep`.
+
+        Après chaque envoi, `step.proc` avance `m_step` puis `nextstep.proc`
+        exécute `:postdef` ; les variables qu'il pose **restent** dans la
+        session, et l'énoncé de l'étape suivante s'affiche avec elles. À
+        l'étape N, WIMS a donc exécuté `:postdef` pour `m_step` = 2, …, N.
+
+        PAX ne le rejouait que pour compter les étapes, en restaurant le
+        contexte ensuite : ce que `:postdef` calcule n'atteignait pas l'énoncé.
+        `histocap` affichait à l'étape 2 un tableau des temps **vide** — le tri
+        des mesures (`val19`) et les classes de l'histogramme (`val20`) naissent
+        dans `:postdef`. Les verdicts qu'il lit (`m_sc_reply`) sont ceux que
+        `/api/check` a rendus (`prev_scores`), non une seconde notation.
+        """
+        try:
+            postvarcnt = int(str(df.meta.get("postvarcnt", "0")).strip() or "0")
+            courante = int(self.ctx.get("m_step", "1"))
+        except (TypeError, ValueError):
+            return
+        postdef = df.sections.get("postdef") or []
+        if postvarcnt <= 0 or not postdef or courante < 2 or "nextstep" not in self.ctx:
+            return
+        deadline = self._deadline
+        self._deadline = time.monotonic() + _NEXTSTEP_TIME_BUDGET
+        try:
+            for k in range(2, courante + 1):
+                self.ctx["m_step"] = str(k)
+                self.ctx["step"] = str(k)
+                try:
+                    self._exec(postdef, output_buf=None)
+                except _RenderBudgetExceeded:
+                    break
+        finally:
+            self._deadline = deadline
+            self.ctx["m_step"] = str(courante)
+            self.ctx["step"] = str(courante)
 
     def _resolve_nextstep(
         self, df: DefFile, dynamic_out: list | None = None
@@ -1176,6 +1228,7 @@ class DefEngine(_SlibMixin):
         # Done after var_instructions so the expected (`$replygood{n}`, which
         # may reference val vars computed above) is resolvable.
         self._apply_prev_replies()
+        self._rejouer_postdef_jusqu_a_l_etape(df)
 
         # Les listes déroulantes des `\choice`, composées **avant** le rendu :
         # `\embed{c1}` les affiche, et leurs options se lisent dans les `valN`
@@ -4544,10 +4597,16 @@ class DefEngine(_SlibMixin):
             m_an = re.match(r"\s*\?analyze\s+(\d+)", self.ctx.get(f"replygood{n}", ""))
             if m_an:
                 self.ctx[f"val{m_an.group(1)}"] = value
-            expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
-            rtype = self._reply_type(n) or "numexp"
-            correct = self._grade_prev_reply(value, expected, rtype)
-            sc = "1" if correct else "0"
+            note = next((self.prev_scores[k] for k in (name, f"reply{n}", f"r{n}")
+                         if k in self.prev_scores), None)
+            if note is not None:
+                sc = sc_reply_wims(note)
+            else:
+                # Repli, faute de la note rendue par `/api/check` : une
+                # estimation, qui compare au `replygood` brut.
+                expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
+                rtype = self._reply_type(n) or "numexp"
+                sc = "1" if self._grade_prev_reply(value, expected, rtype) else "0"
             self.ctx[f"sc_reply{n}"] = sc
             self.ctx[f"m_sc_reply{n}"] = sc
 

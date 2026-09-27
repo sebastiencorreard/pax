@@ -399,7 +399,10 @@ async def check_exercise(
     #
     # Borné aux exercices à `\nextstep` (`has_next_step` vrai) : les `course`
     # à étapes fixes gardent le modèle de note mesuré sur WIMS (`deve7`).
-    suite = etape_suivante_existe(rendered, replies_by_name, body.seed, body.m_step or 1)
+    suite = etape_suivante_existe(
+        rendered, replies_by_name, body.seed, body.m_step or 1,
+        {r.input_name: r.score for r in results},
+    )
     if suite is True:
         analyses = {
             a.input_name for a in active_ans_defs

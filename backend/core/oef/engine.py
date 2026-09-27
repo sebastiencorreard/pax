@@ -80,6 +80,7 @@ def load_and_render(
     m_step: int | None = None,
     prev_replies: dict[str, str] | None = None,
     reglages: dict[str, str] | None = None,
+    prev_scores: dict[str, float] | None = None,
 ) -> ExerciseRender:
     """
     Point d'entrée principal.
@@ -106,7 +107,7 @@ def load_and_render(
         seed = random.randint(0, 2**31)
 
     from . import render_cache
-    key = render_cache.cache_key(effective_path, seed, m_step, prev_replies, reglages)
+    key = render_cache.cache_key(effective_path, seed, m_step, prev_replies, reglages, prev_scores)
     cached = render_cache.get(key)
     if cached is not None:
         return cached
@@ -115,7 +116,8 @@ def load_and_render(
         from .def_engine import load_and_render as _def_render
 
         rendered = _def_render(
-            def_path, seed=seed, m_step=m_step, prev_replies=prev_replies, reglages=reglages
+            def_path, seed=seed, m_step=m_step, prev_replies=prev_replies, reglages=reglages,
+            prev_scores=prev_scores,
         )
         render_cache.set(key, rendered)
         return rendered

@@ -76,7 +76,7 @@
           :exercise-id="exerciseId"
           :debug-answers="debugAnswers"
           @reload="reload"
-          @load-step="(m_step, replies) => load(rendered?.seed, m_step, replies)"
+          @load-step="(m_step, replies, scores) => load(rendered?.seed, m_step, replies, scores)"
         />
         <StandardExercise
           v-else
@@ -148,7 +148,10 @@ onBeforeUnmount(() => chronoState.clear())
 
 const exerciseComponent = ref<any>(null)
 
-async function load(seed?: number, m_step?: number, replies?: Record<string, string>) {
+async function load(
+  seed?: number, m_step?: number, replies?: Record<string, string>,
+  scores?: Record<string, number>,
+) {
   loading.value = true
   loadError.value = ''
   showHint.value = false
@@ -162,6 +165,9 @@ async function load(seed?: number, m_step?: number, replies?: Record<string, str
     // Course steps carry the earlier steps' replies so the step statement can
     // echo their verdict ($m_sc_reply{n}).
     if (replies && Object.keys(replies).length) params.append('replies', JSON.stringify(replies))
+    // …et les notes que la correction leur a données : WIMS garde ce verdict
+    // en session (`m_sc_reply`), le serveur ne le recalcule donc pas.
+    if (scores && Object.keys(scores).length) params.append('scores', JSON.stringify(scores))
     // Réglages d'une feuille (`?sheet_item=`) ou niveau d'essai (`?qcmlevel=`,
     // réservé aux enseignants) : le serveur les résout et les renvoie dans
     // `reglages`, que la correction lui retourne tels quels.

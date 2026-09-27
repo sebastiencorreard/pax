@@ -138,6 +138,7 @@ def etape_suivante_existe(
     replies_by_name: dict[str, str],
     seed: int,
     etape: int,
+    notes: dict[str, float] | None = None,
 ) -> bool | None:
     """Existe-t-il une étape après ``etape`` ? ``None`` si la question ne se pose pas.
 
@@ -184,6 +185,14 @@ def etape_suivante_existe(
         var = (a.options or {}).get("analyze_var")
         if var and a.input_name in replies_by_name:
             engine.ctx[var] = replies_by_name[a.input_name]
+    # Et leur verdict (`oef/screply.proc`, lu avant `nextstep.proc`) : les
+    # exercices à reprises reposent les champs dont `m_sc_reply` n'est pas 1.
+    from . import sc_reply_wims  # noqa: PLC0415
+    for nom, note in (notes or {}).items():
+        m = re.match(r"^r(?:eply)?(\d+)$", nom.strip())
+        if m:
+            engine.ctx[f"m_sc_reply{m.group(1)}"] = sc_reply_wims(note)
+            engine.ctx[f"sc_reply{m.group(1)}"] = sc_reply_wims(note)
     # `step.proc` avance `m_step` **avant** de lire `nextstep.proc` : le
     # `:postdef` doit donc s'exécuter en pointant l'étape à venir.
     engine.ctx["m_step"] = str(etape + 1)
