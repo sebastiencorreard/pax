@@ -6,7 +6,7 @@
  * que le contenu change — un `v-html` remplace tout son sous-arbre sans que la
  * directive en soit avertie — ou que le thème bascule.
  */
-import { adapteFigures } from '~/utils/figureTheme'
+import { adapteFigures, adapteFondsClairs } from '~/utils/figureTheme'
 
 /** Les racines montées, pour rejouer la passe quand le thème change. */
 const racines = new Set<Element>()
@@ -16,9 +16,15 @@ function estSombre(): boolean {
   return document.documentElement.classList.contains('dark')
 }
 
+/** Les deux passes de thème : couleurs des figures, texte sur fonds clairs. */
+function adapte(el: Element, sombre: boolean) {
+  adapteFigures(el, sombre)
+  adapteFondsClairs(el, sombre)
+}
+
 function rejoueTout() {
   const sombre = estSombre()
-  for (const racine of racines) adapteFigures(racine, sombre)
+  for (const racine of racines) adapte(racine, sombre)
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -27,20 +33,20 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('figures', {
     mounted(el: Element) {
       racines.add(el)
-      adapteFigures(el, estSombre())
+      adapte(el, estSombre())
       // `v-html` réécrit le sous-arbre : sans observateur, la figure d'un
       // nouvel énoncé — ou celle qu'un corrigé fait apparaître — resterait
       // avec ses couleurs d'origine.
       const obs = new MutationObserver((mutations) => {
         if (mutations.some(m => m.addedNodes.length > 0)) {
-          adapteFigures(el, estSombre())
+          adapte(el, estSombre())
         }
       })
       obs.observe(el, { childList: true, subtree: true })
       observateurs.set(el, obs)
     },
     updated(el: Element) {
-      adapteFigures(el, estSombre())
+      adapte(el, estSombre())
     },
     unmounted(el: Element) {
       racines.delete(el)

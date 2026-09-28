@@ -10,7 +10,7 @@
  *   l'exige, et jamais aux figures que PAX dessine lui-même (`.pax-*`), déjà
  *   écrites en variables de thème.
  */
-import { adapteCouleur, versRvb, type Rvb } from './figureColors'
+import { adapteCouleur, contraste, CONTRASTE_VISE, luminance, versRvb, type Rvb } from './figureColors'
 
 /** Propriétés SVG qui portent une couleur. */
 const PROPRIETES = ['fill', 'stroke', 'stop-color', 'flood-color', 'lighting-color'] as const
@@ -112,5 +112,50 @@ export function adapteFigures(racine: Element | null, sombre: boolean): void {
         el.setAttribute(propriete, adaptee)
       }
     }
+  }
+}
+
+/** Couleur de texte posée sur un fond clair d'auteur, en thème sombre. */
+const TEXTE_SUR_FOND_CLAIR = '#1e293b'
+const CLE_TEXTE = 'data-pax-color'
+
+/** Opacité d'une couleur calculée (`rgba(…, a)`), 1 si elle n'en porte pas. */
+function opacite(couleur: string): number {
+  const m = /^rgba\([^)]*,\s*([\d.]+)\s*\)$/.exec(couleur.trim())
+  return m ? Number(m[1]) : 1
+}
+
+/**
+ * Le texte posé sur un **fond clair que l'auteur a peint** reste lisible.
+ *
+ * Un énoncé peut apporter son propre `<style>` : `photosynthesis` pose
+ * `.panel.callout{background-color:#f2f9fc}` sans fixer la couleur du texte,
+ * qui hérite alors du texte clair du thème sombre — blanc sur blanc, la
+ * question et ses propositions disparaissaient. En thème sombre, un élément à
+ * fond clair et opaque dont le texte manque de contraste reçoit un texte
+ * sombre ; le retour au thème clair rend la couleur d'origine.
+ *
+ * Les fonds que PAX pose lui-même suivent déjà le thème : un fond clair n'y
+ * survit en thème sombre que s'il vient de l'auteur.
+ */
+export function adapteFondsClairs(racine: Element | null, sombre: boolean): void {
+  if (!racine || typeof window === 'undefined') return
+  const elements = [racine, ...Array.from(racine.querySelectorAll('*'))]
+  for (const el of elements) {
+    if (!(el instanceof HTMLElement) || el.closest('svg')) continue
+    const memorisee = el.getAttribute(CLE_TEXTE)
+    if (memorisee !== null) {
+      // Repartir de l'origine : le thème ou le contenu ont pu changer.
+      el.style.color = memorisee
+      el.removeAttribute(CLE_TEXTE)
+    }
+    if (!sombre) continue
+    const cs = getComputedStyle(el)
+    const fond = versRvb(cs.backgroundColor)
+    if (!fond || opacite(cs.backgroundColor) < 0.5 || luminance(fond) < 0.6) continue
+    const texte = versRvb(cs.color)
+    if (!texte || contraste(texte, fond) >= CONTRASTE_VISE) continue
+    el.setAttribute(CLE_TEXTE, el.style.color)
+    el.style.color = TEXTE_SUR_FOND_CLAIR
   }
 }

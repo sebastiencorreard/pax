@@ -120,4 +120,30 @@ test.describe('les figures suivent le thème', () => {
     expect(fond.fill).toBe('#000000')
     expect(fond.memo).toBeNull()
   })
+
+  test('un fond clair d’auteur garde un texte lisible', async ({ page }) => {
+    // `photosynthesis` peint `.panel.callout` en #f2f9fc ; le texte, hérité du
+    // thème sombre, y était blanc cassé sur blanc — l'énoncé disparaissait.
+    await page.goto('/exercise/H4~biology~photosynthesis.fr~src~1')
+    const panneau = page.locator('.panel.callout').first()
+    await expect(panneau).toBeVisible({ timeout: 30000 })
+    const lire = () => panneau.evaluate(el => ({
+      couleur: getComputedStyle(el).color,
+      memo: el.getAttribute('data-pax-color'),
+    }))
+
+    const clair = await lire()
+    expect(clair.memo).toBeNull()
+
+    await page.evaluate(() => document.documentElement.classList.add('dark'))
+    await page.waitForTimeout(300)
+    const sombre = await lire()
+    expect(sombre.memo).not.toBeNull()
+    const fond = await panneau.evaluate(el => getComputedStyle(el).backgroundColor)
+    expect(contraste(versRvb(sombre.couleur)!, versRvb(fond)!)).toBeGreaterThanOrEqual(CONTRASTE_VISE)
+
+    await page.evaluate(() => document.documentElement.classList.remove('dark'))
+    await page.waitForTimeout(300)
+    expect(await lire()).toEqual(clair)
+  })
 })
