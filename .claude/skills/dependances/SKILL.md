@@ -58,7 +58,11 @@ packages cap it at `<6.1.0`: the bump only lands by installing a **second,
 nested TypeScript**, so eslint and `vue-tsc` would no longer judge the same
 language and the 69-error typecheck baseline would lose its meaning. Held until
 `@typescript-eslint` accepts TS 7 — same reasoning as the ignored
-`nuxt`/`pinia`/`@vueuse` majors.
+`nuxt`/`pinia`/`@vueuse` majors. PR #60 was closed on 2026-09-28 and the
+`typescript` major joined the `ignore` list of `dependabot.yml`; the
+`vigie-typescript` job of `dependencies.yml` (scheduled runs only) opens an
+issue the day the published `@typescript-eslint/typescript-estree` accepts
+7.0.0 — that is the signal to remove the `ignore` and retry.
 
 ### Automated checks
 

@@ -237,3 +237,41 @@ jobs:
       - name: Journaux du backend en cas d'échec
         if: failure()
         run: docker compose logs backend | tail -100
+
+  # TypeScript 7 attend `@typescript-eslint` (cf. l'`ignore` de
+  # `dependabot.yml`). Personne ne le surveillerait à la main : ce job lit, à
+  # chaque passage planifié, la plage que le paquet publié accepte, et ouvre
+  # une issue — une seule — le jour où elle contient 7.0.0.
+  vigie-typescript:
+    name: Vigie — TypeScript 7
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: "@typescript-eslint accepte-t-il TypeScript 7 ?"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          plage=$(npm view @typescript-eslint/typescript-estree peerDependencies.typescript)
+          echo "Plage acceptée : $plage" >> "$GITHUB_STEP_SUMMARY"
+          if ! npx --yes semver@7 -r "$plage" 7.0.0 > /dev/null; then
+            echo "TypeScript 7 pas encore accepté."
+            exit 0
+          fi
+          titre="TypeScript 7 : @typescript-eslint l'accepte"
+          if gh issue list --state open --search "$titre in:title" --json number --jq '.[].number' | grep -q .; then
+            echo "Issue déjà ouverte."
+            exit 0
+          fi
+          printf '%s\n' \
+            "\`@typescript-eslint/typescript-estree\` accepte désormais \`typescript $plage\`." \
+            "" \
+            "La montée vers TypeScript 7 était retenue parce que l'outillage eslint la plafonnait à \`<6.1.0\` (PR #60, fermée). Pour la reprendre :" \
+            "" \
+            "1. retirer le bloc \`typescript\` des \`ignore\` de \`.github/dependabot.yml\` ;" \
+            "2. vérifier que \`npm ls typescript\` ne montre qu'**une** TypeScript après la montée ;" \
+            "3. mesurer lint, typecheck et e2e contre la ligne de base de \`CLAUDE.md\` (skill \`dependances\`)." \
+            > corps.md
+          gh issue create --title "$titre" --body-file corps.md
