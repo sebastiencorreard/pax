@@ -50,6 +50,11 @@ class ExerciseRender:
     # à une réponse laissée vide (`oef/step.proc`) avant de la noter. Interne à
     # la notation — hors des `options` que l'API et les instantanés exposent.
     defauts: dict = field(default_factory=dict)
+    # Toutes les réponses de l'exercice, avant que le rendu d'un exercice à
+    # étapes ne garde que celles de l'étape en cours (`answers`). Le bilan
+    # final en a besoin : WIMS note chaque réponse des étapes atteintes, et
+    # compte à zéro celles des étapes annoncées qu'on n'a pas atteintes.
+    toutes_reponses: list = field(default_factory=list)
 
 
 def find_def_path(oef_path: str) -> str | None:

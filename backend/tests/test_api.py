@@ -494,6 +494,49 @@ class TestEtapeIntermediaire:
         assert body["global_score"] == pytest.approx(1.0)
 
 
+class TestBilanDesEtapes:
+    """Un exercice à étapes se note une fois, à la fin (`oef/var.proc`).
+
+    `deve7` (`course` à trois étapes : quatre `?analyze`, puis trois `litexp`,
+    puis un) : une réponse fausse à l'étape 2 **arrête** l'exercice
+    (`step.proc:66`, pas de `nonstop`). Le bilan compte les réponses des trois
+    étapes annoncées moins les `?analyze`, plus la condition : 5 points, dont
+    3 obtenus — la condition et deux `litexp`. Au niveau 3, `freepower` = 2."""
+
+    DEVE7 = "H3~algebra~oefdevfact.fr~src~deve7"
+
+    def _envoyer(self, client, headers, etape, reponses):
+        r = client.post(
+            f"/api/check/{self.DEVE7}", headers=headers,
+            json={"seed": 42, "m_step": etape,
+                  "replies": [{"input_name": k, "value": v} for k, v in reponses.items()]},
+        )
+        assert r.status_code == 200
+        return r.json()
+
+    def test_arret_et_bilan(self, client, teacher_headers):
+        if client.get(f"/api/exercises/{self.DEVE7}", headers=teacher_headers).status_code != 200:
+            pytest.skip("deve7 absent de ce corpus (la CI n'importe qu'un sous-ensemble)")
+        attendus = {}
+        for etape in (1, 2):
+            r = client.get(f"/api/render/{self.DEVE7}/debug?seed=42&m_step={etape}",
+                           headers=teacher_headers)
+            if r.status_code != 200:
+                pytest.skip("mode debug fermé")
+            attendus[etape] = {a["input_name"]: a["expected"] for a in r.json()["answers"]}
+
+        un = self._envoyer(client, teacher_headers, 1, attendus[1])
+        assert un["fin_du_parcours"] is False and un["arret"] is False
+        # Un envoi intermédiaire n'enregistre aucune tentative.
+        assert un["attempt_id"] == "00000000-0000-0000-0000-000000000000"
+
+        deux = dict(attendus[2], reply7="x")
+        fin = self._envoyer(client, teacher_headers, 2, deux)
+        assert fin["fin_du_parcours"] is True and fin["arret"] is True
+        assert fin["global_score"] == pytest.approx((3 / 5) ** 2)
+        assert fin["attempt_id"] != "00000000-0000-0000-0000-000000000000"
+
+
 class TestCheck:
     def test_check_requires_auth(self, client):
         r = client.post(

@@ -1014,11 +1014,28 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   s'accordent qu'avec un arrondi au plus proche. Une troncature aurait donné
   « 5 » dans le premier cas.
 
-- [ ] **Vérifier la notation sur les autres formes.** `deve7` est un `course`
-  à trois étapes. Restent à éprouver contre WIMS : un `course` long
-  (`quizz/course04_1step`, 15 étapes), un `dynsteps` dont le nombre d'étapes
-  n'est pas connu d'avance (`histocap`), et le cas d'un exercice interrompu par
-  une erreur dès la première étape.
+- [x] **La note est le bilan de `oef/var.proc`, calculé par le serveur**
+  (2026-09-28). Le modèle « moyenne des étapes » ci-dessus collait à `deve7`
+  par coïncidence ; `histocap` (1,4/10 chez WIMS, arrêté à l'étape 5) l'a
+  démenti. WIMS compte les réponses des étapes annoncées (`creplycnt`), moins
+  les `?analyze`, plus **toutes** les conditions ; une réponse d'étape non
+  atteinte vaut 0, une condition sur un champ vide se joue sur 0 (`evalue("")`
+  = 0, vérifié au banc contre `compare.c`). Avec : l'**arrêt** sur une réponse
+  fausse sans `nonstop` (`step.proc:66`) — PAX remplissait l'attendu et
+  continuait — ; le parcours gardé en Redis (`core/answer/bilan_etapes.py`) ;
+  une seule tentative, à la fin (chaque étape en enregistrait une : l'étape 1
+  d'`histocap`, notée 1, valait 100 % sur une feuille) ; la correction d'une
+  étape rendue avec les réponses des précédentes, comme son affichage.
+
+- [ ] **`freepower` : les deux mesures WIMS se contredisent.** Au niveau 3,
+  `exo.init` pose `freepower=2`, et `valtrigo1` le confirme (0,7² → 4,9/10).
+  Mais `deve7` a donné 6/10 et 4/10 là où le bilan vaut 3/5 et 2/5 — exact
+  avec `freepower=1`, 3,6 et 1,6 avec 2. PAX applique 2. À trancher par une
+  mesure dont on note le niveau de sévérité affiché par WIMS.
+
+- [ ] **Vérifier la notation sur les autres formes** : un `course` long
+  (`quizz/course04_1step`, 15 étapes), un exercice interrompu dès la première
+  étape.
 
 ## 5. `\choice` — les menus déroulants d'OEF
 

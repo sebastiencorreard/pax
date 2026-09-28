@@ -142,6 +142,10 @@ export interface CheckResult {
   /** Une étape suit-elle celle qu'on vient de corriger ? `undefined` quand
    *  l'exercice n'a pas de `\\nextstep` — on s'en tient alors à `total_steps`. */
   has_next_step?: boolean | null
+  // Exercice à étapes : cet envoi le termine-t-il, et sur une réponse fausse ?
+  // `global_score` n'est la note de l'exercice que lorsqu'il se termine.
+  fin_du_parcours?: boolean | null
+  arret?: boolean
   noanalyzeprint?: boolean
   feedback_html?: string | null
   solution_html?: string | null

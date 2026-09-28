@@ -37,9 +37,9 @@
     <!-- Résultats Dynsteps — masqués tant qu'un avertissement de format réclame
          une nouvelle saisie (ex. polexpand « réduisez votre réponse »), sinon le
          bilan/score s'afficherait sous l'avertissement à la dernière étape. -->
-    <div v-if="checkResult && !checkResult.has_invalid_format && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)" class="px-6 pb-4">
+    <div v-if="checkResult && !checkResult.has_invalid_format && (stepFailed || termine)" class="px-6 pb-4">
       <!-- Bilan Global (à la fin ou arrêt course) -->
-      <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped" class="space-y-3">
+      <div v-if="termine" class="space-y-3">
         <div class="rounded-lg px-4 py-3 border"
              :style="scoreRatio >= 0.9
                ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
@@ -131,7 +131,7 @@
         Réponse auto
       </button>
 
-      <button v-if="submitted && ((rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)"
+      <button v-if="submitted && termine"
               @click="$emit('reload')"
               class="px-6 py-2.5 rounded-lg font-medium border transition"
               style="border-color:var(--color-border)">
@@ -204,8 +204,10 @@ const hasRadioAnswers = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'radio' && !a.options?.inline) ?? false
 )
 
-const isCourse = computed(() => props.rendered?.exercise_type === 'course')
-const courseStopped = ref(false)
+// L'exercice est terminé : dernière étape franchie, ou arrêté par une réponse
+// fausse sans `nonstop` (`oef/step.proc:66`) — un `course` comme un exercice à
+// `\nextstep`.
+const termine = ref(false)
 
 // Analyze-checked exercises are all-or-nothing (a single combined :test
 // condition), so a per-field breakdown is misleading — show just OUI/NON like
@@ -215,41 +217,15 @@ const isAnalyzeWhole = computed(() =>
   checkResult.value.results.every(r => r.method === 'analyze')
 )
 
-// Score helpers — a "step" may contain several inputs (e.g. csgb Q200 lays
-// out a Thales ratio as 4 fields reply10..reply13 inside one step). We must
-// dedup by step number so the denominator stays at total_steps and the
-// percentage caps at 100 %.
-// Le crédit d'une étape est la **part** de ses champs justes, non un tout ou
-// rien. `oefdevfact/deve7` le montre bien : sa deuxième étape demande de
-// simplifier trois termes, l'élève en réussit deux, et l'étape entière était
-// comptée pour zéro. Score PAX 33 % (une étape sur trois) là où WIMS en donne
-// six sur dix — soit (1 + 2/3 + 0)/3, l'étape non atteinte comptant zéro.
-const creditDesEtapes = computed(() => {
-  const parEtape = new Map<number, { justes: number, total: number }>()
-  for (const entry of stepsHistory.value) {
-    const acc = parEtape.get(entry.step) ?? { justes: 0, total: 0 }
-    acc.total += 1
-    if (entry.correct) acc.justes += 1
-    parEtape.set(entry.step, acc)
-  }
-  let somme = 0
-  for (const { justes, total } of parEtape.values()) {
-    somme += total > 0 ? justes / total : 0
-  }
-  return somme
-})
-
-const totalStepsForScore = computed(() => {
-  if (isCourse.value) return props.rendered?.total_steps || 1
-  // dynsteps: number of distinct steps attempted
-  return new Set(stepsHistory.value.map(s => s.step)).size || 1
-})
-
-const scoreRatio = computed(() => creditDesEtapes.value / totalStepsForScore.value)
+// La note est celle que le serveur rend au dernier envoi : le bilan de
+// `oef/var.proc` sur tout le parcours (`core/answer/bilan_etapes.py`), non une
+// moyenne des étapes faite ici.
+const noteFinale = ref<number | null>(null)
+const scoreRatio = computed(() => noteFinale.value ?? 0)
 const scorePct = computed(() => Math.round(scoreRatio.value * 100))
 
 const allFilled = computed(() => {
-  if (!props.rendered || courseStopped.value) return false
+  if (!props.rendered || termine.value) return false
   // `rendered.answers` is server-filtered to the current step's active replies.
   const answers = props.rendered.answers
   // Analyze-checked exercises validate the whole answer via the :test section,
@@ -277,7 +253,8 @@ async function init() {
     stepsHistory.value = []
     notesDesEtapes.value = {}
     replies.value = {}
-    courseStopped.value = false
+    termine.value = false
+    noteFinale.value = null
   }
   
   stepFailed.value = false
@@ -383,8 +360,11 @@ async function submit() {
 
     // Calculé **après** la réponse du serveur, et non avant : c'est elle qui
     // porte `has_next_step`.
+    // Le serveur tranche (`fin_du_parcours`) ; l'ancienne règle ne sert que
+    // s'il ne répond pas à la question.
     const encoreUneEtape = checkResult.value.has_next_step === true
-    const finDuParcours = currentStep >= totalSteps && !encoreUneEtape
+    const finDuParcours = checkResult.value.fin_du_parcours
+      ?? (currentStep >= totalSteps && !encoreUneEtape)
 
     submitted.value = true
     const answerTypes = Object.fromEntries(
@@ -410,7 +390,6 @@ async function submit() {
     for (const res of activeResults) notesDesEtapes.value[res.input_name] = res.score
     
     // Update history for each active input in this step
-    let stepHasBlockingError = false  // wrong AND not `nonstop`
     for (const res of activeResults) {
       const existingIdx = stepsHistory.value.findIndex(s => s.input_name === res.input_name)
       const rawLabel = props.rendered.answers.find(a => a.input_name === res.input_name)?.label || ''
@@ -430,45 +409,27 @@ async function submit() {
       } else {
         stepsHistory.value.push(newItem)
       }
-
-      if (!res.correct) {
-        // WIMS `option=nonstop`: a wrong answer still advances to the next
-        // step (oef/step.proc: stop only `if reply!=good and nonstop notwordof
-        // replyoption`). lebrun5 puts nonstop on each step's answer.
-        const opt = (props.rendered.answers.find(a => a.input_name === res.input_name)?.options?.option || '').toLowerCase()
-        const nonstop = /\bnonstop\b/.test(opt)
-        if (!nonstop) {
-          stepHasBlockingError = true
-          stepFailed.value = true
-          currentStepFailedInputName.value = res.input_name
-          // For dynsteps, fill the correct answer on failure to move forward;
-          // for a (blocking) course step we stop instead.
-          if (!isCourse.value) {
-            replies.value[res.input_name] = res.expected
-          }
-        }
-      }
     }
 
-    // Only a *blocking* wrong answer (no `nonstop`) stops a course; a nonstop
-    // wrong answer is recorded as wrong but the course advances.
-    if (isCourse.value && stepHasBlockingError) {
-      courseStopped.value = true
+    // Une réponse fausse sans `nonstop` arrête l'exercice, `course` ou non
+    // (`oef/step.proc:66`) : PAX remplissait la bonne réponse et passait à
+    // l'étape suivante, si bien qu'un code de validation faux (`histocap`,
+    // « Appel 1 ») laissait l'élève continuer.
+    if (checkResult.value.arret) {
+      stepFailed.value = true
+      currentStepFailedInputName.value = activeResults.find(r => !r.correct)?.input_name ?? ''
     }
 
-    // Auto-advance to next step immediately if at least one input was processed
-    // and there was no error in a course
-    if (activeResults.length > 0 && !finDuParcours && !courseStopped.value) {
+    if (activeResults.length > 0 && !finDuParcours) {
       setTimeout(async () => {
         await nextStep()
       }, 0)
     }
 
-    // Only finalize score and show results at the end or if course stopped
-    if (finDuParcours || courseStopped.value) {
-      // Même ratio que le bilan affiché : chaque étape pèse au plus 1, à
-      // proportion de ses champs justes (cf. `creditDesEtapes`).
-      const score = scoreRatio.value
+    if (finDuParcours) {
+      termine.value = true
+      noteFinale.value = checkResult.value.global_score
+      const score = noteFinale.value
 
       if (score === 1) {
         addCoins(10)

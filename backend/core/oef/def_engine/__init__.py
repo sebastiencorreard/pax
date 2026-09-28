@@ -1431,6 +1431,7 @@ class DefEngine(_SlibMixin):
                         continue
 
         is_dynsteps_flag = exercise_type != "standard"
+        toutes_reponses = list(answers)
 
         # For dynsteps/course exercises, only the answers referenced by the
         # current step's statement are active. `_render_embed` records each
@@ -1657,6 +1658,7 @@ class DefEngine(_SlibMixin):
             css=css,
             severite=self.severite(),
             defauts=self._defauts_reponses(df),
+            toutes_reponses=toutes_reponses,
         )
 
     def _defauts_reponses(self, df) -> dict[str, str]:

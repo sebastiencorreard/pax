@@ -100,6 +100,11 @@ class CheckResponse(BaseModel):
     # pose pas (l'exercice n'a pas de `\nextstep`) : le front s'en tient
     # alors a `total_steps`, comme avant. Voir `etape_suivante_existe`.
     has_next_step: bool | None = None
+    # L'exercice à étapes se termine-t-il avec cet envoi ? `None` hors étapes.
+    # `global_score` n'est alors la note de l'exercice que s'il vaut `True`.
+    fin_du_parcours: bool | None = None
+    # …et s'arrête-t-il sur une réponse fausse (`step.proc:66`) ?
+    arret: bool = False
 
 
 def _pixels_to_repere(s: str | None, transform: str, comma_decimal: bool) -> str | None:
@@ -169,10 +174,22 @@ async def check_exercise(
         db, exercise_id, current_user, body.sheet_item, body.qcmlevel
     )
 
+    # Une étape se corrige dans l'état où elle a été affichée : le rendu de
+    # l'étape N a reçu les réponses et les notes des précédentes
+    # (`prev_replies`, `prev_scores`), le rendu de sa correction les reçoit
+    # aussi — du parcours gardé côté serveur. Sans elles, `histocap` corrigeait
+    # l'étape 4 sur des effectifs tous nuls, calculés sans les quarante mesures.
+    precedentes: dict = {}
+    if (body.m_step or 1) > 1:
+        from core.answer.bilan_etapes import lire_parcours  # noqa: PLC0415
+        precedentes = lire_parcours(str(current_user.id), exercise_id, body.seed)
+
     try:
         rendered = load_and_render(
             exercise.oef_path, seed=body.seed, m_step=body.m_step,
             reglages=reg.moteur or None,
+            prev_replies=precedentes.get("reponses") or None,
+            prev_scores=precedentes.get("notes") or None,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {e}")
@@ -417,6 +434,39 @@ async def check_exercise(
     # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)
 
+    # ── Exercice à étapes : arrêt, parcours, bilan ────────────────────────────
+    # `oef/step.proc:66` : une réponse fausse sans `nonstop` **arrête**
+    # l'exercice — un champ `?analyze` jamais, puisqu'il n'est pas jugé en
+    # route. Qu'il s'arrête là ou qu'il n'ait plus d'étape, la note est alors
+    # celle de tout le parcours (cf. `core/answer/bilan_etapes.py`) ; un envoi
+    # intermédiaire, lui, ne note rien et n'enregistre aucune tentative.
+    fin_du_parcours: bool | None = None
+    arret = False
+    if rendered.is_dynsteps and not has_invalid:
+        from core.answer import bilan_etapes  # noqa: PLC0415
+
+        etape = body.m_step or 1
+        par_nom = {a.input_name: a for a in active_ans_defs}
+        for res in results:
+            a = par_nom.get(res.input_name)
+            if a is None or bilan_etapes._est_analyse(a) or res.correct:
+                continue
+            if "nonstop" not in str(a.options.get("option", "")).lower():
+                arret = True
+        # La règle du front, qu'on ne fait que rapatrier : `has_next_step`
+        # peut *ajouter* une étape que `total_steps` avait manquée, jamais en
+        # retirer — `deve7` y répond « non » dès l'étape 1 de ses trois.
+        derniere = etape >= (rendered.total_steps or 1) and suite is not True
+        fin_du_parcours = arret or derniere
+        parcours = bilan_etapes.memoriser_etape(
+            str(current_user.id), exercise_id, body.seed, etape,
+            [a.input_name for a in active_ans_defs],
+            {r.input_name: r.score for r in results},
+            {a.input_name: replies_by_name.get(a.input_name, "") for a in active_ans_defs},
+        )
+        if fin_du_parcours:
+            global_score = bilan_etapes.bilan(rendered, parcours, etape, body.seed)
+
     noanalyzeprint = any(
         "noanalyzeprint" in str(a.options.get("option", "")).lower()
         for a in rendered.answers
@@ -443,7 +493,7 @@ async def check_exercise(
 
     # ── Enregistrement de la tentative ───────────────────────────────────────
     attempt_id = "00000000-0000-0000-0000-000000000000"
-    if not has_invalid:
+    if not has_invalid and fin_du_parcours is not False:
         sheet_id = body.sheet_id if body.sheet_id is not None else reg.sheet_id
         # Seul l'élève est noté : l'enseignant qui essaie l'exercice de sa
         # feuille ne laisse pas de tentative rattachée à celle-ci — elle
@@ -543,6 +593,8 @@ async def check_exercise(
         attempt_id=attempt_id,
         has_invalid_format=has_invalid,
         has_next_step=suite,
+        fin_du_parcours=fin_du_parcours,
+        arret=arret,
         noanalyzeprint=noanalyzeprint,
         feedback_html=feedback_html,
         solution_html=solution_html,
