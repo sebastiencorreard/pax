@@ -989,22 +989,53 @@ def _pari_expand(p):
     return sympy.expand(p)
 
 
-def _pari_denominator(x):
+def _pari_fraction(x):
+    """Numérateur et dénominateur à la PARI.
+
+    Un polynôme — ou un nombre non rationnel — est son propre numérateur :
+    `denominator(x/2+1/3)` vaut 1 chez `gp`. Une fraction rationnelle est
+    réduite, ses coefficients rendus entiers, leur contenu commun ôté, et le
+    coefficient dominant du dénominateur rendu positif :
+    `(12*x^2+12*x+26)/(4*x^2+4*x+2)` → `(6*x^2+6*x+13)/(2*x^2+2*x+1)`
+    (`OEFasymptote/assocfct`, qui rendait les premiers).
+    """
     import sympy  # noqa: PLC0415
 
+    x = sympy.sympify(x)
+    if x.is_Rational:
+        return x.p, x.q
+    n, d = sympy.fraction(sympy.cancel(sympy.together(x)))
+    variables = sorted(d.free_symbols, key=str)
+    if not variables:
+        return sympy.expand(x), 1
+    try:
+        tous = sorted((n.free_symbols | d.free_symbols), key=str)
+        pn, pd = sympy.Poly(n, *tous), sympy.Poly(d, *tous)
+    except sympy.PolynomialError:
+        return n, d
+    coeffs = pn.coeffs() + pd.coeffs()
+    if not all(c.is_Rational for c in coeffs):
+        return n, d
+    m = sympy.ilcm(*[c.q for c in coeffs])
+    pn, pd = pn * m, pd * m
+    g = sympy.igcd(*[c.p for c in pn.coeffs() + pd.coeffs()])
+    if pd.LC() < 0:
+        g = -g
+    return sympy.expand(pn.as_expr() / g), sympy.expand(pd.as_expr() / g)
+
+
+def _pari_denominator(x):
     if isinstance(x, int) or (isinstance(x, float) and float(x).is_integer()):
         return 1
-    return sympy.fraction(sympy.together(x))[1]
+    return _pari_fraction(x)[1]
 
 
 def _pari_numerator(x):
-    import sympy  # noqa: PLC0415
-
     if isinstance(x, int):
         return x
     if isinstance(x, float) and float(x).is_integer():
         return int(x)
-    return sympy.fraction(sympy.together(x))[0]
+    return _pari_fraction(x)[0]
 
 
 def _pari_norml2(v):
@@ -1079,7 +1110,80 @@ def _pari_poldegree(p, var=None):
     if var is None:
         syms = list(p.free_symbols)
         var = syms[0] if syms else sympy.Symbol("x")
+    # Une fraction rationnelle : degré du numérateur moins celui du
+    # dénominateur (`poldegree(P/Q,x)` d'`OEFasymptote/limfrac`).
+    num, den = sympy.fraction(sympy.together(sympy.sympify(p)))
+    if var in den.free_symbols:
+        return sympy.Poly(num, var).degree() - sympy.Poly(den, var).degree()
     return sympy.Poly(p, var).degree()  # pyright: ignore[reportCallIssue]
+
+
+def _val_poly(p, var) -> int:
+    """Plus petit degré d'un monôme non nul de `p` en `var`."""
+    import sympy  # noqa: PLC0415
+
+    return min(m[0] for m in sympy.Poly(p, var).monoms())
+
+
+def _pari_valuation(x, p):
+    """`valuation(x, p)` : exposant de `p` dans `x` — d'un premier dans un
+    rationnel (`valuation(72,2)` = 3), ou d'une variable dans une fraction
+    rationnelle (`valuation(1/x^2,x)` = -2)."""
+    import sympy  # noqa: PLC0415
+
+    x, p = sympy.sympify(x), sympy.sympify(p)
+    if p.is_Symbol:
+        num, den = sympy.fraction(sympy.together(x))
+        return _val_poly(num, p) - _val_poly(den, p)
+    x = sympy.Rational(x)
+    return sympy.multiplicity(p, x.p) - sympy.multiplicity(p, x.q)
+
+
+class _PariSerie:
+    """`f + O(x^n)` : une série de Laurent, réduite ici à ce que le corpus en
+    lit — son premier coefficient (`pollead`) et son écriture."""
+
+    def __init__(self, f, var, ordre):
+        self.f, self.var, self.ordre = f, var, ordre
+
+    def __add__(self, f):
+        return _PariSerie(self.f + f, self.var, self.ordre)
+
+    __radd__ = __add__
+
+    def __str__(self):
+        import sympy  # noqa: PLC0415
+
+        v = self.var
+        corps = sympy.series(self.f, v, 0, self.ordre).removeO() if self.f != 0 else 0
+        return f"{_format_pari_result(corps)}+O({v}^{self.ordre})"
+
+
+def _pari_O(t):
+    import sympy  # noqa: PLC0415
+
+    t = sympy.sympify(t)
+    base, exp = t.as_base_exp()
+    return _PariSerie(0, base, int(exp))
+
+
+def _pari_pollead(p, var=None):
+    """`pollead` : coefficient dominant d'un polynôme — d'une série, son
+    **premier** coefficient, celui du terme de plus bas degré."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(p, _PariSerie):
+        num, den = sympy.fraction(sympy.together(sympy.sympify(p.f)))
+        a, b = sympy.Poly(num, p.var), sympy.Poly(den, p.var)
+        va, vb = _val_poly(num, p.var), _val_poly(den, p.var)
+        return a.coeff_monomial(p.var**va) / b.coeff_monomial(p.var**vb)
+    p = sympy.sympify(p)
+    if var is None:
+        syms = sorted(p.free_symbols, key=str)
+        if not syms:
+            return p
+        var = syms[0]
+    return sympy.Poly(p, var).LC()
 
 
 def _pari_matdet(rows):
@@ -1408,7 +1512,55 @@ def _pari_lift(x):
     return x
 
 
+def _pari_abs(z):
+    """`abs` de PARI. Un complexe exact vaut la racine de sa norme — exacte si
+    la norme est un carré (`abs(3-4*I)` = 5), un réel sinon (`abs(2-I)` =
+    2.236…, là où SymPy gardait `sqrt(5)`)."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(z, sympy.Expr) and z.is_number and not z.is_real:
+        n = sympy.expand(z * sympy.conjugate(z))
+        r = sympy.sqrt(n)
+        return r if r.is_Rational else sympy.Float(r.evalf(20))
+    return abs(z)
+
+
+def _pari_norm(z):
+    """`norm(z)` : le carré du module, `z*conj(z)` — `norm(-10+3*I)` = 109."""
+    import sympy  # noqa: PLC0415
+
+    return sympy.expand(z * sympy.conjugate(z))
+
+
+def _pari_sqrt(x):
+    """`sqrt` de PARI : un réel, et d'un négatif un imaginaire pur
+    (`sqrt(-4)` = `2.0*I` — `OEFevalwimssecdeg/factdeg32` faisait écho)."""
+    import sympy  # noqa: PLC0415
+
+    try:
+        f = float(x)
+    except TypeError:
+        return sympy.sqrt(x)
+    return math.sqrt(f) if f >= 0 else sympy.I * sympy.Float(math.sqrt(-f))
+
+
+def _pari_poldisc(p, var=None):
+    """`poldisc(P)` : le discriminant du polynôme."""
+    import sympy  # noqa: PLC0415
+
+    p = sympy.sympify(p)
+    var = var if var is not None else next(iter(sorted(p.free_symbols, key=str)), sympy.Symbol("x"))
+    return sympy.discriminant(p, var)
+
+
 _PARI_HELPERS: dict = {
+    "abs": _pari_abs,
+    "norm": _pari_norm,
+    "sqrt": _pari_sqrt,
+    "poldisc": _pari_poldisc,
+    "valuation": _pari_valuation,
+    "pollead": _pari_pollead,
+    "O": _pari_O,
     "bezout": _pari_bezout,
     "Mod": _pari_mod,
     "lift": _pari_lift,
@@ -1467,6 +1619,13 @@ _PARI_HELPERS: dict = {
     "I": __import__("sympy").I,
     # `arg` rend un nombre chez PARI ; `sympy.arg` garde `arg(1 - I)`.
     "arg": lambda z: __import__("sympy").arg(__import__("sympy").sympify(z)).evalf(20),
+    # Vecteurs colonne (`[…]~`), dont la définition vit dans `pari_prog`.
+    "polroots": lambda p: __import__(
+        "core.oef.def_engine.pari_prog", fromlist=["_"])._pari_polroots(p),
+    "numtoperm": lambda n, k: __import__(
+        "core.oef.def_engine.pari_prog", fromlist=["_"])._pari_numtoperm(n, k),
+    "nfroots": lambda nf, p=None: __import__(
+        "core.oef.def_engine.pari_prog", fromlist=["_"])._pari_nfroots(nf, p),
 }
 
 _PYTHON_KEYWORDS: set = {
@@ -1492,6 +1651,8 @@ def _format_pari_result(result) -> str:
 
     if isinstance(result, bool):
         return "1" if result else "0"
+    if isinstance(result, _PariSerie):
+        return str(result)
     if isinstance(result, int):
         return str(result)
     if isinstance(result, float):
@@ -1522,7 +1683,17 @@ def _format_pari_result(result) -> str:
     # l'attendu — `PVec([13,94,175],col=False)` au lieu de `13,94,175`, ce que
     # les `pixel_art_flag*` affichaient à l'élève.
     if hasattr(result, "items") and hasattr(result, "col") and not isinstance(result, dict):
-        return ",".join(_format_pari_result(x) for x in result.items)
+        corps = ",".join(_format_pari_result(x) for x in result.items)
+        # Colonne : `[…]~`, que `output()` de `pari.c` ne déballe pas.
+        return f"[{corps}]~" if result.col else corps
+    # Un complexe flottant (`polroots`) s'écrit comme `gp` : les deux parties,
+    # toujours, en réels — `-7.0+0.0*I`, `0.0-1.0*I`.
+    if isinstance(result, complex):
+        def reel(x: float) -> str:
+            x = x + 0.0  # pas de `-0.0`
+            return f"{x:.1f}" if x.is_integer() else f"{x:.10g}"
+        signe = "-" if result.imag < 0 else "+"
+        return f"{reel(result.real)}{signe}{reel(abs(result.imag))}*I"
     # Une fraction rationnelle, PARI la **réduit** : `(-(x+1)*(3*x-1))/((x+1)*
     # (3*x-1))` vaut `-1`, là où le développement de SymPy l'éclatait en
     # `-x/(x + 1) - 1/(x + 1)` — égal, mais ce n'est pas ce que l'élève doit
@@ -1534,6 +1705,11 @@ def _format_pari_result(result) -> str:
                 result = sympy.cancel(reuni)
                 if not sympy.fraction(result)[1].free_symbols:
                     result = sympy.expand(result)  # tout s'est simplifié : un polynôme
+            elif result.is_polynomial():
+                # Un polynôme, PARI le garde développé — y compris quand il
+                # sort du mini-interpréteur ou d'un vecteur : `P+(m-cc)*x`
+                # d'`oefpoly/multparm3` s'affichait factorisé.
+                result = sympy.expand(result)
         except Exception:  # noqa: BLE001 — expression hors du corps des fractions
             pass
     # PARI uses `^` for exponentiation; SymPy's str() emits `**`. The downstream
@@ -1590,6 +1766,8 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
     # où la multiplication implicite lisait `13*467` (`digits(13 467,10)`,
     # les grands nombres qu'un auteur écrit en tranches de trois chiffres).
     expr = re.sub(r"(?<=\d)[ \t]+(?=\d)", "", expr)
+    # `nfroots(,P)` : le corps omis, que Python ne sait pas lire.
+    expr = re.sub(r"\bnfroots\(\s*,", "nfroots(0,", expr)
     if looks_like_program(expr) or session_porte_un_etat(session):
         try:
             return run_pari_program(
@@ -1613,6 +1791,15 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
         return key
 
     clean = re.sub(r'"[^"]*"', _stash_string, clean)
+    # Notation scientifique (`8e+09`, `1.5E-3`) : un réel d'un seul tenant, que
+    # l'enveloppe des entiers ci-dessous découpait en `8e+_I(09)`.
+    # Mise de côté comme une chaîne, et rendue en littéral Python.
+    def _stash_reel(sm) -> str:
+        key = f"\x00S{len(_string_cache)}\x00"
+        _string_cache[key] = repr(float(sm.group(1)))
+        return key
+
+    clean = re.sub(r"(?<![\w.])(\d+(?:\.\d*)?[eE][-+]?\d+)(?!\w)", _stash_reel, clean)
     clean = _INT_LITERAL_RE.sub(r"_I(\1)", clean)
     for key, val in _string_cache.items():
         clean = clean.replace(key, val)

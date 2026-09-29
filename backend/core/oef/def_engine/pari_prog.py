@@ -721,6 +721,10 @@ def _match_call(stmt: str, name: str) -> str | None:
 
 # Affectation : un `=` de profondeur 0 qui n'est ni `==`, ni `<=`, `>=`, `!=`, `<>`.
 def _split_assignment(stmt: str) -> tuple[str, str] | None:
+    # `B[j]++`, `k--` : l'incrément postfixe de GP (`oefnumeration/guess`).
+    m = re.fullmatch(r"\s*(.*?\S)\s*(\+\+|--)\s*", stmt, re.DOTALL)
+    if m and _IDENT_RE.match(m.group(1)):
+        return m.group(1), f"({m.group(1)}) {m.group(2)[0]} 1"
     depth = 0
     for i, ch in enumerate(stmt):
         if ch in "([{":
@@ -767,6 +771,7 @@ def _translate_expr(expr: str) -> str:
     src = _translate_brackets(src)
     src = _translate_tilde(src)
     src = _translate_diese(src)
+    src = _translate_factorielle(src)
     src = _INT_LITERAL_RE.sub(r"_I(\1)", src)
 
     return _unstash(src, strings)
@@ -886,6 +891,23 @@ def _translate_tilde(src: str) -> str:
         src = src[:start] + "_transposee(" + src[start:end] + ")" + src[m.end() :]
 
 
+# `n!` / `(#l)!` — factorielle postfixe ; ni `!=`, ni le `!x` préfixe (non
+# logique), que précède toujours un opérateur ou une ouvrante.
+_FACT_RE = re.compile(r"([A-Za-z_0-9]|\)|\])\s*!(?!=)")
+
+
+def _translate_factorielle(src: str) -> str:
+    """Réécrit ``expr!`` en ``factorial(expr)`` (`vector((#liste)!, …)` de
+    `oefdecomp/2_decompo_etiquette`)."""
+    while True:
+        m = _FACT_RE.search(src)
+        if not m:
+            return src
+        end = m.end(1)
+        start = _operand_start(src, end)
+        src = src[:start] + "_fact(" + src[start:end] + ")" + src[m.end():]
+
+
 def _translate_diese(src: str) -> str:
     """Réécrit le cardinal préfixe ``#v`` en ``length(v)``.
 
@@ -980,7 +1002,61 @@ def _pari_polroots(p):
 
     expr = sympy.sympify(p)
     var = next(iter(expr.free_symbols), sympy.Symbol("x"))
-    return PVec(sympy.Poly(expr, var).nroots(n=20), col=True)
+    # Des **complexes**, même réels : `gp` écrit `-7.0+0.0*I`, et
+    # `oefderivee1S/tgte2par` et `bicarre` lisent leurs racines en découpant
+    # cette écriture aux `+` (`val39[1]`, `val39[3]`).
+    poly = sympy.Poly(expr, var)
+    # Racines multiples : `nroots` ne converge pas (`bicarre`, deux racines
+    # doubles). Les racines exactes, quand SymPy les trouve toutes, n'ont pas
+    # ce défaut ; l'ordre est celui de `gp`, réelles croissantes d'abord.
+    exactes = sympy.roots(poly)
+    if sum(exactes.values()) == poly.degree():
+        valeurs = [complex(r.evalf(20)) for r, k in exactes.items() for _ in range(k)]
+        valeurs.sort(key=lambda z: (abs(z.imag) > 1e-15, z.real, z.imag))
+    else:
+        valeurs = [complex(r) for r in poly.nroots(n=20)]
+    return PVec(valeurs, col=True)
+
+
+def _en_colonne(f):
+    """`f`, dont le résultat devient un vecteur colonne."""
+    return lambda *a: PVec(list(f(*a)), col=True)
+
+
+class PVecSmall(PVec):
+    """`Vecsmall` de PARI — un vecteur d'entiers machine, que `gp` écrit
+    `Vecsmall([1,3,2])` (et dont `output()` de `pari.c` ôte l'enveloppe en
+    tête de ligne)."""
+
+    __slots__ = ()
+
+
+def _pari_numtoperm(n, k):
+    """`numtoperm(n, k)` : la k-ième permutation de `1..n` dans l'ordre
+    lexicographique, `k` pris modulo n! (`numtoperm(5,0)` est l'identité,
+    `numtoperm(5,1)` = `[1,2,3,5,4]`) — relevé contre `gp` sur k ∈ [-4, 125]."""
+    n = int(n)
+    k = int(k) % math.factorial(n)
+    reste = list(range(1, n + 1))
+    perm = []
+    for r in range(n - 1, -1, -1):
+        q, k = divmod(k, math.factorial(r))
+        perm.append(reste.pop(q))
+    return PVecSmall(perm)
+
+
+def _pari_nfroots(nf=None, p=None):
+    """`nfroots(nf, P)` : les racines de `P` dans le corps `nf` — ici, le corps
+    omis (`nfroots(,P)`), celui des rationnels. Distinctes, croissantes, en
+    vecteur colonne (`[-2,6/7]~`, `oefderivee1S/tgte2pts`)."""
+    import sympy  # noqa: PLC0415
+
+    if p is None:
+        nf, p = None, nf
+    expr = sympy.sympify(p)
+    var = next(iter(expr.free_symbols), sympy.Symbol("x"))
+    racines = sympy.roots(sympy.Poly(expr, var), filter="Q")
+    return PVec(sorted(racines), col=True)
 
 
 def _pari_listsort(lst, flag=0):
@@ -1095,6 +1171,10 @@ class PariInterpreter:
         for nom in ("abs", "floor", "ceil", "round", "rint", "truncate", "frac"):
             if nom in self.base_ns:
                 self.base_ns[nom] = _composante(self.base_ns[nom])
+        # `divrem` rend une **colonne** `[q,r]~` ; `divrem(a,b)~` est donc
+        # une ligne, que `output()` déballe en `q,r`.
+        if "divrem" in self.base_ns:
+            self.base_ns["divrem"] = _en_colonne(self.base_ns["divrem"])
         # `vecmax`/`vecmin` d'une matrice : sur toutes ses composantes.
         for nom, choix in (("vecmax", max), ("vecmin", min)):
             if nom in self.base_ns:
@@ -1107,11 +1187,14 @@ class PariInterpreter:
                 "_V": lambda *a: PVec(a),
                 "_M": PMat,
                 "_transposee": _transposee,
+                "_fact": lambda n: sympy.factorial(int(n)),
+                "numtoperm": _pari_numtoperm,
                 "_egal": _egal,
                 "Pol": _pari_pol,
                 "matid": lambda n: PMat([[1 if i == j else 0 for j in range(int(n))]
                                          for i in range(int(n))]),
                 "polroots": _pari_polroots,
+                "nfroots": _pari_nfroots,
                 "real": _composante(_partie(True)),
                 "imag": _composante(_partie(False)),
                 "_plage": _Plage,
@@ -1572,6 +1655,13 @@ class PariInterpreter:
         expr = expr.strip()
         if not expr:
             raise PariProgramError("expression vide")
+        # Une séquence `a;b` en position d'argument vaut son dernier terme,
+        # les autres ne comptant que pour leurs effets : `print(0.05*5;0.05*11)`
+        # d'`oefprobava/bernoulli2` affiche 0.55 chez `gp`.
+        termes = [t for t in _split_top_level(expr, ";") if t.strip()]
+        if len(termes) > 1:
+            self.exec_block(";".join(termes[:-1]))
+            return self.eval_expr(termes[-1])
 
         expr = self._expand_reductions(expr)
         # Les chaînes reprennent leur forme littérale : `_translate_expr` les
@@ -1585,9 +1675,12 @@ class PariInterpreter:
         ns.update(self.vars)
         for name in self.funcs:
             ns[name] = self._user_func(name)
+        # `i=I` de l'en-tête de `pari.c` : un `i` que rien n'a lié est l'unité
+        # imaginaire (`arg(-(sqrt(2)*(i+1)/4))` d'`oefgeocomplex/isomcomp`
+        # restait symbolique). Une variable de boucle ou liée le masque.
         for ident in set(_IDENT_RE.findall(code)):
             if ident not in ns and ident not in _PY_KEYWORDS:
-                ns[ident] = self.sympy.Symbol(ident)
+                ns[ident] = self.sympy.I if ident == "i" else self.sympy.Symbol(ident)
         try:
             # Le namespace passe en **globals** : une lambda — celles que
             # `_lier_variables` introduit pour les corps liés — résout ses noms
@@ -1635,6 +1728,9 @@ class PariInterpreter:
     def _expand_reductions(self, expr: str) -> str:
         """Déroule ``sum(v = a, b, e)`` / ``prod(...)`` — variable liée, donc
         non exprimable directement en Python."""
+        # Avant `sum`/`prod` : leur corps peut lire une variable que la
+        # séquence du `vector` pose à chaque tour (`m` de `prod(t=1,#m,m[t])`).
+        expr = self._expand_vector_sequences(expr)
         for name, init, combine in (
             ("sum", 0, lambda acc, x: acc + x),
             ("prod", 1, lambda acc, x: acc * x),
@@ -1679,6 +1775,42 @@ class PariInterpreter:
                 # Réinjecte la valeur calculée sous forme littérale parenthésée.
                 expr = expr[:start] + f"({_python_literal(acc)})" + expr[j + 1 :]
         return expr
+
+    def _expand_vector_sequences(self, expr: str) -> str:
+        """Déroule ``vector(n, v, a; b)`` dont le corps est une **séquence** —
+        que la lambda d'un corps lié ne sait pas porter. `oefdecomp/
+        1_decompo_qcm` écrit `vector(k,i,m=v[1..i];concat(m,nb/prod(…)))`."""
+        debut = 0
+        while True:
+            m = re.compile(r"\bvector\s*\(").search(expr, debut)
+            if not m:
+                return expr
+            ouvrante = m.end() - 1
+            fin = _find_matching(expr, ouvrante + 1, ")")
+            if fin < 0:
+                return expr
+            args = _split_top_level(expr[ouvrante + 1 : fin], ",")
+            if len(args) < 3 or len(_split_top_level(",".join(args[2:]), ";")) < 2:
+                debut = m.end()
+                continue
+            var = args[1].strip()
+            n = int(self.eval_expr(args[0]))
+            corps = ",".join(args[2:])
+            saved = self.vars.get(var)
+            valeurs = []
+            try:
+                for k in range(1, n + 1):
+                    self._tick()
+                    self.vars[var] = self.sympy.Integer(k)
+                    valeurs.append(self.eval_expr(corps))
+            finally:
+                if saved is None:
+                    self.vars.pop(var, None)
+                else:
+                    self.vars[var] = saved
+            litteral = _python_literal(PVec(valeurs))
+            expr = expr[: m.start()] + litteral + expr[fin + 1 :]
+            debut = m.start() + len(litteral)
 
     def _tick(self) -> None:
         self.steps += 1
@@ -1929,8 +2061,13 @@ def _format_value(value: Any, fmt: tuple[str, int] | None = None) -> str:
 
     if isinstance(value, str):
         return value.strip('"')
+    if isinstance(value, PVecSmall):
+        return "Vecsmall([" + ",".join(_format_value(v, fmt) for v in value.items) + "])"
     if isinstance(value, (PVec, PList)):
-        return "[" + ",".join(_format_value(v, fmt) for v in value.items) + "]"
+        # Un vecteur colonne s'écrit `[…]~` ; `output()` de `pari.c` n'ôtant
+        # que des crochets **terminaux**, le `~` survit jusqu'à la variable.
+        queue = "~" if isinstance(value, PVec) and value.col else ""
+        return "[" + ",".join(_format_value(v, fmt) for v in value.items) + "]" + queue
     if isinstance(value, PMat):
         return "[" + ";".join(
             ",".join(_format_value(v, fmt) for v in row) for row in value.rows

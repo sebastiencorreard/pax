@@ -106,9 +106,9 @@ def test_arithmetique_comme_gp(expr, wims):
 
 
 def test_un_appel_inconnu_n_est_pas_un_produit():
-    # `gp` refuse `valuation` sans son argument premier ; PAX ne le connaît
-    # pas : l'appel reste lisible, et surtout ne devient pas `12*valuation`.
-    assert "*" not in _call_pari("valuation(12,2)", session={})
+    # Une fonction que PAX ne connaît pas : l'appel reste lisible, et surtout
+    # ne devient pas `12*qfbclassno`.
+    assert "*" not in _call_pari("qfbclassno(12,2)", session={})
 
 
 @pytest.mark.parametrize("expr,valeur", [
@@ -124,3 +124,53 @@ def test_un_appel_inconnu_n_est_pas_un_produit():
 ])
 def test_fraction_rationnelle_reduite(expr, valeur):
     assert _call_pari(expr, session={}) == valeur
+
+
+@pytest.mark.parametrize("expr,wims", [
+    # Cinquième lot. Vecteurs colonne : `output()` de `pari.c` n'ôte que des
+    # crochets terminaux, le `~` survit — `tgte2par` découpe cette écriture.
+    ("polroots(numerator(-2*(x - 3)*(x + 7)))", "[-7.0+0.0*I,3.0+0.0*I]~"),
+    ("polroots(numerator(-(2*x - 3)^2*(2*x + 3)^2/4))",
+     "[-1.5+0.0*I,-1.5+0.0*I,1.5+0.0*I,1.5+0.0*I]~"),
+    ("nfroots(,numerator(-(x + 2)*(7*x - 6)/(25*(x - 3)^2)))", "[-2,6/7]~"),
+    ("print([1,2]~)", "[1,2]~"),
+    ("divrem(10,3)~", "3,1"),
+    # Numérateur et dénominateur réduits comme PARI (`assocfct`).
+    ("numerator((3*(2*x + 1)^2 + 23)/((2*x + 1)^2 + 1))", "6*x^2 + 6*x + 13"),
+    ("denominator((3*(2*x + 1)^2 + 23)/((2*x + 1)^2 + 1))", "2*x^2 + 2*x + 1"),
+    ("denominator(-x/(-2*x+1))", "2*x - 1"),
+    ("numerator(3/(4*x+6))", "3"),
+    ("denominator(x/2+1/3)", "1"),
+    # Complexes : module, norme, racine d'un négatif.
+    ("abs(3-4*I)", "5"),
+    ("abs(-3/2)", "3/2"),
+    ("norm(-5 - i-(5 - 4*i))", "109"),
+    ("sqrt(-4)", "2.0*I"),
+    ("if(-(sqrt(2)*(i + 1)/4)==0,0,abs(arg(-(sqrt(2)*(i + 1)/4))-((pi/2)/2)))",
+     "3.141592654"),
+    ("poldisc(4*x^2 - 12*x - 16)", "400"),
+    # Séquence en argument : son dernier terme (`bernoulli2`).
+    ("print(0.05*5;0.05*11)", "0.55"),
+    ("8e+09", "8000000000"),
+    # `limfrac` : valuation, série, degré d'une fraction rationnelle.
+    (("P=Pol([6, -6, 5],x); Q=Pol([1, -2, -3, -3, 0, 0],x); "
+      "v0=valuation(P/Q,x);\tS=subst(P/Q,x,1/x);\tvi=valuation(S,x);\t"
+      "[P,Q,v0,pollead(P/Q+O(x^50)),poldegree(P/Q,x),pollead(S+O(x^50)),"
+      "poldegree(P,x),valuation(P,x)]"),
+     "6*x^2 - 6*x + 5,x^5 - 2*x^4 - 3*x^3 - 3*x^2,-2,-5/3,-3,6,2,0"),
+    ("valuation(72,2)", "3"),
+    # Permutations (`evolmeth4`), factorielle et incrément postfixes.
+    ("vector(3,k,numtoperm(3,k))",
+     "Vecsmall([1,3,2]),Vecsmall([2,1,3]),Vecsmall([2,3,1])"),
+    ("print(numtoperm(5,-4))", "5,4,2,1,3"),
+    ("(#[1,2,3])!", "6"),
+    ("x=[0,0];x[1]++;x", "1,0"),
+    # Corps de `vector` en séquence (`1_decompo_qcm`).
+    ("v=[2,2,5,7];nb=140;vector(4,i,m=v[1..i];concat(m,nb/prod(t=1,#m,m[t])))",
+     "[2,70],[2,2,35],[2,2,5,7],[2,2,5,7,1]"),
+    # Un polynôme sort développé, mini-interpréteur compris (`multparm3`).
+    ("P=2*(x +11)*(x +11)*(x +17);cc=polcoeff(P,1);P+(m-cc)*x^1",
+     "m*x + 2*x^3 + 78*x^2 + 4114"),
+])
+def test_cinquieme_lot_comme_gp(expr, wims):
+    assert _call_pari(expr, session={}) == wims

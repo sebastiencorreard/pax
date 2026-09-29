@@ -394,10 +394,22 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `truncate`, `frac`, `printtex`. `oefcombi/Ordinat1` attendait
   `1680*truncate` — insoluble — et attend 1680 ; les QCM d'`oefdecomp`
   proposent enfin leurs décompositions. Identiques à `gp` : 4 244 → 4 281.
+  **Cinquième lot** (2026-09-29, sonde `scripts/sonde_pari.py`) : vecteurs
+  colonne écrits `[…]~` comme les laisse `output()` (`polroots`, `nfroots`,
+  `divrem` colonne), `numerator`/`denominator` réduits à la PARI (contenu
+  ôté, dominant du dénominateur positif), `abs`/`norm`/`sqrt` de complexes,
+  `poldisc`, `valuation`, `pollead`, `O(x^n)`, `numtoperm` + `Vecsmall`,
+  factorielle et `++` postfixes, séquence `a;b` en argument, corps de
+  `vector` en séquence, `i=I` dans le mini-interpréteur, polynômes du
+  mini-interpréteur développés, notation `8e+09`. Identiques à `gp` :
+  3 812 → 3 819 sur 4 039 comparables ; échos 13 → 2 ; aucune régression.
+  18 instantanés, 15 gains ; `evolmeth4`, `tgte2pts(tep)` restent cassés
+  **comme chez WIMS** (`docs/signalements-wims.md` §5). Le « `sqrt` de
+  `math` » relevé ici n'était pas un défaut : `gp` rend aussi un réel.
   **Reste**, par nature :
-  - **défauts** : ~25 exercices où l'expression repart telle quelle —
-    `numtoperm` (ordre propre à PARI), `matker` (normalisation), `valuation`,
-    `nfroots`, `printtex`, programmes à fonctions (`PermutList`, `immat`) ;
+  - **défauts** : `matker` (normalisation, non instruit), fonctions définies
+    et affichées (`f(t,e)=…` → `gp` imprime la clôture, PAX rien — sans
+    effet relevé), `print(print()+…)` ;
   - **forme** — tranché le 2026-09-28 avec l'utilisateur : les fractions
     rationnelles sont **réduites** comme chez PARI (fait :
     `oefsignes/reduire` attendait `68*x^2/(4*x + 2) + …` et attend

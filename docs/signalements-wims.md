@@ -208,3 +208,26 @@ chez WIMS comme chez PAX, qui ne la répare pas (`_IMG_SVG_RE`, dans
 À ne pas confondre avec `<img src=\figure>` **sans** guillemets
 (`oefrelat`, `solide6-5.nl`) : c'est du HTML valide, que PAX incorpore depuis
 le 2026-09-24.
+
+## 5. Trois exercices écrits pour un PARI plus ancien — *à signaler*
+
+*Relevé le 2026-09-29, au banc PARI (`backend/scripts/banc_pari`).*
+
+Deux fonctions de PARI ont changé de type de retour depuis que ces exercices
+ont été écrits, et `output()` de `Interfaces/pari.c` ne déballe une sortie que
+si elle **se termine** par `]` ou `)` :
+
+- `numtoperm` rend un `Vecsmall` (`Vecsmall([1,3,5,2,4])`), non plus un
+  vecteur. `H4/biology/evolmeth.fr/src/evolmeth4.oef` en passe un élément à
+  `!declosing`, qui n'ôte que des parenthèses **englobantes**
+  (`strip_enclosing_par`) : `Vecsmall(…)` traverse intact et sert d'index de
+  lignes (`$(val18[$val16;])`). La matrice des caractères s'affiche en texte
+  brut (`[,A,B,C,D,E;caract. 1,1,1;…`).
+- `nfroots(,P)` rend une **colonne** (`[-2,6/7]~`). Le `~` final empêche le
+  déballage, si bien que `$(val32[1])` vaut `[-2` et `$(val32[2])` `6/7]~`
+  dans `H5/analysis/oefderivee1S.fr/src/tgte2pts.oef` et `tgte2ptstep.oef` :
+  l'équation de la seconde tangente est illisible.
+
+PAX rend ce que rend `gp` aujourd'hui, donc la même chose. Corrections :
+`Vec(numtoperm(…))` et `nfroots(,P)~` — ou `polroots`, que `tgte2par.oef`
+lit correctement en découpant `-7.0+0.0*I` aux `+`.
