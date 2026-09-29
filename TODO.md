@@ -1038,6 +1038,10 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   une seule tentative, à la fin (chaque étape en enregistrait une : l'étape 1
   d'`histocap`, notée 1, valait 100 % sur une feuille) ; la correction d'une
   étape rendue avec les réponses des précédentes, comme son affichage.
+  **Vérifié au navigateur le 2026-09-29** (captures de l'utilisateur) :
+  `histocap` enchaîne les six étapes jusqu'à l'écran de fin, le bilan liste
+  tout le parcours, et `noanalyzeprint` remplace la réponse fausse par « - »
+  sans en donner l'attendu, comme WIMS.
 
 - [ ] **`freepower` : les deux mesures WIMS se contredisent.** Au niveau 3,
   `exo.init` pose `freepower=2`, et `valtrigo1` le confirme (0,7² → 4,9/10).
