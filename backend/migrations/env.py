@@ -22,9 +22,11 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Remplace l'URL par celle du .env (version sync pour Alembic)
+# Remplace l'URL par celle du .env (version sync pour Alembic). Le pilote est
+# nommé : depuis SQLAlchemy 2.1, un `postgresql://` nu désigne `psycopg` (v3),
+# que l'image n'installe pas — c'est `psycopg2-binary` qu'elle porte.
 db_url = os.environ.get("DATABASE_URL", "").replace(
-    "postgresql+asyncpg://", "postgresql://"
+    "postgresql+asyncpg://", "postgresql+psycopg2://"
 )
 config.set_main_option("sqlalchemy.url", db_url)
 

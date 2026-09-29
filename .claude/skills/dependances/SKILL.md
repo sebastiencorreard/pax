@@ -21,6 +21,17 @@ invisible. That is how `email-validator` — pulled implicitly by FastAPI 0.111,
 no longer by 0.141 — only surfaced on a full image rebuild, as an ImportError
 on the `auth` router at startup.
 
+**A PR merged from Dependabot is not an upgrade applied.** SQLAlchemy 2.1.0
+(`c27f2b35`, 2026-09-28) went to `main` without a local rebuild and broke two
+things that only a fresh image shows — CI stayed red three commits before
+anyone looked:
+- `greenlet` is no longer pulled by default: declare `sqlalchemy[asyncio]`,
+  or the async engine dies on import (`ModuleNotFoundError: greenlet`);
+- a bare `postgresql://` now means `psycopg` (v3), not `psycopg2`: Alembic's
+  sync URL must name its driver (`postgresql+psycopg2://`, `migrations/env.py`).
+The `pip-audit` job must also run the image's Python (3.14): 2.1 requires
+≥ 3.11, and under 3.10 pip cannot even resolve the file.
+
 ```bash
 # Frontend
 cd frontend && npm install <pkg>@<version> && cd ..
