@@ -43,8 +43,12 @@ class TestFloatCalc:
 
 def test_la_notation_a_un_budget(monkeypatch):
     monkeypatch.setattr(module_analyze, "_CHECK_TIME_BUDGET", 0.2)
-    boucle = [ForLoop(var="i", range_expr="1 to 100000000",
-                      body=[Assign(name="x", value="$i")])]
+    # Deux boucles imbriquées : `valeurs_for` plafonne chacune (comme WIMS),
+    # et une seule finissait dans le budget sur une machine rapide — le test
+    # échouait en CI et passait en local.
+    interieure = ForLoop(var="j", range_expr="1 to 100000000",
+                         body=[Assign(name="x", value="$j")])
+    boucle = [ForLoop(var="i", range_expr="1 to 100000000", body=[interieure])]
     # Une condition déjà acquise avant l'arrêt ne doit pas compter.
     test = [Assign(name="condtest1", value="1")] + boucle
     debut = time.monotonic()
