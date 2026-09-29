@@ -213,3 +213,18 @@ def test_signe_sorti_de_la_fraction():
     assert n("-pi/2", "fr") == "-\\frac{\\pi}{2}"
     assert n("x - (-pi/6)", "fr") == "x - \\left(-\\frac{\\pi}{6}\\right)"
     assert n("print()", "fr") == "print()"
+
+
+def test_defaut_confparm_hors_liste(tmp_path):
+    """`!default confparm1=X` pour un `!formradio … list S,R` : aucun bouton
+    coché, rien n'est envoyé, `confparm1` arrive vide (`oefintegrale.fr`, qui
+    affichait `x ↦` en mode rigoureux). Un `!formselect` prend sa 1re option."""
+    from core.oef.def_engine import _module_confparm_defaults
+    (tmp_path / "def").mkdir()
+    (tmp_path / "introhook.phtml").write_text(
+        "!default confparm1=X\n!formradio confparm1 list S,R prompt a,b\n"
+        "!default confparm2=Z\n!formselect confparm2 list 1,2\n"
+        "!default confparm3=4\n!formselect confparm3 list $liste\n",
+        encoding="latin-1")
+    fn = getattr(_module_confparm_defaults, "__wrapped__", _module_confparm_defaults)
+    assert dict(fn(str(tmp_path / "def" / "x.def"))) == {"confparm2": "1", "confparm3": "4"}

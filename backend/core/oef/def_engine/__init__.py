@@ -523,6 +523,24 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
             rf"^\s*!{forme}\s+(confparm\d+)\s*=\s*(.*?)\s*$", texte, re.M
         ):
             trouves.setdefault(m.group(1), m.group(2))
+    # La valeur ne fait que précocher le formulaire de la page d'accueil ; c'est
+    # ce qu'**envoie** ce formulaire qui arrive à l'exercice. Une valeur hors de
+    # la liste proposée ne coche aucun bouton d'un `!formradio` — rien n'est
+    # envoyé, le `confparm` arrive vide — et un `!formselect` retombe sur sa
+    # première option, comme tout `<select>`. `oefintegrale.fr` pose
+    # `!default confparm1=X` pour une liste `S,R` : chez WIMS l'exercice part
+    # donc en affichage simplifié (`S`), PAX le rendait rigoureux (`x ↦`).
+    for m in _FORMULAIRE_CONFPARM.finditer(texte):
+        nom, liste = m.group(1), [v.strip() for v in m.group(2).split(",") if v.strip()]
+        # Une liste tirée d'une variable (`$menu_list`) ou poursuivie à la ligne
+        # (`\`) ne se lit pas ici : on ne juge que ce qu'on voit en entier.
+        if any("$" in v or "\\" in v for v in liste):
+            continue
+        if nom in trouves and liste and trouves[nom] not in liste:
+            if "formradio" in m.group(0):
+                trouves.pop(nom)
+            else:
+                trouves[nom] = liste[0]
     return tuple(trouves.items())
 
 
