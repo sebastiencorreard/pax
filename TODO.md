@@ -1049,8 +1049,18 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   l'envoie (`anstype/checkbox.input`), non en rang ; le bilan d'un
   `\nextstep` mené à terme joue `:postdef` et `:test` à `m_step` = N+1
   (`step.proc` avance l'étape avant `nextstep.proc`) ; `condlist` est
-  honorée (`var.proc`). Trois exercices à `condlist` constante valent
-  désormais 1 à toute copie, comme chez WIMS (`signalements-wims.md` §6).
+  honorée (`var.proc`). `fuseerep` (même jour, captures WIMS de
+  l'utilisateur) : sa question 1 est un **embranchement** — une aide, ou
+  l'étape des réponses —, décidé par le texte du radio en ligne (`val79` =
+  `répondre`) ; PAX envoyait le rang et clôturait l'exercice. Au passage :
+  images des personnages (`pax-img:` échappé dans `data-content`), bulles de
+  `slib/text/balloon` (`bubble_talk.css` porté, `id`/`style` des groupes),
+  listes `<ol>` numérotées, courbe bornée par `sqrt(x)*0` (flydraw ne trace
+  pas un point non évaluable ; SymPy simplifiait l'astuce), attendu d'un
+  `function` sans sa liste de variables.
+- [ ] **`fuseerep`, note finale** : zéros partout, WIMS 1/10, PAX 3 %. Nouvelle
+  mesure pour la question `freepower` ci-dessous (1 condition sur 7 : 1,4/10
+  avec `freepower`=1, 0,2 avec 2).
 
 - [ ] **`freepower` : les deux mesures WIMS se contredisent.** Au niveau 3,
   `exo.init` pose `freepower=2`, et `valtrigo1` le confirme (0,7² → 4,9/10).

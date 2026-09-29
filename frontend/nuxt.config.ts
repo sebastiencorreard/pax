@@ -38,5 +38,5 @@ export default defineNuxtConfig({
       link: [],
     },
   },
-  css: ['~/assets/css/main.css', 'katex/dist/katex.min.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/wims-bulles.css', 'katex/dist/katex.min.css'],
 })

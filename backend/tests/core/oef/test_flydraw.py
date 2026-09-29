@@ -40,6 +40,13 @@ class TestInlinePaxImages:
         html = '<img src="pax-img:_/nope.jpg">'
         assert inline_pax_images(html, module, exercise="deuxcarres") == html
 
+    def test_image_echappee_dans_un_attribut(self, module):
+        # Le radio en ligne porte son libellé échappé dans `data-content` —
+        # les personnages de `fuseerep`.
+        html = '<span data-content="&lt;img src=&quot;pax-img:_/flat.png&quot; alt=&quot;x&quot;&gt;">'
+        out = inline_pax_images(html, module, exercise="deuxcarres")
+        assert "src=&quot;/api/static/mod/images/flat.png&quot;" in out
+
 
 class TestNumEval:
     """`_num` must evaluate the arithmetic WIMS leaves in coordinate args."""
@@ -941,3 +948,13 @@ class TestParametresRefuses:
         svg = flydraw_to_svg(60, 60, "xrange 0,6\nyrange 0,6\nanimstep=3\n"
                              "segment animstep,0,animstep,6,black")
         assert 'x1="30.00"' in svg
+
+
+def test_une_courbe_bornee_par_sqrt_fois_zero():
+    # `x^2+sqrt(x)*0+sqrt(6.05-x)*0` : l'idiome d'auteur qui borne une courbe
+    # à [0 ; 6,05] (`fuseerep`). SymPy simplifiait `sqrt(x)*0` en 0 et la
+    # courbe couvrait tout l'axe ; flydraw ne trace pas un point qu'il ne sait
+    # pas évaluer.
+    svg = flydraw_to_svg(200, 100, "xrange -10,10\nyrange -1,40\nplot green,x^2+sqrt(x)*0+sqrt(6.05-x)*0")
+    xs = [float(p.split(",")[0]) for p in re.search(r'points="([^"]*)"', svg).group(1).split()]
+    assert min(xs) >= 100 - 0.5 and max(xs) <= 100 + 6.05 * 10 + 0.5

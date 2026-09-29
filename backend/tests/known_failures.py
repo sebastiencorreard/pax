@@ -557,11 +557,14 @@ _IMPORT_2026_09_10_WRONG_SCORE: set[str] = {
 }
 XFAIL_WRONG_SCORE |= _IMPORT_2026_09_10_WRONG_SCORE
 
-# `condlist` constante (2026-09-29). Le modèle « Choix de la méthode » écrit
-# `condlist=$valN` avec `valN=1` fixé : `var.proc` ne compte alors que la
-# condition 1, `!ifval 1=1`, toujours vraie. Le seul champ de l'étape 1 étant
-# un `?analyze`, toute copie y vaut 1 — chez WIMS aussi, que PAX suit depuis
-# qu'il honore `condlist`. Défaut d'auteur : `docs/signalements-wims.md` §6.
+# Un embranchement, non une question (2026-09-29). Le modèle « Choix de la
+# méthode » (`fuseerep`, `cube`, `frequence`) ouvre par un radio `?analyze`
+# qui décide de la suite : une aide, ou l'étape des réponses. Sa seule
+# condition, `!ifval 1=1`, retenue par `condlist=$valN` (`valN=1`), vaut
+# toujours 1 : à l'étape 1, toute copie vaut 1 — chez WIMS aussi, qui ne note
+# qu'à la fin, sur les réponses de l'étape suivante (des zéros partout : 1 sur
+# 10, capture de l'utilisateur). Le test, qui juge l'étape 1 seule, ne
+# s'applique pas à ce modèle.
 XFAIL_WRONG_SCORE |= {
     "H5~analysis~oefparabole.fr~src~fuseerep",
     "H5~analysis~oefratexp.fr~src~cube",

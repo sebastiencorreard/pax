@@ -14,6 +14,13 @@ def pretty_expected(expected: str, answer_type: str) -> str:
         # "164200792894 km^3 #3" → "1.64e11 km^3" (scientific, N sig figs, no #N).
         from core.answer.checkers import format_sigunits_expected
         return format_sigunits_expected(expected)
+    if answer_type.lower() == "function":
+        # `replygood` = `expression, variables…` ; WIMS n'en montre que la
+        # première (`anstype/function` : `rg1=!item 1 of $(replygood$i)`).
+        # `fuseerep` affichait `-5*(x-4.5)^2+45, x`.
+        from core.answer.checkers import _split_top_level
+        items = [p.strip() for p in _split_top_level(expected, ",") if p.strip()]
+        return items[0] if items else expected
     if answer_type.lower() == "case":
         # Drop WIMS' internal `[Alt:[Apick:…]]` alternative encoding (1024) and
         # show only the human-readable main answer (e.g. `5^2*2*7`).

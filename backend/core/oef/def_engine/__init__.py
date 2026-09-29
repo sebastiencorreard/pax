@@ -889,7 +889,8 @@ def palette_de_replygood(good: str) -> list[str]:
 
 
 def cases_en_textes(valeur: str, palette: list[str]) -> str:
-    """Les cases cochées telles que WIMS les envoie : leurs **textes**.
+    """Les cases cochées — ou le radio choisi — tels que WIMS les envoie :
+    leurs **textes**.
 
     `anstype/checkbox.input` écrit `value="$menuitem"`, l'item de la palette ;
     PAX écrit le rang (`_case_a_cocher`), ce que `check_set` compare. Pour une
@@ -898,8 +899,13 @@ def cases_en_textes(valeur: str, palette: list[str]) -> str:
     jugeait fausse la réponse exacte. Les rangs sont traduits ici ; toute autre
     valeur passe telle quelle.
     """
+    # Chez WIMS la valeur est **toujours** un élément de la palette : ce qui y
+    # figure déjà passe tel quel — un radio `1,2,3` dont l'élève choisit « 2 »
+    # n'est pas le rang 2.
+    if not palette or valeur.strip() in palette:
+        return valeur
     rangs = [r.strip() for r in valeur.split(",")]
-    if not palette or not all(r.isdigit() and 1 <= int(r) <= len(palette) for r in rangs):
+    if not all(r.isdigit() and 1 <= int(r) <= len(palette) for r in rangs):
         return valeur
     return ",".join(palette[int(r) - 1] for r in rangs)
 
@@ -4684,7 +4690,7 @@ class DefEngine(_SlibMixin):
                 continue
             m_an = re.match(r"\s*\?analyze\s+(\d+)", self.ctx.get(f"replygood{m.group(1)}", ""))
             if m_an:
-                if self._reply_type(m.group(1)) == "checkbox":
+                if self._reply_type(m.group(1)) in ("checkbox", "radio"):
                     value = cases_en_textes(value, self._palette_checkbox(m.group(1)))
                 self.ctx[f"val{m_an.group(1)}"] = value
 

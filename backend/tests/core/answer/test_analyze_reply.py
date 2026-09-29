@@ -119,6 +119,17 @@ class TestCasesEnTextes:
         assert cases_en_textes("4", self.PALETTE) == "4"
         assert cases_en_textes("1", []) == "1"
 
+    def test_un_radio_envoie_son_texte(self):
+        from core.oef.def_engine import cases_en_textes
+        palette = ["répondre", "géométrie", "tableaux"]
+        assert cases_en_textes("1", palette) == "répondre"
+
+    def test_une_valeur_de_la_palette_reste_elle_meme(self):
+        # Palette numérique : « 2 » est un choix, non le rang 2.
+        from core.oef.def_engine import cases_en_textes
+        assert cases_en_textes("2", ["1", "2", "3"]) == "2"
+        assert cases_en_textes("2", ["5", "2", "7"]) == "2"
+
     def test_palette_de_replygood(self):
         from core.oef.def_engine import palette_de_replygood
         assert palette_de_replygood("?analyze 80;a,\\(f(x,y)\\),c") == ["a", "\\(f(x,y)\\)", "c"]
@@ -151,3 +162,10 @@ class TestCondlist:
         condtest, _ = check_analyze({}, [], test, {}, seed=1, condlist_out=retenues)
         assert condtest == {"condtest1": 1, "condtest2": 0}
         assert retenues == []
+
+
+def test_attendu_function_sans_ses_variables():
+    # `replygood` d'un `function` : `expression, variables` ; WIMS n'affiche
+    # que l'expression (`anstype/function`, `!item 1`).
+    from core.answer.strategies.standard import pretty_expected
+    assert pretty_expected("-3*(x-8)^2+48,x", "function") == "-3*(x-8)^2+48"

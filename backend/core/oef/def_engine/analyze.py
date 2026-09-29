@@ -168,7 +168,13 @@ def etape_suivante_existe(
         return None
 
     from . import nouvelle_requete, vsave_de  # noqa: PLC0415
+    from core.answer.strategies.analyze import _cases_en_textes  # noqa: PLC0415
 
+    # Un radio ou une case notés par `?analyze` : le texte, comme WIMS l'envoie
+    # — `fuseerep` n'ouvre l'étape des réponses que sur `val79` = `répondre`.
+    replies_by_name = _cases_en_textes(
+        rendered, getattr(rendered, "answers", None) or [], replies_by_name
+    )
     engine = DefEngine(seed=seed, def_path=sections.get("def_path"))
     engine._strict_arith = True
     engine.ctx.update(ctx)

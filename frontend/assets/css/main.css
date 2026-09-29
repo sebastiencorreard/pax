@@ -211,14 +211,29 @@ body {
    lay the items out horizontally and let them wrap as the window narrows
    (4 → 3+1 → 2+2 …), like a normal flex. WIMS ships this in its base
    stylesheet and exercises rely on it; pax provides it here for every exercise.
-   The list/item groups render as <div class="pax-group inline"> (and nested
-   <div class="pax-group"> for each <li>), so the boards become the flex items. */
-.oef-statement .inline {
+   Les listes arrivent en vraies `<ul>`/`<li>` depuis le 2026-09-29 (le groupe
+   porte sa balise) ; un `div.inline` suit, lui, la règle de WIMS
+   (`utilities.css` : `div.inline,li.inline{display:inline-block}`) — c'est
+   ce qui pose la bulle d'un personnage à côté de son image (`fuseerep`). */
+.oef-statement ul.inline,
+.oef-statement ol.inline {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   align-items: flex-start;
+  list-style: none;
+  padding-left: 0;
 }
+.oef-statement div.inline,
+.oef-statement li.inline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Le reset de Tailwind ôte puces et numéros ; WIMS les garde (les cinq
+   questions numérotées de `fuseerep`). */
+.oef-statement ol:not(.inline) { list-style: decimal; padding-left: 2em; }
+.oef-statement ul:not(.inline):not(.wims_nopuce) { list-style: disc; padding-left: 2em; }
 
 /* WIMS multi-column layout: `<div class="wims_columns"><div class="medium_size">…`.
    Lay the columns out side by side (e.g. CORvect3 puts the vector figure on the

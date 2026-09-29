@@ -2223,8 +2223,13 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
             standard_transformations,
         )
         transformations = standard_transformations + (implicit_multiplication_application,)
+        # Sans évaluation : SymPy simplifierait `sqrt(x)*0` en 0, et c'est
+        # l'idiome par lequel un auteur **borne** sa courbe — flydraw ne trace
+        # pas un point qu'il ne sait pas évaluer. `fuseerep` écrit
+        # `x^2+sqrt(x)*0+sqrt(6.05-x)*0` pour ne montrer la phase 1 qu'entre
+        # 0 et 6 ; PAX la traçait sur tout l'axe.
         expr = parse_expr(formula.replace("^", "**"), transformations=transformations,
-                          local_dict=_constantes_formule())
+                          local_dict=_constantes_formule(), evaluate=False)
         f = sympy.lambdify(x_sym, expr, modules=["math"])
     except Exception:
         return
@@ -3901,6 +3906,9 @@ _PAX_IMG_RE = re.compile(
 )
 
 
+_PAX_IMG_ECHAPPEE_RE = re.compile(r"src=&quot;pax-img:(?P<path>[^&\s]+)&quot;", re.IGNORECASE)
+
+
 def inline_pax_images(html: str, module_dir: str, exercise: str | None = None) -> str:
     """Rewrite ``pax-img:…`` URLs to point at the /api/static mount.
 
@@ -3935,21 +3943,33 @@ def inline_pax_images(html: str, module_dir: str, exercise: str | None = None) -
                 return _os.path.join(root, filename)
         return None
 
-    def repl(m: re.Match[str]) -> str:
-        before, after = m.group("before"), m.group("after")
-        raw_path = m.group("path")
+    def _url(raw_path: str) -> str | None:
         # Normalise out "../" segments and dummy "_" placeholders.
         norm = _posixpath.normpath("/" + raw_path).lstrip("/")
         filename = _posixpath.basename(norm)
         if not filename or filename == "_":
-            return m.group(0)
+            return None
         file_path = _locate(filename)
         if not file_path:
-            return m.group(0)
+            return None
         rel = _os.path.relpath(file_path, _RESSOURCES_ROOT).replace(_os.sep, "/")
-        return f'<img{before} src="/api/static/{rel}"{after}>'
+        return f"/api/static/{rel}"
 
-    return _PAX_IMG_RE.sub(repl, html)
+    def repl(m: re.Match[str]) -> str:
+        url = _url(m.group("path"))
+        if url is None:
+            return m.group(0)
+        return f'<img{m.group("before")} src="{url}"{m.group("after")}>'
+
+    def repl_echappee(m: re.Match[str]) -> str:
+        url = _url(m.group("path"))
+        return m.group(0) if url is None else f"src=&quot;{url}&quot;"
+
+    html = _PAX_IMG_RE.sub(repl, html)
+    # Une image **échappée** dans un attribut : le radio en ligne porte son
+    # libellé dans `data-content="&lt;img src=&quot;pax-img:_/julie.png…"`
+    # (`fuseerep`), que la balise en clair ci-dessus ne voit pas.
+    return _PAX_IMG_ECHAPPEE_RE.sub(repl_echappee, html)
 
 
 def inline_wims_gifs(html: str) -> str:

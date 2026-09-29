@@ -2,9 +2,12 @@
   <template v-for="(node, i) in nodes" :key="i">
     <!-- Layout group (e.g. a CSS-flex .container): a real <div> wrapping its
          child segments, so the exercise CSS can lay them out. -->
-    <div v-if="node.kind === 'group'" :class="node.class" class="pax-group">
+    <component
+      :is="node.tag || 'div'" v-if="node.kind === 'group'" :id="node.id"
+      :class="node.class" :style="node.style" class="pax-group"
+    >
       <ExerciseStatementNodes :nodes="node.children" />
-    </div>
+    </component>
 
     <!-- Leaf segments -->
     <template v-else>

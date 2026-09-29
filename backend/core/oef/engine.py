@@ -601,7 +601,20 @@ def _segment_statement(html: str) -> list[dict]:
             # <div …> → layout group open. Carry the class so the frontend can
             # apply the exercise CSS (flex containers etc.).
             cls_m = re.search(r'class="([^"]*)"', m.group(10))
-            segments.append({"type": "group-open", "class": cls_m.group(1) if cls_m else ""})
+            seg = {"type": "group-open", "class": cls_m.group(1) if cls_m else ""}
+            # La balise aussi : un `<ol>` rendu en `<div>` perdait sa
+            # numérotation (les cinq questions de `fuseerep`).
+            tag_m = re.match(r"<\s*(div|ul|ol|li)\b", m.group(10), re.I)
+            if tag_m and tag_m.group(1).lower() != "div":
+                seg["tag"] = tag_m.group(1).lower()
+            # L'`id` et le `style` aussi : `slib/text/balloon` colore chaque
+            # bulle par `#bubble_N{…}` et la dimensionne en ligne ; sans eux,
+            # les bulles de `fuseerep` perdaient couleur et largeur.
+            for attr in ("id", "style"):
+                am = re.search(rf'\s{attr}="([^"]*)"', m.group(10))
+                if am:
+                    seg[attr] = am.group(1)
+            segments.append(seg)
         elif m.group(11) is not None:
             segments.append({"type": "group-close"})
         elif m.group(12) is not None:

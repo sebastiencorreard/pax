@@ -70,16 +70,19 @@ def _forme_brute(valeur: str, ans_def) -> str:
 
 
 def _cases_en_textes(rendered, active_ans_defs: list, replies_by_name: dict[str, str]) -> dict[str, str]:
-    """Une case à cocher notée par `?analyze` : ses rangs deviennent les textes
-    que WIMS aurait envoyés (cf. `def_engine.cases_en_textes`). La palette est
-    celle de `replygood<n>`, dans l'ordre où elle est affichée."""
+    """Une case à cocher ou un radio notés par `?analyze` : le rang que PAX
+    envoie devient le texte que WIMS aurait envoyé (cf.
+    `def_engine.cases_en_textes`). La palette est celle de `replygood<n>`, dans
+    l'ordre où elle est affichée. Le radio en ligne de `fuseerep` en dépend :
+    son `:postdef` n'ouvre l'étape des réponses que si `val79` vaut
+    `répondre`."""
     from core.oef.def_engine import cases_en_textes, palette_de_replygood
 
     ctx = (rendered.check_sections or {}).get("ctx") or {}
     out = dict(replies_by_name)
     for a in active_ans_defs:
         m = re.match(r"^r(?:eply)?(\d+)$", a.input_name)
-        if a.answer_type != "checkbox" or "analyze_var" not in a.options or not m:
+        if a.answer_type not in ("checkbox", "radio") or "analyze_var" not in a.options or not m:
             continue
         palette = palette_de_replygood(str(ctx.get(f"replygood{m.group(1)}", "")))
         if a.input_name in out:
@@ -99,6 +102,10 @@ def run_analyze(
     """
     from core.oef.def_engine import check_analyze
 
+    # Le texte que WIMS aurait envoyé sert à la notation ; l'affichage garde la
+    # réponse telle que le front l'a envoyée (`affichees`), qu'il sait mettre
+    # en forme — le libellé brut d'un radio porte du `\(…)` à la mode WIMS.
+    affichees = replies_by_name
     replies_by_name = _cases_en_textes(rendered, active_ans_defs, replies_by_name)
     analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang)
     # `$m_reply<n>` / `$reply<n>` — bruts, pour tout `reply<n>` soumis. Un
@@ -199,7 +206,7 @@ def run_analyze(
         if ans_def.input_name in verdicts:
             results.append(verdicts[ans_def.input_name])
             continue
-        reply_value = replies_by_name.get(ans_def.input_name, "").strip()
+        reply_value = affichees.get(ans_def.input_name, "").strip()
         note = note_du_champ(ans_def)
         if note is None:
             note = global_score
@@ -279,6 +286,7 @@ def run_feedback(
 
     from core.oef.def_engine import render_feedback
 
+    replies_by_name = _cases_en_textes(rendered, active_ans_defs, replies_by_name)
     analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang) or None
 
     # `geogebra` mémorise autre chose que ce qu'il reçoit : le `:postdef` de

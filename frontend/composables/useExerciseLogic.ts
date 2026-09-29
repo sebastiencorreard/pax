@@ -80,6 +80,12 @@ export interface BackendSegment {
   minw?: number
   js?: string
   class?: string
+  // `group-open` : l'`id` et le `style` du `<div>` d'origine — une bulle de
+  // `slib/text/balloon` est colorée par `#bubble_N{…}` et dimensionnée en ligne.
+  id?: string
+  style?: string
+  // `group-open` : la balise d'origine quand ce n'est pas un `<div>`.
+  tag?: 'ul' | 'ol' | 'li'
   value?: string
   reply?: string
   image?: string
@@ -196,14 +202,14 @@ export type Segment =
   // Zone libre d'un `compose` : pas de nombre d'emplacements, la suite des
   // fragments vit dans `replies[name]`, jointe par des virgules.
   | { type: 'compose';     name: string; linkword: string; is_sup?: boolean }
-  | { type: 'group-open';  class: string }
+  | { type: 'group-open';  class: string; id?: string; style?: string; tag?: 'ul' | 'ol' | 'li' }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
 
 // A statement rendered as a tree: leaf segments or layout groups with children.
 export type SegmentNode =
   | { kind: 'leaf'; seg: Segment }
-  | { kind: 'group'; class: string; children: SegmentNode[] }
+  | { kind: 'group'; class: string; id?: string; style?: string; tag?: 'ul' | 'ol' | 'li'; children: SegmentNode[] }
 
 // Fold a flat segment list (with group-open/group-close markers) into a tree.
 export function buildSegmentTree(segments: Segment[]): SegmentNode[] {
@@ -212,7 +218,7 @@ export function buildSegmentTree(segments: Segment[]): SegmentNode[] {
   const groups: { kind: 'group'; class: string; children: SegmentNode[] }[] = []
   for (const seg of segments) {
     if (seg.type === 'group-open') {
-      const node = { kind: 'group' as const, class: seg.class, children: [] }
+      const node = { kind: 'group' as const, class: seg.class, id: seg.id, style: seg.style, tag: seg.tag, children: [] }
       stack[stack.length - 1].push(node)
       groups.push(node)
       stack.push(node.children)
@@ -351,14 +357,16 @@ export function useExerciseLogic() {
         // CodeMirror widget is built client-side from this config.
         out.push({ type: 'codeeditor', config: s.config as CodeEditorConfig, is_sup: s.is_sup })
       } else if (s.type === 'group-open') {
-        out.push({ type: 'group-open', class: s.class ?? '' })
+        out.push({ type: 'group-open', class: s.class ?? '', id: s.id, style: s.style, tag: s.tag })
       } else if (s.type === 'group-close') {
         out.push({ type: 'group-close' })
       } else if (s.type === 'radio-inline') {
-        // The label is math (a function def); KaTeX-render it now.
+        // The label is math (a function def); KaTeX-render it now. Il peut
+        // aussi être une image servie par le backend (les personnages de
+        // `fuseerep`) : même préfixe que les segments `html`.
         out.push({
           type: 'radio-inline', name: s.name ?? '', value: s.value ?? '',
-          content: await renderMath(s.content ?? ''),
+          content: prefixStaticUrls(await renderMath(s.content ?? '')),
         })
       }
     }
