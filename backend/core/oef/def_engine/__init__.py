@@ -1744,7 +1744,9 @@ class DefEngine(_SlibMixin):
 
             elif isinstance(instr, Insmath):
                 if output_buf is not None:
-                    expr = self._subst(instr.expr)
+                    from .presentation import texmath_sommes  # noqa: PLC0415
+
+                    expr = texmath_sommes(self._subst(instr.expr), self.lang)
                     output_buf.append(f"\\({expr}\\)")
 
             elif isinstance(instr, ReadEmbed):

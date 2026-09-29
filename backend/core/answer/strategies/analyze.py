@@ -90,6 +90,9 @@ def _cases_en_textes(rendered, active_ans_defs: list, replies_by_name: dict[str,
     return out
 
 
+_SANS_VERDICT = object()
+
+
 def run_analyze(
     rendered,
     active_ans_defs: list,
@@ -193,6 +196,11 @@ def run_analyze(
         ]
         if not siennes:
             return None
+        # Ses conditions, toutes écartées par `condlist` : WIMS ne les juge
+        # pas, et laisse la ligne du champ vide dans son analyse.
+        siennes = [k for k in siennes if k in condtest]
+        if not siennes:
+            return _SANS_VERDICT
         poids = sum(weights.get(k, 1.0) for k in siennes)
         if not poids:
             return None
@@ -208,6 +216,11 @@ def run_analyze(
             continue
         reply_value = affichees.get(ans_def.input_name, "").strip()
         note = note_du_champ(ans_def)
+        if note is _SANS_VERDICT:
+            # Aucun résultat : le front ne colore ni ne compte le champ.
+            # `fuseerep` jugeait « fausse » la bonne formule de sa question 4,
+            # que sa `condlist` (la seule condition 1) ne note pas.
+            continue
         if note is None:
             note = global_score
         results.append(

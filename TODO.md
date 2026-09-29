@@ -1058,6 +1058,13 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   listes `<ol>` numérotées, courbe bornée par `sqrt(x)*0` (flydraw ne trace
   pas un point non évaluable ; SymPy simplifiait l'astuce), attendu d'un
   `function` sans sa liste de variables.
+  Même jour, second retour : la formule de `g` (question 4) était jugée
+  fausse, bonne réponse comprise — sa condition n'est pas dans `condlist`, et
+  WIMS laisse sa ligne vide ; PAX ne rend plus de verdict pour un champ dont
+  toutes les conditions sont écartées. Et `!insmath integrate(f,x=a,b)` /
+  `sum` / `prod` suit `_tex_sums` (`texmath.c`) — 12 exercices d'intégrales
+  l'affichaient en clair ; au passage `-pi/2` ne sort plus `(-1)·π/2`
+  (21 énoncés), et `print()` n'est plus exécuté par `parse_expr`.
 - [ ] **`fuseerep`, note finale** : zéros partout, WIMS 1/10, PAX 3 %. Nouvelle
   mesure pour la question `freepower` ci-dessous (1 condition sur 7 : 1,4/10
   avec `freepower`=1, 0,2 avec 2).

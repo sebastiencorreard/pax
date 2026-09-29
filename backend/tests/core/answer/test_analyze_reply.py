@@ -169,3 +169,47 @@ def test_attendu_function_sans_ses_variables():
     # que l'expression (`anstype/function`, `!item 1`).
     from core.answer.strategies.standard import pretty_expected
     assert pretty_expected("-3*(x-8)^2+48,x", "function") == "-3*(x-8)^2+48"
+
+
+def test_un_champ_hors_condlist_na_pas_de_verdict():
+    """`fuseerep` : la condition de la formule de `g` n'est pas dans
+    `condlist` (seule la 1 l'est). WIMS laisse la ligne du champ vide ; PAX la
+    jugeait fausse. Aucun résultat n'est rendu pour ce champ."""
+    from types import SimpleNamespace
+
+    from core.answer.strategies.analyze import run_analyze
+    from core.oef.def_parser import Assign, IfBlock
+
+    test = [
+        Assign(name="condlist", value="1"),
+        Assign(name="condtest1", value="1"),
+        IfBlock(kind="ifval", condition="$val80 = $val71",
+                then_body=[Assign(name="condtest2", value="1")],
+                else_body=[Assign(name="condtest2", value="0")]),
+    ]
+    rendu = SimpleNamespace(
+        check_sections={"ctx": {}, "postdef": [], "test": test}, lang="fr")
+    champ = SimpleNamespace(input_name="reply5", answer_type="radio", expected="",
+                            weight=1.0, options={"analyze_var": "val80"})
+    note, resultats = run_analyze(rendu, [champ], {"reply5": "3"}, seed=1)
+    assert note == 1.0
+    assert resultats == []
+
+
+def test_insmath_integrale_en_latex():
+    """`!insmath I=integrate(f,x=a,b)` : `texmath.c` (`_tex_sums`) le met en
+    forme ; `oefinteg1/CalculintgralI` l'affichait en clair."""
+    from core.oef.def_engine.presentation import texmath_sommes
+    assert texmath_sommes("integrate(x^2+1,x=0,1)", "fr") == \
+        "\\int _{0}^{1}\\left(x^{2} + 1\\right) \\,\\textrm{d}x"
+    assert texmath_sommes("sum(1/n^2,n=1,N)", "fr") == "\\sum _{n=1}^{N}\\frac{1}{n^{2}}"
+    assert texmath_sommes("x+1", "fr") == "x+1"
+
+
+def test_signe_sorti_de_la_fraction():
+    """Sans évaluation, `-pi/2` restait `(-1)·π/2` dans l'énoncé ; après un
+    opérateur, il se parenthèse (`opertrigo` : `x - (-π/6)`)."""
+    from core.oef.def_engine.presentation import _normalize_math_content as n
+    assert n("-pi/2", "fr") == "-\\frac{\\pi}{2}"
+    assert n("x - (-pi/6)", "fr") == "x - \\left(-\\frac{\\pi}{6}\\right)"
+    assert n("print()", "fr") == "print()"

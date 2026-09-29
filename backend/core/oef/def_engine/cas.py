@@ -945,6 +945,12 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
             local_dict=locals_dict,
             evaluate=False,
         )
+        # `parse_expr` évalue du Python : `print()`, résidu PARI d'un calcul
+        # manqué (`oefintegrale/prim2int`), y **exécutait** la fonction
+        # `print`, et son `None` s'affichait `\text{None}`. Ce qui n'est pas
+        # une expression n'a pas de rendu : repli sur le texte.
+        if parsed is None:
+            raise ValueError("pas une expression")
         # `order='none'` : imprimer les termes dans l'ordre où l'auteur les a
         # écrits. Le printer sympy trie par défaut (`order='lex'`), si bien que
         # `14/10 + 9/8` s'affichait `9/8 + 14/10` — les opérandes inversés dans
@@ -955,6 +961,18 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
         # les rawmath littéralement (cf. `check_litexp`) : l'élève doit
         # retrouver l'ordre stocké, que l'énoncé lui montrait déjà réarrangé.
         res = sympy.latex(_drop_unit_factors(parsed), order="none")
+        # Sans évaluation, `-pi/2` reste `(-1)·π/2` : le signe sort de la
+        # fraction, comme l'écrit l'auteur (`oefinteg1/Intgraletrigo`).
+        # Après un opérateur, le signe se parenthèse : `x - (-π/6)`, non
+        # `x - -π/6` (`OEFoperfonct/opertrigo`, dont c'est tout l'enjeu).
+        def _signe_hors_fraction(m: re.Match) -> str:
+            frac = "-\\frac{" + m.group(1) + "}" + m.group(2)
+            avant = m.string[:m.start()].rstrip()
+            if avant and avant[-1] in "+-*/":
+                return "\\left(" + frac + "\\right)"
+            return frac
+        res = re.sub(r"\\frac\{\\left\(-1\\right\) ([^{}]*)\}(\{[^{}]*\})",
+                     _signe_hors_fraction, res)
         if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
             res = f"\\left({res}\\right)"
         return res

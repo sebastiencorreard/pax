@@ -202,6 +202,82 @@ def _e_puissance_en_exp(s: str) -> str:
     return "".join(morceaux)
 
 
+# `texmath.c` : `int`/`integrate`/`Int` → `tex_int`, `sum`/`Sum` → `tex_sum`,
+# `prod`/`product`/`Prod` → `tex_prod`. Tous passent par `_tex_sums`.
+_SOMMES_RE = re.compile(r"(?<![A-Za-z\\])(integrate|int|Int|sum|Sum|prod|product|Prod)\s*\(")
+_SOMMES_NOM = {"integrate": "int", "int": "int", "Int": "int",
+               "sum": "sum", "Sum": "sum", "prod": "prod", "product": "prod", "Prod": "prod"}
+
+
+def _plusieurs_termes(f: str) -> bool:
+    """Un `+`/`-` de profondeur zéro, hors signe de tête et hors exposant :
+    ce que `find_term_end` de WIMS voit comme plusieurs termes."""
+    prof = 0
+    t = f.strip()
+    for i, c in enumerate(t):
+        if c in "([{":
+            prof += 1
+        elif c in ")]}":
+            prof -= 1
+        elif c in "+-" and prof == 0 and i > 0 and t[i - 1] not in "^*/(eE":
+            return True
+    return False
+
+
+def texmath_sommes(expr: str, lang: str | None = None) -> str:
+    """Port de `_tex_sums` (`texmath.c`), que `!insmath` applique : `integrate(f,
+    x=a,b)` → `\\int_{a}^{b} f \\,\\textrm{d}x`, `sum(f,n=1,N)` →
+    `\\sum_{n=1}^{N} f`. L'intégrande et les bornes repassent par
+    `_normalize_math_content`. `oefinteg1/CalculintgralI` affichait
+    `I=integrate((−8x+8)e^…,x=4,2)` en clair.
+
+    Découpage de WIMS : premier item la fonction ; le second, coupé au `=`,
+    donne la variable et la borne basse ; le troisième la borne haute.
+    L'intégrande de plusieurs termes est parenthésé (`find_term_end`).
+    """
+    out: list[str] = []
+    pos = 0
+    for m in _SOMMES_RE.finditer(expr):
+        if m.start() < pos:
+            continue
+        debut = m.end()
+        prof, i = 1, debut
+        while i < len(expr) and prof:
+            prof += {"(": 1, ")": -1}.get(expr[i], 0)
+            i += 1
+        if prof:
+            break
+        items = _split_top_level(expr[debut:i - 1], ",")
+        f = items[0].strip() if items else ""
+        var, bas, haut = "", "", ""
+        if len(items) > 1:
+            var, _, bas = items[1].partition("=")
+            var, bas = var.strip(), bas.strip()
+            if len(items) > 2:
+                haut = ",".join(items[2:]).strip()
+            elif not _ and "=" not in items[1]:
+                var = items[1].strip()
+        nom = _SOMMES_NOM[m.group(1)]
+        tex = [f"\\{nom} "]
+        if nom == "int":
+            if bas:
+                tex.append("_{" + _normalize_math_content(bas, lang) + "}")
+        elif var:
+            tex.append("_{" + var + ("=" + _normalize_math_content(bas, lang) if bas else "") + "}")
+        if haut:
+            tex.append("^{" + _normalize_math_content(haut, lang) + "}")
+        corps = _normalize_math_content(f, lang)
+        plusieurs = _plusieurs_termes(f)
+        tex.append(f"\\left({corps}\\right)" if plusieurs else corps)
+        if nom == "int" and var:
+            tex.append(f" \\,\\textrm{{d}}{var}")
+        out.append(expr[pos:m.start()])
+        out.append("".join(tex))
+        pos = i
+    out.append(expr[pos:])
+    return "".join(out)
+
+
 def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 
