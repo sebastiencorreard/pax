@@ -1261,6 +1261,18 @@ Options :
 ## 2. Supprimer les scripts de création d'utilisateurs + reset mdp ?
 
 
+## 2 bis. Un élève peut rejouer une graine dont il a vu la réponse
+
+Vérifié le 2026-09-30 par l'API, compte élève : `/api/check` sur
+`equaprod1`, graine 42, réponse `0` → note 0, attendu `-6/5,-9/8` renvoyé ;
+second envoi **même graine** avec cet attendu → note 1, seconde tentative
+enregistrée. La graine vient du client (`/api/render?seed=`, corps de
+`/api/check`). WIMS la tient en session : après la correction, l'élève
+repart sur un nouveau tirage, et `seedrepeat`/`seedcnt` règlent ce qu'il
+peut rejouer. La route de mise au point, elle, est close aux élèves (404).
+Piste : graines délivrées par le serveur (Redis, par élève et exercice),
+une seule note enregistrée par graine, `givegood` modulé comme `seedcnt`.
+
 ## 3. Le JavaScript d'auteur s'exécute sans isolation — à régler avant le dépôt d'exercices
 
 **Décision du 2026-09-23** : le dépôt d'exercices par des enseignants est
