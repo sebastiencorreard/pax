@@ -136,9 +136,21 @@ def _est_analyse(ans_def) -> bool:
     return ans_def.answer_type == "analyze" or "analyze_var" in (ans_def.options or {})
 
 
-def bilan(rendered, parcours: dict, etape: int, seed: int) -> float:
-    """La note de `var.proc` sur tout le parcours, avant `freepower`."""
-    from core.answer.strategies.analyze import _analyze_replies, _forme_brute  # noqa: PLC0415
+def bilan(rendered, parcours: dict, etape: int, seed: int,
+          m_step_final: int | None = None) -> float:
+    """La note de `var.proc` sur tout le parcours, avant `freepower`.
+
+    `m_step_final` : la valeur de `$m_step` sous laquelle WIMS joue le dernier
+    `:postdef` et le `:test`. Pour un exercice `\\nextstep` mené à son terme,
+    `step.proc` a déjà avancé l'étape (`!advance oefstep`) quand
+    `nextstep.proc` joue `:postdef` : c'est N+1, et le modèle QCM de
+    `uniteadn` y lit le verdict de la dernière question (`val69[$m_step-1;…]`).
+    """
+    from core.answer.strategies.analyze import (  # noqa: PLC0415
+        _analyze_replies,
+        _cases_en_textes,
+        _forme_brute,
+    )
 
     par_nom = {a.input_name: a for a in (getattr(rendered, "toutes_reponses", None) or rendered.answers)}
     atteintes: list[str] = []
@@ -173,27 +185,34 @@ def bilan(rendered, parcours: dict, etape: int, seed: int) -> float:
         # étape 6 jamais ouverte, que WIMS marque toutes « NON ».
         memo = parcours.get("reponses", {})
         reponses = {n: (memo.get(n, "") if n in atteintes else "") for n in par_nom}
+        reponses = _cases_en_textes(rendered, list(par_nom.values()), reponses)
+        ctx = sections["ctx"]
+        if m_step_final is not None:
+            ctx = dict(ctx, m_step=str(m_step_final), step=str(m_step_final))
         par_numero: dict[int, str] = {}
         for n, v in reponses.items():
             if m := re.fullmatch(r"reply(\d+)", n):
                 par_numero[int(m.group(1))] = _forme_brute(v.strip(), par_nom.get(n))
+        retenues: list[int] = []
         condtest, poids_cond = check_analyze(
-            ev_ctx=sections["ctx"],
+            ev_ctx=ctx,
             postdef_instructions=sections["postdef"],
             test_instructions=sections["test"],
             analyze_replies=_analyze_replies(list(par_nom.values()), reponses, rendered.lang),
             seed=seed,
             replies_by_number=par_numero,
             def_path=sections.get("def_path"),
+            condlist_out=retenues,
         )
         try:
             declarees = int(str((rendered.meta or {}).get("conditioncnt", 0)).strip() or 0)
         except ValueError:
             declarees = 0
         # `condlist=all` : toutes les conditions déclarées comptent, même
-        # celles que `:test` n'aurait pas posées.
+        # celles que `:test` n'aurait pas posées. Une `condlist` explicite,
+        # elle, borne le compte à ses conditions.
         numeros = [int(k[len("condtest"):]) for k in condtest if k[len("condtest"):].isdigit()]
-        for k in range(1, max([declarees, *numeros]) + 1):
+        for k in retenues or range(1, max([declarees, *numeros]) + 1):
             nom = f"condtest{k}"
             w = poids_cond.get(nom, 1.0)
             tot += w

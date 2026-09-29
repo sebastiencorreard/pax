@@ -231,3 +231,20 @@ si elle **se termine** par `]` ou `)` :
 PAX rend ce que rend `gp` aujourd'hui, donc la même chose. Corrections :
 `Vec(numtoperm(…))` et `nfroots(,P)~` — ou `polroots`, que `tgte2par.oef`
 lit correctement en découpant `-7.0+0.0*I` aux `+`.
+
+## 6. Une `condlist` constante neutralise la notation — *à signaler*
+
+*Relevé le 2026-09-29.*
+
+`H5/analysis/oefparabole.fr/src/fuseerep.oef`, `oefratexp.fr/src/cube.oef` et
+`frequence.oef` partagent un modèle « Choix de la méthode » dont le `:test`
+écrit `condlist=$valN`, avec `valN=1` posé une fois pour toutes (`val7`,
+`val46`, `val49`). `var.proc` ne compte que les conditions de `condlist` : ne
+reste que la condition 1, `!ifval 1=1`, toujours vraie. Les autres conditions
+s'affichent dans l'analyse mais ne pèsent rien, et le champ `?analyze` de
+l'étape 1 vaut 1 quelle que soit la réponse.
+
+PAX honore `condlist` depuis le 2026-09-29 (le modèle QCM d'`uniteadn`, qui
+restreint le compte aux questions tirées, en dépend) et rend donc la même
+note. Correction probable : faire suivre `valN` du choix de l'élève, ou
+écrire `condlist=all`.

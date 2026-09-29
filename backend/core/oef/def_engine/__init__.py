@@ -880,6 +880,29 @@ _SYNONYMES_CALC = {
 # ── Engine ────────────────────────────────────────────────────────────────────
 
 
+
+def palette_de_replygood(good: str) -> list[str]:
+    """La palette d'un `checkbox` : ce qui suit le premier `;` de `replygood`,
+    découpé aux virgules hors d'un `\\(…\\)` (cf. `_palette_checkbox`)."""
+    labels_part = good.partition(";")[2]
+    return [c.strip() for c in re.split(r",(?![^(]*\))", labels_part) if c.strip()]
+
+
+def cases_en_textes(valeur: str, palette: list[str]) -> str:
+    """Les cases cochées telles que WIMS les envoie : leurs **textes**.
+
+    `anstype/checkbox.input` écrit `value="$menuitem"`, l'item de la palette ;
+    PAX écrit le rang (`_case_a_cocher`), ce que `check_set` compare. Pour une
+    case notée par `?analyze`, c'est le `:postdef` de l'auteur qui compare, et
+    il attend des textes : le modèle QCM de `uniteadn` (`$(val42[q;$(val40[q;])])`)
+    jugeait fausse la réponse exacte. Les rangs sont traduits ici ; toute autre
+    valeur passe telle quelle.
+    """
+    rangs = [r.strip() for r in valeur.split(",")]
+    if not palette or not all(r.isdigit() and 1 <= int(r) <= len(palette) for r in rangs):
+        return valeur
+    return ",".join(palette[int(r) - 1] for r in rangs)
+
 class DefEngine(_SlibMixin):
     # Voir `_eval_arith` : au rendu un calcul raté se montre tel quel, à la
     # correction il vaut NaN. `check_analyze` lève ce drapeau. Attribut de
@@ -4661,6 +4684,8 @@ class DefEngine(_SlibMixin):
                 continue
             m_an = re.match(r"\s*\?analyze\s+(\d+)", self.ctx.get(f"replygood{m.group(1)}", ""))
             if m_an:
+                if self._reply_type(m.group(1)) == "checkbox":
+                    value = cases_en_textes(value, self._palette_checkbox(m.group(1)))
                 self.ctx[f"val{m_an.group(1)}"] = value
 
     def _grade_prev_reply(self, reply: str, expected: str, rtype: str) -> bool:
@@ -5478,11 +5503,7 @@ class DefEngine(_SlibMixin):
         qui la pose sous l'énoncé quand l'auteur n'a rien embarqué — c'est la
         distinction qu'`oef/formr.phtml` fait en cinq lignes.
         """
-        good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
-        labels_part = good_raw.partition(";")[2] if ";" in good_raw else ""
-        return [
-            c.strip() for c in re.split(r",(?![^(]*\))", labels_part) if c.strip()
-        ]
+        return palette_de_replygood(self._subst(self.ctx.get(f"replygood{n}", "")))
 
     def _emplacements_fill(self, n: str | int, size_str: str) -> tuple[int, int]:
         """Combien d'emplacements pose un `clickfill`, et de quelle largeur.

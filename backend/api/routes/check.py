@@ -465,7 +465,11 @@ async def check_exercise(
             {a.input_name: replies_by_name.get(a.input_name, "") for a in active_ans_defs},
         )
         if fin_du_parcours:
-            global_score = bilan_etapes.bilan(rendered, parcours, etape, body.seed)
+            # `\nextstep` mené à terme : `step.proc` a avancé l'étape avant le
+            # dernier `:postdef` (N+1). Un arrêt sur erreur sort avant
+            # (`step.proc:66`), et des étapes fixes n'y passent pas (N).
+            m_final = etape + 1 if suite is False and not arret else etape
+            global_score = bilan_etapes.bilan(rendered, parcours, etape, body.seed, m_final)
 
     noanalyzeprint = any(
         "noanalyzeprint" in str(a.options.get("option", "")).lower()

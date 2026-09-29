@@ -69,6 +69,24 @@ def _forme_brute(valeur: str, ans_def) -> str:
     return valeur
 
 
+def _cases_en_textes(rendered, active_ans_defs: list, replies_by_name: dict[str, str]) -> dict[str, str]:
+    """Une case à cocher notée par `?analyze` : ses rangs deviennent les textes
+    que WIMS aurait envoyés (cf. `def_engine.cases_en_textes`). La palette est
+    celle de `replygood<n>`, dans l'ordre où elle est affichée."""
+    from core.oef.def_engine import cases_en_textes, palette_de_replygood
+
+    ctx = (rendered.check_sections or {}).get("ctx") or {}
+    out = dict(replies_by_name)
+    for a in active_ans_defs:
+        m = re.match(r"^r(?:eply)?(\d+)$", a.input_name)
+        if a.answer_type != "checkbox" or "analyze_var" not in a.options or not m:
+            continue
+        palette = palette_de_replygood(str(ctx.get(f"replygood{m.group(1)}", "")))
+        if a.input_name in out:
+            out[a.input_name] = cases_en_textes(out[a.input_name], palette)
+    return out
+
+
 def run_analyze(
     rendered,
     active_ans_defs: list,
@@ -81,6 +99,7 @@ def run_analyze(
     """
     from core.oef.def_engine import check_analyze
 
+    replies_by_name = _cases_en_textes(rendered, active_ans_defs, replies_by_name)
     analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang)
     # `$m_reply<n>` / `$reply<n>` — bruts, pour tout `reply<n>` soumis. Un
     # `:postdef` s'en sert couramment pour retrouver le rang de la réponse dans

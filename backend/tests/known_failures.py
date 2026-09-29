@@ -557,6 +557,17 @@ _IMPORT_2026_09_10_WRONG_SCORE: set[str] = {
 }
 XFAIL_WRONG_SCORE |= _IMPORT_2026_09_10_WRONG_SCORE
 
+# `condlist` constante (2026-09-29). Le modèle « Choix de la méthode » écrit
+# `condlist=$valN` avec `valN=1` fixé : `var.proc` ne compte alors que la
+# condition 1, `!ifval 1=1`, toujours vraie. Le seul champ de l'étape 1 étant
+# un `?analyze`, toute copie y vaut 1 — chez WIMS aussi, que PAX suit depuis
+# qu'il honore `condlist`. Défaut d'auteur : `docs/signalements-wims.md` §6.
+XFAIL_WRONG_SCORE |= {
+    "H5~analysis~oefparabole.fr~src~fuseerep",
+    "H5~analysis~oefratexp.fr~src~cube",
+    "H5~analysis~oefratexp.fr~src~frequence",
+}
+
 _IMPORT_2026_09_10_CONSTANT_SCORE: set[str] = {
     "H1~francais~oefvocmarine.fr~src~jeuniv1",
     "H1~francais~oefvocmarine.fr~src~jeuniv2",

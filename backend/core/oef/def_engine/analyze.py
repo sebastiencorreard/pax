@@ -259,8 +259,15 @@ def check_analyze(
     seed: int,
     replies_by_number: dict | None = None,
     def_path: str | None = None,
+    condlist_out: list | None = None,
 ) -> tuple[dict, dict]:
     """Exécute :postdef puis :test avec les réponses élève.
+
+    `condlist` : `var.proc` pose `condlist=all` avant `:test`, qui peut la
+    restreindre (`condlist=$val77` du modèle QCM, les seules questions
+    tirées) ; seules ces conditions comptent. Les autres sont retirées du
+    résultat, et `condlist_out`, s'il est fourni, reçoit les numéros retenus
+    — rien pour `all`.
 
     Retourne ``(condtest, weights)`` : les ``condtestN`` (0/1) et leur poids
     ``condweightN`` (défaut 1) pour un score pondéré.
@@ -300,6 +307,7 @@ def check_analyze(
     for n, value in (replies_by_number or {}).items():
         engine.ctx[f"m_reply{n}"] = value
         engine.ctx[f"reply{n}"] = value
+    engine.ctx["condlist"] = "all"
     if not _executer_borne(engine, postdef_instructions, test_instructions):
         # Des conditions ont pu passer à 1 avant l'arrêt : ne rien en garder.
         # Aucune condition, c'est une note nulle.
@@ -309,6 +317,15 @@ def check_analyze(
         for k, v in engine.ctx.items()
         if k.startswith("condtest") and str(v).strip() in ("0", "1")
     }
+    liste = str(engine.ctx.get("condlist", "all")).strip()
+    if liste and liste.lower() != "all":
+        retenues = [int(x) for x in re.split(r"[\s,]+", liste) if x.isdigit()]
+        if retenues:
+            condtest = {k: v for k, v in condtest.items()
+                        if k[len("condtest"):].isdigit()
+                        and int(k[len("condtest"):]) in retenues}
+            if condlist_out is not None:
+                condlist_out.extend(retenues)
     # condweightN sets the relative weight of conditionN (default 1). WIMS
     # scores `sum(testN*weightN) / sum(weightN)` — e.g. cant weights the
     # numeric value 3 and the irreducible form 1.

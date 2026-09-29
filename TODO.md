@@ -1041,7 +1041,16 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   **Vérifié au navigateur le 2026-09-29** (captures de l'utilisateur) :
   `histocap` enchaîne les six étapes jusqu'à l'écran de fin, le bilan liste
   tout le parcours, et `noanalyzeprint` remplace la réponse fausse par « - »
-  sans en donner l'attendu, comme WIMS.
+  sans en donner l'attendu, comme WIMS. `photosynthesis/1` : l'étape 2
+  affiche le verdict de l'étape 1 et pose la question suivante.
+  `uniteadn/Aadn` y a révélé trois défauts du modèle QCM, corrigés le même
+  jour — la réponse exacte était « Mauvaise », un parcours sans faute valait
+  0,81 : une case cochée notée par `?analyze` arrive en **texte**, comme WIMS
+  l'envoie (`anstype/checkbox.input`), non en rang ; le bilan d'un
+  `\nextstep` mené à terme joue `:postdef` et `:test` à `m_step` = N+1
+  (`step.proc` avance l'étape avant `nextstep.proc`) ; `condlist` est
+  honorée (`var.proc`). Trois exercices à `condlist` constante valent
+  désormais 1 à toute copie, comme chez WIMS (`signalements-wims.md` §6).
 
 - [ ] **`freepower` : les deux mesures WIMS se contredisent.** Au niveau 3,
   `exo.init` pose `freepower=2`, et `valtrigo1` le confirme (0,7² → 4,9/10).

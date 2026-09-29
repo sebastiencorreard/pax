@@ -99,3 +99,55 @@ class TestMReplyEstPose:
             seed=1,
         )
         assert condtest == {"condtest1": 0}
+
+
+class TestCasesEnTextes:
+    """Une case cochée, WIMS l'envoie par son **texte** (`anstype/checkbox.input`,
+    `value="$menuitem"`) ; PAX par son rang. Pour une case notée par `?analyze`,
+    le `:postdef` de l'auteur compare des textes : le modèle QCM d'`uniteadn`
+    jugeait fausse la réponse exacte."""
+
+    PALETTE = ["noyau", "cytoplasme", "mitochondries"]
+
+    def test_rangs_traduits(self):
+        from core.oef.def_engine import cases_en_textes
+        assert cases_en_textes("1,3", self.PALETTE) == "noyau,mitochondries"
+
+    def test_autre_valeur_intacte(self):
+        from core.oef.def_engine import cases_en_textes
+        assert cases_en_textes("noyau", self.PALETTE) == "noyau"
+        assert cases_en_textes("4", self.PALETTE) == "4"
+        assert cases_en_textes("1", []) == "1"
+
+    def test_palette_de_replygood(self):
+        from core.oef.def_engine import palette_de_replygood
+        assert palette_de_replygood("?analyze 80;a,\\(f(x,y)\\),c") == ["a", "\\(f(x,y)\\)", "c"]
+
+
+class TestCondlist:
+    """`var.proc` ne compte que les conditions de `condlist`, que `:test` peut
+    restreindre."""
+
+    @staticmethod
+    def _test(*paires):
+        from core.oef.def_parser import Assign
+        return [Assign(name=n, value=v) for n, v in paires]
+
+    def test_seules_les_conditions_retenues(self):
+        from core.oef.def_engine import check_analyze
+
+        test = self._test(("condlist", "1,3"), ("condtest1", "1"),
+                          ("condtest2", "0"), ("condtest3", "0"))
+        retenues: list = []
+        condtest, _ = check_analyze({}, [], test, {}, seed=1, condlist_out=retenues)
+        assert condtest == {"condtest1": 1, "condtest3": 0}
+        assert retenues == [1, 3]
+
+    def test_all_garde_tout(self):
+        from core.oef.def_engine import check_analyze
+
+        test = self._test(("condtest1", "1"), ("condtest2", "0"))
+        retenues: list = []
+        condtest, _ = check_analyze({}, [], test, {}, seed=1, condlist_out=retenues)
+        assert condtest == {"condtest1": 1, "condtest2": 0}
+        assert retenues == []

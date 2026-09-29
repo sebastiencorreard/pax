@@ -537,6 +537,34 @@ class TestBilanDesEtapes:
         assert fin["attempt_id"] != "00000000-0000-0000-0000-000000000000"
 
 
+class TestQcmParEtapes:
+    """Le modèle QCM de `uniteadn` : une question par étape, notée par `:test`.
+
+    Trois défauts se cumulaient, et un parcours sans faute valait 0,81 : les
+    cases cochées arrivaient en rangs là où le `:postdef` compare des textes
+    (WIMS envoie le texte), la dernière question n'était jamais analysée
+    (WIMS joue le `:postdef` final à `m_step` = N+1), et `condlist` — les
+    seules questions tirées — était ignorée."""
+
+    AADN = "H4~biology~uniteadn.fr~src~Aadn"
+    # Graine 42 : les rangs affichés des bonnes réponses, étape par étape.
+    JUSTES = ["1,2", "3", "1,4", "4", "2,3", "3,4,5"]
+
+    def test_parcours_sans_faute(self, client, student_headers):
+        if client.get(f"/api/exercises/{self.AADN}", headers=student_headers).status_code != 200:
+            pytest.skip("Aadn absent de ce corpus (la CI n'importe qu'un sous-ensemble)")
+        for etape, rep in enumerate(self.JUSTES, 1):
+            r = client.post(
+                f"/api/check/{self.AADN}", headers=student_headers,
+                json={"seed": 42, "m_step": etape,
+                      "replies": [{"input_name": f"reply{etape}", "value": rep}]},
+            )
+            assert r.status_code == 200
+        fin = r.json()
+        assert fin["fin_du_parcours"] is True
+        assert fin["global_score"] == pytest.approx(1.0)
+
+
 class TestCheck:
     def test_check_requires_auth(self, client):
         r = client.post(
