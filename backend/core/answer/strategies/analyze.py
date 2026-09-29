@@ -286,6 +286,78 @@ def solve_analyze_expected(rendered, ans_defs: list, seed: int) -> dict[str, str
     return {}
 
 
+def solve_choix_analyze(rendered, ans_defs: list, seed: int) -> dict[str, str]:
+    """Les rangs à cocher d'un radio ou d'une case noté par `?analyze`, pour
+    « Réponse auto » (mode debug) — leur attendu n'est écrit nulle part :
+    `uniteadn/Aadn` le calcule dans son `:postdef` (`val42[q;val40[q]]`).
+
+    Chaque choix — chaque partie non vide des cases, jusqu'à 8 — est joué
+    comme à la notation (`_cases_en_textes`, `:postdef`, `:test`) ; on garde
+    celui qui satisfait le plus de conditions retenues, s'il se distingue.
+    Pour un `\\nextstep`, `:postdef` juge l'étape qui vient d'être répondue
+    (`val69[$m_step-1;…]`) : on joue donc à `m_step`+1, comme WIMS après
+    l'envoi (`step.proc`).
+    """
+    import itertools  # noqa: PLC0415
+
+    from core.oef.def_engine import check_analyze, palette_de_replygood
+
+    sections = rendered.check_sections or {}
+    ctx = sections.get("ctx") or {}
+    if not sections.get("test"):
+        return {}
+    if "nextstep" in ctx:
+        try:
+            ctx = dict(ctx, m_step=str(int(ctx.get("m_step", "1")) + 1))
+        except ValueError:
+            pass
+    # Les champs `?analyze` des autres étapes, vides en mode debug, reçoivent
+    # un choix de leur palette, comme dans un vrai parcours : `Aadn` range les
+    # réponses par `!trim $val80 $val81 …`, et un `val80` vide faisait remonter
+    # celle de la question 2 à la ligne de la question 1.
+    remplis = dict(ctx)
+    for cle, bonne in ctx.items():
+        mr = re.fullmatch(r"replygood(\d+)", cle)
+        ma = re.match(r"\s*\?analyze\s+(\d+)", str(bonne))
+        if mr and ma and not str(ctx.get(f"val{ma.group(1)}", "")).strip():
+            palette = palette_de_replygood(str(bonne))
+            if palette:
+                remplis[f"val{ma.group(1)}"] = palette[0]
+    ctx = remplis
+    resolus: dict[str, str] = {}
+    for a in ans_defs:
+        m = re.match(r"^r(?:eply)?(\d+)$", a.input_name)
+        if (a.answer_type not in ("radio", "checkbox") or "analyze_var" not in a.options
+                or (a.expected or "").strip() or not m):
+            continue
+        n = len(palette_de_replygood(str(ctx.get(f"replygood{m.group(1)}", ""))))
+        if not 1 <= n <= 8:
+            continue
+        if a.answer_type == "radio":
+            essais = [str(k) for k in range(1, n + 1)]
+        else:
+            essais = [",".join(map(str, c)) for t in range(1, n + 1)
+                      for c in itertools.combinations(range(1, n + 1), t)]
+        notes: dict[str, int] = {}
+        for essai in essais:
+            reponses = _cases_en_textes(rendered, [a], {a.input_name: essai})
+            condtest, _ = check_analyze(
+                ev_ctx=ctx,
+                postdef_instructions=sections.get("postdef") or [],
+                test_instructions=sections["test"],
+                analyze_replies=_analyze_replies([a], reponses, rendered.lang),
+                seed=seed,
+                replies_by_number={int(m.group(1)): reponses[a.input_name]},
+                def_path=sections.get("def_path"),
+            )
+            notes[essai] = sum(condtest.values())
+        meilleur = max(notes.values(), default=0)
+        gagnants = [e for e, v in notes.items() if v == meilleur]
+        if meilleur > min(notes.values(), default=0) and len(gagnants) == 1:
+            resolus[a.input_name] = gagnants[0]
+    return resolus
+
+
 def run_feedback(
     rendered,
     active_ans_defs: list,

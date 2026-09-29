@@ -71,8 +71,30 @@ export function useKatex() {
   // ``a/b``. La lookbehind ``(?<![\^_])`` épargne les fractions en exposant /
   // indice (``x^\frac{1}{2}``) qui doivent rester petites ; ``\dfrac``/``\tfrac``
   // ne matchent pas (le ``\`` y est suivi de ``d``/``t``, pas de ``f``).
+  // Les groupes `^{…}`/`_{…}` sont épargnés aussi : les bornes d'une intégrale
+  // (`\int_{\frac{1}{2}}^{\frac{5}{4}}`, `oefintegrale/prim2int3`) montaient
+  // en taille normale au-dessus et au-dessous du signe.
   function fracToDfrac(expr: string): string {
-    return expr.replace(/(?<![\^_])\\frac(?![a-zA-Z])/g, '\\dfrac')
+    let out = ''
+    const pile: boolean[] = [] // un groupe ouvert est-il un exposant/indice ?
+    for (let i = 0; i < expr.length; i++) {
+      const c = expr[i]
+      if (c === '\\' && expr.startsWith('\\frac', i) && !/[a-zA-Z]/.test(expr[i + 5] ?? '')) {
+        const precedent = expr[i - 1]
+        const enScript = precedent === '^' || precedent === '_' || pile.includes(true)
+        out += enScript ? '\\frac' : '\\dfrac'
+        i += 4
+        continue
+      }
+      if (c === '\\' && (expr[i + 1] === '{' || expr[i + 1] === '}')) {
+        out += c + expr[i + 1]; i += 1
+        continue
+      }
+      if (c === '{') pile.push(expr[i - 1] === '^' || expr[i - 1] === '_')
+      else if (c === '}') pile.pop()
+      out += c
+    }
+    return out
   }
 
   // Enroule "-N" entre parenthèses quand il suit un opérateur binaire

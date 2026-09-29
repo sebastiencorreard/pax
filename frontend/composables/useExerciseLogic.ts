@@ -151,6 +151,8 @@ export interface CheckResult {
   // Exercice à étapes : cet envoi le termine-t-il, et sur une réponse fausse ?
   // `global_score` n'est la note de l'exercice que lorsqu'il se termine.
   fin_du_parcours?: boolean | null
+  // L'énoncé après la dernière étape (`m_step` = N+1), avec tous les verdicts.
+  enonce_final?: BackendSegment[] | null
   arret?: boolean
   noanalyzeprint?: boolean
   feedback_html?: string | null

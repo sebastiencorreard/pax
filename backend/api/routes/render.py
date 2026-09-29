@@ -207,7 +207,7 @@ async def render_exercise_debug(
         raise HTTPException(status_code=404, detail="Not found")
 
     from core.answer.strategies.standard import pretty_expected as _pretty_expected
-    from core.answer.strategies.analyze import solve_analyze_expected
+    from core.answer.strategies.analyze import solve_analyze_expected, solve_choix_analyze
 
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
@@ -225,6 +225,8 @@ async def render_exercise_debug(
     # clickfill+analyze slots graded by a polynomial identity (deve7) carry no
     # static expected — derive the auto-fill labels by solving the :test.
     solved = solve_analyze_expected(rendered, rendered.answers, rendered.seed)
+    # Radio/cases notés par `?analyze` : l'attendu vit dans le `:postdef`.
+    solved.update(solve_choix_analyze(rendered, rendered.answers, rendered.seed))
 
     return DebugOut(
         exercise_id=exercise_id,

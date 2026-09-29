@@ -282,6 +282,32 @@ _EGAL_APRES_LABEL = {
     "sigunits", "units", "vector",
 }
 
+# `oef/replytype.proc` : les anciens noms de types, et le repli sur `default`
+# de tout type qui n'a pas d'`anstype/<type>.input` — `integer`
+# (`oefintegrale/prim2int3`) s'y affiche donc `a =`, non `a :`.
+_ALIAS_TYPE_WIMS = {
+    "auto": "default", "coordinate": "coord", "coordinates": "coord",
+    "corresp": "correspond", "correspondance": "correspond", "expalg": "algexp",
+    "link": "click", "number": "numeric", "ranges": "range", "select": "menu",
+    "sigunit": "sigunits", "text": "case", "unit": "units", "wordcomp": "textcomp",
+}
+_TYPES_WIMS = {
+    "algexp", "aset", "atext", "case", "checkbox", "chembrut", "chemclick",
+    "chemdraw", "chemeq", "chemformula", "chessgame", "chset", "click",
+    "clickfill", "clicktile", "clock", "code", "complex", "compose", "coord",
+    "correspond", "crossword", "default", "dragfill", "draw", "equation",
+    "flashcard", "formal", "fset", "function", "geogebra", "imgcomp",
+    "javacurve", "jmolclick", "jsxgraph", "jsxgraphcurve", "keyboard", "litexp",
+    "mark", "matrix", "menu", "multidraw", "multipleclick", "nocase", "numeric",
+    "numexp", "puzzle", "radio", "range", "raw", "reorder", "set", "sigunits",
+    "symtext", "textcomp", "time", "units", "vector", "wlist",
+}
+
+
+def _type_wims(t: str) -> str:
+    t = _ALIAS_TYPE_WIMS.get(t.lower(), t.lower())
+    return t if t in _TYPES_WIMS else "default"
+
 # Racine servie par `/api/static` (cf. `main.py`). `!rename` y ramène ses
 # chemins ; c'est aussi la barrière qui les y confine.
 _RESSOURCES_ROOT = os.path.normpath(
@@ -1475,7 +1501,12 @@ class DefEngine(_SlibMixin):
             # (simpquot's course step is e.g. "r1,r3" = replies 1 and 3).
             steps = [s.strip() for s in re.split(r"[;\n\r\t]+", oefsteps_val) if s.strip()]
             cur = type_meta.get("current_step", 1)
-            if 1 <= cur <= len(steps):
+            if steps and cur > len(steps):
+                # Au-delà de la dernière étape : l'énoncé final, que WIMS
+                # affiche avec le verdict de chaque étape, ne pose plus de
+                # champ — le repli « Entrez votre réponse » les listait tous.
+                answers = []
+            elif 1 <= cur <= len(steps):
                 refs: set[str] = set()
                 for tok in steps[cur - 1].split(","):
                     rm = re.fullmatch(r"r(\d+)", tok.strip(), re.I)
@@ -1526,6 +1557,10 @@ class DefEngine(_SlibMixin):
             html += (
                 f'<div class="oef-enterreply">{_ENTER_REPLY.get(self.lang or "fr", _ENTER_REPLY["fr"])}</div>'
             )
+            # Le tableau `oefnoembed` de `form.phtml` : une ligne par réponse,
+            # le nom dans la première colonne, le champ dans la seconde — d'où
+            # l'alignement des champs. Rendu en grille par le front.
+            html += '<div class="oefnoembed">'
             for a in orphelines:
                 # No embed → WIMS renders a default-width reply field. Algebraic
                 # answers (litexp/algexp…) can be long expressions
@@ -1550,7 +1585,7 @@ class DefEngine(_SlibMixin):
                     lien = (
                         ""
                         if nom.endswith((":", "=", "："))
-                        else (" =" if a.answer_type.lower() in _EGAL_APRES_LABEL else " :")
+                        else (" =" if _type_wims(a.answer_type) in _EGAL_APRES_LABEL else "")
                     )
                     label = (
                         f'<label for="{a.input_name}">'
@@ -1610,7 +1645,11 @@ class DefEngine(_SlibMixin):
                         'data-size="5x25"></span>'
                         '<span class="oef-matrix-par">)</span>'
                     )
-                html += f'<br>{label}{champ}'
+                html += (
+                    f'<div class="oef-noembed-ligne">'
+                    f'<span class="oef-noembed-nom">{label}</span>{champ}</div>'
+                )
+            html += "</div>"
             segments = _segment_statement(html)
             widget_names = {
                 s["name"] for s in segments if s["type"] in ("input", "slot", "menu")

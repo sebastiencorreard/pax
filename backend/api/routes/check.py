@@ -105,6 +105,10 @@ class CheckResponse(BaseModel):
     fin_du_parcours: bool | None = None
     # …et s'arrête-t-il sur une réponse fausse (`step.proc:66`) ?
     arret: bool = False
+    # L'énoncé tel que WIMS l'affiche après la dernière étape d'un `\nextstep`
+    # mené à terme : rendu à `m_step` = N+1, avec le verdict de chaque étape —
+    # celui de la dernière n'apparaît que là (`uniteadn/Aadn`, question 6).
+    enonce_final: list[dict] | None = None
 
 
 def _pixels_to_repere(s: str | None, transform: str, comma_decimal: bool) -> str | None:
@@ -441,6 +445,7 @@ async def check_exercise(
     # celle de tout le parcours (cf. `core/answer/bilan_etapes.py`) ; un envoi
     # intermédiaire, lui, ne note rien et n'enregistre aucune tentative.
     fin_du_parcours: bool | None = None
+    enonce_final: list[dict] | None = None
     arret = False
     if rendered.is_dynsteps and not has_invalid:
         from core.answer import bilan_etapes  # noqa: PLC0415
@@ -470,6 +475,16 @@ async def check_exercise(
             # (`step.proc:66`), et des étapes fixes n'y passent pas (N).
             m_final = etape + 1 if suite is False and not arret else etape
             global_score = bilan_etapes.bilan(rendered, parcours, etape, body.seed, m_final)
+            if m_final > etape:
+                try:
+                    enonce_final = load_and_render(
+                        exercise.oef_path, seed=body.seed, m_step=m_final,
+                        reglages=reg.moteur or None,
+                        prev_replies=parcours.get("reponses") or None,
+                        prev_scores=parcours.get("notes") or None,
+                    ).statement_segments
+                except Exception:  # noqa: BLE001 — l'énoncé final n'est qu'un plus
+                    enonce_final = None
 
     noanalyzeprint = any(
         "noanalyzeprint" in str(a.options.get("option", "")).lower()
@@ -598,6 +613,7 @@ async def check_exercise(
         has_invalid_format=has_invalid,
         has_next_step=suite,
         fin_du_parcours=fin_du_parcours,
+        enonce_final=enonce_final,
         arret=arret,
         noanalyzeprint=noanalyzeprint,
         feedback_html=feedback_html,

@@ -563,6 +563,23 @@ class TestQcmParEtapes:
         fin = r.json()
         assert fin["fin_du_parcours"] is True
         assert fin["global_score"] == pytest.approx(1.0)
+        # L'énoncé final (m_step = 7) porte le verdict de la question 6, que
+        # seul ce rendu connaît — et ne pose plus aucun champ.
+        texte = " ".join(seg.get("content") or "" for seg in fin["enonce_final"])
+        assert texte.count("Bonne réponse") == 6
+        assert not any(seg.get("type") in ("input", "radio-inline") for seg in fin["enonce_final"])
+
+    def test_reponse_auto(self, client, teacher_headers):
+        """Le mode debug donne les rangs à cocher, que le `:postdef` calcule."""
+        if client.get(f"/api/exercises/{self.AADN}", headers=teacher_headers).status_code != 200:
+            pytest.skip("Aadn absent de ce corpus (la CI n'importe qu'un sous-ensemble)")
+        for etape, attendu in enumerate(self.JUSTES, 1):
+            r = client.get(f"/api/render/{self.AADN}/debug?seed=42&m_step={etape}",
+                           headers=teacher_headers)
+            if r.status_code != 200:
+                pytest.skip("mode debug fermé")
+            (a,) = r.json()["answers"]
+            assert a["expected"] == attendu
 
 
 class TestCheck:

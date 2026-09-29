@@ -1065,6 +1065,12 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `sum` / `prod` suit `_tex_sums` (`texmath.c`) — 12 exercices d'intégrales
   l'affichaient en clair ; au passage `-pi/2` ne sort plus `(-1)·π/2`
   (21 énoncés), et `print()` n'est plus exécuté par `parse_expr`.
+  2026-09-30 : `Aadn` affiche le verdict de sa question 6 — l'énoncé final
+  (`m_step` = N+1) est renvoyé par `/api/check` (`enonce_final`) ; « Réponse
+  auto » résout les radios/cases `?analyze` en jouant chaque choix
+  (`solve_choix_analyze`) ; les champs non embarqués suivent le tableau
+  `oefnoembed` de `form.phtml` (grille alignée, séparateur par type comme
+  `replytype.proc`, 1 649 instantanés) ; bornes d'intégrale hors `\dfrac`.
 - [ ] **`fuseerep`, note finale** : zéros partout, WIMS 1/10, PAX 3 %. Nouvelle
   mesure pour la question `freepower` ci-dessous (1 condition sur 7 : 1,4/10
   avec `freepower`=1, 0,2 avec 2).

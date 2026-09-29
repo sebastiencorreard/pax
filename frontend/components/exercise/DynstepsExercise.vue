@@ -428,6 +428,11 @@ async function submit() {
 
     if (finDuParcours) {
       termine.value = true
+      // Comme WIMS : l'énoncé final montre le verdict de la dernière étape,
+      // que seul le rendu à `m_step` = N+1 connaît (`uniteadn/Aadn`, Q6).
+      if (checkResult.value.enonce_final?.length) {
+        statementSegments.value = await buildSegments(checkResult.value.enonce_final)
+      }
       noteFinale.value = checkResult.value.global_score
       const score = noteFinale.value
 
