@@ -228,3 +228,14 @@ def test_defaut_confparm_hors_liste(tmp_path):
         encoding="latin-1")
     fn = getattr(_module_confparm_defaults, "__wrapped__", _module_confparm_defaults)
     assert dict(fn(str(tmp_path / "def" / "x.def"))) == {"confparm2": "1", "confparm3": "4"}
+
+
+def test_dollar_final_garde_l_espace():
+    """`slib_out=$slib_out$slib_W $` : chez WIMS le `$` final ne vaut rien et
+    garde l'espace. Pris à la lettre, il se collait au mot suivant et
+    `challenge2005b/Agedevin` affichait « L'âge de é » pour Chloé."""
+    from core.oef.def_engine import DefEngine
+    e = DefEngine(seed=1)
+    e.ctx["a"] = "de"
+    assert e._eval_value("$a $") == "de "
+    assert e._eval_value("$ texte") == " texte"

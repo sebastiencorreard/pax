@@ -1909,6 +1909,12 @@ class DefEngine(_SlibMixin):
         # `!translate`, qui les déballe lui-même.
         if len(value) > 1 and value[0] == "$" and value[1] in " \t":
             return value[1] + self._eval_value(value[2:])
+        # Et en queue : `slib_out=$slib_out$slib_W $` garde l'espace qui
+        # sépare les mots de `slib/lang/frapostrophe`. Pris à la lettre, le `$`
+        # se collait au mot suivant — `de $Chloé`, lu `$Chlo` (vide) + `é` :
+        # `challenge2005b/Agedevin` affichait « L'âge de é ».
+        if len(value) > 1 and value[-1] == "$" and value[-2] in " \t" and not value.startswith("!"):
+            return self._eval_value(value[:-2]) + value[-2]
         # !cmd — WIMS command
         if value.startswith("!"):
             cmd_line = value[1:].strip()
