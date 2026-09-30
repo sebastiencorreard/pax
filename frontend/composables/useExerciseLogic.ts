@@ -61,7 +61,7 @@ export interface CodeEditorRun {
 }
 
 export interface BackendSegment {
-  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
+  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond' | 'crossword'
     | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline' | 'coord'
     | 'draw' | 'jmol' | 'geogebra' | 'reaction' | 'compose'
   content?: string
@@ -169,6 +169,17 @@ export interface CorrespondConfig {
   partial: boolean
 }
 
+/** La grille d'un `type=crossword` : le masque (numéro ≥ 0 pour une case à
+ *  remplir, -1 pour un noir), sans les lettres, et les définitions. */
+export interface CrosswordConfig {
+  rows: number
+  cols: number
+  cells: number[][]
+  horizontal: [number, string][]
+  vertical: [number, string][]
+  aide: 'allhelp' | 'tooltip' | 'clic'
+}
+
 /** Réglages du chronomètre de `type=reaction` (module `oefstatistiques`). */
 export interface ReactionConfig {
   /** Le champ que le widget alimente. */
@@ -192,6 +203,7 @@ export type Segment =
   | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean; attrs?: Record<string, string | boolean> }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
+  | { type: 'crossword';   name: string; config: CrosswordConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number; reply?: string }
   | { type: 'coord';       name: string; image: string; svg?: string; is_sup?: boolean }
   | { type: 'draw';        name: string; image: string; svg?: string; objet: string; couleur: string
@@ -295,6 +307,11 @@ export function useExerciseLogic() {
             lefts: cfg.lefts.map(prefixStaticUrls),
             rights: cfg.rights.map(prefixStaticUrls),
           },
+        })
+      } else if (s.type === 'crossword' && s.config) {
+        out.push({
+          type: 'crossword', name: s.name ?? '', is_sup: s.is_sup,
+          config: s.config as unknown as CrosswordConfig,
         })
       } else if (s.type === 'jsxgraph') {
         // The board JS is passed through untouched (NOT renderMath'd) — it

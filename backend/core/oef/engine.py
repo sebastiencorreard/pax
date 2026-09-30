@@ -147,7 +147,9 @@ _SEGMENT_PATTERN = re.compile(
     # later group numbers don't shift — it is re-read from group 0 below.
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"[^>]*></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
-    r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
+    # groups 6-7 : `correspond`, et `crossword` qui partage sa forme (nom +
+    # config JSON) — le type se relit dans le groupe 0.
+    r'|<span\s+class="oef-(?:correspond|crossword)"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
     # group 8: a JSXGraph board container (kept last so earlier groups don't shift)
     r'|<div class="pax-jsxgraph"[^>]*data-jsxgraph="([^"]*)"[^>]*></div>'
     # group 9: a CodeMirror editor container. Kept before the generic <div>
@@ -560,8 +562,9 @@ def _segment_statement(html: str) -> list[dict]:
                 config = _json.loads(_html.unescape(m.group(7)))
             except (ValueError, TypeError):
                 config = {}
+            kind = "crossword" if 'class="oef-crossword"' in m.group(0) else "correspond"
             segments.append({
-                "type": "correspond", "name": name, "config": config, "is_sup": is_sup,
+                "type": kind, "name": name, "config": config, "is_sup": is_sup,
             })
         elif m.group(8) is not None:
             # JSXGraph board — the init JS becomes segment *data* (not HTML),

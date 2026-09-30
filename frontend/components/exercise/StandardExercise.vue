@@ -65,14 +65,14 @@
           <div v-else v-for="(r, i) in checkResult.results" :key="r.input_name">
             <!-- correspond: render a mini-table of the correct pairs
                  instead of the generic "wrong, expected was X" text. -->
-            <template v-if="answerType(r.input_name) === 'correspond'">
+            <template v-if="answerType(r.input_name) === 'correspond' || answerType(r.input_name) === 'crossword'">
               <div class="flex items-baseline gap-2 flex-wrap mb-2">
                 <span class="font-medium" style="color:var(--color-text)" v-html="labelsHtml[r.input_name] || rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) + ' :'"></span>
                 <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">{{ $t('feedback.good') }}</span>
                 <span v-else style="color:var(--color-error)" class="font-medium">{{ $t('feedback.bad') }}</span>
               </div>
               <ExerciseCorrespondFeedback
-                v-if="!r.correct"
+                v-if="!r.correct && answerType(r.input_name) === 'correspond'"
                 :lefts="(answerOptions(r.input_name)?.lefts as string[]) || []"
                 :rights-correct="(r.expected ?? '').split(',')"
                 class="mb-3"
@@ -212,7 +212,8 @@ const allWrongAreCorrespond = computed(() => {
   if (!checkResult.value) return false
   const wrongs = checkResult.value.results.filter(r => !r.correct)
   if (wrongs.length === 0) return false
-  return wrongs.every(r => answerType(r.input_name) === 'correspond')
+  // `crossword` aussi : la grille marque chaque case, lettre attendue comprise.
+  return wrongs.every(r => ['correspond', 'crossword'].includes(answerType(r.input_name)))
 })
 
 // Analyze-checked exercises are all-or-nothing → show OUI/NON, not per-field.

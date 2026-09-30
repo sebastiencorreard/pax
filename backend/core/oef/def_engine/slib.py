@@ -79,21 +79,37 @@ class _SlibExit(Exception):
     """Sentinel raised by `!exit` inside a slib script to stop execution."""
 
 
-def _restaurer_boucle(ctx: dict, boucle: dict) -> None:
-    """Rend à la variable d'une boucle la valeur qu'elle avait avant elle.
+def valeur_finale_for(debut: float, fin: float, pas: float) -> str | None:
+    """Ce que vaut la variable d'un `!for` numérique **après** la boucle.
 
-    Un `!for` de WIMS n'expose pas sa variable au-delà de son corps ; la
-    version récursive de cet interpréteur le faisait en restaurant `saved`
-    après l'appel. Le comportement est le même, qu'on sorte par le `!next`
-    ou par un `!goto`.
+    WIMS ne la restaure pas : `exec_for` la pose avant de tester la borne,
+    `exec_next` l'avance puis décide de reboucler (`exec.c`). Elle vaut donc
+    la première valeur qui sort de l'intervalle — `4` après
+    `!for i=1 to 3`, `5` après `!for i=5 to 3`, qui ne tourne pas. `None`
+    quand la boucle est une erreur chez WIMS (pas nul, borne non finie).
     """
-    var, saved = boucle.get("var"), boucle.get("saved")
-    if not var:
-        return
-    if saved is not None:
-        ctx[var] = saved
-    else:
-        ctx.pop(var, None)
+    if pas == 0 or not all(math.isfinite(v) for v in (debut, fin, pas)):
+        return None
+    valeur = debut
+    for _ in range(_FOR_MAX):
+        if (pas > 0 and valeur > fin) or (pas < 0 and valeur < fin):
+            break
+        valeur += pas
+    return wims_float2str(valeur)
+
+
+def _clore_boucle(ctx: dict, boucle: dict) -> None:
+    """Fin d'un `!for` par son `!next` : la variable garde ce que WIMS y
+    laisse (`valeur_finale_for`), ou le dernier item d'une liste.
+
+    PAX la rendait à sa valeur d'avant la boucle, sur la foi d'un « `!for` de
+    WIMS n'expose pas sa variable » que `exec.c` dément. `slib/text/crossword`
+    sort de ses boucles par `!goto` et lit ensuite `$slib_u` : restaurée, la
+    variable était vide, et la grille de mots croisés aussi.
+    """
+    var = boucle.get("var")
+    if var and boucle.get("final") is not None:
+        ctx[var] = boucle["final"]
 
 
 class _SlibMixin:
@@ -1239,7 +1255,7 @@ class _SlibMixin:
                     if top["tours"] <= 100000 and self._eval_condition("if", top["cond"]):
                         i = top["head"] + 1
                         continue
-                    _restaurer_boucle(self.ctx, loop_stack.pop())
+                    loop_stack.pop()
                 i += 1
                 continue
             if stripped.startswith("!for "):
@@ -1282,6 +1298,7 @@ class _SlibMixin:
                         i = j + 1
                         continue
                     var, seq = num_m.group(1), list(valeurs_for(start, end, pas))
+                    final = valeur_finale_for(start, end, pas)
                 elif in_m:
                     var = in_m.group(1)
                     items_raw = self._subst(in_m.group(2).strip())
@@ -1289,10 +1306,14 @@ class _SlibMixin:
                     # items élagués — le `!for x in …` d'un slib ne se découpe
                     # pas autrement que celui d'un `.def`.
                     seq = wl.cutitems(items_raw)
+                    final = seq[-1] if seq else None
                 else:
                     i = j + 1
                     continue
                 if not seq:
+                    # `exec_for` a déjà posé la borne de départ.
+                    if num_m and final is not None:
+                        self.ctx[var] = final
                     i = j + 1
                     continue
                 # La boucle s'exécute **dans** le pointeur courant, et non par
@@ -1301,7 +1322,7 @@ class _SlibMixin:
                 # sa place dans `lines`, et `!next` décide de reboucler.
                 loop_stack.append({
                     "kind": "for", "var": var, "seq": seq, "pos": 0,
-                    "head": i, "end": j, "saved": self.ctx.get(var),
+                    "head": i, "end": j, "final": final,
                 })
                 self.ctx[var] = seq[0]
                 i += 1
@@ -1317,7 +1338,7 @@ class _SlibMixin:
                         self.ctx[top["var"]] = top["seq"][top["pos"]]
                         i = top["head"] + 1
                         continue
-                    _restaurer_boucle(self.ctx, loop_stack.pop())
+                    _clore_boucle(self.ctx, loop_stack.pop())
                 i += 1
                 continue
             if stripped.startswith("!goto "):
@@ -1326,14 +1347,13 @@ class _SlibMixin:
                 if tgt_idx is not None:
                     if_stack.clear()
                     # Sauter hors d'une boucle la termine : on dépile celles
-                    # dont le corps ne contient pas la cible, en rendant à
-                    # chaque variable sa valeur d'avant. C'est l'idiome des
-                    # gardes de slib — `!if $currentwhile > $maxwhile` suivi
-                    # d'un `!goto too_many_iter` qui doit vraiment sortir.
+                    # dont le corps ne contient pas la cible. Leur variable
+                    # garde sa valeur courante, comme chez WIMS — c'est ce que
+                    # `slib/text/crossword` lit après `!goto continue1`.
                     while loop_stack and not (
                         loop_stack[-1]["head"] <= tgt_idx <= loop_stack[-1]["end"]
                     ):
-                        _restaurer_boucle(self.ctx, loop_stack.pop())
+                        loop_stack.pop()
                     i = tgt_idx + 1
                 else:
                     i += 1

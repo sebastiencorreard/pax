@@ -96,16 +96,27 @@ class TestClicktile:
 
 
 class TestCrossword:
-    ATTENDU = "[],[organeau,une définition\nbaleinière,une autre]"
+    """Noté case par case, comme `anstype/crossword`."""
 
-    def test_mots_justes(self):
-        assert check_crossword("organeau;baleinière", self.ATTENDU).correct
+    # c o q
+    # a . .
+    # p . .
+    ATTENDU = "[c,o,q\na,,\np,,],[coq,un oiseau\ncap,une pointe]"
 
-    def test_ordre_indifferent_accents_casse(self):
-        assert check_crossword("BALEINIERE\nORGANEAU", self.ATTENDU).correct
+    def test_grille_juste(self):
+        assert check_crossword("c,o,q,\na,,,\np,,,", self.ATTENDU).correct
 
-    def test_mot_manquant(self):
-        assert not check_crossword("organeau", self.ATTENDU).correct
+    def test_accents_et_casse_ignores(self):
+        assert check_crossword("C,Ô,q,\nA,,,\np,,,", self.ATTENDU).correct
+
+    def test_plus_de_la_moitie_note_partielle(self):
+        # 4 cases justes sur 5 : 0,8.
+        r = check_crossword("c,o,x,\na,,,\np,,,", self.ATTENDU)
+        assert not r.correct and r.score == 0.8
+
+    def test_la_moitie_ou_moins_ne_vaut_rien(self):
+        r = check_crossword("x,x,x,\na,,,\np,,,", self.ATTENDU)
+        assert r.score == 0.0
 
 
 class TestSecuriteConservee:

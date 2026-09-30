@@ -69,7 +69,7 @@ from .presentation import (
     localize_decimals,
     wims_matrices_to_latex,
 )
-from .slib import _SlibExit, _SlibMixin, separe_pas, valeurs_for
+from .slib import _SlibExit, _SlibMixin, separe_pas, valeur_finale_for, valeurs_for
 from ..numfmt import wims_float2str
 from ..safe_math import entree_math_sure
 from ..i18n import list_separator, uses_comma_decimal
@@ -291,6 +291,18 @@ _ALIAS_TYPE_WIMS = {
     "link": "click", "number": "numeric", "ranges": "range", "select": "menu",
     "sigunit": "sigunits", "text": "case", "unit": "units", "wordcomp": "textcomp",
 }
+def _widget_crossword(nom: str, config: dict) -> str:
+    """Le marqueur du widget de mots croisés, découpé en segment par
+    `_segment_statement` (même forme que `oef-correspond`)."""
+    import html as _html  # noqa: PLC0415
+    import json as _json  # noqa: PLC0415
+
+    return (
+        f'<span class="oef-crossword" name="{nom}" '
+        f'data-config="{_html.escape(_json.dumps(config, ensure_ascii=False))}"></span>'
+    )
+
+
 _TYPES_WIMS = {
     "algexp", "aset", "atext", "case", "checkbox", "chembrut", "chemclick",
     "chemdraw", "chemeq", "chemformula", "chessgame", "chset", "click",
@@ -1426,7 +1438,7 @@ class DefEngine(_SlibMixin):
         segments = _segment_statement(html)
         widget_names = {
             s["name"] for s in segments
-            if s["type"] in ("input", "slot", "menu", "textarea", "correspond", "draw", "coord")
+            if s["type"] in ("input", "slot", "menu", "textarea", "correspond", "crossword", "draw", "coord")
         }
         # Widgets embedded inside a <table> become native <input>s and don't
         # surface as input segments — count them too so the fallback below
@@ -1646,6 +1658,9 @@ class DefEngine(_SlibMixin):
                     if m_cf:
                         nslots, largeur = self._emplacements_fill(m_cf.group(1), "")
                         champ = self._slots_html(a.input_name, nslots, largeur)
+                if a.answer_type.lower() == "crossword" and a.options.get("crossword"):
+                    champ = _widget_crossword(a.input_name, a.options["crossword"])
+                    label = ""
                 if a.answer_type.lower() in ("set", "fset", "aset"):
                     champ = (
                         f'<span class="oef-set-brace">{{</span>{champ}'
@@ -1855,14 +1870,11 @@ class DefEngine(_SlibMixin):
             # élagués — le `!for … in …` d'un `.def` ne se découpe pas
             # autrement que celui d'un slib ou d'un `!makelist`.
             items = wl.cutitems(items_raw)
-            saved = self.ctx.get(var)
+            # Après la boucle, la variable garde le dernier item : WIMS ne la
+            # restaure pas (`exec.c`, voir `valeur_finale_for`).
             for item in items:
                 self.ctx[var] = item.strip()
                 self._exec(loop.body, output_buf)
-            if saved is not None:
-                self.ctx[var] = saved
-            else:
-                self.ctx.pop(var, None)
             return
 
         m = re.match(r"(.*?)\s+to\s+(.*)", range_s, re.I)
@@ -1881,14 +1893,14 @@ class DefEngine(_SlibMixin):
             return
 
         var = loop.var.lstrip("$")
-        saved = self.ctx.get(var)
         for valeur in valeurs_for(start, end, pas):
             self.ctx[var] = valeur
             self._exec(loop.body, output_buf)
-        if saved is not None:
-            self.ctx[var] = saved
-        else:
-            self.ctx.pop(var, None)
+        # WIMS laisse à la variable la première valeur hors bornes — `4` après
+        # `!for i=1 to 3` —, non sa valeur d'avant la boucle.
+        final = valeur_finale_for(start, end, pas)
+        if final is not None:
+            self.ctx[var] = final
 
     def _eval_value(self, value: str) -> str:
         """Evaluate the RHS of an assignment.
@@ -3176,7 +3188,7 @@ class DefEngine(_SlibMixin):
             return "-1"
 
         m = re.match(
-            r"(maxima|pari|units-filter|chemeq|canvasdraw|moneyprint|float_calc|lceb|graphviz)\b\s*(.*)",
+            r"(maxima|pari|units-filter|chemeq|canvasdraw|moneyprint|float_calc|lceb|graphviz|crossword)\b\s*(.*)",
             args, re.DOTALL | re.I,
         )
         if not m:
@@ -3204,6 +3216,13 @@ class DefEngine(_SlibMixin):
             return chemeq(expr, str(self.ctx.get("chemeq_option", "")))
         if engine == "canvasdraw":
             return self._exec_canvasdraw(expr)
+        if engine == "crossword":
+            # `slib/text/crossword` dépose ses mots par `oef/togetfile.proc`
+            # puis passe le chemin du fichier : on le relit dans le magasin.
+            from .crossword import crossword  # noqa: PLC0415
+
+            nom = expr.strip().rsplit("/", 1)[-1]
+            return crossword(self._getfile_store.get(nom, ""))
         if engine == "graphviz":
             # Le seul vrai binaire : Graphviz, installé dans l'image. Moteur et
             # format de sortie se lisent, comme chez WIMS, dans les variables
@@ -6003,6 +6022,24 @@ class DefEngine(_SlibMixin):
                 # lisent comme `fill.inc` les lit — cf. `_emplacements_fill`.
                 nslots, largeur = self._emplacements_fill(n, size_str)
                 return self._slots_html(ref, nslots, largeur)
+            elif reply_type == "crossword":
+                from .crossword import construire  # noqa: PLC0415
+
+                rng_cw = random.Random(f"{self.seed}_crossword_{n}")
+                fait = construire(
+                    self._subst(self.ctx.get(f"replygood{n}", "")),
+                    rng_cw.randint(1, 2) == 2, rng_cw.choice,
+                )
+                if not fait:
+                    return ""
+                config = fait[1]
+                opt_cw = self._subst(self.ctx.get(f"replyoption{n}", "")).lower().split()
+                config["aide"] = (
+                    "allhelp" if "allhelp" in opt_cw
+                    else "tooltip" if "tooltip" in opt_cw else "clic"
+                )
+                self._touched_replies.add(ref)
+                return _widget_crossword(ref, config)
             elif reply_type == "correspond":
                 # `correspond`: bijection between two columns. replygood
                 # is "left1,left2,...;right1,right2,..." (rows separated
@@ -7812,6 +7849,27 @@ class DefEngine(_SlibMixin):
                         if c.strip()
                     ]
                     options["choices"] = choices
+                else:
+                    expected = good_raw.strip()
+
+            elif ans_type == "crossword":
+                # `anstype/crossword.input` : la grille, tirée dans un sens ou
+                # dans l'autre (`!set dir=!randint 2`), numérotée, avec ses
+                # définitions. L'attendu garde les lettres dans le sens tiré ;
+                # les options n'en portent que le masque.
+                from .crossword import construire  # noqa: PLC0415
+
+                rng_cw = random.Random(f"{self.seed}_crossword_{n}")
+                fait = construire(
+                    good_raw, rng_cw.randint(1, 2) == 2, rng_cw.choice
+                )
+                if fait:
+                    expected, options["crossword"] = fait
+                    opt_cw = self._subst(self.ctx.get(f"replyoption{n}", "")).lower().split()
+                    options["crossword"]["aide"] = (
+                        "allhelp" if "allhelp" in opt_cw
+                        else "tooltip" if "tooltip" in opt_cw else "clic"
+                    )
                 else:
                     expected = good_raw.strip()
 

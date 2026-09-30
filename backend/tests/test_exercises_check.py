@@ -174,20 +174,14 @@ def _candidats(ans):
         compose = js2wims1_display_answer(brut)
         if compose:
             yield compose
-    # `crossword` range dans son attendu `[grille],[mot,définition ⏎ …]` : la
-    # consigne, pas la réponse. L'élève saisit les **mots** ; on les extrait du
-    # second groupe (premier item de chaque ligne), comme le milieu d'un
-    # `range` ou le clic d'un `coord`.
+    # `crossword` : l'attendu est `[grille],[mot,définition ⏎ …]`. L'élève
+    # remplit la grille ; on soumet ses lettres comme le widget les envoie,
+    # une rangée par ligne, chaque case suivie d'une virgule.
     if ans.answer_type == "crossword":
-        groupes = re.findall(r"\[(.*?)\]", brut, re.DOTALL)
-        bloc = groupes[1] if len(groupes) >= 2 else (groupes[0] if groupes else "")
-        mots = []
-        for ligne in bloc.split("\n"):
-            it = [x.strip() for x in ligne.split(",") if x.strip()]
-            if it:
-                mots.append(it[0])
-        if mots:
-            yield "\n".join(mots)
+        from core.oef.def_engine.crossword import lire_grille, separer_attendu  # noqa: PLC0415
+        grille = lire_grille(separer_attendu(brut)[0])
+        if grille:
+            yield "\n".join("".join(c + "," for c in r) for r in grille)
     # `compose`/`textcomp` : l'attendu peut porter plusieurs rangs (`;`), dont
     # `anstype/compose` ne retient que le premier (`!rows2lines` puis
     # `!line 1`), la virgule valant espace. On soumet cette forme — sinon on

@@ -4084,33 +4084,22 @@ def check_clicktile(reply: str, expected: str) -> CheckResult:
 
 
 def check_crossword(reply: str, expected: str) -> CheckResult:
-    """Type ``crossword`` — mots croisés.
+    """Type ``crossword`` — mots croisés, noté **case par case**.
 
-    Port pragmatique de ``anstype/crossword`` : l'attendu est
-    ``[grille],[mot,définition ⏎ mot,définition …]`` ; on en extrait les
-    **mots** (premier item de chaque ligne du second groupe). La réponse liste
-    les mots saisis. Juste si l'ensemble des mots coïncide, à la casse et aux
-    accents près. La grille et les définitions ne servent qu'à l'affichage.
+    Port d'``anstype/crossword`` : chaque case pleine de la grille attendue
+    contre la lettre de même rang dans la réponse (une rangée par ligne, une
+    case par item), par ``issametext``. WIMS compte juste à 100 %, donne une
+    note partielle de ``round(10p)/10`` au-dessus de la moitié, rien en
+    dessous. L'attendu est la grille dans le sens où elle a été tirée
+    (``def_engine/crossword.construire``).
     """
-    def mots_attendus(s: str) -> list[str]:
-        groupes = re.findall(r"\[(.*?)\]", s or "", re.DOTALL)
-        bloc = groupes[1] if len(groupes) >= 2 else (groupes[0] if groupes else "")
-        out = []
-        for ligne in bloc.split("\n"):
-            items = [x.strip() for x in wl.cutitems(ligne) if x.strip() != ""]
-            if items:
-                out.append(items[0])
-        return out
+    from core.oef.def_engine.crossword import noter  # noqa: PLC0415
 
-    def norm(mots: list[str]) -> tuple[str, ...]:
-        return tuple(sorted(_deaccent(m).lower() for m in mots if m))
-
-    good = norm(mots_attendus(expected))
-    if not good:
-        return CheckResult(correct=False, score=0.0, method="crossword")
-    rep = [x.strip() for x in re.split(r"[\n;,]", reply or "") if x.strip()]
-    ok = norm(rep) == good
-    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="crossword")
+    p = noter(reply, expected)
+    if p >= 1.0:
+        return CheckResult(correct=True, score=1.0, method="crossword")
+    score = round(10 * p) / 10 if p > 0.5 else 0.0
+    return CheckResult(correct=False, score=score, method="crossword")
 
 
 def _split_top_level_alternatives(expected: str) -> list[str]:

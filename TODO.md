@@ -640,7 +640,7 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 - [~] Flydraw : `levelcurve`, `affine`, `filltoborder` et `rays` sont portés (2026-09-22 et 24, cf. I.1) ; `copyresized`, `plotjump`/`plotstep`, `diamondfill`/`dotfill` restent à vérifier
 - [x] Corriger `docs/types-exercices-reponses.md:82` : `symbols=` n'est pas « variables autorisées de formal » mais une option d'UI transverse (palette de boutons insérant au caret, cf. `wims/.../anstype/symbols.inc`) — 0 usage corpus, l'implémentation reste à faire côté front si le besoin apparaît
 
-- [ ] **Facteur 1 explicite dans les produits rendus en LaTeX** : PAX construit des `Mul(1, …, evaluate=False)`, que sympy imprimait `1 \cdot \frac{1}{x}` en 1.12 et imprime `1 \frac{1}{x}` depuis 1.14 — soit, pour un élève, un nombre mixte (« 1 et 1/x »). Le `\cdot` ne corrigeait rien, il rendait le défaut supportable : **ce facteur 1 n'a pas lieu d'être**, et c'est à la construction de l'expression qu'il faut le supprimer, pas à l'affichage. Repéré en mesurant la montée sympy 1.12 → 1.14 (PR #41) : 25 des 178 rendus modifiés sur 12 897 en viennent, dont `oefordrevabs.fr/deducencad2`, `OEFevalwimsfctref.fr/assocgr1` et `OEFevalwimsfnctg.fr/chforme5` (où il touche une palette de QCM). Le point de construction reste à localiser — vraisemblablement côté `cas.py`/`_sympify_arg`, là où un coefficient est appliqué à une expression déjà formée.
+- [x] **Facteur 1 explicite dans les produits rendus en LaTeX** — corrigé le 2026-08-26 (`33e393c0`), coché le 2026-09-30 après sonde : 0 occurrence sur 40 graines des trois exercices cités. Les deux `1\sqrt{2}` / `1 \pi` qui restent au corpus (`interpret5`, `opercplx4`) sont écrits par l'auteur (`\d\sqrt{2}` avec `d=1`) : WIMS les affiche pareil. : PAX construit des `Mul(1, …, evaluate=False)`, que sympy imprimait `1 \cdot \frac{1}{x}` en 1.12 et imprime `1 \frac{1}{x}` depuis 1.14 — soit, pour un élève, un nombre mixte (« 1 et 1/x »). Le `\cdot` ne corrigeait rien, il rendait le défaut supportable : **ce facteur 1 n'a pas lieu d'être**, et c'est à la construction de l'expression qu'il faut le supprimer, pas à l'affichage. Repéré en mesurant la montée sympy 1.12 → 1.14 (PR #41) : 25 des 178 rendus modifiés sur 12 897 en viennent, dont `oefordrevabs.fr/deducencad2`, `OEFevalwimsfctref.fr/assocgr1` et `OEFevalwimsfnctg.fr/chforme5` (où il touche une palette de QCM). Le point de construction reste à localiser — vraisemblablement côté `cas.py`/`_sympify_arg`, là où un coefficient est appliqué à une expression déjà formée.
 
 Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`/`\while`, alias `r1`/`reply1`/`rep1`, `\feedback` + `sc_reply`/`m_reply`, bonnes réponses multiples, `case` avec `|`, `correspond`+`split`, virgule décimale, `\hint`/`\help`/`\solution`, `\css`.
 
@@ -792,9 +792,24 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     `bin/graphviz` (`def_engine/graphviz.py`). Huit énoncés affichaient une
     image vide ; `!words` manquait aussi, qui étiquetait les points
     cliquables d'`oeflceb` `UNKNOWN_CMD:words`.
-  - `text/crossword` (5 appels, `oefvocmarine`, `oefsolaire`) : `!exec
-    crossword` est un binaire WIMS (`wims/src/Misc/crossword/crossword.c`,
-    1 128 lignes) ; la grille sort vide.
+  - ~~`text/crossword`~~ — réglé le 2026-09-30. Trois manques s'empilaient :
+    - `!exec crossword` n'existait pas. Le générateur de grilles
+      (`wims/src/Misc/crossword/crossword.c`, déterministe) est porté en
+      Python (`def_engine/crossword.py`) et confronté au binaire de l'arbre :
+      460 listes tirées des vocabulaires du corpus, 460 grilles identiques. Le
+      piège : `gcc -O2` a remplacé le hachage qui déborde par
+      `addq $0x7fffffff`, et c'est le binaire qu'on suit, pas le source.
+    - La grille sortait quand même vide : l'interpréteur des slibs
+      **restaurait** la variable d'un `!for` à la sortie de la boucle, `!goto`
+      compris, et `crossword` lit `$slib_u` après `!goto continue1`. `exec.c`
+      ne restaure rien : la variable garde la première valeur hors bornes
+      (`4` après `!for i=1 to 3`), ou sa valeur courante après un `!goto`.
+      Corrigé dans les deux moteurs (`.def` et slib).
+    - Le type de réponse n'était porté qu'en surface (une liste de mots dans un
+      champ texte). Il est maintenant fidèle à `anstype/crossword` : la grille
+      tirée dans un sens ou l'autre, numérotée, avec ses définitions, une case
+      par lettre (`CrosswordAnswer.vue`), notée case par case (`issametext`),
+      partielle au-dessus de la moitié. Le navigateur ne reçoit que le masque.
   - `geo3D/threeD` (`OEFvocSolides/pave`) produit une applet Java, qu'aucun
     navigateur n'exécute plus.
   - ~~`intnum` non émulé~~ — la vraie cause était en amont :
@@ -804,8 +819,9 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     `_call_maxima` : `aire1` à `aire3` rendent `21` et `111/4`, et se notent.
     `aire4` a suivi une fois `e` lu comme la constante (voir plus bas).
     `intnum` lui-même reste non émulé.
-  - `utilities/tooltip` rend l'infobulle en CSS pur (`wims_tooltip`) : vérifier
-    que le front porte ces classes.
+  - ~~`utilities/tooltip`~~ — vérifié le 2026-09-30 au navigateur
+    (`oefprobacond/arbrepondpara1`) : `main.css` porte `wims_tooltip`, le
+    texte est caché au repos et s'affiche au survol.
   - L'idiome du `$` nu. WIMS efface un `$` suivi d'un blanc (`substit`,
     `evalue.c:57`) ; PAX le garde, et il reste dans le TeX de `text/matrixtex`
     comme dans les commandes de `circuits/draw`. Une règle posée dans `_subst`

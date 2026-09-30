@@ -75,6 +75,16 @@
         @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
+      <ExerciseCrosswordAnswer
+        v-else-if="node.seg.type === 'crossword'"
+        :name="node.seg.name"
+        :config="node.seg.config"
+        :value="ctx.replies.value[node.seg.name] || ''"
+        :expected="attendu(node.seg.name)"
+        :submitted="ctx.submitted.value"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
+      />
+
       <ExerciseCoordPlane v-else-if="node.seg.type === 'coord'"
         :name="node.seg.name"
         :image="node.seg.image"
@@ -179,6 +189,12 @@ defineProps<{ nodes: SegmentNode[] }>()
 const ctx = inject(PAX_STATEMENT_CTX) as PaxStatementCtx
 
 // Selected / correct / incorrect state of an inline radio choice.
+// L'attendu d'un champ après envoi (une fonction : dans une flèche du
+// template, `node.seg.name` perd le type que le `v-if` a établi).
+function attendu(name: string): string {
+  return ctx.checkResult.value?.results.find(r => r.input_name === name)?.expected || ''
+}
+
 function riClass(seg: { name: string; value: string }): string {
   const selected = ctx.replies.value[seg.name] === seg.value
   if (!ctx.submitted.value) return selected ? 'is-selected' : ''

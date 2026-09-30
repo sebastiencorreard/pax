@@ -1474,11 +1474,17 @@ class TestSlibFlatInterpreter:
         ctx = self._run(["!set acc=", "!for k =1 to 3", "!set acc=$acc$k", "!next"])
         assert ctx["acc"] == "123"
 
-    def test_the_loop_variable_is_restored_afterwards(self):
-        """Un `!for` n'expose pas sa variable au-delà de son corps."""
+    def test_the_loop_variable_keeps_what_wims_leaves(self):
+        """`exec_next` avance la variable puis sort : elle vaut la première
+        valeur hors bornes, pas celle d'avant la boucle (`exec.c`)."""
         ctx = self._run(["!set k=avant", "!for k =1 to 3", "!set vu=$k", "!next"])
-        assert ctx["k"] == "avant"
+        assert ctx["k"] == "4"
         assert ctx["vu"] == "3"
+
+    def test_a_loop_that_does_not_run_still_sets_its_variable(self):
+        # `exec_for` pose la borne de départ avant de la comparer.
+        ctx = self._run(["!set k=avant", "!for k =5 to 3", "!next"])
+        assert ctx["k"] == "5"
 
     def test_a_goto_escapes_the_loop(self):
         """Le cas qui motive la refonte : sortir d'une boucle par un label."""
@@ -1498,13 +1504,15 @@ class TestSlibFlatInterpreter:
         assert ctx["tours"] == "3"
         assert ctx["acc"] == "12"
 
-    def test_the_variable_is_restored_even_when_leaving_by_goto(self):
+    def test_leaving_by_goto_keeps_the_current_value(self):
+        # L'idiome de `slib/text/crossword` : `!goto continue1` hors de la
+        # boucle, puis `!line $slib_u to -1`.
         ctx = self._run([
             "!set k=avant",
-            "!for k =1 to 9", "!goto dehors", "!next",
+            "!for k =1 to 9", "!if $k=2", "!goto dehors", "!endif", "!next",
             ":dehors", "!set fait=1",
         ])
-        assert ctx["k"] == "avant"
+        assert ctx["k"] == "2"
         assert ctx["fait"] == "1"
 
     def test_nested_loops(self):
