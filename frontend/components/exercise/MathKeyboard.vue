@@ -113,7 +113,7 @@
                      échappé (`indice`) : rien ne vient de l'exercice. -->
                 <!-- eslint-disable vue/no-v-html -->
                 <span
-                  v-if="brute.maj && !majActive"
+                  v-if="brute.maj && !brute.discret && !majActive"
                   class="pax-mk-indice"
                   aria-hidden="true"
                   v-html="indice(brute.maj)" />

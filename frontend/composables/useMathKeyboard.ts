@@ -55,6 +55,13 @@ export interface ToucheMath {
   maj?: ToucheMath
   /** Une case vide, pour aligner les blocs. */
   vide?: boolean
+  /**
+   * Taire l'indice de la variante (le petit `ⁿ√` dans le coin de `√`) : la
+   * variante reste sous la majuscule, mais l'annoncer sur la touche prêterait
+   * à confusion — une racine n-ième lue au-dessus d'une racine carrée, un
+   * exposant au-dessus de chaque chiffre.
+   */
+  discret?: boolean
 }
 
 export type OngletClavier = '123' | 'fx' | 'abc' | 'grec'
@@ -93,6 +100,7 @@ const recip = (nom: string): ToucheMath =>
   ({ latex: `\\${nom}^{-1}`, texte: `arc${nom}()`, recul: 1, famille: 'fonction', aria: `arc${nom}` })
 /** `t`, et sa variante sous la majuscule. */
 const m = (t: ToucheMath, maj: ToucheMath): ToucheMath => ({ ...t, maj })
+const discret = (t: ToucheMath): ToucheMath => ({ ...t, discret: true })
 const VIDE: ToucheMath = { vide: true }
 
 const MAJ: ToucheMath = { libelle: '⇧', action: 'maj', famille: 'action', aria: 'keyboard.shift', largeur: 2 }
@@ -123,7 +131,7 @@ function onglet123(decimal: string): Disposition {
   const liste = decimal === ',' ? ';' : ','
   // Sous la majuscule, un chiffre devient la puissance correspondante :
   // `2` → `^2`, comme la rangée des exposants de MathLive.
-  const ch = (n: string) => m(c(n), op(`\\square^{${n}}`, `^${n}`))
+  const ch = (n: string) => discret(m(c(n), op(`\\square^{${n}}`, `^${n}`)))
   // `\lbrack … \rbrack` : `[` seul passerait, mais une paire `[…;…]` est une
   // matrice pour `renderMath`, qui l'afficherait entre parenthèses.
   return {
@@ -132,7 +140,7 @@ function onglet123(decimal: string): Disposition {
       [m(v('x'), v('y')), m(v('n'), v('t')), VIDE,
         ch('7'), ch('8'), ch('9'), op('\\div', '/'), VIDE,
         m(sym('e', 'e'), fn('ln', 'ln')), sym('\\pi', 'pi'),
-        m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE)],
+        discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE))],
       [m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')), VIDE,
         ch('4'), ch('5'), ch('6'), op('\\times', '*'), VIDE,
         m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
@@ -156,7 +164,7 @@ function ongletFx(): Disposition {
     rangees: [
       [m(fn('sin', 'sin'), recip('sin')), m(fn('ln', 'ln'), fn('log', 'log')),
         m(fnx('|\\square|', 'abs'), op('\\square!', '!')),
-        m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE),
+        discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE)),
         m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
         m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
         m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
