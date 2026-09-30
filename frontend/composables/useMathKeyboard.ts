@@ -282,7 +282,7 @@ export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCom
       rangees: [
         [c('7'), c('8'), c('9'), op('(', '('), op(')', ')')],
         [c('4'), c('5'), c('6'), op('\\div', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
-        [c('1'), c('2'), c('3'), op('\\times', '*'), op('\\square^{n}', '^')],
+        [c('1'), c('2'), c('3'), op('\\times', '*'), op('\\square^{2}', '^2')],
         [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi')],
       ],
     }
@@ -293,7 +293,7 @@ export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCom
       rangees: [
         [c('7'), c('8'), c('9'), op('\\lbrack', '['), op('\\rbrack', ']'), sym(liste, liste), sym('\\infty', 'infinity')],
         [c('4'), c('5'), c('6'), op('\\{', '{'), op('\\}', '}'), op('\\div', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
-        [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('\\times', '*'), op('\\square^{n}', '^')],
+        [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('\\times', '*'), op('\\square^{2}', '^2')],
         [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi'), sym('<', '<'), sym('>', '>')],
       ],
     }
