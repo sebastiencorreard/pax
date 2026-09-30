@@ -121,26 +121,29 @@ const TROIS_BLOCS = 'repeat(2, minmax(0, 1fr)) 0.4rem repeat(4, minmax(0, 1fr)) 
 function onglet123(decimal: string): Disposition {
   const autre = decimal === ',' ? '.' : ','
   const liste = decimal === ',' ? ';' : ','
+  // Sous la majuscule, un chiffre devient la puissance correspondante :
+  // `2` → `^2`, comme la rangée des exposants de MathLive.
+  const ch = (n: string) => m(c(n), op(`\\square^{${n}}`, `^${n}`))
   // `\lbrack … \rbrack` : `[` seul passerait, mais une paire `[…;…]` est une
   // matrice pour `renderMath`, qui l'afficherait entre parenthèses.
   return {
     colonnes: TROIS_BLOCS,
     rangees: [
       [m(v('x'), v('y')), m(v('n'), v('t')), VIDE,
-        c('7'), c('8'), c('9'), op('\\div', '/'), VIDE,
+        ch('7'), ch('8'), ch('9'), op('\\div', '/'), VIDE,
         m(sym('e', 'e'), fn('ln', 'ln')), sym('\\pi', 'pi'),
         m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE)],
       [m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')), VIDE,
-        c('4'), c('5'), c('6'), op('\\times', '*'), VIDE,
+        ch('4'), ch('5'), ch('6'), op('\\times', '*'), VIDE,
         m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
         m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
         m(fnx('|\\square|', 'abs'), op('\\square!', '!'))],
       [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')), VIDE,
-        c('1'), c('2'), c('3'), op('−', '-'), VIDE,
+        ch('1'), ch('2'), ch('3'), op('−', '-'), VIDE,
         m(sym(liste, liste), sym(':', ':')), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
         EFFACER],
       [MAJ, VIDE,
-        c('0'), m(c(decimal), c(autre)), m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), VIDE,
+        ch('0'), m(c(decimal), c(autre)), m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), VIDE,
         GAUCHE, DROITE, ENTREE],
     ],
   }
@@ -164,8 +167,8 @@ function ongletFx(): Disposition {
         sym('e', 'e'), sym('\\pi', 'pi'), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
         m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')),
         m(sym('=', '='), sym('\\ne', '!='))],
-      [m(fn('tan', 'tan'), recip('tan')), m(fn('sinh', 'sinh'), fn('cosh', 'cosh')),
-        fn('tanh', 'tanh'), op('10^{\\square}', '10^'),
+      [m(fn('tan', 'tan'), recip('tan')), op('e^{\\square}', 'e^'), op('10^{\\square}', '10^'),
+        m(v('k'), v('p')),
         m(v('x'), v('y')), m(v('n'), v('t')), m(v('a'), v('b')), sym('i', 'i'),
         m(sym(';', ';'), sym(',', ',')), EFFACER],
       [MAJ, op('+', '+'), op('−', '-'), op('\\times', '*'), op('\\div', '/'),
