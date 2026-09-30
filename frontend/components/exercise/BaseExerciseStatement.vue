@@ -131,22 +131,25 @@ const emit = defineEmits<{
 const champActif = ref<HTMLInputElement | HTMLTextAreaElement | null>(null)
 const tactile = ref(false)
 
-// Fermé par défaut, au doigt comme à la souris : une planche qui s'ouvre
-// d'elle-même encombre l'énoncé. Une fois ouverte, elle suit l'élève de
-// champ en champ jusqu'à ce qu'il la referme.
+// Au doigt, ouvert d'office : le clavier de l'appareil cache les caractères
+// mathématiques dans ses sous-menus, le nôtre les met sous le pouce. À la
+// souris, fermé : le clavier physique suffit, et la pastille l'ouvre à la
+// demande. Dans les deux cas, il suit l'élève de champ en champ jusqu'à ce
+// qu'il le referme (`onMounted` pose l'état initial).
 const clavierOuvert = ref(false)
 
 // Le clavier se règle sur ce que le champ attend : son `name` est celui de la
 // réponse, dont on connaît le type. Un champ de mots (`case`, `atext`…) n'en
 // reçoit aucun — le clavier de l'appareil y suffit.
-const profilChamp = computed(() => {
-  const nom = champActif.value?.getAttribute('name') ?? ''
+function profilDe(el: Element | null) {
+  const nom = el?.getAttribute('name') ?? ''
   const reponse = props.rendered.answers.find(a => a.input_name === nom)
   // Un `default` arrive avec le type vers lequel `anstype/default` l'aiguille
   // (`-3/4` → `numeric`) : c'est lui qui dit ce que le champ attend.
   const effectif = reponse?.options?.type_effectif
   return profilPourType(typeof effectif === 'string' ? effectif : reponse?.answer_type)
-})
+}
+const profilChamp = computed(() => profilDe(champActif.value))
 const champClavier = computed(() => (profilChamp.value === 'texte' ? null : champActif.value))
 
 // La touche Entrée du clavier : le champ suivant, dans l'ordre du document,
@@ -192,7 +195,14 @@ function surPerteFocus(e: FocusEvent) {
   if (e.relatedTarget === null || horsClavier(e.relatedTarget)) champActif.value = null
 }
 function surAppui(e: PointerEvent) {
-  if (!champActif.value || estChampTexte(e.target) || !horsClavier(e.target)) return
+  // L'appui précède le focus : c'est le moment de taire le clavier du
+  // système, avant qu'il ne s'ouvre à côté du nôtre (un champ rendu après
+  // l'ouverture n'a pas encore reçu `inputmode="none"`).
+  if (estChampTexte(e.target)) {
+    if (tactile.value && clavierOuvert.value) taisSysteme(e.target)
+    return
+  }
+  if (!champActif.value || !horsClavier(e.target)) return
   champActif.value = null
 }
 
@@ -200,6 +210,13 @@ function surAppui(e: PointerEvent) {
 // celle de MathLive : `inputmode="none"` le tient caché sur tous les champs de
 // l'énoncé, et le rend à la fermeture. À la souris, il n'y a rien à cacher.
 const modesSauves = new Map<HTMLElement, string | null>()
+/** `inputmode="none"` sur `el` — sauf un champ de mots, qui n'a pas de
+ *  clavier PAX et garde celui de l'appareil. */
+function taisSysteme(el: HTMLElement) {
+  if (profilDe(el) === 'texte') return
+  if (!modesSauves.has(el)) modesSauves.set(el, el.getAttribute('inputmode'))
+  el.setAttribute('inputmode', 'none')
+}
 function champsTexte(): HTMLElement[] {
   const racine = statementEl.value
   if (!racine) return []
@@ -208,10 +225,7 @@ function champsTexte(): HTMLElement[] {
 watch(clavierOuvert, (ouvert) => {
   if (!tactile.value) return
   if (ouvert) {
-    for (const el of champsTexte()) {
-      if (!modesSauves.has(el)) modesSauves.set(el, el.getAttribute('inputmode'))
-      el.setAttribute('inputmode', 'none')
-    }
+    for (const el of champsTexte()) taisSysteme(el)
     // Le clavier du système, déjà ouvert, ne se retire qu'au prochain focus.
     const champ = champActif.value
     if (champ) {
@@ -230,6 +244,7 @@ watch(clavierOuvert, (ouvert) => {
 
 onMounted(() => {
   tactile.value = pointeurGrossier()
+  clavierOuvert.value = tactile.value
   document.addEventListener('focusin', surFocus)
   document.addEventListener('focusout', surPerteFocus)
   document.addEventListener('pointerdown', surAppui, true)
