@@ -49,7 +49,11 @@ v-if="num > 0" type="button" class="cw-num"
           <div
 v-for="[n, texte] in bloc.items" :key="n" class="cw-def"
                :class="{ 'is-actif': actif === n }">
-            <span class="cw-def-num">{{ n }}</span> {{ texte }}
+            <span class="cw-def-num">{{ n }}</span>
+            <!-- Du HTML d'auteur, comme l'énoncé : `baleine`, `cap` et `vigie`
+                 donnent leurs deux sens en `<ol>`, que WIMS insère tel quel. -->
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <span class="cw-def-texte" v-html="texte" />
           </div>
         </div>
       </template>
@@ -186,7 +190,9 @@ function aideBulle(n: number): string | undefined {
   if (props.config.aide !== 'tooltip') return undefined
   const h = props.config.horizontal.find(([m]) => m === n)
   const v = props.config.vertical.find(([m]) => m === n)
-  return [h && `→ ${h[1]}`, v && `↓ ${v[1]}`].filter(Boolean).join('\n')
+  // Un `title` n'affiche pas de HTML : on n'en garde que le texte.
+  const brut = (html: string) => html.replace(/<li[^>]*>/gi, ' • ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+  return [h && `→ ${brut(h[1])}`, v && `↓ ${brut(v[1])}`].filter(Boolean).join('\n')
 }
 
 // Après envoi : la grille attendue, pour marquer chaque case (`anstype/crossword`).
@@ -244,7 +250,9 @@ function etatCase(k: number, j: number) {
 .cw-defs-titre { font-weight: 600; margin-bottom: 0.25rem; }
 .cw-def { font-size: 0.9rem; padding: 0.1rem 0.3rem; border-radius: 0.25rem; }
 .cw-def.is-actif { background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
-.cw-def-num { font-weight: 600; color: var(--color-primary); }
+.cw-def-num { font-weight: 600; color: var(--color-primary); margin-right: 0.3em; }
+.cw-def-texte :deep(ol) { list-style: decimal; padding-left: 1.75rem; margin: 0.15rem 0; }
+.cw-def-texte :deep(ul) { list-style: disc; padding-left: 1.75rem; margin: 0.15rem 0; }
 @media (max-width: 480px) {
   .cw-grille td { width: 1.7rem; height: 1.7rem; }
   .cw-input { font-size: 0.9rem; }
