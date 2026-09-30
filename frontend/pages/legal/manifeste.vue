@@ -20,7 +20,10 @@
       style="background:var(--color-surface);border-color:var(--color-border)">
       <h2 class="text-base font-semibold">{{ $t('legal.manifeste.merci_title') }}</h2>
       <p class="text-sm whitespace-pre-line">{{ $t('legal.manifeste.merci_body') }}</p>
-      <p class="text-sm">
+      <p class="text-sm space-x-4">
+        <NuxtLink to="/legal/wims" class="underline" style="color:var(--color-primary)">
+          {{ $t('legal.manifeste.merci_link2') }}
+        </NuxtLink>
         <a
           href="https://wims.univ-cotedazur.fr/" target="_blank" rel="noopener"
           class="underline" style="color:var(--color-primary)">

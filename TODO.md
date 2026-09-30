@@ -1273,6 +1273,8 @@ Options :
 
 ## 3. Manifeste et remerciements à WIMS
 
+- [x] Page « Merci à WIMS » (`/legal/wims`, 2026-10-01) : l'héritage, les exercices (≈ 9 700, 564 modules, plus de 140 auteurs), le format et le moteur, le code source comme référence, la documentation. Liée du pied de page et du Manifeste. La dette envers MathLive (clavier) est dite dans la page Licences, section « Inspirations ».
+
 # IV. Sécurité
 
 ## 1. Retirer la possibilité de créer des user admin et super-admin depuis l'API

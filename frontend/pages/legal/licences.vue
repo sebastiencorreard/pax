@@ -61,6 +61,22 @@
         {{ $t('legal.licences.deps_note') }}
       </p>
     </section>
+
+    <!-- Ce qui n'est pas une dépendance mais une dette : une idée reprise,
+         sans son code. -->
+    <section
+      class="rounded-xl border p-6 space-y-3"
+      style="background:var(--color-surface);border-color:var(--color-border)">
+      <h2 class="text-base font-semibold">{{ $t('legal.licences.insp_title') }}</h2>
+      <p class="text-sm">{{ $t('legal.licences.insp_body') }}</p>
+      <p class="text-sm">
+        <a
+          href="https://mathlive.io/mathfield/virtual-keyboard/" target="_blank" rel="noopener"
+          class="underline" style="color:var(--color-primary)">
+          {{ $t('legal.licences.insp_link') }}
+        </a>
+      </p>
+    </section>
   </article>
 </template>
 

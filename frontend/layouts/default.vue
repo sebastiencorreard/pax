@@ -12,6 +12,7 @@ class="border-t py-4 text-center text-xs space-y-1"
         <NuxtLink to="/legal/cgu" class="hover:underline">{{ $t('legal.cgu.title') }}</NuxtLink>
         <NuxtLink to="/legal/licences" class="hover:underline">{{ $t('legal.licences.title') }}</NuxtLink>
         <NuxtLink to="/legal/manifeste" class="hover:underline">{{ $t('legal.manifeste.title') }}</NuxtLink>
+        <NuxtLink to="/legal/wims" class="hover:underline">{{ $t('legal.wims.title') }}</NuxtLink>
       </div>
     </footer>
   </div>
