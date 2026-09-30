@@ -88,16 +88,41 @@
               {{ o.libelle }}
             </button>
           </div>
-          <button
-            v-for="(t, i) in ACTIONS"
-            :key="'a' + i"
-            type="button"
-            class="pax-mk-key is-action"
-            :aria-label="aria(t)"
-            @mousedown.prevent
-            @click="frapper(t)">
-            {{ t.libelle }}
-          </button>
+          <div class="pax-mk-commandes">
+            <template v-if="!compacte">
+              <button
+                v-for="(t, i) in editionVisibles"
+                :key="'e' + i"
+                type="button"
+                class="pax-mk-key is-action pax-mk-edition"
+                :title="aria(t)"
+                :aria-label="aria(t)"
+                @mousedown.prevent
+                @click="frapper(t)">
+                {{ t.libelle }}
+              </button>
+            </template>
+            <button
+              v-for="(t, i) in ACTIONS"
+              :key="'a' + i"
+              type="button"
+              class="pax-mk-key is-action"
+              :title="aria(t)"
+              :aria-label="aria(t)"
+              @mousedown.prevent
+              @click="frapper(t)">
+              {{ t.libelle }}
+            </button>
+            <!-- Entrée : le champ suivant, ou « Vérifier » depuis le dernier. -->
+            <button
+              type="button"
+              class="pax-mk-key is-action pax-mk-entree"
+              :title="$t('keyboard.enter')"
+              :aria-label="$t('keyboard.enter')"
+              @mousedown.prevent
+              @click="$emit('entree')">
+              ↵
+            </button>
           <!-- Masquer : mis en valeur, comme la touche équivalente d'un clavier
                de tablette — c'est la seule qui referme pour de bon. -->
           <button
@@ -115,6 +140,7 @@
               <path d="M8.5 17.5 12 21l3.5-3.5" />
             </svg>
           </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -124,7 +150,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import {
-  ACTIONS, ONGLETS, insere, plancheCompacte, rangees,
+  ACTIONS, ACTIONS_EDITION, ONGLETS, colle, insere, plancheCompacte, rangees,
   type OngletClavier, type ProfilClavier, type ToucheMath,
 } from '~/composables/useMathKeyboard'
 import { useKatex } from '~/composables/useKatex'
@@ -139,7 +165,7 @@ const props = defineProps<{
   profil?: ProfilClavier
 }>()
 
-defineEmits<{ close: [], open: [] }>()
+defineEmits<{ close: [], open: [], entree: [] }>()
 
 const { t: tr } = useI18n()
 const { renderMath } = useKatex()
@@ -220,9 +246,24 @@ onBeforeUnmount(() => { observateur?.disconnect(); reserve(0) })
 
 // `mousedown.prevent` sur chaque touche empêche le champ de perdre le focus :
 // sans cela, le clic vole le curseur et l'insertion partirait de nulle part.
-function frapper(t: ToucheMath) {
+// « Coller » n'a de sens que si le navigateur ouvre le presse-papiers à la
+// page (contexte sécurisé) ; sinon la touche n'apparaît pas.
+const editionVisibles = computed(() => ACTIONS_EDITION.filter(t =>
+  t.action !== 'coller' || (import.meta.client && !!navigator.clipboard?.readText)))
+
+async function frapper(t: ToucheMath) {
   if (t.action === 'maj') { maj.value = !maj.value; return }
   if (!props.cible) return
+  if (t.action === 'coller') {
+    const champ = props.cible
+    try {
+      colle(champ, await navigator.clipboard.readText())
+    } catch {
+      // Refusé par l'élève ou le navigateur : rien à coller.
+      champ.focus()
+    }
+    return
+  }
   insere(props.cible, t)
   // Une majuscule, comme sur un téléphone : la touche retombe après usage.
   if (maj.value && t.texte) maj.value = false
@@ -310,12 +351,22 @@ function frapper(t: ToucheMath) {
 
 /* La rangée d'actions : les onglets à gauche, les commandes à droite. */
 .pax-mk-actions {
-  display: grid;
-  grid-template-columns: 1fr repeat(4, 2.9rem);
-  grid-auto-rows: 2.6rem;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
   margin-top: 0.3rem;
 }
+.pax-mk-actions > .pax-mk-onglets,
+.pax-mk-actions > .pax-mk-plus { flex: 1 1 8rem; height: 2.6rem; }
+.pax-mk-commandes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 2.9rem;
+  grid-auto-rows: 2.6rem;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+.pax-mk-entree { font-size: 1.2rem; }
 
 .pax-mk-onglets {
   display: flex;
@@ -344,7 +395,6 @@ function frapper(t: ToucheMath) {
 
 /* Compacte : une calculatrice n'a pas à courir toute la largeur. */
 .pax-mk.is-compact { width: min(100%, 24rem); }
-.pax-mk.is-compact .pax-mk-actions { grid-template-columns: 1fr repeat(4, 2.9rem); }
 .pax-mk-plus { font-size: 1.2rem; font-weight: 700; }
 
 .pax-mk-close {
@@ -416,7 +466,12 @@ function frapper(t: ToucheMath) {
 @media (max-width: 480px) {
   .pax-mk { padding: 0.4rem 0.3rem calc(0.4rem + env(safe-area-inset-bottom, 0px)); border-radius: 0.75rem 0.75rem 0 0; }
   .pax-mk-grid { grid-auto-rows: 2.35rem; gap: 0.2rem; min-height: calc(4 * 2.35rem + 3 * 0.2rem); }
-  .pax-mk-actions { grid-template-columns: 1fr repeat(4, 2.4rem); grid-auto-rows: 2.35rem; gap: 0.2rem; margin-top: 0.2rem; }
+  /* Les onglets prennent leur propre rangée ; les commandes, la suivante. */
+  .pax-mk-actions { gap: 0.2rem; margin-top: 0.2rem; }
+  .pax-mk-actions > .pax-mk-onglets { flex-basis: 100%; height: 2.35rem; }
+  .pax-mk-actions > .pax-mk-plus { height: 2.35rem; }
+  .pax-mk-commandes { grid-auto-columns: minmax(2.2rem, 1fr); grid-auto-rows: 2.35rem; gap: 0.2rem; }
+  .pax-mk:not(.is-compact) .pax-mk-commandes { flex: 1 1 100%; }
   .pax-mk-key { font-size: 0.9rem; border-radius: 0.35rem; }
   .pax-mk-key.is-fonction { font-size: 0.75rem; }
   .pax-mk-onglet { font-size: 0.75rem; }

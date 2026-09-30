@@ -22,7 +22,9 @@
 // respecter, seulement la syntaxe que les touches écrivent.
 
 /** Ce qu'une touche fait, hors écriture de texte. */
-export type ActionClavier = 'gauche' | 'droite' | 'effacer' | 'maj'
+export type ActionClavier =
+  | 'gauche' | 'droite' | 'effacer' | 'maj'
+  | 'annuler' | 'refaire' | 'coller' | 'entree'
 
 /** Une touche. */
 export interface ToucheMath {
@@ -165,6 +167,14 @@ export function rangees(onglet: OngletClavier, lang: string, maj = false): Touch
   }
 }
 
+/** Les touches d'édition, dans le clavier complet seulement : la planche
+ *  compacte d'un champ numérique n'a pas la place de les porter. */
+export const ACTIONS_EDITION: ToucheMath[] = [
+  { libelle: '↶', action: 'annuler', famille: 'action', aria: 'keyboard.undo' },
+  { libelle: '↷', action: 'refaire', famille: 'action', aria: 'keyboard.redo' },
+  { libelle: '⧉', action: 'coller', famille: 'action', aria: 'keyboard.paste' },
+]
+
 /** La rangée d'actions, commune à tous les onglets (hors onglets eux-mêmes). */
 export const ACTIONS: ToucheMath[] = [
   { libelle: '←', action: 'gauche', famille: 'action', aria: 'keyboard.left' },
@@ -182,6 +192,8 @@ export function separateurDecimal(lang: string | undefined | null): string {
 /** Signale au framework que le champ a changé : le navigateur ne le fait pas
  *  pour une écriture programmatique, et sans cela Vue ne verrait rien. */
 function signale(champ: HTMLInputElement | HTMLTextAreaElement) {
+  const h = historiques.get(champ)
+  if (h) h.derniere = champ.value
   champ.dispatchEvent(new Event('input', { bubbles: true }))
   champ.focus()
 }
@@ -190,7 +202,70 @@ function signale(champ: HTMLInputElement | HTMLTextAreaElement) {
  * Écrit `touche` dans `champ`, à la position du curseur — ou exécute son
  * action. `setRangeText` remplace la sélection s'il y en a une, insère sinon.
  */
+// ── Annuler / refaire ─────────────────────────────────────────────────────────
+// Une écriture par programme (`setRangeText`) n'entre pas dans la pile
+// d'annulation du navigateur : le clavier tient la sienne, par champ. Chaque
+// frappe qui modifie le champ y dépose l'état d'avant.
+
+interface EtatChamp { valeur: string, debut: number, fin: number }
+type Champ = HTMLInputElement | HTMLTextAreaElement
+const historiques = new WeakMap<Champ, { avant: EtatChamp[], apres: EtatChamp[], derniere?: string }>()
+const PROFONDEUR = 100
+
+function etat(champ: Champ): EtatChamp {
+  const debut = champ.selectionStart ?? champ.value.length
+  return { valeur: champ.value, debut, fin: champ.selectionEnd ?? debut }
+}
+
+function historique(champ: Champ) {
+  let h = historiques.get(champ)
+  if (!h) { h = { avant: [], apres: [] }; historiques.set(champ, h) }
+  return h
+}
+
+function memorise(champ: Champ) {
+  const h = historique(champ)
+  const e = etat(champ)
+  const dernier = h.avant[h.avant.length - 1]
+  if (!dernier || dernier.valeur !== e.valeur) h.avant.push(e)
+  if (h.avant.length > PROFONDEUR) h.avant.shift()
+  h.apres.length = 0
+}
+
+function restaure(champ: Champ, e: EtatChamp) {
+  champ.value = e.valeur
+  champ.setSelectionRange(e.debut, e.fin)
+  historique(champ).derniere = e.valeur
+  signale(champ)
+}
+
+/** Annuler (`sens` = -1) ou refaire (+1) la dernière modification du clavier. */
+export function annule(champ: Champ, sens: -1 | 1): void {
+  const h = historique(champ)
+  // L'élève a tapé au clavier de l'appareil depuis la dernière frappe du
+  // nôtre : annuler revient d'abord à l'état que celle-ci avait laissé, sans
+  // effacer d'un coup ce qu'il a tapé.
+  if (sens < 0 && h.derniere !== undefined && champ.value !== h.derniere) {
+    h.avant.push({ valeur: h.derniere, debut: h.derniere.length, fin: h.derniere.length })
+    h.apres.length = 0
+  }
+  const [depuis, vers] = sens < 0 ? [h.avant, h.apres] : [h.apres, h.avant]
+  const cible = depuis.pop()
+  if (!cible) { champ.focus(); return }
+  vers.push(etat(champ))
+  restaure(champ, cible)
+}
+
+/** Colle `texte` au curseur — une ligne : les sauts deviennent des espaces. */
+export function colle(champ: Champ, texte: string): void {
+  insere(champ, { texte: texte.replace(/\s*[\r\n]+\s*/g, ' ') })
+}
+
 export function insere(champ: HTMLInputElement | HTMLTextAreaElement, touche: ToucheMath): void {
+  if (touche.action === 'annuler' || touche.action === 'refaire') {
+    annule(champ, touche.action === 'annuler' ? -1 : 1)
+    return
+  }
   const debut = champ.selectionStart ?? champ.value.length
   const fin = champ.selectionEnd ?? debut
   if (touche.action === 'gauche' || touche.action === 'droite') {
@@ -202,6 +277,8 @@ export function insere(champ: HTMLInputElement | HTMLTextAreaElement, touche: To
     return
   }
   if (touche.action === 'effacer') {
+    if (debut === fin && debut === 0) return
+    memorise(champ)
     if (debut !== fin) champ.setRangeText('', debut, fin, 'end')
     else if (debut > 0) champ.setRangeText('', debut - 1, debut, 'end')
     else return
@@ -209,6 +286,7 @@ export function insere(champ: HTMLInputElement | HTMLTextAreaElement, touche: To
     return
   }
   if (touche.texte === undefined) return
+  memorise(champ)
   champ.setRangeText(touche.texte, debut, fin, 'end')
   if (touche.recul) {
     const pos = (champ.selectionStart ?? 0) - touche.recul

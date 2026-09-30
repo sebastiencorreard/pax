@@ -86,6 +86,7 @@
       :ouvert="clavierOuvert && !!champClavier"
       :lang="rendered.lang"
       :profil="profilChamp"
+      @entree="entreeClavier"
       @close="clavierOuvert = false"
       @open="clavierOuvert = true" />
 
@@ -147,6 +148,22 @@ const profilChamp = computed(() => {
   return profilPourType(typeof effectif === 'string' ? effectif : reponse?.answer_type)
 })
 const champClavier = computed(() => (profilChamp.value === 'texte' ? null : champActif.value))
+
+// La touche Entrée du clavier : le champ suivant, dans l'ordre du document,
+// ou « Vérifier » depuis le dernier — comme la touche Entrée d'un clavier de
+// tablette dans un formulaire. (Entrée au clavier physique, elle, envoie
+// toujours : c'est le `@keydown.enter` de l'énoncé.)
+function entreeClavier() {
+  const champs = champsTexte().filter(el => !(el as HTMLInputElement).disabled)
+  const i = champActif.value ? champs.indexOf(champActif.value) : -1
+  const suivant = champs[i + 1]
+  if (suivant) {
+    suivant.focus()
+    if (suivant instanceof HTMLInputElement) suivant.select()
+    return
+  }
+  if (!props.submitted && !props.loading) emit('submit')
+}
 
 function estChampTexte(el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement {
   return (el instanceof HTMLInputElement && el.type === 'text') || el instanceof HTMLTextAreaElement
