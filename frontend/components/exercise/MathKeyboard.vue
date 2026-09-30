@@ -115,13 +115,19 @@
                 class="pax-mk-key"
                 :class="['is-' + (vue(brute).famille || 'symbole'), {
                   'is-actif': brute.action === 'maj' && majActive,
-                  'is-majuscule': majActive && !!brute.maj,
                 }]"
                 :style="brute.largeur && brute.largeur > 1 ? { gridColumn: `span ${brute.largeur}` } : undefined"
                 :aria-label="aria(vue(brute))"
                 @mousedown.prevent
                 @click="frapper(vue(brute))">
-                <span v-if="vue(brute).latex && etiquettes[vue(brute).latex!]" v-html="etiquettes[vue(brute).latex!]" />
+                <!-- « Effacer le champ » (⌫ sous la majuscule) : une poubelle. -->
+                <svg
+                  v-if="vue(brute).action === 'vider'"
+                  viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" />
+                </svg>
+                <span v-else-if="vue(brute).latex && etiquettes[vue(brute).latex!]" v-html="etiquettes[vue(brute).latex!]" />
                 <span v-else>{{ vue(brute).libelle ?? vue(brute).latex ?? vue(brute).texte }}</span>
                 <!-- La variante sous la majuscule, annoncée en petit (MathLive).
                      Du HTML de KaTeX pour nos propres étiquettes, ou un texte
@@ -406,16 +412,14 @@ function frapper(t: ToucheMath) {
 .pax-mk-key:hover { border-color: var(--color-primary); }
 .pax-mk-key:active { background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface)); }
 
-/* Les familles se distinguent au ton : chiffres en plein, fonctions et
-   opérations en couleur d'accent, symboles et actions en retrait. */
+/* Toutes les touches en noir (couleur du texte) ; les familles ne se
+   distinguent qu'à la graisse, à la taille et au fond des actions. */
 .pax-mk-key.is-chiffre { font-weight: 600; }
-.pax-mk-key.is-fonction { color: var(--color-primary); font-size: 0.9rem; }
-.pax-mk-key.is-operation { color: var(--color-primary); }
+.pax-mk-key.is-fonction { font-size: 0.9rem; }
 .pax-mk-key.is-variable { font-style: italic; }
 .pax-mk-grid.is-abc .pax-mk-key.is-variable { font-style: normal; }
 .pax-mk-key.is-action {
   background: color-mix(in srgb, var(--color-text) 8%, var(--color-surface));
-  color: var(--color-text-muted);
 }
 /* La variante sous la majuscule, en petit dans le coin (MathLive). */
 .pax-mk-indice {
@@ -430,8 +434,6 @@ function frapper(t: ToucheMath) {
   pointer-events: none;
 }
 .pax-mk-indice :deep(.katex) { font-size: 0.95em; }
-/* Majuscule active : les touches qui ont changé le disent. */
-.pax-mk-key.is-majuscule { border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border)); }
 .pax-mk-key.is-actif {
   background: var(--color-primary);
   border-color: var(--color-primary);
@@ -582,7 +584,8 @@ function frapper(t: ToucheMath) {
   .pax-mk-commandes { grid-auto-columns: minmax(2.2rem, 1fr); grid-auto-rows: 2.35rem; gap: 0.2rem; }
   .pax-mk-barre { gap: 0.25rem; margin-bottom: 0.25rem; }
   .pax-mk-outil { width: 2rem; }
-  .pax-mk-indice { top: 1px; right: 2px; font-size: 0.5rem; }
+  /* Petit écran : pas d'indice de variante, les touches n'ont pas la place. */
+  .pax-mk-indice { display: none; }
   .pax-mk-key { font-size: 0.9rem; border-radius: 0.35rem; }
   .pax-mk-key.is-fonction { font-size: 0.75rem; }
   .pax-mk-onglet { font-size: 0.75rem; }

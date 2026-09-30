@@ -24,7 +24,7 @@
 /** Ce qu'une touche fait, hors écriture de texte. */
 export type ActionClavier =
   | 'gauche' | 'droite' | 'effacer' | 'maj'
-  | 'annuler' | 'refaire' | 'entree'
+  | 'annuler' | 'refaire' | 'entree' | 'vider'
 
 /** Une touche. */
 export interface ToucheMath {
@@ -106,7 +106,9 @@ const VIDE: ToucheMath = { vide: true }
 const MAJ: ToucheMath = { libelle: '⇧', action: 'maj', famille: 'action', aria: 'keyboard.shift', largeur: 2 }
 const GAUCHE: ToucheMath = { libelle: '‹', action: 'gauche', famille: 'action', aria: 'keyboard.left' }
 const DROITE: ToucheMath = { libelle: '›', action: 'droite', famille: 'action', aria: 'keyboard.right' }
-const EFFACER: ToucheMath = { libelle: '⌫', action: 'effacer', famille: 'action', aria: 'keyboard.delete' }
+// Sous la majuscule, « retour arrière » devient « effacer le champ ».
+const VIDER: ToucheMath = { libelle: '🗑', action: 'vider', famille: 'action', aria: 'keyboard.clear' }
+const EFFACER: ToucheMath = { libelle: '⌫', action: 'effacer', famille: 'action', aria: 'keyboard.delete', maj: VIDER, discret: true }
 const ENTREE: ToucheMath = { libelle: '↵', action: 'entree', famille: 'action', aria: 'keyboard.enter' }
 const NTH_RACINE: ToucheMath =
   { latex: '\\sqrt[n]{\\square}', texte: '^(1/)', recul: 1, famille: 'operation', aria: '^(1/n)' }
@@ -143,9 +145,9 @@ function onglet123(decimal: string): Disposition {
         discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE))],
       [m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')), VIDE,
         ch('4'), ch('5'), ch('6'), op('\\times', '*'), VIDE,
-        m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
-        m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
-        m(fnx('|\\square|', 'abs'), op('\\square!', '!'))],
+        discret(m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3'))),
+        discret(m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)'))),
+        discret(m(fnx('|\\square|', 'abs'), op('\\square!', '!')))],
       [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')), VIDE,
         ch('1'), ch('2'), ch('3'), op('−', '-'), VIDE,
         m(sym(liste, liste), sym(':', ':')), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
@@ -160,27 +162,24 @@ function onglet123(decimal: string): Disposition {
 /** L'onglet des fonctions : les réciproques (`sin⁻¹`) sous la majuscule. */
 function ongletFx(): Disposition {
   return {
-    colonnes: DIX,
+    colonnes: 'repeat(9, minmax(0, 1fr))',
     rangees: [
       [m(fn('sin', 'sin'), recip('sin')), m(fn('ln', 'ln'), fn('log', 'log')),
         m(fnx('|\\square|', 'abs'), op('\\square!', '!')),
         discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE)),
         m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
-        m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
         m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
         op('\\{', '{'), op('\\}', '}')],
       [m(fn('cos', 'cos'), recip('cos')), m(fn('exp', 'exp'), op('e^{\\square}', 'e^')),
-        m(fnx('\\lfloor\\square\\rfloor', 'floor'), fnx('\\lceil\\square\\rceil', 'ceil')),
         m(fn('min', 'min'), fn('max', 'max')),
         sym('e', 'e'), sym('\\pi', 'pi'), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
         m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')),
         m(sym('=', '='), sym('\\ne', '!='))],
-      [m(fn('tan', 'tan'), recip('tan')), op('e^{\\square}', 'e^'), op('10^{\\square}', '10^'),
-        m(v('k'), v('p')),
+      [m(fn('tan', 'tan'), recip('tan')), op('10^{\\square}', '10^'),
         m(v('x'), v('y')), m(v('n'), v('t')), m(v('a'), v('b')), sym('i', 'i'),
-        m(sym(';', ';'), sym(',', ',')), EFFACER],
+        m(sym(';', ';'), sym(',', ',')), { ...EFFACER, largeur: 2 }],
       [MAJ, op('+', '+'), op('−', '-'), op('\\times', '*'), op('\\div', '/'),
-        VIDE, GAUCHE, DROITE, ENTREE],
+        GAUCHE, DROITE, ENTREE],
     ],
   }
 }
@@ -357,6 +356,13 @@ export function insere(champ: HTMLInputElement | HTMLTextAreaElement, touche: To
       : (debut === fin ? Math.min(champ.value.length, fin + 1) : fin)
     champ.setSelectionRange(pos, pos)
     champ.focus()
+    return
+  }
+  if (touche.action === 'vider') {
+    if (!champ.value) return
+    memorise(champ)
+    champ.setRangeText('', 0, champ.value.length, 'end')
+    signale(champ)
     return
   }
   if (touche.action === 'effacer') {
