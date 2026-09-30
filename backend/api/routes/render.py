@@ -67,9 +67,14 @@ def _options_affichees(a) -> dict:
     n'est pas l'attendu, seulement sa nature, que l'aiguilleur de WIMS lit de
     la même façon.
     """
-    if a.answer_type not in ("default", "auto"):
-        return a.options
     from core.answer.checkers import type_effectif_default  # noqa: PLC0415
+    from core.oef.def_engine import _type_wims  # noqa: PLC0415
+
+    # Un nom de type que WIMS ne connaît pas (`defaut`, `\typerep`, `algtexp`…
+    # fautes d'auteur, ou types propres à un module) retombe sur `default`
+    # (`oef/replytype.proc`), donc sur le même aiguillage.
+    if a.answer_type not in ("default", "auto") and _type_wims(a.answer_type) != "default":
+        return a.options
 
     return {**a.options, "type_effectif": type_effectif_default(a.expected)}
 

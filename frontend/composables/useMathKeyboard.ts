@@ -423,7 +423,9 @@ export function pointeurGrossier(): boolean {
 
 export type ProfilClavier = 'nombre' | 'ensemble' | 'texte' | 'complet'
 
-const TYPES_NOMBRE = new Set(['numeric', 'numexp', 'integer', 'float', 'real'])
+// `numexp2`, `mynumexp` (propre à `frac5`) et `rational` : des variantes de
+// `numexp`, qui attendent un nombre ou une fraction.
+const TYPES_NOMBRE = new Set(['numeric', 'numexp', 'numexp2', 'mynumexp', 'rational', 'integer', 'float', 'real'])
 const TYPES_ENSEMBLE = new Set(['fset', 'set', 'aset', 'range', 'vector', 'matrix'])
 // Des mots : le clavier de l'appareil y suffit, et la pastille n'a rien à
 // proposer.
