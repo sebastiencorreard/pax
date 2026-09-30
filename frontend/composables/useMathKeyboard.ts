@@ -24,7 +24,7 @@
 /** Ce qu'une touche fait, hors écriture de texte. */
 export type ActionClavier =
   | 'gauche' | 'droite' | 'effacer' | 'maj'
-  | 'annuler' | 'refaire' | 'entree' | 'vider'
+  | 'annuler' | 'refaire' | 'entree' | 'vider' | 'debut' | 'fin'
 
 /** Une touche. */
 export interface ToucheMath {
@@ -79,7 +79,7 @@ const c = (x: string): ToucheMath => ({ libelle: x, texte: x, famille: 'chiffre'
 const v = (x: string): ToucheMath => ({ latex: x, texte: x, famille: 'variable' })
 // Un caractère seul (`+`, `(`, `<`) s'affiche en texte : KaTeX rend un `+`
 // isolé comme un opérateur binaire sans opérandes, c'est-à-dire rien.
-const simple = (x: string) => /^[^\\{}^_]$/.test(x)
+const simple = (x: string) => /^[^\\^_]$/.test(x)
 const op = (latex: string, texte: string, aria?: string): ToucheMath =>
   simple(latex)
     ? { libelle: latex, texte, famille: 'operation', aria: aria ?? texte }
@@ -106,8 +106,15 @@ const VIDE: ToucheMath = { vide: true }
 const EXPOSANTS = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
 
 const MAJ: ToucheMath = { libelle: '⇧', action: 'maj', famille: 'action', aria: 'keyboard.shift', largeur: 2 }
-const GAUCHE: ToucheMath = { libelle: '‹', action: 'gauche', famille: 'action', aria: 'keyboard.left' }
-const DROITE: ToucheMath = { libelle: '›', action: 'droite', famille: 'action', aria: 'keyboard.right' }
+// Sous la majuscule, les flèches vont au début et à la fin du champ.
+const GAUCHE: ToucheMath = {
+  libelle: '‹', action: 'gauche', famille: 'action', aria: 'keyboard.left', discret: true,
+  maj: { libelle: '⇤', action: 'debut', famille: 'action', aria: 'keyboard.home' },
+}
+const DROITE: ToucheMath = {
+  libelle: '›', action: 'droite', famille: 'action', aria: 'keyboard.right', discret: true,
+  maj: { libelle: '⇥', action: 'fin', famille: 'action', aria: 'keyboard.end' },
+}
 // Sous la majuscule, « retour arrière » devient « effacer le champ ».
 const VIDER: ToucheMath = { libelle: '🗑', action: 'vider', famille: 'action', aria: 'keyboard.clear' }
 const EFFACER: ToucheMath = { libelle: '⌫', action: 'effacer', famille: 'action', aria: 'keyboard.delete', maj: VIDER, discret: true }
@@ -135,10 +142,8 @@ function onglet123(decimal: string): Disposition {
   const liste = decimal === ',' ? ';' : ','
   // Sous la majuscule, un chiffre devient la puissance correspondante :
   // `2` → `^2`, comme la rangée des exposants de MathLive.
-  // L'exposant en texte (`□⁷`), sans empattement comme le chiffre lui-même.
+  // L'exposant en texte (`◻⁷`), sans empattement comme le chiffre lui-même.
   const ch = (n: string) => discret(m(c(n), { libelle: '◻' + EXPOSANTS[Number(n)], texte: `^${n}`, famille: 'operation', aria: `^${n}` }))
-  // `\lbrack … \rbrack` : `[` seul passerait, mais une paire `[…;…]` est une
-  // matrice pour `renderMath`, qui l'afficherait entre parenthèses.
   return {
     colonnes: TROIS_BLOCS,
     rangees: [
@@ -146,12 +151,12 @@ function onglet123(decimal: string): Disposition {
         ch('7'), ch('8'), ch('9'), op('÷', '/'), VIDE,
         m(sym('e', 'e'), fn('ln', 'ln')), sym('\\pi', 'pi'),
         discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE))],
-      [m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')), VIDE,
+      [m(sym('<', '<'), sym('≤', '<=')), m(sym('>', '>'), sym('≥', '>=')), VIDE,
         ch('4'), ch('5'), ch('6'), op('×', '*'), VIDE,
         discret(m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3'))),
         discret(m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)'))),
         discret(m(fnx('|\\square|', 'abs'), op('\\square!', '!')))],
-      [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')), VIDE,
+      [m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')), VIDE,
         ch('1'), ch('2'), ch('3'), op('−', '-'), VIDE,
         m(sym(liste, liste), sym(':', ':')), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
         EFFACER],
@@ -171,12 +176,12 @@ function ongletFx(): Disposition {
         m(fnx('|\\square|', 'abs'), op('\\square!', '!')),
         discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE)),
         m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
-        m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
-        op('\\{', '{'), op('\\}', '}')],
+        m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')),
+        op('{', '{'), op('}', '}')],
       [m(fn('cos', 'cos'), recip('cos')), m(fn('exp', 'exp'), op('e^{\\square}', 'e^')),
         m(fn('min', 'min'), fn('max', 'max')),
         sym('e', 'e'), sym('\\pi', 'pi'), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
-        m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')),
+        m(sym('<', '<'), sym('≤', '<=')), m(sym('>', '>'), sym('≥', '>=')),
         m(sym('=', '='), sym('≠', '!='))],
       [m(fn('tan', 'tan'), recip('tan')), op('10^{\\square}', '10^'),
         m(v('x'), v('y')), m(v('n'), v('t')), m(v('a'), v('b')), v('i'),
@@ -206,7 +211,7 @@ function ongletAbc(lang: string): Disposition {
       ligne(r1),
       l2.length < 10 ? [...l2, sym("'", "'")] : l2,
       [{ ...MAJ, largeur: 1 }, ...l3, ...(l3.length < 7 ? [sym("'", "'")] : []), { ...EFFACER, largeur: 2 }],
-      [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')), op('+', '+'), op('−', '-'),
+      [m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')), op('+', '+'), op('−', '-'),
         { libelle: '␣', texte: ' ', famille: 'symbole', aria: 'keyboard.space', largeur: 2 },
         sym(',', ','), GAUCHE, DROITE, ENTREE],
     ],
@@ -240,7 +245,7 @@ function ongletGrec(): Disposition {
         g('zeta'), g('eta'), g('theta'), g('lambda'), g('mu')],
       [g('nu'), g('xi'), g('pi'), g('rho'), g('sigma'), g('tau'),
         g('varphi'), g('chi'), g('psi'), g('omega')],
-      [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
+      [m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')),
         m(sym('=', '='), sym('≠', '!=')), op('+', '+'), op('−', '-'), op('×', '*'),
         op('÷', '/'), op('\\square^{n}', '^'), { ...EFFACER, largeur: 2 }],
       [MAJ, VIDE, VIDE, VIDE, VIDE, VIDE, GAUCHE, DROITE, ENTREE],
@@ -353,6 +358,12 @@ export function insere(champ: HTMLInputElement | HTMLTextAreaElement, touche: To
   }
   const debut = champ.selectionStart ?? champ.value.length
   const fin = champ.selectionEnd ?? debut
+  if (touche.action === 'debut' || touche.action === 'fin') {
+    const pos = touche.action === 'debut' ? 0 : champ.value.length
+    champ.setSelectionRange(pos, pos)
+    champ.focus()
+    return
+  }
   if (touche.action === 'gauche' || touche.action === 'droite') {
     const pos = touche.action === 'gauche'
       ? (debut === fin ? Math.max(0, debut - 1) : debut)
@@ -461,8 +472,8 @@ export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCom
     return {
       colonnes: 7,
       rangees: [
-        [c('7'), c('8'), c('9'), op('\\lbrack', '['), op('\\rbrack', ']'), sym(liste, liste), sym('\\infty', 'infinity')],
-        [c('4'), c('5'), c('6'), op('\\{', '{'), op('\\}', '}'), op('÷', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
+        [c('7'), c('8'), c('9'), op('[', '['), op(']', ']'), sym(liste, liste), sym('\\infty', 'infinity')],
+        [c('4'), c('5'), c('6'), op('{', '{'), op('}', '}'), op('÷', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
         [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('×', '*'), op('\\square^{2}', '^2')],
         [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi'), sym('<', '<'), sym('>', '>')],
       ],

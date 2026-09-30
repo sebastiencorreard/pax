@@ -345,8 +345,9 @@ function frapper(t: ToucheMath) {
   if (t.action === 'entree') { emit('entree'); return }
   if (!props.cible) return
   insere(props.cible, t)
-  // Une majuscule, comme sur un téléphone : la touche retombe après usage.
-  if (maj.value && t.texte) maj.value = false
+  // Une majuscule, comme sur un téléphone : elle retombe après la touche
+  // suivante, qu'elle écrive ou non (⇤, ⇥, 🗑 aussi).
+  maj.value = false
 }
 </script>
 
