@@ -24,7 +24,7 @@
 /** Ce qu'une touche fait, hors écriture de texte. */
 export type ActionClavier =
   | 'gauche' | 'droite' | 'effacer' | 'maj'
-  | 'annuler' | 'refaire' | 'coller' | 'entree'
+  | 'annuler' | 'refaire' | 'entree'
 
 /** Une touche. */
 export interface ToucheMath {
@@ -172,7 +172,6 @@ export function rangees(onglet: OngletClavier, lang: string, maj = false): Touch
 export const ACTIONS_EDITION: ToucheMath[] = [
   { libelle: '↶', action: 'annuler', famille: 'action', aria: 'keyboard.undo' },
   { libelle: '↷', action: 'refaire', famille: 'action', aria: 'keyboard.redo' },
-  { libelle: '⧉', action: 'coller', famille: 'action', aria: 'keyboard.paste' },
 ]
 
 /** La rangée d'actions, commune à tous les onglets (hors onglets eux-mêmes). */
@@ -254,11 +253,6 @@ export function annule(champ: Champ, sens: -1 | 1): void {
   if (!cible) { champ.focus(); return }
   vers.push(etat(champ))
   restaure(champ, cible)
-}
-
-/** Colle `texte` au curseur — une ligne : les sauts deviennent des espaces. */
-export function colle(champ: Champ, texte: string): void {
-  insere(champ, { texte: texte.replace(/\s*[\r\n]+\s*/g, ' ') })
 }
 
 export function insere(champ: HTMLInputElement | HTMLTextAreaElement, touche: ToucheMath): void {

@@ -91,7 +91,7 @@
           <div class="pax-mk-commandes">
             <template v-if="!compacte">
               <button
-                v-for="(t, i) in editionVisibles"
+                v-for="(t, i) in ACTIONS_EDITION"
                 :key="'e' + i"
                 type="button"
                 class="pax-mk-key is-action pax-mk-edition"
@@ -150,7 +150,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import {
-  ACTIONS, ACTIONS_EDITION, ONGLETS, colle, insere, plancheCompacte, rangees,
+  ACTIONS, ACTIONS_EDITION, ONGLETS, insere, plancheCompacte, rangees,
   type OngletClavier, type ProfilClavier, type ToucheMath,
 } from '~/composables/useMathKeyboard'
 import { useKatex } from '~/composables/useKatex'
@@ -246,24 +246,9 @@ onBeforeUnmount(() => { observateur?.disconnect(); reserve(0) })
 
 // `mousedown.prevent` sur chaque touche empêche le champ de perdre le focus :
 // sans cela, le clic vole le curseur et l'insertion partirait de nulle part.
-// « Coller » n'a de sens que si le navigateur ouvre le presse-papiers à la
-// page (contexte sécurisé) ; sinon la touche n'apparaît pas.
-const editionVisibles = computed(() => ACTIONS_EDITION.filter(t =>
-  t.action !== 'coller' || (import.meta.client && !!navigator.clipboard?.readText)))
-
-async function frapper(t: ToucheMath) {
+function frapper(t: ToucheMath) {
   if (t.action === 'maj') { maj.value = !maj.value; return }
   if (!props.cible) return
-  if (t.action === 'coller') {
-    const champ = props.cible
-    try {
-      colle(champ, await navigator.clipboard.readText())
-    } catch {
-      // Refusé par l'élève ou le navigateur : rien à coller.
-      champ.focus()
-    }
-    return
-  }
   insere(props.cible, t)
   // Une majuscule, comme sur un téléphone : la touche retombe après usage.
   if (maj.value && t.texte) maj.value = false
@@ -356,8 +341,10 @@ async function frapper(t: ToucheMath) {
   gap: 0.3rem;
   margin-top: 0.3rem;
 }
-.pax-mk-actions > .pax-mk-onglets,
-.pax-mk-actions > .pax-mk-plus { flex: 1 1 8rem; height: 2.6rem; }
+.pax-mk-actions > .pax-mk-onglets { flex: 1 1 8rem; height: 2.6rem; }
+/* « ⋯ » se loge à côté des commandes, sur la même rangée : la planche
+   compacte n'a ainsi que cinq rangées de haut. */
+.pax-mk-actions > .pax-mk-plus { flex: 1 1 2.9rem; min-width: 2.9rem; height: 2.6rem; }
 .pax-mk-commandes {
   display: grid;
   grid-auto-flow: column;
