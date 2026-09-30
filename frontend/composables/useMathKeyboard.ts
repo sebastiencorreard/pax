@@ -247,7 +247,7 @@ function ongletGrec(): Disposition {
         g('varphi'), g('chi'), g('psi'), g('omega')],
       [m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')),
         m(sym('=', '='), sym('≠', '!=')), op('+', '+'), op('−', '-'), op('×', '*'),
-        op('÷', '/'), op('\\square^{n}', '^'), { ...EFFACER, largeur: 2 }],
+        op('÷', '/'), VIDE, { ...EFFACER, largeur: 2 }],
       [MAJ, VIDE, VIDE, VIDE, VIDE, VIDE, GAUCHE, DROITE, ENTREE],
     ],
   }
