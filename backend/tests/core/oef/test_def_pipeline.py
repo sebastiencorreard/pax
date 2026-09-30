@@ -1803,3 +1803,26 @@ class TestIndiceACrochets:
 
     def test_un_rang_entre_crochets_n_est_pas_un_nombre(self):
         assert self._e()._subst("$(w[[2]])") == ""
+
+
+class TestMakelistGardeLesBarres:
+    """`!makelist` ne substitue que la variable et les `$` (`calc.c:_values`).
+
+    Un `\\` → `$` hérité des débuts du moteur changeait les maths en ligne en
+    références de variables : `OEFfctref/libre` affichait « $(x )$( x $) ».
+    """
+
+    def test_maths_en_ligne_intactes(self):
+        from core.oef.def_engine import DefEngine
+        e = DefEngine(seed=1)
+        e.ctx["l"] = "x,x^2"
+        assert e._eval_cmd("makelist", r"\(x \mapsto)\( g \) for g in $l") == (
+            r"\(x \mapsto)\( x \),\(x \mapsto)\( x^2 \)"
+        )
+
+    def test_commande_tex_sans_variable(self):
+        # `oefnumeration/majbase` : des chiffres inconnus, en points.
+        from core.oef.def_engine import DefEngine
+        assert DefEngine(seed=1)._eval_cmd("makelist", r"\bullet for x=1 to 3") == (
+            r"\bullet,\bullet,\bullet"
+        )

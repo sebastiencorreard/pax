@@ -2370,15 +2370,18 @@ class DefEngine(_SlibMixin):
         # We use a regex to match the variable name as a whole word
         motif = rf"\b{re.escape(var)}\b"
         res = re.sub(motif, lambda _m: val, expr)
-        # Also handle standard substitution (for other variables)
-        res = self._subst(res.replace("\\", "$"))
+        # Puis la substitution ordinaire (`substitute(buf)`, `calc.c:_values`),
+        # qui ne touche qu'aux `$`. Un remplacement `\` → `$` hérité des
+        # débuts du moteur changeait `\(x \mapsto)` en `$(x $mapsto)` :
+        # `OEFfctref/libre` affichait « $(x )$( x $) » au lieu de « x ↦ x ».
+        res = self._subst(res)
 
         # En mode numérique, le calcul se tente sur la valeur **parenthésée**
         # (`(2)` → 2, `-1*(-2)**2` → -4). S'il échoue — une expression que
         # Python ne sait pas lire —, on retombe sur la substitution textuelle
         # sans parenthèses, comme avant : `-6/5` reste `-6/5`, pas `-(6)/(5)`.
         if numerique and res != expr:
-            essai = self._subst(re.sub(motif, lambda _m: f"({val})", expr).replace("\\", "$"))
+            essai = self._subst(re.sub(motif, lambda _m: f"({val})", expr))
             try:
                 if not entree_math_sure(essai):
                     raise ValueError("entrée refusée")
