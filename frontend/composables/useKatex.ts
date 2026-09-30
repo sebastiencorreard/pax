@@ -49,11 +49,19 @@ export function useKatex() {
   // imbriqués) sont laissées au LaTeX existant.
   function slashToFrac(expr: string): string {
     const atom = String.raw`-{0,2}(?:\([^()]*\)|\d+(?:\.\d+)?|[A-Za-z_]\w*)`
+    // Le numérateur ne se prend pas n'importe où. Un identifiant ne commence
+    // ni après `\` ni au milieu d'un mot : `\rbrack1/4` (l'intervalle
+    // `]1/4;+∞[` de `oefintegrale/formules8`) donnait `\dfrac{rbrack1}{4}`.
+    // Un nombre, lui, peut suivre une commande TeX (`\rbrack1/4` →
+    // `\rbrack\dfrac{1}{4}`), non une lettre ordinaire ni un autre chiffre.
+    const num = String.raw`-{0,2}(?:\([^()]*\)`
+      + String.raw`|(?<![\d.]|(?<!\\[A-Za-z]*)[A-Za-z])\d+(?:\.\d+)?`
+      + String.raw`|(?<![\\A-Za-z_])[A-Za-z_]\w*)`
     // Lookbehind ``(?<!\^)``: don't pull the numerator out of an exponent —
     // e.g. ``x^2/2`` is ``(x²)/2``, not ``x^(2/2)``. Without it, the atom
     // ``2`` after ``^`` is treated as the numerator and \dfrac eats the
     // whole exponent slot.
-    const re = new RegExp(`(?<!\\^)(${atom})\\s*/\\s*(${atom})`)
+    const re = new RegExp(`(?<!\\^)(${num})\\s*/\\s*(${atom})`)
     // Une seule passe : le résultat ``\dfrac{…}{…}`` ne re-match plus le pattern.
     let prev: string
     do {
@@ -278,6 +286,9 @@ export function useKatex() {
     // OPÉRATEUR de séparation de termes (WIMS émet `\(\signe\phantom{ }\)` entre
     // deux termes d'une somme, cf. factorisat) — le retirer le rend invisible.
     expr = expr.replace(/^\s*\+\s*(?!\\phantom)/, '')
+    // L'étoile en exposant ou en indice n'est pas un produit : `\RR^{*}_{+}`
+    // (ℝ*₊, `oefintegrale/formules8`) sortait `ℝ×₊`. Elle devient `\ast`.
+    expr = expr.replace(/([\^_])\s*\{\s*\*\s*\}/g, '$1{\\ast}').replace(/([\^_])\s*\*/g, '$1{\\ast}')
     expr = expr.replace(/\s*\*\s*(?=[a-zA-Z(])/g, '')
     expr = expr.replace(/\s*\*\s*/g, ' \\times ')
     expr = slashToFrac(expr)

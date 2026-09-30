@@ -1803,7 +1803,12 @@ class DefEngine(_SlibMixin):
                 if output_buf is not None:
                     from .presentation import texmath_sommes  # noqa: PLC0415
 
-                    expr = texmath_sommes(self._subst(instr.expr), self.lang)
+                    # `$val6\mapsto$val55` : collée à la commande, une valeur
+                    # qui commence par une lettre la prolonge — `\mapstoe^{…}`
+                    # (`oefintegrale/formules8`). Une espace après une commande
+                    # TeX ne se voit pas ; elle la referme.
+                    source = re.sub(r"(\\[A-Za-z]+)(?=\$)", r"\1 ", instr.expr)
+                    expr = texmath_sommes(self._subst(source), self.lang)
                     output_buf.append(f"\\({expr}\\)")
 
             elif isinstance(instr, ReadEmbed):
