@@ -42,7 +42,15 @@
               :aria-label="$t('keyboard.compact')"
               @mousedown.prevent
               @click="etendu = false">
-              789
+              <!-- Une calculatrice : le pavé simple du champ. -->
+              <svg
+                class="pax-mk-calc"
+                viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+                stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
+                <rect x="8" y="5.5" width="8" height="3.5" rx="0.8" />
+                <path d="M8.75 12.5h.01M12 12.5h.01M15.25 12.5h.01M8.75 15.5h.01M12 15.5h.01M15.25 15.5h.01M8.75 18.5h.01M12 18.5h.01M15.25 18.5h.01" stroke-width="2.4" />
+              </svg>
             </button>
             <button
               v-for="o in ONGLETS"
@@ -477,8 +485,9 @@ function frapper(t: ToucheMath) {
   margin-bottom: 0.35rem;
 }
 .pax-mk-barre > .pax-mk-onglets { flex: 1 1 auto; height: 2rem; }
-.pax-mk-barre .pax-mk-onglet { flex: 0 1 4.5rem; }
+.pax-mk-barre .pax-mk-onglet { flex: 0 1 4.5rem; display: flex; align-items: center; justify-content: center; }
 .pax-mk-outils { display: flex; gap: 0.3rem; }
+.pax-mk-calc { color: var(--color-text); }
 .pax-mk-outil {
   width: 2.4rem;
   height: 2rem;
