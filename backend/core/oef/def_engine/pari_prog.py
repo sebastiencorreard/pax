@@ -1187,6 +1187,12 @@ class PariInterpreter:
                 "_V": lambda *a: PVec(a),
                 "_M": PMat,
                 "_transposee": _transposee,
+                # `mattranspose(x)` est le `x~` de GP. Celle de l'évaluateur
+                # d'expressions rend une `sympy.Matrix`, qu'un `PVec` prenait
+                # pour un scalaire : `[a,b,c]*mattranspose([d,e,f])` sortait
+                # neuf produits au lieu d'un (`oefgeoesp/interplan`, dont
+                # l'énoncé affichait `rint(6,-18,6,…)`).
+                "mattranspose": _transposee,
                 "_fact": lambda n: sympy.factorial(int(n)),
                 "numtoperm": _pari_numtoperm,
                 "_egal": _egal,

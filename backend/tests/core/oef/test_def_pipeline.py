@@ -1840,3 +1840,24 @@ class TestFonctionInconnueDeSympy:
     def test_produit_implicite_intact(self):
         from core.oef.def_engine.presentation import _close_inline_math
         assert _close_inline_math(r"\(2x(x+1))", "fr") == r"\(2 x \left(x + 1\right)\)"
+
+
+class TestValuesAleatoire:
+    """`!values` évalue son expression par `evalue`, fonctions aléatoires
+    comprises (`challenge2005b/posdec2`, `oefbin/dessin`)."""
+
+    def test_randint_calcule(self):
+        from core.oef.def_engine import DefEngine
+        out = DefEngine(seed=1)._eval_cmd("values", "randint(10)+x/100 for x=1 to 3")
+        assert "randint" not in out and len(out.split(",")) == 3
+
+
+class TestMattransposeEnSession:
+    """Dans l'interpréteur PARI, `mattranspose` est le `~` de GP."""
+
+    def test_ligne_fois_colonne_apres_un_etat(self):
+        from core.oef.def_engine.cas import _call_pari
+        s: dict = {}
+        _call_pari("M=matrix(1,3,i,j,1);print(M)", session=s)
+        # `oefgeoesp/interplan` : un produit scalaire, pas neuf produits.
+        assert _call_pari("[-2,2,4]*mattranspose([-3,9,-3])", session=s) == "12"

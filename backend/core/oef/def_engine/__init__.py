@@ -2041,6 +2041,23 @@ class DefEngine(_SlibMixin):
         except ValueError:
             return self._calcul_arith(expr, strict)
 
+    def _ns_aleatoire(self) -> dict:
+        """Les fonctions aléatoires de `Lib/evalue.c` (`drand`, `irand`…),
+        tirées sur le générateur du rendu. Partagées par `$[…]` et par
+        `!values`, dont l'expression est aussi évaluée par `evalue` : sans
+        elles, `!values randint(199)/10+x/100 for x=1 to 9`
+        (`challenge2005b/posdec2`) restait du texte, jusque dans l'attendu."""
+        return {
+            "drand": lambda m=1.0: self.rng.random() * float(m),
+            "random": lambda m=1.0: self.rng.random() * float(m),
+            "randdouble": lambda m=1.0: self.rng.random() * float(m),
+            "randfloat": lambda m=1.0: self.rng.random() * float(m),
+            "randreal": lambda m=1.0: self.rng.random() * float(m),
+            "rand": lambda m=1.0: self.rng.random() * float(m),
+            "irand": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
+            "randint": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
+        }
+
     def _calcul_arith(self, expr: str, strict: bool = False) -> str:
         """Le calcul de `_eval_arith`, sur une expression déjà substituée."""
         # Garde-fou de sécurité. `analyze` substitue la réponse de l'élève dans
@@ -2100,16 +2117,7 @@ class DefEngine(_SlibMixin):
         #
         #     double drand(double m) { … return (r/RAND_MAX)*m; }
         #     double irand(double n) { … r = random()*end/RAND_MAX; … }
-        ns.update({
-            "drand": lambda m=1.0: self.rng.random() * float(m),
-            "random": lambda m=1.0: self.rng.random() * float(m),
-            "randdouble": lambda m=1.0: self.rng.random() * float(m),
-            "randfloat": lambda m=1.0: self.rng.random() * float(m),
-            "randreal": lambda m=1.0: self.rng.random() * float(m),
-            "rand": lambda m=1.0: self.rng.random() * float(m),
-            "irand": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
-            "randint": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
-        })
+        ns.update(self._ns_aleatoire())
         # Le contexte, pour les noms de variables nus — mais **seulement ceux
         # que l'expression nomme**. La boucle portait sur tout le contexte :
         # `eval` ne peut lire qu'un nom présent dans l'expression, et convertir
@@ -2385,7 +2393,7 @@ class DefEngine(_SlibMixin):
             try:
                 if not entree_math_sure(essai):
                     raise ValueError("entrée refusée")
-                ns = dict(_MATH_NS)
+                ns = {**_MATH_NS, **self._ns_aleatoire()}
                 for k, v in self.ctx.items():
                     try: ns[k] = float(v)
                     except: ns[k] = v
@@ -2401,7 +2409,7 @@ class DefEngine(_SlibMixin):
         if any(c in res for c in "+-*/^") and entree_math_sure(res):
             try:
                 # Use a dummy namespace with common math functions
-                ns = dict(_MATH_NS)
+                ns = {**_MATH_NS, **self._ns_aleatoire()}
                 # Also inject all current ctx
                 for k, v in self.ctx.items():
                     try: ns[k] = float(v)
