@@ -79,12 +79,13 @@
 
     <!-- Clavier mathématique : la réponse se tape en syntaxe WIMS (`sqrt(2)`,
          `x^2`), et sur tablette les caractères qu'elle réclame sont enterrés
-         dans les sous-menus du clavier système. Fermé par défaut : une
-         pastille flottante, dès qu'un champ a le focus, l'ouvre à la demande. -->
+         dans les sous-menus du clavier système. Sa langue est celle de
+         l'interface, non de l'exercice : c'est l'élève qui lit la virgule ou
+         le point décimal, et qui a l'habitude d'un clavier AZERTY ou QWERTY. -->
     <ExerciseMathKeyboard
       :cible="champClavier"
       :ouvert="clavierOuvert && !!champClavier"
-      :lang="rendered.lang"
+      :lang="$i18n.locale"
       :profil="profilChamp"
       @entree="entreeClavier"
       @close="clavierOuvert = false"

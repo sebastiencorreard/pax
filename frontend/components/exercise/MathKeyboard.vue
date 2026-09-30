@@ -214,7 +214,7 @@ const props = defineProps<{
   /** Le champ que les touches alimentent. */
   cible: HTMLInputElement | HTMLTextAreaElement | null
   ouvert: boolean
-  /** Langue de l'exercice : séparateur décimal, disposition des lettres. */
+  /** Langue de l'interface : séparateur décimal, disposition des lettres. */
   lang?: string
   /** Ce que le champ attend (`profilPourType`) : la première planche. */
   profil?: ProfilClavier

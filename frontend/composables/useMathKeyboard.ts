@@ -128,7 +128,7 @@ const TROIS_BLOCS = 'repeat(2, minmax(0, 1fr)) 0.4rem repeat(4, minmax(0, 1fr)) 
 
 /**
  * L'onglet `123`, à la manière de MathLive. `decimal` est le séparateur de la
- * langue de l'exercice (`,` en français) ; l'autre est sous sa majuscule.
+ * langue de l'interface (`,` en français) ; l'autre est sous sa majuscule.
  */
 function onglet123(decimal: string): Disposition {
   const autre = decimal === ',' ? '.' : ','
