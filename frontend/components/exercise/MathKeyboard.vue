@@ -18,8 +18,14 @@
     </button>
   </Transition>
 
+  <!-- Ancrée en bas de l'écran, comme le clavier d'une tablette. Téléportée
+       dans `body` : un ancêtre transformé ferait sinon de `position: fixed`
+       un positionnement relatif à lui. -->
+  <Teleport to="body">
+  <Transition name="pax-mk-panneau">
   <div
     v-if="ouvert"
+    ref="panneau"
     class="pax-mk"
     role="group"
     :aria-label="$t('keyboard.aria')">
@@ -37,14 +43,18 @@
         @click="frapper(t)"
         v-html="etiquettes[i] || t.texte" />
     </div>
-    <button type="button" class="pax-mk-close" :title="$t('keyboard.close')" @click="$emit('close')">
+    <button
+      type="button" class="pax-mk-close" :title="$t('keyboard.close')" :aria-label="$t('keyboard.close')"
+      @mousedown.prevent @click="$emit('close')">
       ✕
     </button>
   </div>
+  </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { CLAVIER_DEFAUT, insere, type ToucheMath } from '~/composables/useMathKeyboard'
 import { useKatex } from '~/composables/useKatex'
 
@@ -75,6 +85,48 @@ onMounted(async () => {
   )
 })
 
+// ── Place réservée ────────────────────────────────────────────────────────────
+// Le panneau recouvre le bas de la page : on réserve sa hauteur en marge basse
+// du `body` (la fin de l'énoncé reste atteignable), et le champ actif défile
+// au-dessus de lui s'il se retrouvait dessous.
+const panneau = ref<HTMLElement | null>(null)
+let observateur: ResizeObserver | null = null
+
+function reserve(hauteur: number) {
+  const racine = document.documentElement
+  if (hauteur > 0) {
+    racine.style.setProperty('--pax-mk-hauteur', `${hauteur}px`)
+    document.body.classList.add('pax-mk-actif')
+  } else {
+    racine.style.removeProperty('--pax-mk-hauteur')
+    document.body.classList.remove('pax-mk-actif')
+  }
+}
+
+function degageChamp() {
+  const champ = props.cible
+  if (!champ || !panneau.value) return
+  const bas = champ.getBoundingClientRect().bottom
+  const limite = window.innerHeight - panneau.value.offsetHeight - 16
+  if (bas > limite) window.scrollBy({ top: bas - limite, behavior: 'smooth' })
+}
+
+watch(() => props.ouvert, async (ouvert) => {
+  observateur?.disconnect()
+  observateur = null
+  if (!ouvert) { reserve(0); return }
+  await nextTick()
+  if (!panneau.value) return
+  observateur = new ResizeObserver(() => reserve(panneau.value?.offsetHeight ?? 0))
+  observateur.observe(panneau.value)
+  reserve(panneau.value.offsetHeight)
+  degageChamp()
+}, { immediate: true })
+
+watch(() => props.cible, () => { if (props.ouvert) nextTick(degageChamp) })
+
+onBeforeUnmount(() => { observateur?.disconnect(); reserve(0) })
+
 // `mousedown.prevent` sur chaque touche empêche le champ de perdre le focus :
 // sans cela, le clic vole le curseur et l'insertion partirait de nulle part.
 function frapper(t: ToucheMath) {
@@ -83,20 +135,40 @@ function frapper(t: ToucheMath) {
 </script>
 
 <style scoped>
-/* Une planche discrète, sous le champ actif. Elle ne se substitue pas au
-   clavier de l'appareil : elle ajoute ce qu'il enterre dans ses sous-menus. */
+/* Le panneau, ancré en bas de l'écran comme un clavier de tablette : toute
+   la largeur sur un téléphone, centré et borné sur un grand écran. Il ne se
+   substitue pas au clavier de l'appareil : il ajoute ce que celui-ci enterre
+   dans ses sous-menus. */
 .pax-mk {
-  position: relative;
-  margin-top: 0.5rem;
-  padding: 0.5rem 2rem 0.5rem 0.5rem;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 50;
+  width: min(100%, 56rem);
+  transform: translateX(-50%);
+  padding: 0.75rem 2.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px)) 0.75rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-bottom: 0;
+  border-radius: 1rem 1rem 0 0;
   background: var(--color-surface);
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.12);
+}
+
+/* Il glisse depuis le bas de l'écran. */
+.pax-mk-panneau-enter-active,
+.pax-mk-panneau-leave-active { transition: transform 0.2s ease, opacity 0.2s ease; }
+.pax-mk-panneau-enter-from,
+.pax-mk-panneau-leave-to { transform: translate(-50%, 100%); opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pax-mk-panneau-enter-active,
+  .pax-mk-panneau-leave-active { transition: none; }
 }
 
 .pax-mk-grid {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.35rem;
 }
 
@@ -124,8 +196,8 @@ function frapper(t: ToucheMath) {
 
 .pax-mk-close {
   position: absolute;
-  top: 0.35rem;
-  right: 0.4rem;
+  top: 0.6rem;
+  right: 0.75rem;
   padding: 0.15rem 0.35rem;
   border: 0;
   background: transparent;
@@ -191,4 +263,9 @@ function frapper(t: ToucheMath) {
   .pax-mk-fab-enter-active,
   .pax-mk-fab-leave-active { transition: none; }
 }
+</style>
+
+<style>
+/* Hors du `scoped` : la place que le panneau réserve en bas de la page. */
+body.pax-mk-actif { padding-bottom: var(--pax-mk-hauteur, 0px); }
 </style>
