@@ -134,10 +134,35 @@ const tactile = ref(false)
 // champ en champ jusqu'à ce qu'il la referme.
 const clavierOuvert = ref(false)
 
+function estChampTexte(el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement {
+  return (el instanceof HTMLInputElement && el.type === 'text') || el instanceof HTMLTextAreaElement
+}
+
 function surFocus(e: FocusEvent) {
-  const el = e.target as HTMLElement | null
-  if (el instanceof HTMLInputElement && el.type === 'text') champActif.value = el
-  else if (el instanceof HTMLTextAreaElement) champActif.value = el
+  if (estChampTexte(e.target)) champActif.value = e.target
+}
+
+// La planche suit le focus, comme un clavier de tablette ou celui de
+// MathLive : hors d'un champ, elle se masque ; de retour dans un champ, elle
+// revient d'elle-même — `clavierOuvert` garde la demande de l'élève, seule la
+// touche « masquer » la retire.
+//
+// Deux voies, parce qu'aucune ne suffit seule. `focusout` couvre le clavier
+// physique (Tab vers un bouton). `pointerdown` couvre l'appui : iOS ne retire
+// pas le focus d'un champ quand on touche une zone qui n'est pas cliquable. Le
+// panneau et la pastille sont exclus — le panneau ne prend jamais le focus
+// (`mousedown.prevent`), et c'est lui qu'on touche pour écrire.
+let refocalisation = false
+function horsClavier(el: EventTarget | null): boolean {
+  return !(el instanceof Element && el.closest('.pax-mk, .pax-mk-open'))
+}
+function surPerteFocus(e: FocusEvent) {
+  if (refocalisation || estChampTexte(e.relatedTarget)) return
+  if (e.relatedTarget === null || horsClavier(e.relatedTarget)) champActif.value = null
+}
+function surAppui(e: PointerEvent) {
+  if (!champActif.value || estChampTexte(e.target) || !horsClavier(e.target)) return
+  champActif.value = null
 }
 
 // Au doigt, la planche ouverte **remplace** le clavier du système, comme
@@ -158,7 +183,11 @@ watch(clavierOuvert, (ouvert) => {
     }
     // Le clavier du système, déjà ouvert, ne se retire qu'au prochain focus.
     const champ = champActif.value
-    if (champ) { champ.blur(); champ.focus() }
+    if (champ) {
+      refocalisation = true
+      champ.blur(); champ.focus()
+      refocalisation = false
+    }
   } else {
     for (const [el, mode] of modesSauves) {
       if (mode === null) el.removeAttribute('inputmode')
@@ -171,8 +200,14 @@ watch(clavierOuvert, (ouvert) => {
 onMounted(() => {
   tactile.value = pointeurGrossier()
   document.addEventListener('focusin', surFocus)
+  document.addEventListener('focusout', surPerteFocus)
+  document.addEventListener('pointerdown', surAppui, true)
 })
-onBeforeUnmount(() => document.removeEventListener('focusin', surFocus))
+onBeforeUnmount(() => {
+  document.removeEventListener('focusin', surFocus)
+  document.removeEventListener('focusout', surPerteFocus)
+  document.removeEventListener('pointerdown', surAppui, true)
+})
 
 function updateReply(name: string, value: string) {
   emit('update:replies', { ...props.replies, [name]: value })

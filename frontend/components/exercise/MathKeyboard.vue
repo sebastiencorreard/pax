@@ -26,7 +26,8 @@
         ref="panneau"
         class="pax-mk"
         role="group"
-        :aria-label="$t('keyboard.aria')">
+        :aria-label="$t('keyboard.aria')"
+        @mousedown.prevent>
         <div class="pax-mk-grid" :class="{ 'is-abc': onglet === 'abc' }">
           <template v-for="(rangee, r) in planche" :key="onglet + r">
             <button
@@ -71,14 +72,22 @@
             @click="frapper(t)">
             {{ t.libelle }}
           </button>
+          <!-- Masquer : mis en valeur, comme la touche équivalente d'un clavier
+               de tablette — c'est la seule qui referme pour de bon. -->
           <button
             type="button"
-            class="pax-mk-key is-action pax-mk-close"
+            class="pax-mk-key pax-mk-close"
             :title="$t('keyboard.close')"
             :aria-label="$t('keyboard.close')"
             @mousedown.prevent
             @click="$emit('close')">
-            <span aria-hidden="true">⌄</span>
+            <svg
+              viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none"
+              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="3" width="19" height="11" rx="2" />
+              <path d="M6 6.5h.01M9 6.5h.01M12 6.5h.01M15 6.5h.01M18 6.5h.01M6 10h.01M18 10h.01M9 10h6" />
+              <path d="M8.5 17.5 12 21l3.5-3.5" />
+            </svg>
           </button>
         </div>
       </div>
@@ -295,7 +304,13 @@ function frapper(t: ToucheMath) {
   color: var(--color-primary);
 }
 
-.pax-mk-close span { font-size: 1.3rem; transform: translateY(-3px); }
+.pax-mk-close {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.pax-mk-close:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.pax-mk-close:active { background: var(--color-primary-hover); }
 
 /* La pastille d'appel : ronde, flottante, au-dessus du contenu. */
 .pax-mk-open {
