@@ -459,9 +459,13 @@ pour les dynsteps).
       printf 'size 100,100\nxrange 0,10\nyrange 0,10\nsegment 0,9,10,9,red\n' \
         | ./wims/src/Flydraw/flydraw > /tmp/wims.gif
 
-  Employé le 2026-09-22 pour `lines` : la lecture du C disait « des droites,
-  plus une itération sur des coordonnées non initialisées », et le binaire l'a
-  montré — mêmes droites que PAX, plus une parasite.
+  **Sa limite : c'est le 4.28 de l'arbre, pas le serveur de référence.**
+  Le 2026-09-22, C et binaire disaient que `lines` trace des droites
+  (`obj_fulllines`), et PAX les a suivis. Le 2026-09-30, une capture du
+  serveur (addfig/M) a montré une ligne brisée arrêtée aux sommets — ce
+  qu'attendent tous les auteurs du corpus. `lines`/`dlines` sont revenus à
+  `polyline`/`dpolyline`. Quand le serveur et l'arbre divergent, le serveur
+  (et l'intention du corpus) l'emporte.
 - Moteur Python actuel : `backend/core/oef/def_engine/`
 - Table des commandes C : `~/pax/wims/src/calc.c`, ligne 2247 (`calc_routine[]`)
 - Parseur de conditions C : `~/pax/wims/src/compare.c`

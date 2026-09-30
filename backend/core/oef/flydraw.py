@@ -1309,35 +1309,6 @@ def _cmd_line(state: _State, args: list[str]) -> None:
     _ligne_infinie(state, x1, y1, x2, y2, color)
 
 
-def _cmd_fulllines(state: _State, args: list[str], dashed: bool = False) -> None:
-    """`lines [color],x1,y1,x2,y2,x3,y3,x4,y4,…` — `obj_fulllines`.
-
-    **Des droites, pas des segments** : les points sont pris quatre
-    coordonnées à la fois (`for(i=0;i<pm->pcnt;i+=4)`), et chaque paire donne
-    une droite prolongée jusqu'au bord. PAX en faisait des segments
-    indépendants, et jetait un reste de moins de quatre coordonnées :
-    `addfig/triangle` écrit `lines rouge,x1,y1,x2,y2,x3,y3` pour chacun de ses
-    trois côtés — trois points alignés — et n'en voyait tracer que la moitié.
-
-    Le C, lui, fait une itération de plus sur ce reste, en lisant deux
-    coordonnées **non initialisées** (`struct objparm pm;` est une locale
-    d'`obj_main`) : comportement indéfini, que nous ne reproduisons pas. Un
-    groupe incomplet est ignoré.
-    """
-    if not args:
-        return
-    color = _color(args[0])
-    coords = [_num(a) for a in args[1:]]
-    for i in range(0, len(coords) - 3, 4):
-        _ligne_infinie(state, coords[i], coords[i + 1], coords[i + 2],
-                       coords[i + 3], color, dashed)
-
-
-def _cmd_fulldlines(state: _State, args: list[str]) -> None:
-    # dlines — `obj_fulllines` avec `fill_tag` -1 : les mêmes, en pointillés.
-    _cmd_fulllines(state, args, dashed=True)
-
-
 def _cmd_dsegment(state: _State, args: list[str]) -> None:
     # `dsegment x1,y1,x2,y2,[color]` — DASHED segment (WIMS 'd' prefix = dashed;
     # used for dimension / extension lines). Not recorded in state.segments: a
@@ -3284,9 +3255,15 @@ _HANDLERS = {
     "segments": _cmd_segments,
     "dsegment": _cmd_dsegment,
     "line": _cmd_line,
-    "lines": _cmd_fulllines,
+    # `lines`/`dlines` : ligne brisée, comme sur le serveur WIMS de référence
+    # (addfig/M : trois points alignés reliés d'un seul trait, arrêté aux
+    # sommets). Le `nametab.c` de l'arbre (4.28) les envoie à
+    # `obj_fulllines`, des droites prises deux points à la fois, et son
+    # binaire les trace ainsi — mais le serveur ne le fait pas, et aucun
+    # auteur du corpus ne s'y attend (addfig, thales, pytha, reperage…).
+    "lines": _cmd_polyline,
     "dline": _cmd_dline,
-    "dlines": _cmd_fulldlines,
+    "dlines": _cmd_dpolyline,
     # `obj_dlines` : la ligne brisée en pointillés, que `dpolyline` rend déjà.
     "dashedlines": _cmd_dpolyline,
     "dashlines": _cmd_dpolyline,

@@ -669,33 +669,28 @@ class TestSynonymesNametab:
 
 
 class TestDroitesEtSegments:
-    """`lines` trace des **droites**, `segments` des segments (`nametab.c`).
+    """`lines` trace une **ligne brisée**, `segments` des segments.
 
-    Vérifié contre le binaire `flydraw` de WIMS : sur
-    `lines black,-15,-9,-21,-10,-20.5,-11.5,-14.5,-10.3`, les deux rendus
-    donnent les deux mêmes droites.
+    Le `nametab.c` de l'arbre (4.28) envoie `lines` à `obj_fulllines`, des
+    droites, et son binaire les trace ainsi. Le serveur WIMS de référence, lui,
+    relie les points d'un trait arrêté aux sommets (capture d'`addfig/M`,
+    2026-09-30), et c'est ce qu'attendent les auteurs du corpus.
     """
 
     CADRE = "xrange 0,10\tyrange 0,10\t"
 
-    def test_lines_prolonge_jusqu_au_cadre(self):
-        # Deux points, une droite — non un segment de (1,1) à (2,2).
-        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2")
-        assert _lignes(svg) == [(0.0, 100.0, 100.0, 0.0)]
+    def test_lines_relie_les_points(self):
+        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2,3,1")
+        assert 'points="10.00,90.00 20.00,80.00 30.00,90.00"' in svg
 
-    def test_lines_prend_les_points_quatre_coordonnees_a_la_fois(self):
-        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2,0,5,10,5")
-        a, b = _lignes(svg)
-        assert a == (0.0, 100.0, 100.0, 0.0)
-        assert b == (0.0, 50.0, 100.0, 50.0)
+    def test_lines_trois_points_alignes_un_seul_trait(self):
+        # addfig/M : `lines red,-2,1,-3,0,-4,-1`, un côté entier du M.
+        svg = flydraw_to_svg(100, 100, self.CADRE + "lines red,5,5,4,4,3,3")
+        assert 'points="50.00,50.00 40.00,60.00 30.00,70.00"' in svg
 
-    def test_un_groupe_incomplet_est_ignore(self):
-        # `addfig/triangle` écrit six coordonnées. Le C fait une itération de
-        # plus en lisant deux coordonnées non initialisées — vérifié au
-        # binaire, qui trace une droite parasite de plus. Indéfini : PAX
-        # s'arrête au dernier groupe complet.
-        svg = flydraw_to_svg(100, 100, self.CADRE + "lines black,1,1,2,2,5,5")
-        assert len(_lignes(svg)) == 1
+    def test_dlines_en_pointilles(self):
+        svg = flydraw_to_svg(100, 100, self.CADRE + "dlines black,1,1,2,2")
+        assert "stroke-dasharray" in svg and "<polyline" in svg
 
     def test_segments_reste_des_segments(self):
         svg = flydraw_to_svg(100, 100, self.CADRE + "segments black,1,1,2,2")
