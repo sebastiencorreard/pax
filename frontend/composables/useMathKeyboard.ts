@@ -49,7 +49,9 @@ export const CLAVIER_DEFAUT: ToucheMath[] = [
   { latex: '\\frac{a}{b}', texte: '/', groupe: 'operation' },
   { latex: '\\times', texte: '*', groupe: 'operation' },
   { latex: '(\\;)', texte: '()', recul: 1, groupe: 'operation' },
-  { latex: '[\\;]', texte: '[]', recul: 1, groupe: 'operation' },
+  // `\lbrack … \rbrack` : `[\;]` passait pour une matrice WIMS (`[…;…]`)
+  // dans `renderMath`, qui l'affichait entre parenthèses.
+  { latex: '\\lbrack\\;\\rbrack', texte: '[]', recul: 1, groupe: 'operation' },
   { latex: '\\{\\;\\}', texte: '{}', recul: 1, groupe: 'operation' },
 
   { latex: '\\sqrt{\\;}', texte: 'sqrt()', recul: 1, groupe: 'fonction' },
