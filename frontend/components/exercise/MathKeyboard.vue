@@ -2,18 +2,24 @@
   <!-- Fermé, il ne reste qu'un bouton d'appel : sur ordinateur c'est la seule
        façon d'ouvrir la planche, et après une fermeture c'est le moyen de la
        rappeler. Il n'apparaît que lorsqu'un champ a le focus. -->
-  <button
-    v-if="!ouvert && cible"
-    type="button"
-    class="pax-mk-open"
-    :title="$t('keyboard.open')"
-    @mousedown.prevent
-    @click="$emit('open')">
-    π
-  </button>
+  <!-- Flottant, en bas à droite de l'écran : il ne prend plus de place dans
+       l'énoncé, et reste à portée de pouce sur tablette. `mousedown.prevent`
+       garde le focus au champ, que la planche alimentera. -->
+  <Transition name="pax-mk-fab">
+    <button
+      v-if="!ouvert && cible"
+      type="button"
+      class="pax-mk-open"
+      :title="$t('keyboard.open')"
+      :aria-label="$t('keyboard.open')"
+      @mousedown.prevent
+      @click="$emit('open')">
+      <span class="pax-mk-open-glyphe" aria-hidden="true">π</span>
+    </button>
+  </Transition>
 
   <div
-    v-else-if="ouvert"
+    v-if="ouvert"
     class="pax-mk"
     role="group"
     :aria-label="$t('keyboard.aria')">
@@ -130,18 +136,59 @@ function frapper(t: ToucheMath) {
 
 .pax-mk-close:hover { color: var(--color-text); }
 
-/* Le bouton d'appel : discret, mais assez large pour le doigt. */
+/* Le bouton d'appel : rond, flottant, au-dessus du contenu. */
 .pax-mk-open {
-  margin-top: 0.5rem;
-  min-width: 2.5rem;
-  min-height: 2.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  font-size: 1rem;
+  position: fixed;
+  right: calc(1.25rem + env(safe-area-inset-right, 0px));
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  width: 3.25rem;
+  height: 3.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow:
+    0 6px 16px color-mix(in srgb, var(--color-primary) 35%, transparent),
+    0 2px 4px rgb(0 0 0 / 0.15);
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.pax-mk-open:hover { border-color: var(--color-primary); color: var(--color-text); }
+.pax-mk-open:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 22px color-mix(in srgb, var(--color-primary) 40%, transparent),
+    0 3px 6px rgb(0 0 0 / 0.18);
+}
+
+.pax-mk-open:active { transform: translateY(0) scale(0.96); }
+
+.pax-mk-open:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.pax-mk-open-glyphe {
+  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+/* Apparition : un léger fondu, le bouton monte de quelques pixels. */
+.pax-mk-fab-enter-active,
+.pax-mk-fab-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.pax-mk-fab-enter-from,
+.pax-mk-fab-leave-to { opacity: 0; transform: translateY(8px) scale(0.9); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pax-mk-open,
+  .pax-mk-fab-enter-active,
+  .pax-mk-fab-leave-active { transition: none; }
+}
 </style>
