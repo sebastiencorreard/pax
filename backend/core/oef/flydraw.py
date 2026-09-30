@@ -555,6 +555,11 @@ class _State:
     tmax: float = 1.0
     tstep: int = 100
     linewidth: float = 1.0
+    # Nombre de fonds pleins posés en tête de pile par un `fill` qu'aucune
+    # figure n'entoure : un remplissage de région s'insère **au-dessus** d'eux
+    # (chez flydraw, qui peint dans l'ordre, il les recouvre), mais toujours
+    # sous les traits.
+    fonds: int = 0
     crosshairsize: float = 4.0  # WIMS global `width2` default (full × extent = 2·this)
     # Font state for string / stringup (separate from text which takes a font arg).
     # CSS-shorthand parts; defaults match WIMS (12px sans-serif).
@@ -1391,6 +1396,12 @@ def _cmd_polyline(state: _State, args: list[str]) -> None:
         f'<polyline points="{pts}" fill="none" '
         f'stroke="{color}" stroke-width="{state.linewidth}" />'
     )
+    # Ses côtés sont des frontières pour `fill`, comme ceux d'un `segment` :
+    # flydraw remplit au pixel, jusqu'au trait. `challenge2005b/twosqr` trace
+    # ses deux carrés d'une seule ligne brisée ; sans ces segments, aucun des
+    # deux `fill` ne trouvait de bord, et les carrés restaient blancs.
+    for i in range(0, len(coords) - 2, 2):
+        state.segments.append(((coords[i], coords[i + 1]), (coords[i + 2], coords[i + 3])))
 
 
 def _cmd_polygon(state: _State, args: list[str]) -> None:
@@ -2678,7 +2689,7 @@ def _flood_region(state: _State, fx: float, fy: float) -> list[_Pt] | None:
         key = (round(nx, 4), round(ny, 4))
         families.setdefault(key, []).append((c, seg))
 
-    if len(families) < 3:
+    if len(families) < 2:
         return None
 
     # For each family find the closest line above and below the flood point.
@@ -2702,6 +2713,27 @@ def _flood_region(state: _State, fx: float, fy: float) -> list[_Pt] | None:
         if not cands:
             return None
         candidate_pairs.append(cands)
+
+    # Deux familles seulement — un quadrillage de rectangles ou de
+    # parallélogrammes : la cellule est bornée par la droite la plus proche de
+    # chaque côté, dans chaque famille. `challenge2005b/twosqr` trace ses deux
+    # carrés d'une seule `polyline` (horizontales et verticales) : la recherche
+    # de triangles, qui veut trois familles, ne les remplissait pas.
+    if len(candidate_pairs) == 2:
+        if any(len(fam) < 2 for fam in candidate_pairs):
+            return None
+        (_, b1), (_, a1) = candidate_pairs[0]
+        (_, b2), (_, a2) = candidate_pairs[1]
+        coins = [
+            _line_intersection(b1[0], b1[1], b2[0], b2[1]),
+            _line_intersection(b1[0], b1[1], a2[0], a2[1]),
+            _line_intersection(a1[0], a1[1], a2[0], a2[1]),
+            _line_intersection(a1[0], a1[1], b2[0], b2[1]),
+        ]
+        if any(c is None for c in coins):
+            return None
+        poly = [c for c in coins if c is not None]
+        return poly if _point_in_polygon((fx, fy), poly) else None
 
     # We expect exactly 3 families; with more, take the 3 with members
     # closest to the flood point.
@@ -2732,12 +2764,257 @@ def _flood_region(state: _State, fx: float, fy: float) -> list[_Pt] | None:
     return [best[0], best[1], best[2]]
 
 
+def _flood_pixels(state: _State, fx: float, fy: float) -> str | None:
+    """Le remplissage de flydraw, **au pixel** (`gdImageFill`) : la région
+    4-connexe des pixels **de la couleur du point de départ**, rendue en chemin
+    SVG de rectangles.
+
+    Les éléments déjà émis sont peints, dans l'ordre, sur une trame de
+    couleurs : surfaces pleines et traits pleins — un trait tireté laisse
+    passer le remplissage par ses trous, comme chez flydraw ; le texte et les
+    images collées ne sont pas tramés. Ce qu'on retrouve ainsi :
+
+    - les faces du `cube` d'`addfig`, tracées d'une `polyline` (la
+      reconstruction par familles de droites donnait six triangles) ;
+    - le tronc d'`oefpytha/Arbreabattu`, fermé par le sol (`filledrectangle`) ;
+    - les petits secteurs d'`oefcompangl5`, bornés par des arcs ;
+    - les nœuds noircis d'`oefprobatree` : `fill` au centre d'un disque blanc
+      cerclé de vert recolore le blanc du disque ;
+    - le coin gris d'`oefphotocopie/ex07`, qui touche le bord de l'image.
+
+    Rend None si le point sort de l'image ou si la trame serait démesurée.
+    """
+    larg, haut = int(state.width), int(state.height)
+    if larg <= 0 or haut <= 0 or larg * haut > 1_500_000:
+        return None
+    trame = [0] * (larg * haut)  # 0 : le fond, jamais peint
+    # Pixels couverts par un trait (et non recouverts depuis par une surface) :
+    # le remplissage y déborde d'un pixel, que le trait, dessiné par-dessus en
+    # SVG, cache. Sans ce débord, le trait lissé — centré entre deux pixels —
+    # laissait un liseré blanc entre deux secteurs des roues d'`oefprobacollege`.
+    # Chaque pixel de trait retient l'élément qui l'a peint (rang + 1) : le
+    # débord n'est permis que sous un trait dessiné **au-dessus** du
+    # remplissage — sinon il mangerait l'anneau d'un nœud tracé avant
+    # (`oefprobatree/remise1`).
+    sous_trait = [0] * (larg * haut)
+    rang = _rang_remplissage(state)
+    peintre = 0
+    couleurs: dict[str, int] = {}
+
+    def teinte(c: str) -> int:
+        return couleurs.setdefault(c.strip().lower(), len(couleurs) + 1)
+
+    def plein_rect(x: float, y: float, w: float, h: float, c: int) -> None:
+        for yy in range(max(0, int(math.floor(y))), min(haut, int(math.ceil(y + h)))):
+            base = yy * larg
+            for xx in range(max(0, int(math.floor(x))), min(larg, int(math.ceil(x + w)))):
+                trame[base + xx] = c
+                sous_trait[base + xx] = 0
+
+    def plein_ellipse(cx: float, cy: float, rx: float, ry: float, c: int) -> None:
+        if rx <= 0 or ry <= 0:
+            return
+        for yy in range(max(0, int(cy - ry)), min(haut, int(math.ceil(cy + ry)) + 1)):
+            dy = (yy + 0.5 - cy) / ry
+            if abs(dy) > 1:
+                continue
+            dx = rx * math.sqrt(1 - dy * dy)
+            plein_rect(cx - dx, yy, 2 * dx, 1, c)
+
+    def plein_polygone(pts: list[tuple[float, float]], c: int) -> None:
+        if len(pts) < 3:
+            return
+        ys = [p[1] for p in pts]
+        for yy in range(max(0, int(min(ys))), min(haut, int(math.ceil(max(ys))) + 1)):
+            yc = yy + 0.5
+            xs = []
+            for k in range(len(pts)):
+                (xa, ya), (xb, yb) = pts[k], pts[(k + 1) % len(pts)]
+                if (ya <= yc < yb) or (yb <= yc < ya):
+                    xs.append(xa + (yc - ya) * (xb - xa) / (yb - ya))
+            xs.sort()
+            for k in range(0, len(xs) - 1, 2):
+                plein_rect(xs[k], yy, xs[k + 1] - xs[k], 1, c)
+
+    def trait(p1: tuple[float, float], p2: tuple[float, float], epais: float, c: int) -> None:
+        r = max(0, int(round(epais / 2 - 0.5)))
+        (x1, y1), (x2, y2) = p1, p2
+        n = max(1, int(max(abs(x2 - x1), abs(y2 - y1)) * 2))
+        for k in range(n + 1):
+            t = k / n
+            cx = int(math.floor(x1 + (x2 - x1) * t))
+            cy = int(math.floor(y1 + (y2 - y1) * t))
+            for yy in range(cy - r, cy + r + 1):
+                if 0 <= yy < haut:
+                    for xx in range(cx - r, cx + r + 1):
+                        if 0 <= xx < larg:
+                            trame[yy * larg + xx] = c
+                            sous_trait[yy * larg + xx] = peintre
+
+    def attr(tag: str, nom: str) -> float | None:
+        m = re.search(rf'\s{nom}="(-?[\d.]+)"', tag)
+        return float(m.group(1)) if m else None
+
+    def points(tag: str) -> list[tuple[float, float]]:
+        pm = re.search(r'\spoints="([^"]*)"', tag)
+        nb = [float(v) for v in re.split(r"[\s,]+", pm.group(1).strip()) if v] if pm else []
+        return list(zip(nb[0::2], nb[1::2]))
+
+    for idx, el in enumerate(state.elements):
+        peintre = idx + 1
+        for tag in re.findall(r"<(?:rect|circle|ellipse|polygon|polyline|line|path)\b[^>]*>", el):
+            fm = re.search(r'\sfill="([^"]*)"', tag)
+            remplie = fm is not None and fm.group(1) not in ("none", "transparent")
+            if remplie:
+                c = teinte(fm.group(1))
+                if tag.startswith("<rect"):
+                    x, y, w, h = (attr(tag, k) for k in ("x", "y", "width", "height"))
+                    if None not in (x, y, w, h):
+                        plein_rect(x, y, w, h, c)
+                elif tag.startswith(("<circle", "<ellipse")):
+                    cx, cy = attr(tag, "cx"), attr(tag, "cy")
+                    rx = attr(tag, "r") if tag.startswith("<circle") else attr(tag, "rx")
+                    ry = attr(tag, "r") if tag.startswith("<circle") else attr(tag, "ry")
+                    if None not in (cx, cy, rx, ry):
+                        plein_ellipse(cx, cy, rx, ry, c)
+                elif tag.startswith("<polygon"):
+                    plein_polygone(points(tag), c)
+                elif tag.startswith("<path"):
+                    dm = re.search(r'\sd="([^"]*)"', tag)
+                    for x, y, w, h in re.findall(
+                        r"M(-?\d+) (-?\d+)h(-?\d+)v(-?\d+)", dm.group(1) if dm else ""
+                    ):
+                        plein_rect(float(x), float(y), float(w), float(h), c)
+            sm = re.search(r'\sstroke="([^"]*)"', tag)
+            if not sm or sm.group(1) in ("none", "transparent") or "stroke-dasharray" in tag:
+                continue
+            c = teinte(sm.group(1))
+            ep = attr(tag, "stroke-width") or 1.0
+            if tag.startswith("<line"):
+                x1, y1, x2, y2 = (attr(tag, k) for k in ("x1", "y1", "x2", "y2"))
+                if None not in (x1, y1, x2, y2):
+                    trait((x1, y1), (x2, y2), ep, c)
+            elif tag.startswith("<rect"):
+                # Le contour d'un `rect`/`square` (`OEFevalwimslitt/concret2` :
+                # deux carrés emboîtés, le jardin et le chemin).
+                x, y, w, h = (attr(tag, k) for k in ("x", "y", "width", "height"))
+                if None not in (x, y, w, h):
+                    coins = [(x, y), (x + w, y), (x + w, y + h), (x, y + h), (x, y)]
+                    for k in range(4):
+                        trait(coins[k], coins[k + 1], ep, c)
+            elif tag.startswith(("<polyline", "<polygon")):
+                pts = points(tag)
+                if tag.startswith("<polygon") and pts:
+                    pts.append(pts[0])
+                for k in range(len(pts) - 1):
+                    trait(pts[k], pts[k + 1], ep, c)
+            elif tag.startswith(("<circle", "<ellipse")):
+                cx, cy = attr(tag, "cx"), attr(tag, "cy")
+                rx = attr(tag, "r") if tag.startswith("<circle") else attr(tag, "rx")
+                ry = attr(tag, "r") if tag.startswith("<circle") else attr(tag, "ry")
+                if None in (cx, cy, rx, ry):
+                    continue
+                n = max(16, int(2 * math.pi * max(rx, ry) * 2))
+                prec = (cx + rx, cy)
+                for k in range(1, n + 1):
+                    a = 2 * math.pi * k / n
+                    pt = (cx + rx * math.cos(a), cy + ry * math.sin(a))
+                    trait(prec, pt, ep, c)
+                    prec = pt
+
+    x0, y0 = int(math.floor(state.px(fx))), int(math.floor(state.py(fy)))
+    if not (0 <= x0 < larg and 0 <= y0 < haut):
+        return None
+    depart = y0 * larg + x0
+    cible = trame[depart]
+    vu = bytearray(larg * haut)
+    pile = [depart]
+    vu[depart] = 1
+    lignes: dict[int, list[int]] = {}
+    while pile:
+        k = pile.pop()
+        y, x = divmod(k, larg)
+        lignes.setdefault(y, []).append(x)
+        if x > 0 and not vu[k - 1] and trame[k - 1] == cible:
+            vu[k - 1] = 1
+            pile.append(k - 1)
+        if x < larg - 1 and not vu[k + 1] and trame[k + 1] == cible:
+            vu[k + 1] = 1
+            pile.append(k + 1)
+        if y > 0 and not vu[k - larg] and trame[k - larg] == cible:
+            vu[k - larg] = 1
+            pile.append(k - larg)
+        if y < haut - 1 and not vu[k + larg] and trame[k + larg] == cible:
+            vu[k + larg] = 1
+            pile.append(k + larg)
+
+    # Débord d'un pixel sous les traits voisins (cf. `sous_trait`).
+    for y in list(lignes):
+        for x in list(lignes[y]):
+            k = y * larg + x
+            for j, (xx, yy) in ((k - 1, (x - 1, y)), (k + 1, (x + 1, y)),
+                                (k - larg, (x, y - 1)), (k + larg, (x, y + 1))):
+                if 0 <= xx < larg and 0 <= yy < haut and not vu[j] and sous_trait[j] > rang:
+                    vu[j] = 1
+                    lignes.setdefault(yy, []).append(xx)
+
+    # Rangées → segments horizontaux → rectangles (rangées identiques fusionnées).
+    def segments_de(xs: list[int]) -> tuple[tuple[int, int], ...]:
+        xs.sort()
+        out, debut, prec = [], xs[0], xs[0]
+        for x in xs[1:]:
+            if x != prec + 1:
+                out.append((debut, prec + 1))
+                debut = x
+            prec = x
+        out.append((debut, prec + 1))
+        return tuple(out)
+
+    d: list[str] = []
+    ouverts: dict[tuple[int, int], int] = {}
+    for y in range(min(lignes), max(lignes) + 2):
+        courants = set(segments_de(lignes[y])) if y in lignes else set()
+        for seg in list(ouverts):
+            if seg not in courants:
+                y1 = ouverts.pop(seg)
+                d.append(f"M{seg[0]} {y1}h{seg[1] - seg[0]}v{y - y1}h{seg[0] - seg[1]}z")
+        for seg in courants:
+            ouverts.setdefault(seg, y)
+    return "".join(d)
+
+
+_SURFACE_PLEINE_RE = re.compile(
+    r'<(?:rect|circle|ellipse|polygon|path)\b[^>]*\sfill="(?!none"|transparent")[^"]*"'
+)
+
+
+def _rang_remplissage(state: _State) -> int:
+    """Où insérer un remplissage : au-dessus de la dernière surface pleine
+    déjà peinte — flydraw peint dans l'ordre, et un `fill` recouvre ce qu'il
+    atteint —, mais sous les traits tracés depuis, pour que le bord reste net.
+    Les nœuds d'`oefprobatree` (disque blanc, puis cercle vert, puis `fill`
+    noir) : sous le disque, le noir restait invisible."""
+    for i in range(len(state.elements) - 1, -1, -1):
+        if _SURFACE_PLEINE_RE.search(state.elements[i]):
+            return i + 1
+    return state.fonds
+
+
 def _cmd_flood(state: _State, args: list[str]) -> None:
     """fill/flood x,y,[color] — fill the connected region containing (x,y)."""
     if len(args) < 2:
         return
     fx, fy = state.tr(_num(args[0]), _num(args[1]))
     color = _color(args[2]) if len(args) > 2 else "#000000"
+    # Comme flydraw, au pixel (`_flood_pixels`) ; la reconstruction géométrique
+    # ne sert plus qu'en secours (image démesurée, point hors champ).
+    if state.elements:
+        chemin = _flood_pixels(state, fx, fy)
+        if chemin:
+            state.elements.insert(
+                _rang_remplissage(state), f'<path d="{chemin}" fill="{color}" stroke="none" />'
+            )
+            return
     poly = _flood_region(state, fx, fy)
     if poly is None and not state.elements:
         # Aucune figure n'entoure le point : chez WIMS le remplissage s'étend
@@ -2756,12 +3033,15 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
             f'<rect x="0" y="0" width="{state.width}" height="{state.height}" '
             f'fill="{color}" stroke="none" />',
         )
+        state.fonds += 1
         return
     if poly is None:
         return
     pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
-    # Insert behind the outline/labels so the stroked border stays visible.
-    state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
+    # Derrière les traits, pour que le bord reste visible — mais devant un fond
+    # plein déjà posé : `challenge2005b/twosqr` commence par `fill 0,0,white`,
+    # et ses carrés rouge et vert, glissés sous ce blanc, restaient invisibles.
+    state.elements.insert(_rang_remplissage(state), f'<polygon points="{pts}" fill="{color}" stroke="none" />')
 
 
 def _cmd_hatchfill(state: _State, args: list[str]) -> None:
@@ -2801,7 +3081,7 @@ def _cmd_hatchfill(state: _State, args: list[str]) -> None:
     )
     pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
     # Behind the outline/labels (and any later masking fill) like `fill`.
-    state.elements.insert(0, pattern + f'<polygon points="{pts}" fill="url(#{pid})" stroke="none" />')
+    state.elements.insert(state.fonds, pattern + f'<polygon points="{pts}" fill="url(#{pid})" stroke="none" />')
 
 
 def _xml_escape(s: str) -> str:

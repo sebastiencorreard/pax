@@ -571,7 +571,8 @@ class TestRotangle3:
     def test_two_filled_triangles(self):
         # `flood` should fill two triangles with the colours picked from val6.
         r = load_and_render(ROTANGLE3_DEF, seed=42)
-        assert r.statement_html.count("<polygon") == 2
+        remplis = re.findall(r'<(?:polygon|path d="M)[^>]*stroke="none"', r.statement_html)
+        assert len(remplis) == 2
 
 
 class TestMediane4:

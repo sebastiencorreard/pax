@@ -14,6 +14,18 @@ from core.oef.flydraw import (
 )
 
 
+
+def _rempli(svg: str, couleur: str, x: float, y: float) -> bool:
+    """Le pixel (x, y) est-il couvert par un remplissage de cette couleur ?
+    Le remplissage est au pixel depuis le 2026-09-30 : un `<path>` de
+    rectangles `M x y h w v h …`, ou un `<polygon>` en secours."""
+    import re as _re
+    for d in _re.findall(rf'<path d="([^"]*)" fill="{couleur}"', svg):
+        for rx, ry, w, h in _re.findall(r"M(-?\d+) (-?\d+)h(-?\d+)v(-?\d+)", d):
+            if int(rx) <= x < int(rx) + int(w) and int(ry) <= y < int(ry) + int(h):
+                return True
+    return False
+
 class TestInlinePaxImages:
     """`$imagedir/<file>` (pax-img sentinel) must resolve to /api/static."""
 
@@ -166,8 +178,8 @@ class TestFlydrawPrimitives:
             "segment 5,10,10,0,grey\n"
             "flood 5,3,red",
         )
-        assert "<polygon" in svg
-        assert 'fill="#ff0000"' in svg
+        assert _rempli(svg, "#ff0000", 150, 210)      # (5,3) : dans le triangle
+        assert not _rempli(svg, "#ff0000", 20, 20)    # hors du triangle
 
     def test_flood_skips_when_no_enclosing_triangle(self):
         svg = flydraw_to_svg(300, 300, "range 0,10,0,10\nflood 5,5,red")
@@ -188,14 +200,10 @@ class TestFlydrawPrimitives:
             "segment 0,0,-1,0,black\n"           # spoke at 180°
             "fill 0.5,0.5,red",                  # point in the 0–90° sector
         )
-        # The wedge is emitted as a filled polygon anchored at the hub centre.
-        assert 'fill="#ff0000"' in svg
-        import re
-        m = re.search(r'<polygon points="([^"]+)" fill="#ff0000"', svg)
-        assert m is not None
-        first = m.group(1).split()[0]
-        # First vertex is the hub → centre of the 200×200 canvas.
-        assert first == "100.00,100.00"
+        # Le secteur 0–90° seul : ni le 90–180°, ni l'extérieur du disque.
+        assert _rempli(svg, "#ff0000", 130, 70)
+        assert not _rempli(svg, "#ff0000", 70, 70)
+        assert not _rempli(svg, "#ff0000", 195, 5)
 
     def test_color_table_includes_sienna(self):
         svg = flydraw_to_svg(300, 80, "range 0,10,0,10\nsegment 0,0,10,10,sienna")
@@ -218,9 +226,9 @@ class TestFlydrawPrimitives:
             "segment 1.5,0.134,-0.5,3.598,grey\n"  # parallel to the second diag
             "flood 1.5,1.4,red",
         )
-        # Exactly one polygon emitted (the bounding cell).
-        assert svg.count("<polygon") == 1
-        assert 'fill="#ff0000"' in svg
+        # Exactly one region filled (the bounding cell) — au pixel depuis le
+        # 2026-09-30, comme flydraw : un `<path>` de rectangles.
+        assert svg.count('fill="#ff0000"') == 1
 
     def test_xrange_yrange_set_viewport(self):
         # x-range / y-range take effect for subsequent primitives.
@@ -267,7 +275,7 @@ class TestFlydrawPrimitives:
             "segment 2.5,0.134,0.5,3.598,grey\n"
             "flood 1.5,1.4,red",
         )
-        polygon_pos = svg.find("<polygon")
+        polygon_pos = svg.find('fill="#ff0000"')
         first_line_pos = svg.find("<line")
         assert polygon_pos != -1 and first_line_pos != -1
         assert polygon_pos < first_line_pos
@@ -400,8 +408,8 @@ class TestFlydrawFillDashArrow:
             300, 300,
             "range -5,5,-5,5\npolygon black,-4,0,0,3,4,0,0,-3\nfill 0,0,skyblue",
         )
-        assert svg.count("<polygon") == 2  # outline + fill
-        assert 'fill="#87ceeb"' in svg
+        assert _rempli(svg, "#87ceeb", 150, 150)      # le centre du losange
+        assert not _rempli(svg, "#87ceeb", 30, 30)    # le coin, hors du losange
 
 
 class TestFlydrawArgParsing:
@@ -432,8 +440,8 @@ class TestFlydrawRectFillAndColors:
         svg = flydraw_to_svg(
             300, 200, "range -5,5,-5,5\nrectangle -4,-3,4,3,black\nfill 0,0,lavender"
         )
-        assert 'fill="#e6e6fa"' in svg          # lavender fill applied
-        assert svg.count("<polygon") == 1       # the fill polygon (outline is <rect>)
+        assert _rempli(svg, "#e6e6fa", 150, 100)      # dans le rectangle
+        assert not _rempli(svg, "#e6e6fa", 10, 10)    # hors du rectangle
 
     def test_seashell_color_resolves(self):
         svg = flydraw_to_svg(100, 100, "range -5,5,-5,5\nsegment 0,0,1,1,seashell")
