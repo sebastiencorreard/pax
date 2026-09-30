@@ -263,6 +263,20 @@ function frapper(t: ToucheMath) {
   .pax-mk-fab-enter-active,
   .pax-mk-fab-leave-active { transition: none; }
 }
+
+/* Petit écran : des touches plus serrées, pour que la planche ne mange pas le
+   quart de l'écran — 38 px de haut restent une cible tactile correcte. */
+@media (max-width: 480px) {
+  .pax-mk { padding: 0.5rem 2.25rem calc(0.5rem + env(safe-area-inset-bottom, 0px)) 0.5rem; }
+  .pax-mk-grid { gap: 0.25rem; }
+  .pax-mk-key {
+    min-width: 2.35rem;
+    min-height: 2.35rem;
+    padding: 0.15rem 0.3rem;
+    font-size: 0.85rem;
+  }
+  .pax-mk-close { top: 0.4rem; right: 0.5rem; }
+}
 </style>
 
 <style>
