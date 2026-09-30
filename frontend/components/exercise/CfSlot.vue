@@ -128,6 +128,17 @@ function onClick() {
     color-mix(in srgb, var(--cf-teinte) var(--cf-dose), var(--color-surface)) 90%,
     transparent);
 }
+/* Zone posée sur une image (imagefill) : le moteur la place et la
+   dimensionne au pixel, comme la couche `wims_droppable` de WIMS
+   (sizex × sizey, border-box, sans marge). Gabarit minimal, marge et
+   padding l'élargissaient et la décalaient vers la droite. */
+.cf-slot[style*="position:absolute"] {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
 .cf-slot--over {
   border-color: var(--color-primary);
   --cf-dose: 20%;
