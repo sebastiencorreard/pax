@@ -1,8 +1,8 @@
 <template>
-  <!-- Fermé — c'est l'état par défaut, au doigt comme à la souris —, il ne
-       reste qu'une pastille flottante en bas à droite, visible dès qu'un champ
-       a le focus. `mousedown.prevent` garde le focus au champ, que la planche
-       alimentera. -->
+  <!-- Fermé, il ne reste qu'une pastille flottante en bas à droite, visible
+       dès qu'un champ a le focus — c'est l'état par défaut à la souris ; au
+       doigt, le clavier s'ouvre d'office. `mousedown.prevent` garde le focus
+       au champ, que la planche alimentera. -->
   <Transition name="pax-mk-fab">
     <button
       v-if="!ouvert && cible"
@@ -12,7 +12,14 @@
       :aria-label="$t('keyboard.open')"
       @mousedown.prevent
       @click="$emit('open')">
-      <span class="pax-mk-open-glyphe" aria-hidden="true">π</span>
+      <!-- Un clavier : ce que la pastille ouvre. -->
+      <svg
+        viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="5.5" width="20" height="13" rx="2.5" />
+        <path d="M6 9.5h.01M9.33 9.5h.01M12.67 9.5h.01M16 9.5h.01M18 9.5h.01M6 12.5h.01M9.33 12.5h.01M12.67 12.5h.01M16 12.5h.01M18 12.5h.01" stroke-width="2.2" />
+        <path d="M7.5 15.5h9" />
+      </svg>
     </button>
   </Transition>
 
@@ -552,13 +559,6 @@ function frapper(t: ToucheMath) {
   outline-offset: 3px;
 }
 
-.pax-mk-open-glyphe {
-  font-family: 'KaTeX_Main', 'Times New Roman', serif;
-  font-style: italic;
-  font-size: 1.6rem;
-  line-height: 1;
-  transform: translateY(-1px);
-}
 
 /* Apparition : un léger fondu, le bouton monte de quelques pixels. */
 .pax-mk-fab-enter-active,
