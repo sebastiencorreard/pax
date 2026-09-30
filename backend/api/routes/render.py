@@ -58,6 +58,22 @@ class RenderOut(BaseModel):
     reglages: dict[str, int] = {}
 
 
+def _options_affichees(a) -> dict:
+    """Les options d'une réponse, telles que le front les reçoit.
+
+    Un `default` s'y voit ajouter le type vers lequel `anstype/default`
+    l'aiguille (`type_effectif`) : le clavier s'y règle — une calculatrice
+    pour `-3/4` (`rational/sommesimple2`), le clavier complet pour `2*b`. Ce
+    n'est pas l'attendu, seulement sa nature, que l'aiguilleur de WIMS lit de
+    la même façon.
+    """
+    if a.answer_type not in ("default", "auto"):
+        return a.options
+    from core.answer.checkers import type_effectif_default  # noqa: PLC0415
+
+    return {**a.options, "type_effectif": type_effectif_default(a.expected)}
+
+
 @router.get("/{exercise_id}", response_model=RenderOut)
 async def render_exercise(
     exercise_id: str,
@@ -144,7 +160,7 @@ async def render_exercise(
                 input_name=a.input_name,
                 label=a.label,
                 answer_type=a.answer_type,
-                options=a.options,
+                options=_options_affichees(a),
                 weight=a.weight,
                 logical_name=a.logical_name,
             )

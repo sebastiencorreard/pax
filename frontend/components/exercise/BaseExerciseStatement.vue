@@ -141,7 +141,10 @@ const clavierOuvert = ref(false)
 const profilChamp = computed(() => {
   const nom = champActif.value?.getAttribute('name') ?? ''
   const reponse = props.rendered.answers.find(a => a.input_name === nom)
-  return profilPourType(reponse?.answer_type)
+  // Un `default` arrive avec le type vers lequel `anstype/default` l'aiguille
+  // (`-3/4` → `numeric`) : c'est lui qui dit ce que le champ attend.
+  const effectif = reponse?.options?.type_effectif
+  return profilPourType(typeof effectif === 'string' ? effectif : reponse?.answer_type)
 })
 const champClavier = computed(() => (profilChamp.value === 'texte' ? null : champActif.value))
 

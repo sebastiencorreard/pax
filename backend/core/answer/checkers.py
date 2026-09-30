@@ -3831,6 +3831,43 @@ def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="raw")
 
 
+def type_effectif_default(expected: str) -> str:
+    """Le type vers lequel `anstype/default` aiguillerait cet attendu.
+
+        eq==  → `equation` si l'attendu porte un « = »
+        accent=!deaccent … → `atext` s'il porte un accent
+        nn=$[…] ; NaN notin $nn → `numeric` s'il s'évalue en nombre
+        vars=!varlist … ; varlen<=3 → `function`, sinon `atext`
+
+    Le correcteur suit déjà ces règles (`check_answer`, branche `default`) ;
+    celle-ci sert à **dire** ce que le champ attend — le clavier du front
+    s'y règle — sans montrer l'attendu lui-même.
+    """
+    s = (expected or "").strip()
+    if not s:
+        return "default"
+    if "=" in s and not re.search(r"[<>=!]=|=[<>=]", s):
+        return "equation"
+    if any(unicodedata.combining(c) for c in unicodedata.normalize("NFD", s)):
+        return "atext"
+    try:
+        v = _eval_scalar(s, True)
+        if math.isfinite(v):
+            return "numeric"
+    except (ValueError, TypeError, OverflowError):
+        pass
+    noms = [n for n in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", s) if n.lower() not in _NOMS_FONCTIONS_WIMS]
+    return "function" if max((len(n) for n in noms), default=0) <= 3 else "atext"
+
+
+# Les noms que `!varlist nofn` écarte : des fonctions, non des variables.
+_NOMS_FONCTIONS_WIMS = {
+    "sqrt", "abs", "exp", "ln", "log", "lg", "sin", "cos", "tan", "cot", "sec", "csc",
+    "asin", "acos", "atan", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh",
+    "sh", "ch", "th", "pi", "floor", "ceil", "rint", "sign", "sgn", "max", "min",
+}
+
+
 def check_default(
     reply: str, expected: str, comma_is_decimal: bool = True
 ) -> CheckResult:

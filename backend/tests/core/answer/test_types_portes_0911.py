@@ -124,3 +124,15 @@ class TestSecuriteConservee:
         # matrix évalue ses coefficients : le garde-fou doit tenir.
         r = check_answer("matrix", "().__class__,2", "1,2", {}, "fr")
         assert not r.correct
+
+
+class TestTypeEffectifDefault:
+    """`anstype/default` aiguille selon l'attendu ; le clavier s'y règle."""
+
+    def test_aiguillage(self):
+        from core.answer.checkers import type_effectif_default as t
+        assert t("-3/4") == "numeric"          # rational/sommesimple2
+        assert t("sqrt(2)") == "numeric"
+        assert t("2*b") == "function"          # distrired
+        assert t("-1=3*a+b") == "equation"     # fnctaff3
+        assert t("éléphant") == "atext"
