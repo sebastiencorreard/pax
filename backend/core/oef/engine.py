@@ -137,6 +137,15 @@ def load_and_render(
 #   groupe 1 — slot clickfill : <cf-slot name="…"></cf-slot>
 #   groupes 2-3 — champ texte : <span class="oef-input" name="…" data-size="…"></span>
 #   groupes 4-5 — menu déroulant : <span class="oef-menu" name="…" data-label="…"></span>
+def _attr_html(balise: str, nom: str) -> str | None:
+    """La valeur d'un attribut d'une balise ouvrante, blancs et guillemets
+    comme le HTML les admet (`class = "a b"`, `id='x'`)."""
+    m = re.search(rf"""\s{nom}\s*=\s*(?:"([^"]*)"|'([^']*)')""", balise, re.I)
+    if not m:
+        return None
+    return m.group(1) if m.group(1) is not None else m.group(2)
+
+
 _SEGMENT_PATTERN = re.compile(
     # cf-slot may carry extra attrs (data-index/data-w for multi-slot
     # clickfill); keep group 1 = name and swallow the rest non-capturingly
@@ -603,8 +612,12 @@ def _segment_statement(html: str) -> list[dict]:
         elif m.group(10) is not None:
             # <div …> → layout group open. Carry the class so the frontend can
             # apply the exercise CSS (flex containers etc.).
-            cls_m = re.search(r'class="([^"]*)"', m.group(10))
-            seg = {"type": "group-open", "class": cls_m.group(1) if cls_m else ""}
+            # `class = "…"` : le HTML admet des blancs autour du `=`, et des
+            # guillemets simples. `OEFfctref/libre` écrit
+            # `<div class = "float_left spacer">` ; lu `class="…"` à la lettre,
+            # la classe se perdait et les quatre courbes s'empilaient.
+            cls_m = _attr_html(m.group(10), "class")
+            seg = {"type": "group-open", "class": cls_m or ""}
             # La balise aussi : un `<ol>` rendu en `<div>` perdait sa
             # numérotation (les cinq questions de `fuseerep`).
             tag_m = re.match(r"<\s*(div|ul|ol|li)\b", m.group(10), re.I)
@@ -614,9 +627,9 @@ def _segment_statement(html: str) -> list[dict]:
             # bulle par `#bubble_N{…}` et la dimensionne en ligne ; sans eux,
             # les bulles de `fuseerep` perdaient couleur et largeur.
             for attr in ("id", "style"):
-                am = re.search(rf'\s{attr}="([^"]*)"', m.group(10))
-                if am:
-                    seg[attr] = am.group(1)
+                valeur = _attr_html(m.group(10), attr)
+                if valeur is not None:
+                    seg[attr] = valeur
             segments.append(seg)
         elif m.group(11) is not None:
             segments.append({"type": "group-close"})
