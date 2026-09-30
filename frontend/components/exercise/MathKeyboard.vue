@@ -25,11 +25,15 @@
         v-if="ouvert"
         ref="panneau"
         class="pax-mk"
+        :class="{ 'is-compact': !!compacte }"
         role="group"
         :aria-label="$t('keyboard.aria')"
         @mousedown.prevent>
-        <div class="pax-mk-grid" :class="{ 'is-abc': onglet === 'abc' }">
-          <template v-for="(rangee, r) in planche" :key="onglet + r">
+        <div
+          class="pax-mk-grid"
+          :class="{ 'is-abc': !compacte && onglet === 'abc' }"
+          :style="compacte ? { gridTemplateColumns: `repeat(${compacte.colonnes}, minmax(0, 1fr))` } : undefined">
+          <template v-for="(rangee, r) in affichees" :key="(compacte ? `c-${profil}` : onglet) + r">
             <button
               v-for="(t, i) in rangee"
               :key="i"
@@ -48,7 +52,29 @@
 
         <!-- La rangée d'actions, la même d'un onglet à l'autre (MathLive). -->
         <div class="pax-mk-actions">
-          <div class="pax-mk-onglets" role="tablist" :aria-label="$t('keyboard.tabs')">
+          <!-- Planche compacte : une seule touche mène au clavier complet. -->
+          <button
+            v-if="compacte"
+            type="button"
+            class="pax-mk-key is-action pax-mk-plus"
+            :title="$t('keyboard.more')"
+            :aria-label="$t('keyboard.more')"
+            @mousedown.prevent
+            @click="etendu = true">
+            ⋯
+          </button>
+          <div v-else class="pax-mk-onglets" role="tablist" :aria-label="$t('keyboard.tabs')">
+            <!-- Le retour à la planche du champ, s'il en a une. -->
+            <button
+              v-if="aUneCompacte"
+              type="button"
+              class="pax-mk-onglet"
+              :title="$t('keyboard.compact')"
+              :aria-label="$t('keyboard.compact')"
+              @mousedown.prevent
+              @click="etendu = false">
+              789
+            </button>
             <button
               v-for="o in ONGLETS"
               :key="o.id"
@@ -98,8 +124,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import {
-  ACTIONS, ONGLETS, insere, rangees,
-  type OngletClavier, type ToucheMath,
+  ACTIONS, ONGLETS, insere, plancheCompacte, rangees,
+  type OngletClavier, type ProfilClavier, type ToucheMath,
 } from '~/composables/useMathKeyboard'
 import { useKatex } from '~/composables/useKatex'
 
@@ -109,6 +135,8 @@ const props = defineProps<{
   ouvert: boolean
   /** Langue de l'exercice : séparateur décimal, disposition des lettres. */
   lang?: string
+  /** Ce que le champ attend (`profilPourType`) : la première planche. */
+  profil?: ProfilClavier
 }>()
 
 defineEmits<{ close: [], open: [] }>()
@@ -120,6 +148,16 @@ const onglet = ref<OngletClavier>('123')
 const maj = ref(false)
 const planche = computed(() => rangees(onglet.value, props.lang || 'fr', maj.value))
 
+// La planche du champ (calculatrice, ensembles), tant que l'élève n'a pas
+// demandé le clavier complet. Changer de champ — donc peut-être de profil —
+// ramène à la planche du nouveau champ.
+const etendu = ref(false)
+const aUneCompacte = computed(() => !!plancheCompacte(props.profil ?? 'complet', props.lang || 'fr'))
+const compacte = computed(() =>
+  etendu.value ? null : plancheCompacte(props.profil ?? 'complet', props.lang || 'fr'))
+const affichees = computed(() => compacte.value?.rangees ?? planche.value)
+watch(() => props.cible, () => { etendu.value = false; onglet.value = '123' })
+
 function aria(t: ToucheMath): string {
   if (t.aria?.startsWith('keyboard.')) return tr(t.aria)
   return t.aria ?? t.texte ?? t.libelle ?? ''
@@ -128,7 +166,7 @@ function aria(t: ToucheMath): string {
 // Les étiquettes LaTeX, rendues à la demande et gardées : `renderMath` est
 // asynchrone (KaTeX se charge à la demande), le template ne peut l'attendre.
 const etiquettes = ref<Record<string, string>>({})
-watch(planche, async (p) => {
+watch(affichees, async (p) => {
   const manquantes = [...new Set(p.flat().map(t => t.latex).filter(
     (l): l is string => !!l && !(l in etiquettes.value)))]
   const rendus = await Promise.all(manquantes.map(async (l) => {
@@ -303,6 +341,11 @@ function frapper(t: ToucheMath) {
   border-color: var(--color-border);
   color: var(--color-primary);
 }
+
+/* Compacte : une calculatrice n'a pas à courir toute la largeur. */
+.pax-mk.is-compact { width: min(100%, 24rem); }
+.pax-mk.is-compact .pax-mk-actions { grid-template-columns: 1fr repeat(4, 2.9rem); }
+.pax-mk-plus { font-size: 1.2rem; font-weight: 700; }
 
 .pax-mk-close {
   background: var(--color-primary);

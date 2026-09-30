@@ -82,9 +82,10 @@
          dans les sous-menus du clavier système. Fermé par défaut : une
          pastille flottante, dès qu'un champ a le focus, l'ouvre à la demande. -->
     <ExerciseMathKeyboard
-      :cible="champActif"
-      :ouvert="clavierOuvert && !!champActif"
+      :cible="champClavier"
+      :ouvert="clavierOuvert && !!champClavier"
       :lang="rendered.lang"
+      :profil="profilChamp"
       @close="clavierOuvert = false"
       @open="clavierOuvert = true" />
 
@@ -93,7 +94,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, computed, provide } from 'vue'
-import { pointeurGrossier } from '~/composables/useMathKeyboard'
+import { pointeurGrossier, profilPourType } from '~/composables/useMathKeyboard'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 import { buildSegmentTree, PAX_STATEMENT_CTX } from '~/composables/useExerciseLogic'
 import { hydrateJmolMarkers } from '~/composables/useJsmol'
@@ -133,6 +134,16 @@ const tactile = ref(false)
 // d'elle-même encombre l'énoncé. Une fois ouverte, elle suit l'élève de
 // champ en champ jusqu'à ce qu'il la referme.
 const clavierOuvert = ref(false)
+
+// Le clavier se règle sur ce que le champ attend : son `name` est celui de la
+// réponse, dont on connaît le type. Un champ de mots (`case`, `atext`…) n'en
+// reçoit aucun — le clavier de l'appareil y suffit.
+const profilChamp = computed(() => {
+  const nom = champActif.value?.getAttribute('name') ?? ''
+  const reponse = props.rendered.answers.find(a => a.input_name === nom)
+  return profilPourType(reponse?.answer_type)
+})
+const champClavier = computed(() => (profilChamp.value === 'texte' ? null : champActif.value))
 
 function estChampTexte(el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement {
   return (el instanceof HTMLInputElement && el.type === 'text') || el instanceof HTMLTextAreaElement

@@ -228,3 +228,75 @@ export function pointeurGrossier(): boolean {
   if (!import.meta.client || typeof window.matchMedia !== 'function') return false
   return window.matchMedia('(pointer: coarse)').matches
 }
+
+// ── Profils : un clavier à la mesure du champ ─────────────────────────────────
+//
+// Le type de réponse dit ce que le champ attend ; la première page du clavier
+// en suit. Mesuré sur les 21 893 réponses du corpus : les champs numériques
+// (`numeric`, `numexp`) en font plus du quart, et une calculatrice leur
+// suffit. MathLive fait de même (une disposition par champ).
+//
+// Un profil étroit ne doit jamais enfermer l'élève : un `numeric` WIMS accepte
+// `2/3` ou `sqrt(2)`, d'où `√`, `π` et `/` dans le pavé, et la touche « ⋯ »
+// ouvre toujours le clavier complet.
+
+export type ProfilClavier = 'nombre' | 'ensemble' | 'texte' | 'complet'
+
+const TYPES_NOMBRE = new Set(['numeric', 'numexp', 'integer', 'float', 'real'])
+const TYPES_ENSEMBLE = new Set(['fset', 'set', 'aset', 'range', 'vector', 'matrix'])
+// Des mots : le clavier de l'appareil y suffit, et la pastille n'a rien à
+// proposer.
+const TYPES_TEXTE = new Set(['case', 'nocase', 'atext', 'raw', 'text', 'symtext', 'wlist'])
+
+/**
+ * Le profil d'un champ d'après son type de réponse. `default` et `analyze`
+ * ne disent pas ce qu'ils attendent : clavier complet. Les expressions
+ * (`formal`, `algexp`…) et les unités (lettres après le nombre) aussi.
+ */
+export function profilPourType(type: string | undefined | null): ProfilClavier {
+  const t = (type || '').toLowerCase()
+  if (TYPES_NOMBRE.has(t)) return 'nombre'
+  if (TYPES_ENSEMBLE.has(t)) return 'ensemble'
+  if (TYPES_TEXTE.has(t)) return 'texte'
+  return 'complet'
+}
+
+/** Une planche compacte : ses colonnes et ses rangées. */
+export interface PlancheCompacte {
+  colonnes: number
+  rangees: ToucheMath[][]
+}
+
+/**
+ * La planche compacte d'un profil, `null` pour le clavier complet. Une
+ * calculatrice pour un nombre ; la même, flanquée des délimiteurs, pour un
+ * ensemble, un intervalle ou un vecteur.
+ */
+export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCompacte | null {
+  const decimal = separateurDecimal(lang)
+  // Là où la virgule est décimale, `;` sépare les éléments (et inversement).
+  const liste = decimal === ',' ? ';' : ','
+  if (profil === 'nombre') {
+    return {
+      colonnes: 5,
+      rangees: [
+        [c('7'), c('8'), c('9'), op('(', '('), op(')', ')')],
+        [c('4'), c('5'), c('6'), op('\\div', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
+        [c('1'), c('2'), c('3'), op('\\times', '*'), op('\\square^{n}', '^')],
+        [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi')],
+      ],
+    }
+  }
+  if (profil === 'ensemble') {
+    return {
+      colonnes: 7,
+      rangees: [
+        [c('7'), c('8'), c('9'), op('\\lbrack', '['), op('\\rbrack', ']'), sym(liste, liste), sym('\\infty', 'infinity')],
+        [c('4'), c('5'), c('6'), op('\\{', '{'), op('\\}', '}'), op('\\div', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
+        [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('\\times', '*'), op('\\square^{n}', '^')],
+        [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi'), sym('<', '<'), sym('>', '>')],
+      ],
+    }
+  }
+  return null
+}
