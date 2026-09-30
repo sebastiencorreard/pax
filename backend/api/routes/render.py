@@ -228,6 +228,14 @@ async def render_exercise_debug(
     # Radio/cases notés par `?analyze` : l'attendu vit dans le `:postdef`.
     solved.update(solve_choix_analyze(rendered, rendered.answers, rendered.seed))
 
+    # Un `crossword` s'auto-remplit avec sa grille au format de réponse, non
+    # avec l'attendu brut `[grille],[définitions]`.
+    from core.oef.def_engine.crossword import reponse_de as _grille_reponse
+
+    for a in rendered.answers:
+        if a.answer_type == "crossword" and a.input_name not in solved:
+            solved[a.input_name] = _grille_reponse(a.expected)
+
     return DebugOut(
         exercise_id=exercise_id,
         seed=rendered.seed,

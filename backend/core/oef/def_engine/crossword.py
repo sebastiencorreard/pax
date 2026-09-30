@@ -619,3 +619,12 @@ def noter(reponse: str, attendu: str) -> float:
             if donnee.strip() and meme_texte(lettre, donnee):
                 justes += 1
     return justes / total if total else 0.0
+
+
+def reponse_de(attendu: str) -> str:
+    """La grille attendue sous la forme où le widget l'envoie (`sendanswer()`
+    de `crossword.input`) : une rangée par ligne, chaque case suivie d'une
+    virgule. C'est ce que « Réponse auto » doit poser — l'attendu brut
+    `[grille],[définitions]` n'est pas une réponse."""
+    grille = lire_grille(separer_attendu(attendu)[0])
+    return "\n".join("".join(c + "," for c in r) for r in grille)

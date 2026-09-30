@@ -413,7 +413,7 @@ export function useExerciseLogic() {
   // italic math (spaces stripped → "Infiniepériodique"). renderMath still
   // renders any \(...\) the author embedded inside the choice text.
   const TEXT_ANSWER_TYPES = new Set([
-    'radio', 'menu', 'checkbox', 'mark', 'correspond', 'clickfill',
+    'radio', 'menu', 'checkbox', 'mark', 'correspond', 'clickfill', 'crossword',
     'atext', 'text', 'nocase', 'case', 'raw',
     // `units`/`sigunits` answers ("7.7 m/s", "1.64e11 km^3") render verbatim —
     // otherwise slashToFrac would turn a unit's "/" into a LaTeX fraction.

@@ -178,10 +178,10 @@ def _candidats(ans):
     # remplit la grille ; on soumet ses lettres comme le widget les envoie,
     # une rangée par ligne, chaque case suivie d'une virgule.
     if ans.answer_type == "crossword":
-        from core.oef.def_engine.crossword import lire_grille, separer_attendu  # noqa: PLC0415
-        grille = lire_grille(separer_attendu(brut)[0])
+        from core.oef.def_engine.crossword import reponse_de  # noqa: PLC0415
+        grille = reponse_de(brut)
         if grille:
-            yield "\n".join("".join(c + "," for c in r) for r in grille)
+            yield grille
     # `compose`/`textcomp` : l'attendu peut porter plusieurs rangs (`;`), dont
     # `anstype/compose` ne retient que le premier (`!rows2lines` puis
     # `!line 1`), la virgule valant espace. On soumet cette forme — sinon on

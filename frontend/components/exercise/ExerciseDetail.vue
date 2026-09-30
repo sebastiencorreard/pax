@@ -93,7 +93,8 @@ const autofillMap = computed<Record<string, string> | null>(() => {
     // `case` (e.g. prime factorisation `3^2*5*2`) is already in input
     // notation: keep its `*` — toInputValue strips them (right for algexp's
     // implicit product `3*x`→`3x`, wrong here: `3^2*5*2` → `3^252`).
-    if (['menu', 'radio', 'clickfill', 'case'].includes(a.answer_type)) {
+    // `crossword` : une rangée par ligne — toInputValue en ôterait les sauts.
+    if (['menu', 'radio', 'clickfill', 'case', 'crossword'].includes(a.answer_type)) {
       return [a.input_name, a.expected]
     }
     return [a.input_name, toInputValue(a.expected)]
