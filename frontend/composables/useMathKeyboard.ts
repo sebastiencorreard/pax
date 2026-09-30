@@ -213,17 +213,30 @@ function ongletAbc(lang: string): Disposition {
 /** Les lettres grecques ; la majuscule donne les capitales qui existent en
  *  propre (Γ, Δ, Θ…). WIMS les écrit par leur nom. */
 function ongletGrec(): Disposition {
-  const g = (min: string, maj?: string): ToucheMath => {
-    const t = sym(`\\${min}`, min.replace(/^var/, ''))
-    return maj ? m(t, sym(`\\${maj}`, maj)) : t
+  // Toutes les minuscules ont leur capitale sous la majuscule. Celles qui
+  // s'écrivent comme une capitale latine (Α, Β, Ε, Ζ, Η, Μ, Ν, Ρ, Τ, Χ) n'ont
+  // pas de commande LaTeX : on les montre en capitale droite, comme le veut la
+  // typographie grecque. Toutes écrivent leur nom, `Alpha` comme `Gamma`.
+  const LATINES: Record<string, string> = {
+    alpha: 'A', beta: 'B', varepsilon: 'E', zeta: 'Z', eta: 'H',
+    mu: 'M', nu: 'N', rho: 'P', tau: 'T', chi: 'X',
+  }
+  const g = (min: string): ToucheMath => {
+    const nom = min.replace(/^var/, '')
+    const Nom = nom[0]!.toUpperCase() + nom.slice(1)
+    const latine = LATINES[min]
+    const capitale = latine
+      ? sym(`\\mathrm{${latine}}`, Nom)
+      : sym(`\\${Nom}`, Nom)
+    return m(sym(`\\${min}`, nom), capitale)
   }
   return {
     colonnes: DIX,
     rangees: [
-      [g('alpha'), g('beta'), g('gamma', 'Gamma'), g('delta', 'Delta'), g('varepsilon'),
-        g('zeta'), g('eta'), g('theta', 'Theta'), g('lambda', 'Lambda'), g('mu')],
-      [g('nu'), g('xi', 'Xi'), g('pi', 'Pi'), g('rho'), g('sigma', 'Sigma'), g('tau'),
-        g('varphi', 'Phi'), g('chi'), g('psi', 'Psi'), g('omega', 'Omega')],
+      [g('alpha'), g('beta'), g('gamma'), g('delta'), g('varepsilon'),
+        g('zeta'), g('eta'), g('theta'), g('lambda'), g('mu')],
+      [g('nu'), g('xi'), g('pi'), g('rho'), g('sigma'), g('tau'),
+        g('varphi'), g('chi'), g('psi'), g('omega')],
       [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
         m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), op('−', '-'), op('\\times', '*'),
         op('\\div', '/'), op('\\square^{n}', '^'), { ...EFFACER, largeur: 2 }],
