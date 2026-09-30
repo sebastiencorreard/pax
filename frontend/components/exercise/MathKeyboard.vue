@@ -1,10 +1,8 @@
 <template>
-  <!-- Fermé, il ne reste qu'un bouton d'appel : sur ordinateur c'est la seule
-       façon d'ouvrir la planche, et après une fermeture c'est le moyen de la
-       rappeler. Il n'apparaît que lorsqu'un champ a le focus. -->
-  <!-- Flottant, en bas à droite de l'écran : il ne prend plus de place dans
-       l'énoncé, et reste à portée de pouce sur tablette. `mousedown.prevent`
-       garde le focus au champ, que la planche alimentera. -->
+  <!-- Fermé — c'est l'état par défaut, au doigt comme à la souris —, il ne
+       reste qu'une pastille flottante en bas à droite, visible dès qu'un champ
+       a le focus. `mousedown.prevent` garde le focus au champ, que la planche
+       alimentera. -->
   <Transition name="pax-mk-fab">
     <button
       v-if="!ouvert && cible"
@@ -22,68 +20,114 @@
        dans `body` : un ancêtre transformé ferait sinon de `position: fixed`
        un positionnement relatif à lui. -->
   <Teleport to="body">
-  <Transition name="pax-mk-panneau">
-  <div
-    v-if="ouvert"
-    ref="panneau"
-    class="pax-mk"
-    role="group"
-    :aria-label="$t('keyboard.aria')">
+    <Transition name="pax-mk-panneau">
+      <div
+        v-if="ouvert"
+        ref="panneau"
+        class="pax-mk"
+        role="group"
+        :aria-label="$t('keyboard.aria')">
+        <div class="pax-mk-grid" :class="{ 'is-abc': onglet === 'abc' }">
+          <template v-for="(rangee, r) in planche" :key="onglet + r">
+            <button
+              v-for="(t, i) in rangee"
+              :key="i"
+              type="button"
+              class="pax-mk-key"
+              :class="['is-' + (t.famille || 'symbole'), { 'is-actif': t.action === 'maj' && maj }]"
+              :style="t.largeur && t.largeur > 1 ? { gridColumn: `span ${t.largeur}` } : undefined"
+              :aria-label="aria(t)"
+              @mousedown.prevent
+              @click="frapper(t)">
+              <span v-if="t.latex && etiquettes[t.latex]" v-html="etiquettes[t.latex]" />
+              <span v-else>{{ t.libelle ?? t.latex ?? t.texte }}</span>
+            </button>
+          </template>
+        </div>
 
-    <div class="pax-mk-grid">
-      <button
-        v-for="(t, i) in touches"
-        :key="i"
-        type="button"
-        class="pax-mk-key"
-        :class="'is-' + t.groupe"
-        :title="t.texte"
-        :aria-label="t.texte"
-        @mousedown.prevent
-        @click="frapper(t)"
-        v-html="etiquettes[i] || t.texte" />
-    </div>
-    <button
-      type="button" class="pax-mk-close" :title="$t('keyboard.close')" :aria-label="$t('keyboard.close')"
-      @mousedown.prevent @click="$emit('close')">
-      ✕
-    </button>
-  </div>
-  </Transition>
+        <!-- La rangée d'actions, la même d'un onglet à l'autre (MathLive). -->
+        <div class="pax-mk-actions">
+          <div class="pax-mk-onglets" role="tablist" :aria-label="$t('keyboard.tabs')">
+            <button
+              v-for="o in ONGLETS"
+              :key="o.id"
+              type="button"
+              role="tab"
+              class="pax-mk-onglet"
+              :class="{ 'is-actif': onglet === o.id }"
+              :aria-selected="onglet === o.id"
+              @mousedown.prevent
+              @click="onglet = o.id">
+              {{ o.libelle }}
+            </button>
+          </div>
+          <button
+            v-for="(t, i) in ACTIONS"
+            :key="'a' + i"
+            type="button"
+            class="pax-mk-key is-action"
+            :aria-label="aria(t)"
+            @mousedown.prevent
+            @click="frapper(t)">
+            {{ t.libelle }}
+          </button>
+          <button
+            type="button"
+            class="pax-mk-key is-action pax-mk-close"
+            :title="$t('keyboard.close')"
+            :aria-label="$t('keyboard.close')"
+            @mousedown.prevent
+            @click="$emit('close')">
+            <span aria-hidden="true">⌄</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { CLAVIER_DEFAUT, insere, type ToucheMath } from '~/composables/useMathKeyboard'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import {
+  ACTIONS, ONGLETS, insere, rangees,
+  type OngletClavier, type ToucheMath,
+} from '~/composables/useMathKeyboard'
 import { useKatex } from '~/composables/useKatex'
 
 const props = defineProps<{
   /** Le champ que les touches alimentent. */
   cible: HTMLInputElement | HTMLTextAreaElement | null
   ouvert: boolean
+  /** Langue de l'exercice : séparateur décimal, disposition des lettres. */
+  lang?: string
 }>()
 
 defineEmits<{ close: [], open: [] }>()
 
+const { t: tr } = useI18n()
 const { renderMath } = useKatex()
-const touches = CLAVIER_DEFAUT
 
-// Les étiquettes sont fixes : on les rend **une fois**, au montage. `renderMath`
-// est asynchrone (KaTeX se charge à la demande), donc les calculer dans le
-// template rendrait une promesse au lieu du HTML.
-const etiquettes = ref<string[]>([])
-onMounted(async () => {
-  etiquettes.value = await Promise.all(
-    touches.map(async t => {
-      try {
-        return await renderMath('\\(' + t.latex + '\\)')
-      } catch {
-        return t.texte
-      }
-    }),
-  )
-})
+const onglet = ref<OngletClavier>('123')
+const maj = ref(false)
+const planche = computed(() => rangees(onglet.value, props.lang || 'fr', maj.value))
+
+function aria(t: ToucheMath): string {
+  if (t.aria?.startsWith('keyboard.')) return tr(t.aria)
+  return t.aria ?? t.texte ?? t.libelle ?? ''
+}
+
+// Les étiquettes LaTeX, rendues à la demande et gardées : `renderMath` est
+// asynchrone (KaTeX se charge à la demande), le template ne peut l'attendre.
+const etiquettes = ref<Record<string, string>>({})
+watch(planche, async (p) => {
+  const manquantes = [...new Set(p.flat().map(t => t.latex).filter(
+    (l): l is string => !!l && !(l in etiquettes.value)))]
+  const rendus = await Promise.all(manquantes.map(async (l) => {
+    try { return [l, await renderMath('\\(' + l + '\\)')] as const }
+    catch { return [l, l] as const }
+  }))
+  etiquettes.value = { ...etiquettes.value, ...Object.fromEntries(rendus) }
+}, { immediate: true })
 
 // ── Place réservée ────────────────────────────────────────────────────────────
 // Le panneau recouvre le bas de la page : on réserve sa hauteur en marge basse
@@ -130,27 +174,29 @@ onBeforeUnmount(() => { observateur?.disconnect(); reserve(0) })
 // `mousedown.prevent` sur chaque touche empêche le champ de perdre le focus :
 // sans cela, le clic vole le curseur et l'insertion partirait de nulle part.
 function frapper(t: ToucheMath) {
-  if (props.cible) insere(props.cible, t)
+  if (t.action === 'maj') { maj.value = !maj.value; return }
+  if (!props.cible) return
+  insere(props.cible, t)
+  // Une majuscule, comme sur un téléphone : la touche retombe après usage.
+  if (maj.value && t.texte) maj.value = false
 }
 </script>
 
 <style scoped>
 /* Le panneau, ancré en bas de l'écran comme un clavier de tablette : toute
-   la largeur sur un téléphone, centré et borné sur un grand écran. Il ne se
-   substitue pas au clavier de l'appareil : il ajoute ce que celui-ci enterre
-   dans ses sous-menus. */
+   la largeur sur un téléphone, centré et borné sur un grand écran. */
 .pax-mk {
   position: fixed;
   left: 50%;
   bottom: 0;
   z-index: 50;
-  width: min(100%, 56rem);
+  width: min(100%, 44rem);
   transform: translateX(-50%);
-  padding: 0.75rem 2.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px)) 0.75rem;
+  padding: 0.6rem 0.6rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
   border: 1px solid var(--color-border);
   border-bottom: 0;
   border-radius: 1rem 1rem 0 0;
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-bg) 70%, var(--color-surface));
   box-shadow: 0 -8px 24px rgb(0 0 0 / 0.12);
 }
 
@@ -165,50 +211,93 @@ function frapper(t: ToucheMath) {
   .pax-mk-panneau-leave-active { transition: none; }
 }
 
+/* Une grille de dix colonnes, quatre rangées de haut quel que soit l'onglet :
+   la planche ne saute pas quand on en change. */
 .pax-mk-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-auto-rows: 2.6rem;
+  gap: 0.3rem;
+  min-height: calc(4 * 2.6rem + 3 * 0.3rem);
+  align-content: start;
 }
 
 .pax-mk-key {
-  min-width: 2.75rem;
-  min-height: 2.5rem; /* cible tactile confortable */
-  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 0.2rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  background: var(--color-bg);
+  border-radius: 0.45rem;
+  background: var(--color-surface);
   color: var(--color-text);
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
   cursor: pointer;
-  transition: background-color 0.12s, border-color 0.12s;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.08);
+  transition: background-color 0.1s, border-color 0.1s;
 }
 
 .pax-mk-key:hover { border-color: var(--color-primary); }
-.pax-mk-key:active { background: color-mix(in srgb, var(--color-primary) 18%, transparent); }
+.pax-mk-key:active { background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface)); }
 
-/* Les trois familles se distinguent au ton, pas à la couleur pleine : la
-   planche doit rester lisible sans devenir un damier. */
-.pax-mk-key.is-fonction { color: var(--color-primary); }
-.pax-mk-key.is-symbole { color: var(--color-text-muted); }
-
-.pax-mk-close {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.75rem;
-  padding: 0.15rem 0.35rem;
-  border: 0;
-  background: transparent;
+/* Les familles se distinguent au ton : chiffres en plein, fonctions et
+   opérations en couleur d'accent, symboles et actions en retrait. */
+.pax-mk-key.is-chiffre { font-weight: 600; }
+.pax-mk-key.is-fonction { color: var(--color-primary); font-size: 0.9rem; }
+.pax-mk-key.is-operation { color: var(--color-primary); }
+.pax-mk-key.is-variable { font-style: italic; }
+.pax-mk-grid.is-abc .pax-mk-key.is-variable { font-style: normal; }
+.pax-mk-key.is-action {
+  background: color-mix(in srgb, var(--color-text) 8%, var(--color-surface));
   color: var(--color-text-muted);
-  cursor: pointer;
-  line-height: 1;
+}
+.pax-mk-key.is-actif {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
 }
 
-.pax-mk-close:hover { color: var(--color-text); }
+/* La rangée d'actions : les onglets à gauche, les commandes à droite. */
+.pax-mk-actions {
+  display: grid;
+  grid-template-columns: 1fr repeat(4, 2.9rem);
+  grid-auto-rows: 2.6rem;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
 
-/* Le bouton d'appel : rond, flottant, au-dessus du contenu. */
+.pax-mk-onglets {
+  display: flex;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.pax-mk-onglet {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pax-mk-onglet:hover { color: var(--color-text); }
+.pax-mk-onglet.is-actif {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.pax-mk-close span { font-size: 1.3rem; transform: translateY(-3px); }
+
+/* La pastille d'appel : ronde, flottante, au-dessus du contenu. */
 .pax-mk-open {
   position: fixed;
   right: calc(1.25rem + env(safe-area-inset-right, 0px));
@@ -264,18 +353,15 @@ function frapper(t: ToucheMath) {
   .pax-mk-fab-leave-active { transition: none; }
 }
 
-/* Petit écran : des touches plus serrées, pour que la planche ne mange pas le
-   quart de l'écran — 38 px de haut restent une cible tactile correcte. */
+/* Petit écran : des touches plus basses, pour que la planche ne mange pas le
+   tiers de l'écran — 38 px restent une cible tactile correcte. */
 @media (max-width: 480px) {
-  .pax-mk { padding: 0.5rem 2.25rem calc(0.5rem + env(safe-area-inset-bottom, 0px)) 0.5rem; }
-  .pax-mk-grid { gap: 0.25rem; }
-  .pax-mk-key {
-    min-width: 2.35rem;
-    min-height: 2.35rem;
-    padding: 0.15rem 0.3rem;
-    font-size: 0.85rem;
-  }
-  .pax-mk-close { top: 0.4rem; right: 0.5rem; }
+  .pax-mk { padding: 0.4rem 0.3rem calc(0.4rem + env(safe-area-inset-bottom, 0px)); border-radius: 0.75rem 0.75rem 0 0; }
+  .pax-mk-grid { grid-auto-rows: 2.35rem; gap: 0.2rem; min-height: calc(4 * 2.35rem + 3 * 0.2rem); }
+  .pax-mk-actions { grid-template-columns: 1fr repeat(4, 2.4rem); grid-auto-rows: 2.35rem; gap: 0.2rem; margin-top: 0.2rem; }
+  .pax-mk-key { font-size: 0.9rem; border-radius: 0.35rem; }
+  .pax-mk-key.is-fonction { font-size: 0.75rem; }
+  .pax-mk-onglet { font-size: 0.75rem; }
 }
 </style>
 

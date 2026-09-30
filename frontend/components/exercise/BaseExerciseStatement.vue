@@ -79,14 +79,14 @@
 
     <!-- Clavier mathématique : la réponse se tape en syntaxe WIMS (`sqrt(2)`,
          `x^2`), et sur tablette les caractères qu'elle réclame sont enterrés
-         dans les sous-menus du clavier système. La planche ne s'ouvre que
-         lorsqu'un champ a le focus, et d'elle-même seulement sur un écran
-         tactile — sur ordinateur le clavier physique suffit. -->
+         dans les sous-menus du clavier système. Fermé par défaut : une
+         pastille flottante, dès qu'un champ a le focus, l'ouvre à la demande. -->
     <ExerciseMathKeyboard
       :cible="champActif"
       :ouvert="clavierOuvert && !!champActif"
-      @close="clavierFerme = true"
-      @open="clavierFerme = false; clavierDemande = true" />
+      :lang="rendered.lang"
+      @close="clavierOuvert = false"
+      @open="clavierOuvert = true" />
 
   </div>
 </template>
@@ -127,21 +127,46 @@ const emit = defineEmits<{
 // champs naissent d'un `v-html` autant que de segments, et un écouteur posé à
 // la racine les couvre tous — y compris ceux qu'un tableau garde en HTML brut.
 const champActif = ref<HTMLInputElement | HTMLTextAreaElement | null>(null)
-const clavierFerme = ref(false)
 const tactile = ref(false)
 
-// Ouvert d'office au doigt, sur demande à la souris. Refermer vaut pour la
-// durée de l'exercice : rouvrir à chaque champ harcèlerait.
-const clavierDemande = ref(false)
-const clavierOuvert = computed(
-  () => (tactile.value || clavierDemande.value) && !clavierFerme.value,
-)
+// Fermé par défaut, au doigt comme à la souris : une planche qui s'ouvre
+// d'elle-même encombre l'énoncé. Une fois ouverte, elle suit l'élève de
+// champ en champ jusqu'à ce qu'il la referme.
+const clavierOuvert = ref(false)
 
 function surFocus(e: FocusEvent) {
   const el = e.target as HTMLElement | null
   if (el instanceof HTMLInputElement && el.type === 'text') champActif.value = el
   else if (el instanceof HTMLTextAreaElement) champActif.value = el
 }
+
+// Au doigt, la planche ouverte **remplace** le clavier du système, comme
+// celle de MathLive : `inputmode="none"` le tient caché sur tous les champs de
+// l'énoncé, et le rend à la fermeture. À la souris, il n'y a rien à cacher.
+const modesSauves = new Map<HTMLElement, string | null>()
+function champsTexte(): HTMLElement[] {
+  const racine = statementEl.value
+  if (!racine) return []
+  return [...racine.querySelectorAll<HTMLElement>('input[type="text"], input:not([type]), textarea')]
+}
+watch(clavierOuvert, (ouvert) => {
+  if (!tactile.value) return
+  if (ouvert) {
+    for (const el of champsTexte()) {
+      if (!modesSauves.has(el)) modesSauves.set(el, el.getAttribute('inputmode'))
+      el.setAttribute('inputmode', 'none')
+    }
+    // Le clavier du système, déjà ouvert, ne se retire qu'au prochain focus.
+    const champ = champActif.value
+    if (champ) { champ.blur(); champ.focus() }
+  } else {
+    for (const [el, mode] of modesSauves) {
+      if (mode === null) el.removeAttribute('inputmode')
+      else el.setAttribute('inputmode', mode)
+    }
+    modesSauves.clear()
+  }
+})
 
 onMounted(() => {
   tactile.value = pointeurGrossier()
