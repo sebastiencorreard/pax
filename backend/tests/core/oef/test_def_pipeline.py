@@ -1826,3 +1826,17 @@ class TestMakelistGardeLesBarres:
         assert DefEngine(seed=1)._eval_cmd("makelist", r"\bullet for x=1 to 3") == (
             r"\bullet,\bullet,\bullet"
         )
+
+
+class TestFonctionInconnueDeSympy:
+    """Un nom suivi de `(` est une fonction, comme pour `texmath` (`putvar`)."""
+
+    def test_nom_inconnu_non_decoupe(self):
+        from core.oef.def_engine.presentation import _close_inline_math
+        assert _close_inline_math(r"\(argch(x))", "fr") == (
+            r"\(\operatorname{argch}{\left(x \right)}\)"
+        )
+
+    def test_produit_implicite_intact(self):
+        from core.oef.def_engine.presentation import _close_inline_math
+        assert _close_inline_math(r"\(2x(x+1))", "fr") == r"\(2 x \left(x + 1\right)\)"

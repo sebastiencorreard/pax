@@ -838,6 +838,16 @@ def _drop_unit_factors(node):
         return node.func(*new_args)
 
 
+def _fonction_sympy(nom: str) -> bool:
+    """Vrai si `parse_expr` lit déjà `nom(…)` comme une fonction : un nom de
+    SymPy (`sin`, `sqrt`, `atan`…) ou un intégré Python (`abs`, `max`)."""
+    import builtins  # noqa: PLC0415
+
+    import sympy  # noqa: PLC0415
+
+    return callable(getattr(sympy, nom, None)) or callable(getattr(builtins, nom, None))
+
+
 def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
     """Convert a math expression string to LaTeX notation for display.
 
@@ -904,6 +914,15 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
     # `\(f(x)\)` is a function, not the variable `f` times `x`.
     for fn in func_names or ():
         locals_dict[fn] = sympy.Function(fn)
+    # Un nom de plusieurs lettres suivi d'une parenthèse est une fonction, que
+    # SymPy la connaisse ou non. `texmath` (`texmath.c`) n'en juge pas
+    # autrement : hors de sa table, il écrit le nom (`putvar`) puis
+    # `\left( … \right)`. Sans cela, `split_symbols` découpait le nom en
+    # lettres : `argch(x)` sortait `a r g c h x`, `arctan(x)` de même
+    # (`oefderiv/arcarg`).
+    for fn in re.findall(r"(?<![A-Za-z0-9_])([A-Za-z]{2,})(?=\s*\()", expr_strip):
+        if fn not in locals_dict and not _fonction_sympy(fn):
+            locals_dict[fn] = sympy.Function(fn)
     transformations = standard_transformations + (
         implicit_multiplication_application,
     )
