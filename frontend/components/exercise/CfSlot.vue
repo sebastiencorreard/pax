@@ -115,15 +115,22 @@ function onClick() {
   vertical-align: middle;
   margin: 0 0.25rem;
   padding: 0.1rem 0.6rem;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed var(--color-text-muted);
   border-radius: 0.375rem;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
   user-select: none;
+  /* Posée sur une image (imagefill), une zone transparente se confond avec
+     le dessin : fond de surface presque opaque, teinté selon l'état. */
+  --cf-teinte: var(--color-primary);
+  --cf-dose: 8%;
+  background: color-mix(in srgb,
+    color-mix(in srgb, var(--cf-teinte) var(--cf-dose), var(--color-surface)) 90%,
+    transparent);
 }
 .cf-slot--over {
   border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --cf-dose: 20%;
 }
 .cf-slot--filled {
   border-style: solid;
@@ -136,12 +143,14 @@ function onClick() {
 .cf-slot--correct {
   border-style: solid;
   border-color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  --cf-teinte: var(--color-success);
+  --cf-dose: 15%;
 }
 .cf-slot--incorrect {
   border-style: solid;
   border-color: var(--color-error);
-  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  --cf-teinte: var(--color-error);
+  --cf-dose: 15%;
 }
 .cf-slot-placeholder {
   color: var(--color-text-muted);
