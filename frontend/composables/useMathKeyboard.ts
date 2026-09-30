@@ -51,15 +51,21 @@ export interface ToucheMath {
    * syntaxe même que l'élève lirait dans son champ.
    */
   aria?: string
+  /** La variante sous la majuscule (virtuelle, ou celle du clavier physique). */
+  maj?: ToucheMath
+  /** Une case vide, pour aligner les blocs. */
+  vide?: boolean
 }
 
-export type OngletClavier = '123' | 'fx' | 'rel' | 'abc'
+export type OngletClavier = '123' | 'fx' | 'abc' | 'grec'
 
+// Les onglets de MathLive, ramenés à ce que la syntaxe WIMS écrit : l'onglet
+// des relations a disparu, ses touches vivent désormais sous la majuscule.
 export const ONGLETS: { id: OngletClavier, libelle: string }[] = [
   { id: '123', libelle: '123' },
   { id: 'fx', libelle: 'f(x)' },
-  { id: 'rel', libelle: '≤ ∞' },
   { id: 'abc', libelle: 'abc' },
+  { id: 'grec', libelle: 'αβγ' },
 ]
 
 const c = (x: string): ToucheMath => ({ libelle: x, texte: x, famille: 'chiffre' })
@@ -81,88 +87,146 @@ const sym = (latex: string, texte: string, aria?: string): ToucheMath =>
 // les touches de MathLive.
 const fnx = (latex: string, texte: string): ToucheMath =>
   ({ latex, texte: texte + '()', recul: 1, famille: 'fonction', aria: texte })
-const chiffres = (): ToucheMath[] => [...'1234567890'].map(c)
+// La réciproque, notée `cos⁻¹` comme sur une calculatrice ; elle écrit la
+// fonction que WIMS connaît (`arccos`) — `cos^-1(x)` y serait une puissance.
+const recip = (nom: string): ToucheMath =>
+  ({ latex: `\\${nom}^{-1}`, texte: `arc${nom}()`, recul: 1, famille: 'fonction', aria: `arc${nom}` })
+/** `t`, et sa variante sous la majuscule. */
+const m = (t: ToucheMath, maj: ToucheMath): ToucheMath => ({ ...t, maj })
+const VIDE: ToucheMath = { vide: true }
+
+const MAJ: ToucheMath = { libelle: '⇧', action: 'maj', famille: 'action', aria: 'keyboard.shift', largeur: 2 }
+const GAUCHE: ToucheMath = { libelle: '‹', action: 'gauche', famille: 'action', aria: 'keyboard.left' }
+const DROITE: ToucheMath = { libelle: '›', action: 'droite', famille: 'action', aria: 'keyboard.right' }
+const EFFACER: ToucheMath = { libelle: '⌫', action: 'effacer', famille: 'action', aria: 'keyboard.delete' }
+const ENTREE: ToucheMath = { libelle: '↵', action: 'entree', famille: 'action', aria: 'keyboard.enter' }
+const NTH_RACINE: ToucheMath =
+  { latex: '\\sqrt[n]{\\square}', texte: '^(1/)', recul: 1, famille: 'operation', aria: '^(1/n)' }
+
+/** Une disposition : ses colonnes (gabarit CSS) et ses rangées. */
+export interface Disposition {
+  colonnes: string
+  rangees: ToucheMath[][]
+}
+
+// Dix colonnes égales, ou trois blocs séparés d'un filet (`123`, comme
+// MathLive : variables · pavé · puissances et navigation).
+const DIX = 'repeat(10, minmax(0, 1fr))'
+const TROIS_BLOCS = 'repeat(2, minmax(0, 1fr)) 0.4rem repeat(4, minmax(0, 1fr)) 0.4rem repeat(3, minmax(0, 1fr))'
 
 /**
- * Les rangées de l'onglet `123`. `decimal` est le séparateur de la langue de
- * l'exercice (`,` en français, `.` en anglais) — celui que le correcteur
- * attend, et que l'élève chercherait sinon.
+ * L'onglet `123`, à la manière de MathLive. `decimal` est le séparateur de la
+ * langue de l'exercice (`,` en français) ; l'autre est sous sa majuscule.
  */
-function onglet123(decimal: string): ToucheMath[][] {
+function onglet123(decimal: string): Disposition {
   const autre = decimal === ',' ? '.' : ','
+  const liste = decimal === ',' ? ';' : ','
   // `\lbrack … \rbrack` : `[` seul passerait, mais une paire `[…;…]` est une
   // matrice pour `renderMath`, qui l'afficherait entre parenthèses.
-  return [
-    [v('x'), v('y'), op('(', '('), op(')', ')'), c('7'), c('8'), c('9'),
-      op('\\div', '/'), op('\\square^{n}', '^'), op('\\square^{2}', '^2')],
-    [v('a'), v('b'), op('\\lbrack', '['), op('\\rbrack', ']'), c('4'), c('5'), c('6'),
-      op('\\times', '*'), fnx('\\sqrt{\\square}', 'sqrt'), fnx('|\\square|', 'abs')],
-    [v('n'), v('t'), op('\\{', '{'), op('\\}', '}'), c('1'), c('2'), c('3'),
-      op('−', '-'), sym('\\pi', 'pi'), sym('\\infty', 'infinity')],
-    // `;` sépare les éléments d'une liste là où la virgule est décimale ;
-    // la quatrième touche porte l'**autre** séparateur, pour ne pas montrer
-    // deux virgules en français.
-    [sym('<', '<'), sym('>', '>'), sym(';', ';'), sym(autre, autre),
-      c('0'), c(decimal), sym('=', '='),
-      op('+', '+'), sym('\\le', '<='), sym('\\ge', '>=')],
-  ]
+  return {
+    colonnes: TROIS_BLOCS,
+    rangees: [
+      [m(v('x'), v('y')), m(v('n'), v('t')), VIDE,
+        c('7'), c('8'), c('9'), op('\\div', '/'), VIDE,
+        m(sym('e', 'e'), fn('ln', 'ln')), sym('\\pi', 'pi'),
+        m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE)],
+      [m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')), VIDE,
+        c('4'), c('5'), c('6'), op('\\times', '*'), VIDE,
+        m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
+        m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
+        m(fnx('|\\square|', 'abs'), op('\\square!', '!'))],
+      [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')), VIDE,
+        c('1'), c('2'), c('3'), op('−', '-'), VIDE,
+        m(sym(liste, liste), sym(':', ':')), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
+        EFFACER],
+      [MAJ, VIDE,
+        c('0'), m(c(decimal), c(autre)), m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), VIDE,
+        GAUCHE, DROITE, ENTREE],
+    ],
+  }
 }
 
-const ONGLET_FX: ToucheMath[][] = [
-  [fn('sin', 'sin'), fn('cos', 'cos'), fn('tan', 'tan'), fn('ln', 'ln'), fn('exp', 'exp'),
-    fnx('\\sqrt{\\square}', 'sqrt'), fnx('|\\square|', 'abs'),
-    op('\\square^{n}', '^'), op('(', '('), op(')', ')')],
-  [fn('arcsin', 'arcsin'), fn('arccos', 'arccos'), fn('arctan', 'arctan'), fn('log', 'log'),
-    sym('e', 'e'), sym('\\pi', 'pi'), v('x'),
-    op('\\square^{-1}', '^(-1)'), op('\\square!', '!'), op('\\square^{2}', '^2')],
-  [fn('sinh', 'sinh'), fn('cosh', 'cosh'), fn('tanh', 'tanh'), fnx('\\lfloor\\square\\rfloor', 'floor'),
-    fnx('\\lceil\\square\\rceil', 'ceil'), op('e^{\\square}', 'e^'), op('10^{\\square}', '10^'),
-    { latex: '\\sqrt[n]{\\square}', texte: '^(1/)', recul: 1, famille: 'operation', aria: '^(1/n)' },
-    fn('min', 'min'), fn('max', 'max')],
-  chiffres(),
-]
+/** L'onglet des fonctions : les réciproques (`sin⁻¹`) sous la majuscule. */
+function ongletFx(): Disposition {
+  return {
+    colonnes: DIX,
+    rangees: [
+      [m(fn('sin', 'sin'), recip('sin')), m(fn('ln', 'ln'), fn('log', 'log')),
+        m(fnx('|\\square|', 'abs'), op('\\square!', '!')),
+        m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE),
+        m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)')),
+        m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3')),
+        m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
+        op('\\{', '{'), op('\\}', '}')],
+      [m(fn('cos', 'cos'), recip('cos')), m(fn('exp', 'exp'), op('e^{\\square}', 'e^')),
+        m(fnx('\\lfloor\\square\\rfloor', 'floor'), fnx('\\lceil\\square\\rceil', 'ceil')),
+        m(fn('min', 'min'), fn('max', 'max')),
+        sym('e', 'e'), sym('\\pi', 'pi'), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
+        m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')),
+        m(sym('=', '='), sym('\\ne', '!='))],
+      [m(fn('tan', 'tan'), recip('tan')), m(fn('sinh', 'sinh'), fn('cosh', 'cosh')),
+        fn('tanh', 'tanh'), op('10^{\\square}', '10^'),
+        m(v('x'), v('y')), m(v('n'), v('t')), m(v('a'), v('b')), sym('i', 'i'),
+        m(sym(';', ';'), sym(',', ',')), EFFACER],
+      [MAJ, op('+', '+'), op('−', '-'), op('\\times', '*'), op('\\div', '/'),
+        VIDE, GAUCHE, DROITE, ENTREE],
+    ],
+  }
+}
 
-const ONGLET_REL: ToucheMath[][] = [
-  [sym('<', '<'), sym('>', '>'), sym('\\le', '<='), sym('\\ge', '>='), sym('=', '='),
-    sym('\\ne', '!='), sym('\\infty', 'infinity'), sym('-\\infty', '-infinity'),
-    sym(';', ';'), sym(',', ',')],
-  [op('(', '('), op(')', ')'), op('\\lbrack', '['), op('\\rbrack', ']'), op('\\{', '{'),
-    op('\\}', '}'), sym('\\alpha', 'alpha'), sym('\\beta', 'beta'), sym('\\theta', 'theta'),
-    sym('\\lambda', 'lambda')],
-  [sym('\\mu', 'mu'), sym('\\sigma', 'sigma'), sym('\\rho', 'rho'), sym('\\omega', 'omega'),
-    sym('\\varphi', 'phi'), sym('\\varepsilon', 'epsilon'), sym('\\delta', 'delta'),
-    sym('\\Delta', 'Delta'), sym('\\Omega', 'Omega'), sym('\\Sigma', 'Sigma')],
-  chiffres(),
-]
-
-/** Les lettres, dans la disposition du clavier de la langue. */
-function ongletAbc(lang: string, maj: boolean): ToucheMath[][] {
+/** Les lettres, dans la disposition du clavier de la langue ; la majuscule
+ *  donne les capitales. */
+function ongletAbc(lang: string): Disposition {
   const azerty = lang === 'fr'
-  const rangees = azerty
+  const [r1, r2, r3] = azerty
     ? ['azertyuiop', 'qsdfghjklm', 'wxcvbn']
     : ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
-  const lettre = (l: string): ToucheMath => {
-    const x = maj ? l.toUpperCase() : l
-    return { libelle: x, texte: x, famille: 'variable' }
+  const lettre = (l: string): ToucheMath =>
+    m({ libelle: l, texte: l, famille: 'variable' }, { libelle: l.toUpperCase(), texte: l.toUpperCase(), famille: 'variable' })
+  const ligne = (r: string) => [...r].map(lettre)
+  const l2 = ligne(r2)
+  const l3 = ligne(r3)
+  return {
+    colonnes: DIX,
+    rangees: [
+      ligne(r1),
+      l2.length < 10 ? [...l2, sym("'", "'")] : l2,
+      [{ ...MAJ, largeur: 1 }, ...l3, ...(l3.length < 7 ? [sym("'", "'")] : []), { ...EFFACER, largeur: 2 }],
+      [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')), op('+', '+'), op('−', '-'),
+        { libelle: '␣', texte: ' ', famille: 'symbole', aria: 'keyboard.space', largeur: 2 },
+        sym(',', ','), GAUCHE, DROITE, ENTREE],
+    ],
   }
-  const lignes = rangees.map(r => [...r].map(lettre))
-  // La troisième rangée : majuscule, lettres, puis ce qui complète les dix.
-  const derniere = lignes[2] ?? []
-  lignes[2] = [
-    { libelle: '⇧', action: 'maj', famille: 'action', aria: 'keyboard.shift' },
-    ...derniere,
-    { libelle: "'", texte: "'", famille: 'symbole' },
-    { libelle: '␣', texte: ' ', famille: 'symbole', aria: 'keyboard.space', largeur: 10 - derniere.length - 2 },
-  ]
-  return lignes
 }
 
-/** Les rangées d'un onglet. */
-export function rangees(onglet: OngletClavier, lang: string, maj = false): ToucheMath[][] {
+/** Les lettres grecques ; la majuscule donne les capitales qui existent en
+ *  propre (Γ, Δ, Θ…). WIMS les écrit par leur nom. */
+function ongletGrec(): Disposition {
+  const g = (min: string, maj?: string): ToucheMath => {
+    const t = sym(`\\${min}`, min.replace(/^var/, ''))
+    return maj ? m(t, sym(`\\${maj}`, maj)) : t
+  }
+  return {
+    colonnes: DIX,
+    rangees: [
+      [g('alpha'), g('beta'), g('gamma', 'Gamma'), g('delta', 'Delta'), g('varepsilon'),
+        g('zeta'), g('eta'), g('theta', 'Theta'), g('lambda', 'Lambda'), g('mu')],
+      [g('nu'), g('xi', 'Xi'), g('pi', 'Pi'), g('rho'), g('sigma', 'Sigma'), g('tau'),
+        g('varphi', 'Phi'), g('chi'), g('psi', 'Psi'), g('omega', 'Omega')],
+      [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
+        m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), op('−', '-'), op('\\times', '*'),
+        op('\\div', '/'), op('\\square^{n}', '^'), { ...EFFACER, largeur: 2 }],
+      [MAJ, VIDE, VIDE, VIDE, VIDE, VIDE, GAUCHE, DROITE, ENTREE],
+    ],
+  }
+}
+
+/** La disposition d'un onglet. */
+export function disposition(onglet: OngletClavier, lang: string): Disposition {
   switch (onglet) {
-    case 'fx': return ONGLET_FX
-    case 'rel': return ONGLET_REL
-    case 'abc': return ongletAbc(lang, maj)
+    case 'fx': return ongletFx()
+    case 'abc': return ongletAbc(lang)
+    case 'grec': return ongletGrec()
     default: return onglet123(separateurDecimal(lang))
   }
 }
