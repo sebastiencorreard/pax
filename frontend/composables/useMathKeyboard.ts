@@ -158,7 +158,7 @@ function onglet123(decimal: string): Disposition {
         discret(m(fnx('|\\square|', 'abs'), op('\\square!', '!')))],
       [m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')), VIDE,
         ch('1'), ch('2'), ch('3'), op('−', '-'), VIDE,
-        m(sym(liste, liste), sym(':', ':')), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
+        m(sym(liste, liste), sym(':', ':')), m(sym('∞', 'infinity'), { libelle: '−∞', texte: '-infinity', famille: 'symbole', aria: '-infinity' }),
         EFFACER],
       [MAJ, VIDE,
         ch('0'), m(c(decimal), c(autre)), m(sym('=', '='), sym('≠', '!=')), op('+', '+'), VIDE,
@@ -180,7 +180,7 @@ function ongletFx(): Disposition {
         op('{', '{'), op('}', '}')],
       [m(fn('cos', 'cos'), recip('cos')), m(fn('exp', 'exp'), op('e^{\\square}', 'e^')),
         m(fn('min', 'min'), fn('max', 'max')),
-        sym('e', 'e'), sym('\\pi', 'pi'), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
+        sym('e', 'e'), sym('\\pi', 'pi'), m(sym('∞', 'infinity'), { libelle: '−∞', texte: '-infinity', famille: 'symbole', aria: '-infinity' }),
         m(sym('<', '<'), sym('≤', '<=')), m(sym('>', '>'), sym('≥', '>=')),
         m(sym('=', '='), sym('≠', '!='))],
       [m(fn('tan', 'tan'), recip('tan')), op('10^{\\square}', '10^'),
@@ -472,7 +472,7 @@ export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCom
     return {
       colonnes: 7,
       rangees: [
-        [c('7'), c('8'), c('9'), op('[', '['), op(']', ']'), sym(liste, liste), sym('\\infty', 'infinity')],
+        [c('7'), c('8'), c('9'), op('[', '['), op(']', ']'), sym(liste, liste), sym('∞', 'infinity')],
         [c('4'), c('5'), c('6'), op('{', '{'), op('}', '}'), op('÷', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
         [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('×', '*'), op('\\square^{2}', '^2')],
         [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi'), sym('<', '<'), sym('>', '>')],
