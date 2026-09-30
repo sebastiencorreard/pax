@@ -1777,3 +1777,29 @@ class TestChoiceAnswers:
             "/ressources/H3/arithmetic/oefarith.fr/src/quizznbre.oef", seed=42
         )
         assert [a.input_name for a in r.answers] == ["c1"]
+
+
+class TestIndiceACrochets:
+    """`$(v[…])` dont l'indice porte des crochets (`evalue.c`, `substit`).
+
+    `find_matching` apparie les crochets : l'indice va jusqu'au `]` qui
+    ferme le premier. Chaque morceau passe ensuite par `evalue` ; un morceau
+    non numérique (NaN, vérifié sur la `strevalue` de `libwims.a`) est ignoré.
+    """
+
+    def _e(self):
+        from core.oef.def_engine import DefEngine
+        e = DefEngine(seed=1)
+        e.ctx["v"] = ",[xmax,[5]],"
+        e.ctx["w"] = "a,b,c"
+        return e
+
+    def test_indice_textuel_vaut_vide(self):
+        # `balayage1` : `$(val63[pas,[0.1]])` — l'auteur voulait du texte.
+        assert self._e()._subst("$(v[pas,[3]])X") == "X"
+
+    def test_un_morceau_numerique_reste_lu(self):
+        assert self._e()._subst("$(w[pas,3])") == "c"
+
+    def test_un_rang_entre_crochets_n_est_pas_un_nombre(self):
+        assert self._e()._subst("$(w[[2]])") == ""

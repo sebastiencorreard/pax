@@ -109,7 +109,10 @@ from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numer
 # deferral lets a nested $(outer[…$(inner[i])…]) resolve inner-first:
 # _resolve_indexed_forms loops and picks up the outer once the inner is gone
 # (e.g. $(val14[$m_h;$(val11[$m_h])])).
-_SUB = r"(?:[^\]$;]|\$(?!\())"
+# Un niveau de crochets équilibrés est admis dans l'indice, comme le fait
+# `find_matching` dans `substit` (`evalue.c`) : `balayage1` écrit
+# `$(val63[pas,[$(val50[1])]])`, qui restait en clair.
+_SUB = r"(?:\[[^\]$;]*\]|[^\]$;]|\$(?!\())"
 # `$(var[n..m])` — bounds may be ints, `$var`, or arithmetic; _eval_arith
 # reduces them after substitution. Bounds use _SUB so a nested range-slice
 # `$(outer[$(inner[1..3]);])` doesn't make this regex match the OUTER ref on
