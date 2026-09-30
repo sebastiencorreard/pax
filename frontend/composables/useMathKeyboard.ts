@@ -96,12 +96,14 @@ const fnx = (latex: string, texte: string): ToucheMath =>
   ({ latex, texte: texte + '()', recul: 1, famille: 'fonction', aria: texte })
 // La réciproque, notée `cos⁻¹` comme sur une calculatrice ; elle écrit la
 // fonction que WIMS connaît (`arccos`) — `cos^-1(x)` y serait une puissance.
+// L'étiquette en texte (`cos⁻¹`), sans empattement comme `sin` et `ln`.
 const recip = (nom: string): ToucheMath =>
-  ({ latex: `\\${nom}^{-1}`, texte: `arc${nom}()`, recul: 1, famille: 'fonction', aria: `arc${nom}` })
+  ({ libelle: `${nom}⁻¹`, texte: `arc${nom}()`, recul: 1, famille: 'fonction', aria: `arc${nom}` })
 /** `t`, et sa variante sous la majuscule. */
 const m = (t: ToucheMath, maj: ToucheMath): ToucheMath => ({ ...t, maj })
 const discret = (t: ToucheMath): ToucheMath => ({ ...t, discret: true })
 const VIDE: ToucheMath = { vide: true }
+const EXPOSANTS = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹']
 
 const MAJ: ToucheMath = { libelle: '⇧', action: 'maj', famille: 'action', aria: 'keyboard.shift', largeur: 2 }
 const GAUCHE: ToucheMath = { libelle: '‹', action: 'gauche', famille: 'action', aria: 'keyboard.left' }
@@ -133,18 +135,19 @@ function onglet123(decimal: string): Disposition {
   const liste = decimal === ',' ? ';' : ','
   // Sous la majuscule, un chiffre devient la puissance correspondante :
   // `2` → `^2`, comme la rangée des exposants de MathLive.
-  const ch = (n: string) => discret(m(c(n), op(`\\square^{${n}}`, `^${n}`)))
+  // L'exposant en texte (`□⁷`), sans empattement comme le chiffre lui-même.
+  const ch = (n: string) => discret(m(c(n), { libelle: '◻' + EXPOSANTS[Number(n)], texte: `^${n}`, famille: 'operation', aria: `^${n}` }))
   // `\lbrack … \rbrack` : `[` seul passerait, mais une paire `[…;…]` est une
   // matrice pour `renderMath`, qui l'afficherait entre parenthèses.
   return {
     colonnes: TROIS_BLOCS,
     rangees: [
       [m(v('x'), v('y')), m(v('n'), v('t')), VIDE,
-        ch('7'), ch('8'), ch('9'), op('\\div', '/'), VIDE,
+        ch('7'), ch('8'), ch('9'), op('÷', '/'), VIDE,
         m(sym('e', 'e'), fn('ln', 'ln')), sym('\\pi', 'pi'),
         discret(m(fnx('\\sqrt{\\square}', 'sqrt'), NTH_RACINE))],
       [m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')), VIDE,
-        ch('4'), ch('5'), ch('6'), op('\\times', '*'), VIDE,
+        ch('4'), ch('5'), ch('6'), op('×', '*'), VIDE,
         discret(m(op('\\square^{2}', '^2'), op('\\square^{3}', '^3'))),
         discret(m(op('\\square^{n}', '^'), op('\\square^{-1}', '^(-1)'))),
         discret(m(fnx('|\\square|', 'abs'), op('\\square!', '!')))],
@@ -153,7 +156,7 @@ function onglet123(decimal: string): Disposition {
         m(sym(liste, liste), sym(':', ':')), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
         EFFACER],
       [MAJ, VIDE,
-        ch('0'), m(c(decimal), c(autre)), m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), VIDE,
+        ch('0'), m(c(decimal), c(autre)), m(sym('=', '='), sym('≠', '!=')), op('+', '+'), VIDE,
         GAUCHE, DROITE, ENTREE],
     ],
   }
@@ -174,11 +177,11 @@ function ongletFx(): Disposition {
         m(fn('min', 'min'), fn('max', 'max')),
         sym('e', 'e'), sym('\\pi', 'pi'), m(sym('\\infty', 'infinity'), sym('-\\infty', '-infinity')),
         m(sym('<', '<'), sym('\\le', '<=')), m(sym('>', '>'), sym('\\ge', '>=')),
-        m(sym('=', '='), sym('\\ne', '!='))],
+        m(sym('=', '='), sym('≠', '!='))],
       [m(fn('tan', 'tan'), recip('tan')), op('10^{\\square}', '10^'),
-        m(v('x'), v('y')), m(v('n'), v('t')), m(v('a'), v('b')), sym('i', 'i'),
+        m(v('x'), v('y')), m(v('n'), v('t')), m(v('a'), v('b')), v('i'),
         m(sym(';', ';'), sym(',', ',')), { ...EFFACER, largeur: 2 }],
-      [MAJ, op('+', '+'), op('−', '-'), op('\\times', '*'), op('\\div', '/'),
+      [MAJ, op('+', '+'), op('−', '-'), op('×', '*'), op('÷', '/'),
         GAUCHE, DROITE, ENTREE],
     ],
   }
@@ -238,8 +241,8 @@ function ongletGrec(): Disposition {
       [g('nu'), g('xi'), g('pi'), g('rho'), g('sigma'), g('tau'),
         g('varphi'), g('chi'), g('psi'), g('omega')],
       [m(op('(', '('), op('\\lbrack', '[')), m(op(')', ')'), op('\\rbrack', ']')),
-        m(sym('=', '='), sym('\\ne', '!=')), op('+', '+'), op('−', '-'), op('\\times', '*'),
-        op('\\div', '/'), op('\\square^{n}', '^'), { ...EFFACER, largeur: 2 }],
+        m(sym('=', '='), sym('≠', '!=')), op('+', '+'), op('−', '-'), op('×', '*'),
+        op('÷', '/'), op('\\square^{n}', '^'), { ...EFFACER, largeur: 2 }],
       [MAJ, VIDE, VIDE, VIDE, VIDE, VIDE, GAUCHE, DROITE, ENTREE],
     ],
   }
@@ -448,8 +451,8 @@ export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCom
       colonnes: 5,
       rangees: [
         [c('7'), c('8'), c('9'), op('(', '('), op(')', ')')],
-        [c('4'), c('5'), c('6'), op('\\div', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
-        [c('1'), c('2'), c('3'), op('\\times', '*'), op('\\square^{2}', '^2')],
+        [c('4'), c('5'), c('6'), op('÷', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
+        [c('1'), c('2'), c('3'), op('×', '*'), op('\\square^{2}', '^2')],
         [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi')],
       ],
     }
@@ -459,8 +462,8 @@ export function plancheCompacte(profil: ProfilClavier, lang: string): PlancheCom
       colonnes: 7,
       rangees: [
         [c('7'), c('8'), c('9'), op('\\lbrack', '['), op('\\rbrack', ']'), sym(liste, liste), sym('\\infty', 'infinity')],
-        [c('4'), c('5'), c('6'), op('\\{', '{'), op('\\}', '}'), op('\\div', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
-        [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('\\times', '*'), op('\\square^{2}', '^2')],
+        [c('4'), c('5'), c('6'), op('\\{', '{'), op('\\}', '}'), op('÷', '/'), fnx('\\sqrt{\\square}', 'sqrt')],
+        [c('1'), c('2'), c('3'), op('(', '('), op(')', ')'), op('×', '*'), op('\\square^{2}', '^2')],
         [c('0'), c(decimal), op('−', '-'), op('+', '+'), sym('\\pi', 'pi'), sym('<', '<'), sym('>', '>')],
       ],
     }

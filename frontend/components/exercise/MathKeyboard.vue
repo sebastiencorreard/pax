@@ -124,8 +124,11 @@
                 <svg
                   v-if="vue(brute).action === 'vider'"
                   viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
-                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" />
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter">
+                  <!-- Bords droits : couvercle, poignée, cuve rectangulaire et trois rainures. -->
+                  <path d="M3.5 6.5h17M9 6.5V3.5h6v3" />
+                  <rect x="5.5" y="6.5" width="13" height="14" />
+                  <path d="M9.5 10v7M12 10v7M14.5 10v7" />
                 </svg>
                 <span v-else-if="vue(brute).latex && etiquettes[vue(brute).latex!]" v-html="etiquettes[vue(brute).latex!]" />
                 <span v-else>{{ vue(brute).libelle ?? vue(brute).latex ?? vue(brute).texte }}</span>
