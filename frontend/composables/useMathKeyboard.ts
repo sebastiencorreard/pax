@@ -221,33 +221,32 @@ function ongletAbc(lang: string): Disposition {
 /** Les lettres grecques ; la majuscule donne les capitales qui existent en
  *  propre (Γ, Δ, Θ…). WIMS les écrit par leur nom. */
 function ongletGrec(): Disposition {
-  // Toutes les minuscules ont leur capitale sous la majuscule. Celles qui
-  // s'écrivent comme une capitale latine (Α, Β, Ε, Ζ, Η, Μ, Ν, Ρ, Τ, Χ) n'ont
-  // pas de commande LaTeX : on les montre en capitale droite, comme le veut la
-  // typographie grecque. Toutes écrivent leur nom, `Alpha` comme `Gamma`.
+  // Les vingt-quatre lettres, dans l'ordre de l'alphabet grec. Toutes ont leur
+  // capitale sous la majuscule. Celles qui s'écrivent comme une capitale
+  // latine (Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Χ) n'ont pas de commande
+  // LaTeX : on les montre en capitale droite, comme le veut la typographie
+  // grecque. Toutes écrivent leur nom, `Alpha` comme `Gamma`.
   const LATINES: Record<string, string> = {
-    alpha: 'A', beta: 'B', varepsilon: 'E', zeta: 'Z', eta: 'H',
-    mu: 'M', nu: 'N', rho: 'P', tau: 'T', chi: 'X',
+    alpha: 'A', beta: 'B', varepsilon: 'E', zeta: 'Z', eta: 'H', iota: 'I', kappa: 'K',
+    mu: 'M', nu: 'N', omicron: 'O', rho: 'P', tau: 'T', chi: 'X',
   }
   const g = (min: string): ToucheMath => {
     const nom = min.replace(/^var/, '')
     const Nom = nom[0]!.toUpperCase() + nom.slice(1)
     const latine = LATINES[min]
-    const capitale = latine
-      ? sym(`\\mathrm{${latine}}`, Nom)
-      : sym(`\\${Nom}`, Nom)
-    return discret(m(sym(`\\${min}`, nom), capitale))
+    const capitale = latine ? sym(`\\mathrm{${latine}}`, Nom) : sym(`\\${Nom}`, Nom)
+    // L'omicron minuscule n'a pas de commande non plus : un `o` italique.
+    const minuscule = min === 'omicron' ? { latex: 'o', texte: nom, famille: 'symbole' as const, aria: nom } : sym(`\\${min}`, nom)
+    return discret(m(minuscule, capitale))
   }
   return {
     colonnes: DIX,
     rangees: [
-      [g('alpha'), g('beta'), g('gamma'), g('delta'), g('varepsilon'),
-        g('zeta'), g('eta'), g('theta'), g('lambda'), g('mu')],
-      [g('nu'), g('xi'), g('pi'), g('rho'), g('sigma'), g('tau'),
-        g('varphi'), g('chi'), g('psi'), g('omega')],
-      [m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')),
-        m(sym('=', '='), sym('≠', '!=')), op('+', '+'), op('−', '-'), op('×', '*'),
-        op('÷', '/'), VIDE, { ...EFFACER, largeur: 2 }],
+      ['alpha', 'beta', 'gamma', 'delta', 'varepsilon', 'zeta', 'eta', 'theta', 'iota', 'kappa'].map(g),
+      ['lambda', 'mu', 'nu', 'xi', 'omicron', 'pi', 'rho', 'sigma', 'tau', 'upsilon'].map(g),
+      [...['varphi', 'chi', 'psi', 'omega'].map(g),
+        m(op('(', '('), op('[', '[')), m(op(')', ')'), op(']', ']')), VIDE, VIDE,
+        { ...EFFACER, largeur: 2 }],
       [MAJ, VIDE, VIDE, VIDE, VIDE, VIDE, GAUCHE, DROITE, ENTREE],
     ],
   }
