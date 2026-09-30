@@ -192,8 +192,9 @@ function ongletAbc(lang: string): Disposition {
   const [r1, r2, r3] = azerty
     ? ['azertyuiop', 'qsdfghjklm', 'wxcvbn']
     : ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
-  const lettre = (l: string): ToucheMath =>
-    m({ libelle: l, texte: l, famille: 'variable' }, { libelle: l.toUpperCase(), texte: l.toUpperCase(), famille: 'variable' })
+  // Pas d'indice sur les lettres : qu'une lettre ait sa capitale va de soi.
+  const lettre = (l: string): ToucheMath => discret(
+    m({ libelle: l, texte: l, famille: 'variable' }, { libelle: l.toUpperCase(), texte: l.toUpperCase(), famille: 'variable' }))
   const ligne = (r: string) => [...r].map(lettre)
   const l2 = ligne(r2)
   const l3 = ligne(r3)
@@ -228,7 +229,7 @@ function ongletGrec(): Disposition {
     const capitale = latine
       ? sym(`\\mathrm{${latine}}`, Nom)
       : sym(`\\${Nom}`, Nom)
-    return m(sym(`\\${min}`, nom), capitale)
+    return discret(m(sym(`\\${min}`, nom), capitale))
   }
   return {
     colonnes: DIX,
