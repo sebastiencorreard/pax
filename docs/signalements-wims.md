@@ -231,3 +231,39 @@ si elle **se termine** par `]` ou `)` :
 PAX rend ce que rend `gp` aujourd'hui, donc la même chose. Corrections :
 `Vec(numtoperm(…))` et `nfroots(,P)~` — ou `polroots`, que `tgte2par.oef`
 lit correctement en découpant `-7.0+0.0*I` aux `+`.
+
+## 6. `oefseconddegree/sdvar1` à `sdvar4` : l'abscisse du sommet n'est jamais définie — *à signaler*
+
+*Relevé le 2026-09-03, instruit le 2026-10-01.*
+
+Les huit `sdvar*.oef` de `H4/algebra/oefseconddegree.fr` sortent du même
+`cpp/sdvar.cpp` et posent à l'étape 1 la même question — « Quelle est
+l'abscisse du sommet ? » — avec la même réponse :
+
+```
+\answer{réponse }{ \alpha}{type=auto}{option=nonstop}
+```
+
+`sdvar5` à `sdvar8` définissent `\alpha` (`\rational{alpha=-\b/(2*\a1)}`,
+`\rational{alpha=(\x1+\x2)/2}`). **`sdvar1` à `sdvar4` ne le définissent
+pas** : le sommet vaut 0 dans les deux premiers, et `sdvar3`/`sdvar4`
+l'appellent `alpha1` (`\real{alpha1=randint(1..9)}`, `\function{f=\a1*( x -
+\alpha1 )^2+\c}`).
+
+Une variable inconnue dans un `\answer`, le compilateur OEF la traite comme
+une variable **que la réponse remplit**, non comme un attendu : le `.def`
+porte `replygood1=?analyze 15` (contre `replygood1=$val15` pour `sdvar5`),
+`conditioncnt=0` et un `:test` vide. Deux conséquences, chez WIMS comme
+chez PAX :
+
+- l'étape 1 n'est **notée par personne** — toute réponse passe ;
+- la réponse est **reprise comme α** dans la suite : l'étape 3 et la
+  solution écrivent `]−∞ ; $val17]`. Sur `sdvar3` (graine 42, sommet en 4),
+  un élève qui répond `42` lit à l'étape 3 « croissante sur ]−∞ ; 42] » et
+  la solution le lui confirme, sans jamais donner 4 autrement que par `α`.
+
+PAX marque ce champ `ungraded` (pas de `:test`, pas d'attendu) et rend le
+report à l'identique. Corrections : `\real{alpha=0}` dans `sdvar1` et
+`sdvar2` ; `\real{alpha=\alpha1}` dans `sdvar3` et `sdvar4` — ou, mieux, dans
+`cpp/sdvar.cpp`, qui les engendre tous. D'ici là, ces quatre exercices sont
+à écarter d'une feuille.
