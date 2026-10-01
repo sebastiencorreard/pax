@@ -423,6 +423,24 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   - **précision** : 20 chiffres chez WIMS (`\p 20`), 10 chez PAX — gardé par
     choix, afficher `0.66666666666666666667` à un élève n'étant pas un gain ;
   - le hasard (`random`) ne se compare pas : tirages différents par nature.
+- [~] **L'émulation Maxima confrontée au vrai `maxima`** (2026-10-01). Banc :
+  `backend/scripts/banc_maxima` (Maxima 5.47.0 sur GCL, la version de WIMS
+  4.32, dans son propre conteneur) sous l'interface de `maxima.c` ; sonde
+  `scripts/sonde_maxima.py`. 3 842 expressions distinctes (1 434 exercices) :
+  1 613 identiques, 838 aux espaces près, 1 216 de même valeur sous une autre
+  forme. **Premier lot** : `\` qui protège le caractère suivant (`\sqrt`,
+  `\alpha` — variables OEF non substituées), `divide`, `diff` sur ℝ
+  (`diff(ln(abs(x)))` sortait `re(x)`, `im(x)`), `sum`, `solve`, `logcontract`
+  limité aux coefficients entiers. 22 sorties rejoignent Maxima, 0 perdue ;
+  `oefpriorite/n1prob2`, `oefsequence/somme_de_terme…` et `sincos/valrem1`
+  redeviennent solubles (leur attendu était un appel non évalué).
+  **Reste** :
+  - quand Maxima échoue, WIMS rend `""`, PAX l'entrée (99 cas) — à mesurer :
+    qui compte sur ce repli ?
+  - PAX **développe** là où Maxima garde la forme (`1.12*(x+6)` →
+    `1.12*x + 6.72`, `evolsucc5`) — à compter parmi les 1 216, puis décision ;
+  - `algsys`, `ordergreat` (rend `""`, Maxima `done`).
+
 - [x] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
   `!exec pari [$val25]/10.`. Le vecteur était bien calculé depuis le port de
   `pyth(A,B,lim)={…}` ; restait le `.0` (2026-10-01). PAX écrivait `82` là

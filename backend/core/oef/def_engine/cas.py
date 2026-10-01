@@ -235,7 +235,7 @@ def _noms_maxima() -> dict:
             "num": sympy.numer, "denom": sympy.denom,
             "realpart": sympy.re, "imagpart": sympy.im,
             "rectform": sympy.expand_complex,
-            "logcontract": lambda e: sympy.logcombine(e, force=True),
+            "logcontract": _logcontract,
             "radcan": sympy.simplify,
             "mod": sympy.Mod,
             # `subst(nouveau, ancien, expr)` imbriqué ; au premier niveau,
@@ -245,6 +245,30 @@ def _noms_maxima() -> dict:
     return _NOMS_MAXIMA
 
 
+def _logcontract(e):
+    """`logcontract` de Maxima : ne contracte qu'un coefficient **entier**.
+
+    Faute de `logconcoeffp`, `log(x-5)-log(3*x-8)/3` reste tel quel chez
+    Maxima ; `logcombine(force=True)` de SymPy en faisait
+    `log((x-5)/(3*x-8)^(1/3))` (`oefintts/fracln`, banc Maxima).
+    """
+    import sympy  # noqa: PLC0415
+
+    e = sympy.sympify(e)
+    if not isinstance(e, sympy.Add):
+        return e
+    contractes, autres = [], []
+    for t in e.args:
+        c, reste = t.as_coeff_Mul()
+        if isinstance(reste, sympy.log) and c.is_integer:
+            contractes.append(reste.args[0] ** c)
+        else:
+            autres.append(t)
+    if len(contractes) < 2:
+        return e
+    return sympy.Add(sympy.log(sympy.Mul(*contractes)), *autres)
+
+
 def _entree_maxima(expr: str) -> str:
     """Ce que `check_parm` (`maxima.c`) fait de la commande : tout en minuscules.
 
@@ -252,7 +276,12 @@ def _entree_maxima(expr: str) -> str:
     et `denom` ; PAX lisait `I*N*F`. Le même `check_parm` change aussi `_` en
     `K` : non repris, faute d'effet hors des sorties qui échouent déjà.
     """
-    return expr.lower()
+    # `\` protège chez Maxima le caractère qui suit : `\alpha` est le nom
+    # `alpha`, `\sqrt(156)` un appel à `sqrt`. Le corpus en porte une
+    # vingtaine — des variables OEF laissées non substituées
+    # (`expand(-5*\alpha + 0)`, `fullratsimp((12+\sqrt(156))/2)`) — que
+    # Maxima calcule et que PAX renvoyait telles quelles (banc Maxima).
+    return re.sub(r"\\(.)", r"\1", expr.lower())
 
 
 def _exp_en_puissance(s: str) -> str:
@@ -506,7 +535,47 @@ def _evaluer_maxima(expr: str) -> str:
                 e = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
                 order = int(args[2]) if len(args) >= 3 else 1
-                return _maxima_num_str(sympy.diff(e, var, order))
+                # Maxima dérive comme sur ℝ : `diff(log(abs(x)),x)` vaut `1/x`.
+                # Sur une variable complexe, SymPy sortait `re(x)`, `im(x)` et
+                # `derivative(…)` (`OEFevalwimsder1/signeder4`, banc Maxima).
+                reelle = sympy.Symbol(str(var), real=True)
+                d = sympy.diff(e.subs(var, reelle), reelle, order)
+                # `sign(x)` s'écrit `x/abs(x)` ; `abs(x)²` se réduit alors seul
+                # en `x²` sur une variable réelle, d'où le `1/x` de Maxima.
+                d = d.replace(lambda u: isinstance(u, sympy.sign) and u.args[0] == reelle,
+                              lambda u: reelle / sympy.Abs(reelle))
+                return _maxima_num_str(d.subs(reelle, var))
+            if func_name == "divide" and len(args) >= 2:
+                # `divide(p, q)` : quotient et reste, la liste `[q, r]` dont
+                # `output()` ôte les crochets — `divide(14,6)` → `2,2`
+                # (`oefrationnel`, `oefpriorite`).
+                # Sur des entiers, quotient tronqué vers zéro (`divide(-14,6)`
+                # → `-2,-2`) ; sur des réels, division exacte (`3.5,0`) — relevé
+                # au banc.
+                a, b = _sympify_arg(args[0]), _sympify_arg(args[1])
+                if a.is_number and b.is_number:
+                    if a.is_integer and b.is_integer:
+                        q = sympy.Integer(int(a / b))
+                        return f"{q},{a - q * b}"
+                    return f"{_maxima_num_str(a / b)},0"
+                q, r = sympy.div(a, b, *[_sympify_arg(v) for v in args[2:]])
+                return f"{_maxima_num_str(q)},{_maxima_num_str(r)}"
+            if func_name == "sum" and len(args) == 4:
+                n = _sympify_arg(args[1])
+                return _maxima_num_str(sympy.summation(
+                    _sympify_arg(args[0]), (n, _sympify_arg(args[2]), _sympify_arg(args[3]))))
+            if func_name == "solve" and len(args) == 2:
+                # Une équation, une inconnue : `x = a,x = b`, la liste de
+                # Maxima sans ses crochets. L'équation peut venir entre
+                # parenthèses (`oefderivee1S/tgtedir`).
+                eq = args[0].strip()
+                while eq.startswith("(") and eq.endswith(")") and _ferme_au_bout(eq):
+                    eq = eq[1:-1].strip()
+                membres = _split_top_level_equals(eq) or [eq, "0"]
+                if len(membres) == 2:
+                    var = _sympify_arg(args[1])
+                    sols = sympy.solve(_sympify_arg(membres[0]) - _sympify_arg(membres[1]), var)
+                    return ",".join(f"{var} = {_maxima_num_str(x)}" for x in sols)
             if func_name == "ev" and args:
                 # `ev(expr, x=0)` — Maxima évalue `expr` en lui appliquant les
                 # équations qui suivent. L'ordre des arguments est l'inverse de
@@ -670,6 +739,16 @@ def _evaluer_maxima(expr: str) -> str:
 # A bare integer ratio `a/b` (optionally signed) — the only shape we re-evaluate
 # in `_expr_to_latex` to strip the spurious `1 \cdot` unit coefficient.
 _PURE_INT_FRAC_RE = re.compile(r"^-?\d+\s*/\s*-?\d+$")
+
+
+def _ferme_au_bout(s: str) -> bool:
+    """La parenthèse ouvrante de tête se referme-t-elle au dernier caractère ?"""
+    prof = 0
+    for i, c in enumerate(s):
+        prof += {"(": 1, ")": -1}.get(c, 0)
+        if prof == 0:
+            return i == len(s) - 1
+    return False
 
 
 def _split_top_level_equals(s: str) -> list[str] | None:
