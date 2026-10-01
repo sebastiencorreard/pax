@@ -151,7 +151,17 @@ def test_fraction_rationnelle_reduite(expr, valeur):
     ("poldisc(4*x^2 - 12*x - 16)", "400"),
     # Séquence en argument : son dernier terme (`bernoulli2`).
     ("print(0.05*5;0.05*11)", "0.55"),
-    ("8e+09", "8000000000"),
+    ("8e+09", "8000000000.0"),
+    # Un réel reste un réel, même de valeur entière (`etagere2`) ; notation
+    # `E` hors de [1e-4, 1e19[ ; `n!` exact, `factorial(n)` réel.
+    ("[455,460,458,462]/10.", "45.5,46.0,45.8,46.2"),
+    ("4./2", "2.0"),
+    ("[1.,-0.]", "1.0,0.0"),
+    ("10.^25", "1.0E25"),
+    ("0.00001", "1.0E-5"),
+    ("(15!)/((15-2)!)", "210"),
+    ("factorial(4)/factorial(2)", "12.0"),
+    ("binomial(8,4)*truncate(factorial(4))", "1680"),
     # `limfrac` : valuation, série, degré d'une fraction rationnelle.
     (("P=Pol([6, -6, 5],x); Q=Pol([1, -2, -3, -3, 0, 0],x); "
       "v0=valuation(P/Q,x);\tS=subst(P/Q,x,1/x);\tvi=valuation(S,x);\t"

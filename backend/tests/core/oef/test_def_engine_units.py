@@ -775,7 +775,8 @@ class TestCallPari:
         assert _call_pari("5.5/2") == "2.75"
 
     def test_integer_float(self):
-        assert _call_pari("sqrt(9)") == "3"
+        # Un réel de valeur entière garde son `.0`, comme chez `gp`.
+        assert _call_pari("sqrt(9)") == "3.0"
 
     def test_trailing_semicolon(self):
         assert _call_pari("2+3;") == "5"

@@ -218,14 +218,19 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   rien ne les regardait. 35 ont été réparés par deux correctifs, 33 restent
   consignés dans `known_failures.py` avec leur famille.
 
-- [ ] **La forme affichée au lieu de la forme rangée** (`OEFevalwimsgeplan`).
+- [x] **La forme affichée au lieu de la forme rangée** (`OEFevalwimsgeplan`).
   Le `:test` compare `$val9 issametext $(val7[1])` — la forme que l'exercice
   range, `\(A') … \((d))` — quand l'élève renvoie celle qu'on lui montre,
   `\(A'\) … \left(d\right)`, math refermé pour KaTeX et délimiteurs
   développés. `_forme_brute` savait faire la conversion, mais on ne la lui
   demandait que pour `m_reply<n>`, jamais pour les `val<N>` d'un `?analyze`.
-  Corrigé le 2026-09-05 : trois des six sont partis. Restent `deduction3`,
-  `deduction4` et `thmpte5`, dont le `:test` demande encore autre chose.
+  Corrigé le 2026-09-05 : trois des six sont partis. Les trois autres
+  (`deduction3`, `deduction4`, `thmpte5`) le 2026-10-01 : `_forme_brute`
+  décodait aussi `&#44;` en `,`. C'est juste pour un radio, dont la valeur
+  passe par un attribut HTML (`ineqalghyper1`), mais faux pour un `clickfill`
+  ou un `dragfill`, dont la valeur sort d'une chaîne JavaScript
+  (`f_Objs`, `anstype/clickfill.after`) : WIMS envoie l'entité telle quelle,
+  et le `:test` la compare entité comprise.
 
 - [x] **Ce qui suit `?analyze N;` est une configuration, pas une réponse**
   (`oefstatistiques` et 5 autres) — corrigé le 2026-09-05. Pour un `jsxgraph`
@@ -418,8 +423,15 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   - **précision** : 20 chiffres chez WIMS (`\p 20`), 10 chez PAX — gardé par
     choix, afficher `0.66666666666666666667` à un élève n'étant pas un gain ;
   - le hasard (`random`) ne se compare pas : tirages différents par nature.
-- [ ] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
-  `!exec pari [$val25]/10.` et récupère la chaîne brute. Un seul exercice.
+- [x] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
+  `!exec pari [$val25]/10.`. Le vecteur était bien calculé depuis le port de
+  `pyth(A,B,lim)={…}` ; restait le `.0` (2026-10-01). PAX écrivait `82` là
+  où `gp` écrit `82.0`, et au QCM `82`, `82.2`, `81.9`, `81.6` la seule
+  longueur entière se signalait — souvent la bonne. **Un réel s'écrit
+  désormais comme chez `gp`** (`cas._reel_pari`) : `46.0`, notation `E` hors
+  de [10⁻⁴, 10¹⁹[. Au passage, `n!` exact et `factorial(n)` réel, comme
+  `gp` (`210` contre `12.0`). Sonde : 55 sorties changent ; toutes celles
+  qui se comparent rejoignent `gp`.
 
 - [ ] **Variables de session laissées vides à dessein** — `wims_firstname` (le
   rendu est anonyme), `wims_ref_name` / `session` (pas d'endpoint `getfile`),

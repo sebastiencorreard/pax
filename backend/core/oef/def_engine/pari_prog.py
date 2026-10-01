@@ -2025,11 +2025,11 @@ def _format_reel(x: float, fmt: tuple[str, int]) -> str | None:
     choix — et le nombre compte les chiffres **significatifs**, non les
     décimales : `f.8` rend `0.33333333` comme `1.2345679`.
 
-    Les entiers exacts restent hors de cette règle et gardent leur écriture
-    courte (`2`, non `2.0000000`). GP, lui, affiche la précision complète ; mais
-    la valeur ne traverse pas WIMS comme un affichage, elle y devient le contenu
-    d'une variable qu'un `!ifval` compare ou qu'un attendu reprend. Le zéro de
-    queue n'y apporterait rien et changerait 89 fichiers d'un coup.
+    Un réel de valeur entière reste hors de cette règle : GP l'écrit
+    `2.0000000`, que `strip_zeros` (`pari.c`) ramène à `2.0` — ce que rend
+    `_reel_pari`, vers lequel on retombe. Il s'écrivait `2` jusqu'au
+    2026-10-01, ce qui distinguait au QCM la seule longueur entière
+    (`oefpytha/etagere2`).
     """
     style, chiffres = fmt
     if chiffres <= 0 or x != x or x in (float("inf"), float("-inf")):

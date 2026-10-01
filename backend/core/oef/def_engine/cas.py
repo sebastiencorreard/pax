@@ -1648,6 +1648,15 @@ _PARI_HELPERS: dict = {
     # `truncate(0)` valait 0 par accident — `truncate*0` — tant que le nom
     # était lié à un symbole. Partie entière vers zéro, et partie fractionnaire.
     "truncate": lambda x: __import__("sympy").sign(x) * __import__("sympy").floor(abs(x)),
+    # Chez `gp`, `n!` est un entier exact mais `factorial(n)` un **réel** :
+    # `factorial(4)/factorial(2)` vaut `12.0` — d'où le `truncate(factorial(4))`
+    # d'`oefcombi/Ordinat1`. Le `!` postfixe est réécrit en `_fact` avant que
+    # SymPy n'en fasse un `factorial` (`_call_pari`). `math.factorial` rendait
+    # un `int` Python, qu'une division changeait en réel : `(15!)/((15-2)!)`
+    # valait `210.0` (`OEFprobaTS/calcden5`), `gp` rend `210`.
+    "_fact": lambda n: __import__("sympy").Integer(math.factorial(int(n))),
+    "factorial": lambda n: __import__("sympy").Float(math.factorial(int(n)), 20),
+    "binomial": lambda n, k: __import__("sympy").Integer(math.comb(int(n), int(k))),
     "frac": lambda x: x - __import__("sympy").floor(x),
     "binary": lambda n: [int(b) for b in bin(abs(int(n)))[2:]] if int(n) else [],
     # `I` est l'unité imaginaire de PARI ; la liaison automatique en faisait
@@ -1683,6 +1692,38 @@ _PYTHON_KEYWORDS: set = {
 }
 
 
+def _reel_pari(x: float) -> str:
+    """Un réel (t_REAL) tel que `gp` l'écrit, passé par `strip_zeros` de
+    `pari.c` : un réel reste un réel, même de valeur entière — `460/10.` vaut
+    `46.0`, jamais `46`. Relevé au banc `pax-banc-pari`.
+
+    L'écart n'est pas cosmétique : `oefpytha/etagere2` propose au QCM
+    `82.0`, `82.2`, `81.9`, `81.6` ; écrire `82` désignait seul le triplet
+    pythagoricien exact, c'est-à-dire, souvent, la bonne réponse.
+
+    Hors de [10⁻⁴, 10¹⁹[, `gp` passe en notation `E` (`1.0E19`, `1.5E-8`).
+    La précision reste celle de PAX, 10 chiffres significatifs, contre 20
+    chez WIMS (`\\p 20`) : un choix (cf. `TODO.md`, banc PARI).
+    """
+    if x != x or x in (float("inf"), float("-inf")):
+        return f"{x:.10g}"
+    if x == 0:
+        return "0.0"  # `-0.` compris, que `gp` écrit `0.0`
+    a = abs(x)
+    if a >= 1e19 or a < 1e-4:
+        mantisse, exposant = f"{x:.9e}".split("e")
+        mantisse = mantisse.rstrip("0")
+        if mantisse.endswith("."):
+            mantisse += "0"
+        return f"{mantisse}E{int(exposant)}"
+    exposant = math.floor(math.log10(a))
+    out = f"{x:.{max(0, 9 - exposant)}f}"
+    if "." in out:
+        out = out.rstrip("0")
+        return out + "0" if out.endswith(".") else out
+    return out + ".0"
+
+
 def _format_pari_result(result) -> str:
     import sympy  # noqa: PLC0415
 
@@ -1693,16 +1734,11 @@ def _format_pari_result(result) -> str:
     if isinstance(result, int):
         return str(result)
     if isinstance(result, float):
-        if result.is_integer():
-            return str(int(result))
-        return f"{result:.10g}"
+        return _reel_pari(result)
     if isinstance(result, sympy.Integer):
         return str(int(result))
     if isinstance(result, sympy.Float):
-        f = float(result)
-        if f.is_integer():
-            return str(int(f))
-        return f"{f:.10g}"
+        return _reel_pari(float(result))
     if isinstance(result, sympy.Matrix):
         if result.rows == 1:
             return ",".join(_format_pari_result(result[0, j]) for j in range(result.cols))
@@ -1828,6 +1864,9 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
         return key
 
     clean = re.sub(r'"[^"]*"', _stash_string, clean)
+    # `n!` exact, quand `factorial(n)` est réel (cf. `_PARI_HELPERS`).
+    from .pari_prog import _translate_factorielle  # noqa: PLC0415
+    clean = _translate_factorielle(clean)
     # Notation scientifique (`8e+09`, `1.5E-3`) : un réel d'un seul tenant, que
     # l'enveloppe des entiers ci-dessous découpait en `8e+_I(09)`.
     # Mise de côté comme une chaîne, et rendue en littéral Python.
