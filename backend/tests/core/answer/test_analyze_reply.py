@@ -13,8 +13,9 @@ from core.answer.strategies.analyze import _forme_brute
 class _Def:
     """Le minimum d'une `AnswerDef` pour `_forme_brute`."""
 
-    def __init__(self, options):
+    def __init__(self, options, answer_type="radio"):
         self.options = options
+        self.answer_type = answer_type
 
 
 class TestFormeBrute:
@@ -44,6 +45,18 @@ class TestFormeBrute:
         # produirait `&#59&#59;`, introuvable dans la liste.
         assert "&#59;" not in out
         assert ";" in out
+
+    def test_clickfill_garde_l_entite(self):
+        """Un `clickfill` envoie l'item tiré d'une chaîne JavaScript
+        (`f_Objs`) : aucun navigateur n'y décode `&#44;`. Le `:test` de
+        `OEFevalwimsgeplan/deduction3` compare à la liste rangée, entité
+        comprise — décodée, la bonne réponse notait 0."""
+        for type_ in ("clickfill", "dragfill"):
+            ans = _Def({
+                "choices": [r"\(V\) &#44; \(U\)"],
+                "choices_raw": [r"\(V) &#44; \(U)"],
+            }, answer_type=type_)
+            assert _forme_brute(r"\(V\) &#44; \(U\)", ans) == r"\(V) &#44; \(U)"
 
     def test_une_reponse_hors_palette_passe_telle_quelle(self):
         assert _forme_brute("autre chose", self._ans()) == "autre chose"

@@ -314,9 +314,10 @@ XFAIL_CORRECT_SCORE: set[str] = {
     #    l'exercice range (`\(A') … \((d))`), quand l'élève renvoie celle
     #    qu'on lui montre (`\(A'\) … \left(d\right)`). Corrigé le
     #    2026-09-05 en appliquant `_forme_brute` aux `val<N>` — trois des six
-    #    sont partis. Les trois qui restent (`deduction3`, `deduction4`,
-    #    `thmpte5`) notent 0 ou partiellement : leur `:test` demande autre
-    #    chose encore, à instruire séparément.
+    #    sont partis. Les trois autres (`deduction3`, `deduction4`,
+    #    `thmpte5`) le 2026-10-01 : `_forme_brute` décodait `&#44;` en `,`,
+    #    ce que fait le navigateur pour un radio mais pas pour un `clickfill`,
+    #    dont la valeur sort d'une chaîne JavaScript. Famille soldée.
     #
     # 2. Isolés, sans cause commune établie.
     #
@@ -341,9 +342,6 @@ XFAIL_CORRECT_SCORE: set[str] = {
     "H3~number~OEFevalwimscomp.fr~src~somme5",
     "H4~algebra~oefnombres.fr~src~ecrdecimal",
     "H4~analysis~OEFevacollege2005.fr~src~geometriepart2",
-    "H4~geometry~OEFevalwimsgeplan.fr~src~deduction3",
-    "H4~geometry~OEFevalwimsgeplan.fr~src~deduction4",
-    "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte5",
     "H4~geometry~OEFevalwimsgespa1.fr~src~patrons4",
     "H4~geometry~oefphotocopie.fr~src~ex02",
 }

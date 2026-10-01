@@ -56,6 +56,12 @@ def _forme_brute(valeur: str, ans_def) -> str:
     &#59;` que le `:postdef` fait juste après, pour revenir à la forme rangée.
     Lui donner l'entité telle quelle produirait `&#59&#59;`, échappé deux fois,
     introuvable dans la liste.
+
+    Sauf pour `clickfill` et `dragfill` : leur valeur ne passe par aucun
+    attribut HTML, elle vient d'un tableau JavaScript (`f_Objs`,
+    `anstype/clickfill.after`) où `&#44;` n'est que du texte. WIMS envoie donc
+    l'entité telle quelle, et c'est sous cette forme que le `:test` la compare
+    (`$val32 issametext $(val27[5])`, `OEFevalwimsgeplan/deduction3`).
     """
     if ans_def is None:
         return valeur
@@ -65,8 +71,15 @@ def _forme_brute(valeur: str, ans_def) -> str:
         return valeur
     for i, c in enumerate(affichees):
         if c == valeur:
+            if getattr(ans_def, "answer_type", None) in _VALEUR_JS:
+                return brutes[i]
             return html.unescape(brutes[i])
     return valeur
+
+
+# Les widgets dont la valeur envoyée sort d'une chaîne JavaScript, non d'un
+# attribut HTML : le navigateur n'y décode aucune entité.
+_VALEUR_JS = frozenset({"clickfill", "dragfill"})
 
 
 def _cases_en_textes(rendered, active_ans_defs: list, replies_by_name: dict[str, str]) -> dict[str, str]:
