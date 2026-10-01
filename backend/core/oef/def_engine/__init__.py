@@ -3064,13 +3064,18 @@ class DefEngine(_SlibMixin):
         # pour couper ses mots sur les guillemets : le remplacement est un saut
         # de ligne. Pris littéralement, il insérait `$\n$` et le mot cherché
         # devenait `$` — aucun des dix-huit appels allemands ne trouvait son son.
+        #
+        # La règle est celle de `substit`, en entier : **tout** `$` qui n'ouvre
+        # aucun nom disparaît, pas seulement ceux du bord, et `$$` vaut `$`.
+        # `slib/text/matrixtex` sépare ses lignes par `$\\$ $\`↵`$` — `\\ ` et
+        # un saut de ligne chez WIMS ; en ne déballant que le bord, PAX laissait
+        # `\\$ $` dans le TeX des vecteurs de `travail.fr/travail2`.
         def _deballer(s: str) -> str:
-            t = s.strip()
-            if t == "$":
-                return ""
-            if len(t) >= 2 and t.startswith("$") and t.endswith("$"):
-                return t[1:-1]
-            return s
+            if "$" not in s:
+                return s
+            t = re.sub(r"\$\$|\$(?![A-Za-z0-9_(\[])",
+                       lambda d: "$" if d.group() == "$$" else "", s.strip())
+            return t
 
         old = _deballer(old)
         new = _deballer(new)

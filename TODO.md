@@ -848,8 +848,14 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     n'est faite que de `$` et de blancs. `ecriturenombre` écrit ainsi son
     séparateur de milliers : les étiquettes d'`OEFevalwimsope/oefgrandeur*`
     montraient `8$ $000`, et leur somme `$[8$ $000+9$ $000]` ne s'évaluait pas
-    (réponse 80 000 au lieu de 20 000). Restent `matrixtex`, `circuits/draw`
-    et `oef/embed.phtml`, où le `$` nu est au milieu d'un texte.
+    (réponse 80 000 au lieu de 20 000). **`matrixtex` réglé le 2026-10-01** :
+    il sépare ses lignes par `!replace internal ; by $\\$ $\`↵`$`, et
+    `!replace` ne déballait que les `$` du bord — `\\$ $` restait dans le TeX
+    des vecteurs de `travail.fr/travail2` (dans sa solution, que l'instantané
+    ne fige pas). Les deux motifs de `!replace` suivent désormais `substit`
+    en entier : tout `$` qui n'ouvre aucun nom disparaît, `$$` vaut `$`.
+    `circuits/draw` vérifié le même jour : 30 exercices × 3 graines, aucun
+    `$` dans le rendu. Reste `oef/embed.phtml`, non revu.
 - [ ] ~~**29 slibs WIMS absentes de `ressources/wims-scripts/`.**~~ Relevé
   d'origine, conservé pour mémoire : `_run_slib` ne les trouvait pas et
   rendait la main sans rien produire. Les plus appelées :
