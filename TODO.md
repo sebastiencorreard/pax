@@ -435,10 +435,18 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `oefpriorite/n1prob2`, `oefsequence/somme_de_terme…` et `sincos/valrem1`
   redeviennent solubles (leur attendu était un appel non évalué).
   **Reste** :
-  - quand Maxima échoue, WIMS rend `""`, PAX l'entrée (99 cas) — à mesurer :
-    qui compte sur ce repli ?
-  - PAX **développe** là où Maxima garde la forme (`1.12*(x+6)` →
-    `1.12*x + 6.72`, `evolsucc5`) — à compter parmi les 1 216, puis décision ;
+  - ~~quand Maxima échoue, WIMS rend `""`, PAX l'entrée (99 cas)~~ — mesuré
+    le 2026-10-01 : 35 des 38 exercices n'affichent ce résultat nulle part
+    (calcul sur des réponses encore vides, écrasé ensuite) ; les deux qui le
+    montrent (`vacalcul`, `tgte2pts`) sont cassés chez WIMS aussi. Laissé
+    tel quel : le gain est nul, et des chemins comptent sur ce repli.
+  - PAX **développe** là où Maxima garde la forme — 47 cas dans 31
+    exercices (motif approximatif). Certains changent ce que l'exercice
+    montre : la forme canonique `(x+1/2)^2+3/2` d'`assocgr3` sort
+    `x^2 + x + 7/4`, la règle du produit `2*(7*x+1)+7*(2*x+5)` de
+    `deriverProduit` sort `28*x + 37`. **Décision en attente.**
+  - Le banc a besoin de `maxima-share` (`trigsimp`, chargé à la demande) ;
+    le WIMS local `wims432` en est dépourvu, et `trigsimp` y échoue.
   - `algsys`, `ordergreat` (rend `""`, Maxima `done`).
 
 - [x] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
