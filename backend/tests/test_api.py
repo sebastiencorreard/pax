@@ -501,7 +501,7 @@ class TestBilanDesEtapes:
     puis un) : une réponse fausse à l'étape 2 **arrête** l'exercice
     (`step.proc:66`, pas de `nonstop`). Le bilan compte les réponses des trois
     étapes annoncées moins les `?analyze`, plus la condition : 5 points, dont
-    3 obtenus — la condition et deux `litexp`. Au niveau 3, `freepower` = 2."""
+    3 obtenus — la condition et deux `litexp`. Au niveau 1, le défaut, `freepower` = 1."""
 
     DEVE7 = "H3~algebra~oefdevfact.fr~src~deve7"
 
@@ -533,7 +533,8 @@ class TestBilanDesEtapes:
         deux = dict(attendus[2], reply7="x")
         fin = self._envoyer(client, teacher_headers, 2, deux)
         assert fin["fin_du_parcours"] is True and fin["arret"] is True
-        assert fin["global_score"] == pytest.approx((3 / 5) ** 2)
+        # Niveau 1, `freepower` = 1 : 3/5, soit les 6/10 mesurés sur WIMS.
+        assert fin["global_score"] == pytest.approx(3 / 5)
         assert fin["attempt_id"] != "00000000-0000-0000-0000-000000000000"
 
 
@@ -872,7 +873,7 @@ class TestReglagesFeuille:
         r = client.get("/api/sheets/severite", headers=teacher_headers)
         assert r.status_code == 200
         body = r.json()
-        assert body["defaut"] == 3
+        assert body["defaut"] == 1
         assert len(body["reglages"]) == 10
         assert all(len(paliers) == 9 for paliers in body["reglages"].values())
 
@@ -880,7 +881,7 @@ class TestReglagesFeuille:
         body = client.get(
             f"/api/render/{EXERCISE_ID}?seed={SEED}", headers=student_headers
         ).json()
-        assert body["qcmlevel"] == 3
+        assert body["qcmlevel"] == 1
         assert body["reglages"] == {}
 
     def test_le_niveau_de_la_feuille_commande_le_rendu(

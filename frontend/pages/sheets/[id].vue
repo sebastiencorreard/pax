@@ -138,7 +138,7 @@
                 style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
                 @focus="focusLevel = drafts[item.id]!.qcmlevel"
                 @change="focusLevel = drafts[item.id]!.qcmlevel">
-                <option :value="null">{{ $t('sheets.severity_default', { level: severity?.defaut ?? 3 }) }}</option>
+                <option :value="null">{{ $t('sheets.severity_default', { level: severity?.defaut ?? 1 }) }}</option>
                 <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
               </select>
             </label>

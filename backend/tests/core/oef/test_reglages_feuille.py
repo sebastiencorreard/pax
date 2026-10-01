@@ -35,9 +35,11 @@ def _un_def(dossier: str) -> str:
 
 @pytest.mark.skipif(not os.path.isfile(DECALAGE_DEF), reason="corpus absent")
 class TestMoteur:
-    def test_sans_reglage_le_niveau_est_3(self):
+    def test_sans_reglage_le_niveau_est_1(self):
+        # Le niveau de l'entraînement chez WIMS (page d'introduction d'un
+        # module, `oef/default`) ; un lien direct prendrait 3.
         r = load_and_render(DECALAGE_DEF, seed=5)
-        assert r.severite["qcmlevel"] == 3
+        assert r.severite["qcmlevel"] == 1
         assert r.severite["givesol"] == 1
 
     def test_le_niveau_commande_les_dix_reglages(self):

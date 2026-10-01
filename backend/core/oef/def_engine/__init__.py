@@ -5496,7 +5496,8 @@ class DefEngine(_SlibMixin):
         `qcmlevel` fait foi, et chaque réglage peut être écrasé isolément — c'est
         exactement ce que fait `oef/exo.init` avec ses `!default`. Une feuille
         pose `qcmlevel` par les `reglages` de `load_and_render` ; faute de
-        feuille, PAX prend le niveau 3 (`_NIVEAU_DEFAUT`).
+        feuille, PAX prend le niveau 1 (`_NIVEAU_DEFAUT`), celui de l'entraînement
+        chez WIMS.
         """
         def _nombre(nom: str) -> float | None:
             brut = self._subst(str(self.ctx.get(nom, ""))).strip()
@@ -8267,20 +8268,19 @@ _SEVERITE: dict[str, tuple[float, ...]] = {
     "precweight": (0.9, 0.8, 0.7, 0.55, 0.4, 0.25, 0.1, 0, 0),
 }
 
-# Le niveau que PAX applique faute de mieux.
+# Le niveau que PAX applique faute de mieux : celui de WIMS **pour
+# l'entraînement**, le niveau 1.
 #
-# `oef/default` donne 1, mais c'est le défaut du *menu* de création d'une
-# feuille, pas celui des feuilles réelles. Trois mesures faites sur un WIMS de
-# référence (`OEFevalwimsfctref/valtrigo1`, cf. `check_numeric`) le placent au
-# **niveau 3** :
-#
-#     deux réponses approchées    4,9/10 = 0,7²
-#     une juste, une approchée    7,2/10 = 0,85²
-#     une juste, une fausse       2,5/10 = 0,5²
-#
-# C'est donc le niveau 3 que PAX prend quand aucune feuille ne porte le
-# réglage — il vit là chez WIMS, et n'a rien à faire dans le moteur.
-_NIVEAU_DEFAUT = 3
+# Le défaut de WIMS dépend du chemin (mesuré le 2026-10-01 sur un WIMS 4.32,
+# `fuseerep`, zéros partout : 1,7/10 au niveau 1, 0,3/10 au niveau 3). La page
+# d'introduction d'un module — par où l'élève s'entraîne, et par où
+# l'enseignant pose un exercice sur une feuille — présélectionne le niveau 1
+# (`oef/default` : `default_choice=1,…`, lu par `intromenu_nonexpert.phtml`).
+# Un lien direct, sans `qcmlevel`, prend 3 (`var.proc:157`) : c'est là qu'ont
+# été faites les mesures de `valtrigo1` (4,9/10 = 0,7²) qui avaient fixé ce
+# défaut à 3 le 2026-09-06. PAX n'a pas de lien direct au sens de WIMS ; sa
+# page d'exercice, hors feuille, est un entraînement.
+_NIVEAU_DEFAUT = 1
 
 
 def table_severite() -> dict:

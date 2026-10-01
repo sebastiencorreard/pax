@@ -1125,7 +1125,7 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `freepower` 1 ; `valtrigo1` (4,9/10) par un lien direct — `freepower` 2.
   La décision du 2026-09-06 lisait `default_choice` comme le défaut du seul
   menu de création de feuille : c'est aussi celui de l'entraînement libre.
-  Reste une **décision** (cf. V.5) : le défaut de PAX.
+  Décision prise (V.5) : niveau 1, comme l'entraînement chez WIMS.
 
 - [ ] **Vérifier la notation sur les autres formes** : un `course` long
   (`quizz/course04_1step`, 15 étapes), un exercice interrompu dès la première
@@ -1184,7 +1184,7 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   ne servait pas ; le consommateur est dans le moteur C, invisible à cette
   recherche. **Deux mesures sur WIMS l'ont établi** — cf. `check_numeric`.
 
-- [x] **Le niveau 3 est le défaut de PAX** (2026-09-06). Trois mesures sur le
+- [x] ~~**Le niveau 3 est le défaut de PAX**~~ (2026-09-06 ; **remplacé le 2026-10-01 par le niveau 1**, cf. V.5 — les mesures ci-dessous avaient été faites par lien direct). Trois mesures sur le
   WIMS de référence l'établissent, et la troisième — une réponse juste et une
   fausse — a confirmé la prédiction du modèle avant d'être faite :
 
@@ -1441,17 +1441,13 @@ exercice ou qu'il l'ouvre, et le compteur d'étoiles ne vit que sur la première
 
 À décider : unifier, ou assumer les deux barres.
 
-## 5. Le niveau de sévérité par défaut
+## 5. ~~Le niveau de sévérité par défaut~~ — tranché le 2026-10-01 : comme WIMS
 
-*Posée le 2026-10-01, après la mesure de `fuseerep` sur le WIMS local.*
-
-PAX applique le **niveau 3** à tout exercice ouvert sans réglage de feuille
-(décision du 2026-09-06). Chez WIMS, ce n'est le cas que d'un exercice ouvert
-**par lien direct**. L'élève qui s'entraîne passe d'ordinaire par la page
-d'introduction du module, qui présélectionne le **niveau 1** : `freepower` 1,
-`precweight` 0,9, solution et réponses données. Écart mesuré sur `fuseerep`,
-zéros partout : 1,7/10 au niveau 1, 0,3/10 au niveau 3.
-
-À décider : garder 3 (le lien direct ; la page d'exercice de PAX en est
-l'analogue le plus proche), ou passer à 1 hors feuille (l'entraînement libre de
-WIMS). Sur une feuille, la question ne se pose pas : l'enseignant choisit.
+PAX appliquait le niveau 3 hors feuille. Chez WIMS, c'est le défaut d'un
+**lien direct** ; l'élève qui s'entraîne passe par la page d'introduction du
+module, qui présélectionne le **niveau 1** — et l'enseignant aussi, en posant
+un exercice sur une feuille. Décision de l'utilisateur : comme WIMS. PAX n'a
+pas de lien direct au sens de WIMS, sa page d'exercice est un entraînement :
+`_NIVEAU_DEFAUT = 1`. Effets : `freepower` 1, `precweight` 0,9, solution et
+réponses données ; 367 palettes `\choice` repassent à trois propositions
+(344 instantanés) ; `deve7` vaut 6/10 comme sur WIMS, `fuseerep` 1,7/10.
