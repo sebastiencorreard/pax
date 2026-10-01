@@ -322,6 +322,56 @@ def _call_maxima(expr: str) -> str:
     return _sortie_maxima(_evaluer_maxima(_entree_maxima(expr)))
 
 
+def _sans_distribuer(calcul, moins: bool = True):
+    """``calcul()`` sans que SymPy distribue un nombre sur une somme, ou, s'il
+    échoue ainsi, ``calcul()`` ordinaire.
+
+    SymPy écrit d'office `1.12*(x+6)` en `1.12*x + 6.72` et `2*(x-1)*(x-3)`
+    en `(x-3)*(2*x-2)` ; Maxima garde le produit. La règle du produit de
+    `deriverProduit` (`2*(7*x+1)+7*(2*x+5)`) sortait ainsi `28*x + 37`, la
+    forme canonique d'`assocgr3` une fois développée (banc Maxima). Le seul
+    nombre que Maxima distribue est `-1`, et seulement quand il construit
+    `-1*(somme)` à partir du texte lu (`_moins_distribue`, ``moins``) : le
+    résultat d'une dérivée garde `-(x+3)/(x+2)^2`. Couper la
+    distribution n'est pas sûr partout — lire `cos(-6*x-2)` part alors en
+    récursion infinie —, d'où le repli.
+    """
+    from sympy.core.parameters import distribute  # noqa: PLC0415
+
+    try:
+        with distribute(False):
+            r = calcul()
+            return _moins_distribue(r) if moins else r
+    except Exception:  # noqa: BLE001
+        return calcul()
+
+
+def _moins_distribue(e):
+    """Maxima distribue `-1` sur une somme **seule** au numérateur :
+    `-(x+6)` → `-x-6`, `-(x+1)/(2*(x+5))` → `(-x-1)/(2*(x+5))`, mais
+    `-((x+1)*(x+3))` et `-(x*(x+2))` restent tels quels (banc Maxima)."""
+    import sympy  # noqa: PLC0415
+
+    def _un(m):
+        c, facteurs = m.as_coeff_mul()
+        # `-1`, ou `-1/q` quand un dénominateur numérique s'est détaché :
+        # `-(x+1)/(2*(x+5))` se lit `-1/2 · (x+1) · 1/(x+5)`.
+        if not (c.is_Rational and c.p == -1):
+            return m
+        # La somme doit être **seule** au numérateur : `-(x*(x+2))` reste tel
+        # quel chez Maxima, seuls des facteurs de dénominateur l'accompagnent.
+        numerateur = [f for f in facteurs if not (f.is_Pow and f.exp.is_negative)]
+        if len(numerateur) != 1 or not isinstance(numerateur[0], sympy.Add):
+            return m
+        somme = numerateur[0]
+        reste = [f for f in facteurs if f is not somme]
+        return sympy.Mul(-c, sympy.Add(*[-t for t in somme.args]), *reste)
+
+    if not isinstance(e, sympy.Basic):
+        return e
+    return e.replace(lambda u: isinstance(u, sympy.Mul), _un)
+
+
 def _sympify_arg(s: str):
     """sympify a Maxima/Pari arg, normalising `^` → `**` and supporting implicit mult."""
     import sympy  # noqa: PLC0415
@@ -539,12 +589,18 @@ def _evaluer_maxima(expr: str) -> str:
                 # Sur une variable complexe, SymPy sortait `re(x)`, `im(x)` et
                 # `derivative(…)` (`OEFevalwimsder1/signeder4`, banc Maxima).
                 reelle = sympy.Symbol(str(var), real=True)
-                d = sympy.diff(e.subs(var, reelle), reelle, order)
-                # `sign(x)` s'écrit `x/abs(x)` ; `abs(x)²` se réduit alors seul
-                # en `x²` sur une variable réelle, d'où le `1/x` de Maxima.
-                d = d.replace(lambda u: isinstance(u, sympy.sign) and u.args[0] == reelle,
-                              lambda u: reelle / sympy.Abs(reelle))
-                return _maxima_num_str(d.subs(reelle, var))
+
+                def _deriver():
+                    d = sympy.diff(_sympify_arg(args[0]).subs(var, reelle), reelle, order)
+                    # `sign(x)` s'écrit `x/abs(x)` ; `abs(x)²` se réduit alors
+                    # seul en `x²` sur une variable réelle : le `1/x` de Maxima.
+                    d = d.replace(lambda u: isinstance(u, sympy.sign) and u.args[0] == reelle,
+                                  lambda u: reelle / sympy.Abs(reelle))
+                    # Dans le même contexte : `subs` reconstruit l'expression,
+                    # et la redistribuerait.
+                    return d.subs(reelle, var)
+
+                return _maxima_num_str(_sans_distribuer(_deriver, moins=False))
             if func_name == "divide" and len(args) >= 2:
                 # `divide(p, q)` : quotient et reste, la liste `[q, r]` dont
                 # `output()` ôte les crochets — `divide(14,6)` → `2,2`
@@ -728,7 +784,11 @@ def _evaluer_maxima(expr: str) -> str:
                 return clean
 
     try:
-        result = sympy.simplify(_sympify_arg(clean))
+        # Maxima n'applique à une expression nue que sa simplification
+        # automatique : `(x+1/2)^2+3/2` reste une forme canonique, là où
+        # `simplify` la développait en `x^2 + x + 7/4` (`assocgr3`, banc
+        # Maxima). SymPy évalue de même à la lecture, sans plus.
+        result = _sans_distribuer(lambda: _sympify_arg(clean))
         if result.is_number and result.is_integer:
             return str(int(result))
         return _maxima_num_str(result)

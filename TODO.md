@@ -444,7 +444,11 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
     exercices (motif approximatif). Certains changent ce que l'exercice
     montre : la forme canonique `(x+1/2)^2+3/2` d'`assocgr3` sort
     `x^2 + x + 7/4`, la règle du produit `2*(7*x+1)+7*(2*x+5)` de
-    `deriverProduit` sort `28*x + 37`. **Décision en attente.**
+    `deriverProduit` sort `28*x + 37`. **Réglé le 2026-10-02** (décision :
+    suivre Maxima) : plus de `simplify` sur une expression nue, et pas de
+    distribution d'un nombre sur une somme (`distribute(False)`, sauf `-1`
+    sur une somme seule au numérateur). 88 sorties rejoignent Maxima, 0
+    perdue, aucune ne change de valeur ; 123 instantanés.
   - Le banc a besoin de `maxima-share` (`trigsimp`, chargé à la demande) ;
     le WIMS local `wims432` en est dépourvu, et `trigsimp` y échoue.
   - `algsys`, `ordergreat` (rend `""`, Maxima `done`).
