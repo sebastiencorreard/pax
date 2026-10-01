@@ -1109,15 +1109,23 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   (`solve_choix_analyze`) ; les champs non embarqués suivent le tableau
   `oefnoembed` de `form.phtml` (grille alignée, séparateur par type comme
   `replytype.proc`, 1 649 instantanés) ; bornes d'intégrale hors `\dfrac`.
-- [ ] **`fuseerep`, note finale** : zéros partout, WIMS 1/10, PAX 3 %. Nouvelle
-  mesure pour la question `freepower` ci-dessous (1 condition sur 7 : 1,4/10
-  avec `freepower`=1, 0,2 avec 2).
+- [x] **`fuseerep`, note finale** — juste (2026-10-01). Mesuré sur le WIMS
+  4.32 local (`wims432`, robot Playwright, zéros partout, trois essais par
+  niveau) : **1,7/10 au niveau 1, 0,3/10 au niveau 3** comme sans niveau.
+  Le bilan vaut 1/6 des deux côtés, et PAX donne les mêmes notes. Le
+  « WIMS 1/10 » noté ici venait d'une capture dont le niveau n'était pas
+  relevé ; il ne se reproduit pas.
 
-- [ ] **`freepower` : les deux mesures WIMS se contredisent.** Au niveau 3,
-  `exo.init` pose `freepower=2`, et `valtrigo1` le confirme (0,7² → 4,9/10).
-  Mais `deve7` a donné 6/10 et 4/10 là où le bilan vaut 3/5 et 2/5 — exact
-  avec `freepower=1`, 3,6 et 1,6 avec 2. PAX applique 2. À trancher par une
-  mesure dont on note le niveau de sévérité affiché par WIMS.
+- [x] **`freepower` : les deux mesures ne se contredisaient pas** (2026-10-01).
+  Le niveau par défaut de WIMS **dépend du chemin** : la page d'introduction
+  d'un module présélectionne le **niveau 1** (`oef/default` :
+  `default_choice=1,1,1,4,…`, lu par `intromenu_nonexpert.phtml` ; vérifié
+  sur trois modules), un lien direct n'envoie aucun niveau et `var.proc:157`
+  prend **3**. `deve7` (6/10, 4/10) avait été mesuré par l'introduction —
+  `freepower` 1 ; `valtrigo1` (4,9/10) par un lien direct — `freepower` 2.
+  La décision du 2026-09-06 lisait `default_choice` comme le défaut du seul
+  menu de création de feuille : c'est aussi celui de l'entraînement libre.
+  Reste une **décision** (cf. V.5) : le défaut de PAX.
 
 - [ ] **Vérifier la notation sur les autres formes** : un `course` long
   (`quizz/course04_1step`, 15 étapes), un exercice interrompu dès la première
@@ -1432,3 +1440,18 @@ L'utilisateur voit donc deux barres différentes selon qu'il prévisualise un
 exercice ou qu'il l'ouvre, et le compteur d'étoiles ne vit que sur la première.
 
 À décider : unifier, ou assumer les deux barres.
+
+## 5. Le niveau de sévérité par défaut
+
+*Posée le 2026-10-01, après la mesure de `fuseerep` sur le WIMS local.*
+
+PAX applique le **niveau 3** à tout exercice ouvert sans réglage de feuille
+(décision du 2026-09-06). Chez WIMS, ce n'est le cas que d'un exercice ouvert
+**par lien direct**. L'élève qui s'entraîne passe d'ordinaire par la page
+d'introduction du module, qui présélectionne le **niveau 1** : `freepower` 1,
+`precweight` 0,9, solution et réponses données. Écart mesuré sur `fuseerep`,
+zéros partout : 1,7/10 au niveau 1, 0,3/10 au niveau 3.
+
+À décider : garder 3 (le lien direct ; la page d'exercice de PAX en est
+l'analogue le plus proche), ou passer à 1 hors feuille (l'entraînement libre de
+WIMS). Sur une feuille, la question ne se pose pas : l'enseignant choisit.
