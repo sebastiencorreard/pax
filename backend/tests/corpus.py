@@ -30,13 +30,16 @@ def oef_paths() -> list[str]:
     racine = settings.resources_root.rstrip("/")
     sous_arbre = os.environ.get("PAX_TEST_CORPUS", "").strip("/")
     motif = f"{racine}/{sous_arbre}/**/*.oef" if sous_arbre else f"{racine}/**/*.oef"
-    # PAX ne rend que des `.def` : un `.oef` sans `.def` n'est pas un exercice
-    # PAX, et le seul du corpus (`oefpression/mathml`) est un fichier de
-    # démonstration hors `src/`. Le parseur OEF qui le rendait a été retiré.
+    # Un exercice est un `src/<nom>.oef` doté de son `def/<nom>.def`, comme
+    # chez WIMS et comme à l'import (`scripts/import_exercises.py`). Hors de
+    # `src/`, des brouillons : `oefpression/mathml`, et les anciennes versions
+    # d'`oefpython.fr/src1/`, qui trouvaient le `.def` de leur homonyme de
+    # `src/` et doublaient douze exercices.
     return sorted(
         c for c in glob.glob(motif, recursive=True)
-        if os.path.exists(os.path.join(os.path.dirname(os.path.dirname(c)), "def",
-                                       os.path.basename(c)[:-4] + ".def"))
+        if os.path.basename(os.path.dirname(c)) == "src"
+        and os.path.exists(os.path.join(os.path.dirname(os.path.dirname(c)), "def",
+                                        os.path.basename(c)[:-4] + ".def"))
     )
 
 

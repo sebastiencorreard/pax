@@ -212,7 +212,12 @@ async def import_exercises(
             continue
         for root, _, files in os.walk(domain_path):
             for f in sorted(files):
-                if f.endswith(".oef"):
+                # Un exercice WIMS est un `src/<nom>.oef`, compilé en
+                # `def/<nom>.def`. Ailleurs, ce sont des brouillons : les
+                # anciennes versions d'`oefpython.fr/src1/`, à qui
+                # `find_def_path` prêtait le `.def` de leur homonyme de `src/`
+                # — douze doublons exacts —, ou `oefpression.fr/mathml.oef`.
+                if f.endswith(".oef") and os.path.basename(root) == "src":
                     chemin = os.path.join(root, f)
                     # PAX ne rend que des `.def` : sans lui, rien à importer.
                     if find_def_path(chemin):
