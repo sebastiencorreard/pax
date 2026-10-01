@@ -71,6 +71,11 @@ def main():
                     for a in r.answers
                 ],
             }
+            # Solution et indication : figées elles aussi, mais seulement
+            # quand l'exercice en a — un champ absent vaut "" (cf. le test).
+            for cle in ("solution_html", "hint_html"):
+                if (getattr(r, cle) or "").strip():
+                    snap[cle] = getattr(r, cle)
             snap_path = os.path.join(SNAPSHOTS_DIR, f"ex_{ex_id}.json")
             with open(snap_path, "w", encoding="utf-8") as f:
                 json.dump(snap, f, ensure_ascii=False, indent=2)

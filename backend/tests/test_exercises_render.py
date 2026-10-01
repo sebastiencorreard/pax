@@ -395,3 +395,13 @@ def test_render_snapshot(exercise):
     assert current_answers == snap["answers"], (
         f"Les réponses attendues ont changé pour {ex_id}"
     )
+
+    # La solution et l'indication, que l'élève lit après s'être trompé. Elles
+    # échappaient au test : le `\\$ $` de `travail.fr/travail2` vivait dans
+    # sa solution, et sa correction (2026-10-01) n'a bougé aucun instantané.
+    # Absentes de la référence quand l'exercice n'en a pas.
+    for cle, nom in (("solution_html", "La solution"), ("hint_html", "L'indication")):
+        actuel = getattr(render, cle) or ""
+        assert (actuel if actuel.strip() else "") == snap.get(cle, ""), (
+            f"{nom} a changé pour {ex_id}"
+        )
