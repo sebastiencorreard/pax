@@ -558,9 +558,10 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 - [ ] **Les types sans aucune branche d'embed** — un trou plus large, à ne pas
   confondre avec le précédent : PAX ne les rend widget ni embarqués ni en
-  repli. Restent `reorder` (glisser-déposer bâti sur `compose.css`, 3 champs),
-  `crossword` (5), `clicktile` (14). `compose`/`textcomp` en sont **sortis le
-  2026-09-20** (75fdaee3, zone libre).
+  repli. Restent `reorder` (glisser-déposer bâti sur `compose.css`, 3 champs)
+  et `clicktile` (14). `compose`/`textcomp` en sont **sortis le 2026-09-20**
+  (75fdaee3, zone libre), `crossword` le **2026-09-30** (0fd81cf0 : la grille,
+  la note, « Réponse auto »).
 
   Vérifié contre leur `.input`, qui fait foi — et **trois faux positifs à ne
   pas rouvrir**, parce qu'un relevé plus ancien les comptait à tort :
@@ -1268,14 +1269,19 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
 
 ## 3. Clavier virtuel mathématique
 
-Barre en bas d'écran, masquable, compacte (touches de base + extension), mobile et desktop.
-Contrainte : les réponses sont des `<input>` texte brut (syntaxe WIMS, virgule décimale) — un clavier produisant du LaTeX ne se branche pas directement.
-
-Options :
-- [ ] **Composant maison** (recommandé) — mini-clavier Vue (~150 lignes) insérant des tokens au caret de l'input focalisé ; zéro dépendance, KaTeX déjà là pour les étiquettes
-- [ ] **simple-keyboard** (hodgef) — léger, layout custom, insère dans les inputs existants ; mais layout math à construire soi-même, dépendance peu justifiée pour ~20 touches
-- [ ] **MathLive** — clavier intégré excellent (layouts compact/minimalist, politique manual) mais couplé aux `<math-field>` (valeur LaTeX) → conversion LaTeX→WIMS à écrire, bundle lourd ; à considérer seulement si on veut la saisie WYSIWYG 2D
-- [ ] **MathQuill** — écarté : jQuery, maintenance sporadique, pas de clavier intégré
+- [x] **Composant maison** (`frontend/components/exercise/MathKeyboard.vue`,
+  b7fdeb9b, 2026-09-04) : il insère ses touches au curseur du champ qui a le
+  focus, en syntaxe WIMS — les réponses restent des `<input>` texte brut, ce
+  qui écartait tout clavier produisant du LaTeX. Zéro dépendance. Repris fin
+  septembre **à la manière de MathLive** — disposition, majuscule pour les
+  variantes, pastille flottante, ouvert d'office au doigt —, avec le
+  séparateur décimal et les lettres selon la langue, et le clavier du type
+  vers lequel WIMS aiguille un `default`. La dette de forme envers MathLive
+  est dite dans la page des licences.
+- Écartés : `simple-keyboard` (dépendance peu justifiée pour une vingtaine de
+  touches), MathLive lui-même (couplé à `<math-field>` et au LaTeX, bundle
+  lourd ; à reconsidérer seulement pour une saisie 2D WYSIWYG), MathQuill
+  (jQuery, maintenance sporadique).
 
 # III. Mentions légales
 
