@@ -127,9 +127,14 @@ d'essais notés) s'appuient dessus.
 
 ### 3.3 Étapes
 
-1. **Moteur de note** : port de §2.1 à §2.5 en fonctions pures, testées sur
-   des cas calculés à la main ; puis confrontées au WIMS local (une classe de
-   test, un élève, quelques exercices, notes relevées).
+1. **Moteur de note** — *fait le 2026-10-02* (`core/note_feuille.py`). Port
+   de §2.1 à §2.5 en fonctions pures, testées sur des cas calculés à la main,
+   puis **confrontées au WIMS local** : classe 7642386 sur `wims432` (verrou
+   `/tmp/wims432.verrou` partagé avec la session Nova), feuille de deux QCM,
+   un élève joué par robot. Sur la suite d'évènements du journal, WIMS
+   affiche note 2,87, qualité 3,3, cumul 40 %, réussite 40 %, acquis 0 —
+   PAX calcule les mêmes valeurs (`test_mesure_wims432`). Piège : la rafale
+   se déclenche même à 6 s d'écart entre deux requêtes.
 2. **Données et graines** : migration, `draws`, contrôle dans `/api/check`.
 3. **API élève** : ses feuilles (via ses classes, statut, dates), le détail
    d'une feuille (par exercice : points, qualité, meilleur, essais ; verrous

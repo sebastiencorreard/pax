@@ -102,3 +102,27 @@ def test_prerequis():
     assert not prerequis_atteint([(r, ex)], 36)
     # Moins de 10 points requis : ignoré.
     assert prerequis_atteint([(resultat(EtatExercice(), 5), ExerciceDeFeuille(requis=5))], 100)
+
+
+def test_mesure_wims432():
+    """Mesure réelle, WIMS 4.32 local, classe 7642386, 2026-10-02 : la suite
+    d'évènements du journal `score/paxeleve` (`new` = tirage, nombre = note),
+    et ce qu'affiche la page « Notes » de l'enseignant — note 2.87/10, qualité
+    3.3, cumul 40 %, réussite 40 %, acquis 0 ; QCM 105 : qualité 3.3, 50 %,
+    « 3 + 2 » essais."""
+    q102, q105 = EtatExercice(), EtatExercice()
+    journal = [(q102, "new"), (q102, 0), (q105, "new"), (q105, 0), (q102, "new"), (q102, 0),
+               (q105, "new"), (q105, "new"), (q105, 10), (q102, "new"), (q102, 0),
+               (q105, "new"), (q105, 0), (q105, "new"), (q102, "new"), (q102, 0)]
+    for etat, ev in journal:
+        if ev == "new":
+            etat.tirer()
+        else:
+            etat.noter(ev, 10 if etat is q102 else 20)
+    r102, r105 = resultat(q102, 10), resultat(q105, 20)
+    assert round(r105.qualite, 1) == 3.3 and r105.points == 10
+    assert (r105.essais, q105.tirages - r105.essais) == (3, 2)
+    p = pourcentages([(r102, ExerciceDeFeuille(10, 1)), (r105, ExerciceDeFeuille(20, 2))])
+    assert (p.cumul, p.meilleur, p.niveau) == (40, 40, 0)
+    assert round(p.qualite, 1) == 3.3
+    assert note_feuille(p) == 2.87
