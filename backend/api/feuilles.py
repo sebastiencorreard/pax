@@ -178,7 +178,8 @@ async def _eleves(db: AsyncSession, class_id: int) -> list:
 
 
 def _eleve(u) -> dict:
-    return {"id": str(u.id), "first_name": u.first_name, "last_name": u.last_name}
+    return {"id": str(u.id), "first_name": u.first_name, "last_name": u.last_name,
+            "email": u.email}
 
 
 async def notes_de_classe(db: AsyncSession, class_id: int) -> dict:
@@ -233,3 +234,48 @@ async def notes_de_feuille(db: AsyncSession, sheet, class_id: int) -> dict:
                           for e in b["exercices"]},
         })
     return {"exercices": exercices, "eleves": lignes}
+
+
+# En-têtes de l'export, dans la langue du séparateur (`core/oef/i18n.py`).
+_ENTETES_CSV = {
+    "fr": ("Nom", "Prénom", "Courriel", "Moyenne"),
+    "nl": ("Naam", "Voornaam", "E-mail", "Gemiddelde"),
+    "en": ("Last name", "First name", "Email", "Average"),
+}
+
+
+def _cellule(texte: str | None) -> str:
+    """Un texte libre dans une cellule : `=`, `+`, `-` ou `@` en tête ferait
+    d'un nom d'élève ou d'un titre de feuille une formule de tableur."""
+    texte = texte or ""
+    return f"'{texte}" if texte[:1] in ("=", "+", "-", "@", "\t", "\r") else texte
+
+
+def csv_des_notes(notes: dict, lang: str | None) -> str:
+    """Le tableau de `notes_de_classe` en CSV, comme l'export de WIMS
+    (`userscore/csv/download.proc`, colonnes `login,name,allscore`) : un élève
+    par ligne, puis ses notes de feuilles et la moyenne.
+
+    Séparateurs et virgule décimale suivent la langue — un tableur français
+    attend `;` et `2,5`. Un BOM ouvre le fichier : sans lui, Excel lit l'UTF-8
+    comme du Windows-1252 et défigure les accents."""
+    import csv  # noqa: PLC0415
+    import io  # noqa: PLC0415
+
+    from core.oef.i18n import _base, decimal_separator, list_separator  # noqa: PLC0415
+
+    sep, dec = list_separator(lang), decimal_separator(lang)
+    nom, prenom, courriel, moyenne = _ENTETES_CSV.get(_base(lang), _ENTETES_CSV["en"])
+
+    def nombre(x: float) -> str:
+        return f"{x:.2f}".replace(".", dec)
+
+    sortie = io.StringIO()
+    w = csv.writer(sortie, delimiter=sep, lineterminator="\r\n")
+    feuilles = notes["feuilles"]
+    w.writerow([nom, prenom, courriel, *(_cellule(f["title"]) for f in feuilles), moyenne])
+    for e in notes["eleves"]:
+        w.writerow([_cellule(e["last_name"]), _cellule(e["first_name"]), _cellule(e["email"]),
+                    *(nombre(e["notes"][f["sheet_id"]]["note"]) for f in feuilles),
+                    nombre(e["moyenne"])])
+    return "\ufeff" + sortie.getvalue()

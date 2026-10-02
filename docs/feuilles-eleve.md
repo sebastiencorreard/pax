@@ -182,7 +182,12 @@ d'essais notés) s'appuient dessus.
    Front : sur la fiche d'une feuille, la note (formule, indicateur, poids) et
    les classes (`components/sheets/Affectations.vue` : statut, dates, retrait,
    détail des notes) ; sur la page d'une classe, le tableau des notes
-   (`components/classes/Notes.vue`). e2e : `e2e/feuilles-enseignant.spec.ts`.
+   (`components/classes/Notes.vue`), et son export
+   `GET /api/classes/{id}/notes.csv?lang=…` — colonnes de WIMS par défaut
+   (`login,name,allscore` : courriel, nom, prénom, notes de feuilles,
+   moyenne), séparateurs de la langue (`;` et `2,50` en fr/nl), BOM pour
+   Excel, cellule commençant par `= + - @` préfixée d'une apostrophe (un nom
+   ou un titre ne devient pas une formule). e2e : `e2e/feuilles-enseignant.spec.ts`.
    Piège : le serveur rend ses dates en UTC **sans fuseau**, que `new Date`
    lit comme une heure locale — d'où `instantUtc` dans `useFeuilles.ts`, qui
    corrige au passage les dates de la page élève (décalées de deux heures).

@@ -1210,6 +1210,30 @@ class TestNotesEnseignant:
         assert ligne["exercices"][str(second)]["essais"] == 0
         assert ligne["cumul"] == 50
 
+    def test_export_csv(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        # Un titre qui, tel quel, serait une formule dans le tableur.
+        sheet_id = nouvelle_feuille("=1+1")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
+        self._juste(client, teacher_headers, student_headers, item_id)
+        url = f"/api/classes/{classe_de_l_eleve}/notes.csv"
+
+        r = client.get(url, headers=teacher_headers)
+        assert r.status_code == 200, r.text
+        assert r.headers["content-type"].startswith("text/csv")
+        assert r.headers["content-disposition"] == 'attachment; filename="notes-Classe-de-test_api.csv"'
+        assert r.text.startswith("﻿")
+        entete, ligne = r.text.lstrip("﻿").splitlines()
+        assert entete == "Nom;Prénom;Courriel;'=1+1;Moyenne"
+        assert ligne.endswith(";eleve@pax.fr;10,00;10,00")
+
+        entete, ligne = client.get(f"{url}?lang=en", headers=teacher_headers).text.lstrip("﻿").splitlines()
+        assert entete == "Last name,First name,Email,'=1+1,Average"
+        assert ligne.endswith(",eleve@pax.fr,10.00,10.00")
+        assert client.get(url, headers=student_headers).status_code == 403
+
     def test_les_dates_sont_ramenees_en_utc(
         self, client, teacher_headers, nouvelle_feuille, classe_de_l_eleve
     ):

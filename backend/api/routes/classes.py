@@ -117,6 +117,33 @@ async def class_notes(
     return await notes_de_classe(db, class_id)
 
 
+@router.get("/{class_id}/notes.csv")
+async def class_notes_csv(
+    class_id: int,
+    lang: str = "fr",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    """Le même tableau, à ouvrir dans un tableur ; `lang` fixe séparateurs et
+    en-têtes (`api/feuilles.py:csv_des_notes`)."""
+    import re  # noqa: PLC0415
+
+    from fastapi.responses import Response  # noqa: PLC0415
+
+    from api.feuilles import csv_des_notes, notes_de_classe  # noqa: PLC0415
+
+    cls = await db.get(Class, class_id)
+    if not cls:
+        raise HTTPException(status_code=404, detail="Classe introuvable")
+    _check_ownership(cls, current_user)
+    corps = csv_des_notes(await notes_de_classe(db, class_id), lang)
+    fichier = re.sub(r"[^\w-]+", "-", cls.name, flags=re.ASCII).strip("-") or str(class_id)
+    return Response(
+        content=corps, media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="notes-{fichier}.csv"'},
+    )
+
+
 @router.delete("/{class_id}", status_code=204)
 async def delete_class(
     class_id: int,

@@ -1321,7 +1321,9 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   (affectation, dates, réglages de note, tableau des notes).
 - [ ] Ce que WIMS a et que PAX n'a pas repris (`docs/feuilles-eleve.md`, fin
   de §3.3) : la rafale, les examens, les notes manuelles, `exotrymax`,
-  `multiplicity`, les versions d'exercice ; l'export des notes (CSV).
+  `multiplicity`, les versions d'exercice. L'export des notes en CSV est fait
+  (2026-10-02) ; WIMS laisse en plus choisir les colonnes (détail par
+  exercice, variables techniques) et propose le TSV.
 
 ## 2. Statistiques d'utilisation du site
 

@@ -2,9 +2,17 @@
   <div
     class="rounded-xl border overflow-hidden mb-4"
     style="background:var(--color-surface);border-color:var(--color-border)">
-    <div class="px-5 py-3 border-b font-semibold text-sm" style="border-color:var(--color-border)">
-      {{ $t('notes.title') }}
+    <div class="px-5 py-3 border-b flex items-center justify-between gap-3" style="border-color:var(--color-border)">
+      <span class="font-semibold text-sm">{{ $t('notes.title') }}</span>
+      <button
+        v-if="notes?.feuilles.length && notes.eleves.length" type="button"
+        class="text-xs px-2 py-1 rounded border disabled:opacity-50"
+        style="border-color:var(--color-border);color:var(--color-text)"
+        :disabled="exportEnCours" @click="exporter">
+        {{ $t('notes.export_csv') }}
+      </button>
     </div>
+    <p v-if="exportErreur" class="px-5 pt-3 text-xs text-red-500">{{ exportErreur }}</p>
     <p v-if="error" class="px-5 py-3 text-xs text-red-500">{{ error }}</p>
     <p v-else-if="!notes" class="px-5 py-3 text-xs" style="color:var(--color-text-muted)">…</p>
     <p
@@ -56,7 +64,7 @@ interface Notes {
 }
 
 const { apiFetch } = useApi()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { nombre } = useFeuilles()
 const notes = ref<Notes | null>(null)
 const error = ref('')
@@ -67,6 +75,28 @@ function poids(f: Feuille): string {
 
 function detail(n: Note | undefined): string {
   return n ? `${t('notes.cumul')} ${nombre(n.cumul, 0)} % · ${t('notes.qualite')} ${nombre(n.qualite, 1)}` : ''
+}
+
+// Le serveur écrit le fichier dans la langue de l'interface : un tableur
+// français attend `;` et la virgule décimale.
+const exportEnCours = ref(false)
+const exportErreur = ref('')
+async function exporter() {
+  exportEnCours.value = true
+  exportErreur.value = ''
+  try {
+    const blob = await apiFetch<Blob>(
+      `/api/classes/${props.classId}/notes.csv?lang=${String(locale.value)}`, { responseType: 'blob' })
+    const lien = document.createElement('a')
+    lien.href = URL.createObjectURL(blob)
+    lien.download = `notes-${props.classId}.csv`
+    lien.click()
+    URL.revokeObjectURL(lien.href)
+  } catch (e) {
+    exportErreur.value = messageErreur(e)
+  } finally {
+    exportEnCours.value = false
+  }
 }
 
 onMounted(async () => {

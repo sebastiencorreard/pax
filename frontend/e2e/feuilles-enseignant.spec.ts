@@ -80,6 +80,15 @@ test.describe('feuilles côté enseignant', () => {
     const tableau = page.locator('table').filter({ hasText: titre })
     await expect(tableau).toBeVisible({ timeout: 15_000 })
     await expect(tableau).toContainText('Périmée')
+
+    // L'export : un tableur français attend `;` et la virgule décimale.
+    const telechargement = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Exporter (CSV)' }).click()
+    const chemin = await (await telechargement).path()
+    const { readFile } = await import('node:fs/promises')
+    const [entete, eleve] = (await readFile(chemin, 'utf8')).replace(/^\uFEFF/, '').split('\r\n')
+    expect(entete).toBe(`Nom;Prénom;Courriel;${titre};Moyenne`)
+    expect(eleve).toMatch(/;eleve@pax\.fr;0,00;0,00$/)
   })
 
   test('les réglages de note sont enregistrés', async ({ page, request }) => {
