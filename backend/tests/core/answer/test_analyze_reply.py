@@ -167,6 +167,18 @@ class TestCondlist:
         assert condtest == {"condtest1": 1, "condtest3": 0}
         assert retenues == [1, 3]
 
+    def test_vide_ne_garde_rien(self):
+        """`var.proc` ne fait `all` que de `all` : une `condlist` vide ne
+        retient aucune condition (`quizz/course04_1step`, tant que sa
+        question 12 n'est pas atteinte). Signalée par `[0]`."""
+        from core.oef.def_engine import check_analyze
+
+        test = self._test(("condlist", ""), ("condtest1", "1"), ("condtest2", "1"))
+        retenues: list = []
+        condtest, _ = check_analyze({}, [], test, {}, seed=1, condlist_out=retenues)
+        assert condtest == {}
+        assert retenues == [0]
+
     def test_all_garde_tout(self):
         from core.oef.def_engine import check_analyze
 

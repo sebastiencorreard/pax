@@ -267,3 +267,25 @@ report à l'identique. Corrections : `\real{alpha=0}` dans `sdvar1` et
 `sdvar2` ; `\real{alpha=\alpha1}` dans `sdvar3` et `sdvar4` — ou, mieux, dans
 `cpp/sdvar.cpp`, qui les engendre tous. D'ici là, ces quatre exercices sont
 à écarter d'une feuille.
+
+## 7. Un poids écrit dans les options est ignoré — 54 exercices, dont 52 de `quizz.fr` — *à signaler*
+
+*Relevé le 2026-10-02, en vérifiant la notation de `quizz/course04_1step`.*
+
+Les « courses aux nombres » de `H3/math/quizz.fr` pondèrent leurs questions
+ainsi :
+
+```
+\answer{}{\rep1}{type=numeric}{option=\confparm2 default=0 weight=3}
+```
+
+Le compilateur OEF (`src/OefMsg2wims/process.c`) n'extrait `weight=` que
+lorsqu'il forme **un argument à part** de `\answer` — il écrit alors une ligne
+`replyweight<n>=` dans le `.def`. Noyé dans la chaîne d'options, il y reste, et
+`var.proc` le cherche dans `replyweight$i`, vide : chaque réponse pèse 1. Les
+54 `.def` concernés ne portent aucune ligne `replyweight`. Sur
+`course04_1step`, une première question juste vaut 1/14 (0,7/10), non les
+3/29 que l'auteur voulait.
+
+PAX lit le poids au même endroit que WIMS, et note donc pareil. Correction :
+`{option=\confparm2 default=0}{weight=3}`.

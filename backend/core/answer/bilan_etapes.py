@@ -210,9 +210,13 @@ def bilan(rendered, parcours: dict, etape: int, seed: int,
             declarees = 0
         # `condlist=all` : toutes les conditions déclarées comptent, même
         # celles que `:test` n'aurait pas posées. Une `condlist` explicite,
-        # elle, borne le compte à ses conditions.
+        # elle, borne le compte à ses conditions — vide (`[0]`), à aucune.
         numeros = [int(k[len("condtest"):]) for k in condtest if k[len("condtest"):].isdigit()]
-        for k in retenues or range(1, max([declarees, *numeros]) + 1):
+        if retenues == [0]:
+            retenues = []
+        elif not retenues:
+            retenues = list(range(1, max([declarees, *numeros]) + 1))
+        for k in retenues:
             nom = f"condtest{k}"
             w = poids_cond.get(nom, 1.0)
             tot += w

@@ -1157,9 +1157,18 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   menu de création de feuille : c'est aussi celui de l'entraînement libre.
   Décision prise (V.5) : niveau 1, comme l'entraînement chez WIMS.
 
-- [ ] **Vérifier la notation sur les autres formes** : un `course` long
-  (`quizz/course04_1step`, 15 étapes), un exercice interrompu dès la première
-  étape.
+- [x] **Vérifier la notation sur les autres formes** (2026-10-02,
+  `quizz/course04_1step`, 15 étapes, sans `nonstop`). Sur le WIMS local :
+  zéro à l'étape 1 → arrêt immédiat, **0/10**. PAX donnait 2/32 : la
+  `condlist` que le `:postdef` **vide** tant que la question 12 n'est pas
+  atteinte était lue comme `all`. Pour `var.proc`, vide veut dire aucune
+  condition (`!words2items`, `!itemcnt`) ; corrigé, PAX donne 0. Étape 1
+  juste, étape 2 fausse : 1/14 = **0,7/10** chez PAX comme chez WIMS — le
+  `weight=3` de l'auteur, noyé dans les options, est ignoré par le
+  compilateur OEF (`signalements-wims.md` §7, 54 exercices). Non mesuré :
+  un parcours long réussi jusqu'au bout — le calcul demandé est rendu par
+  MathJax et WIMS n'affiche pas la bonne réponse ; il faudrait lire le
+  MathJax pour répondre juste.
 
 ## 5. `\choice` — les menus déroulants d'OEF
 
