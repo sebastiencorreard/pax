@@ -121,7 +121,7 @@ est réel :
 |---|---|
 | `npm run lint` | 559 problèmes — 55 erreurs, 504 avertissements, dont **472 corrigeables par `lint:fix`** |
 | `npm run typecheck` | 69 erreurs, concentrées sur `DrawAnswer.vue` (28) et `utils/figureColors.ts` (13) |
-| `npm run test:e2e` | **37 passent, 2 ignorés, 0 échec** (39 tests, ~1 min) |
+| `npm run test:e2e` | **44 passent, 2 ignorés, 0 échec** (46 tests, ~1 min — au 2026-10-02) |
 
 Résorber l'arriéré est un chantier à part : `lint:fix` touche des centaines de
 fichiers pour un gain cosmétique, et mérite sa propre relecture. Ce qui compte
@@ -153,6 +153,11 @@ trois locales.
 Le piège à retenir : `waitForURL('**/exercise**')` est satisfait par
 `/auth/login?redirect=/exercise`, l'URL sur laquelle on retombe quand la
 connexion échoue — un login raté y passait pour un succès.
+
+La suite e2e se lance **depuis l'hôte** (`cd frontend && npx playwright
+test`) : le conteneur `frontend` n'a pas de navigateur, et un lancement par
+`docker compose exec` y laisse un `test-results/` appartenant à root, qui fait
+ensuite échouer le lancement depuis l'hôte (`EACCES`).
 
 **Mesurer la ligne de base avant de juger un delta** : celle écrite ici m'a fait
 croire un moment que j'avais cassé quelque chose.

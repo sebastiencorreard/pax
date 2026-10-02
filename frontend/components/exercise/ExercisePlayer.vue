@@ -150,7 +150,7 @@ const exerciseComponent = ref<any>(null)
 
 async function load(
   seed?: number, m_step?: number, replies?: Record<string, string>,
-  scores?: Record<string, number>,
+  scores?: Record<string, number>, nouveau = false,
 ) {
   loading.value = true
   loadError.value = ''
@@ -175,6 +175,10 @@ async function load(
       const valeur = route.query[cle]
       if (typeof valeur === 'string' && valeur) params.append(cle, valeur)
     }
+    // Dans une feuille, la graine d'un élève vient du serveur : sans ce
+    // drapeau il rend le tirage en cours, et « Nouvel énoncé » n'en changeait
+    // pas. Ignoré hors feuille et pour un enseignant.
+    if (nouveau && params.has('sheet_item')) params.append('nouveau', 'true')
     const url = `/api/render/${props.exerciseId}${params.toString() ? '?' + params.toString() : ''}`
     
     rendered.value = await apiFetch<Rendered>(url)
@@ -197,14 +201,16 @@ async function load(
     })
 
   } catch (e: any) {
-    loadError.value = e?.message || e?.data?.detail || JSON.stringify(e)
+    // Le `detail` du serveur d'abord (« Prérequis non atteint ») : le message
+    // de `$fetch` n'est que la requête et son statut HTTP.
+    loadError.value = e?.data?.detail || e?.message || JSON.stringify(e)
   } finally {
     loading.value = false
   }
 }
 
 function reload() {
-  load()
+  load(undefined, undefined, undefined, undefined, true)
 }
 
 onMounted(() => load())

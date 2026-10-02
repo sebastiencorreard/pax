@@ -104,6 +104,7 @@
         </div>
 
         <div v-if="checkResult.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
+        <NoteFeuille :rendered="rendered" :check-result="checkResult" />
       </div>
     </div>
 
@@ -145,6 +146,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 import BaseExerciseStatement from './BaseExerciseStatement.vue'
+import NoteFeuille from './NoteFeuille.vue'
 import { useExerciseLogic } from '~/composables/useExerciseLogic'
 
 const props = defineProps<{

@@ -156,8 +156,20 @@ d'essais notés) s'appuient dessus.
    l'enseignant l'essaie librement. Piège des tests : la graine de l'élève
    vient du serveur, `CORRECT_REPLY` ne vaut que pour `SEED` ; le corrigé du
    tirage se demande par une correction enseignant sur la même graine.
-4. **Front élève** : liste, page de feuille, lancement d'un exercice en mode
-   feuille.
+4. **Front élève** — *fait le 2026-10-02*. `pages/feuilles/index.vue` (ses
+   feuilles, note, avancement), `pages/feuilles/[id].vue` (exercice par
+   exercice : points, qualité, essais ; verrou de prérequis expliqué ; bandeau
+   quand la feuille ne note plus), lien « Mes feuilles » dans la barre
+   latérale pour un élève. Un exercice s'ouvre en
+   `/exercise/{id}?sheet_item=…&feuille=…` ; le retour ramène à la feuille.
+   « Nouvel énoncé » et « Nouvel exercice » passent `nouveau=true` — sans quoi
+   le serveur rendait le même tirage. Après correction, `NoteFeuille.vue` dit
+   si la note a compté (`note_enregistree`) ; une étape intermédiaire ne le
+   dit pas, seul l'envoi final note. Le lecteur affiche désormais le `detail`
+   du serveur (« Prérequis non atteint ») plutôt que la requête et son statut
+   HTTP. e2e : `e2e/feuilles-eleve.spec.ts`. Piège : un composant de
+   `components/exercise/` s'appelle `Exercise<Nom>` pour Nuxt — `<NoteFeuille>`
+   non importé ne rendait **rien**, sans erreur.
 5. **Front enseignant** : affecter une feuille à des classes, dates, réglages
    de note ; tableau des notes de la classe.
 

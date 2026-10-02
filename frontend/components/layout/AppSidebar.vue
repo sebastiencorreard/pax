@@ -32,6 +32,9 @@
     <!-- Navigation -->
     <nav class="flex-1 overflow-y-auto py-3 px-2">
       <LayoutSidebarLink to="/exercise" icon="📐" :label="$t('nav.exercises')" @click="$emit('close')" />
+      <LayoutSidebarLink
+        v-if="auth.user?.role === 'student'"
+        to="/feuilles" icon="📋" :label="$t('nav.my_sheets')" @click="$emit('close')" />
 
       <template v-if="auth.isTeacher">
         <LayoutSidebarLink to="/library" icon="🏷️" :label="$t('nav.library')" @click="$emit('close')" />

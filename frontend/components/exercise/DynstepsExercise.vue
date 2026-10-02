@@ -114,6 +114,11 @@
           </div>
         </div>
       </div>
+      <!-- Une étape intermédiaire ne note rien : seul l'envoi qui termine le
+           parcours compte. -->
+      <NoteFeuille
+        v-if="checkResult.fin_du_parcours !== false"
+        :rendered="rendered" :check-result="checkResult" />
     </div>
 
     <!-- Boutons -->
@@ -145,6 +150,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 import BaseExerciseStatement from './BaseExerciseStatement.vue'
+import NoteFeuille from './NoteFeuille.vue'
 import { useExerciseLogic } from '~/composables/useExerciseLogic'
 
 const props = defineProps<{

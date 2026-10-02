@@ -144,6 +144,9 @@ export interface CheckResult {
     detail?: string
   }>
   attempt_id: string
+  /** La note compte-t-elle dans la feuille ? Faux hors feuille, pour un
+   *  enseignant, pour un énoncé déjà noté ou une feuille fermée. */
+  note_enregistree?: boolean
   has_invalid_format?: boolean
   /** Une étape suit-elle celle qu'on vient de corriger ? `undefined` quand
    *  l'exercice n'a pas de `\\nextstep` — on s'en tient alors à `total_steps`. */
