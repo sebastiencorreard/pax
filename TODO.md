@@ -1314,9 +1314,12 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   (`qcmlevel`, `confparm`, cf. I.2 et I.6) et les essayer. Supprimer une
   feuille non vide répondait **500** — l'ORM détachait ses exercices au lieu
   de laisser la cascade SQL les emporter (`passive_deletes`, 2026-09-10).
-- [ ] Côté élève : rien. Relier feuilles et classes ; une vue élève de la
-  feuille (statut, ouverture et fermeture, prérequis) ; transmettre
-  `sheet_item` au rendu et à la correction pour noter.
+- [~] Côté élève : **conçu le 2026-10-02**, cf.
+  [`docs/feuilles-eleve.md`](docs/feuilles-eleve.md). Décisions : une feuille
+  peut servir à plusieurs classes ; la note suit le modèle de WIMS (cumul,
+  qualité, meilleur, niveau, sept formules) ; graines délivrées par le
+  serveur, une note par tirage (IV.2 bis). Cinq étapes : moteur de note,
+  données et graines, API élève, front élève, front enseignant.
 
 ## 2. Statistiques d'utilisation du site
 
