@@ -31,6 +31,12 @@ class Sheet(Base):
     open_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     close_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Calcul de la note (WIMS, `DF_SEVERITY = 1 2 1`) : formule 0–6
+    # (`I·Q^0,3` par défaut), indicateur 0–2 (cumul, meilleur, niveau), poids
+    # de la feuille dans la note globale. Cf. `core/note_feuille.py`.
+    note_formule: Mapped[int] = mapped_column(SmallInteger, default=2, server_default="2")
+    note_indicateur: Mapped[int] = mapped_column(SmallInteger, default=1, server_default="1")
+    note_poids: Mapped[float] = mapped_column(Numeric, default=1, server_default="1")
 
     # La base emporte les exercices d'une feuille supprimée (`ON DELETE
     # CASCADE`). Sans `passive_deletes`, l'ORM tentait d'abord de les détacher
@@ -69,6 +75,45 @@ class SheetExercise(Base):
 
     sheet: Mapped["Sheet"] = relationship(back_populates="items")
     exercise: Mapped["Exercise"] = relationship(back_populates="sheet_items")
+
+
+class SheetClass(Base):
+    """Une feuille affectée à une classe, avec son statut et ses dates pour
+    cette classe : une même feuille peut servir à plusieurs."""
+
+    __tablename__ = "sheet_classes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sheet_id: Mapped[int] = mapped_column(ForeignKey("sheets.id", ondelete="CASCADE"))
+    class_id: Mapped[int] = mapped_column(ForeignKey("classes.id", ondelete="CASCADE"))
+    # 0 = en préparation · 1 = active · 2 = périmée · 3 = cachée (WIMS)
+    status: Mapped[int] = mapped_column(SmallInteger, default=1, server_default="1")
+    open_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    close_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    sheet: Mapped["Sheet"] = relationship()
+
+
+class Tirage(Base):
+    """Une graine délivrée à un élève pour un exercice de feuille, et sa note.
+
+    Le `seed_score` de WIMS. L'élève ne choisit pas sa graine : le serveur la
+    délivre, et ne note qu'une fois chaque tirage (TODO IV.2 bis)."""
+
+    __tablename__ = "tirages"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    student_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    sheet_item_id: Mapped[int] = mapped_column(ForeignKey("sheet_exercises.id", ondelete="CASCADE"))
+    seed: Mapped[int] = mapped_column(Integer)
+    issued_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    scored_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    score: Mapped[float | None] = mapped_column(Numeric, nullable=True)  # 0 à 10
+    hint: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    attempt_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("attempts.id", ondelete="SET NULL"), nullable=True)
 
 
 class HomeworkAssignment(Base):

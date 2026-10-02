@@ -1,6 +1,6 @@
 from .user import Academie, Etablissement, User
 from .exercise import Exercise
-from .sheet import Sheet, SheetExercise, HomeworkAssignment, HomeworkPool, HomeworkPoolExercise
+from .sheet import Sheet, SheetExercise, SheetClass, Tirage, HomeworkAssignment, HomeworkPool, HomeworkPoolExercise
 from .attempt import Attempt, Grade
 from .tag import Tag, ExerciseTag
 from .class_model import Class, ClassStudent
@@ -8,7 +8,7 @@ from .class_model import Class, ClassStudent
 __all__ = [
     "Academie", "Etablissement", "User",
     "Exercise",
-    "Sheet", "SheetExercise", "HomeworkAssignment", "HomeworkPool", "HomeworkPoolExercise",
+    "Sheet", "SheetExercise", "SheetClass", "Tirage", "HomeworkAssignment", "HomeworkPool", "HomeworkPoolExercise",
     "Attempt", "Grade",
     "Tag", "ExerciseTag",
     "Class", "ClassStudent",

@@ -543,7 +543,7 @@ async def check_exercise(
     #     givefeed = 1,1,1,1,1,1,1,1,1   le commentaire de correction
     #     givegood = 1,1,1,1,1,1,0,0,0   la bonne réponse elle-même
     #
-    # Au niveau 3 — celui que PAX prend sans feuille — les trois sont
+    # Au niveau 1 — celui que PAX prend sans feuille — les trois sont
     # ouvertes : rien ne change pour un exercice qui ne règle rien. Une
     # feuille qui monte le niveau les referme (`api/reglages.py`).
     #
