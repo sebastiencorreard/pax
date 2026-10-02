@@ -16,11 +16,12 @@ rendue sous un autre niveau ne corrigerait pas ce que l'élève a vu.
 """
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.sheet import SheetExercise
+from models.sheet import Sheet, SheetExercise
 from models.user import User
 
 ROLES_ENSEIGNANT = ("teacher", "admin", "super_admin")
@@ -35,6 +36,11 @@ class Reglages:
     # Les paramètres de la requête, que le front renvoie tels quels à la
     # correction pour qu'elle rende l'exercice sous les mêmes réglages.
     demande: dict[str, int] = field(default_factory=dict)
+    # Un élève dans une feuille : l'exercice posé, et l'affectation par
+    # laquelle il l'atteint (`api/feuilles.py`). Sa graine vient alors d'un
+    # tirage, et sa note n'est enregistrée qu'à ces conditions.
+    sheet_item_id: int | None = None
+    affectation: Any = None
 
 
 async def resoudre_reglages(
@@ -51,7 +57,25 @@ async def resoudre_reglages(
             raise HTTPException(
                 status_code=404, detail="Exercice introuvable sur cette feuille"
             )
+        # Qui atteint cet exercice de feuille : l'élève d'une classe qui l'a
+        # reçue, l'enseignant qui l'a faite, un administrateur. Les autres ne
+        # voient rien — un 404, qui ne dit pas que la feuille existe.
+        if user.role == "student":
+            from api.feuilles import affectation_eleve  # noqa: PLC0415
+
+            reg.affectation = await affectation_eleve(db, user.id, item.sheet_id)
+            if reg.affectation is None:
+                raise HTTPException(
+                    status_code=404, detail="Exercice introuvable sur cette feuille"
+                )
+        elif user.role not in ("admin", "super_admin"):
+            feuille = await db.get(Sheet, item.sheet_id)
+            if feuille is None or feuille.teacher_id != user.id:
+                raise HTTPException(
+                    status_code=404, detail="Exercice introuvable sur cette feuille"
+                )
         reg.sheet_id = item.sheet_id
+        reg.sheet_item_id = item.id
         reg.demande["sheet_item"] = sheet_item
         reg.moteur.update(item.confparm or {})
         if item.qcmlevel is not None:

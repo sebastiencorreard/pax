@@ -88,6 +88,7 @@ async def render_exercise(
     scores: str | None = None,
     sheet_item: int | None = None,
     qcmlevel: int | None = Query(None, ge=1, le=9),
+    nouveau: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -96,6 +97,13 @@ async def render_exercise(
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
     reg = await resoudre_reglages(db, exercise_id, current_user, sheet_item, qcmlevel)
+    # Un élève dans une feuille ne choisit pas sa graine : il reçoit celle de
+    # son tirage en cours, ou d'un nouveau s'il le demande (`nouveau`, le
+    # `new` de WIMS). Celle qu'envoie le navigateur est ignorée (TODO IV.2 bis).
+    if current_user.role == "student" and reg.sheet_item_id is not None:
+        from api.feuilles import tirage_courant  # noqa: PLC0415
+
+        seed = (await tirage_courant(db, current_user.id, reg.sheet_item_id, nouveau)).seed
 
     # `replies` (JSON {input_name: value}) carries earlier course steps' answers
     # so a step statement can echo their verdict (`$m_sc_reply{n}`).

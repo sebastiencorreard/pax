@@ -86,6 +86,9 @@ class CheckResponse(BaseModel):
     global_score: float
     results: list[AnswerResult]
     attempt_id: str
+    # La note compte-t-elle ? Faux hors feuille, pour un enseignant, et pour un
+    # tirage déjà noté ou une feuille fermée (`api/feuilles.py`).
+    note_enregistree: bool = False
     has_invalid_format: bool = False
     noanalyzeprint: bool = False
     feedback_html: str | None = None
@@ -510,29 +513,6 @@ async def check_exercise(
                 chrono_factor = factor
                 global_score *= factor
 
-    # ── Enregistrement de la tentative ───────────────────────────────────────
-    attempt_id = "00000000-0000-0000-0000-000000000000"
-    if not has_invalid and fin_du_parcours is not False:
-        sheet_id = body.sheet_id if body.sheet_id is not None else reg.sheet_id
-        # Seul l'élève est noté : l'enseignant qui essaie l'exercice de sa
-        # feuille ne laisse pas de tentative rattachée à celle-ci — elle
-        # l'empêcherait en outre de supprimer sa feuille (`attempts.sheet_id`
-        # n'a pas de cascade).
-        if current_user.role != "student":
-            sheet_id = None
-        attempt = Attempt(
-            student_id=current_user.id,
-            exercise_id=exercise_id,
-            sheet_id=sheet_id,
-            score=global_score,
-            answers={r.input_name: r.value for r in body.replies},
-            seed=body.seed,
-            is_graded=sheet_id is not None,
-        )
-        db.add(attempt)
-        await db.commit()
-        await db.refresh(attempt)
-        attempt_id = str(attempt.id)
 
     # ── Portes du niveau de sévérité ──────────────────────────────────────
     #
@@ -594,6 +574,51 @@ async def check_exercise(
     if _qnum > 1 and _scorepower != 1 and 0 < global_score < 1:
         global_score = global_score ** _scorepower
 
+    # ── Enregistrement de la tentative ───────────────────────────────────────
+    #
+    # Après `freepower` et la pénalité : la note enregistrée est celle que voit
+    # l'élève. Elle était prise avant, et la base gardait une autre note.
+    attempt_id = "00000000-0000-0000-0000-000000000000"
+    notee = False
+    if not has_invalid and fin_du_parcours is not False:
+        # La feuille vient des réglages résolus côté serveur, jamais de la
+        # requête : un `sheet_id` envoyé par le navigateur n'est pas cru.
+        sheet_id = reg.sheet_id
+        # Seul l'élève est noté : l'enseignant qui essaie l'exercice de sa
+        # feuille ne laisse pas de tentative rattachée à celle-ci.
+        if current_user.role != "student":
+            sheet_id = None
+        # Un élève dans une feuille n'est noté que sur un tirage qui lui a été
+        # délivré et qui n'a pas encore de note, dans une feuille active et
+        # ouverte (`api/feuilles.py`). Rejouer une graine déjà notée — dont
+        # on a vu la correction — est corrigé, mais ne compte pas.
+        tirage = None
+        if current_user.role == "student" and reg.sheet_item_id is not None:
+            from api.feuilles import note_enregistrable, tirage_a_noter  # noqa: PLC0415
+
+            tirage = await tirage_a_noter(db, current_user.id, reg.sheet_item_id, body.seed)
+            notee = tirage is not None and note_enregistrable(reg.affectation)
+        attempt = Attempt(
+            student_id=current_user.id,
+            exercise_id=exercise_id,
+            sheet_id=sheet_id,
+            score=global_score,
+            answers={r.input_name: r.value for r in body.replies},
+            seed=body.seed,
+            is_graded=notee,
+        )
+        db.add(attempt)
+        await db.flush()
+        if tirage is not None and notee:
+            from datetime import datetime as _dt  # noqa: PLC0415
+
+            tirage.scored_at = _dt.utcnow()
+            tirage.score = round(10 * global_score, 4)  # sur 10, comme WIMS
+            tirage.attempt_id = attempt.id
+        await db.commit()
+        await db.refresh(attempt)
+        attempt_id = str(attempt.id)
+
     solution_html = rendered.solution_html.strip() or None
     if sev.get("givesol", 1) < 1:
         solution_html = None
@@ -610,6 +635,7 @@ async def check_exercise(
         global_score=global_score,
         results=results,
         attempt_id=attempt_id,
+        note_enregistree=notee,
         has_invalid_format=has_invalid,
         has_next_step=suite,
         fin_du_parcours=fin_du_parcours,

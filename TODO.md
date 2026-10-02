@@ -1356,7 +1356,12 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
 ## 2. Supprimer les scripts de création d'utilisateurs + reset mdp ?
 
 
-## 2 bis. Un élève peut rejouer une graine dont il a vu la réponse
+## 2 bis. ~~Un élève peut rejouer une graine dont il a vu la réponse~~ — fermé pour les feuilles le 2026-10-02
+
+Le serveur délivre la graine d'un exercice de feuille et ne note qu'une fois
+chaque tirage (`api/feuilles.py`, `docs/feuilles-eleve.md` §3.2). Hors feuille
+— l'entraînement libre — rien n'est enregistré comme note, et la question ne
+se pose pas. Relevé d'origine :
 
 Vérifié le 2026-09-30 par l'API, compte élève : `/api/check` sur
 `equaprod1`, graine 42, réponse `0` → note 0, attendu `-6/5,-9/8` renvoyé ;

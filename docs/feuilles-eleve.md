@@ -135,7 +135,14 @@ d'essais notés) s'appuient dessus.
    affiche note 2,87, qualité 3,3, cumul 40 %, réussite 40 %, acquis 0 —
    PAX calcule les mêmes valeurs (`test_mesure_wims432`). Piège : la rafale
    se déclenche même à 6 s d'écart entre deux requêtes.
-2. **Données et graines** : migration, `draws`, contrôle dans `/api/check`.
+2. **Données et graines** — *fait le 2026-10-02*. Migration `u9v0w1x2y3z4`
+   (`sheet_classes`, réglages de note, `tirages`, cascades) ; `api/feuilles.py`
+   (accès par la classe, tirage courant ou nouveau, tirage à noter) ; le rendu
+   délivre la graine (`nouveau=true` pour un autre tirage), la correction ne
+   note qu'un tirage délivré et non noté, dans une feuille active et ouverte,
+   et le dit (`note_enregistree`). Routes `/api/sheets/{id}/classes`. Au
+   passage : la tentative était enregistrée **avant** `freepower` et la
+   pénalité, avec une autre note que celle montrée à l'élève.
 3. **API élève** : ses feuilles (via ses classes, statut, dates), le détail
    d'une feuille (par exercice : points, qualité, meilleur, essais ; verrous
    de prérequis ; note de feuille).

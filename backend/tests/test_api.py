@@ -856,6 +856,28 @@ class TestSheets:
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture
+def classe_de_l_eleve(client, teacher_headers, student_headers):
+    """Une classe de l'enseignant de dev où l'élève de dev est inscrit ; la
+    supprime après le test (et avec elle ses affectations)."""
+    eleve = client.get("/api/auth/me", headers=student_headers).json()["id"]
+    r = client.post("/api/classes/", headers=teacher_headers, json={"name": "Classe de test_api"})
+    assert r.status_code == 201, r.text
+    class_id = r.json()["id"]
+    r = client.post(f"/api/classes/{class_id}/students", headers=teacher_headers,
+                    json={"student_id": eleve})
+    assert r.status_code == 201, r.text
+    yield class_id
+    r = client.delete(f"/api/classes/{class_id}", headers=teacher_headers)
+    assert r.status_code in (204, 404), r.text
+
+
+def _affecter(client, teacher_headers, sheet_id, class_id, status=1):
+    r = client.post(f"/api/sheets/{sheet_id}/classes", headers=teacher_headers,
+                    json={"class_id": class_id, "status": status})
+    assert r.status_code == 201, r.text
+
+
 def _poser(client, teacher_headers, sheet_id, **champs) -> int:
     """Pose EXERCISE_ID sur la feuille ; renvoie l'identifiant de l'item."""
     r = client.post(
@@ -885,10 +907,11 @@ class TestReglagesFeuille:
         assert body["reglages"] == {}
 
     def test_le_niveau_de_la_feuille_commande_le_rendu(
-        self, client, teacher_headers, student_headers, nouvelle_feuille
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
     ):
         sheet_id = nouvelle_feuille("Réglages : niveau")["id"]
         item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
         r = client.patch(
             f"/api/sheets/{sheet_id}/exercises/{item_id}",
             headers=teacher_headers,
@@ -969,3 +992,72 @@ class TestReglagesFeuille:
         r = client.get(f"/api/exercises/{EXERCISE_ID}/confparm", headers=teacher_headers)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
+
+
+
+class TestFeuillesEleve:
+    """Le parcours élève d'une feuille (`api/feuilles.py`) : accès par la
+    classe, graine délivrée par le serveur, une note par tirage — la faille du
+    rejeu de graine (TODO IV.2 bis) fermée."""
+
+    def _rendre(self, client, headers, item_id, **params):
+        q = "&".join(f"{k}={v}" for k, v in params.items())
+        return client.get(f"/api/render/{EXERCISE_ID}?sheet_item={item_id}&{q}", headers=headers)
+
+    def _corriger(self, client, headers, item_id, seed, reponse):
+        return client.post(f"/api/check/{EXERCISE_ID}", headers=headers, json={
+            "seed": seed, "sheet_item": item_id,
+            "replies": [{"input_name": "r1", "value": reponse}]})
+
+    def test_sans_affectation_rien(self, client, teacher_headers, student_headers, nouvelle_feuille):
+        sheet_id = nouvelle_feuille("Élève : sans classe")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        assert self._rendre(client, student_headers, item_id).status_code == 404
+        assert self._corriger(client, student_headers, item_id, SEED, "0").status_code == 404
+
+    def test_le_serveur_delivre_la_graine(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Élève : graine")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
+        a = self._rendre(client, student_headers, item_id, seed=SEED).json()["seed"]
+        # La graine du navigateur est ignorée ; recharger rend le même tirage.
+        assert self._rendre(client, student_headers, item_id, seed=SEED + 1).json()["seed"] == a
+        b = self._rendre(client, student_headers, item_id, nouveau="true").json()["seed"]
+        assert b != a
+
+    def test_une_note_par_tirage(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Élève : une note par tirage")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
+        seed = self._rendre(client, student_headers, item_id).json()["seed"]
+        r = self._corriger(client, student_headers, item_id, seed, "0").json()
+        assert r["note_enregistree"] is True
+        # Rejouer le même tirage — dont on a vu la correction — ne compte plus.
+        r = self._corriger(client, student_headers, item_id, seed, "0").json()
+        assert r["note_enregistree"] is False
+        # Une graine jamais délivrée non plus.
+        r = self._corriger(client, student_headers, item_id, seed + 1, "0").json()
+        assert r["note_enregistree"] is False
+
+    def test_une_feuille_perimee_ne_note_plus(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Élève : périmée")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve, status=2)
+        r = self._rendre(client, student_headers, item_id)
+        assert r.status_code == 200
+        r = self._corriger(client, student_headers, item_id, r.json()["seed"], "0").json()
+        assert r["note_enregistree"] is False
+
+    def test_une_feuille_cachee_est_invisible(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Élève : cachée")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve, status=3)
+        assert self._rendre(client, student_headers, item_id).status_code == 404

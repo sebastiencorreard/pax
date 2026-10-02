@@ -4,12 +4,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from db import get_db
-from models.sheet import Sheet, SheetExercise
+from models.sheet import Sheet, SheetClass, SheetExercise
+from models.class_model import Class
 from models.exercise import Exercise
 from models.user import User
 from api.schemas.sheet import (
     SheetCreate, SheetUpdate, SheetExerciseAdd, SheetExerciseUpdate,
     SheetResponse, SheetDetailResponse, SheetItemResponse,
+    SheetClassSet, SheetClassResponse,
 )
 from api.deps import get_current_user, require_role
 from core.oef.def_engine import table_severite
@@ -168,4 +170,68 @@ async def remove_exercise_from_sheet(
     await _feuille_modifiable(db, sheet_id, current_user)
     item = await _exercice_de_feuille(db, sheet_id, item_id)
     await db.delete(item)
+    await db.commit()
+
+
+# ── Affectation aux classes ──────────────────────────────────────────────────
+#
+# Une feuille peut servir à plusieurs classes, chacune avec son statut et ses
+# dates (`docs/feuilles-eleve.md`). L'enseignant doit tenir la feuille **et**
+# la classe.
+
+
+@router.get("/{sheet_id}/classes", response_model=list[SheetClassResponse])
+async def list_sheet_classes(
+    sheet_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    await _feuille_modifiable(db, sheet_id, current_user)
+    result = await db.execute(
+        select(SheetClass).where(SheetClass.sheet_id == sheet_id).order_by(SheetClass.id)
+    )
+    return result.scalars().all()
+
+
+@router.post("/{sheet_id}/classes", response_model=SheetClassResponse, status_code=201)
+async def set_sheet_class(
+    sheet_id: int,
+    data: SheetClassSet,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    """Affecte la feuille à une classe, ou met l'affectation à jour."""
+    await _feuille_modifiable(db, sheet_id, current_user)
+    classe = await db.get(Class, data.class_id)
+    if classe is None:
+        raise HTTPException(status_code=404, detail="Classe introuvable")
+    if classe.teacher_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Classe appartenant à un autre enseignant")
+    aff = (await db.execute(
+        select(SheetClass).where(SheetClass.sheet_id == sheet_id,
+                                 SheetClass.class_id == data.class_id)
+    )).scalar_one_or_none()
+    if aff is None:
+        aff = SheetClass(sheet_id=sheet_id, class_id=data.class_id)
+        db.add(aff)
+    aff.status, aff.open_at, aff.close_at = data.status, data.open_at, data.close_at
+    await db.commit()
+    await db.refresh(aff)
+    return aff
+
+
+@router.delete("/{sheet_id}/classes/{class_id}", status_code=204)
+async def remove_sheet_class(
+    sheet_id: int,
+    class_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    await _feuille_modifiable(db, sheet_id, current_user)
+    aff = (await db.execute(
+        select(SheetClass).where(SheetClass.sheet_id == sheet_id, SheetClass.class_id == class_id)
+    )).scalar_one_or_none()
+    if aff is None:
+        raise HTTPException(status_code=404, detail="Affectation introuvable")
+    await db.delete(aff)
     await db.commit()

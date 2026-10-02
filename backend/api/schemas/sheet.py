@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from .exercise import ExerciseResponse
 
 
@@ -141,5 +141,27 @@ class SheetItemResponse(BaseModel):
     qcmlevel: int | None = None
     confparm: dict[str, str] | None = None
     exercise: ExerciseResponse
+
+    model_config = {"from_attributes": True}
+
+
+class SheetClassSet(BaseModel):
+    """Affecter une feuille à une classe, ou modifier l'affectation.
+
+    `status` suit WIMS : 0 en préparation, 1 active (visible et notée),
+    2 périmée (visible, plus notée), 3 cachée."""
+    class_id: int
+    status: int = Field(1, ge=0, le=3)
+    open_at: datetime | None = None
+    close_at: datetime | None = None
+
+
+class SheetClassResponse(BaseModel):
+    id: int
+    sheet_id: int
+    class_id: int
+    status: int
+    open_at: datetime | None
+    close_at: datetime | None
 
     model_config = {"from_attributes": True}
