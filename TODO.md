@@ -1287,14 +1287,12 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   sévérité d'une feuille notée en retouchant l'adresse. Même porteur que les
   `confparm` (I.2).
 
-- [ ] **Le parcours élève des feuilles** (cf. II.1). Le réglage ne sert encore
-  qu'à l'aperçu enseignant : aucune classe ne voit de feuille, et seul le
-  bouton *Essayer* envoie un `sheet_item`. Deux points à tenir ce jour-là :
-  `attempts.sheet_id` et `grades.sheet_id` n'ont **pas de cascade**, si bien
-  qu'une feuille ayant des tentatives d'élèves ne pourra pas être supprimée ;
-  et la tentative d'un enseignant n'est volontairement pas rattachée à la
-  feuille (`check.py`). `scorepower` et les seuils `seedcnt` attendent aussi
-  ce parcours (`qnum`).
+- [~] **Le parcours élève des feuilles** (cf. II.1) — en place le
+  2026-10-02 : les élèves d'une classe voient leurs feuilles et y sont notés.
+  Les cascades sont posées (`attempts.sheet_id` en `SET NULL`,
+  `grades.sheet_id` en `CASCADE`) ; la tentative d'un enseignant n'est
+  toujours volontairement pas rattachée à la feuille (`check.py`). Restent
+  `scorepower` et les seuils `seedcnt` (`qnum`).
 
 - [ ] **Mode expert** (`intro_expert=yes`) : chaque réglage posé isolément.
   Le moteur l'accepte déjà — `severite()` laisse chaque clé écraser le
@@ -1314,12 +1312,16 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   (`qcmlevel`, `confparm`, cf. I.2 et I.6) et les essayer. Supprimer une
   feuille non vide répondait **500** — l'ORM détachait ses exercices au lieu
   de laisser la cascade SQL les emporter (`passive_deletes`, 2026-09-10).
-- [~] Côté élève : **conçu le 2026-10-02**, cf.
+- [x] Côté élève et notes : **fait le 2026-10-02**, cf.
   [`docs/feuilles-eleve.md`](docs/feuilles-eleve.md). Décisions : une feuille
   peut servir à plusieurs classes ; la note suit le modèle de WIMS (cumul,
   qualité, meilleur, niveau, sept formules) ; graines délivrées par le
-  serveur, une note par tirage (IV.2 bis). Cinq étapes : moteur de note,
-  données et graines, API élève, front élève, front enseignant.
+  serveur, une note par tirage (IV.2 bis). Cinq étapes, toutes faites : moteur
+  de note, données et graines, API élève, front élève, front enseignant
+  (affectation, dates, réglages de note, tableau des notes).
+- [ ] Ce que WIMS a et que PAX n'a pas repris (`docs/feuilles-eleve.md`, fin
+  de §3.3) : la rafale, les examens, les notes manuelles, `exotrymax`,
+  `multiplicity`, les versions d'exercice ; l'export des notes (CSV).
 
 ## 2. Statistiques d'utilisation du site
 

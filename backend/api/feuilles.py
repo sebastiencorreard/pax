@@ -162,3 +162,74 @@ async def bilan_eleve(db: AsyncSession, eleve_id: uuid.UUID, sheet) -> dict:
     note = note_feuille(p, int(sheet.note_formule), int(sheet.note_indicateur))
     return {"exercices": lignes, "cumul": p.cumul, "qualite": p.qualite,
             "meilleur": p.meilleur, "niveau": p.niveau, "note": note}
+
+
+# ── Les notes d'une classe, vues par l'enseignant ────────────────────────────
+
+
+async def _eleves(db: AsyncSession, class_id: int) -> list:
+    from models.user import User  # noqa: PLC0415
+
+    return list((await db.execute(
+        select(User).join(ClassStudent, ClassStudent.student_id == User.id)
+        .where(ClassStudent.class_id == class_id)
+        .order_by(User.last_name, User.first_name)
+    )).scalars().all())
+
+
+def _eleve(u) -> dict:
+    return {"id": str(u.id), "first_name": u.first_name, "last_name": u.last_name}
+
+
+async def notes_de_classe(db: AsyncSession, class_id: int) -> dict:
+    """Le tableau des notes d'une classe : un élève par ligne, une feuille par
+    colonne, et la note globale.
+
+    Comme `adm/class/userscore` : seules les feuilles actives **ou périmées**
+    (statut 1 ou 2) y figurent et comptent dans la moyenne, pondérée par leur
+    `note_poids` — une feuille périmée garde ses notes. Chaque note est
+    recalculée des tirages (`bilan_eleve`) : une requête par élève et par
+    feuille, ce qu'une classe supporte.
+    """
+    from sqlalchemy.orm import selectinload  # noqa: PLC0415
+
+    from core.note_feuille import note_globale  # noqa: PLC0415
+    from models.sheet import Sheet  # noqa: PLC0415
+
+    affs = (await db.execute(
+        select(SheetClass, Sheet).join(Sheet, Sheet.id == SheetClass.sheet_id)
+        .where(SheetClass.class_id == class_id, SheetClass.status.in_((ACTIVE, PERIMEE)))
+        .options(selectinload(Sheet.items))
+        .order_by(SheetClass.sheet_id)
+    )).all()
+    feuilles = [{"sheet_id": s.id, "title": s.title, "status": a.status,
+                 "note_poids": float(s.note_poids)} for a, s in affs]
+    lignes = []
+    for u in await _eleves(db, class_id):
+        notes, ponderees = {}, []
+        for _, s in affs:
+            b = await bilan_eleve(db, u.id, s)
+            notes[s.id] = {"note": b["note"], "cumul": b["cumul"], "qualite": b["qualite"]}
+            ponderees.append((b["note"], float(s.note_poids)))
+        lignes.append({**_eleve(u), "notes": notes, "moyenne": note_globale(ponderees)})
+    return {"feuilles": feuilles, "eleves": lignes}
+
+
+async def notes_de_feuille(db: AsyncSession, sheet, class_id: int) -> dict:
+    """Le détail d'une feuille pour une classe : un élève par ligne, un
+    exercice par colonne (points, qualité, essais), et la note de feuille."""
+    items = sorted(sheet.items, key=lambda i: (i.position, i.id))
+    exercices = [{"id": i.id, "numero": n, "exercise_id": i.exercise_id,
+                  "title": i.exercise.title if i.exercise else None,
+                  "requis": int(i.points or 0), "actif": bool(i.active)}
+                 for n, i in enumerate(items, 1)]
+    lignes = []
+    for u in await _eleves(db, class_id):
+        b = await bilan_eleve(db, u.id, sheet)
+        lignes.append({
+            **_eleve(u),
+            **{k: b[k] for k in ("note", "cumul", "qualite", "meilleur", "niveau")},
+            "exercices": {e["id"]: {k: e[k] for k in ("points", "qualite", "essais", "tirages")}
+                          for e in b["exercices"]},
+        })
+    return {"exercices": exercices, "eleves": lignes}

@@ -19,6 +19,8 @@
       </button>
     </div>
 
+    <ClassesNotes :class-id="id" />
+
     <!-- Liste des élèves -->
     <div class="rounded-xl border overflow-hidden mb-4"
          style="background:var(--color-surface);border-color:var(--color-border)">

@@ -109,6 +109,8 @@ async def update_sheet(
 ):
     sheet = await _feuille_modifiable(db, sheet_id, current_user)
     for field, value in data.model_dump(exclude_unset=True).items():
+        if value is None and field.startswith("note_"):
+            continue  # pas de « valeur par défaut » à rendre : la colonne l'a déjà
         setattr(sheet, field, value)
     await db.commit()
     await db.refresh(sheet)
@@ -235,3 +237,27 @@ async def remove_sheet_class(
         raise HTTPException(status_code=404, detail="Affectation introuvable")
     await db.delete(aff)
     await db.commit()
+
+
+@router.get("/{sheet_id}/classes/{class_id}/notes")
+async def sheet_class_notes(
+    sheet_id: int,
+    class_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    """Le travail d'une classe sur la feuille : élève par élève, exercice par
+    exercice (`api/feuilles.py:notes_de_feuille`)."""
+    from api.feuilles import notes_de_feuille  # noqa: PLC0415
+
+    await _feuille_modifiable(db, sheet_id, current_user)
+    aff = (await db.execute(
+        select(SheetClass).where(SheetClass.sheet_id == sheet_id, SheetClass.class_id == class_id)
+    )).scalar_one_or_none()
+    if aff is None:
+        raise HTTPException(status_code=404, detail="Affectation introuvable")
+    sheet = (await db.execute(
+        select(Sheet).where(Sheet.id == sheet_id)
+        .options(selectinload(Sheet.items).selectinload(SheetExercise.exercise))
+    )).scalar_one()
+    return await notes_de_feuille(db, sheet, class_id)

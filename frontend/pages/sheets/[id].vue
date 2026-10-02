@@ -53,6 +53,35 @@
         </div>
       </div>
 
+      <!-- La note de la feuille, réglée comme chez WIMS (`core/note_feuille.py`). -->
+      <fieldset class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <legend class="text-xs font-medium mb-2">{{ $t('sheets.note_section') }}</legend>
+        <label class="text-xs">
+          <span class="block mb-1">{{ $t('sheets.note_formule') }}</span>
+          <select
+            v-model="editForm.note_formule" class="w-full rounded-lg border px-3 py-1.5 text-sm"
+            style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)">
+            <option v-for="(f, s) in FORMULES" :key="s" :value="s">{{ formule(f) }}</option>
+          </select>
+        </label>
+        <label class="text-xs">
+          <span class="block mb-1">{{ $t('sheets.note_indicateur') }}</span>
+          <select
+            v-model="editForm.note_indicateur" class="w-full rounded-lg border px-3 py-1.5 text-sm"
+            style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)">
+            <option v-for="i in [0, 1, 2]" :key="i" :value="i">{{ $t(`sheets.indicateur_${i}`) }}</option>
+          </select>
+        </label>
+        <label class="text-xs">
+          <span class="block mb-1">{{ $t('sheets.note_poids') }}</span>
+          <input
+            v-model.number="editForm.note_poids" type="number" min="0" step="1"
+            class="w-full rounded-lg border px-3 py-1.5 text-sm"
+            style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)">
+        </label>
+        <p class="sm:col-span-3 text-xs" style="color:var(--color-text-muted)">{{ $t('sheets.note_aide') }}</p>
+      </fieldset>
+
       <div class="flex items-center gap-3">
         <button type="submit" :disabled="saving"
                 class="px-4 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
@@ -66,6 +95,8 @@
         </button>
       </div>
     </form>
+
+    <SheetsAffectations :sheet-id="id" />
 
     <!-- Exercices -->
     <div class="rounded-xl border overflow-hidden"
@@ -229,6 +260,15 @@ interface Draft { qcmlevel: number | null; confparm: Record<string, string> }
 interface Sheet {
   id: number; title: string; description: string | null; author: string | null
   level: string | null; domain: string | null; status: number; items: SheetItem[]
+  note_formule: number; note_indicateur: number; note_poids: number
+}
+
+// `scripts/adm/class/sheetformula`, dans l'ordre du réglage (0 à 6) :
+// I l'indicateur choisi, Q la qualité, tous deux ramenés à 1.
+const FORMULES = ['max(I, Q)', 'I', 'I·Q^0.3', 'I·Q^0.5', 'I·Q', 'I²·Q', '(I·Q)²']
+const { nombre } = useFeuilles()
+function formule(f: string): string {
+  return f.replace(/\d\.\d/, x => nombre(Number(x), 1))
 }
 
 const sheet = ref<Sheet | null>(null)
@@ -246,7 +286,10 @@ const drafts = reactive<Record<number, Draft>>({})
 const savingItem = ref<number | null>(null)
 const savedItem = ref<number | null>(null)
 
-const editForm = reactive({ title: '', description: '', level: '', domain: '', status: 1 })
+const editForm = reactive({
+  title: '', description: '', level: '', domain: '', status: 1,
+  note_formule: 2, note_indicateur: 1, note_poids: 1,
+})
 const addForm = reactive({ exercise_id: '', points: 10 })
 
 async function load() {
@@ -254,7 +297,10 @@ async function load() {
   try {
     const s = await apiFetch<Sheet>(`/api/sheets/${id}`)
     sheet.value = s
-    Object.assign(editForm, { title: s.title, description: s.description ?? '', level: s.level ?? '', domain: s.domain ?? '', status: s.status })
+    Object.assign(editForm, {
+      title: s.title, description: s.description ?? '', level: s.level ?? '', domain: s.domain ?? '', status: s.status,
+      note_formule: s.note_formule, note_indicateur: s.note_indicateur, note_poids: s.note_poids,
+    })
     await loadSettings(s)
   } catch {
     sheet.value = null
@@ -319,6 +365,10 @@ async function saveSheet() {
         level: editForm.level || null,
         domain: editForm.domain || null,
         status: editForm.status,
+        note_formule: editForm.note_formule,
+        note_indicateur: editForm.note_indicateur,
+        // Un champ vidé : le poids reste ce qu'il était.
+        note_poids: typeof editForm.note_poids === 'number' ? editForm.note_poids : undefined,
       },
     })
     if (sheet.value) sheet.value.title = updated.title

@@ -100,6 +100,23 @@ async def get_class(
     )
 
 
+@router.get("/{class_id}/notes")
+async def class_notes(
+    class_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    """Le tableau des notes : élèves × feuilles, et la note globale
+    (`api/feuilles.py:notes_de_classe`)."""
+    from api.feuilles import notes_de_classe  # noqa: PLC0415
+
+    cls = await db.get(Class, class_id)
+    if not cls:
+        raise HTTPException(status_code=404, detail="Classe introuvable")
+    _check_ownership(cls, current_user)
+    return await notes_de_classe(db, class_id)
+
+
 @router.delete("/{class_id}", status_code=204)
 async def delete_class(
     class_id: int,

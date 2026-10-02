@@ -87,7 +87,9 @@ Réglages par feuille (`DF_SEVERITY = 1 2 1` par défaut) : poids `w`, formule
 
 avec `I = I_ss / 100`, `Q = qualité / 10`.
 Note de la feuille = `rint(100·scoremax·f) / 100`, `scoremax` = 10 par défaut.
-Note globale = moyenne des notes de feuilles **actives**, pondérée par `w`.
+Note globale = moyenne des notes de feuilles **actives ou périmées**, pondérée
+par `w` (`userscore/var.proc` : `status>0 and <3` ; une feuille périmée garde
+ses notes). `w` est un entier de 0 à 100 000 (`sheetweights`).
 
 ### 2.5 Prérequis (`_depcheck`)
 
@@ -170,8 +172,20 @@ d'essais notés) s'appuient dessus.
    HTTP. e2e : `e2e/feuilles-eleve.spec.ts`. Piège : un composant de
    `components/exercise/` s'appelle `Exercise<Nom>` pour Nuxt — `<NoteFeuille>`
    non importé ne rendait **rien**, sans erreur.
-5. **Front enseignant** : affecter une feuille à des classes, dates, réglages
-   de note ; tableau des notes de la classe.
+5. **Front enseignant** — *fait le 2026-10-02*. API : les réglages de note
+   (`note_formule` 0–6, `note_indicateur` 0–2, `note_poids` 0–100 000) lus et
+   réglés par `PATCH /api/sheets/{id}` — un `null` n'y vide pas la colonne ;
+   `GET /api/classes/{id}/notes` (élève × feuille, moyenne pondérée) et
+   `GET /api/sheets/{id}/classes/{class_id}/notes` (élève × exercice), tous
+   deux recalculés des tirages par `bilan_eleve`. Une date d'affectation qui
+   porte un fuseau est ramenée en UTC sans fuseau, la forme des colonnes.
+   Front : sur la fiche d'une feuille, la note (formule, indicateur, poids) et
+   les classes (`components/sheets/Affectations.vue` : statut, dates, retrait,
+   détail des notes) ; sur la page d'une classe, le tableau des notes
+   (`components/classes/Notes.vue`). e2e : `e2e/feuilles-enseignant.spec.ts`.
+   Piège : le serveur rend ses dates en UTC **sans fuseau**, que `new Date`
+   lit comme une heure locale — d'où `instantUtc` dans `useFeuilles.ts`, qui
+   corrige au passage les dates de la page élève (décalées de deux heures).
 
 Non repris au départ : la **rafale** (`checkrafale`), les examens, les notes
 manuelles, `exotrymax`, `multiplicity`, les versions d'exercice

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, field_validator
 from .exercise import ExerciseResponse
 
@@ -37,6 +37,9 @@ class SheetResponse(BaseModel):
     open_at: datetime | None
     close_at: datetime | None
     created_at: datetime
+    note_formule: int = 2
+    note_indicateur: int = 1
+    note_poids: float = 1.0
 
     model_config = {"from_attributes": True}
 
@@ -51,6 +54,12 @@ class SheetUpdate(BaseModel):
     status: int | None = None
     open_at: datetime | None = None
     close_at: datetime | None = None
+    # La note de la feuille (`core/note_feuille.py`), bornée comme le fait
+    # `scripts/adm/class/sheetweights` : formule 0 à 6 (`sheetformula`),
+    # indicateur 0 cumul · 1 meilleur · 2 niveau, poids 0 à 100000.
+    note_formule: int | None = Field(None, ge=0, le=6)
+    note_indicateur: int | None = Field(None, ge=0, le=2)
+    note_poids: float | None = Field(None, ge=0, le=100000)
 
     @field_validator("status")
     @classmethod
@@ -154,6 +163,15 @@ class SheetClassSet(BaseModel):
     status: int = Field(1, ge=0, le=3)
     open_at: datetime | None = None
     close_at: datetime | None = None
+
+    @field_validator("open_at", "close_at")
+    @classmethod
+    def en_utc(cls, v: datetime | None) -> datetime | None:
+        """Les colonnes sont en UTC sans fuseau, comparées à `utcnow()`
+        (`api/feuilles.py`) : une date qui porte un fuseau y est ramenée."""
+        if v is not None and v.tzinfo is not None:
+            v = v.astimezone(timezone.utc).replace(tzinfo=None)
+        return v
 
 
 class SheetClassResponse(BaseModel):

@@ -121,7 +121,7 @@ est réel :
 |---|---|
 | `npm run lint` | 559 problèmes — 55 erreurs, 504 avertissements, dont **472 corrigeables par `lint:fix`** |
 | `npm run typecheck` | 69 erreurs, concentrées sur `DrawAnswer.vue` (28) et `utils/figureColors.ts` (13) |
-| `npm run test:e2e` | **44 passent, 2 ignorés, 0 échec** (46 tests, ~1 min — au 2026-10-02) |
+| `npm run test:e2e` | **46 passent, 2 ignorés, 0 échec** (48 tests, ~1 min — au 2026-10-02) |
 
 Résorber l'arriéré est un chantier à part : `lint:fix` touche des centaines de
 fichiers pour un gain cosmétique, et mérite sa propre relecture. Ce qui compte

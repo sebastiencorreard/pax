@@ -1126,3 +1126,97 @@ class TestFeuillesEleve:
         detail = client.get(f"/api/feuilles/{sheet_id}", headers=student_headers).json()
         assert [e["verrouille"] for e in detail["exercices"]] == [False, False]
         assert self._rendre(client, student_headers, second).status_code == 200
+
+
+class TestNotesEnseignant:
+    """Ce que l'enseignant voit et règle (étape 5) : réglages de note de la
+    feuille, tableau des notes d'une classe, détail d'une feuille."""
+
+    def _juste(self, client, teacher_headers, student_headers, item_id):
+        """L'élève fait juste un tirage de l'exercice `item_id`."""
+        seed = client.get(f"/api/render/{EXERCISE_ID}?sheet_item={item_id}",
+                          headers=student_headers).json()["seed"]
+        juste = client.post(f"/api/check/{EXERCISE_ID}", headers=teacher_headers, json={
+            "seed": seed, "replies": [{"input_name": "r1", "value": WRONG_REPLY}],
+        }).json()["results"][0]["expected"]
+        r = client.post(f"/api/check/{EXERCISE_ID}", headers=student_headers, json={
+            "seed": seed, "sheet_item": item_id,
+            "replies": [{"input_name": "r1", "value": juste}]}).json()
+        assert r["note_enregistree"] is True
+
+    def test_reglages_de_note(self, client, teacher_headers, nouvelle_feuille):
+        feuille = nouvelle_feuille("Notes : réglages")
+        assert (feuille["note_formule"], feuille["note_indicateur"], feuille["note_poids"]) == (2, 1, 1)
+        url = f"/api/sheets/{feuille['id']}"
+        r = client.patch(url, headers=teacher_headers,
+                         json={"note_formule": 4, "note_indicateur": 0, "note_poids": 3})
+        assert r.status_code == 200, r.text
+        assert (r.json()["note_formule"], r.json()["note_indicateur"], r.json()["note_poids"]) == (4, 0, 3)
+        for corps in ({"note_formule": 7}, {"note_indicateur": 3}, {"note_poids": -1}):
+            assert client.patch(url, headers=teacher_headers, json=corps).status_code == 422, corps
+        # `null` ne vide pas la colonne : le réglage reste.
+        r = client.patch(url, headers=teacher_headers, json={"note_formule": None})
+        assert r.status_code == 200 and r.json()["note_formule"] == 4
+
+    def test_tableau_de_la_classe(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        eleve = client.get("/api/auth/me", headers=student_headers).json()["id"]
+        faite = nouvelle_feuille("Notes : faite")["id"]
+        item_id = _poser(client, teacher_headers, faite)
+        _affecter(client, teacher_headers, faite, classe_de_l_eleve)
+        vide = nouvelle_feuille("Notes : vide")["id"]
+        _poser(client, teacher_headers, vide)
+        _affecter(client, teacher_headers, vide, classe_de_l_eleve, status=2)
+        cachee = nouvelle_feuille("Notes : cachée")["id"]
+        _affecter(client, teacher_headers, cachee, classe_de_l_eleve, status=3)
+        self._juste(client, teacher_headers, student_headers, item_id)
+
+        r = client.get(f"/api/classes/{classe_de_l_eleve}/notes", headers=teacher_headers)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        # Active et périmée comptent ; la cachée n'est pas au tableau.
+        assert [f["sheet_id"] for f in body["feuilles"]] == [faite, vide]
+        (ligne,) = body["eleves"]
+        assert ligne["id"] == eleve
+        note = ligne["notes"][str(faite)]["note"]
+        assert note > 0 and ligne["notes"][str(vide)]["note"] == 0
+        assert ligne["moyenne"] == pytest.approx(note / 2, abs=0.01)
+
+        # Le poids de la feuille vide à 0 : la moyenne est la note de l'autre.
+        client.patch(f"/api/sheets/{vide}", headers=teacher_headers, json={"note_poids": 0})
+        body = client.get(f"/api/classes/{classe_de_l_eleve}/notes", headers=teacher_headers).json()
+        assert body["eleves"][0]["moyenne"] == pytest.approx(note)
+
+        assert client.get(f"/api/classes/{classe_de_l_eleve}/notes",
+                          headers=student_headers).status_code == 403
+
+    def test_detail_d_une_feuille(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Notes : détail")["id"]
+        premier = _poser(client, teacher_headers, sheet_id)
+        second = _poser(client, teacher_headers, sheet_id)
+        url = f"/api/sheets/{sheet_id}/classes/{classe_de_l_eleve}/notes"
+        # Pas encore affectée à cette classe.
+        assert client.get(url, headers=teacher_headers).status_code == 404
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
+        self._juste(client, teacher_headers, student_headers, premier)
+
+        body = client.get(url, headers=teacher_headers).json()
+        assert [e["id"] for e in body["exercices"]] == [premier, second]
+        (ligne,) = body["eleves"]
+        assert ligne["exercices"][str(premier)]["points"] == 10
+        assert ligne["exercices"][str(second)]["essais"] == 0
+        assert ligne["cumul"] == 50
+
+    def test_les_dates_sont_ramenees_en_utc(
+        self, client, teacher_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Notes : dates")["id"]
+        r = client.post(f"/api/sheets/{sheet_id}/classes", headers=teacher_headers, json={
+            "class_id": classe_de_l_eleve, "status": 1,
+            "open_at": "2026-10-05T08:00:00+02:00", "close_at": "2026-10-12T18:00:00Z"})
+        assert r.status_code == 201, r.text
+        assert r.json()["open_at"] == "2026-10-05T06:00:00"
+        assert r.json()["close_at"] == "2026-10-12T18:00:00"

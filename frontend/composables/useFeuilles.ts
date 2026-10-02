@@ -48,6 +48,27 @@ export function messageErreur(e: unknown): string {
   return err?.data?.detail || String(e)
 }
 
+/**
+ * Le serveur garde les dates en UTC **sans fuseau** (`2026-10-12T18:00:00`) ;
+ * `new Date` lirait cette chaîne comme une heure locale.
+ */
+export function instantUtc(iso: string): Date {
+  return new Date(/[Zz]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`)
+}
+
+/** Pour un `<input type="datetime-local">` : la date du serveur, à l'heure locale. */
+export function versChampLocal(iso: string | null): string {
+  if (!iso) return ''
+  const d = instantUtc(iso)
+  const z = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`
+}
+
+/** L'inverse : la saisie locale, rendue au serveur en UTC. */
+export function depuisChampLocal(local: string): string | null {
+  return local ? new Date(local).toISOString() : null
+}
+
 export function useFeuilles() {
   const { locale } = useI18n()
 
@@ -58,7 +79,7 @@ export function useFeuilles() {
 
   function date(iso: string | null): string {
     if (!iso) return ''
-    return new Date(iso).toLocaleDateString(String(locale.value), {
+    return instantUtc(iso).toLocaleDateString(String(locale.value), {
       day: 'numeric', month: 'long', year: 'numeric',
     })
   }
