@@ -19,7 +19,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from models.sheet import Sheet, SheetExercise
 from models.user import User
@@ -61,13 +63,24 @@ async def resoudre_reglages(
         # reçue, l'enseignant qui l'a faite, un administrateur. Les autres ne
         # voient rien — un 404, qui ne dit pas que la feuille existe.
         if user.role == "student":
-            from api.feuilles import affectation_eleve  # noqa: PLC0415
+            from api.feuilles import affectation_eleve, bilan_eleve  # noqa: PLC0415
 
             reg.affectation = await affectation_eleve(db, user.id, item.sheet_id)
             if reg.affectation is None:
                 raise HTTPException(
                     status_code=404, detail="Exercice introuvable sur cette feuille"
                 )
+            # Un exercice verrouillé par ses prérequis (`_depcheck` de WIMS)
+            # ne se rend ni ne se corrige — sinon il suffirait de connaître
+            # l'adresse pour le faire avant les autres.
+            if item.prerequisite:
+                feuille = (await db.execute(
+                    select(Sheet).where(Sheet.id == item.sheet_id)
+                    .options(selectinload(Sheet.items))
+                )).scalar_one()
+                bilan = await bilan_eleve(db, user.id, feuille)
+                if any(e["id"] == item.id and e["verrouille"] for e in bilan["exercices"]):
+                    raise HTTPException(status_code=403, detail="Prérequis non atteint")
         elif user.role not in ("admin", "super_admin"):
             feuille = await db.get(Sheet, item.sheet_id)
             if feuille is None or feuille.teacher_id != user.id:

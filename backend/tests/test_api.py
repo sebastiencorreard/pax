@@ -1009,6 +1009,13 @@ class TestFeuillesEleve:
             "seed": seed, "sheet_item": item_id,
             "replies": [{"input_name": "r1", "value": reponse}]})
 
+    def _corrige(self, client, teacher_headers, seed):
+        """La réponse juste du tirage `seed` : le serveur choisit la graine de
+        l'élève, `CORRECT_REPLY` ne vaut que pour `SEED`."""
+        r = client.post(f"/api/check/{EXERCISE_ID}", headers=teacher_headers, json={
+            "seed": seed, "replies": [{"input_name": "r1", "value": WRONG_REPLY}]})
+        return r.json()["results"][0]["expected"]
+
     def test_sans_affectation_rien(self, client, teacher_headers, student_headers, nouvelle_feuille):
         sheet_id = nouvelle_feuille("Élève : sans classe")["id"]
         item_id = _poser(client, teacher_headers, sheet_id)
@@ -1061,3 +1068,61 @@ class TestFeuillesEleve:
         item_id = _poser(client, teacher_headers, sheet_id)
         _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve, status=3)
         assert self._rendre(client, student_headers, item_id).status_code == 404
+
+    def test_mes_feuilles_et_le_detail(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Élève : liste et détail")["id"]
+        item_id = _poser(client, teacher_headers, sheet_id)
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
+        r = client.get("/api/feuilles/mes", headers=student_headers)
+        assert r.status_code == 200, r.text
+        vue = next(f for f in r.json() if f["sheet_id"] == sheet_id)
+        assert vue["note_enregistrable"] is True
+        assert vue["exercices"] == 1 and vue["note"] == 0
+
+        detail = client.get(f"/api/feuilles/{sheet_id}", headers=student_headers).json()
+        (ex,) = detail["exercices"]
+        assert ex["id"] == item_id and ex["points"] == 0 and not ex["verrouille"]
+
+        # Une correction juste se voit dans la note de la feuille.
+        seed = self._rendre(client, student_headers, item_id).json()["seed"]
+        juste = self._corrige(client, teacher_headers, seed)
+        r = self._corriger(client, student_headers, item_id, seed, juste).json()
+        assert r["note_enregistree"] is True and r["global_score"] == 1
+        detail = client.get(f"/api/feuilles/{sheet_id}", headers=student_headers).json()
+        (ex,) = detail["exercices"]
+        assert ex["points"] == 10 and ex["essais"] == 1
+        assert detail["note"] > 0 and detail["cumul"] == 100
+
+    def test_la_feuille_est_reservee_a_l_eleve(
+        self, client, teacher_headers, student_headers, nouvelle_feuille
+    ):
+        sheet_id = nouvelle_feuille("Élève : réservée")["id"]
+        assert client.get("/api/feuilles/mes", headers=teacher_headers).status_code == 403
+        # Non affectée à sa classe : l'élève ne la voit pas.
+        assert client.get(f"/api/feuilles/{sheet_id}", headers=student_headers).status_code == 404
+        mes = client.get("/api/feuilles/mes", headers=student_headers).json()
+        assert sheet_id not in [f["sheet_id"] for f in mes]
+
+    def test_un_prerequis_verrouille_l_exercice(
+        self, client, teacher_headers, student_headers, nouvelle_feuille, classe_de_l_eleve
+    ):
+        sheet_id = nouvelle_feuille("Élève : prérequis")["id"]
+        premier = _poser(client, teacher_headers, sheet_id)
+        second = _poser(client, teacher_headers, sheet_id, prerequisite="1:50")
+        _affecter(client, teacher_headers, sheet_id, classe_de_l_eleve)
+        detail = client.get(f"/api/feuilles/{sheet_id}", headers=student_headers).json()
+        assert [e["verrouille"] for e in detail["exercices"]] == [False, True]
+        # Verrouillé au rendu comme à la correction.
+        assert self._rendre(client, student_headers, second).status_code == 403
+        assert self._corriger(client, student_headers, second, SEED, "0").status_code == 403
+        # L'enseignant, lui, l'essaie librement.
+        assert self._rendre(client, teacher_headers, second).status_code == 200
+
+        seed = self._rendre(client, student_headers, premier).json()["seed"]
+        self._corriger(client, student_headers, premier, seed,
+                       self._corrige(client, teacher_headers, seed))
+        detail = client.get(f"/api/feuilles/{sheet_id}", headers=student_headers).json()
+        assert [e["verrouille"] for e in detail["exercices"]] == [False, False]
+        assert self._rendre(client, student_headers, second).status_code == 200

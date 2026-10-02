@@ -143,9 +143,19 @@ d'essais notés) s'appuient dessus.
    et le dit (`note_enregistree`). Routes `/api/sheets/{id}/classes`. Au
    passage : la tentative était enregistrée **avant** `freepower` et la
    pénalité, avec une autre note que celle montrée à l'élève.
-3. **API élève** : ses feuilles (via ses classes, statut, dates), le détail
-   d'une feuille (par exercice : points, qualité, meilleur, essais ; verrous
-   de prérequis ; note de feuille).
+3. **API élève** — *fait le 2026-10-02* (`api/routes/feuilles_eleve.py`).
+   `GET /api/feuilles/mes` : les feuilles visibles de l'élève (via ses
+   classes ; actives ou périmées, et déjà ouvertes), avec sa note.
+   `GET /api/feuilles/{id}` : le détail, exercice par exercice (points,
+   qualité, meilleur, niveau, essais, tirages, verrou), et la note. Rien n'est
+   stocké : `api/feuilles.py:bilan_eleve` rejoue les tirages de l'élève dans
+   l'ordre à travers `core/note_feuille.py`, comme `rawscorecalc` relit le
+   journal. Un exercice **verrouillé** par ses prérequis (`_depcheck`) est
+   refusé (403) au rendu **et** à la correction, dans
+   `api/reglages.py:resoudre_reglages` — connaître l'adresse ne suffit pas ;
+   l'enseignant l'essaie librement. Piège des tests : la graine de l'élève
+   vient du serveur, `CORRECT_REPLY` ne vaut que pour `SEED` ; le corrigé du
+   tirage se demande par une correction enseignant sur la même graine.
 4. **Front élève** : liste, page de feuille, lancement d'un exercice en mode
    feuille.
 5. **Front enseignant** : affecter une feuille à des classes, dates, réglages

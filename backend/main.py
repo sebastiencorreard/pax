@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.routes import auth, exercises, sheets, render, check, tags, classes, admin, etablissements
+from api.routes import auth, exercises, sheets, render, check, tags, classes, admin, etablissements, feuilles_eleve
 from config import settings
 
 logger = logging.getLogger("uvicorn")
@@ -53,6 +53,7 @@ app.include_router(tags.router)
 app.include_router(classes.router)
 app.include_router(admin.router)
 app.include_router(etablissements.router)
+app.include_router(feuilles_eleve.router)
 
 # Serve exercise resources (images, audio, etc.) under /api/static.
 # Public (no auth) — corpus content is not sensitive.

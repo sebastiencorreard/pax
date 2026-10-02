@@ -94,3 +94,71 @@ async def tirage_a_noter(db: AsyncSession, eleve_id: uuid.UUID, item_id: int,
                Tirage.seed == seed, Tirage.scored_at.is_(None))
         .order_by(Tirage.issued_at.desc()).limit(1)
     )).scalar_one_or_none()
+
+
+# ── Bilan d'un élève sur une feuille ─────────────────────────────────────────
+
+
+def _prerequis(texte: str | None) -> tuple[list[int], int] | None:
+    """`"1+3:60"` → `([1, 3], 60)` : les numéros d'exercices et le seuil."""
+    if not texte or ":" not in texte:
+        return None
+    nums, _, seuil = texte.partition(":")
+    try:
+        return [int(n) for n in nums.split("+") if n.strip()], int(seuil)
+    except ValueError:
+        return None
+
+
+async def bilan_eleve(db: AsyncSession, eleve_id: uuid.UUID, sheet) -> dict:
+    """Le travail d'un élève sur une feuille, recalculé de ses tirages.
+
+    Les tirages sont rejoués dans l'ordre à travers `core/note_feuille.py`,
+    comme `rawscorecalc` relit le journal de WIMS : chacun compte comme un
+    `new`, et sa note, s'il en a une, comme une ligne `score`.
+    """
+    from core.note_feuille import (  # noqa: PLC0415
+        EtatExercice, ExerciceDeFeuille, note_feuille, pourcentages,
+        prerequis_atteint, resultat,
+    )
+
+    items = sorted((i for i in sheet.items), key=lambda i: (i.position, i.id))
+    etats = {i.id: EtatExercice() for i in items}
+    tirages = (await db.execute(
+        select(Tirage)
+        .where(Tirage.student_id == eleve_id, Tirage.sheet_item_id.in_(list(etats) or [0]))
+        .order_by(Tirage.issued_at)
+    )).scalars().all()
+    requis = {i.id: int(i.points or 0) for i in items}
+    for t in tirages:
+        e = etats[t.sheet_item_id]
+        e.tirer()
+        if t.hint:
+            e.indiquer()
+        if t.score is not None:
+            e.noter(float(t.score), requis[t.sheet_item_id])
+
+    resultats = {i.id: resultat(etats[i.id], requis[i.id]) for i in items}
+    feuille = {i.id: ExerciceDeFeuille(requis[i.id], float(i.weight or 0), bool(i.active))
+               for i in items}
+    lignes = []
+    for numero, i in enumerate(items, 1):
+        r = resultats[i.id]
+        verrou = False
+        dep = _prerequis(i.prerequisite)
+        if dep:
+            nums, seuil = dep
+            cibles = [items[n - 1] for n in nums if 1 <= n <= len(items)]
+            verrou = not prerequis_atteint(
+                [(resultats[c.id], feuille[c.id]) for c in cibles], seuil)
+        lignes.append({
+            "id": i.id, "numero": numero, "exercise_id": i.exercise_id,
+            "actif": bool(i.active), "requis": requis[i.id], "poids": float(i.weight or 0),
+            "prerequis": i.prerequisite, "verrouille": verrou,
+            "points": r.points, "qualite": r.qualite, "meilleur": r.meilleur,
+            "niveau": r.niveau, "essais": r.essais, "tirages": etats[i.id].tirages,
+        })
+    p = pourcentages([(resultats[i.id], feuille[i.id]) for i in items])
+    note = note_feuille(p, int(sheet.note_formule), int(sheet.note_indicateur))
+    return {"exercices": lignes, "cumul": p.cumul, "qualite": p.qualite,
+            "meilleur": p.meilleur, "niveau": p.niveau, "note": note}
